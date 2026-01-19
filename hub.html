@@ -12,11 +12,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <!-- Font Awesome (icons) -->
-<!-- Font Awesome 6 — official and stable -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-RXf+QSDCUQs6Q0Mhyx+qPQ8SRz7D+qf9tJ3hj6p1t4XFl8X0q5c6Kq3WkV2R9rN6M8A9tU9vK4vWvvlb+oS0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="hub.css" />
     <link rel="stylesheet" href="burger.css" />
-    <link rel="stylesheet" href="hub.css" />
+    <link rel="stylesheet" href="media/hub.css" />
 
 </head>
 <body>
@@ -399,7 +399,15 @@
   <!-- ====================== SECURE CREDITS ====================== -->
   <section id="secure-credits" class="secure-credits-wrap">
     <div class="container">
-      <div class="secure-credits-card">
+      <!-- Toggle Button -->
+      <button type="button" id="secureToggleBtn" class="secure-toggle-btn">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Secure Your Credits</span>
+        <i class="fa-solid fa-chevron-down toggle-chevron"></i>
+      </button>
+
+      <!-- Collapsible Card -->
+      <div id="secureCreditsCard" class="secure-credits-card collapsed">
         <div class="secure-icon">
           <i class="fa-solid fa-shield-halved"></i>
         </div>
@@ -680,6 +688,6 @@
 
     <script src="hub.js"></script>
     <script src="burger.js"></script>
-    <script src="credits.js"></script>
+    <script src="js/credits.js"></script>
 </body>
 </html>
