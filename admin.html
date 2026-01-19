@@ -1,0 +1,191 @@
+<!-- admin.html — FINAL (no token display; token kept in sessionStorage; API is hardcoded; clean reviewer UI) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin — TimrX Blogs</title>
+  <link rel="stylesheet" href="admin.css"/><link rel="stylesheet" href="styles.css"/><link rel="stylesheet" href="burger.css"/><link rel="stylesheet" href="media/admin.css"/>
+</head>
+<body>
+  <nav class="nav divider"><div class="container nav-inner">
+    <a class="brand" href="index.html" aria-label="Home">
+      <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="blogs.html">Blogs</a>
+      <a href="write.html">Write</a>
+      <button id="logout" class="btn-logout">Log out</button>
+    </div>
+
+    <!-- Burger button (2-line Apple style - mobile only) -->
+    <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+      <div class="burger-icon">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </div>
+    </button>
+  </div></nav>
+
+  <!-- Burger overlay -->
+  <div id="burgerOverlay"></div>
+
+  <!-- Burger menu -->
+  <nav id="burgerMenu" aria-label="Mobile menu">
+    <div class="burger-menu__items">
+      <a href="index.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🏠</span>
+        <span class="burger-menu__text">Home</span>
+      </a>
+      <a href="blogs.html" class="burger-menu__item">
+        <span class="burger-menu__icon">📝</span>
+        <span class="burger-menu__text">Blogs</span>
+      </a>
+      <a href="write.html" class="burger-menu__item">
+        <span class="burger-menu__icon">✍️</span>
+        <span class="burger-menu__text">Write</span>
+      </a>
+      <button id="burgerLogout" class="burger-menu__item burger-menu__item--emphasis" style="width:100%;text-align:left;">
+        <span class="burger-menu__icon">🚪</span>
+        <span class="burger-menu__text">Log out</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="bar">
+      <input id="search" placeholder="Search…"/>
+      <select id="flt"><option value="draft">Drafts</option><option value="published">Published</option><option value="all">All</option></select>
+      <button class="btn" id="reload">Reload</button>
+      <button class="btn primary" id="newPost">+ New</button>
+    </div>
+    <div id="list" class="grid"></div>
+  </div>
+
+  <!-- Login -->
+  <div class="modal" id="login"><div class="panel" style="width:min(420px,96vw)">
+    <h3>Admin Login</h3>
+    <input id="token" type="password" placeholder="Admin Token"/>
+    <div class="row" style="margin-top:10px"><span id="lmsg" class="muted"></span><button id="enter" class="btn primary" style="margin-left:auto">Enter</button></div>
+  </div></div>
+
+  <!-- Edit -->
+  <div class="modal" id="edit"><div class="panel">
+    <h3>Edit Post</h3>
+    <label>Title<input id="e_title"></label>
+    <label>Slug<input id="e_slug" disabled></label>
+    <label>Cover URL<input id="e_cover"></label>
+    <label>Type<input id="e_type"></label>
+    <label>Tags<input id="e_tags"></label>
+    <label>Minutes<input id="e_minutes" type="number" min="1"></label>
+    <label>Excerpt<textarea id="e_excerpt"></textarea></label>
+    <label>Content<textarea id="e_content"></textarea></label>
+    <div class="row" style="margin-top:12px">
+      <select id="e_status"><option value="draft">Draft</option><option value="published">Published</option></select>
+      <input id="e_author" placeholder="Author" style="max-width:240px"/>
+      <span id="e_msg" class="muted"></span>
+      <button id="save" class="btn primary" style="margin-left:auto">Save</button>
+      <button id="pub" class="btn">Publish</button>
+      <button id="unpub" class="btn">Unpublish</button>
+      <button id="del" class="btn" style="border-color:#b91c1c;color:#fca5a5">Delete</button>
+      <button id="close" class="btn">Close</button>
+    </div>
+  </div></div>
+
+  <script>
+    const API_BASE = 'https://timrx-blogs-api-1.onrender.com';
+    const API = API_BASE.replace(/\/$/,'') + '/api';
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const $ = s => document.querySelector(s);
+    const tokenKey = 'TX_ADMIN_TOKEN';
+
+    function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
+    function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
+    function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+
+    async function ensureAuth(){
+      if(!getToken()){ $('#login').classList.add('show'); return false; }
+      const r = await fetch(API+'/admin/auth', {headers: headers()});
+      if(!r.ok){ $('#login').classList.add('show'); return false; }
+      return true;
+    }
+
+    $('#enter').onclick = async ()=>{
+      const t = $('#token').value.trim(); if(!t) return;
+      setToken(t);
+      if(await ensureAuth()){ $('#login').classList.remove('show'); load(); }
+      else { $('#lmsg').textContent = 'Invalid token'; setToken(''); }
+    };
+    $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
+
+    async function load(){
+      const q = $('#search').value.trim(); const status = $('#flt').value;
+      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`);
+      const j = await r.json(); render(j.items || []);
+    }
+    function render(items){
+      const list = $('#list'); list.innerHTML='';
+      if(!items.length){ list.innerHTML='<div class="muted">No posts.</div>'; return; }
+      for(const p of items){
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `<div class="row">
+          <strong>${esc(p.title||'(no title)')}</strong>
+          <span class="tag">${p.status}</span>
+          <span class="muted">• ${p.slug}</span>
+          <div class="actions">
+            <button class="btn" data-edit="${p.slug}">Edit</button>
+            ${p.status==='draft'?`<button class="btn" data-pub="${p.slug}">Publish</button>`:`<button class="btn" data-unpub="${p.slug}">Unpublish</button>`}
+            <button class="btn" data-del="${p.slug}" style="border-color:#b91c1c;color:#fca5a5">Delete</button>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px">${esc(p.excerpt||'')}</div>`;
+        list.appendChild(el);
+      }
+    }
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
+
+    $('#list').addEventListener('click', async e=>{
+      const b = e.target.closest('button'); if(!b) return;
+      const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
+      if(b.dataset.edit){ openEdit(slug); return; }
+      if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.del){ if(confirm('Delete this post?')){ await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()}); load(); } }
+    });
+
+    // Edit modal
+    $('#close').onclick = ()=> $('#edit').classList.remove('show');
+    async function openEdit(slug){
+      $('#e_msg').textContent='Loading…'; $('#edit').classList.add('show');
+      const p = await (await fetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
+      $('#e_title').value=p.title||''; $('#e_slug').value=p.slug||''; $('#e_cover').value=p.cover_url||'';
+      $('#e_type').value=p.type||''; $('#e_tags').value=p.tags||''; $('#e_minutes').value=p.minutes||'';
+      $('#e_excerpt').value=p.excerpt||''; $('#e_content').value=p.content_md||''; $('#e_status').value=p.status||'draft'; $('#e_author').value=p.author||'Dima'; $('#e_msg').textContent='';
+    }
+    $('#save').onclick = async ()=>{
+      const slug=$('#e_slug').value; const body={ title:$('#e_title').value.trim(), cover_url:$('#e_cover').value.trim(), type:$('#e_type').value.trim(), tags:$('#e_tags').value.trim(), minutes: parseInt($('#e_minutes').value)||undefined, excerpt:$('#e_excerpt').value.trim(), content_md:$('#e_content').value, status:$('#e_status').value, author:$('#e_author').value.trim()||'Dima' };
+      $('#e_msg').textContent='Saving…'; const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)}); $('#e_msg').textContent = r.ok ? 'Saved ✓' : 'Error'; if(r.ok) load();
+    };
+    $('#pub').onclick = async ()=>{ const slug=$('#e_slug').value; await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); load(); };
+    $('#unpub').onclick = async ()=>{ const slug=$('#e_slug').value; await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); load(); };
+    $('#del').onclick = async ()=>{ const slug=$('#e_slug').value; if(confirm('Delete this post?')){ await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()}); $('#edit').classList.remove('show'); load(); } };
+
+    // New post
+    $('#newPost').onclick = async ()=>{ await fetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'published'})}); load(); };
+
+    // Filters
+    $('#reload').onclick = load; $('#flt').onchange = load; $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    (async function(){ if(await ensureAuth()) load(); })();
+
+    // Burger menu logout button
+    const burgerLogout = document.getElementById('burgerLogout');
+    if (burgerLogout) {
+      burgerLogout.onclick = () => {
+        sessionStorage.removeItem('tkn');
+        location.href = 'admin.html';
+      };
+    }
+  </script>
+  <script src="burger.js"></script>
+</body>
+</html>

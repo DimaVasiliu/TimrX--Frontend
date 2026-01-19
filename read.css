@@ -1,0 +1,46 @@
+/* Responsive overrides for read.html. */
+
+@media (max-width: 720px) {
+  .post-hero {
+    padding-top: calc(var(--navH) + 12px);
+    margin-bottom: 28px;
+  }
+
+  .hero-breadcrumb {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero-figure {
+    border-radius: 16px;
+  }
+
+  .hero-figure figcaption {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .post-title {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+
+  .post-sub {
+    font-size: 16px;
+  }
+
+  .post-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-figure img {
+    height: clamp(240px, 70vw, 360px);
+  }
+
+  .post-meta {
+    padding: 16px 0;
+  }
+}

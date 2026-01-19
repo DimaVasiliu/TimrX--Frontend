@@ -1,0 +1,236 @@
+<!-- write.html — PUBLIC WRITER with left sidebar (Author, Status, Stats, Markdown Guide) and content template prefilled -->
+<!DOCTYPE html>
+<html lang="en" class="write-page">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Write — TimrX</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="write.css"/>
+  <link rel="stylesheet" href="burger.css"/>
+  <link rel="stylesheet" href="media/write.css"/>
+</head>
+<body class="write-page">
+  <nav class="nav divider">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Home">
+        <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="blogs.html">Blogs</a>
+        <a href="admin.html">Admin</a>
+      </div>
+
+      <!-- Burger button (2-line Apple style - mobile only) -->
+      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+        <div class="burger-icon">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Burger overlay -->
+  <div id="burgerOverlay"></div>
+
+  <!-- Burger menu -->
+  <nav id="burgerMenu" aria-label="Mobile menu">
+    <div class="burger-menu__items">
+      <a href="blogs.html" class="burger-menu__item">
+        <span class="burger-menu__icon">📝</span>
+        <span class="burger-menu__text">Blogs</span>
+      </a>
+      <a href="index.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🏠</span>
+        <span class="burger-menu__text">Home</span>
+      </a>
+      <a href="admin.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🔐</span>
+        <span class="burger-menu__text">Admin</span>
+      </a>
+      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
+        <span class="burger-menu__icon">✉️</span>
+        <span class="burger-menu__text">Contact Me</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="container write-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="card">
+        <h4>Author</h4>
+        <div class="field">
+          <label for="author">Your Name</label>
+          <input id="author" placeholder="e.g. Alex"/>
+        </div>
+        <div class="field">
+          <label for="email">Your Email (optional)</label>
+          <input id="email" type="email" placeholder="you@example.com"/>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Post Status</h4>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" aria-label="Post status">
+            <option value="draft" selected>Draft</option>
+            <option value="published">Published</option>
+          </select>
+          <div class="muted-small">Public submissions are stored as <b>draft</b>. Admins can publish from the Admin page.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Content Stats</h4>
+        <div class="stat"><span class="stat-label">Words</span><span id="wordCount" class="stat-value">0</span></div>
+        <div class="stat"><span class="stat-label">Characters</span><span id="charCount" class="stat-value">0</span></div>
+        <div class="stat"><span class="stat-label">Est. Read Time</span><span id="estTime" class="stat-value">1 min</span></div>
+      </div>
+
+      <div class="card">
+        <h4>Markdown Guide</h4>
+        <div class="help-item"><code># Heading 1</code><code>## Heading 2</code></div>
+        <div class="help-item"><code>**bold**</code><code>*italic*</code></div>
+        <div class="help-item"><code>[link](url)</code><code>![image](url)</code></div>
+        <div class="help-item"><code>`code`</code><code>```code block```</code></div>
+      </div>
+    </aside>
+
+    <!-- MAIN EDITOR -->
+    <main class="write-main">
+      <div class="editor-container">
+        <form id="editor" novalidate>
+          <h2>Share Your Story</h2>
+
+          <div class="field-group">
+            <label for="title">Title <span class="accent-star">*</span></label>
+            <input id="title" class="input-title" placeholder="An attention-grabbing title…" required />
+          </div>
+
+          <div class="field-group-row-2">
+            <div class="field-group">
+              <label for="cover">Cover Image URL</label>
+              <input id="cover" type="url" placeholder="https://images.unsplash.com/..." />
+            </div>
+            <div class="field-group">
+              <label for="type">Category</label>
+              <input id="type" placeholder="Guide, Story, Opinion…" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="tags">Tags</label>
+            <input id="tags" placeholder="history, 3d, design"/>
+          </div>
+
+          <div class="field-group">
+            <label for="excerpt">Excerpt</label>
+            <textarea id="excerpt" rows="3" placeholder="A brief summary (1–2 sentences)…"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label for="content">Content (Markdown) <span class="accent-star">*</span></label>
+            <textarea id="content" rows="18" required>
+## Introduction
+
+Start your post here with an engaging opening...
+
+## Main Content
+
+- **Bold text**
+- *Italic text*
+- [Links](https://example.com)
+- ![Images](https://example.com/image.jpg)
+
+## Conclusion
+            </textarea>
+          </div>
+
+          <div class="action-bar">
+            <button class="btn-publish" type="submit" id="submitBtn">Submit Draft</button>
+            <span id="msg" class="msg-status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // API endpoint (readers never configure this)
+    const API_BASE = 'https://timrx-blogs-api-1.onrender.com';
+    const API = API_BASE.replace(/\/$/, '') + '/api';
+
+    const $ = s => document.querySelector(s);
+    const msg = $('#msg');
+    const btn = $('#submitBtn');
+    const contentEl = $('#content');
+
+    // Live stats
+    function updateStats(){
+      const text = contentEl.value || '';
+      const words = (text.trim().match(/\S+/g) || []).length;
+      const chars = text.length;
+      const minutes = Math.max(1, Math.round(words / 200));
+      $('#wordCount').textContent = words.toString();
+      $('#charCount').textContent = chars.toString();
+      $('#estTime').textContent = minutes + ' min';
+    }
+    contentEl.addEventListener('input', updateStats);
+    updateStats();
+
+    function setMsg(text, ok){
+      msg.textContent = text;
+      msg.style.color = ok ? '#10b981' : 'var(--accent-blue)';
+    }
+    function setErr(text){
+      msg.textContent = text;
+      msg.style.color = '#ef4444';
+    }
+
+    // Submit -> always saved; backend enforces draft for public submit
+    document.getElementById('editor').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      const title = $('#title').value.trim();
+      const content_md = contentEl.value.trim();
+      if(!title || !content_md){ setErr('Please fill in Title and Content.'); return; }
+
+      const body = {
+        title,
+        cover_url: $('#cover').value.trim(),
+        type: $('#type').value.trim(),
+        tags: $('#tags').value.trim(),
+        author: ($('#author')?.value || 'Guest').trim(),
+        email: ($('#email')?.value || '').trim(),
+        excerpt: $('#excerpt').value.trim(),
+        content_md,
+        status: $('#status')?.value || 'draft'
+      };
+
+      btn.disabled = true;
+      setMsg('Sending draft…', false);
+
+      try{
+        const r = await fetch(API + '/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json().catch(()=>({}));
+        if(!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+
+        setMsg('Thank you! Your draft was sent for review. Check your email for confirmation (if provided).', true);
+        e.target.reset(); updateStats();
+      }catch(err){
+        setErr('Error: ' + (err.message || err));
+      }finally{
+        btn.disabled = false;
+      }
+    });
+  </script>
+  <script src="burger.js"></script>
+</body>
+</html>

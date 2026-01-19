@@ -1,0 +1,946 @@
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 16px rgba(14, 165, 233, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  transition: var(--transition-fast);
+}
+
+/* subtle highlight sheen */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* hover / focus */
+.btn:hover,
+.btn:focus-visible {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 8px 24px rgba(14, 165, 233, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  opacity: 1;
+}
+
+/* active / pressed */
+.btn:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow:
+    0 4px 16px rgba(14, 165, 233, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* disabled */
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.2);
+}
+
+/* ===== GHOST BUTTON VARIANT ===== */
+.btn.ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn.ghost::before {
+  background: linear-gradient(
+    135deg,
+    rgba(14, 165, 233, 0.15),
+    rgba(139, 92, 246, 0.15)
+  );
+}
+
+.btn.ghost:hover,
+.btn.ghost:focus-visible {
+  border-color: var(--accent-blue);
+  background: rgba(14, 165, 233, 0.1);
+  box-shadow:
+    0 8px 24px rgba(14, 165, 233, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.btn.ghost:disabled {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ===== LEFT PANEL (optional wrapper) ===== */
+/* Subtext / helper copy under panel titles */
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 12px 0; /* space before first card */
+}
+
+/* ===== CARD HEADER ===== */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.card-header h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ===== TABS ===== */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tab-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tab-btn.active {
+  background: linear-gradient(
+    135deg,
+    rgba(14, 165, 233, 0.15),
+    rgba(139, 92, 246, 0.15)
+  );
+  color: #fff;
+}
+
+.tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+}
+
+.tab-btn:focus {
+  outline: none;
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ===== FORM FIELDS – HORIZONTAL LAYOUT ===== */
+/* Default: label on the left, control on the right */
+.form-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* When you want a vertical stack (e.g. big textarea),
+   add class="form-field form-field--stack" in HTML. */
+.form-field.form-field--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Label column (e.g. "Art Style") */
+.form-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e0e0e0;
+  letter-spacing: 0.01em;
+  flex: 0 0 38%;      /* left column width */
+  max-width: 160px;   /* keeps text neat */
+}
+
+/* Right side: any control wrapper (select, input, nice-select, etc.) */
+.form-field > :not(label) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Inputs & textareas inside the field */
+textarea,
+input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 14px;
+  font-family: Inter, system-ui, sans-serif;
+  line-height: 1.5;
+  resize: vertical;
+  transition: var(--transition);
+}
+
+textarea:focus,
+input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+textarea::placeholder,
+input[type="text"]::placeholder {
+  color: #666;
+}
+
+textarea {
+  min-height: 140px;
+}
+
+/* Hints under the control (use with form-field--stack or as separate row) */
+.field-hint,
+.hint-text {
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+}
+
+/* ===== SPLIT FIELDS (2+ controls on the right side) ===== */
+.field-split {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.field-split:first-of-type {
+  margin-top: 8px;
+}
+
+.field-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-col select,
+.field-col input[type="number"],
+.field-col textarea {
+  width: 100%;
+}
+
+/* Small label inside split columns (e.g. "Height", "Width") */
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(243, 244, 246, 0.8);
+}
+
+/* ===== INLINE FIELD ROW (label left, select right) ===== */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.field-row:last-of-type {
+  border-bottom: none;
+}
+
+.field-label-inline {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+.field-select-inline,
+.timrx-3dprint .card .field-select-inline {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 6px 28px 6px 10px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px !important;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23888' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 12px !important;
+  transition: all 0.15s ease;
+}
+
+.field-select-inline:hover {
+  background-color: rgba(14, 165, 233, 0.08);
+  border-color: rgba(14, 165, 233, 0.25);
+  color: #fff;
+}
+
+.field-select-inline:focus {
+  border-color: var(--accent-blue, #0ea5e9);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+}
+
+.field-select-inline option {
+  background: #1a1a1a;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+}
+
+/* ===== FIELD GROUP (label on top, content below) ===== */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.field-group:last-of-type {
+  border-bottom: none;
+}
+
+/* ===== INFO DOT ===== */
+.info-dot {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: help;
+  margin-left: 4px;
+}
+
+/* ===== TOGGLE SWITCH ===== */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  transition: all 0.2s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.toggle-switch:hover .toggle-slider {
+  background: rgba(14, 165, 233, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--accent-blue, #0ea5e9), var(--accent-purple, #8b5cf6));
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* ===== STEPPER INPUT ===== */
+.stepper-input {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.stepper-input:hover {
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+.stepper-input:focus-within {
+  border-color: var(--accent-blue, #0ea5e9);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+}
+
+.stepper-input input[type="number"] {
+  width: 32px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.stepper-input input[type="number"]::-webkit-outer-spin-button,
+.stepper-input input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-arrows {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stepper-arrows button {
+  width: 20px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 6px;
+  cursor: pointer;
+}
+
+.stepper-arrows button:hover {
+  color: var(--accent-blue, #0ea5e9);
+  background: rgba(14, 165, 233, 0.1);
+}
+
+/* ===== SEGMENT GROUP (pill buttons) ===== */
+.segment-group {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.segment {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.segment:hover:not(.is-active) {
+  color: var(--accent-blue, #0ea5e9);
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.segment.is-active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===== GENERATION FOOTER ===== */
+.gen-footer-card {
+  text-align: center;
+  padding: 16px !important;
+}
+
+.gen-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gen-divider {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.gen-credits {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gen-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--accent-blue, #0ea5e9), var(--accent-purple, #8b5cf6));
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gen-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.35), 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+.gen-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+}
+
+.gen-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== CREDITS INDICATORS ===== */
+.gen-credits i {
+  color: #7dd3fc;
+  font-size: 11px;
+  filter: drop-shadow(0 0 3px rgba(125,211,252,.4));
+}
+
+.gen-credits.insufficient {
+  color: #f87171;
+}
+
+.gen-credits.insufficient i {
+  color: #f87171;
+  filter: drop-shadow(0 0 3px rgba(248,113,113,.4));
+}
+
+/* Button cost badge */
+.btn-cost-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: rgba(125,211,252,.9);
+  color: #0b0b0b;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+
+.btn-cost-badge.insufficient {
+  background: #f87171;
+  color: #fff;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { box-shadow: 0 2px 6px rgba(248,113,113,.3); }
+  50% { box-shadow: 0 2px 12px rgba(248,113,113,.6); }
+}
+
+/* Insufficient credits button state */
+.gen-btn.insufficient-credits {
+  background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(239,68,68,.08));
+  border: 1px solid rgba(239,68,68,.3);
+  position: relative;
+}
+
+.gen-btn.insufficient-credits::after {
+  content: 'Need more credits';
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #f87171;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+
+.gen-btn.insufficient-credits:hover::after {
+  opacity: 1;
+}
+
+/* ===== CHIPS ===== */
+.chip-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip-group .chip {
+  flex: 1;
+  min-width: 60px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f4f6;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.chip:is(:hover, :focus-visible) {
+  border-color: rgba(185, 255, 94, 0.7);
+  color: #fefcea;
+}
+
+.chip.is-active {
+  background: linear-gradient(
+    120deg,
+    rgba(185, 255, 94, 0.25),
+    rgba(14, 165, 233, 0.18)
+  );
+  border-color: rgba(185, 255, 94, 0.8);
+  color: #101215;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+/* Toggle (e.g. pose toggle) aligned neatly inside rows */
+.at-pose-toggle {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* When toggle lives inside a split column, remove extra top space */
+.field-col .at-pose-toggle {
+  margin-top: 0;
+}
+
+/* ===== DROP ZONE ===== */
+.drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--accent-blue);
+  background: rgba(14, 165, 233, 0.05);
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.15);
+}
+
+.drop-zone svg {
+  width: 32px;
+  height: 32px;
+  color: var(--accent-blue);
+  opacity: 0.7;
+}
+
+.drop-zone p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.drop-zone span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ==========================================================================
+   INSUFFICIENT CREDITS MODAL
+   ========================================================================== */
+.credits-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.credits-modal-overlay.open {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto;
+}
+
+.credits-modal {
+  position: relative;
+  width: min(420px, 92vw);
+  background: linear-gradient(180deg, rgba(30, 30, 35, 0.98), rgba(18, 18, 22, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 25px 60px -12px rgba(0, 0, 0, 0.5),
+    0 0 100px -20px rgba(239, 68, 68, 0.15);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.credits-modal-overlay.open .credits-modal {
+  transform: scale(1) translateY(0);
+}
+
+.credits-modal-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.credits-modal-icon i {
+  font-size: 28px;
+  color: #f87171;
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.5));
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+}
+
+.credits-modal-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.credits-modal-message {
+  text-align: center;
+  font-size: 14px;
+  color: #a0a0a0;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.credits-modal-info {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.credits-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.credits-info-row:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.credits-info-row.highlight {
+  padding-top: 12px;
+}
+
+.credits-info-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.credits-info-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.credits-info-value.available {
+  color: #7dd3fc;
+}
+
+.credits-info-value.needed {
+  color: #f87171;
+  font-size: 20px;
+}
+
+.credits-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.credits-modal-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.credits-modal-btn.primary {
+  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+  color: #0c0c0c;
+  box-shadow: 0 4px 20px rgba(125, 211, 252, 0.3);
+}
+
+.credits-modal-btn.primary:hover {
+  background: linear-gradient(135deg, #93e0fd, #4bc5fa);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(125, 211, 252, 0.4);
+}
+
+.credits-modal-btn.primary:active {
+  transform: translateY(0);
+}
+
+.credits-modal-btn.primary i {
+  font-size: 16px;
+}
+
+.credits-modal-btn.secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #a0a0a0;
+}
+
+.credits-modal-btn.secondary:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" class="blogs-page">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blogs — TimrX</title>
+  <meta name="description" content="Stories, guides, and experiments on motion-first web, Three.js, 3D print workflows, UX, and performance." />
+  <meta name="theme-color" content="#0b0b0b"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Blogs — TimrX"/>
+  <meta property="og:description" content="Stories, guides, and experiments on motion-first web, Three.js, 3D print workflows, UX, and performance."/>
+  <meta property="og:image" content="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop"/>
+  <meta property="og:url" content="https://your-domain.example/blogs.html"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <!-- Fonts (same vibe as site) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <!-- Site base CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Page CSS -->
+  <link rel="stylesheet" href="blogs.css">
+  <link rel="stylesheet" href="burger.css">
+  <link rel="stylesheet" href="media/blogs.css">
+</head>
+<body>
+  <!-- NAV (reuse global) -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Home">
+        <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+      </a>
+
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="index.html#app3d">→ 3D Print Hub</a>
+        <a href="index.html#works">WORKS</a>
+        <a href="index.html#services">SERVICES</a>
+        <a href="index.html#contact">CONTACT</a>
+      </div>
+
+      <a class="nav-cta" href="index.html#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
+
+      <!-- Burger button (2-line Apple style - mobile only) -->
+      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+        <div class="burger-icon">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Burger overlay (mobile) -->
+  <div id="burgerOverlay"></div>
+
+  <!-- Burger menu (mobile) -->
+  <nav id="burgerMenu" aria-label="Mobile menu">
+    <div class="burger-menu__items">
+      <a href="index.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🏠</span>
+        <span class="burger-menu__text">Home</span>
+      </a>
+      <a href="index.html#app3d" class="burger-menu__item">
+        <span class="burger-menu__icon">🖨</span>
+        <span class="burger-menu__text">3D Print Hub</span>
+      </a>
+      <a href="index.html#works" class="burger-menu__item">
+        <span class="burger-menu__icon">💼</span>
+        <span class="burger-menu__text">Works</span>
+      </a>
+      <a href="index.html#services" class="burger-menu__item">
+        <span class="burger-menu__icon">⚙️</span>
+        <span class="burger-menu__text">Services</span>
+      </a>
+      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
+        <span class="burger-menu__icon">✉️</span>
+        <span class="burger-menu__text">Contact Me</span>
+      </a>
+    </div>
+  </nav>
+  <!-- HERO -->
+  <header class="blogs-hero" id="hero" role="banner">
+    <div class="hero-geometric-bg" aria-hidden="true">
+      <div class="geo-line geo-line-1"></div>
+      <div class="geo-line geo-line-2"></div>
+      <div class="geo-line geo-line-3"></div>
+      <div class="geo-circle geo-circle-1"></div>
+      <div class="geo-circle geo-circle-2"></div>
+      <div class="geo-grid"></div>
+    </div>
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span>TIMRX BLOG</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-title-line">Stories, Guides,</span>
+        <span class="hero-title-line">Experiments</span>
+      </h1>
+      <p class="hero-description">Motion-first web, Three.js viewers, 3D print workflows, performance optimization, UX design, and practical IT notes.</p>
+      <div class="hero-tags" aria-hidden="true">
+        <span class="hero-tag">3D</span>
+        <span class="hero-tag">Three.js</span>
+        <span class="hero-tag">GSAP</span>
+        <span class="hero-tag">Performance</span>
+        <span class="hero-tag">UX</span>
+        <span class="hero-tag">IT</span>
+      </div>
+    </div>
+  </header>
+  <!-- FILTER STRIP -->
+  <section class="strip strip--light" aria-label="Filters">
+    <div class="container controls-inner strip-inner">
+      <div class="chips" id="chipBar" role="tablist" aria-label="Tags">
+        <button class="chip active" data-tag="all" role="tab" aria-selected="true">All</button>
+        <button class="chip" data-tag="GSAP" role="tab">GSAP</button>
+        <button class="chip" data-tag="Three.js" role="tab">Three.js</button>
+        <button class="chip" data-tag="3D" role="tab">3D</button>
+        <button class="chip" data-tag="UX" role="tab">UX</button>
+        <button class="chip" data-tag="Performance" role="tab">Performance</button>
+        <button class="chip" data-tag="Workflow" role="tab">Workflow</button>
+        <button class="chip" data-tag="Commercials" role="tab">Commercials</button>
+        <button class="chip" data-tag="Affiliate" role="tab">Affiliate</button>
+        <button class="chip" data-tag="IT" role="tab">IT</button>
+      </div>
+      <div class="tools">
+        <div class="search">
+          <input id="blogSearch" type="search" placeholder="Search… ( / )" aria-label="Search posts" />
+        </div>
+        <label class="label" for="sortSelect">Sort</label>
+        <div class="select-wrap">
+          <select id="sortSelect" aria-label="Sort posts">
+            <option value="new">Newest</option>
+            <option value="old">Oldest</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+      </div>
+    </div> 
+  </section>
+    <!-- FEATURED -->
+    <section class="featured" aria-label="Featured posts">
+      <div class="container featured-inner">
+        <a class="feat-card large" id="feat-0" href="#">
+          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop')"></div>
+          <div class="body">
+            <span class="pill">Featured</span>
+            <h3 class="t">Loading…</h3>
+            <p class="e muted">—</p>
+          </div>
+        </a>
+        <a class="feat-card small" id="feat-1" href="#">
+          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop')"></div>
+          <div class="body">
+            <span class="pill">Featured</span>
+            <h4 class="t">Loading…</h4>
+          </div>
+        </a>
+      </div>
+    </section>
+  <!-- GRID -->
+  <main class="container" id="main">
+    <div class="grid" id="blogsGrid" role="list"></div>
+    <div class="loadbar">
+      <button id="loadMore" class="btn">Load more</button>
+      <span id="loadStatus" class="muted" style="display:none">No more posts.</span>
+    </div>
+  </main>
+  <!-- CTA: WRITE -->
+  <section class="submit" id="submit">
+    <div class="container submit-inner">
+      <div class="submit-head">
+        <h3>Submit a Post</h3>
+        <p class="muted">Share a walkthrough or story. Reviewed before publishing.</p>
+      </div>
+      <a class="btn" href="write.html">Open Writer →</a>
+    </div>
+  </section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="container foot">
+      <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
+      <nav class="foot-nav">
+        <a href="index.html#about">About</a>
+        <a href="index.html#works">Works</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <div class="foot-social"><a href="mailto:dima.vasiliu@yahoo.com">Email</a><a href="#">LinkedIn</a><a href="#">GitHub</a></div>
+    </div>
+  </footer>
+  <!-- Minimal page logic (inline to keep page self-contained) -->
+  <script>
+    const qs = s => document.querySelector(s);
+    const qsa = s => Array.from(document.querySelectorAll(s));
+
+    // API base resolution: localStorage first, then fallback
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://timrx-blogs-api-1.onrender.com').replace(/\/$/, '');
+    const API = API_BASE + '/api';
+
+    // Year in footer
+    (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
+
+    // Keyboard navigation for brand
+    qs('#brand')?.addEventListener('keydown', e=>{ if(e.key==='Enter') location.href='index.html'; });
+
+    // To top button (if exists)
+    (function(){
+      const btn = qs('#toTop');
+      if(!btn) return;
+      btn.addEventListener('click', ()=> scrollTo({top:0,behavior:'smooth'}));
+      window.addEventListener('scroll', ()=> btn.classList.toggle('show', scrollY>600), {passive:true});
+    })();
+
+    // State
+    let posts=[], page=1, size=9, done=false;
+    let currentTag='all', searchQ='', sorter='new';
+
+    // Fetch posts from API with graceful fallback
+    async function fetchPosts(p=1){
+      try{
+        const r = await fetch(`${API}/posts?page=${p}&size=${size}`, { cache:'no-store' });
+        if(!r.ok) throw 0;
+        const j = await r.json();
+        return j.items || j.posts || [];
+      }catch{
+        // Fallback seed data for offline/dev mode
+        return [
+          { slug:'scroll-choreography', title:'Scroll Choreography That Feels Native', excerpt:'Scene planning and anchor triggers so scroll never fights the OS.', cover_url:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop', tags:'GSAP,UX,Performance', minutes:6, created_at: Date.now()-864e5*14, author:'Dima' },
+          { slug:'viewer-craft', title:'Viewer Craft: Camera Fit, Orbit, Shadows', excerpt:'Tiny choices that make 3D viewers feel premium.', cover_url:'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop', tags:'Three.js,3D,UX', minutes:7, created_at: Date.now()-864e5*28, author:'Dima' },
+          { slug:'print-workflow', title:'From Prompt to Print: A Practical Workflow', excerpt:'A simple, reliable path from AI model to physical object.', cover_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop', tags:'3D,Workflow', minutes:8, created_at: Date.now()-864e5*45, author:'Dima' },
+        ];
+      }
+    }
+
+    // Generate card HTML
+    function cardHTML(p){
+      const url = `read.html?slug=${encodeURIComponent(p.slug)}`;
+      const tag = (p.tags||'').split(',')[0] || 'Post';
+      const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
+      return `
+        <article class="card" role="listitem">
+          <a class="thumb" href="${url}" aria-label="${p.title}">
+            <img src="${p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop'}" alt="" loading="lazy" decoding="async"/>
+            <span class="pill">${tag}</span>
+          </a>
+          <div class="info">
+            <a class="title" href="${url}">${p.title}</a>
+            <p class="muted">${p.excerpt || ''}</p>
+            <div class="meta muted"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
+          </div>
+        </article>`;
+    }
+
+    // Apply sorting
+    function applySort(list){
+      if (sorter==='title') return list.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
+      if (sorter==='old')   return list.sort((a,b)=> (a.created_at||0) - (b.created_at||0));
+      return list.sort((a,b)=> (b.created_at||0) - (a.created_at||0));
+    }
+
+    // Apply filtering and search
+    function applyFilterSearch(list){
+      const byTag = currentTag==='all' ? list : list.filter(p => (p.tags||'').toLowerCase().includes(currentTag.toLowerCase()));
+      if (!searchQ) return byTag;
+      const q = searchQ.toLowerCase();
+      return byTag.filter(p => (p.title||'').toLowerCase().includes(q) || (p.excerpt||'').toLowerCase().includes(q) || (p.tags||'').toLowerCase().includes(q));
+    }
+
+    // Render grid and featured posts
+    function render(){
+      const grid = qs('#blogsGrid');
+      const data = applySort(applyFilterSearch(posts));
+      grid.innerHTML = data.map(cardHTML).join('');
+
+      // Update featured posts
+      const top = data.slice(0,2);
+      if (top[0]) {
+        const a = qs('#feat-0');
+        a.href = `read.html?slug=${encodeURIComponent(top[0].slug)}`;
+        a.querySelector('.body .t').textContent = top[0].title;
+        a.querySelector('.body .e').textContent = top[0].excerpt || '';
+        a.querySelector('.cover').style.backgroundImage = `url('${top[0].cover_url || ''}')`;
+      }
+      if (top[1]) {
+        const b = qs('#feat-1');
+        b.href = `read.html?slug=${encodeURIComponent(top[1].slug)}`;
+        b.querySelector('.body .t').textContent = top[1].title;
+        b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
+      }
+
+      // Update load more status
+      qs('#loadStatus').style.display = done ? 'inline' : 'none';
+      qs('#loadMore').disabled = done;
+    }
+
+    // Load more posts
+    async function loadMore(){
+      if (done) return;
+      const items = await fetchPosts(page++);
+      if (!items.length) { done = true; render(); return; }
+      posts = posts.concat(items);
+      if (items.length < size) done = true;
+      render();
+    }
+
+    // Event listeners for controls
+    qs('#chipBar').addEventListener('click', e=>{
+      const b = e.target.closest('.chip'); if (!b) return;
+      qsa('.chip').forEach(c=> c.classList.remove('active'));
+      b.classList.add('active');
+      currentTag = b.dataset.tag || 'all';
+      render();
+    });
+    qs('#blogSearch').addEventListener('input', e=>{ searchQ = e.target.value.trim(); render(); });
+    qs('#sortSelect').addEventListener('change', e=>{ sorter = e.target.value; render(); });
+    qs('#loadMore').addEventListener('click', loadMore);
+
+    // Quick "/" keyboard shortcut to focus search
+    window.addEventListener('keydown', e=>{
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+        e.preventDefault();
+        qs('#blogSearch').focus();
+      }
+    });
+
+    // Initialize
+    (async function init(){
+      await loadMore();
+      if (posts.length < 6 && !done) await loadMore();
+    })();
+  </script>
+  <script src="burger.js"></script>
+</body>
+</html>

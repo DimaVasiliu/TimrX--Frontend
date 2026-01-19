@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TimrX 3D Print Hub — Create 3D the simple way</title>
+  <meta name="description" content="TimrX 3D Print Hub — prompt to 3D, image to 3D, and text to image. Clean, fast, black & white UI with tasteful motion." />
+
+  <!-- Fonts (mono/clean) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <!-- Font Awesome (icons) -->
+<!-- Font Awesome 6 — official and stable -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-RXf+QSDCUQs6Q0Mhyx+qPQ8SRz7D+qf9tJ3hj6p1t4XFl8X0q5c6Kq3WkV2R9rN6M8A9tU9vK4vWvvlb+oS0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="hub.css" />
+    <link rel="stylesheet" href="burger.css" />
+    <link rel="stylesheet" href="media/hub.css" />
+
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" aria-label="Primary">
+    <div class="container nav-inner">
+      <div class="nav-left">
+        <a class="brand" id="brand" href="index.html" aria-label="Home">
+          <span class="swap" id="brandTim" aria-label="TimrX">
+            <span class="b-tim">Timr</span><span class="b-x">X</span>
+          </span>
+          <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
+            <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
+          </span>
+        </a>
+        <ul class="menu" role="menubar">
+          <li>
+            <button type="button" role="menuitem" data-open="features">Features ▾</button>
+            <div class="drop" data-drop="features" role="menu">
+              <a href="#features">Prompt → 3D (Meshy)</a>
+              <a href="#features">Image → 3D</a>
+              <a href="#features">Text → Image</a>
+              <a href="#features">3D Viewer</a>
+            </div>
+          </li>
+          <li>
+            <button type="button" role="menuitem" data-open="pricing">Pricing ▾</button>
+            <div class="drop" data-drop="pricing" role="menu">
+              <a href="#pricing">Starter Pack</a>
+              <a href="#pricing">Creator Pack</a>
+              <a href="#pricing">Pro Pack</a>
+            </div>
+          </li>
+          <li>
+            <button type="button" role="menuitem" data-open="community">Community ▾</button>
+            <div class="drop" data-drop="community" role="menu">
+              <a href="#community">Discord (soon)</a>
+              <a href="#community">Docs & tips</a>
+              <a href="#community">Showcase</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <!-- Credits Pill + Buy Button -->
+        <div class="credits-group" id="creditsGroup">
+          <span class="credits-pill" id="creditsPill">
+            <i class="fa-solid fa-coins"></i>
+            <span class="credits-value" id="creditsValue">0</span>
+            <i class="fa-solid fa-plus credits-plus" id="creditsPlus"></i>
+          </span>
+          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
+        </div>
+        <!-- Burger button (2-line Apple style - mobile only) -->
+        <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+          <div class="burger-icon">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Burger overlay -->
+  <div id="burgerOverlay"></div>
+
+  <!-- Burger menu -->
+  <nav id="burgerMenu" aria-label="Mobile menu">
+    <div class="burger-menu__items">
+      <a href="index.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🏠</span>
+        <span class="burger-menu__text">Home</span>
+      </a>
+      <a href="#features" class="burger-menu__item">
+        <span class="burger-menu__icon">✨</span>
+        <span class="burger-menu__text">Features</span>
+      </a>
+      <a href="#pricing" class="burger-menu__item">
+        <span class="burger-menu__icon">💰</span>
+        <span class="burger-menu__text">Pricing</span>
+      </a>
+      <a href="#community" class="burger-menu__item">
+        <span class="burger-menu__icon">👥</span>
+        <span class="burger-menu__text">Community</span>
+      </a>
+      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
+        <span class="burger-menu__icon">✉️</span>
+        <span class="burger-menu__text">Contact</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="container">
+    <div class="hero" id="hero">
+      <div class="kicker">TIMRX • 3D PRINT HUB</div>
+      <h1>The Easiest Way to Create 3D Models</h1>
+      <p>Clean, minimal pipeline for makers: prompt to 3D, image to 3D, and text to image. Powered by your APIs (Meshy, OpenAI/Gemini) when you’re ready.</p>
+
+      <!-- Slider of options -->
+      <div class="hero-slider" id="slider">
+        <button class="pill active" data-to="#features">Text → 3D</button>
+        <button class="pill" data-to="#features">Image → 3D</button>
+        <button class="pill" data-to="#features">Text → Image</button>
+        <button class="pill" data-to="#features">3D → Video (Veo 3)</button>
+      </div>
+
+      <div class="cta-row">
+        <a class="btn" href="3dprint.html" id="startCreatingBtn">Start Creating →</a>
+        <a class="btn ghost" href="#features">Explore Features</a>
+      </div>
+
+        <!-- HERO FX confined to hero only -->
+        <div class="hero-fx" aria-hidden="true">
+            <div class="aurora"></div>
+        
+            <!-- TOP-LEFT — DRAGON (zoom in/out, slight CW spin) -->
+            <model-viewer
+                src="/TimrX/Frontend/img/dragon.glb"
+                class="floater floater-3d corner-tl motion-zoomZ"
+                style="width:220px;height:220px; --t:12s; --delay:-1.2s; --sFar:.62; --sNear:1.38; --zFar:-260px; --zNear:180px; --yaw:6deg;"
+                camera-controls="false"
+                disable-zoom
+                interaction-prompt="none"
+                auto-rotate
+                rotation-per-second="8deg"
+                shadow-intensity="0"
+                exposure="1.05"
+                environment-image="neutral">
+            </model-viewer>
+        
+            <!-- TOP-RIGHT — FOX (zoom in/out, CCW spin) -->
+            <model-viewer
+                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb"
+                class="floater floater-3d corner-tr motion-zoomZ"
+                style="width:220px;height:220px; --t:13.5s; --delay:-3s; --sFar:.68; --sNear:1.32; --zFar:-240px; --zNear:170px; --yaw:-8deg;"
+                camera-controls="false"
+                disable-zoom
+                interaction-prompt="none"
+                auto-rotate
+                rotation-per-second="-10deg"
+                exposure="1.10"
+                environment-image="neutral">
+            </model-viewer>
+        
+            <!-- BOTTOM-LEFT — ASTRONAUT (rotate only, faster CW) -->
+            <model-viewer
+                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                class="floater floater-3d corner-bl"
+                style="width:220px;height:220px"
+                camera-controls="false"
+                disable-zoom
+                interaction-prompt="none"
+                auto-rotate
+                rotation-per-second="16deg"
+                environment-image="neutral">
+            </model-viewer>
+
+            <!-- BOTTOM-RIGHT — CESIUM MAN (rotate only, slower CCW) -->
+            <model-viewer
+                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
+                class="floater floater-3d corner-br"
+                style="width:220px;height:220px"
+                camera-controls="false"
+                disable-zoom
+                interaction-prompt="none"
+                auto-rotate
+                rotation-per-second="-20deg"
+                environment-image="neutral">
+            </model-viewer>
+        </div>
+    </div>
+  </header>
+
+        <!-- ====================================================== -->
+        <!-- INTERACTIVE STRIP WRAPPER (title + micro-animations)   -->
+        <!-- ====================================================== -->
+        <section class="strip-wrap">
+              <!-- NEW: thin divider with pulse -->
+            <div class="strip-divider" aria-hidden="true">
+                <span class="pulse"></span>
+            </div>
+            <div class="container strip-head">
+            <h2 class="strip-title-anim">
+                <span class="hint-dot" aria-hidden="true"></span>
+                <span class="grad">Magnetize the Canvas</span>
+            </h2>
+            <p class="strip-sub">
+                Move your cursor over the white field. Click to pulse the force.
+            </p>
+            </div>
+        
+            <div class="strip strip--light is-fx" id="usecases-strip">
+            <div class="strip-fx" aria-hidden="true">
+                <canvas class="strip-canvas"></canvas>
+            </div>
+            <div class="container strip-inner">
+                <div class="strip-list strip-list--big">
+                <button class="item">Product Design</button>
+                <button class="item">Education</button>
+                <button class="item">Game Dev</button>
+                <button class="item">3D Printing</button>
+                <button class="item">VR/AR</button>
+                <button class="item">Interior</button>
+                </div>
+            </div>
+            </div>
+        </section>
+
+<!-- ====================== LOGOS SECTION ====================== -->
+<section class="logos-wrap">
+    <div class="container">
+      <div class="logos-head">
+        <h2>Powering <span class="grad">TimrX 3D</span></h2>
+        <p class="muted">Trusted tech and creative platforms behind the magic.</p>
+      </div>
+  
+      <div class="logos-grid">
+        <a href="https://threejs.org" class="logo" target="_blank" title="Three.js">
+          <img src="https://raw.githubusercontent.com/mrdoob/three.js/dev/files/favicon.ico" alt="Three.js">
+        </a>
+        <a href="https://flask.palletsprojects.com" class="logo" target="_blank" title="Flask">
+          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/flask.svg" alt="Flask">
+        </a>
+        <a href="https://meshy.ai" class="logo" target="_blank" title="Meshy.ai">
+          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/unity.svg" alt="Meshy">
+        </a>
+        <a href="https://openai.com" class="logo" target="_blank" title="OpenAI">
+          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/openai.svg" alt="OpenAI">
+        </a>
+        <a href="https://vercel.com" class="logo" target="_blank" title="Vercel">
+          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/vercel.svg" alt="Vercel">
+        </a>
+        <a href="https://github.com" class="logo" target="_blank" title="GitHub">
+          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub">
+        </a>
+      </div>
+    </div>
+  </section>
+
+<!-- ====================== FEATURES SECTION ====================== -->
+<section class="features" id="features">
+    <div class="container">
+      <div class="features-head">
+        <h2 class="grad">Smart Tools. Seamless Workflow.</h2>
+        <p>Explore the creative power behind TimrX — where every tool feels like magic.</p>
+      </div>
+  
+      <!-- 1) Text → 3D -->
+      <article class="feature-card">
+        <div class="feature-body">
+          <h3>Text to 3D</h3>
+          <p>Type your imagination — AI sculpts it into a ready 3D model in seconds. No modeling skills needed.</p>
+          <a href="3dprint.html" class="btn" id="tryItBtn">Try It</a>
+        </div>
+        <!-- Text → 3D -->
+        <div class="feature-icon-tile">
+            <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/box.svg" alt="3D box icon">
+        </div>
+      </article>
+  
+      <!-- 2) Image → 3D (reversed) -->
+      <article class="feature-card reverse">
+        <div class="feature-icon-tile">
+          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/image.svg" alt="Image icon">
+        </div>
+        <div class="feature-body">
+          <h3>Image to 3D</h3>
+          <p>Upload an image or sketch and let AI build its 3D structure with lighting and texture in seconds.</p>
+          <a href="3dprint.html" class="btn ghost">Learn More</a>
+        </div>
+      </article>
+  
+      <!-- 3) Text → Image -->
+      <article class="feature-card">
+        <div class="feature-body">
+          <h3>Text to Image</h3>
+          <p>Describe your vision — get cinematic art, posters, or concept renders instantly using text-to-image engines.</p>
+          <a href="3dprint.html" class="btn">Generate</a>
+        </div>
+        <div class="feature-icon-tile">
+          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/wand-2.svg" alt="Magic wand icon">
+        </div>
+      </article>
+  
+      <!-- 4) 3D → Video (reversed) -->
+      <article class="feature-card reverse">
+        <div class="feature-icon-tile">
+          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/clapperboard.svg" alt="Clapperboard icon">
+        </div>
+        <div class="feature-body">
+          <h3>3D to Video</h3>
+          <p>Turn your models into cinematic motion scenes. Animate your creations using next-gen rendering tools.</p>
+          <a href="3dprint.html" class="btn ghost">Coming Soon</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+<!-- ====================== PRICING ====================== -->
+<section id="pricing" class="pricing-wrap">
+    <div class="container">
+      <div class="pricing-head">
+        <h2 class="grad">Simple Pricing</h2>
+        <p class="muted">Credits power model generation. Pricing includes infrastructure &amp; processing.</p>
+      </div>
+  
+      <div class="pricing-grid">
+        <!-- Card 1 -->
+        <div class="price-card">
+          <div class="pc-top">
+            <span class="badge">Bundle</span>
+            <h3>Starter</h3>
+            <p class="sub">Try the tools. Great for a few generations.</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£7.99</span>
+            <small>80 Credits · ~2-3 models</small>
+          </div>
+          <ul class="pc-list">
+            <li>Text → 3D generation</li>
+            <li>Image → 3D generation</li>
+            <li>Refine / Retexture</li>
+            <li>Includes hosting + processing</li>
+            <li>Downloads</li>
+          </ul>
+          <button class="btn block pricing-cta" type="button" data-plan="starter_80">Get Starter</button>
+        </div>
+
+        <!-- Card 2 (highlight) -->
+        <div class="price-card featured">
+          <div class="pc-top">
+            <span class="badge hot">Popular</span>
+            <h3>Creator</h3>
+            <p class="sub">Regular use. Better value bundle.</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£19.99</span>
+            <small>300 Credits · ~10 models</small>
+          </div>
+          <ul class="pc-list">
+            <li>Text → 3D generation</li>
+            <li>Image → 3D generation</li>
+            <li>Refine / Retexture</li>
+            <li>Includes hosting + processing</li>
+            <li>Downloads</li>
+          </ul>
+          <button class="btn block pricing-cta" type="button" data-plan="creator_300">Get Creator</button>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="price-card">
+          <div class="pc-top">
+            <span class="badge">Studio</span>
+            <h3>Studio</h3>
+            <p class="sub">Heavy use. Best value.</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£34.99</span>
+            <small>600 Credits · ~20 models</small>
+          </div>
+          <ul class="pc-list">
+            <li>Text → 3D generation</li>
+            <li>Image → 3D generation</li>
+            <li>Refine / Retexture</li>
+            <li>Includes hosting + processing</li>
+            <li>Downloads</li>
+            <li>Priority queue access</li>
+          </ul>
+          <button class="btn block ghost pricing-cta" type="button" data-plan="studio_600">Get Studio</button>
+        </div>
+      </div>
+  
+      <p class="foot-note">1 model ≈ 30 credits (generation + refine).</p>
+    </div>
+  </section>
+
+  <!-- ====================== SECURE CREDITS ====================== -->
+  <section id="secure-credits" class="secure-credits-wrap">
+    <div class="container">
+      <div class="secure-credits-card">
+        <div class="secure-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+
+        <!-- State 1: No email attached -->
+        <div id="secureState1" class="secure-state">
+          <h3>Secure Your Credits</h3>
+          <p class="secure-subtitle">Add an email to restore your credits on any device.</p>
+
+          <div class="secure-form">
+            <div class="secure-input-group">
+              <input type="email" id="secureEmail" placeholder="your@email.com" autocomplete="email">
+              <button type="button" id="sendCodeBtn" class="btn">Send Code</button>
+            </div>
+            <p id="secureError" class="secure-error"></p>
+            <p id="secureMessage" class="secure-message"></p>
+          </div>
+        </div>
+
+        <!-- State 2: Code sent, awaiting verification -->
+        <div id="secureState2" class="secure-state" style="display: none;">
+          <h3>Enter Verification Code</h3>
+          <p class="secure-subtitle">We sent a 6-digit code to <span id="sentToEmail">your email</span></p>
+
+          <div class="secure-form">
+            <div class="secure-input-group code-input-group">
+              <input type="text" id="verifyCode" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+              <button type="button" id="verifyCodeBtn" class="btn">Verify</button>
+            </div>
+            <p id="verifyError" class="secure-error"></p>
+            <p id="verifyMessage" class="secure-message"></p>
+            <div class="secure-actions">
+              <button type="button" id="resendCodeBtn" class="btn ghost small" disabled>Resend Code</button>
+              <button type="button" id="changeEmailBtn" class="btn ghost small">Change Email</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- State 3: Verified -->
+        <div id="secureState3" class="secure-state" style="display: none;">
+          <h3>Email Verified</h3>
+          <p class="secure-subtitle"><i class="fa-solid fa-circle-check"></i> <span id="verifiedEmail">your@email.com</span></p>
+          <p class="secure-helper">Use this email to restore your credits on another device or browser.</p>
+          <button type="button" id="changeVerifiedEmailBtn" class="btn ghost small">Change Email</button>
+        </div>
+
+        <!-- Restore flow (for new devices) -->
+        <div id="restorePanel" class="restore-panel">
+          <div class="restore-divider">
+            <span>or</span>
+          </div>
+          <button type="button" id="showRestoreBtn" class="btn ghost">Restore Existing Account</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== COMMUNITY ====================== -->
+  <section id="community" class="community-wrap">
+    <div class="container">
+      <div class="community-grid">
+        <!-- Left: card stack -->
+        <div class="comm-cards">
+          <!-- Discord -->
+          <a class="comm-card" href="https://discord.com" target="_blank" rel="noreferrer">
+            <div class="cc-icon">
+              <!-- chat bubble -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
+                <path d="M21 12a8.5 8.5 0 1 1-3.3-6.7L22 3l-1.7 4.3A8.5 8.5 0 0 1 21 12Z"/>
+                <path d="M8 11h8M8 15h5"/>
+              </svg>
+            </div>
+            <div class="cc-body">
+              <strong>Discord</strong>
+              <p>Show work, get help fast, vote on features.</p>
+            </div>
+            <span class="cc-cta">Join</span>
+          </a>
+  
+          <!-- Docs -->
+          <a class="comm-card" href="blogs.html">
+            <div class="cc-icon">
+              <!-- book -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
+                <path d="M4 4h10a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/>
+                <path d="M7 4v13a3 3 0 0 0 3 3h7"/>
+              </svg>
+            </div>
+            <div class="cc-body">
+              <strong>Docs & Tips</strong>
+              <p>Short guides, prompt recipes, quick starts.</p>
+            </div>
+            <span class="cc-cta">Read</span>
+          </a>
+  
+          <!-- Updates -->
+          <a class="comm-card" href="blogs.html">
+            <div class="cc-icon">
+              <!-- spark -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
+                <path d="M12 2v6M12 22v-6M4.9 4.9l4.2 4.2M19.1 19.1l-4.2-4.2M2 12h6M22 12h-6M4.9 19.1l4.2-4.2M19.1 4.9l-4.2 4.2"/>
+              </svg>
+            </div>
+            <div class="cc-body">
+              <strong>Updates</strong>
+              <p>New features, fixes and beta milestones.</p>
+            </div>
+            <span class="cc-cta">Follow</span>
+          </a>
+        </div>
+  
+        <!-- Right: copy -->
+        <div class="comm-copy">
+          <h2>Community & Resources</h2>
+          <p class="muted">A lightweight hub for early users: share results, trade prompts, and help shape the roadmap. Docs cover setup, best practices, and pipeline examples.</p>
+  
+          <div class="chips">
+            <span class="chip">Prompt tips</span>
+            <span class="chip">API snippets</span>
+            <span class="chip">Showcase</span>
+            <span class="chip">Bug reports</span>
+          </div>
+  
+          <div class="cta-row">
+            <a class="btn" href="https://discord.com" target="_blank" rel="noreferrer">Join Discord</a>
+            <a class="btn ghost" href="blogs.html">Open Docs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero Section from 3D Print Hub -->
+  <section class="print3d-hero">
+    <div class="hero-geometric-bg">
+      <div class="geo-grid"></div>
+      <div class="geo-line geo-line-1"></div>
+      <div class="geo-line geo-line-2"></div>
+      <div class="geo-line geo-line-3"></div>
+      <div class="geo-circle geo-circle-1"></div>
+      <div class="geo-circle geo-circle-2"></div>
+    </div>
+
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        AI-Powered 3D Creation
+      </div>
+
+      <h1 class="title-xl">3D Print Hub</h1>
+
+      <p class="hero-description">
+        Transform your ideas into stunning 3D models with AI-driven generation.
+        Create printable designs from text descriptions or images, powered by cutting-edge Meshy technology.
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-value">~4 min</div>
+          <div class="stat-label">Generation Time</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">Text & Image</div>
+          <div class="stat-label">Input Methods</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">GLB/GLTF</div>
+          <div class="stat-label">Export Formats</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">TimrX</span>
+        <span class="footer-divider">·</span>
+        <span class="footer-text">3D Print Hub</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Portfolio</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#community">Community</a>
+      </div>
+      <div class="footer-meta">
+        <span>Powered by <strong>Meshy AI</strong></span>
+        <span class="footer-divider">·</span>
+        <span>© <span id="year">2025</span> Dima Vasiliu</span>
+      </div>
+    </div>
+  </footer>
+
+    <!-- Buy Credits Modal -->
+    <div class="modal" id="buyCreditsModal" aria-hidden="true">
+      <div class="card buy-credits-card">
+        <button class="close-x" id="buyCreditsClose" aria-label="Close">&times;</button>
+        <h4>Buy Credits</h4>
+        <p class="modal-sub">Credits power 3D model generation. Choose a pack below.</p>
+
+        <div class="credits-plans">
+          <!-- Starter -->
+          <button class="plan-card" data-plan="starter_80" data-credits="80" data-price="7.99" type="button">
+            <span class="plan-badge">Starter</span>
+            <span class="plan-credits">80 Credits</span>
+            <span class="plan-price">£7.99</span>
+            <span class="plan-note">~2-3 models</span>
+          </button>
+
+          <!-- Creator (Popular) -->
+          <button class="plan-card featured" data-plan="creator_300" data-credits="300" data-price="19.99" type="button">
+            <span class="plan-popular">Popular</span>
+            <span class="plan-badge">Creator</span>
+            <span class="plan-credits">300 Credits</span>
+            <span class="plan-price">£19.99</span>
+            <span class="plan-note">~10 models</span>
+          </button>
+
+          <!-- Studio -->
+          <button class="plan-card" data-plan="studio_600" data-credits="600" data-price="34.99" type="button">
+            <span class="plan-badge">Studio</span>
+            <span class="plan-credits">600 Credits</span>
+            <span class="plan-price">£34.99</span>
+            <span class="plan-note">~20 models</span>
+          </button>
+        </div>
+
+        <!-- Email + Checkout Section -->
+        <div class="checkout-section" id="checkoutSection">
+          <div class="selected-plan-display" id="selectedPlanDisplay">
+            <span class="selected-label">Selected:</span>
+            <span class="selected-plan-name" id="selectedPlanName">-</span>
+            <span class="selected-plan-price" id="selectedPlanPrice">-</span>
+          </div>
+
+          <div class="field">
+            <input type="email" id="checkoutEmail" placeholder="Enter your email for receipt" autocomplete="email" />
+          </div>
+
+          <div class="checkout-error" id="checkoutError"></div>
+
+          <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
+            <span class="btn-text">Continue to Payment</span>
+            <span class="btn-loader" style="display:none;">
+              <i class="fa-solid fa-spinner fa-spin"></i> Processing...
+            </span>
+          </button>
+        </div>
+
+        <p class="credits-footer">1 model = ~30 credits (generation + refine)</p>
+      </div>
+    </div>
+
+    <!-- Payment Success Modal -->
+    <div class="modal" id="paymentSuccessModal" aria-hidden="true">
+      <div class="card success-card">
+        <div class="success-icon">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h4>Payment Successful</h4>
+        <p class="modal-sub">Your credits have been added to your account.</p>
+        <div class="success-credits" id="successCredits">
+          <span class="success-label">New Balance:</span>
+          <span class="success-value" id="successCreditsValue">--</span>
+          <span class="success-unit">credits</span>
+        </div>
+        <div class="cta-row success-actions">
+          <a class="btn" href="3dprint.html">Go to Workspace</a>
+          <button class="btn ghost" id="successCloseBtn" type="button">Stay Here</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="hub.js"></script>
+    <script src="burger.js"></script>
+    <script src="js/credits.js"></script>
+</body>
+</html>

@@ -1,0 +1,930 @@
+/* ==========================================================================
+   VIEWER CANVAS WRAPPER
+   ========================================================================== */
+   .viewer-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: clamp(820px, 90vh, 1200px);
+    background: #0a0a0a;
+  }
+  
+  /* Placeholder shown when no model/image/video is loaded */
+  .viewer-placeholder,
+  .viewer-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #666;
+    pointer-events: none;
+    z-index: 1;
+    padding: 24px;
+    text-align: center;
+  }
+  
+  .viewer-placeholder svg,
+  .viewer-empty svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.3;
+  }
+  
+  .viewer-placeholder p,
+  .viewer-empty p {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #888;
+    line-height: 1.4;
+  }
+  
+  .viewer-placeholder span,
+  .viewer-empty span {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+  }
+  
+  /* Canvas */
+  #viewerCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+    z-index: 2;
+  }
+  
+  #viewerCanvas:active {
+    cursor: grabbing;
+  }
+  
+  /* ==========================================================================
+     IMAGE VIEWER
+     ========================================================================== */
+  .image-display {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 3;
+  }
+  
+  .generated-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* ==========================================================================
+     VIDEO DISPLAY
+     ========================================================================== */
+  .video-display {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 3;
+  }
+  
+  .generated-video {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: #000;
+  }
+  
+  /* ==========================================================================
+     PROGRESS UI (Output + Compact)
+     ========================================================================== */
+  
+  .progress-percent {
+    color: var(--accent-blue);
+    font-size: 16px;
+    text-shadow: 0 0 16px rgba(14, 165, 233, 0.6);
+    font-weight: 900;
+  }
+  
+  .progress-bar {
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      0 0 16px rgba(14, 165, 233, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: progressGlow 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes progressGlow {
+    0%, 100% { transform: translateX(-100%); }
+    50%      { transform: translateX(100%); }
+  }
+  
+  /* ==========================================================================
+     RESULT CARD (thumbnail + actions)
+     ========================================================================== */
+  
+  .output-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  
+  .result-thumbnail {
+    width: 100%;
+    max-width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(14, 165, 233, 0.25);
+    background: #0a0a0a;
+    box-shadow:
+      0 4px 16px rgba(14, 165, 233, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .result-thumbnail::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(14, 165, 233, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .result-thumbnail:hover {
+    transform: scale(1.03);
+    border-color: rgba(14, 165, 233, 0.5);
+    box-shadow:
+      0 8px 24px rgba(14, 165, 233, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .result-thumbnail:hover::after {
+    opacity: 1;
+  }
+  
+  .result-meta {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #0ea5e9;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .result-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .result-actions a,
+  .result-actions button {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e0e0e0;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .result-actions a:hover,
+  .result-actions button:hover {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.4);
+    color: #0ea5e9;
+    transform: translateY(-1px);
+  }
+  
+  .result-actions a.primary {
+    background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
+  }
+  
+  .result-actions a.primary:hover {
+    background: linear-gradient(135deg, #0284c7, #7c3aed);
+    transform: translateY(-1px);
+  }
+
+  /* GRID LAYOUT
+   --------------------------------------------------------------------------
+   .ws-grid = 4-column layout:
+   [icon rail] [left controls] [viewer] [right history]
+   -------------------------------------------------------------------------- */
+.timrx-3dprint .ws-grid {
+  display: grid;
+  grid-template-columns: 64px 320px 1fr 480px;
+  gap: var(--ws-gap);
+  align-items: stretch;
+  align-content: start;
+  padding: var(--ws-gap);
+  height: calc(100vh - var(--ws-navH));
+  max-width: 100%;
+  margin: 0 auto;
+  margin-top: var(--ws-navH);
+  overflow: hidden;
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+/* ICON RAIL (leftmost vertical tool strip) --------------------------------- */
+.timrx-3dprint .ws-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  padding-top: 105px;
+}
+
+.timrx-3dprint .rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--ws-text);
+  opacity: 0.65;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.timrx-3dprint .rail-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+
+.timrx-3dprint .rail-btn span {
+  font-size: 11px;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.timrx-3dprint .rail-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timrx-3dprint .rail-btn:focus {
+  outline: none;
+}
+
+.timrx-3dprint .rail-btn:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timrx-3dprint .rail-btn.is-active {
+  opacity: 1;
+  background: rgba(14, 165, 233, 0.15);
+  color: #0ea5e9;
+}
+
+/* SHARED PANE SHELL
+   --------------------------------------------------------------------------
+   Used by:
+   - .ws-left   (controls column)
+   - .ws-viewer (center canvas)
+   - .ws-right  (history/output column)
+   -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0; /* allow inner scroll containers to work */
+  }
+  
+  /* Pane header: title + supporting text */
+  .timrx-3dprint .pane-head {
+    margin: 0 0 8px;
+    padding-bottom: 0;
+  }
+  
+  .timrx-3dprint .pane-head h2 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
+    font-family: Inter, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+    background: #ffffff;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .timrx-3dprint .pane-head .pane-sub {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #ffffff;
+    opacity: 0.7;
+  }
+  
+  /* LEFT PANEL (controls column)
+     -------------------------------------------------------------------------- */
+  .timrx-3dprint .ws-left {
+    width: 320px;
+    overflow-y: auto;
+    max-height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+    padding-right: 5px;
+  }
+  
+  /* Left panel scrollbar styling */
+  .timrx-3dprint .ws-left::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .timrx-3dprint .ws-left::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+  }
+  
+  .timrx-3dprint .ws-left::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+  
+  .timrx-3dprint .ws-left::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  /* Stack of compact control cards in left panel */
+  .timrx-3dprint .pane-stack {
+    display: grid;
+    gap: 6px;
+    grid-auto-rows: min-content;
+  }
+  
+  /* GENERIC CARD COMPONENT
+     --------------------------------------------------------------------------
+     Shared card surface used for:
+     - control sections in left panel
+     - outputs / status in right panel
+     - any generic "boxed" content in the workspace
+     -------------------------------------------------------------------------- */
+  .timrx-3dprint .card {
+    background: var(--ws-card-bg);
+    border: 1px solid var(--ws-card-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: none;
+  }
+  
+  /* Card title */
+  .timrx-3dprint .card h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ws-text);
+  }
+  
+  /* General text + labels inside cards */
+  .timrx-3dprint .card p,
+  .timrx-3dprint .card label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .timrx-3dprint .card label {
+    display: block;
+    font-weight: 600;
+    color: #cccccc;
+  }
+  
+  /* List content (notes, requirements) inside cards */
+  .timrx-3dprint .card ul,
+  .timrx-3dprint .card ol {
+    margin: 6px 0;
+    padding-left: 16px;
+  }
+  
+  .timrx-3dprint .card li {
+    font-size: 11px;
+    margin-bottom: 3px;
+    line-height: 1.4;
+  }
+  
+  /* Form controls inside cards ---------------------------------------------- */
+  .timrx-3dprint .card input[type="text"],
+  .timrx-3dprint .card input[type="number"],
+  .timrx-3dprint .card textarea,
+  .timrx-3dprint .card select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ws-text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  
+  /* Global compact sizing for workspace controls */
+  .timrx-3dprint input[type="text"],
+  .timrx-3dprint input[type="number"],
+  .timrx-3dprint textarea,
+  .timrx-3dprint select {
+    min-height: 32px;
+  }
+  
+  /* Range sliders */
+  .timrx-3dprint input[type="range"] {
+    height: 4px;
+  }
+  
+  /* Checkbox & radio size */
+  .timrx-3dprint input[type="checkbox"],
+  .timrx-3dprint input[type="radio"] {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Focus state for card inputs */
+  .timrx-3dprint .card input[type="text"]:focus,
+  .timrx-3dprint .card input[type="number"]:focus,
+  .timrx-3dprint .card textarea:focus,
+  .timrx-3dprint .card select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Textarea behaviour */
+  .timrx-3dprint .card textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  /* Horizontal layout for small multi-option controls ----------------------- */
+  .timrx-3dprint .control-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
+  .timrx-3dprint .control-row button {
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+  
+  /* Compact button groups inside cards -------------------------------------- */
+  .timrx-3dprint .btn-group {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .timrx-3dprint .btn-group button {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  
+  /* Small helper label / description text ----------------------------------- */
+  .timrx-3dprint .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+  }
+  
+  .timrx-3dprint .field-desc {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-top: 2px;
+  }
+  
+  /* Compact number stepper layout ------------------------------------------- */
+  .timrx-3dprint .number-input-compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .timrx-3dprint .number-input-compact button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+    min-height: auto;
+  }
+  
+  .timrx-3dprint .number-input-compact input {
+    width: 50px;
+    text-align: center;
+    padding: 4px;
+    min-height: 24px;
+    height: 24px;
+  }
+  
+  /* Button interaction states */
+  .timrx-3dprint .card button:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+  }
+  
+  .timrx-3dprint .card button:focus {
+    outline: none;
+  }
+  
+  .timrx-3dprint .card button:focus-visible {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+    transform: translateY(-1px);
+  }
+  
+  .timrx-3dprint .card button:active {
+    transform: translateY(0);
+  }
+  
+  /* Small hint text under fields -------------------------------------------- */
+  .timrx-3dprint .card .field-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666666;
+  }
+  
+  /* Vertical rhythm between stacked cards ----------------------------------- */
+  .timrx-3dprint .card + .card {
+    margin-top: 12px;
+  }
+
+  /* ============================================================================
+   VIEWER PANE — Central 3D Canvas
+   - .ws-viewer: grid column shell
+   - .viewer-wrap: framed canvas container
+   - .viewer-gear: floating settings button
+   - .viewer-autorotate: autorotate toggle pill
+   - #viewerCanvas: actual WebGL / Three.js canvas
+   - .viewer-empty: empty state overlay
+   ============================================================================ */
+
+/* Viewer column shell (middle pane in ws-grid) ----------------------------- */
+.timrx-3dprint .ws-viewer {
+  min-width: 0;
+  min-height: 0;
+  height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+}
+
+/* Canvas frame: dark card with rounded corners ---------------------------- */
+.timrx-3dprint .viewer-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #0a0a0a;
+  border: 1px solid var(--ws-card-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* FLOATING VIEWER CONTROLS
+   --------------------------------------------------------------------------
+   Gear button (bottom-right) + autorotate pill stacked above it
+   -------------------------------------------------------------------------- */
+
+/* Gear button: compact glassy control */
+.timrx-3dprint .viewer-gear {
+  --gear-size: 40px;
+
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+
+  width: var(--gear-size);
+  height: var(--gear-size);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+
+  color: #f1f5f9;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timrx-3dprint .viewer-gear:hover {
+  transform: translateY(-2px);
+  border-color: rgba(14, 165, 233, 0.4);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 1), rgba(15, 23, 42, 1));
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(14, 165, 233, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.timrx-3dprint .viewer-gear:active {
+  transform: translateY(0);
+}
+
+/* Autorotate pill stacked above gear -------------------------------------- */
+.timrx-3dprint .viewer-autorotate {
+  position: absolute;
+  right: 16px;
+  bottom: calc(16px + var(--gear-size, 40px) + 12px);
+  z-index: 10;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  font-size: 12px;
+  line-height: 1;
+  color: #e5e7eb;
+
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Slide-in animation for autorotate pill */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.timrx-3dprint .viewer-autorotate .label {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+}
+
+/* MODERN TOGGLE SWITCH
+   --------------------------------------------------------------------------
+   Small pill toggle used inside .viewer-autorotate
+   -------------------------------------------------------------------------- */
+.timrx-3dprint .viewer-autorotate .toggle {
+  --w: 38px;
+  --h: 22px;
+  --knob: 16px;
+  --pad: 2px;
+  --on-color: #0ea5e9;
+  --off-bg: #1e293b;
+  --off-border: #334155;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  width: var(--w);
+  height: var(--h);
+
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smaller variant (if needed) */
+.timrx-3dprint .viewer-autorotate .toggle.sm {
+  --w: 34px;
+  --h: 20px;
+  --knob: 14px;
+  --pad: 2px;
+}
+
+/* Hidden checkbox input */
+.timrx-3dprint .viewer-autorotate .toggle input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Slider track */
+.timrx-3dprint .viewer-autorotate .toggle .slider {
+  position: relative;
+  flex: 1 1 auto;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--off-bg);
+  border: 1px solid var(--off-border);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Slider knob */
+.timrx-3dprint .viewer-autorotate .toggle .slider::after {
+  content: "";
+  position: absolute;
+  left: var(--pad);
+  top: 50%;
+  width: var(--knob);
+  height: var(--knob);
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s ease;
+}
+
+/* Hover state (track border) */
+.timrx-3dprint .viewer-autorotate .toggle input:hover + .slider {
+  border-color: #475569;
+}
+
+/* Checked state: blue glow + moved knob */
+.timrx-3dprint .viewer-autorotate .toggle input:checked + .slider {
+  background: linear-gradient(135deg, var(--on-color) 0%, #0284c7 100%);
+  border-color: var(--on-color);
+  box-shadow:
+    0 0 12px rgba(14, 165, 233, 0.4),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.timrx-3dprint .viewer-autorotate .toggle input:checked + .slider::after {
+  transform: translateY(-50%) translateX(
+    calc(var(--w) - (var(--knob) + var(--pad) * 2))
+  );
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+/* Focus accessibility */
+.timrx-3dprint .viewer-autorotate .toggle input:focus-visible + .slider {
+  outline: 2px solid rgba(14, 165, 233, 0.5);
+  outline-offset: 2px;
+}
+
+/* Small “press” effect on drag */
+.timrx-3dprint .viewer-autorotate .toggle input:active + .slider::after {
+  width: calc(var(--knob) + 2px);
+}
+
+/* ACTUAL 3D CANVAS -------------------------------------------------------- */
+.timrx-3dprint #viewerCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* EMPTY STATE OVERLAY (when no model loaded) ------------------------------ */
+.timrx-3dprint .viewer-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  color: #777777;
+}
+
+.timrx-3dprint .viewer-empty svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+
+.timrx-3dprint .viewer-empty p {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #999999;
+}
+
+.timrx-3dprint .viewer-empty span {
+  font-size: 13px;
+  color: #666666;
+}
+
