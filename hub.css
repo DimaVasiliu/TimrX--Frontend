@@ -1236,10 +1236,10 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 .pricing-wrap{
     background:#0b0b0b;
     border-top:1px solid var(--line);
-    padding:clamp(80px,10vh,130px) 0;
+    padding:clamp(48px,6vh,70px) 0;
   }
   .pricing-head{
-    text-align:center; margin-bottom:clamp(44px,6vh,70px);
+    text-align:center; margin-bottom:clamp(28px,4vh,44px);
   }
   .pricing-head h2{
     font-family:"Bebas Neue",sans-serif;
@@ -2012,7 +2012,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
    SECURE CREDITS SECTION
    ========================================================================== */
 .secure-credits-wrap {
-  padding: 40px 0 60px;
+  padding: 24px 0 40px;
   background: linear-gradient(180deg, var(--bg) 0%, #0d0d0d 100%);
 }
 
@@ -2021,17 +2021,17 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  max-width: 400px;
+  max-width: 340px;
   margin: 0 auto 0;
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--ink);
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2064,12 +2064,12 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 
 /* Collapsible Card */
 .secure-credits-card {
-  max-width: 500px;
+  max-width: 460px;
   margin: 0 auto;
-  padding: 40px 32px;
+  padding: 28px 24px;
   background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   text-align: center;
   overflow: hidden;
   transition: all 0.35s ease;
@@ -2077,7 +2077,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 
 .secure-credits-card.collapsed {
   max-height: 0;
-  padding: 0 32px;
+  padding: 0 24px;
   margin-top: 0;
   opacity: 0;
   border-color: transparent;
@@ -2086,15 +2086,15 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 
 .secure-credits-card.expanded {
   max-height: 600px;
-  margin-top: 20px;
+  margin-top: 14px;
   opacity: 1;
   pointer-events: auto;
 }
 
 .secure-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 20px;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
   display: flex;
   align-items: center;
   justify-content: center;
