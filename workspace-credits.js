@@ -21,6 +21,9 @@ const creditsState = {
   loaded: false,
   loading: false,
   error: null,
+  // Optimistic updates tracking
+  pendingDeductions: [],  // Array of { id, amount, action, timestamp }
+  lastServerBalance: null,
 };
 
 // ============================================================================
@@ -144,22 +147,50 @@ export async function fetchActionCosts() {
 
 /**
  * Default action costs (fallback if API unavailable)
- * Keys match backend action_key format with legacy aliases
+ * Keys match backend ACTION_KEY_MAP in credits.py
+ *
+ * Backend mapping:
+ *   text_to_3d    → MESHY_TEXT_TO_3D
+ *   image_to_3d   → MESHY_IMAGE_TO_3D
+ *   texture       → MESHY_RETEXTURE
+ *   remesh/refine → MESHY_REFINE
+ *   rig           → MESHY_REFINE
+ *   image_generate→ OPENAI_IMAGE
+ *   preview       → MESHY_TEXT_TO_3D (alias)
+ *   upscale       → MESHY_REFINE (alias)
  */
 function getDefaultActionCosts() {
   return {
-    // Backend action keys
+    // === Core 3D generation ===
+    'text_to_3d': 20,           // Text-to-3D preview (latest model)
+    'text-to-3d': 20,           // Alias (hyphenated)
+    'preview': 20,              // Preview is same as text_to_3d
+
+    'image_to_3d': 30,          // Image-to-3D generation
+    'image-to-3d': 30,          // Alias (hyphenated)
+
+    // === Post-processing ===
+    'texture': 10,              // Retexture a model
+    'remesh': 10,               // Remesh/retopologize
+    'refine': 10,               // Refine preview to full model
+    'rig': 10,                  // Auto-rig a humanoid
+    'upscale': 10,              // Upscale (alias for refine)
+
+    // === Image generation ===
+    'image_generate': 10,       // OpenAI image generation
+    'text-to-image': 10,        // Alias (hyphenated)
+
+    // === Backend DB action codes (for direct lookups) ===
+    'MESHY_TEXT_TO_3D': 20,
+    'MESHY_IMAGE_TO_3D': 30,
+    'MESHY_RETEXTURE': 10,
+    'MESHY_REFINE': 10,
+    'OPENAI_IMAGE': 10,
+
+    // === Legacy keys (backward compatibility) ===
     'text_to_3d_generate': 20,
     'image_to_3d_generate': 30,
-    'image_studio_generate': 12,
-    'refine': 10,
-    'texture': 10,
-    'remesh': 10,
-    'rig': 10,
-    // Legacy aliases for backward compatibility
-    'text-to-3d': 20,
-    'image-to-3d': 30,
-    'text-to-image': 12,
+    'image_studio_generate': 10,
   };
 }
 
@@ -187,6 +218,9 @@ export async function initCredits() {
 
     // Update any UI elements
     updateCreditsUI();
+
+    // Setup batch count listeners for dynamic cost updates
+    setupBatchCountListeners();
 
   } catch (err) {
     log('[Credits] Initialization error:', err);
@@ -243,6 +277,153 @@ export function isLoaded() {
   return creditsState.loaded;
 }
 
+// ============================================================================
+// OPTIMISTIC UPDATES
+// ============================================================================
+
+/**
+ * Generate unique ID for tracking pending deductions
+ */
+function generateDeductionId() {
+  return `deduct_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/**
+ * Deduct credits optimistically (immediately update UI before API call)
+ *
+ * @param {string} action - The action key (e.g., 'image_to_3d', 'text_to_3d')
+ * @param {number} count - Number of items (default 1, for batch operations)
+ * @returns {object} - { id, amount } to use for reconcile/rollback
+ */
+export function deductOptimistic(action, count = 1) {
+  const costPerItem = getActionCost(action);
+  const totalCost = costPerItem * count;
+
+  if (totalCost === 0) {
+    log('[Credits] Optimistic deduct: action has no cost', action);
+    return { id: null, amount: 0 };
+  }
+
+  const deductionId = generateDeductionId();
+  const deduction = {
+    id: deductionId,
+    amount: totalCost,
+    action,
+    count,
+    timestamp: Date.now(),
+  };
+
+  // Track this pending deduction
+  creditsState.pendingDeductions.push(deduction);
+
+  // Store current balance as "last server balance" if not already set
+  if (creditsState.lastServerBalance === null) {
+    creditsState.lastServerBalance = creditsState.wallet.available;
+  }
+
+  // Optimistically reduce available credits
+  creditsState.wallet.available = Math.max(0, creditsState.wallet.available - totalCost);
+  creditsState.wallet.balance = Math.max(0, creditsState.wallet.balance - totalCost);
+
+  log('[Credits] Optimistic deduct:', {
+    id: deductionId,
+    action,
+    cost: totalCost,
+    newAvailable: creditsState.wallet.available,
+  });
+
+  // Update UI immediately
+  updateCreditsUI();
+
+  return { id: deductionId, amount: totalCost };
+}
+
+/**
+ * Reconcile local state with server balance (call after API response)
+ *
+ * @param {number} serverBalance - The actual balance from server response
+ * @param {string} deductionId - Optional: specific deduction to clear
+ */
+export function reconcile(serverBalance, deductionId = null) {
+  log('[Credits] Reconciling with server balance:', serverBalance);
+
+  // Clear specific deduction or all pending deductions
+  if (deductionId) {
+    creditsState.pendingDeductions = creditsState.pendingDeductions.filter(
+      d => d.id !== deductionId
+    );
+  } else {
+    // Clear all pending deductions on full reconcile
+    creditsState.pendingDeductions = [];
+  }
+
+  // Update to server truth
+  creditsState.wallet.available = serverBalance;
+  creditsState.wallet.balance = serverBalance;
+  creditsState.lastServerBalance = serverBalance;
+
+  log('[Credits] Reconciled:', {
+    balance: serverBalance,
+    pendingCount: creditsState.pendingDeductions.length,
+  });
+
+  // Update UI with server truth
+  updateCreditsUI();
+}
+
+/**
+ * Rollback a pending deduction (call if API call fails)
+ *
+ * @param {string} deductionId - The deduction ID from deductOptimistic
+ */
+export function rollback(deductionId) {
+  const deductionIndex = creditsState.pendingDeductions.findIndex(
+    d => d.id === deductionId
+  );
+
+  if (deductionIndex === -1) {
+    log('[Credits] Rollback: deduction not found', deductionId);
+    return;
+  }
+
+  const deduction = creditsState.pendingDeductions[deductionIndex];
+
+  // Remove from pending
+  creditsState.pendingDeductions.splice(deductionIndex, 1);
+
+  // Restore credits
+  creditsState.wallet.available += deduction.amount;
+  creditsState.wallet.balance += deduction.amount;
+
+  log('[Credits] Rolled back:', {
+    id: deductionId,
+    amount: deduction.amount,
+    newAvailable: creditsState.wallet.available,
+  });
+
+  // Update UI
+  updateCreditsUI();
+}
+
+/**
+ * Clear all pending deductions (useful on page refresh or error recovery)
+ */
+export function clearPending() {
+  creditsState.pendingDeductions = [];
+  log('[Credits] Cleared all pending deductions');
+}
+
+/**
+ * Get total pending deductions amount
+ */
+export function getPendingAmount() {
+  return creditsState.pendingDeductions.reduce((sum, d) => sum + d.amount, 0);
+}
+
+// ============================================================================
+// WALLET STATE MANAGEMENT
+// ============================================================================
+
 /**
  * Update wallet after a successful operation (e.g., after job completion)
  */
@@ -286,31 +467,61 @@ export function updateCreditsUI() {
 }
 
 /**
+ * Button to action mapping with associated batch count inputs
+ */
+const BUTTON_CONFIG = {
+  // Core generation buttons
+  'generateModelBtn': { action: 'text-to-3d', batchInput: 'modelBatchCount' },
+  'generateImageBtn': { action: 'text-to-image', batchInput: null },
+  'imageTo3dBtn': { action: 'image-to-3d', batchInput: null },
+  // Post-processing buttons
+  'generateTextureBtn': { action: 'texture', batchInput: null },
+  'applyRemeshBtn': { action: 'remesh', batchInput: null },
+  'applyRefineBtn': { action: 'refine', batchInput: null },
+  'applyRigBtn': { action: 'rig', batchInput: null },
+  'applyUpscaleBtn': { action: 'upscale', batchInput: null },
+  'generateVideoBtn': { action: 'video', batchInput: null },
+};
+
+/**
+ * Get batch count for a button (from associated input or default 1)
+ */
+function getBatchCountForButton(btnId) {
+  const config = BUTTON_CONFIG[btnId];
+  if (!config?.batchInput) return 1;
+
+  const input = document.getElementById(config.batchInput);
+  if (!input) return 1;
+
+  const val = parseInt(input.value, 10);
+  return Number.isFinite(val) && val > 0 ? Math.min(val, 4) : 1;
+}
+
+/**
  * Update generate buttons to show credit costs
+ * Maps button IDs to action keys for cost lookup
  */
 function updateGenerateButtonCosts() {
-  const buttonCostMap = {
-    'generateModelBtn': 'text-to-3d',
-    'generateImageBtn': 'text-to-image',
-    'generateTextureBtn': 'texture',
-    'applyRemeshBtn': 'remesh',
-    'applyRigBtn': 'rig',
-  };
-
-  Object.entries(buttonCostMap).forEach(([btnId, action]) => {
+  Object.entries(BUTTON_CONFIG).forEach(([btnId, config]) => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
 
-    const cost = getActionCost(action);
-    const hasCreds = hasCreditsFor(action);
+    const { action } = config;
+    const batchCount = getBatchCountForButton(btnId);
+    const costPerItem = getActionCost(action);
+    const totalCost = costPerItem * batchCount;
+    const hasCreds = creditsState.wallet.available >= totalCost;
 
     // Find the .gen-credits span in the same footer card
     const footerCard = btn.closest('.gen-footer-card');
     if (footerCard) {
       const creditsSpan = footerCard.querySelector('.gen-credits');
       if (creditsSpan) {
-        // Update with coin icon and cost
-        creditsSpan.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+        // Show batch multiplier if > 1
+        const costText = batchCount > 1
+          ? `${costPerItem} × ${batchCount} = ${totalCost}`
+          : `${totalCost}`;
+        creditsSpan.innerHTML = `<i class="fa-solid fa-coins"></i> ${costText}`;
         creditsSpan.classList.toggle('insufficient', !hasCreds);
       }
     }
@@ -318,18 +529,79 @@ function updateGenerateButtonCosts() {
     // Add/update insufficient state on button
     btn.classList.toggle('insufficient-credits', !hasCreds);
 
-    // Add cost badge to button if cost > 0
+    // Add/update cost tooltip on button (always visible on hover)
+    btn.setAttribute('data-credits', totalCost);
+    btn.setAttribute('title', `${totalCost} credits`);
+
+    // Add cost badge to button if totalCost > 0
     let costBadge = btn.querySelector('.btn-cost-badge');
-    if (cost > 0 && !costBadge) {
-      costBadge = document.createElement('span');
-      costBadge.className = 'btn-cost-badge';
-      btn.appendChild(costBadge);
-    }
-    if (costBadge) {
-      costBadge.textContent = cost;
+    if (totalCost > 0) {
+      if (!costBadge) {
+        costBadge = document.createElement('span');
+        costBadge.className = 'btn-cost-badge';
+        btn.appendChild(costBadge);
+      }
+      // Show batch multiplier in badge if > 1
+      costBadge.textContent = batchCount > 1 ? `${totalCost}` : totalCost;
       costBadge.classList.toggle('insufficient', !hasCreds);
+      costBadge.classList.toggle('has-batch', batchCount > 1);
+    } else if (costBadge) {
+      costBadge.remove();
     }
   });
+}
+
+/**
+ * Setup batch count input listeners to update costs dynamically
+ */
+function setupBatchCountListeners() {
+  // Find all batch count inputs
+  const batchInputIds = [...new Set(
+    Object.values(BUTTON_CONFIG)
+      .map(c => c.batchInput)
+      .filter(Boolean)
+  )];
+
+  batchInputIds.forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    // Update costs when value changes
+    const updateHandler = () => {
+      log('[Credits] Batch count changed:', inputId, input.value);
+      updateGenerateButtonCosts();
+    };
+
+    input.addEventListener('input', updateHandler);
+    input.addEventListener('change', updateHandler);
+
+    // Also handle stepper buttons
+    const stepper = input.closest('.stepper-input');
+    if (stepper) {
+      const upBtn = stepper.querySelector('.stepper-up');
+      const downBtn = stepper.querySelector('.stepper-down');
+
+      if (upBtn) {
+        upBtn.addEventListener('click', () => {
+          const current = parseInt(input.value, 10) || 1;
+          const max = parseInt(input.max, 10) || 4;
+          input.value = Math.min(current + 1, max);
+          updateHandler();
+        });
+      }
+
+      if (downBtn) {
+        downBtn.addEventListener('click', () => {
+          const current = parseInt(input.value, 10) || 1;
+          const min = parseInt(input.min, 10) || 1;
+          input.value = Math.max(current - 1, min);
+          updateHandler();
+        });
+      }
+    }
+  });
+
+  log('[Credits] Batch count listeners setup for:', batchInputIds);
 }
 
 /**
@@ -424,6 +696,147 @@ export function showInsufficientCreditsMessage(action) {
 }
 
 // ============================================================================
+// SIMPLE CLIENT API (credits-client interface)
+// ============================================================================
+
+/**
+ * Initialize credits UI - loads current credits from backend and renders
+ * Alias for initCredits() with a clearer name
+ */
+export async function initCreditsUI() {
+  return initCredits();
+}
+
+/**
+ * Get current cached numeric balance
+ * @returns {number} Current available credits
+ */
+export function getCredits() {
+  return creditsState.wallet.available;
+}
+
+/**
+ * Set credits balance directly and update UI
+ * @param {number} n - New balance to set
+ */
+export function setCredits(n) {
+  const balance = Math.max(0, Math.floor(n));
+  creditsState.wallet.available = balance;
+  creditsState.wallet.balance = balance;
+  creditsState.lastServerBalance = balance;
+  log('[Credits] setCredits:', balance);
+  updateCreditsUI();
+}
+
+/**
+ * Apply a delta (positive or negative) to credits with tracking
+ * Used for optimistic updates with reason/job tracking
+ *
+ * @param {number} delta - Amount to add (positive) or subtract (negative)
+ * @param {string} reason - Reason for the change (e.g., 'text_to_3d', 'purchase')
+ * @param {string} jobId - Optional job ID for idempotency tracking
+ * @returns {{ id: string, previousBalance: number, newBalance: number }}
+ */
+export function applyDelta(delta, reason = 'unknown', jobId = null) {
+  const previousBalance = creditsState.wallet.available;
+  const deductionId = jobId || `delta_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
+  // Track this change
+  const change = {
+    id: deductionId,
+    amount: Math.abs(delta),
+    delta,
+    reason,
+    jobId,
+    timestamp: Date.now(),
+  };
+
+  if (delta < 0) {
+    // Deduction - track as pending
+    creditsState.pendingDeductions.push(change);
+  }
+
+  // Store last server balance if not set
+  if (creditsState.lastServerBalance === null) {
+    creditsState.lastServerBalance = previousBalance;
+  }
+
+  // Apply delta
+  const newBalance = Math.max(0, previousBalance + delta);
+  creditsState.wallet.available = newBalance;
+  creditsState.wallet.balance = newBalance;
+
+  log('[Credits] applyDelta:', {
+    id: deductionId,
+    delta,
+    reason,
+    jobId,
+    balance: `${previousBalance} → ${newBalance}`,
+  });
+
+  // Update UI immediately
+  updateCreditsUI();
+
+  return {
+    id: deductionId,
+    previousBalance,
+    newBalance,
+  };
+}
+
+/**
+ * Refresh credits from server - calls GET /api/credits/wallet
+ * Sets exact server balance, clearing any optimistic state
+ * @returns {Promise<number>} The server balance
+ */
+export async function refreshCredits() {
+  const url = `${BACKEND}/api/credits/wallet`;
+  log('[Credits] Refreshing from:', url);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!res.ok) {
+      log('[Credits] refreshCredits failed:', res.status);
+      // Fall back to /api/me
+      return fetchWallet().then(() => creditsState.wallet.available);
+    }
+
+    const data = await res.json();
+    log('[Credits] /api/credits/wallet response:', data);
+
+    if (data.ok && typeof data.credits_balance === 'number') {
+      const serverBalance = data.credits_balance;
+
+      // Clear all pending deductions - server is truth
+      creditsState.pendingDeductions = [];
+      creditsState.wallet.available = serverBalance;
+      creditsState.wallet.balance = serverBalance;
+      creditsState.lastServerBalance = serverBalance;
+
+      if (data.identity_id) {
+        creditsState.identityId = data.identity_id;
+      }
+
+      log('[Credits] Refreshed to server balance:', serverBalance);
+      updateCreditsUI();
+      return serverBalance;
+    }
+
+    // Fallback to /api/me if response format unexpected
+    return fetchWallet().then(() => creditsState.wallet.available);
+  } catch (err) {
+    log('[Credits] refreshCredits error:', err);
+    // Fallback to /api/me
+    return fetchWallet().then(() => creditsState.wallet.available);
+  }
+}
+
+// ============================================================================
 // EXPORTS FOR GLOBAL ACCESS
 // ============================================================================
 
@@ -436,6 +849,7 @@ export function getIdentityId() {
 
 // Expose globally for backward compatibility and cross-module access
 window.WorkspaceCredits = {
+  // Original API
   init: initCredits,
   refresh: fetchWallet,
   getWallet,
@@ -445,7 +859,21 @@ window.WorkspaceCredits = {
   hasCreditsFor,
   updateWallet,
   updateUI: updateCreditsUI,
+  updateButtonCosts: updateGenerateButtonCosts,
+  setupBatchListeners: setupBatchCountListeners,
   showInsufficientCreditsMessage,
   isLoaded,
   getIdentityId,
+  // Optimistic update functions
+  deductOptimistic,
+  reconcile,
+  rollback,
+  clearPending,
+  getPendingAmount,
+  // Simple client API (credits-client interface)
+  initCreditsUI,
+  getCredits,
+  setCredits,
+  applyDelta,
+  refreshCredits,
 };
