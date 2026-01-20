@@ -277,12 +277,32 @@
   // Success Modal
   // ─────────────────────────────────────────────────────────────
 
-  function openSuccessModal(credits) {
+  function openSuccessModal(credits, isPending = false) {
     if (!successModal) return;
 
     // Update credits display
     if (successCreditsValue) {
       successCreditsValue.textContent = credits.toLocaleString();
+    }
+
+    // Update message based on whether webhook has processed
+    const successTitle = successModal.querySelector('.success-title, h2');
+    const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+
+    if (isPending) {
+      // Webhook hasn't arrived yet - show pending message
+      if (successTitle) successTitle.textContent = 'Payment Received';
+      if (successMessage) {
+        successMessage.textContent = 'Your payment is being processed. Credits will appear shortly.';
+      }
+      successModal.classList.add('pending');
+    } else {
+      // Credits have been granted
+      if (successTitle) successTitle.textContent = 'Payment Successful';
+      if (successMessage) {
+        successMessage.textContent = 'Your credits have been added to your account.';
+      }
+      successModal.classList.remove('pending');
     }
 
     successModal.classList.add('open');
@@ -476,7 +496,9 @@
 
   // Handle checkout return (check URL params)
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('checkout') === 'success') {
+  const checkoutStatus = urlParams.get('checkout');
+
+  if (checkoutStatus === 'success') {
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
@@ -497,14 +519,17 @@
 
         console.log(`[Credits] Poll ${attempts}/${maxAttempts}: balance=${newBalance} (was ${initialBalance})`);
 
-        // If balance increased or we've reached max attempts, show the modal
-        if (newBalance > initialBalance || attempts >= maxAttempts) {
-          if (newBalance > initialBalance) {
-            console.log('[Credits] Balance updated! Showing success modal');
-          } else {
-            console.log('[Credits] Max attempts reached, showing current balance');
-          }
-          openSuccessModal(newBalance);
+        // If balance increased, show success with "credits updated" message
+        if (newBalance > initialBalance) {
+          console.log('[Credits] Balance updated! Showing success modal');
+          openSuccessModal(newBalance, false); // false = not pending
+          return;
+        }
+
+        // If we've reached max attempts, show "pending" message
+        if (attempts >= maxAttempts) {
+          console.log('[Credits] Max attempts reached, webhook may be delayed');
+          openSuccessModal(newBalance, true); // true = pending
           return;
         }
 
@@ -515,9 +540,13 @@
       // Start polling after a short delay (give webhook a head start)
       setTimeout(pollBalance, 1000);
     })();
-  } else if (urlParams.get('checkout') === 'cancelled') {
-    // Clean URL silently
+  } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
+    // Clean URL and optionally show a message
     window.history.replaceState({}, '', window.location.pathname);
+    if (checkoutStatus !== 'cancelled') {
+      console.log(`[Credits] Checkout ${checkoutStatus}`);
+      // Could show a toast/alert here if needed
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
