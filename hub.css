@@ -514,12 +514,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin: 28px 0;
-  padding: 24px 32px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px;
+  gap: 4px;
+  margin: 20px auto 18px;
+  padding: 14px 18px;
+  width: min(260px, 80%);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
 }
@@ -527,11 +528,10 @@
 .success-credits::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  pointer-events: none;
 }
 
 .success-label {
@@ -543,7 +543,7 @@
 }
 
 .success-value {
-  font-size: 48px;
+  font-size: 40px;
   font-weight: 800;
   color: var(--ink);
   letter-spacing: -0.03em;
@@ -570,6 +570,7 @@
   flex: 1;
   max-width: 150px;
   padding: 14px 20px;
+  justify-content: center;
   text-align: center;
   font-size: 13px;
   transition: all 0.2s ease;
