@@ -541,13 +541,18 @@
 
 .success-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
   margin-top: 8px;
 }
 
 .success-actions .btn {
-  width: 100%;
+  flex: 1;
+  max-width: 150px;
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 13px;
 }
 
 .success-actions .btn.ghost {
