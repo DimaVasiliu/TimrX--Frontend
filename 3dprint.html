@@ -1,84 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TimrX 3D Print Hub — Create 3D the simple way</title>
-  <meta name="description" content="TimrX 3D Print Hub — prompt to 3D, image to 3D, and text to image. Clean, fast, black & white UI with tasteful motion." />
-
-  <!-- Fonts (mono/clean) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <!-- Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
-  <!-- CSS (flattened) -->
-  <link rel="stylesheet" href="hub.css" />
-  <link rel="stylesheet" href="burger.css" />
-  <link rel="stylesheet" href="hub-media.css" />
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Print Hub — TimrX</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="burger.css">
+  <!-- CSS modules (flattened from 3dprint-modules/css/) -->
+  <link rel="stylesheet" href="variables.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="workspace.css">
+  <link rel="stylesheet" href="viewer.css">
+  <link rel="stylesheet" href="history.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="modulepreload" href="config.js">
+  <link rel="modulepreload" href="state.js">
+  <link rel="modulepreload" href="viewer.js">
+  <link rel="modulepreload" href="ui-utils.js">
+  <link rel="modulepreload" href="history.js">
+  <link rel="modulepreload" href="api.js">
+  <link rel="modulepreload" href="converter.js">
+  <link rel="modulepreload" href="workspace-credits.js">
+  <script defer src="3dprint-app.js"></script>
 </head>
-<body>
+<body class="print3d-page">
 
-  <!-- NAV -->
-  <nav class="nav" aria-label="Primary">
+  <!-- Navigation -->
+  <nav class="nav divider">
     <div class="container nav-inner">
-      <div class="nav-left">
-        <a class="brand" id="brand" href="index.html" aria-label="Home">
-          <span class="swap" id="brandTim" aria-label="TimrX">
-            <span class="b-tim">Timr</span><span class="b-x">X</span>
-          </span>
-          <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
-            <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
-          </span>
-        </a>
-        <ul class="menu" role="menubar">
-          <li>
-            <button type="button" role="menuitem" data-open="features">Features ▾</button>
-            <div class="drop" data-drop="features" role="menu">
-              <a href="#features">Prompt → 3D (Meshy)</a>
-              <a href="#features">Image → 3D</a>
-              <a href="#features">Text → Image</a>
-              <a href="#features">3D Viewer</a>
+      <a class="brand" id="brand" href="index.html" aria-label="Home">
+        <span class="swap" id="brandTim" aria-label="TimrX">
+          <span class="b-tim">Timr</span><span class="b-x">X</span>
+        </span>
+        <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
+          <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="hub.html" class="nav-hub-btn is-active">HUB</a>
+        <a href="#stories" data-open-user-stories>COMMUNITY</a>
+        <a href="#my-assets">MY ASSETS</a>
+        <a href="blogs.html">BLOGS</a>
+
+        <!-- Learn Dropdown -->
+        <div class="nav-dropdown">
+          <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
+            LEARN
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <div class="nav-dropdown-grid">
+              <a href="#tutorials" class="nav-dropdown-item" data-open-tutorials>
+                <span class="nav-dropdown-item-title">Tutorials</span>
+                <span class="nav-dropdown-item-desc">Step-by-step guides to master 3D creation</span>
+              </a>
+        <a href="#stories" class="nav-dropdown-item" data-open-user-stories>
+                <span class="nav-dropdown-item-title">User Stories</span>
+                <span class="nav-dropdown-item-desc">Learn from our community creators</span>
+              </a>
+              <a href="https://discord.gg/timrx" target="_blank" rel="noopener" class="nav-dropdown-item">
+                <span class="nav-dropdown-item-title">Discord</span>
+                <span class="nav-dropdown-item-desc">Join our community server</span>
+              </a>
             </div>
-          </li>
-          <li>
-            <button type="button" role="menuitem" data-open="pricing">Pricing ▾</button>
-            <div class="drop" data-drop="pricing" role="menu">
-              <a href="#pricing">Starter Pack</a>
-              <a href="#pricing">Creator Pack</a>
-              <a href="#pricing">Pro Pack</a>
-            </div>
-          </li>
-          <li>
-            <button type="button" role="menuitem" data-open="community">Community ▾</button>
-            <div class="drop" data-drop="community" role="menu">
-              <a href="#community">Discord (soon)</a>
-              <a href="#community">Docs & tips</a>
-              <a href="#community">Showcase</a>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div class="nav-right">
-        <!-- Credits Pill + Buy Button -->
-        <div class="credits-group" id="creditsGroup">
-          <span class="credits-pill" id="creditsPill">
-            <i class="fa-solid fa-coins"></i>
-            <span class="credits-value" id="creditsValue">0</span>
-            <i class="fa-solid fa-plus credits-plus" id="creditsPlus"></i>
-          </span>
-          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
-        </div>
-        <!-- Burger button (2-line Apple style - mobile only) -->
-        <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-          <div class="burger-icon">
-            <span class="burger-line"></span>
-            <span class="burger-line"></span>
           </div>
-        </button>
+        </div>
+
+        <!-- Resources Dropdown -->
+        <div class="nav-dropdown">
+          <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
+            RESOURCES
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <div class="nav-dropdown-section">
+              <span class="nav-dropdown-section-title">Tools</span>
+              <a href="#converter" class="nav-dropdown-item" data-open-converter>
+                <span class="nav-dropdown-item-title">3D File Converter</span>
+                <span class="nav-dropdown-item-desc">Convert between 3D formats</span>
+              </a>
+            </div>
+            <div class="nav-dropdown-section">
+              <span class="nav-dropdown-section-title">Company</span>
+              <a href="#about" class="nav-dropdown-item" data-open-about>
+                <span class="nav-dropdown-item-title">About</span>
+                <span class="nav-dropdown-item-desc">Our story and mission</span>
+              </a>
+              <a href="index.html#contact" class="nav-dropdown-item">
+                <span class="nav-dropdown-item-title">Contact Sales</span>
+                <span class="nav-dropdown-item-desc">Get in touch with our team</span>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Credits Pill -->
+      <div class="credits-group" id="workspaceCreditsGroup">
+        <span class="credits-pill" id="workspaceCredits" title="Available credits">
+          <i class="fa-solid fa-coins"></i>
+          <span class="credits-value" id="workspaceCreditsValue">--</span>
+        </span>
+        <a href="hub.html#pricing" class="credits-buy-btn" id="workspaceBuyBtn">Buy</a>
+      </div>
+
+      <!-- Burger button (2-line Apple style - mobile only) -->
+      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+        <div class="burger-icon">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </div>
+      </button>
     </div>
   </nav>
 
@@ -92,603 +129,1923 @@
         <span class="burger-menu__icon">🏠</span>
         <span class="burger-menu__text">Home</span>
       </a>
-      <a href="#features" class="burger-menu__item">
-        <span class="burger-menu__icon">✨</span>
-        <span class="burger-menu__text">Features</span>
+      <a href="hub.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🚀</span>
+        <span class="burger-menu__text">3D Hub</span>
       </a>
-      <a href="#pricing" class="burger-menu__item">
-        <span class="burger-menu__icon">💰</span>
-        <span class="burger-menu__text">Pricing</span>
+      <a href="index.html#services" class="burger-menu__item">
+        <span class="burger-menu__icon">⚙️</span>
+        <span class="burger-menu__text">Services</span>
       </a>
-      <a href="#community" class="burger-menu__item">
-        <span class="burger-menu__icon">👥</span>
-        <span class="burger-menu__text">Community</span>
+      <a href="#tutorials" class="burger-menu__item" data-open-tutorials>
+        <span class="burger-menu__icon">📚</span>
+        <span class="burger-menu__text">Tutorials</span>
+      </a>
+      <a href="#stories" class="burger-menu__item" data-open-user-stories>
+        <span class="burger-menu__icon">🧑‍🚀</span>
+        <span class="burger-menu__text">User Stories</span>
+      </a>
+      <a href="#converter" class="burger-menu__item" data-open-converter>
+        <span class="burger-menu__icon">🔄</span>
+        <span class="burger-menu__text">File Converter</span>
+      </a>
+      <a href="#about" class="burger-menu__item" data-open-about>
+        <span class="burger-menu__icon">💡</span>
+        <span class="burger-menu__text">About Us</span>
+      </a>
+      <a href="blogs.html" class="burger-menu__item">
+        <span class="burger-menu__icon">📝</span>
+        <span class="burger-menu__text">Blogs</span>
       </a>
       <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
         <span class="burger-menu__icon">✉️</span>
-        <span class="burger-menu__text">Contact</span>
+        <span class="burger-menu__text">Contact Me</span>
       </a>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <header class="container">
-    <div class="hero" id="hero">
-      <div class="kicker">TIMRX • 3D PRINT HUB</div>
-      <h1>The Easiest Way to Create 3D Models</h1>
-      <p>Clean, minimal pipeline for makers: prompt to 3D, image to 3D, and text to image. Powered by your APIs (Meshy, OpenAI/Gemini) when you're ready.</p>
+<!-- Main Workspace -->
+<section class="timrx-3dprint workspace" id="workspace">
+  <div class="ws-grid" role="region" aria-label="3D creation workspace">
 
-      <!-- Slider of options -->
-      <div class="hero-slider" id="slider">
-        <button class="pill active" data-to="#features">Text → 3D</button>
-        <button class="pill" data-to="#features">Image → 3D</button>
-        <button class="pill" data-to="#features">Text → Image</button>
-        <button class="pill" data-to="#features">3D → Video (Veo 3)</button>
-      </div>
-
-      <div class="cta-row">
-        <a class="btn" href="3dprint.html" id="startCreatingBtn">Start Creating →</a>
-        <a class="btn ghost" href="#features">Explore Features</a>
-      </div>
-
-        <!-- HERO FX confined to hero only -->
-        <div class="hero-fx" aria-hidden="true">
-            <div class="aurora"></div>
-
-            <!-- TOP-LEFT — DRAGON (zoom in/out, slight CW spin) -->
-            <model-viewer
-                src="dragon.glb"
-                class="floater floater-3d corner-tl motion-zoomZ"
-                style="width:220px;height:220px; --t:12s; --delay:-1.2s; --sFar:.62; --sNear:1.38; --zFar:-260px; --zNear:180px; --yaw:6deg;"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="8deg"
-                shadow-intensity="0"
-                exposure="1.05"
-                environment-image="neutral">
-            </model-viewer>
-
-            <!-- TOP-RIGHT — FOX (zoom in/out, CCW spin) -->
-            <model-viewer
-                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb"
-                class="floater floater-3d corner-tr motion-zoomZ"
-                style="width:220px;height:220px; --t:13.5s; --delay:-3s; --sFar:.68; --sNear:1.32; --zFar:-240px; --zNear:170px; --yaw:-8deg;"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="-10deg"
-                exposure="1.10"
-                environment-image="neutral">
-            </model-viewer>
-
-            <!-- BOTTOM-LEFT — ASTRONAUT (rotate only, faster CW) -->
-            <model-viewer
-                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                class="floater floater-3d corner-bl"
-                style="width:220px;height:220px"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="16deg"
-                environment-image="neutral">
-            </model-viewer>
-
-            <!-- BOTTOM-RIGHT — CESIUM MAN (rotate only, slower CCW) -->
-            <model-viewer
-                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
-                class="floater floater-3d corner-br"
-                style="width:220px;height:220px"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="-20deg"
-                environment-image="neutral">
-            </model-viewer>
-        </div>
-    </div>
-  </header>
-
-        <!-- ====================================================== -->
-        <!-- INTERACTIVE STRIP WRAPPER (title + micro-animations)   -->
-        <!-- ====================================================== -->
-        <section class="strip-wrap">
-              <!-- NEW: thin divider with pulse -->
-            <div class="strip-divider" aria-hidden="true">
-                <span class="pulse"></span>
-            </div>
-            <div class="container strip-head">
-            <h2 class="strip-title-anim">
-                <span class="hint-dot" aria-hidden="true"></span>
-                <span class="grad">Magnetize the Canvas</span>
-            </h2>
-            <p class="strip-sub">
-                Move your cursor over the white field. Click to pulse the force.
-            </p>
-            </div>
-
-            <div class="strip strip--light is-fx" id="usecases-strip">
-            <div class="strip-fx" aria-hidden="true">
-                <canvas class="strip-canvas"></canvas>
-            </div>
-            <div class="container strip-inner">
-                <div class="strip-list strip-list--big">
-                <button class="item">Product Design</button>
-                <button class="item">Education</button>
-                <button class="item">Game Dev</button>
-                <button class="item">3D Printing</button>
-                <button class="item">VR/AR</button>
-                <button class="item">Interior</button>
-                </div>
-            </div>
-            </div>
-        </section>
-
-<!-- ====================== LOGOS SECTION ====================== -->
-<section class="logos-wrap">
-    <div class="container">
-      <div class="logos-head">
-        <h2>Powering <span class="grad">TimrX 3D</span></h2>
-        <p class="muted">Trusted tech and creative platforms behind the magic.</p>
-      </div>
-
-      <div class="logos-grid">
-        <a href="https://threejs.org" class="logo" target="_blank" title="Three.js">
-          <img src="https://raw.githubusercontent.com/mrdoob/three.js/dev/files/favicon.ico" alt="Three.js">
-        </a>
-        <a href="https://flask.palletsprojects.com" class="logo" target="_blank" title="Flask">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/flask.svg" alt="Flask">
-        </a>
-        <a href="https://meshy.ai" class="logo" target="_blank" title="Meshy.ai">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/unity.svg" alt="Meshy">
-        </a>
-        <a href="https://openai.com" class="logo" target="_blank" title="OpenAI">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/openai.svg" alt="OpenAI">
-        </a>
-        <a href="https://vercel.com" class="logo" target="_blank" title="Vercel">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/vercel.svg" alt="Vercel">
-        </a>
-        <a href="https://github.com" class="logo" target="_blank" title="GitHub">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub">
-        </a>
-      </div>
-    </div>
-  </section>
-
-<!-- ====================== FEATURES SECTION ====================== -->
-<section class="features" id="features">
-    <div class="container">
-      <div class="features-head">
-        <h2 class="grad">Smart Tools. Seamless Workflow.</h2>
-        <p>Explore the creative power behind TimrX — where every tool feels like magic.</p>
-      </div>
-
-      <!-- 1) Text → 3D -->
-      <article class="feature-card">
-        <div class="feature-body">
-          <h3>Text to 3D</h3>
-          <p>Type your imagination — AI sculpts it into a ready 3D model in seconds. No modeling skills needed.</p>
-          <a href="3dprint.html" class="btn" id="tryItBtn">Try It</a>
-        </div>
-        <!-- Text → 3D -->
-        <div class="feature-icon-tile">
-            <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/box.svg" alt="3D box icon">
-        </div>
-      </article>
-
-      <!-- 2) Image → 3D (reversed) -->
-      <article class="feature-card reverse">
-        <div class="feature-icon-tile">
-          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/image.svg" alt="Image icon">
-        </div>
-        <div class="feature-body">
-          <h3>Image to 3D</h3>
-          <p>Upload an image or sketch and let AI build its 3D structure with lighting and texture in seconds.</p>
-          <a href="3dprint.html" class="btn ghost">Learn More</a>
-        </div>
-      </article>
-
-      <!-- 3) Text → Image -->
-      <article class="feature-card">
-        <div class="feature-body">
-          <h3>Text to Image</h3>
-          <p>Describe your vision — get cinematic art, posters, or concept renders instantly using text-to-image engines.</p>
-          <a href="3dprint.html" class="btn">Generate</a>
-        </div>
-        <div class="feature-icon-tile">
-          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/wand-2.svg" alt="Magic wand icon">
-        </div>
-      </article>
-
-      <!-- 4) 3D → Video (reversed) -->
-      <article class="feature-card reverse">
-        <div class="feature-icon-tile">
-          <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/clapperboard.svg" alt="Clapperboard icon">
-        </div>
-        <div class="feature-body">
-          <h3>3D to Video</h3>
-          <p>Turn your models into cinematic motion scenes. Animate your creations using next-gen rendering tools.</p>
-          <a href="3dprint.html" class="btn ghost">Coming Soon</a>
-        </div>
-      </article>
-    </div>
-  </section>
-
-<!-- ====================== PRICING ====================== -->
-<section id="pricing" class="pricing-wrap">
-    <div class="container">
-      <div class="pricing-head">
-        <h2 class="grad">Simple Pricing</h2>
-        <p class="muted">Credits power model generation. Pricing includes infrastructure &amp; processing.</p>
-      </div>
-
-      <div class="pricing-grid">
-        <!-- Card 1 -->
-        <div class="price-card">
-          <div class="pc-top">
-            <span class="badge">Bundle</span>
-            <h3>Starter</h3>
-            <p class="sub">Try the tools. Great for a few generations.</p>
-          </div>
-          <div class="pc-price">
-            <span class="big">£7.99</span>
-            <small>80 Credits · ~2-3 models</small>
-          </div>
-          <ul class="pc-list">
-            <li>Text → 3D generation</li>
-            <li>Image → 3D generation</li>
-            <li>Refine / Retexture</li>
-            <li>Includes hosting + processing</li>
-            <li>Downloads</li>
-          </ul>
-          <button class="btn block pricing-cta" type="button" data-plan="starter_80">Get Starter</button>
-        </div>
-
-        <!-- Card 2 (highlight) -->
-        <div class="price-card featured">
-          <div class="pc-top">
-            <span class="badge hot">Popular</span>
-            <h3>Creator</h3>
-            <p class="sub">Regular use. Better value bundle.</p>
-          </div>
-          <div class="pc-price">
-            <span class="big">£19.99</span>
-            <small>300 Credits · ~10 models</small>
-          </div>
-          <ul class="pc-list">
-            <li>Text → 3D generation</li>
-            <li>Image → 3D generation</li>
-            <li>Refine / Retexture</li>
-            <li>Includes hosting + processing</li>
-            <li>Downloads</li>
-          </ul>
-          <button class="btn block pricing-cta" type="button" data-plan="creator_300">Get Creator</button>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="price-card">
-          <div class="pc-top">
-            <span class="badge">Studio</span>
-            <h3>Studio</h3>
-            <p class="sub">Heavy use. Best value.</p>
-          </div>
-          <div class="pc-price">
-            <span class="big">£34.99</span>
-            <small>600 Credits · ~20 models</small>
-          </div>
-          <ul class="pc-list">
-            <li>Text → 3D generation</li>
-            <li>Image → 3D generation</li>
-            <li>Refine / Retexture</li>
-            <li>Includes hosting + processing</li>
-            <li>Downloads</li>
-            <li>Priority queue access</li>
-          </ul>
-          <button class="btn block ghost pricing-cta" type="button" data-plan="studio_600">Get Studio</button>
-        </div>
-      </div>
-
-      <p class="foot-note">1 model ≈ 30 credits (generation + refine).</p>
-    </div>
-  </section>
-
-  <!-- ====================== SECURE CREDITS ====================== -->
-  <section id="secure-credits" class="secure-credits-wrap">
-    <div class="container">
-      <!-- Toggle Button -->
-      <button type="button" id="secureToggleBtn" class="secure-toggle-btn">
-        <i class="fa-solid fa-shield-halved"></i>
-        <span>Secure Your Credits</span>
-        <i class="fa-solid fa-chevron-down toggle-chevron"></i>
+    <!-- Icon Rail -->
+    <nav class="ws-rail" aria-label="Tools">
+      <!-- IMAGE (now inactive by default) -->
+      <button type="button" class="rail-btn" data-panel="image" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span>Image</span>
       </button>
 
-      <!-- Collapsible Card -->
-      <div id="secureCreditsCard" class="secure-credits-card collapsed">
-        <div class="secure-icon">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-
-        <!-- State 1: No email attached -->
-        <div id="secureState1" class="secure-state">
-          <h3>Secure Your Credits</h3>
-          <p class="secure-subtitle">Add an email to restore your credits on any device.</p>
-
-          <div class="secure-form">
-            <div class="secure-input-group">
-              <input type="email" id="secureEmail" placeholder="your@email.com" autocomplete="email">
-              <button type="button" id="sendCodeBtn" class="btn">Send Code</button>
-            </div>
-            <p id="secureError" class="secure-error"></p>
-            <p id="secureMessage" class="secure-message"></p>
-          </div>
-        </div>
-
-        <!-- State 2: Code sent, awaiting verification -->
-        <div id="secureState2" class="secure-state" style="display: none;">
-          <h3>Enter Verification Code</h3>
-          <p class="secure-subtitle">We sent a 6-digit code to <span id="sentToEmail">your email</span></p>
-
-          <div class="secure-form">
-            <div class="secure-input-group code-input-group">
-              <input type="text" id="verifyCode" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
-              <button type="button" id="verifyCodeBtn" class="btn">Verify</button>
-            </div>
-            <p id="verifyError" class="secure-error"></p>
-            <p id="verifyMessage" class="secure-message"></p>
-            <div class="secure-actions">
-              <button type="button" id="resendCodeBtn" class="btn ghost small" disabled>Resend Code</button>
-              <button type="button" id="changeEmailBtn" class="btn ghost small">Change Email</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- State 3: Verified -->
-        <div id="secureState3" class="secure-state" style="display: none;">
-          <h3>Email Verified</h3>
-          <p class="secure-subtitle"><i class="fa-solid fa-circle-check"></i> <span id="verifiedEmail">your@email.com</span></p>
-          <p class="secure-helper">Use this email to restore your credits on another device or browser.</p>
-          <button type="button" id="changeVerifiedEmailBtn" class="btn ghost small">Change Email</button>
-        </div>
-
-        <!-- Restore flow (for new devices) -->
-        <div id="restorePanel" class="restore-panel">
-          <div class="restore-divider">
-            <span>or</span>
-          </div>
-          <button type="button" id="showRestoreBtn" class="btn ghost">Restore Existing Account</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ====================== COMMUNITY ====================== -->
-  <section id="community" class="community-wrap">
-    <div class="container">
-      <div class="community-grid">
-        <!-- Left: card stack -->
-        <div class="comm-cards">
-          <!-- Discord -->
-          <a class="comm-card" href="https://discord.com" target="_blank" rel="noreferrer">
-            <div class="cc-icon">
-              <!-- chat bubble -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
-                <path d="M21 12a8.5 8.5 0 1 1-3.3-6.7L22 3l-1.7 4.3A8.5 8.5 0 0 1 21 12Z"/>
-                <path d="M8 11h8M8 15h5"/>
-              </svg>
-            </div>
-            <div class="cc-body">
-              <strong>Discord</strong>
-              <p>Show work, get help fast, vote on features.</p>
-            </div>
-            <span class="cc-cta">Join</span>
-          </a>
-
-          <!-- Docs -->
-          <a class="comm-card" href="blogs.html">
-            <div class="cc-icon">
-              <!-- book -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
-                <path d="M4 4h10a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/>
-                <path d="M7 4v13a3 3 0 0 0 3 3h7"/>
-              </svg>
-            </div>
-            <div class="cc-body">
-              <strong>Docs & Tips</strong>
-              <p>Short guides, prompt recipes, quick starts.</p>
-            </div>
-            <span class="cc-cta">Read</span>
-          </a>
-
-          <!-- Updates -->
-          <a class="comm-card" href="blogs.html">
-            <div class="cc-icon">
-              <!-- spark -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0b0b" stroke-width="1.6">
-                <path d="M12 2v6M12 22v-6M4.9 4.9l4.2 4.2M19.1 19.1l-4.2-4.2M2 12h6M22 12h-6M4.9 19.1l4.2-4.2M19.1 4.9l-4.2 4.2"/>
-              </svg>
-            </div>
-            <div class="cc-body">
-              <strong>Updates</strong>
-              <p>New features, fixes and beta milestones.</p>
-            </div>
-            <span class="cc-cta">Follow</span>
-          </a>
-        </div>
-
-        <!-- Right: copy -->
-        <div class="comm-copy">
-          <h2>Community & Resources</h2>
-          <p class="muted">A lightweight hub for early users: share results, trade prompts, and help shape the roadmap. Docs cover setup, best practices, and pipeline examples.</p>
-
-          <div class="chips">
-            <span class="chip">Prompt tips</span>
-            <span class="chip">API snippets</span>
-            <span class="chip">Showcase</span>
-            <span class="chip">Bug reports</span>
-          </div>
-
-          <div class="cta-row">
-            <a class="btn" href="https://discord.com" target="_blank" rel="noreferrer">Join Discord</a>
-            <a class="btn ghost" href="blogs.html">Open Docs</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Hero Section from 3D Print Hub -->
-  <section class="print3d-hero">
-    <div class="hero-geometric-bg">
-      <div class="geo-grid"></div>
-      <div class="geo-line geo-line-1"></div>
-      <div class="geo-line geo-line-2"></div>
-      <div class="geo-line geo-line-3"></div>
-      <div class="geo-circle geo-circle-1"></div>
-      <div class="geo-circle geo-circle-2"></div>
-    </div>
-
-    <div class="container hero-content">
-      <div class="hero-badge">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- MODEL (active on load) -->
+      <button type="button" class="rail-btn is-active" data-panel="model" aria-pressed="true">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
-        AI-Powered 3D Creation
+        <span>Model</span>
+      </button>
+
+      <button type="button" class="rail-btn" data-panel="remesh" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+        </svg>
+        <span>Remesh</span>
+      </button>
+
+      <button type="button" class="rail-btn" data-panel="texture" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+        </svg>
+        <span>Texture</span>
+      </button>
+
+      <button type="button" class="rail-btn" data-panel="rig" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="6" r="2"></circle>
+          <path d="M12 8v6l-4 6m4-6l4 6M8 11l4 3 4-3" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>Rig</span>
+      </button>
+
+      <button type="button" class="rail-btn" data-panel="video" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span>Video</span>
+      </button>
+    </nav>
+
+    <!-- Left Panel -->
+    <aside class="ws-left ws-pane" aria-label="Tool controls">
+      <header class="pane-head">
+        <h2>3D Workspace</h2>
+        <p class="pane-sub">Switch tools without disturbing the layout.</p>
+      </header>
+      <div class="pane-stack" id="leftStack">
+        <!-- Cards injected here -->
+      </div>
+    </aside>
+
+    <!-- Viewer -->
+    <main class="ws-viewer ws-pane">
+      <header class="pane-head">
+        <div class="pane-head-row">
+          <div class="pane-head-titles">
+            <h2 id="viewerTitle">3D Preview</h2>
+            <p class="pane-sub" id="genHint">Your 3D model will appear here.</p>
+          </div>
+      
+          <!-- New model icon button (opens upload modal) -->
+          <div class="pane-head-actions">
+            <button type="button" id="openUploadModalTop" class="icon-btn" aria-label="Upload new model">
+              <!-- Upload icon -->
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>New</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- 3D viewer (shown for model/remesh/texture) -->
+      <div class="viewer-wrap" id="model3dViewer">
+        <canvas id="viewerCanvas" aria-label="3D model preview canvas"></canvas>
+        <div class="viewer-empty" id="viewerPlaceholder">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <p>No model loaded</p>
+          <span>Generate or upload to preview</span>
+        </div>
+        <button class="viewer-gear" id="viewerGear" type="button" aria-label="Viewer settings">⚙️</button>
+        <div class="viewer-autorotate hidden" id="viewerRotateCard">
+          <span class="label">Auto-rotate</span>
+          <label class="toggle sm">
+            <input type="checkbox" id="rotateToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Viewer Action Toolbar -->
+        <div class="viewer-toolbar" id="viewerToolbar">
+          <button type="button" class="viewer-toolbar__btn" data-action="retry" data-tooltip="Retry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 4v6h6M23 20v-6h-6"/>
+              <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+            </svg>
+          </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="remesh" data-tooltip="Remesh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+            </svg>
+          </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="texture" data-tooltip="Texture">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+            </svg>
+          </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="rig" data-tooltip="Rig">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="2"/>
+              <path d="M12 7v6l-4 6m4-6l4 6M8 10l4 3 4-3"/>
+            </svg>
+          </button>
+          <div class="viewer-toolbar__divider"></div>
+          <button type="button" class="viewer-toolbar__btn" data-action="download" data-tooltip="Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+          </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="share" data-tooltip="Share">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+            </svg>
+          </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="print" data-tooltip="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <h1 class="title-xl">3D Print Hub</h1>
-
-      <p class="hero-description">
-        Transform your ideas into stunning 3D models with AI-driven generation.
-        Create printable designs from text descriptions or images, powered by cutting-edge Meshy technology.
-      </p>
-
-      <div class="hero-stats">
-        <div class="stat-item">
-          <div class="stat-value">~4 min</div>
-          <div class="stat-label">Generation Time</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-value">Text & Image</div>
-          <div class="stat-label">Input Methods</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-value">GLB/GLTF</div>
-          <div class="stat-label">Export Formats</div>
+      <!-- Draft Selection Grid (for multi-model bundles) -->
+      <div class="viewer-wrap hidden" id="draftSelectionViewer">
+        <div class="draft-selection">
+          <div class="draft-selection__header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3l1.912 5.813a1 1 0 00.95.687h6.138l-4.97 3.613a1 1 0 00-.364 1.118L17.578 20l-4.97-3.613a1 1 0 00-1.216 0L6.422 20l1.912-5.769a1 1 0 00-.364-1.118L3 9.5h6.138a1 1 0 00.95-.687L12 3z"/>
+            </svg>
+            <span>Select your favorite draft to continue</span>
+          </div>
+          <div class="draft-selection__grid" id="draftGrid">
+            <!-- Draft items will be inserted here by JS -->
+          </div>
+          <div class="draft-selection__footer">
+            <button type="button" class="draft-selection__retry" id="draftRetry">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 4v6h6M23 20v-6h-6"/>
+                <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+              </svg>
+              Free Retry
+            </button>
+            <button type="button" class="draft-selection__texture" id="draftTextureSelected">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round"/>
+                <path d="M18 15l2 2-4 4-2-2z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Texture Selected
+            </button>
+            <button type="button" class="draft-selection__download" id="draftDownloadAll">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+
+      <!-- 2D Image Viewer -->
+      <div class="viewer-wrap hidden" id="imageViewer">
+        <div class="image-display" id="imageDisplay">
+          <div class="viewer-empty" id="imagePlaceholder">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p>No image generated yet</p>
+            <span>Click Generate to create your first image</span>
+          </div>
+          <img id="generatedImage" class="generated-image hidden" alt="Generated artwork"/>
+        </div>
+      </div>
+
+      <!-- Video Viewer -->
+      <div class="viewer-wrap hidden" id="videoViewer">
+        <div class="video-display" id="videoDisplay">
+          <div class="viewer-empty" id="videoPlaceholder">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p>No video generated yet</p>
+            <span>Click Generate to create your first video</span>
+          </div>
+          <video id="generatedVideo" class="generated-video hidden" controls></video>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Panel -->
+    <aside class="ws-right ws-pane" aria-label="Generation history">
+      <header class="pane-head">
+        <h2>Generation History</h2>
+        <p class="pane-sub">Browse and manage your past creations.</p>
+      </header>
+
+      <div class="card history" id="my-assets">
+        <div class="history-head">
+          <div class="history-head-top">
+            <!-- Top Row: Search & Controls -->
+            <div class="history-head-row-top">
+              <!-- Center: Search -->
+              <div class="history-head-center">
+                <div class="history-search-wrapper">
+                  <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input id="historySearch" placeholder="Search generations..." aria-label="Search history"/>
+                </div>
+              </div>
+
+              <!-- Right: Sort & Refresh -->
+              <div class="history-head-right">
+                <button type="button"
+                        class="history-refresh-btn"
+                        id="historyRefreshBtn"
+                        aria-label="Restore history from database"
+                        title="Restore from database">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+                <button type="button"
+                        class="history-sort-btn"
+                        id="historySortToggle"
+                        aria-label="Toggle history sort order">
+                  <span class="history-sort-btn__label">Newest</span>
+                  <svg class="history-sort-btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </button>
+                <button type="button"
+                        class="history-exit-btn"
+                        id="historyCollapseView"
+                        aria-label="Exit gallery view"
+                        hidden>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Exit
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Row: Filters (only visible in panel, not in expansion) -->
+            <div class="history-head-row-bottom">
+              <div class="history-filters">
+                <button type="button" class="filter-btn" data-filter="all" data-tooltip="Expand view" aria-label="Expand view">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                </button>
+                <button type="button" class="filter-btn" data-filter="image" data-tooltip="Images" aria-label="Images only">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button type="button" class="filter-btn" data-filter="video" data-tooltip="Videos" aria-label="Videos only">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button type="button" class="filter-btn active" data-filter="model" data-tooltip="3D Models" aria-label="3D models only">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="history-grid" id="historyGrid" data-title-variant="thumbs-only"></div>
+        <div class="history-pager">
+          <select id="historyPageSize" class="page-size-select" aria-label="Items per page">
+            <option value="9" selected>9</option>
+            <option value="12">12</option>
+            <option value="15">15</option>
+            <option value="24">24</option>
+          </select>
+          <div class="history-pager-nav">
+            <button type="button" id="historyPrev" aria-label="Previous page">‹</button>
+            <span id="historyPageLabel">1/1</span>
+            <button type="button" id="historyNext" aria-label="Next page">›</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+  <script>
+    window.TIMRX_3D_API_BASE = 'https://3d.timrx.live';
+  </script>
+
+  <!-- Three.js Setup -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE_NS from 'three';
+    import { GLTFLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
+
+    const THREE_MUT = Object.assign({}, THREE_NS);
+    THREE_MUT.GLTFLoader      = GLTFLoader;
+    THREE_MUT.OrbitControls   = OrbitControls;
+    THREE_MUT.RoomEnvironment = RoomEnvironment;
+
+    window.THREE = THREE_MUT;
+    window.dispatchEvent(new Event('three-ready'));
+  </script>
+
+  <script src="burger.js"></script>
+
+  <!-- Dropdown Navigation Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+      dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+        const menu = dropdown.querySelector('.nav-dropdown-menu');
+
+        // Toggle dropdown on button click
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = dropdown.classList.contains('open');
+
+          // Close all other dropdowns
+          dropdowns.forEach(d => d.classList.remove('open'));
+
+          // Toggle current dropdown
+          if (!isOpen) {
+            dropdown.classList.add('open');
+            toggle.setAttribute('aria-expanded', 'true');
+          } else {
+            dropdown.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-dropdown')) {
+          dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('open');
+            const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+
+      // Close dropdowns on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('open');
+            const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+    });
+  </script>
+
+  <!-- Expanded Views Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const supportsHistory = typeof window.history?.replaceState === 'function';
+      const viewHandles = [];
+      const bodyViewClasses = new Set();
+
+      const closeDropdowns = () => {
+        document.querySelectorAll('.nav-dropdown.open').forEach(dropdown => {
+          dropdown.classList.remove('open');
+          dropdown.querySelector('.nav-dropdown-toggle')?.setAttribute('aria-expanded', 'false');
+        });
+      };
+
+      const setHash = (value = '') => {
+        if (supportsHistory) {
+          history.replaceState(null, '', value || window.location.pathname + window.location.search);
+        } else {
+          window.location.hash = value;
+        }
+      };
+
+      const clearBodyViewClasses = () => {
+        if (bodyViewClasses.size) {
+          document.body.classList.remove(...Array.from(bodyViewClasses));
+        }
+      };
+
+      const hideAllViews = (activeHandle = null) => {
+        viewHandles.forEach(handle => {
+          if (handle === activeHandle) return;
+          handle.close({ skipHash: true, skipFocus: true });
+        });
+      };
+
+      const initExpandedView = (config) => {
+        const section = document.getElementById(config.id);
+        if (!section) return;
+
+        const triggers = document.querySelectorAll(`[${config.triggerAttr}]`);
+        const focusTarget = config.focusSelector ? section.querySelector(config.focusSelector) : section;
+        const closeButton = config.closeSelector ? document.querySelector(config.closeSelector) : null;
+        let lastFocused = triggers[0] || document.activeElement || document.body;
+
+        const closeView = ({ skipHash = false, skipFocus = false } = {}) => {
+          if (section.hidden) return;
+          section.hidden = true;
+          section.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove(config.bodyClass);
+          if (!skipHash && window.location.hash === config.hash) {
+            setHash('');
+          }
+          if (!skipFocus && lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+          }
+        };
+
+        const openView = ({ skipHash = false, skipFocusStore = false } = {}) => {
+          if (!skipFocusStore) {
+            lastFocused = document.activeElement && document.activeElement !== document.body
+              ? document.activeElement
+              : (triggers[0] || document.body);
+          }
+
+          closeDropdowns();
+          hideAllViews(handle);
+          section.hidden = false;
+          section.setAttribute('aria-hidden', 'false');
+          document.body.classList.remove('history-expanded');
+          clearBodyViewClasses();
+          document.body.classList.add(config.bodyClass);
+
+          if (!skipHash) {
+            setHash(config.hash);
+          }
+
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            (focusTarget || section)?.focus({ preventScroll: true });
+          });
+        };
+
+        triggers.forEach(trigger => {
+          trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openView({});
+          });
+          trigger.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openView({});
+            }
+          });
+        });
+
+        closeButton?.addEventListener('click', (event) => {
+          event.preventDefault();
+          closeView({});
+        });
+
+        section.addEventListener('click', (event) => {
+          const navTarget = event.target.closest('[data-expanded-nav]');
+          if (!navTarget) return;
+          const action = navTarget.getAttribute('data-expanded-nav');
+          config.onNavigate?.({ action, close: closeView });
+        });
+
+        const handle = {
+          hash: config.hash,
+          open: (opts) => openView(opts),
+          close: (opts) => closeView(opts)
+        };
+
+        viewHandles.push(handle);
+        bodyViewClasses.add(config.bodyClass);
+
+        if (window.location.hash === config.hash) {
+          openView({ skipHash: true, skipFocusStore: true });
+        }
+
+        return handle;
+      };
+
+      initExpandedView({
+        id: 'tutorialsGallery',
+        triggerAttr: 'data-open-tutorials',
+        bodyClass: 'tutorials-view',
+        hash: '#tutorials',
+        focusSelector: '[data-tutorials-focus]',
+        closeSelector: '#tutorialsExit',
+        onNavigate: ({ action, close }) => {
+          if (action === 'workspace') {
+            close();
+            requestAnimationFrame(() => {
+              document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' });
+            });
+          }
+          if (action === 'videos') {
+            document.getElementById('tutorialsVideos')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+
+      initExpandedView({
+        id: 'userStoriesGallery',
+        triggerAttr: 'data-open-user-stories',
+        bodyClass: 'stories-view',
+        hash: '#stories',
+        focusSelector: '[data-stories-focus]',
+        closeSelector: '#storiesExit',
+        onNavigate: ({ action, close }) => {
+          if (action === 'community') {
+            close?.();
+            window.open('https://discord.gg/timrx', '_blank', 'noopener');
+          }
+        }
+      });
+
+      initExpandedView({
+        id: 'converterGallery',
+        triggerAttr: 'data-open-converter',
+        bodyClass: 'converter-view',
+        hash: '#converter',
+        focusSelector: '[data-converter-focus]',
+        closeSelector: '#converterExit'
+      });
+
+      initExpandedView({
+        id: 'aboutGallery',
+        triggerAttr: 'data-open-about',
+        bodyClass: 'about-view',
+        hash: '#about',
+        focusSelector: '[data-about-focus]',
+        closeSelector: '#aboutExit',
+        onNavigate: ({ action, close }) => {
+          if (action === 'workspace') {
+            close?.();
+          }
+        }
+      });
+
+      window.addEventListener('hashchange', () => {
+        const target = viewHandles.find(handle => handle.hash === window.location.hash);
+        if (target) {
+          target.open({ skipHash: true, skipFocusStore: true });
+          return;
+        }
+        viewHandles.forEach(handle => handle.close({ skipHash: true, skipFocus: true }));
+        clearBodyViewClasses();
+      });
+    });
+  </script>
+
+  <!-- Upload Model Modal (positioned at document root for proper z-index stacking) -->
+  <div id="uploadModal" class="timrx-3dprint modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Upload 3D Model</h2>
+        <button class="modal-close" id="closeUpload" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-instructions" style="margin-bottom:16px;padding:12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.15);border-radius:8px">
+          <p style="margin:0 0 8px;color:#e0e0e0;font-size:14px;line-height:1.5">Upload your 3D model to preview it in the workspace. Supported file formats are GLB and GLTF.</p>
+          <ul style="margin:0;padding-left:20px;color:#b0b0b0;font-size:13px;line-height:1.6">
+            <li style="margin-bottom:4px">Maximum file size: 50MB</li>
+            <li style="margin-bottom:4px">Model will be automatically centered and scaled</li>
+            <li style="margin-bottom:0">You can rotate and zoom using mouse controls</li>
+          </ul>
+        </div>
+
+        <div class="form-field">
+          <label for="modelNameInput" style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#ccc">Model Name</label>
+          <input type="text" id="modelNameInput" placeholder="Enter a name for your model..." style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px" />
+        </div>
+
+        <div class="form-field">
+          <label for="customModelUpload" style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#ccc">Select 3D Model File</label>
+          <div id="modelDrop" class="drop-zone" aria-label="3D model drop area" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .2s ease;background:rgba(0,0,0,.2)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:40px;height:40px;margin:0 auto 12px;opacity:.3">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p style="margin:0 0 4px;font-size:14px;color:#ccc;font-weight:600">Drag & Drop or Click to Upload</p>
+            <span style="font-size:12px;color:#666">Supported formats: .glb, .gltf</span>
+            <input type="file" id="customModelUpload" accept=".glb,.gltf" hidden />
+          </div>
+          <small id="modelFileHint" class="hint-text" style="display:block;margin-top:8px;font-size:12px"></small>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);margin-top:16px">
+        <button class="btn-secondary" id="cancelUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:#e0e0e0">Cancel</button>
+        <button class="btn-primary" id="continueUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:0;color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.25)">Load Model</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorials Expanded View -->
+  <section id="tutorialsGallery" class="tutorials-expanded-view" aria-labelledby="tutorialsTitle" aria-hidden="true" hidden>
+    <div class="tutorials-expanded-shell">
+      <header class="tutorials-hero">
+        <div class="tutorials-hero-text" id="tutorialsFocus" data-tutorials-focus tabindex="-1">
+          <span class="tutorials-pill">Tutorial Library · TimrX</span>
+          <h1 class="tutorials-title" id="tutorialsTitle">Master the TimrX 3D Print Hub</h1>
+          <p>Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets. From beginners to advanced creators, we've got everything you need to create stunning 3D prints.</p>
+          <div class="tutorials-hero-actions">
+            <button type="button" class="tutorials-primary-btn" data-expanded-nav="workspace">Start from Workspace</button>
+            <button type="button" class="tutorials-secondary-btn" data-expanded-nav="videos">Jump to Videos</button>
+          </div>
+          <ul class="tutorials-hero-stats">
+            <li><span>05 min</span><small>Avg tutorial</small></li>
+            <li><span>5 modes</span><small>Generate · Refine · Remesh · Texture · Video</small></li>
+            <li><span>∞ prompts</span><small>Iterate freely</small></li>
+            <li><span>24/7</span><small>Always available</small></li>
+          </ul>
+        </div>
+        <button type="button" class="tutorials-exit-btn" id="tutorialsExit" aria-label="Close tutorials">Exit Tutorials ✕</button>
+      </header>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>How to generate a 3D model in TimrX</h2>
+            <p>Every run follows the same friendly path: describe the object, preview the mesh, then post-process until it is print-ready. These quick guides mirror the cards inside the workspace so you always know what comes next.</p>
+          </div>
+          <div class="tutorials-highlight">Workflow Essentials</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">1. Craft a vivid prompt</h3>
+            <p class="tutorials-card__body">Lead with silhouette, support with materials, finish with mood. The AI rewards concrete nouns and reference eras.</p>
+            <ul class="tutorials-card__list">
+              <li>Mention size cues (figurine, tabletop, helmet).</li>
+              <li>Call out materials: “brushed titanium spine, matte ceramic plates”.</li>
+              <li>Reference inspiration: “Ghibli + brutalist mix”.</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">2. Preview & iterate</h3>
+            <p class="tutorials-card__body">Use the low-latency preview to check proportions before you spend tokens on refinement.</p>
+            <ul class="tutorials-card__list">
+              <li>Enable wireframe overlay in the viewer to catch thin walls.</li>
+              <li>Pin successful prompts to reuse structure later.</li>
+              <li>Use Refine/Remesh buttons to add detail without starting over.</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">3. Publish & share</h3>
+            <p class="tutorials-card__body">Everything funnels into My Assets where you can label versions, download GLB/GLTF, and generate cover art.</p>
+            <ul class="tutorials-card__list">
+              <li>Export GLB for printers or GLTF for DCC apps.</li>
+              <li>Add tags (armor, character, prop) to keep history searchable.</li>
+              <li>Send assets straight to Community with one click.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Input checklist</h2>
+          </div>
+          <div class="tutorials-highlight">Quick Start</div>
+        </div>
+        <div class="tutorials-steps-grid">
+          <article class="tutorials-step">
+            <span>01</span>
+            <h3>Queue the job</h3>
+            <p>Select Text, Image, or Video mode and set resolution before pressing Generate. Jobs run asynchronously so you can line up multiple ideas.</p>
+          </article>
+          <article class="tutorials-step">
+            <span>02</span>
+            <h3>Inspect the preview</h3>
+            <p>Orbit the mesh, toggle lighting presets, and note the status pill (Preview, Refine, Texture). Use the compact progress widget to monitor batches.</p>
+          </article>
+          <article class="tutorials-step">
+            <span>03</span>
+            <h3>Post-process</h3>
+            <p>Run Remesh for watertight topology, then fire Texture to bake roughness/normal maps. Final files are stored automatically in history.</p>
+          </article>
+          <article class="tutorials-step">
+            <span>04</span>
+            <h3>Export & Print</h3>
+            <p>Download your model in GLB or GLTF format, import into your slicer, and prepare for printing with recommended settings.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Feature Tutorials Section -->
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Text to 3D</h2>
+            <p>Transform your text descriptions into detailed 3D models using AI. Choose from multiple AI models for different styles and quality levels.</p>
+          </div>
+          <div class="tutorials-highlight">Generation</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Meshy 6 (Latest)</h3>
+            <p class="tutorials-card__body">The newest and most powerful model. Best for detailed, high-quality 3D assets with complex geometry.</p>
+            <ul class="tutorials-card__list">
+              <li>20 credits per generation</li>
+              <li>Highest detail and accuracy</li>
+              <li>Best for characters and complex objects</li>
+              <li>Supports symmetry and pose options</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Meshy 5</h3>
+            <p class="tutorials-card__body">Balanced model offering great quality at lower cost. Ideal for most everyday 3D generation tasks.</p>
+            <ul class="tutorials-card__list">
+              <li>10 credits per generation</li>
+              <li>Fast generation times</li>
+              <li>Good for props and simple objects</li>
+              <li>Reliable and consistent results</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Meshy 4</h3>
+            <p class="tutorials-card__body">Legacy model for quick prototyping and iteration. Use for rapid ideation before committing to higher quality.</p>
+            <ul class="tutorials-card__list">
+              <li>10 credits per generation</li>
+              <li>Fastest generation speed</li>
+              <li>Great for quick concepts</li>
+              <li>Lower polygon output</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Image to 3D</h2>
+            <p>Upload reference images, artwork, or photos and convert them into 3D models. Perfect for bringing 2D concepts to life.</p>
+          </div>
+          <div class="tutorials-highlight">Generation</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Prepare Your Image</h3>
+            <p class="tutorials-card__body">Image quality matters. Follow these guidelines for best results when converting 2D to 3D.</p>
+            <ul class="tutorials-card__list">
+              <li>Use clear, well-lit images</li>
+              <li>Single subject works best</li>
+              <li>Remove busy backgrounds</li>
+              <li>PNG with transparency recommended</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Upload & Generate</h3>
+            <p class="tutorials-card__body">Drag and drop or click to upload. Name your model and let the AI analyze your image.</p>
+            <ul class="tutorials-card__list">
+              <li>Supports PNG, JPG, WEBP formats</li>
+              <li>Max file size: 10MB</li>
+              <li>Name your model for easy tracking</li>
+              <li>Preview before generating</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Best Practices</h3>
+            <p class="tutorials-card__body">Get the most out of Image to 3D with these expert tips from our community.</p>
+            <ul class="tutorials-card__list">
+              <li>Front-facing views work best</li>
+              <li>Concept art converts beautifully</li>
+              <li>Avoid extreme angles or foreshortening</li>
+              <li>Combine with Refine for added detail</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Remesh</h2>
+            <p>Optimize your 3D model's topology for 3D printing. Create watertight, manifold meshes ready for any slicer.</p>
+          </div>
+          <div class="tutorials-highlight">Post-Processing</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Why Remesh?</h3>
+            <p class="tutorials-card__body">AI-generated models often have topology issues. Remeshing fixes these for successful prints.</p>
+            <ul class="tutorials-card__list">
+              <li>Fixes non-manifold geometry</li>
+              <li>Closes holes and gaps</li>
+              <li>Creates uniform polygon distribution</li>
+              <li>Ensures watertight meshes</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Resolution Settings</h3>
+            <p class="tutorials-card__body">Choose the right resolution based on your print size and detail requirements.</p>
+            <ul class="tutorials-card__list">
+              <li>Low: Fast, fewer polygons (prototypes)</li>
+              <li>Medium: Balanced (most prints)</li>
+              <li>High: Maximum detail (miniatures)</li>
+              <li>Custom: Set exact polygon count</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Export Formats</h3>
+            <p class="tutorials-card__body">Export your remeshed model in the format your slicer or DCC app needs.</p>
+            <ul class="tutorials-card__list">
+              <li>GLB: Universal, includes textures</li>
+              <li>GLTF: Separate files, DCC-friendly</li>
+              <li>STL: Classic print format</li>
+              <li>OBJ: Wide compatibility</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Texture</h2>
+            <p>Apply AI-generated PBR textures to your 3D models. Create realistic materials with diffuse, normal, and roughness maps.</p>
+          </div>
+          <div class="tutorials-highlight">Post-Processing</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Text to Texture</h3>
+            <p class="tutorials-card__body">Describe the material you want and let AI generate matching PBR textures for your model.</p>
+            <ul class="tutorials-card__list">
+              <li>"Weathered bronze with patina"</li>
+              <li>"Polished marble with gold veins"</li>
+              <li>"Worn leather with scratches"</li>
+              <li>"Glowing neon cyberpunk"</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Image to Texture</h3>
+            <p class="tutorials-card__body">Upload a reference image and apply its style or material to your 3D model.</p>
+            <ul class="tutorials-card__list">
+              <li>Upload material photos</li>
+              <li>Use artwork as reference</li>
+              <li>AI extracts color and patterns</li>
+              <li>Seamless UV mapping</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">PBR Maps Generated</h3>
+            <p class="tutorials-card__body">Full PBR workflow with all maps needed for realistic rendering.</p>
+            <ul class="tutorials-card__list">
+              <li>Albedo/Diffuse map</li>
+              <li>Normal map for surface detail</li>
+              <li>Roughness/Metallic maps</li>
+              <li>Ambient Occlusion</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Video & Animation</h2>
+            <p>Create stunning 3D animations and turntable renders. Perfect for showcasing your models or creating content.</p>
+          </div>
+          <div class="tutorials-highlight">Creation</div>
+        </div>
+        <div class="tutorials-guides-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Turntable Renders</h3>
+            <p class="tutorials-card__body">Create professional 360° showcase videos of your 3D models automatically.</p>
+            <ul class="tutorials-card__list">
+              <li>Smooth camera rotation</li>
+              <li>Multiple lighting presets</li>
+              <li>HD and 4K export options</li>
+              <li>Perfect for portfolios</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Auto-Rigging</h3>
+            <p class="tutorials-card__body">Automatically rig humanoid characters for animation. No manual bone placement needed.</p>
+            <ul class="tutorials-card__list">
+              <li>AI-powered skeleton generation</li>
+              <li>Automatic weight painting</li>
+              <li>Compatible with Mixamo</li>
+              <li>Export to game engines</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Animation Library</h3>
+            <p class="tutorials-card__body">Apply pre-made animations to your rigged characters with one click.</p>
+            <ul class="tutorials-card__list">
+              <li>Walk, run, jump cycles</li>
+              <li>Idle and action poses</li>
+              <li>Combat animations</li>
+              <li>Custom animation upload</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Pro Tips & Best Practices</h2>
+            <p>Level up your 3D modeling skills with these expert techniques used by our top creators.</p>
+          </div>
+          <div class="tutorials-highlight">Pro Level</div>
+        </div>
+        <div class="tutorials-best-practices-grid">
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">⚡</div>
+            <h3>Optimize Your Prompts</h3>
+            <p>Use specific, descriptive language. Instead of "cool dragon", try "sleek mechanical dragon with articulated wings, brushed metal finish, art deco style".</p>
+            <ul class="practice-tips">
+              <li>Be specific about materials and textures</li>
+              <li>Reference art styles and eras</li>
+              <li>Include scale indicators</li>
+            </ul>
+          </article>
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">🎯</div>
+            <h3>Perfect Your Mesh</h3>
+            <p>Use the Remesh feature to ensure watertight geometry perfect for 3D printing. Check for manifold edges and proper normals.</p>
+            <ul class="practice-tips">
+              <li>Always remesh before exporting for printing</li>
+              <li>Adjust resolution based on detail needs</li>
+              <li>Preview wireframe to spot issues</li>
+            </ul>
+          </article>
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">🎨</div>
+            <h3>Texture Like a Pro</h3>
+            <p>Apply realistic textures with normal, roughness, and metallic maps. Experiment with different material presets in the viewer.</p>
+            <ul class="practice-tips">
+              <li>Use PBR workflows for realistic results</li>
+              <li>Test textures under different lighting</li>
+              <li>Export texture maps separately</li>
+            </ul>
+          </article>
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">💡</div>
+            <h3>Lighting Matters</h3>
+            <p>Toggle between lighting presets in the viewer settings. The right lighting can reveal details and help spot printing issues.</p>
+            <ul class="practice-tips">
+              <li>Use studio lighting for presentations</li>
+              <li>Enable shadows to check overhangs</li>
+              <li>Try different HDRIs for mood</li>
+            </ul>
+          </article>
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">🔄</div>
+            <h3>Iterate Efficiently</h3>
+            <p>Save successful prompts, use refinement instead of regenerating, and build a personal library of proven techniques.</p>
+            <ul class="practice-tips">
+              <li>Keep a prompt journal</li>
+              <li>Use history to compare versions</li>
+              <li>Tag assets for easy searching</li>
+            </ul>
+          </article>
+          <article class="tutorials-practice-card">
+            <div class="practice-icon">🖨️</div>
+            <h3>Print Preparation</h3>
+            <p>Scale models appropriately, add supports in your slicer, and choose the right layer height based on detail requirements.</p>
+            <ul class="practice-tips">
+              <li>Check wall thickness (min 2mm for FDM)</li>
+              <li>Orient for minimal support needs</li>
+              <li>Test print small versions first</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section" id="tutorialsVideos" aria-label="Video walkthroughs">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Watch creators build in real time</h2>
+            <p>These short videos spotlight real TimrX sessions so you can copy prompt formulas, lighting setups, and printer-friendly tweaks.</p>
+          </div>
+          <div class="tutorials-highlight">Video Library</div>
+        </div>
+        <div class="tutorials-video-grid">
+          <article class="tutorials-video-card">
+            <div class="tutorials-video-embed">
+              <iframe src="https://www.youtube.com/embed/wa8OrQ_ehJk" title="Prompting for clean meshes" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="tutorials-video-meta">
+              <h3>Prompting for clean meshes</h3>
+              <p>Blender artist SouthernShot explains how descriptive verbs and scale hints create beautiful, printer-ready silhouettes.</p>
+            </div>
+          </article>
+          <article class="tutorials-video-card">
+            <div class="tutorials-video-embed">
+              <iframe src="https://www.youtube.com/embed/1rP3nNY2hTo" title="Finishing & texturing pipeline" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="tutorials-video-meta">
+              <h3>Finishing & texturing pipeline</h3>
+              <p>Follow a complete TimrX → Substance Painter loop to add rugged paint chips and export optimized PBR packs.</p>
+            </div>
+          </article>
+          <article class="tutorials-video-card">
+            <div class="tutorials-video-embed">
+              <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Advanced workflow tips" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="tutorials-video-meta">
+              <h3>Advanced workflow tips</h3>
+              <p>Learn advanced techniques for optimizing your workflow, from batch processing to custom HDRI setups for perfect lighting.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Frequently Asked Questions</h2>
+            <p>Quick answers to common questions about the TimrX 3D Print Hub.</p>
+          </div>
+          <div class="tutorials-highlight">FAQ</div>
+        </div>
+        <div class="tutorials-faq-grid">
+          <article class="tutorials-faq-card">
+            <h3>What file formats are supported?</h3>
+            <p>TimrX exports models in GLB and GLTF formats, which are compatible with all major 3D printing slicers including Cura, PrusaSlicer, Bambu Studio, and more. You can also import these into Blender, Maya, or other DCC applications.</p>
+          </article>
+          <article class="tutorials-faq-card">
+            <h3>How do I ensure my model is print-ready?</h3>
+            <p>Always use the Remesh feature before exporting. This ensures watertight geometry with no holes or inverted normals. Check the wireframe view to spot thin walls, and verify wall thickness is at least 2mm for FDM printers.</p>
+          </article>
+          <article class="tutorials-faq-card">
+            <h3>Can I edit models after generation?</h3>
+            <p>Yes! Use the Refine and Remesh tools to modify generated models. You can also export to Blender or other 3D software for detailed editing. The Texture tool lets you apply and customize materials.</p>
+          </article>
+          <article class="tutorials-faq-card">
+            <h3>What's the difference between Refine and Remesh?</h3>
+            <p>Refine adds detail and improves the aesthetic quality of your model. Remesh optimizes the topology for 3D printing, ensuring clean, manifold geometry with proper edge flow.</p>
+          </article>
+          <article class="tutorials-faq-card">
+            <h3>How long does generation take?</h3>
+            <p>Initial generation typically takes 2-5 minutes depending on complexity. Refinement and remeshing add 1-3 minutes each. Jobs run asynchronously, so you can queue multiple tasks.</p>
+          </article>
+          <article class="tutorials-faq-card">
+            <h3>Can I use my own reference images?</h3>
+            <p>Absolutely! The Image mode lets you upload reference photos or sketches. The AI will analyze your image and generate a matching 3D model. Works great for translating 2D concept art into printable models.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tutorials-section">
+        <div class="tutorials-section-header">
+          <div class="tutorials-section-content">
+            <h2>Tips & resources</h2>
+          </div>
+          <div class="tutorials-highlight">Resources</div>
+        </div>
+        <ul class="tutorials-tip-list">
+          <li>Keep prompts under 320 characters for faster inference—the viewer encourages iteration, not one perfect essay.</li>
+          <li>Stick to physical units (millimeters, "fits a 200mm build plate") so Remesh respects print tolerances.</li>
+          <li>Use the Autorotate toggle while presenting on calls; it communicates form better than static screenshots.</li>
+          <li>Upload your own HDRI in the viewer gear menu to preview how the model reads under your studio lighting.</li>
+          <li>Export models at different resolutions for testing—low-res for quick prototypes, high-res for final prints.</li>
+          <li>Join our Discord community to share techniques, get feedback, and discover new workflow tricks.</li>
+        </ul>
+        <div class="tutorials-resource-grid">
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Prompt Cookbook</h3>
+            <p class="tutorials-card__body">50 ready-to-use starter prompts grouped by category (props, creatures, architecture).</p>
+            <ul class="tutorials-card__list">
+              <li>Download PDF from Community ▸ Resources.</li>
+              <li>Swap nouns to remix styles instantly.</li>
+              <li>Credit authors when sharing derivatives.</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Hardware prep guide</h3>
+            <p class="tutorials-card__body">Checklist for moving TimrX meshes into Bambu, Formlabs, or Prusa slicers.</p>
+            <ul class="tutorials-card__list">
+              <li>Unit conversions + recommended scaling.</li>
+              <li>Suggested infill + support presets.</li>
+              <li>Links to firmware-specific profiles.</li>
+            </ul>
+          </article>
+          <article class="tutorials-card">
+            <h3 class="tutorials-card__title">Advanced Techniques Guide</h3>
+            <p class="tutorials-card__body">Master complex workflows including multi-part assemblies, organic sculpting, and photorealistic texturing.</p>
+            <ul class="tutorials-card__list">
+              <li>Multi-material printing strategies.</li>
+              <li>Color mapping and paint guides.</li>
+              <li>Post-processing tutorials.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
     </div>
   </section>
 
-  <footer class="site-footer">
-    <div class="container footer-content">
-      <div class="footer-brand">
-        <span class="footer-logo">TimrX</span>
-        <span class="footer-divider">·</span>
-        <span class="footer-text">3D Print Hub</span>
-      </div>
-      <div class="footer-links">
-        <a href="index.html">Portfolio</a>
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#community">Community</a>
-      </div>
-      <div class="footer-meta">
-        <span>Powered by <strong>Meshy AI</strong></span>
-        <span class="footer-divider">·</span>
-        <span>© <span id="year">2025</span> Dima Vasiliu</span>
-      </div>
-    </div>
-  </footer>
-
-    <!-- Buy Credits Modal -->
-    <div class="modal" id="buyCreditsModal" aria-hidden="true">
-      <div class="card buy-credits-card">
-        <button class="close-x" id="buyCreditsClose" aria-label="Close">&times;</button>
-        <h4>Buy Credits</h4>
-        <p class="modal-sub">Credits power 3D model generation. Choose a pack below.</p>
-
-        <div class="credits-plans">
-          <!-- Starter -->
-          <button class="plan-card" data-plan="starter_80" data-credits="80" data-price="7.99" type="button">
-            <span class="plan-badge">Starter</span>
-            <span class="plan-credits">80 Credits</span>
-            <span class="plan-price">£7.99</span>
-            <span class="plan-note">~2-3 models</span>
-          </button>
-
-          <!-- Creator (Popular) -->
-          <button class="plan-card featured" data-plan="creator_300" data-credits="300" data-price="19.99" type="button">
-            <span class="plan-popular">Popular</span>
-            <span class="plan-badge">Creator</span>
-            <span class="plan-credits">300 Credits</span>
-            <span class="plan-price">£19.99</span>
-            <span class="plan-note">~10 models</span>
-          </button>
-
-          <!-- Studio -->
-          <button class="plan-card" data-plan="studio_600" data-credits="600" data-price="34.99" type="button">
-            <span class="plan-badge">Studio</span>
-            <span class="plan-credits">600 Credits</span>
-            <span class="plan-price">£34.99</span>
-            <span class="plan-note">~20 models</span>
-          </button>
+  <!-- User Stories Expanded View -->
+  <section id="userStoriesGallery" class="stories-expanded-view" aria-labelledby="storiesTitle" aria-hidden="true" hidden>
+    <div class="stories-expanded-shell">
+      <header class="stories-hero">
+        <div class="stories-hero-text" id="storiesFocus" data-stories-focus tabindex="-1">
+          <span class="stories-pill">Community Spotlight</span>
+          <h1 class="stories-title" id="storiesTitle">User Stories</h1>
+          <p>Real TimrX makers share the prompts, refinements, and print tricks that helped them ship their dream projects.</p>
+          <ul class="stories-metrics">
+            <li>
+              <span>120K+</span>
+              <small>Print-ready jobs</small>
+            </li>
+            <li>
+              <span>48 hrs</span>
+              <small>Avg. iteration cycle</small>
+            </li>
+            <li>
+              <span>32</span>
+              <small>Countries represented</small>
+            </li>
+          </ul>
         </div>
+        <button type="button" class="stories-exit-btn" id="storiesExit" aria-label="Close user stories">Back to Workspace ✕</button>
+      </header>
 
-        <!-- Email + Checkout Section -->
-        <div class="checkout-section" id="checkoutSection">
-          <div class="selected-plan-display" id="selectedPlanDisplay">
-            <span class="selected-label">Selected:</span>
-            <span class="selected-plan-name" id="selectedPlanName">-</span>
-            <span class="selected-plan-price" id="selectedPlanPrice">-</span>
+      <section class="stories-section">
+        <div class="stories-section-header">
+          <div class="stories-section-content">
+            <h2>Latest creator highlights</h2>
+            <p>Discover how makers around the world are using TimrX to bring their creative visions to life.</p>
+          </div>
+          <div class="stories-highlight">Featured Creators</div>
+        </div>
+        <div class="stories-grid">
+          <article class="stories-card">
+            <header>
+              <img src="https://images.unsplash.com/photo-1520340356584-8f1a9c7e69c5?w=200&h=200&fit=crop" alt="Kai Tanaka portrait">
+              <div>
+                <h3>Kai Tanaka</h3>
+                <p>Mecha Concept Artist · Tokyo</p>
+              </div>
+            </header>
+            <p>“I used TimrX to generate a modular mech kit. Refine gave me panel lines, then I remeshed at 0.3mm tolerance for resin printing.”</p>
+            <ul class="stories-tags">
+              <li>Prompt stack</li>
+              <li>Refine + Texture</li>
+              <li>Resin print</li>
+            </ul>
+          </article>
+
+          <article class="stories-card">
+            <header>
+              <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop" alt="Lena Bower portrait">
+              <div>
+                <h3>Lena Bower</h3>
+                <p>Tabletop Maker · Berlin</p>
+              </div>
+            </header>
+            <p>“Image-to-3D on my sketch gave me perfect silhouettes. I shared the STL with my Patreon patrons the same day.”</p>
+            <ul class="stories-tags">
+              <li>Image mode</li>
+              <li>Tabletop</li>
+              <li>Community drop</li>
+            </ul>
+          </article>
+
+          <article class="stories-card">
+            <header>
+              <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=200&h=200&fit=crop" alt="Dr. Milo Carter portrait">
+              <div>
+                <h3>Dr. Milo Carter</h3>
+                <p>Medical Lab · Austin</p>
+              </div>
+            </header>
+            <p>“We prototype surgical grips in TimrX. Remesh sealed the model, and the autorotate preview made stakeholder reviews a breeze.”</p>
+            <ul class="stories-tags">
+              <li>Remesh</li>
+              <li>Product</li>
+              <li>Stakeholder review</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="stories-section">
+        <div class="stories-section-header">
+          <div class="stories-section-content">
+            <h2>What creators are saying</h2>
+            <p>Hear directly from our community about their experiences with TimrX.</p>
+          </div>
+          <div class="stories-highlight">Testimonials</div>
+        </div>
+        <ul class="stories-quote-list">
+          <li>"History view feels like a private artboard—perfect for comparing iterations."</li>
+          <li>"Being able to refine without reuploading assets saved our team days this quarter."</li>
+          <li>"Autorotate + dark viewer background = instant product shots."</li>
+          <li>"The remesh feature saved me hours of manual cleanup in Blender. It just works!"</li>
+          <li>"I went from concept sketch to printed prototype in under 2 hours. Game changer."</li>
+          <li>"TimrX makes professional 3D modeling accessible to artists like me without technical backgrounds."</li>
+        </ul>
+        <div class="stories-cta">
+          <button type="button" class="stories-community-btn" data-expanded-nav="community">Meet the Community ↗</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- 3D File Converter Expanded View -->
+  <section id="converterGallery" class="converter-expanded-view" aria-labelledby="converterTitle" aria-hidden="true" hidden>
+    <div class="converter-expanded-shell">
+      <header class="converter-hero">
+        <div class="converter-hero-text" id="converterFocus" data-converter-focus tabindex="-1">
+          <span class="converter-pill">Free Tool · No Sign-up Required</span>
+          <h1 class="converter-title" id="converterTitle">3D File Converter</h1>
+          <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, and FBX files. All processing happens in your browser - your files never leave your device.</p>
+          <ul class="converter-hero-stats">
+            <li><span>5+</span><small>Formats supported</small></li>
+            <li><span>100%</span><small>Client-side processing</small></li>
+            <li><span>Free</span><small>No limits</small></li>
+            <li><span>Private</span><small>Files stay on device</small></li>
+          </ul>
+        </div>
+        <button type="button" class="converter-exit-btn" id="converterExit" aria-label="Close converter">Exit Converter ✕</button>
+      </header>
+
+      <!-- Main Converter Tool -->
+      <section class="converter-section converter-tool-section">
+        <div class="converter-tool">
+          <!-- Upload Area -->
+          <div class="converter-upload-area" id="converterDropZone">
+            <div class="converter-upload-content">
+              <svg class="converter-upload-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M32 44V20M32 20L22 30M32 20L42 30" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 44v8a4 4 0 004 4h32a4 4 0 004-4v-8" stroke-linecap="round"/>
+              </svg>
+              <h3>Drop your 3D file here</h3>
+              <p>or click to browse</p>
+              <span class="converter-formats-hint">Supports: GLB, GLTF, OBJ, STL, FBX</span>
+            </div>
+            <input type="file" id="converterFileInput" accept=".glb,.gltf,.obj,.stl,.fbx" hidden>
           </div>
 
-          <div class="field">
-            <input type="email" id="checkoutEmail" placeholder="Enter your email for receipt" autocomplete="email" />
+          <!-- File Info (shown after upload) -->
+          <div class="converter-file-info hidden" id="converterFileInfo">
+            <div class="converter-file-preview">
+              <canvas id="converterPreviewCanvas"></canvas>
+              <div class="converter-file-details">
+                <h3 id="converterFileName">model.glb</h3>
+                <ul class="converter-file-meta">
+                  <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
+                  <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
+                  <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
+                  <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
+                </ul>
+                <button type="button" class="converter-change-file" id="converterChangeFile">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 4v6h6M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                  </svg>
+                  Change File
+                </button>
+              </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="converter-export-options">
+              <h4>Export Format</h4>
+              <div class="converter-format-grid">
+                <label class="converter-format-option">
+                  <input type="radio" name="exportFormat" value="glb" checked>
+                  <span class="converter-format-card">
+                    <strong>GLB</strong>
+                    <small>Binary GLTF, compact</small>
+                  </span>
+                </label>
+                <label class="converter-format-option">
+                  <input type="radio" name="exportFormat" value="gltf">
+                  <span class="converter-format-card">
+                    <strong>GLTF</strong>
+                    <small>JSON + separate assets</small>
+                  </span>
+                </label>
+                <label class="converter-format-option">
+                  <input type="radio" name="exportFormat" value="obj">
+                  <span class="converter-format-card">
+                    <strong>OBJ</strong>
+                    <small>Universal, no textures</small>
+                  </span>
+                </label>
+                <label class="converter-format-option">
+                  <input type="radio" name="exportFormat" value="stl">
+                  <span class="converter-format-card">
+                    <strong>STL</strong>
+                    <small>3D printing standard</small>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Advanced Options -->
+              <div class="converter-advanced-toggle" id="converterAdvancedToggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+                Advanced Options
+              </div>
+              <div class="converter-advanced-options hidden" id="converterAdvancedOptions">
+                <label class="converter-option-row">
+                  <span>Include textures (GLB/GLTF only)</span>
+                  <input type="checkbox" id="converterIncludeTextures" checked>
+                </label>
+                <label class="converter-option-row">
+                  <span>Binary STL (smaller file)</span>
+                  <input type="checkbox" id="converterBinaryStl" checked>
+                </label>
+                <label class="converter-option-row">
+                  <span>Flip Y/Z axis (for some apps)</span>
+                  <input type="checkbox" id="converterFlipAxis">
+                </label>
+              </div>
+
+              <button type="button" class="converter-export-btn" id="converterExportBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                Convert & Download
+              </button>
+            </div>
           </div>
 
-          <div class="checkout-error" id="checkoutError"></div>
-
-          <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
-            <span class="btn-text">Continue to Payment</span>
-            <span class="btn-loader" style="display:none;">
-              <i class="fa-solid fa-spinner fa-spin"></i> Processing...
-            </span>
-          </button>
+          <!-- Progress indicator -->
+          <div class="converter-progress hidden" id="converterProgress">
+            <div class="converter-progress-bar">
+              <div class="converter-progress-fill" id="converterProgressFill"></div>
+            </div>
+            <span id="converterProgressText">Processing...</span>
+          </div>
         </div>
+      </section>
 
-        <p class="credits-footer">1 model = ~30 credits (generation + refine)</p>
+      <!-- Supported Formats Section -->
+      <section class="converter-section">
+        <div class="converter-section-header">
+          <div class="converter-section-content">
+            <h2>Supported Formats</h2>
+            <p>We support all major 3D file formats used in game development, 3D printing, and digital content creation.</p>
+          </div>
+          <div class="converter-highlight">Format Guide</div>
+        </div>
+        <div class="converter-formats-grid">
+          <article class="converter-format-info">
+            <div class="format-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="8" y="6" width="32" height="36" rx="2"/>
+                <path d="M16 18h16M16 26h16M16 34h8"/>
+              </svg>
+            </div>
+            <h3>GLB / GLTF</h3>
+            <p>The modern standard for 3D on the web. GLB is a binary format that packs everything into one file. GLTF is JSON-based with separate texture files.</p>
+            <ul>
+              <li>Best for web & real-time apps</li>
+              <li>Supports PBR materials</li>
+              <li>Includes animations</li>
+              <li>Widely supported</li>
+            </ul>
+          </article>
+          <article class="converter-format-info">
+            <div class="format-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="24,6 42,38 6,38"/>
+                <line x1="24" y1="14" x2="24" y2="28"/>
+                <line x1="15" y1="32" x2="33" y2="32"/>
+              </svg>
+            </div>
+            <h3>STL</h3>
+            <p>The gold standard for 3D printing. Simple mesh format that stores triangle geometry without colors or textures.</p>
+            <ul>
+              <li>Universal print format</li>
+              <li>Binary or ASCII options</li>
+              <li>No material data</li>
+              <li>All slicers support it</li>
+            </ul>
+          </article>
+          <article class="converter-format-info">
+            <div class="format-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="24" cy="24" r="16"/>
+                <path d="M24 12v24M12 24h24"/>
+                <circle cx="24" cy="24" r="6"/>
+              </svg>
+            </div>
+            <h3>OBJ</h3>
+            <p>A widely-supported legacy format. Stores geometry and can reference external MTL files for materials.</p>
+            <ul>
+              <li>Maximum compatibility</li>
+              <li>Text-based, editable</li>
+              <li>Separate material files</li>
+              <li>Good for DCC apps</li>
+            </ul>
+          </article>
+          <article class="converter-format-info">
+            <div class="format-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 12h32v24H8z"/>
+                <path d="M8 12l16 12 16-12"/>
+                <path d="M8 36l12-10M40 36l-12-10"/>
+              </svg>
+            </div>
+            <h3>FBX</h3>
+            <p>Industry standard for animation and game engines. Supports complex rigs, animations, and materials.</p>
+            <ul>
+              <li>Full animation support</li>
+              <li>Industry standard</li>
+              <li>Complex scene data</li>
+              <li>Unity/Unreal ready</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- How It Works Section -->
+      <section class="converter-section">
+        <div class="converter-section-header">
+          <div class="converter-section-content">
+            <h2>How It Works</h2>
+            <p>Convert your 3D files in three simple steps. No uploads to external servers - everything happens locally.</p>
+          </div>
+          <div class="converter-highlight">Quick Guide</div>
+        </div>
+        <div class="converter-steps-grid">
+          <article class="converter-step">
+            <span>01</span>
+            <h3>Upload Your File</h3>
+            <p>Drag and drop your 3D model or click to browse. We support GLB, GLTF, OBJ, STL, and FBX formats up to 100MB.</p>
+          </article>
+          <article class="converter-step">
+            <span>02</span>
+            <h3>Preview & Configure</h3>
+            <p>See your model in 3D, check vertex counts, and choose your target format. Adjust advanced options if needed.</p>
+          </article>
+          <article class="converter-step">
+            <span>03</span>
+            <h3>Convert & Download</h3>
+            <p>Click convert and your file is processed instantly in your browser. Download the converted file directly.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Use Cases Section -->
+      <section class="converter-section">
+        <div class="converter-section-header">
+          <div class="converter-section-content">
+            <h2>Common Use Cases</h2>
+            <p>Whether you're preparing files for 3D printing, game development, or web visualization, we've got you covered.</p>
+          </div>
+          <div class="converter-highlight">Workflows</div>
+        </div>
+        <div class="converter-usecases-grid">
+          <article class="converter-usecase">
+            <div class="usecase-icon">🖨️</div>
+            <h3>3D Printing Prep</h3>
+            <p>Convert GLB or GLTF files from AI generators to STL for your slicer software.</p>
+          </article>
+          <article class="converter-usecase">
+            <div class="usecase-icon">🎮</div>
+            <h3>Game Development</h3>
+            <p>Convert OBJ exports from Blender to GLB for web-based games and Three.js projects.</p>
+          </article>
+          <article class="converter-usecase">
+            <div class="usecase-icon">🌐</div>
+            <h3>Web Optimization</h3>
+            <p>Convert heavy FBX files to optimized GLB for fast loading on websites and AR experiences.</p>
+          </article>
+          <article class="converter-usecase">
+            <div class="usecase-icon">🔄</div>
+            <h3>Software Compatibility</h3>
+            <p>Bridge format gaps between different 3D software like Blender, Maya, ZBrush, and more.</p>
+          </article>
+          <article class="converter-usecase">
+            <div class="usecase-icon">📱</div>
+            <h3>AR/VR Content</h3>
+            <p>Prepare models for augmented reality apps and VR experiences with optimized GLB exports.</p>
+          </article>
+          <article class="converter-usecase">
+            <div class="usecase-icon">🎨</div>
+            <h3>Asset Libraries</h3>
+            <p>Batch convert your 3D asset library to a consistent format for better organization.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section class="converter-section">
+        <div class="converter-section-header">
+          <div class="converter-section-content">
+            <h2>Frequently Asked Questions</h2>
+            <p>Everything you need to know about our 3D file converter.</p>
+          </div>
+          <div class="converter-highlight">FAQ</div>
+        </div>
+        <div class="converter-faq-grid">
+          <article class="converter-faq">
+            <h3>Is my data safe?</h3>
+            <p>Yes! All file processing happens directly in your browser using WebGL and JavaScript. Your files are never uploaded to any server. When you close the page, everything is gone.</p>
+          </article>
+          <article class="converter-faq">
+            <h3>What's the file size limit?</h3>
+            <p>We recommend files under 100MB for optimal performance. Larger files may work but could be slow depending on your device's capabilities.</p>
+          </article>
+          <article class="converter-faq">
+            <h3>Are textures preserved?</h3>
+            <p>When converting to GLB/GLTF, textures are preserved. STL and OBJ formats don't support embedded textures, so only geometry is exported.</p>
+          </article>
+          <article class="converter-faq">
+            <h3>Can I convert animations?</h3>
+            <p>Animations are preserved when converting between GLB, GLTF, and FBX. STL and OBJ are static formats and don't support animations.</p>
+          </article>
+          <article class="converter-faq">
+            <h3>Why use this over desktop software?</h3>
+            <p>No installation required, works on any device with a browser, completely free, and respects your privacy. Perfect for quick conversions on the go.</p>
+          </article>
+          <article class="converter-faq">
+            <h3>Need batch conversion?</h3>
+            <p>Currently we support one file at a time. For batch conversion, consider using Blender with Python scripting or dedicated desktop tools.</p>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       ABOUT / OUR STORY & MISSION – Expanded View
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <section id="aboutGallery" class="about-expanded-view" aria-labelledby="aboutTitle" aria-hidden="true" hidden>
+    <div class="about-expanded-shell">
+      <header class="about-hero">
+        <div class="about-hero-text" id="aboutFocus" data-about-focus tabindex="-1">
+          <span class="about-pill">Our Story · TimrX</span>
+          <h1 class="about-title" id="aboutTitle">Empowering Creators to Build & Print</h1>
+          <p>We believe everyone should have the power to transform ideas into physical objects. TimrX bridges the gap between imagination and reality — making 3D creation accessible, AI-powered, and ready for your printer.</p>
+          <ul class="about-hero-stats">
+            <li><span>10K+</span><small>Models Created</small></li>
+            <li><span>5K+</span><small>Happy Creators</small></li>
+            <li><span>50+</span><small>Countries</small></li>
+            <li><span>24/7</span><small>AI Available</small></li>
+          </ul>
+        </div>
+        <button type="button" class="about-exit-btn" id="aboutExit" aria-label="Close about">Exit About ✕</button>
+      </header>
+
+      <!-- Mission Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>Our Mission</h2>
+            <p>To democratize 3D creation and manufacturing, enabling anyone to design, iterate, and bring their ideas to life through AI-powered tools and seamless 3D printing integration.</p>
+          </div>
+          <div class="about-highlight">Why We Exist</div>
+        </div>
+        <div class="about-mission-grid">
+          <article class="about-mission-card">
+            <div class="mission-icon">🎯</div>
+            <h3>Simplify Creation</h3>
+            <p>Traditional 3D modeling requires years of training. We use AI to let you describe what you want and get a printable model in minutes, not months.</p>
+          </article>
+          <article class="about-mission-card">
+            <div class="mission-icon">🌍</div>
+            <h3>Global Accessibility</h3>
+            <p>Whether you're a hobbyist in Tokyo or an entrepreneur in São Paulo, our cloud-based platform ensures everyone has equal access to cutting-edge 3D tools.</p>
+          </article>
+          <article class="about-mission-card">
+            <div class="mission-icon">🚀</div>
+            <h3>Ship Physical Products</h3>
+            <p>From digital model to doorstep delivery. We're building the infrastructure to help creators sell and ship their 3D printed products worldwide.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Our Story Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>The TimrX Story</h2>
+            <p>Every great journey starts with a simple frustration. Ours began with a broken 3D printer and a dream to make creation easier.</p>
+          </div>
+          <div class="about-highlight">Our Journey</div>
+        </div>
+        <div class="about-story-content">
+          <div class="about-story-block">
+            <div class="story-image">
+              <div class="story-image-placeholder">
+                <span>💡</span>
+              </div>
+            </div>
+            <div class="story-text">
+              <h3>The Spark</h3>
+              <p>It started in a small workshop where we spent countless hours learning Blender, ZBrush, and other complex 3D software. The barrier to entry was enormous — months of tutorials just to create a simple character. We knew there had to be a better way.</p>
+              <p>When AI image generation exploded, we saw the future: what if you could describe a 3D model and have it appear, ready to print? That vision became TimrX.</p>
+            </div>
+          </div>
+          <div class="about-story-block reverse">
+            <div class="story-image">
+              <div class="story-image-placeholder">
+                <span>🔧</span>
+              </div>
+            </div>
+            <div class="story-text">
+              <h3>Building the Platform</h3>
+              <p>We assembled a team passionate about both AI and physical making. Our first prototype was rough — models came out looking like melted candles. But each iteration brought us closer to something magical.</p>
+              <p>Today, TimrX can generate print-ready models from text prompts, images, or even video references. The technology that seemed impossible two years ago is now at your fingertips.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Values Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>Our Core Values</h2>
+            <p>These principles guide every decision we make, from product features to community interactions.</p>
+          </div>
+          <div class="about-highlight">What We Believe</div>
+        </div>
+        <div class="about-values-grid">
+          <article class="about-value">
+            <div class="value-number">01</div>
+            <h3>Creator First</h3>
+            <p>Every feature we build starts with one question: does this help creators make better things faster? If not, we don't ship it.</p>
+          </article>
+          <article class="about-value">
+            <div class="value-number">02</div>
+            <h3>Quality Matters</h3>
+            <p>A beautiful render means nothing if the print fails. We obsess over mesh quality, watertightness, and real-world printability.</p>
+          </article>
+          <article class="about-value">
+            <div class="value-number">03</div>
+            <h3>Open Community</h3>
+            <p>We share our learnings, celebrate community creations, and believe the best ideas come from collaboration, not competition.</p>
+          </article>
+          <article class="about-value">
+            <div class="value-number">04</div>
+            <h3>Continuous Innovation</h3>
+            <p>AI moves fast. We stay ahead by constantly experimenting with new models, techniques, and workflows.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Timeline Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>Our Timeline</h2>
+            <p>Key milestones in the TimrX journey from idea to global platform.</p>
+          </div>
+          <div class="about-highlight">Milestones</div>
+        </div>
+        <div class="about-timeline">
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <span class="timeline-date">2023</span>
+              <h3>The Beginning</h3>
+              <p>First prototype built. Text-to-3D experiments begin with early AI models.</p>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <span class="timeline-date">Early 2024</span>
+              <h3>Platform Launch</h3>
+              <p>TimrX 3D Print Hub goes live. First 1,000 users join the beta program.</p>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <span class="timeline-date">Mid 2024</span>
+              <h3>Community Growth</h3>
+              <p>User Stories launches. Discord community reaches 5,000 members.</p>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <span class="timeline-date">Late 2024</span>
+              <h3>Advanced Tools</h3>
+              <p>Remesh, Texture, and Video-to-3D features released. File converter added.</p>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <span class="timeline-date">2025</span>
+              <h3>Print & Ship</h3>
+              <p>Integrated printing and fulfillment services launching globally.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- What We Offer Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>What We Offer</h2>
+            <p>A complete ecosystem for 3D creation, from initial concept to physical product.</p>
+          </div>
+          <div class="about-highlight">Platform Features</div>
+        </div>
+        <div class="about-features-grid">
+          <article class="about-feature">
+            <div class="feature-icon">✨</div>
+            <h3>AI 3D Generation</h3>
+            <p>Transform text descriptions, images, or videos into detailed 3D models using cutting-edge AI technology.</p>
+          </article>
+          <article class="about-feature">
+            <div class="feature-icon">🔄</div>
+            <h3>Smart Remeshing</h3>
+            <p>Automatically optimize topology for 3D printing with watertight, manifold meshes ready for any slicer.</p>
+          </article>
+          <article class="about-feature">
+            <div class="feature-icon">🎨</div>
+            <h3>AI Texturing</h3>
+            <p>Generate PBR textures with diffuse, roughness, and normal maps for photorealistic renders and prints.</p>
+          </article>
+          <article class="about-feature">
+            <div class="feature-icon">📁</div>
+            <h3>File Conversion</h3>
+            <p>Convert between GLB, GLTF, OBJ, STL, and FBX formats directly in your browser, no upload needed.</p>
+          </article>
+          <article class="about-feature">
+            <div class="feature-icon">📚</div>
+            <h3>Asset Library</h3>
+            <p>Store, organize, and manage all your 3D creations with version history and easy export options.</p>
+          </article>
+          <article class="about-feature">
+            <div class="feature-icon">🖨️</div>
+            <h3>Print Integration</h3>
+            <p>Connect with printing services or export optimized files for your home FDM or resin printer.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Community Section -->
+      <section class="about-section">
+        <div class="about-section-header">
+          <div class="about-section-content">
+            <h2>Join Our Community</h2>
+            <p>Connect with thousands of creators, share your work, and learn from the best in 3D printing.</p>
+          </div>
+          <div class="about-highlight">Get Involved</div>
+        </div>
+        <div class="about-community-grid">
+          <article class="about-community-card">
+            <div class="community-icon">💬</div>
+            <h3>Discord Server</h3>
+            <p>Join 5,000+ creators sharing tips, showcasing prints, and helping each other troubleshoot.</p>
+            <a href="https://discord.gg/timrx" target="_blank" rel="noopener" class="about-community-btn">Join Discord</a>
+          </article>
+          <article class="about-community-card">
+            <div class="community-icon">🎓</div>
+            <h3>Tutorials</h3>
+            <p>Step-by-step guides covering everything from basic prompts to advanced multi-part assemblies.</p>
+            <button type="button" class="about-community-btn" data-open-tutorials>Browse Tutorials</button>
+          </article>
+          <article class="about-community-card">
+            <div class="community-icon">🌟</div>
+            <h3>User Stories</h3>
+            <p>Get inspired by what other creators are building. From cosplay props to architectural models.</p>
+            <button type="button" class="about-community-btn" data-open-user-stories>See Stories</button>
+          </article>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="about-section about-cta-section">
+        <div class="about-cta-content">
+          <h2>Ready to Start Creating?</h2>
+          <p>Join thousands of creators who are turning their ideas into reality with TimrX. No experience required — just your imagination.</p>
+          <div class="about-cta-buttons">
+            <button type="button" class="about-primary-btn" data-expanded-nav="workspace">Open Workspace</button>
+            <a href="https://discord.gg/timrx" target="_blank" rel="noopener" class="about-secondary-btn">Join Community</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+
+  <!-- Insufficient Credits Modal -->
+  <div class="credits-modal-overlay" id="insufficientCreditsModal" aria-hidden="true">
+    <div class="credits-modal">
+      <div class="credits-modal-icon">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <h3 class="credits-modal-title">Insufficient Credits</h3>
+      <p class="credits-modal-message" id="creditsModalMessage">
+        You need more credits to perform this action.
+      </p>
+      <div class="credits-modal-info">
+        <div class="credits-info-row">
+          <span class="credits-info-label">Required</span>
+          <span class="credits-info-value" id="creditsModalRequired">0</span>
+        </div>
+        <div class="credits-info-row">
+          <span class="credits-info-label">Available</span>
+          <span class="credits-info-value available" id="creditsModalAvailable">0</span>
+        </div>
+        <div class="credits-info-row highlight">
+          <span class="credits-info-label">Need</span>
+          <span class="credits-info-value needed" id="creditsModalNeeded">0</span>
+        </div>
+      </div>
+      <div class="credits-modal-actions">
+        <button type="button" class="credits-modal-btn primary" id="creditsModalBuy">
+          <i class="fa-solid fa-cart-shopping"></i>
+          Buy Credits
+        </button>
+        <button type="button" class="credits-modal-btn secondary" id="creditsModalCancel">
+          Cancel
+        </button> 
       </div>
     </div>
+  </div>
 
-    <!-- Payment Success Modal -->
-    <div class="modal" id="paymentSuccessModal" aria-hidden="true">
-      <div class="card success-card">
-        <div class="success-icon">
-          <i class="fa-solid fa-check"></i>
-        </div>
-        <h4>Payment Complete</h4>
-        <p class="modal-sub">Your credits have been added to your account.</p>
-        <div class="success-credits" id="successCredits">
-          <span class="success-label">Balance</span>
-          <span class="success-value" id="successCreditsValue">--</span>
-          <span class="success-unit">credits</span>
-        </div>
-        <div class="success-actions">
-          <a class="btn" href="3dprint.html">Go to Workspace</a>
-          <button class="btn ghost" id="successCloseBtn" type="button">Close</button>
-        </div>
-      </div>
-    </div>
+  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/STLLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/FBXLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/GLTFExporter.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/OBJExporter.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/STLExporter.js"></script>
+  <!-- Signal our workspace JS that Three is ready -->
+  <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
 
-    <!-- Scripts (flattened) -->
-    <script src="hub.js"></script>
-    <script src="burger.js"></script>
-    <script src="credits.js"></script>
+  <!-- JS modules (flattened from js/) - main.js is entry point, imports: -->
+  <!-- config.js, state.js, viewer.js, ui-utils.js, api.js, converter.js, workspace-credits.js -->
+  <script type="module" src="main.js"></script>
 </body>
 </html>
