@@ -350,10 +350,16 @@
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error?.message || `Checkout failed (${res.status})`);
+        throw new Error(data.detail || data.error?.message || `Checkout failed (${res.status})`);
       }
 
       if (data.checkout_url) {
+        // Store payment_id for post-redirect confirmation
+        if (data.payment_id) {
+          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+          console.log('[Credits] Stored payment_id for confirmation:', data.payment_id);
+        }
+
         // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
       } else {
@@ -502,15 +508,63 @@
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Poll for wallet update - webhook may be delayed
-    // Try up to 6 times, every 2 seconds (12 seconds max)
+    // Get stored payment_id from sessionStorage
+    const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
+
     (async function handleCheckoutSuccess() {
       const initialBalance = walletAvailable;
+      console.log('[Credits] Checkout success - initial balance:', initialBalance);
+
+      // Step 1: If we have payment_id, call confirm endpoint to ensure credits are granted
+      if (pendingPaymentId) {
+        console.log('[Credits] Confirming payment:', pendingPaymentId);
+
+        try {
+          const confirmRes = await fetch(
+            `${API_BASE}/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`,
+            {
+              method: 'GET',
+              credentials: 'include',
+              headers: { 'Accept': 'application/json' }
+            }
+          );
+
+          const confirmData = await confirmRes.json();
+          console.log('[Credits] Confirm response:', confirmData);
+
+          // Clear stored payment_id regardless of result
+          sessionStorage.removeItem('timrx_pending_payment_id');
+
+          if (confirmData.ok && confirmData.credits_granted) {
+            // Credits were granted - refresh and show success
+            const wallet = await fetchWallet();
+            const newBalance = wallet ? wallet.available : 0;
+            console.log('[Credits] Credits confirmed! New balance:', newBalance);
+            openSuccessModal(newBalance, false);
+            return;
+          } else if (confirmData.status === 'open' || confirmData.status === 'pending') {
+            // Payment still processing - show pending message
+            console.log('[Credits] Payment still processing');
+            openSuccessModal(initialBalance, true);
+            return;
+          } else if (confirmData.status === 'failed' || confirmData.status === 'canceled' || confirmData.status === 'expired') {
+            // Payment failed
+            console.log('[Credits] Payment failed:', confirmData.status);
+            // Could show an error message here
+            return;
+          }
+        } catch (err) {
+          console.error('[Credits] Confirm error:', err);
+          // Fall through to polling
+        }
+      } else {
+        console.log('[Credits] No payment_id found, falling back to polling');
+      }
+
+      // Step 2: Fallback - poll for wallet update (in case confirm failed or no payment_id)
       let attempts = 0;
       const maxAttempts = 6;
       const pollInterval = 2000; // 2 seconds
-
-      console.log('[Credits] Checkout success - polling for balance update, initial:', initialBalance);
 
       async function pollBalance() {
         attempts++;
@@ -541,8 +595,9 @@
       setTimeout(pollBalance, 1000);
     })();
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
-    // Clean URL and optionally show a message
+    // Clean URL and clear stored payment_id
     window.history.replaceState({}, '', window.location.pathname);
+    sessionStorage.removeItem('timrx_pending_payment_id');
     if (checkoutStatus !== 'cancelled') {
       console.log(`[Credits] Checkout ${checkoutStatus}`);
       // Could show a toast/alert here if needed
