@@ -26,7 +26,7 @@ let startLock = false;
 let postProcessLock = false;
 
 // ============================================================================
-// CREDITS HELPERS
+// CREDITS HELPERS (Optimistic Updates)
 // ============================================================================
 
 /**
@@ -46,12 +46,45 @@ function checkCreditsFor(action) {
 }
 
 /**
+ * Optimistically deduct credits before API call
+ * @returns {{ id: string|null, amount: number }} deduction info for rollback/reconcile
+ */
+function deductCreditsOptimistic(action, count = 1) {
+  if (!window.WorkspaceCredits?.deductOptimistic) {
+    return { id: null, amount: 0 };
+  }
+  return window.WorkspaceCredits.deductOptimistic(action, count);
+}
+
+/**
+ * Rollback optimistic deduction on API failure
+ */
+function rollbackCredits(deductionId) {
+  if (deductionId && window.WorkspaceCredits?.rollback) {
+    window.WorkspaceCredits.rollback(deductionId);
+  }
+}
+
+/**
+ * Reconcile with server balance after successful API response
+ */
+function reconcileCredits(serverBalance) {
+  if (typeof serverBalance === 'number' && window.WorkspaceCredits?.reconcile) {
+    window.WorkspaceCredits.reconcile(serverBalance);
+  } else if (window.WorkspaceCredits?.refresh) {
+    // Fallback: fetch from server if no balance returned
+    window.WorkspaceCredits.refresh();
+  }
+}
+
+/**
  * Handle API response errors, specifically 402 insufficient credits
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
-function handleApiError(response, action) {
+function handleApiError(response, action, deductionId = null) {
   if (response.status === 402) {
-    // Insufficient credits - show buy modal
+    // Insufficient credits - rollback optimistic deduction and show buy modal
+    rollbackCredits(deductionId);
     log('[Credits] 402 Insufficient credits for:', action);
     if (window.WorkspaceCredits) {
       window.WorkspaceCredits.showInsufficientCreditsMessage(action);
@@ -60,11 +93,14 @@ function handleApiError(response, action) {
     }
     return true;
   }
+  // For other errors, also rollback
+  rollbackCredits(deductionId);
   return false;
 }
 
 /**
  * Refresh wallet after a successful job start (credits were deducted)
+ * @deprecated Use reconcileCredits() instead for optimistic updates
  */
 function refreshWalletAfterJob() {
   if (window.WorkspaceCredits?.refresh) {
@@ -544,6 +580,9 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return;
   }
 
+  // Optimistically deduct credits immediately
+  const deduction = deductCreditsOptimistic(kind);
+
   const endpoint = kind === 'texture'
     ? '/api/mesh/retexture'
     : kind === 'rig'
@@ -553,19 +592,34 @@ async function beginMeshyTask(kind, payload, meta = {}) {
   const prog = UI.makeProgressDriver();
   prog.label(statusLabel);
 
-  const resp = await fetch(`${BACKEND}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(payload)
-  });
+  let resp;
+  try {
+    resp = await fetch(`${BACKEND}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    rollbackCredits(deduction.id);
+    throw err;
+  }
+
   if (!resp.ok) {
-    if (handleApiError(resp, kind)) return;
+    if (handleApiError(resp, kind, deduction.id)) return;
+    rollbackCredits(deduction.id);
     throw new Error(await resp.text());
   }
-  const { job_id } = await resp.json();
-  refreshWalletAfterJob(); // Refresh credits after successful job start
-  if (!job_id) throw new Error('No job id returned');
+  const data = await resp.json();
+  const { job_id } = data;
+
+  // Reconcile with server balance if returned, otherwise refresh
+  reconcileCredits(data.new_balance ?? data.wallet?.available);
+
+  if (!job_id) {
+    rollbackCredits(deduction.id);
+    throw new Error('No job id returned');
+  }
 
   State.addActiveJob(job_id);
   State.savePendingMeta(job_id, { ...meta, stage: kind, source_model_id: meta.source_model_id || meta.id });
@@ -627,7 +681,10 @@ export async function onGenerateClick() {
     log('Generating with:', { prompt, art_style, model, batchCount, symmetry, isPose, license });
     prog.label(batchCount > 1 ? `Queuing ${batchCount} previews...` : 'Queuing job...');
 
-    const queueOne = async (slot) => {
+    // Optimistically deduct credits for entire batch upfront
+    const deduction = deductCreditsOptimistic('text-to-3d', batchCount);
+
+    const queueOne = async (slot, deductionId) => {
       const payload = {
         prompt,
         art_style,
@@ -641,18 +698,33 @@ export async function onGenerateClick() {
         refine: false
       };
 
-      const resp = await fetch(`${BACKEND}/api/text-to-3d/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
+      let resp;
+      try {
+        resp = await fetch(`${BACKEND}/api/text-to-3d/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        // Only rollback on first slot failure (entire batch)
+        if (slot === 0) rollbackCredits(deductionId);
+        throw err;
+      }
+
       if (!resp.ok) {
-        if (handleApiError(resp, 'text-to-3d')) return;
+        if (handleApiError(resp, 'text-to-3d', slot === 0 ? deductionId : null)) return;
+        if (slot === 0) rollbackCredits(deductionId);
         throw new Error(await resp.text());
       }
-      const { job_id } = await resp.json();
-      refreshWalletAfterJob(); // Refresh credits after successful job start
+      const data = await resp.json();
+      const { job_id } = data;
+
+      // Reconcile with server balance on first successful response
+      if (slot === 0) {
+        reconcileCredits(data.new_balance ?? data.wallet?.available);
+      }
+
       if (!job_id) throw new Error('No job id returned');
 
       State.addActiveJob(job_id);
@@ -675,7 +747,7 @@ export async function onGenerateClick() {
 
     for (let i = 0; i < batchCount; i++) {
       if (batchCount > 1) prog.label(`Queuing preview ${i + 1}/${batchCount}...`);
-      await queueOne(i);
+      await queueOne(i, deduction.id);
     }
 
   } catch (err) {
@@ -729,32 +801,45 @@ export async function startOpenAIImageGeneration() {
   State.setHistoryActiveModelId(tempId);
   renderHistory();
 
+  // Optimistically deduct credits
+  const deduction = deductCreditsOptimistic('text-to-image');
+
   try {
     prog.label('Queuing image...');
-    const resp = await fetch(`${BACKEND}/api/image/openai`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        prompt: promptRaw,
-        size: resolution,
-        model,
-        client_id: tempId
-      })
-    });
+    let resp;
+    try {
+      resp = await fetch(`${BACKEND}/api/image/openai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          prompt: promptRaw,
+          size: resolution,
+          model,
+          client_id: tempId
+        })
+      });
+    } catch (err) {
+      rollbackCredits(deduction.id);
+      throw err;
+    }
+
     if (!resp.ok) {
-      if (handleApiError(resp, 'text-to-image')) {
+      if (handleApiError(resp, 'text-to-image', deduction.id)) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
         renderHistory();
         return;
       }
+      rollbackCredits(deduction.id);
       const text = await resp.text();
       throw new Error(text || `OpenAI HTTP ${resp.status}`);
     }
     const data = await resp.json();
-    refreshWalletAfterJob(); // Refresh credits after successful generation
+
+    // Reconcile with server balance
+    reconcileCredits(data.new_balance ?? data.wallet?.available);
     const imageUrl = preferHttpUrl(data.image_urls || data.image_url || null);
     if (!imageUrl) throw new Error('OpenAI did not return an image URL');
 
@@ -834,22 +919,40 @@ export async function startImageTo3DFromHistory(item) {
     stage: 'image3d',
     thumbnail_url: item.thumbnail_url || item.image_url || ''
   };
+  // Optimistically deduct credits
+  const deduction = deductCreditsOptimistic('image-to-3d');
+
   const prog = UI.makeProgressDriver();
   prog.label('Starting image to 3D...');
   try {
-    const resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ image_url: item.image_url, prompt })
-    });
+    let resp;
+    try {
+      resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ image_url: item.image_url, prompt })
+      });
+    } catch (err) {
+      rollbackCredits(deduction.id);
+      throw err;
+    }
+
     if (!resp.ok) {
-      if (handleApiError(resp, 'image-to-3d')) return;
+      if (handleApiError(resp, 'image-to-3d', deduction.id)) return;
+      rollbackCredits(deduction.id);
       throw new Error(await resp.text());
     }
-    const { job_id } = await resp.json();
-    refreshWalletAfterJob(); // Refresh credits after successful job start
-    if (!job_id) throw new Error('No job id returned');
+    const data = await resp.json();
+    const { job_id } = data;
+
+    // Reconcile with server balance
+    reconcileCredits(data.new_balance ?? data.wallet?.available);
+
+    if (!job_id) {
+      rollbackCredits(deduction.id);
+      throw new Error('No job id returned');
+    }
     State.addActiveJob(job_id);
     State.savePendingMeta(job_id, { ...meta, type: 'model' });
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
@@ -897,6 +1000,9 @@ export async function onPostProcessFromHistory(item, type) {
       throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
     }
 
+    // Optimistically deduct credits for refine
+    const deduction = deductCreditsOptimistic('refine');
+
     const url = `${BACKEND}/api/text-to-3d/refine`;
     const body = {
       preview_task_id: previewTaskId,
@@ -904,19 +1010,34 @@ export async function onPostProcessFromHistory(item, type) {
       enable_pbr: true
     };
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(body)
-    });
+    let r;
+    try {
+      r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+    } catch (err) {
+      rollbackCredits(deduction.id);
+      throw err;
+    }
+
     if (!r.ok) {
-      if (handleApiError(r, 'refine')) return;
+      if (handleApiError(r, 'refine', deduction.id)) return;
+      rollbackCredits(deduction.id);
       throw new Error(await r.text());
     }
-    const { job_id } = await r.json();
-    refreshWalletAfterJob(); // Refresh credits after successful job start
-    if (!job_id) throw new Error(`No job id returned for ${type}`);
+    const data = await r.json();
+    const { job_id } = data;
+
+    // Reconcile with server balance
+    reconcileCredits(data.new_balance ?? data.wallet?.available);
+
+    if (!job_id) {
+      rollbackCredits(deduction.id);
+      throw new Error(`No job id returned for ${type}`);
+    }
 
     State.addActiveJob(job_id);
     const jobMeta = {
