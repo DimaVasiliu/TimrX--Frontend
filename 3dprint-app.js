@@ -67,36 +67,40 @@
 
         <div class="card">
           <h3>Options</h3>
-          <label for="imageAIProvider">AI Image Generator</label>
-          <select id="imageAIProvider">
-            <option value="openai" selected>OpenAI (DALL-E)</option>
-          </select>
-
-          <label for="imageStyle" style="margin-top:12px">Art Style</label>
-          <select id="imageStyle">
-            <option value="realistic" selected>Realistic</option>
-            <option value="artistic">Artistic</option>
-            <option value="anime">Anime</option>
-            <option value="3d-render">3D Render</option>
-            <option value="cinematic">Cinematic</option>
-          </select>
-
-          <label for="imageResolution" style="margin-top:12px">Resolution</label>
-          <select id="imageResolution">
-            <option value="512x512">512x512</option>
-            <option value="1024x1024" selected>1024x1024</option>
-            <option value="1024x1792">1024x1792 (Portrait)</option>
-            <option value="1792x1024">1792x1024 (Landscape)</option>
-          </select>
+          <div class="inline-field">
+            <label for="imageAIProvider">Provider</label>
+            <select id="imageAIProvider">
+              <option value="openai" selected>OpenAI (DALL-E)</option>
+            </select>
+          </div>
+          <div class="inline-field">
+            <label for="imageStyle">Style</label>
+            <select id="imageStyle">
+              <option value="realistic" selected>Realistic</option>
+              <option value="artistic">Artistic</option>
+              <option value="anime">Anime</option>
+              <option value="3d-render">3D Render</option>
+              <option value="cinematic">Cinematic</option>
+            </select>
+          </div>
+          <div class="inline-field">
+            <label for="imageResolution">Resolution</label>
+            <select id="imageResolution">
+              <option value="512x512">512x512</option>
+              <option value="1024x1024" selected>1024x1024</option>
+              <option value="1024x1792">1024x1792 (Portrait)</option>
+              <option value="1792x1024">1792x1024 (Landscape)</option>
+            </select>
+          </div>
         </div>
 
         <div class="card gen-footer-card">
           <div class="gen-meta">
             <span class="gen-time">30 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 12</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -105,11 +109,11 @@
   
       model: `
         <div class="card">
-          <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:8px">
-            <button type="button" class="tab-btn active" data-tab="text3d" style="flex:1;background:rgba(255,255,255,.1);border:none;border-radius:6px;padding:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s ease">
+          <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:8px">
+            <button type="button" class="tab-btn active" data-tab="text3d" style="flex:1;background:rgba(255,255,255,.1);border:none;border-radius:6px;padding:8px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s ease">
               Text to 3D
             </button>
-            <button type="button" class="tab-btn" data-tab="image3d" style="flex:1;background:transparent;border:none;border-radius:6px;padding:10px;color:#888;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease">
+            <button type="button" class="tab-btn" data-tab="image3d" style="flex:1;background:transparent;border:none;border-radius:6px;padding:8px;color:#888;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s ease">
               Image to 3D
             </button>
           </div>
@@ -121,20 +125,20 @@
           </div>
 
           <div class="tab-content hidden" id="image3d">
-            <div class="field-group" style="margin-bottom:14px">
-              <label for="imageModelName" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:6px">Model Name</label>
-              <input type="text" id="imageModelName" placeholder="My 3D Model" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:#fff;font-size:13px;transition:border-color .2s ease" />
+            <div class="inline-field" style="margin-bottom:10px">
+              <label for="imageModelName" style="font-size:12px">Name</label>
+              <input type="text" id="imageModelName" placeholder="My 3D Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
             </div>
-            <label for="modelImageUpload" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:6px">Upload Reference Image</label>
-            <div id="modelImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s ease">
-              <svg style="width:32px;height:32px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label for="modelImageUpload" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:5px">Upload Reference Image</label>
+            <div id="modelImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
+              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or Drag & Drop</p>
+              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
               <span style="font-size:11px;color:#666">PNG, JPG, WEBP</span>
               <input type="file" id="modelImageUpload" accept="image/*" hidden />
             </div>
-            <img id="modelImagePreview" style="display:none;width:100%;border-radius:8px;margin-top:12px" alt="Preview"/>
+            <img id="modelImagePreview" style="display:none;width:100%;border-radius:7px;margin-top:10px" alt="Preview"/>
           </div>
         </div>
 
@@ -201,7 +205,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits"><i class="fa-solid fa-coins"></i> 20</span>
           </div>
-          <button type="button" id="generateModelBtn" class="gen-btn">
+          <button type="button" id="generateModelBtn" class="gen-btn" title="20 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>
             Generate
           </button>
@@ -211,46 +215,48 @@
       remesh: `
         <div class="card">
           <h3>Model Selection</h3>
-          <label for="remeshModelSelect">Select Model to Remesh</label>
-          <select id="remeshModelSelect">
-            <option value="current" selected>Current Model</option>
-            <option value="upload">Upload New Model</option>
-          </select>
+          <div class="inline-field">
+            <label for="remeshModelSelect">Source</label>
+            <select id="remeshModelSelect">
+              <option value="current" selected>Current Model</option>
+              <option value="upload">Upload New Model</option>
+            </select>
+          </div>
 
-          <div id="remeshModelUploadSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
-            <label for="remeshModelUpload">Upload 3D Model</label>
-            <div id="remeshModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:8px">
-              <svg style="width:32px;height:32px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div id="remeshModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <label for="remeshModelUpload" style="font-size:12px">Upload 3D Model</label>
+            <div id="remeshModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or Drag & Drop</p>
+              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
               <span style="font-size:11px;color:#666">OBJ, FBX, STL, GLTF</span>
               <input type="file" id="remeshModelUpload" accept=".obj,.fbx,.stl,.gltf,.glb" hidden />
             </div>
-            <div id="remeshModelFileName" style="display:none;margin-top:12px;padding:10px;background:rgba(255,255,255,.05);border-radius:6px;font-size:13px;color:#ccc"></div>
+            <div id="remeshModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
         </div>
 
         <div class="card">
           <h3>Remesh Settings</h3>
-          <label for="targetPolyCount">Target Poly Count</label>
-          <input type="number" id="targetPolyCount" value="10000" min="100" max="1000000" step="1000">
-          <span class="field-hint">Lower = faster, higher = more detail</span>
-
-          <label for="remeshMode" style="margin-top:12px">Remesh Mode</label>
-          <select id="remeshMode">
-            <option value="uniform">Uniform</option>
-            <option value="adaptive" selected>Adaptive</option>
-            <option value="feature-preserving">Feature Preserving</option>
-            <option value="quad-based">Quad Based</option>
-          </select>
-
-          <label style="margin-top:12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+          <div class="inline-field">
+            <label for="targetPolyCount">Poly Count</label>
+            <input type="number" id="targetPolyCount" value="10000" min="100" max="1000000" step="1000">
+          </div>
+          <div class="inline-field">
+            <label for="remeshMode">Mode</label>
+            <select id="remeshMode">
+              <option value="uniform">Uniform</option>
+              <option value="adaptive" selected>Adaptive</option>
+              <option value="feature-preserving">Feature Preserving</option>
+              <option value="quad-based">Quad Based</option>
+            </select>
+          </div>
+          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="preserveUVs" checked>
             <span>Preserve UV Mapping</span>
           </label>
-
-          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer">
+          <label style="margin-top:5px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="preserveBoundaries" checked>
             <span>Preserve Boundaries</span>
           </label>
@@ -260,9 +266,9 @@
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="applyRemeshBtn" class="gen-btn">
+          <button type="button" id="applyRemeshBtn" class="gen-btn" title="10 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
             Remesh
           </button>
@@ -272,50 +278,52 @@
       texture: `
         <div class="card">
           <h3>Target Model</h3>
-          <label for="textureModelSelect">Apply Texture To</label>
-          <select id="textureModelSelect">
-            <option value="current" selected>Current Model</option>
-            <option value="upload">Upload New Model</option>
-          </select>
+          <div class="inline-field">
+            <label for="textureModelSelect">Target</label>
+            <select id="textureModelSelect">
+              <option value="current" selected>Current Model</option>
+              <option value="upload">Upload New Model</option>
+            </select>
+          </div>
 
-          <div id="textureModelUploadSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
-            <label for="textureModelUpload">Upload 3D Model</label>
-            <div id="textureModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:8px">
-              <svg style="width:32px;height:32px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div id="textureModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <label for="textureModelUpload" style="font-size:12px">Upload 3D Model</label>
+            <div id="textureModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or Drag & Drop</p>
+              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
               <span style="font-size:11px;color:#666">OBJ, FBX, STL, GLTF</span>
               <input type="file" id="textureModelUpload" accept=".obj,.fbx,.stl,.gltf,.glb" hidden />
             </div>
-            <div id="textureModelFileName" style="display:none;margin-top:12px;padding:10px;background:rgba(255,255,255,.05);border-radius:6px;font-size:13px;color:#ccc"></div>
+            <div id="textureModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
         </div>
 
         <div class="card">
           <h3>Texture Settings</h3>
-          <label for="texturePrompt">Texture Description</label>
+          <label for="texturePrompt" style="font-size:12px">Description</label>
           <textarea id="texturePrompt" placeholder="Rusty metal with scratches and dents..."></textarea>
-          <span class="field-hint">Describe material properties and surface details</span>
-
-          <label for="textureResolution" style="margin-top:12px">Resolution</label>
-          <select id="textureResolution">
-            <option value="512x512">512x512</option>
-            <option value="1024x1024">1024x1024</option>
-            <option value="2048x2048" selected>2048x2048</option>
-            <option value="4096x4096">4096x4096</option>
-          </select>
-
-          <label for="textureType" style="margin-top:12px">Map Type</label>
-          <select id="textureType">
-            <option value="pbr-all" selected>PBR (All Maps)</option>
-            <option value="diffuse">Diffuse Only</option>
-            <option value="normal">Normal Map</option>
-            <option value="roughness">Roughness</option>
-            <option value="metallic">Metallic</option>
-          </select>
-
-          <label style="margin-top:12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+          <div class="inline-field" style="margin-top:8px">
+            <label for="textureResolution">Resolution</label>
+            <select id="textureResolution">
+              <option value="512x512">512x512</option>
+              <option value="1024x1024">1024x1024</option>
+              <option value="2048x2048" selected>2048x2048</option>
+              <option value="4096x4096">4096x4096</option>
+            </select>
+          </div>
+          <div class="inline-field">
+            <label for="textureType">Map Type</label>
+            <select id="textureType">
+              <option value="pbr-all" selected>PBR (All Maps)</option>
+              <option value="diffuse">Diffuse Only</option>
+              <option value="normal">Normal Map</option>
+              <option value="roughness">Roughness</option>
+              <option value="metallic">Metallic</option>
+            </select>
+          </div>
+          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="seamless" checked>
             <span>Seamless Tiling</span>
           </label>
@@ -325,9 +333,9 @@
           <div class="gen-meta">
             <span class="gen-time">1.5 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
           </div>
-          <button type="button" id="generateTextureBtn" class="gen-btn">
+          <button type="button" id="generateTextureBtn" class="gen-btn" title="15 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
             Texture
           </button>
@@ -337,49 +345,51 @@
       rig: `
         <div class="card">
           <h3>Rig Target</h3>
-          <label for="rigModelSelect">Apply Rig To</label>
-          <select id="rigModelSelect">
-            <option value="current" selected>Current Model</option>
-            <option value="upload">Upload New Model</option>
-          </select>
+          <div class="inline-field">
+            <label for="rigModelSelect">Target</label>
+            <select id="rigModelSelect">
+              <option value="current" selected>Current Model</option>
+              <option value="upload">Upload New Model</option>
+            </select>
+          </div>
 
-          <div id="rigModelUploadSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
-            <label for="rigModelUpload">Upload Humanoid GLB/GLTF</label>
-            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:8px">
-              <svg style="width:32px;height:32px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div id="rigModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <label for="rigModelUpload" style="font-size:12px">Upload Humanoid GLB/GLTF</label>
+            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <circle cx="12" cy="6" r="2.4" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6l-4 6m4-6l4 6M8 12l4 3 4-3" />
               </svg>
-              <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or Drag & Drop</p>
+              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
               <span style="font-size:11px;color:#666">GLB, GLTF (textured)</span>
               <input type="file" id="rigModelUpload" accept=".gltf,.glb" hidden />
             </div>
-            <div id="rigModelFileName" style="display:none;margin-top:12px;padding:10px;background:rgba(255,255,255,.05);border-radius:6px;font-size:13px;color:#ccc"></div>
+            <div id="rigModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
         </div>
 
         <div class="card">
           <h3>Rig Settings</h3>
-          <label for="rigHeight">Character Height (m)</label>
-          <input type="number" id="rigHeight" value="1.7" min="0.5" max="3" step="0.1">
-          <span class="field-hint">Used to scale animation root motion</span>
-
-          <label for="rigTextureUpload" style="margin-top:12px">Override Texture (optional)</label>
-          <div id="rigTextureDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:8px">
-            <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or drop PNG</p>
+          <div class="inline-field">
+            <label for="rigHeight">Height (m)</label>
+            <input type="number" id="rigHeight" value="1.7" min="0.5" max="3" step="0.1">
+          </div>
+          <label for="rigTextureUpload" style="margin-top:8px;font-size:12px">Override Texture (optional)</label>
+          <div id="rigTextureDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+            <p style="margin:0 0 4px;font-size:12px;color:#ccc">Click or drop PNG</p>
             <span style="font-size:11px;color:#666">PNG only</span>
             <input type="file" id="rigTextureUpload" accept="image/png" hidden />
           </div>
-          <div id="rigTextureFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:6px;font-size:13px;color:#ccc"></div>
+          <div id="rigTextureFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
         </div>
 
         <div class="card gen-footer-card">
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 25</span>
           </div>
-          <button type="button" id="applyRigBtn" class="gen-btn">
+          <button type="button" id="applyRigBtn" class="gen-btn" title="25 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v6l-4 6m4-6l4 6M8 10l4 3 4-3"/></svg>
             Rig
           </button>
@@ -389,40 +399,40 @@
       video: `
         <div class="card">
           <h3>Source Image</h3>
-          <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:6px">Upload Reference Image</label>
-          <div id="videoImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s ease">
-            <svg style="width:32px;height:32px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:5px">Upload Reference Image</label>
+          <div id="videoImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
+            <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p style="margin:0 0 4px;font-size:13px;color:#ccc">Click or Drag & Drop</p>
+            <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
             <span style="font-size:11px;color:#666">PNG, JPG, WEBP up to 10MB</span>
             <input type="file" id="videoSource" accept="image/*" hidden />
           </div>
-          <img id="videoImagePreview" style="display:none;width:100%;border-radius:8px;margin-top:12px" alt="Preview"/>
+          <img id="videoImagePreview" style="display:none;width:100%;border-radius:7px;margin-top:10px" alt="Preview"/>
         </div>
 
         <div class="card">
           <h3>Video Settings</h3>
-          <label for="videoMotion">Motion Description</label>
+          <label for="videoMotion" style="font-size:12px">Motion Description</label>
           <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..."></textarea>
-          <span class="field-hint">Describe camera movements and scene dynamics</span>
-
-          <label for="videoDuration" style="margin-top:12px">Duration</label>
-          <select id="videoDuration">
-            <option value="2">2 seconds</option>
-            <option value="4" selected>4 seconds</option>
-            <option value="6">6 seconds</option>
-            <option value="8">8 seconds</option>
-          </select>
-
-          <label for="videoFPS" style="margin-top:12px">Frame Rate</label>
-          <select id="videoFPS">
-            <option value="24" selected>24 FPS (Cinematic)</option>
-            <option value="30">30 FPS (Standard)</option>
-            <option value="60">60 FPS (Smooth)</option>
-          </select>
-
-          <label style="margin-top:12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+          <div class="inline-field" style="margin-top:8px">
+            <label for="videoDuration">Duration</label>
+            <select id="videoDuration">
+              <option value="2">2 sec</option>
+              <option value="4" selected>4 sec</option>
+              <option value="6">6 sec</option>
+              <option value="8">8 sec</option>
+            </select>
+          </div>
+          <div class="inline-field">
+            <label for="videoFPS">Frame Rate</label>
+            <select id="videoFPS">
+              <option value="24" selected>24 FPS</option>
+              <option value="30">30 FPS</option>
+              <option value="60">60 FPS</option>
+            </select>
+          </div>
+          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="videoLoop" checked>
             <span>Loop Seamlessly</span>
           </label>
@@ -432,9 +442,9 @@
           <div class="gen-meta">
             <span class="gen-time">3 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 60</span>
           </div>
-          <button type="button" id="generateVideoBtn" class="gen-btn">
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="60 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -791,14 +801,28 @@
 
           // Update credits display based on selected tab
           const creditsDisplay = leftStack.querySelector('.gen-credits');
+          const generateBtn = leftStack.querySelector('#generateModelBtn');
+          const isImage3d = (targetTab === 'image3d');
+          const cost = isImage3d ? 30 : 20;
+
           if (creditsDisplay) {
-            if (targetTab === 'image3d') {
-              // Image-to-3D costs 30 credits
-              creditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 30';
-            } else {
-              // Text-to-3D costs 20 credits
-              creditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
+            creditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+          }
+
+          if (generateBtn) {
+            generateBtn.title = `${cost} credits`;
+            // Also update the cost badge if it exists
+            let costBadge = generateBtn.querySelector('.btn-cost-badge');
+            if (costBadge) {
+              costBadge.textContent = cost;
             }
+            // Update data attribute for workspace-credits to know current action
+            generateBtn.dataset.currentAction = isImage3d ? 'image-to-3d' : 'text-to-3d';
+          }
+
+          // Trigger workspace credits update if available
+          if (window.WorkspaceCredits?.updateButtonCosts) {
+            window.WorkspaceCredits.updateButtonCosts();
           }
         });
       });
