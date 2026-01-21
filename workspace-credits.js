@@ -7,6 +7,24 @@
 import { BACKEND, log } from './config.js';
 
 // ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const CREDITS_CACHE_KEY = 'timrx_credits_last';
+const FETCH_TIMEOUT_MS = 2000; // 2s timeout for credits fetch
+
+// ============================================================================
+// SINGLE-FLIGHT GUARD
+// ============================================================================
+
+// Track in-flight fetch promises to prevent duplicate requests
+let walletFetchInFlight = null;
+let refreshInFlight = null;
+let pendingRetry = false; // Flag for window.focus retry
+let lastRefreshTime = 0; // Track last refresh for visibility/focus throttling
+const MIN_REFRESH_INTERVAL_MS = 5000; // Don't refresh more than once per 5s
+
+// ============================================================================
 // STATE
 // ============================================================================
 
@@ -31,11 +49,98 @@ const creditsState = {
 const chargedJobs = new Set();
 
 // ============================================================================
+// EARLY RENDER (for perceived performance)
+// ============================================================================
+
+/**
+ * Render cached credits immediately on page load (before async fetch).
+ * This provides instant visual feedback using the last known balance.
+ * Call this as early as possible - even before DOM ready if elements exist.
+ */
+function renderCachedCreditsEarly() {
+  const creditsPill = document.getElementById('workspaceCredits');
+  const creditsValue = document.getElementById('workspaceCreditsValue');
+  const creditsGroup = document.getElementById('workspaceCreditsGroup');
+
+  // If UI elements don't exist yet, try again after DOM ready
+  if (!creditsValue) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderCachedCreditsEarly, { once: true });
+    }
+    return;
+  }
+
+  // Read cached balance from localStorage
+  const cached = localStorage.getItem(CREDITS_CACHE_KEY);
+  let displayValue = '—';
+  let isSyncing = true;
+
+  if (cached !== null) {
+    const cachedBalance = parseInt(cached, 10);
+    if (Number.isFinite(cachedBalance) && cachedBalance >= 0) {
+      displayValue = cachedBalance.toLocaleString();
+      // Pre-populate state so hasCreditsFor() works with cached value
+      creditsState.wallet.available = cachedBalance;
+      creditsState.wallet.balance = cachedBalance;
+      log('[Credits] Early render with cached balance:', cachedBalance);
+    }
+  } else {
+    log('[Credits] No cached balance, showing syncing placeholder');
+  }
+
+  // Render immediately
+  creditsValue.textContent = displayValue;
+
+  // Add syncing indicator
+  if (creditsGroup) {
+    creditsGroup.classList.add('syncing');
+  }
+  if (creditsPill) {
+    creditsPill.classList.add('syncing');
+    creditsPill.setAttribute('title', 'Syncing credits...');
+  }
+}
+
+/**
+ * Save credits balance to localStorage for next page load
+ */
+function cacheCreditsBalance(balance) {
+  if (typeof balance === 'number' && Number.isFinite(balance) && balance >= 0) {
+    localStorage.setItem(CREDITS_CACHE_KEY, balance.toString());
+    log('[Credits] Cached balance to localStorage:', balance);
+  }
+}
+
+// ============================================================================
 // API FETCHING
 // ============================================================================
 
 /**
+ * Fetch with timeout helper
+ */
+async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return res;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw err;
+  }
+}
+
+/**
  * Fetch wallet balance from /api/me
+ * Single-flight: returns existing promise if already in flight
  * Response format:
  * {
  *   ok: true,
@@ -47,55 +152,78 @@ const chargedJobs = new Set();
  * }
  */
 export async function fetchWallet() {
+  // Single-flight guard: return existing promise if already fetching
+  if (walletFetchInFlight) {
+    log('[Credits] fetchWallet already in flight, returning existing promise');
+    return walletFetchInFlight;
+  }
+
   const url = `${BACKEND}/api/me`;
   log('[Credits] Fetching wallet from:', url);
 
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
-    });
+  // Create the fetch promise with single-flight tracking
+  walletFetchInFlight = (async () => {
+    try {
+      const res = await fetchWithTimeout(url, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+        keepalive: true,
+        headers: { 'Accept': 'application/json' },
+      });
 
-    if (!res.ok) {
-      // Not authenticated or error - log details
-      const text = await res.text().catch(() => '');
-      log('[Credits] Wallet fetch failed:', res.status, text.slice(0, 200));
-      creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
+      if (!res.ok) {
+        // Not authenticated or error - log details
+        const text = await res.text().catch(() => '');
+        log('[Credits] Wallet fetch failed:', res.status, text.slice(0, 200));
+        creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
+        pendingRetry = true; // Schedule retry on window.focus
+        return creditsState.wallet;
+      }
+
+      const data = await res.json();
+      log('[Credits] /api/me response:', {
+        ok: data.ok,
+        identity_id: data.identity_id,
+        balance_credits: data.balance_credits,
+        reserved_credits: data.reserved_credits,
+        available_credits: data.available_credits,
+      });
+
+      if (data.ok) {
+        // Read credits from top-level fields (new format) with fallback to nested wallet object
+        const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
+        const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
+        const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
+
+        creditsState.wallet = { balance, reserved, available };
+        creditsState.identityId = data.identity_id || null;
+
+        // Cache balance for next page load (perceived performance)
+        cacheCreditsBalance(available);
+        pendingRetry = false; // Clear retry flag on success
+        lastRefreshTime = Date.now(); // Track for visibility throttling
+
+        log('[Credits] Wallet loaded:', creditsState.wallet);
+      } else {
+        log('[Credits] /api/me returned ok:false');
+        creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
+        pendingRetry = true;
+      }
+
       return creditsState.wallet;
+    } catch (err) {
+      log('[Credits] Wallet fetch error:', err.message);
+      // Keep cached balance on timeout, schedule retry
+      pendingRetry = true;
+      creditsState.error = err.message;
+      return creditsState.wallet;
+    } finally {
+      walletFetchInFlight = null; // Clear single-flight guard
     }
+  })();
 
-    const data = await res.json();
-    log('[Credits] /api/me response:', {
-      ok: data.ok,
-      identity_id: data.identity_id,
-      balance_credits: data.balance_credits,
-      reserved_credits: data.reserved_credits,
-      available_credits: data.available_credits,
-    });
-
-    if (data.ok) {
-      // Read credits from top-level fields (new format) with fallback to nested wallet object
-      const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
-      const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
-      const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
-
-      creditsState.wallet = { balance, reserved, available };
-      creditsState.identityId = data.identity_id || null;
-
-      log('[Credits] Wallet loaded:', creditsState.wallet);
-    } else {
-      log('[Credits] /api/me returned ok:false');
-      creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
-    }
-
-    return creditsState.wallet;
-  } catch (err) {
-    log('[Credits] Wallet fetch error:', err);
-    creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
-    creditsState.error = err.message;
-    return creditsState.wallet;
-  }
+  return walletFetchInFlight;
 }
 
 /**
@@ -373,6 +501,9 @@ export function reconcile(serverBalance, deductionId = null) {
   creditsState.wallet.balance = serverBalance;
   creditsState.lastServerBalance = serverBalance;
 
+  // Cache for next page load
+  cacheCreditsBalance(serverBalance);
+
   log('[Credits] Reconciled:', {
     balance: serverBalance,
     pendingCount: creditsState.pendingDeductions.length,
@@ -440,11 +571,14 @@ export function getPendingAmount() {
  */
 export function updateWallet(wallet) {
   if (wallet) {
+    const available = wallet.available ?? Math.max(0, (wallet.balance || 0) - (wallet.reserved || 0));
     creditsState.wallet = {
       balance: wallet.balance || 0,
       reserved: wallet.reserved || 0,
-      available: wallet.available ?? Math.max(0, (wallet.balance || 0) - (wallet.reserved || 0)),
+      available,
     };
+    // Cache for next page load
+    cacheCreditsBalance(available);
     updateCreditsUI();
     log('[Credits] Wallet updated:', creditsState.wallet);
   }
@@ -493,9 +627,21 @@ export function updateCreditsUI() {
     }
   }
 
-  // Toggle syncing class on group
+  // Toggle syncing class on group and pill
+  const isSyncing = creditsState.loading && !creditsState.loaded;
+  const wasSyncing = creditsPill?.classList.contains('syncing');
+
   if (creditsGroup) {
-    creditsGroup.classList.toggle('syncing', creditsState.loading);
+    creditsGroup.classList.toggle('syncing', isSyncing);
+  }
+  if (creditsPill) {
+    creditsPill.classList.toggle('syncing', isSyncing);
+
+    // Brief "just-synced" flash when syncing completes
+    if (wasSyncing && !isSyncing && creditsState.loaded) {
+      creditsPill.classList.add('just-synced');
+      setTimeout(() => creditsPill.classList.remove('just-synced'), 1200);
+    }
   }
 
   // Update generate buttons with cost indicators
@@ -751,6 +897,8 @@ export function setCredits(n) {
   creditsState.wallet.available = balance;
   creditsState.wallet.balance = balance;
   creditsState.lastServerBalance = balance;
+  // Cache for next page load
+  cacheCreditsBalance(balance);
   log('[Credits] setCredits:', balance);
   updateCreditsUI();
 }
@@ -828,10 +976,17 @@ export function applyDelta(delta, reason = 'unknown', jobId = null) {
 
 /**
  * Refresh credits from server - calls GET /api/credits/wallet
+ * Single-flight: returns existing promise if already in flight
  * Sets exact server balance, clearing any optimistic state
  * @returns {Promise<number>} The server balance
  */
 export async function refreshCredits() {
+  // Single-flight guard: return existing promise if already refreshing
+  if (refreshInFlight) {
+    log('[Credits] refreshCredits already in flight, returning existing promise');
+    return refreshInFlight;
+  }
+
   const url = `${BACKEND}/api/credits/wallet`;
   log('[Credits] Refreshing from:', url);
 
@@ -839,51 +994,65 @@ export async function refreshCredits() {
   creditsState.loading = true;
   updateCreditsUI();
 
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
-    });
+  refreshInFlight = (async () => {
+    try {
+      const res = await fetchWithTimeout(url, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+        keepalive: true,
+        headers: { 'Accept': 'application/json' },
+      });
 
-    if (!res.ok) {
-      log('[Credits] refreshCredits failed:', res.status);
-      // Fall back to /api/me
-      return fetchWallet().then(() => creditsState.wallet.available);
-    }
-
-    const data = await res.json();
-    log('[Credits] /api/credits/wallet response:', data);
-
-    if (data.ok && typeof data.credits_balance === 'number') {
-      const serverBalance = data.credits_balance;
-
-      // Clear all pending deductions - server is truth
-      creditsState.pendingDeductions = [];
-      creditsState.wallet.available = serverBalance;
-      creditsState.wallet.balance = serverBalance;
-      creditsState.lastServerBalance = serverBalance;
-
-      if (data.identity_id) {
-        creditsState.identityId = data.identity_id;
+      if (!res.ok) {
+        log('[Credits] refreshCredits failed:', res.status);
+        pendingRetry = true;
+        // Fall back to /api/me
+        return fetchWallet().then(() => creditsState.wallet.available);
       }
 
-      log('[Credits] Refreshed to server balance:', serverBalance);
-      updateCreditsUI();
-      return serverBalance;
-    }
+      const data = await res.json();
+      log('[Credits] /api/credits/wallet response:', data);
 
-    // Fallback to /api/me if response format unexpected
-    return fetchWallet().then(() => creditsState.wallet.available);
-  } catch (err) {
-    log('[Credits] refreshCredits error:', err);
-    // Fallback to /api/me
-    return fetchWallet().then(() => creditsState.wallet.available);
-  } finally {
-    // Hide syncing indicator
-    creditsState.loading = false;
-    updateCreditsUI();
-  }
+      if (data.ok && typeof data.credits_balance === 'number') {
+        const serverBalance = data.credits_balance;
+
+        // Clear all pending deductions - server is truth
+        creditsState.pendingDeductions = [];
+        creditsState.wallet.available = serverBalance;
+        creditsState.wallet.balance = serverBalance;
+        creditsState.lastServerBalance = serverBalance;
+
+        if (data.identity_id) {
+          creditsState.identityId = data.identity_id;
+        }
+
+        // Cache balance for next page load
+        cacheCreditsBalance(serverBalance);
+        pendingRetry = false; // Clear retry flag on success
+        lastRefreshTime = Date.now(); // Track for visibility throttling
+
+        log('[Credits] Refreshed to server balance:', serverBalance);
+        updateCreditsUI();
+        return serverBalance;
+      }
+
+      // Fallback to /api/me if response format unexpected
+      return fetchWallet().then(() => creditsState.wallet.available);
+    } catch (err) {
+      log('[Credits] refreshCredits error:', err.message);
+      // Keep cached balance on timeout, schedule retry on focus
+      pendingRetry = true;
+      return creditsState.wallet.available;
+    } finally {
+      // Hide syncing indicator and clear single-flight guard
+      creditsState.loading = false;
+      refreshInFlight = null;
+      updateCreditsUI();
+    }
+  })();
+
+  return refreshInFlight;
 }
 
 // ============================================================================
@@ -948,4 +1117,54 @@ window.WorkspaceCredits = {
   // Idempotency helpers
   clearChargedJobs,
   isJobCharged,
+  // Early render (for external use if needed)
+  renderCachedCreditsEarly,
 };
+
+// ============================================================================
+// IMMEDIATE EXECUTION: Render cached credits ASAP
+// ============================================================================
+
+// Run early render immediately when module loads - don't wait for initCredits()
+// This provides instant visual feedback using the last known balance
+renderCachedCreditsEarly();
+
+// ============================================================================
+// VISIBILITY & FOCUS: Refresh credits when tab becomes visible/focused
+// ============================================================================
+
+/**
+ * Refresh credits if enough time has passed since last refresh
+ * Used for focus/visibility events to catch up after payments or generation
+ */
+function maybeRefreshOnVisibility() {
+  const now = Date.now();
+  const timeSinceLastRefresh = now - lastRefreshTime;
+
+  // Skip if already refreshing or too soon
+  if (refreshInFlight || walletFetchInFlight) {
+    log('[Credits] Skipping visibility refresh - already in flight');
+    return;
+  }
+
+  // Refresh if pending retry OR enough time has passed (to catch payments in other tabs)
+  if (pendingRetry || timeSinceLastRefresh > MIN_REFRESH_INTERVAL_MS) {
+    log('[Credits] Visibility/focus refresh triggered');
+    pendingRetry = false;
+    lastRefreshTime = now;
+    refreshCredits().catch(err => {
+      log('[Credits] Visibility refresh failed:', err.message);
+      pendingRetry = true;
+    });
+  }
+}
+
+// Refresh on window focus
+window.addEventListener('focus', maybeRefreshOnVisibility);
+
+// Refresh on visibility change (tab becomes visible)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    maybeRefreshOnVisibility();
+  }
+});
