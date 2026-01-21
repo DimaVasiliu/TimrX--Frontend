@@ -233,6 +233,84 @@
   .credits-group { display: none; }
 }
 
+/* Credits syncing indicator */
+.credits-group.syncing .credits-pill {
+  opacity: 0.7;
+}
+.credits-group.syncing .credits-pill::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border: 2px solid transparent;
+  border-top-color: #7dd3fc;
+  border-radius: 50%;
+  animation: credits-spin 0.8s linear infinite;
+}
+@keyframes credits-spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Insufficient credits button state */
+button.insufficient-credits {
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+}
+button.insufficient-credits::after {
+  content: '!';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(239,68,68,.4);
+}
+
+/* Cost badge on buttons */
+.btn-cost-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
+  color: #0c0c0c;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(125,211,252,.4);
+  pointer-events: none;
+}
+.btn-cost-badge.insufficient {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 6px rgba(239,68,68,.4);
+  color: #fff;
+}
+.btn-cost-badge.has-batch {
+  min-width: 24px;
+}
+
+/* Gen credits span insufficient state */
+.gen-credits.insufficient {
+  color: #ef4444 !important;
+}
+
 /* ========================================================================== */
 /* BUY CREDITS MODAL                                                          */
 /* ========================================================================== */
