@@ -35,16 +35,19 @@ const creditsRefreshedJobs = new Set();
 
 /**
  * Check if user has enough credits for an action (pre-flight check)
+ * Uses effective available (accounting for existing reservations)
  * @returns {boolean} true if can proceed, false if insufficient
  */
 function checkCreditsFor(action, count = 1) {
   if (!window.WorkspaceCredits) return true; // Skip if credits system not loaded
   if (!window.WorkspaceCredits.isLoaded()) return true; // Skip if not yet loaded
 
-  const cost = window.WorkspaceCredits.getActionCost(action) * count;
-  const available = window.WorkspaceCredits.getAvailableCredits();
+  // Use effective available (accounts for existing reservations)
+  const hasCredits = window.WorkspaceCredits.hasEffectiveCreditsFor
+    ? window.WorkspaceCredits.hasEffectiveCreditsFor(action, count)
+    : window.WorkspaceCredits.hasCreditsFor(action);
 
-  if (available < cost) {
+  if (!hasCredits) {
     window.WorkspaceCredits.showInsufficientCreditsMessage(action);
     return false;
   }
@@ -52,7 +55,62 @@ function checkCreditsFor(action, count = 1) {
 }
 
 /**
- * Apply credits deduction AFTER successful job start
+ * Reserve credits BEFORE making API call (optimistic reservation)
+ * Shows "Reserving credits..." status and immediately reduces available
+ *
+ * @param {string} action - The action key (e.g., 'text-to-3d', 'image-to-3d')
+ * @param {number} count - Number of items (default 1, for batch operations)
+ * @returns {{ reservationId: string, amount: number, insufficient?: boolean }}
+ */
+function reserveCreditsForAction(action, count = 1) {
+  if (!window.WorkspaceCredits?.reserveCredits) {
+    log('[Credits] reserveCredits not available');
+    return { reservationId: null, amount: 0 };
+  }
+
+  const result = window.WorkspaceCredits.reserveCredits(action, count);
+  if (result.insufficient) {
+    window.WorkspaceCredits.showInsufficientCreditsMessage(action);
+  }
+  return result;
+}
+
+/**
+ * Confirm reservation after successful job start
+ * Converts reservation to actual deduction
+ *
+ * @param {string} reservationId - The reservation ID from reserveCreditsForAction
+ * @param {string} jobId - The job ID from backend
+ */
+function confirmCreditsReservation(reservationId, jobId) {
+  if (!window.WorkspaceCredits?.confirmReservation || !reservationId) {
+    // Fallback to old deduction if reservation system not available
+    return;
+  }
+
+  window.WorkspaceCredits.confirmReservation(reservationId, jobId);
+  log('[Credits] Confirmed reservation:', { reservationId, jobId });
+
+  // Refresh in background to reconcile with server
+  refreshCreditsInBackground();
+}
+
+/**
+ * Release reservation if job fails to start
+ *
+ * @param {string} reservationId - The reservation ID from reserveCreditsForAction
+ */
+function releaseCreditsReservation(reservationId) {
+  if (!window.WorkspaceCredits?.releaseReservation || !reservationId) {
+    return;
+  }
+
+  window.WorkspaceCredits.releaseReservation(reservationId);
+  log('[Credits] Released reservation:', reservationId);
+}
+
+/**
+ * Apply credits deduction AFTER successful job start (legacy)
  * Call this only after receiving a valid job_id from backend
  *
  * @param {string} action - The action key (e.g., 'text-to-3d', 'image-to-3d')
@@ -91,9 +149,13 @@ function refreshCreditsInBackground() {
  * Handle API response errors, specifically 402 insufficient credits
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
-function handleApiError(response, action) {
+function handleApiError(response, action, reservationId = null) {
   if (response.status === 402) {
     log('[Credits] 402 Insufficient credits for:', action);
+    // Release any reservation on 402
+    if (reservationId) {
+      releaseCreditsReservation(reservationId);
+    }
     if (window.WorkspaceCredits) {
       window.WorkspaceCredits.showInsufficientCreditsMessage(action);
     } else {
@@ -597,6 +659,14 @@ async function beginMeshyTask(kind, payload, meta = {}) {
       : '/api/mesh/remesh';
   const statusLabel = kind === 'texture' ? 'Texturing...' : kind === 'rig' ? 'Rigging...' : 'Remeshing...';
   const prog = UI.makeProgressDriver();
+
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction(kind, 1);
+  if (reservation.insufficient) {
+    return; // Insufficient credits modal shown
+  }
+
   prog.label(statusLabel);
 
   let resp;
@@ -608,22 +678,25 @@ async function beginMeshyTask(kind, payload, meta = {}) {
       body: JSON.stringify(payload)
     });
   } catch (err) {
+    releaseCreditsReservation(reservation.reservationId);
     throw err;
   }
 
   if (!resp.ok) {
-    if (handleApiError(resp, kind)) return;
+    if (handleApiError(resp, kind, reservation.reservationId)) return;
+    releaseCreditsReservation(reservation.reservationId);
     throw new Error(await resp.text());
   }
   const data = await resp.json();
   const { job_id } = data;
 
   if (!job_id) {
+    releaseCreditsReservation(reservation.reservationId);
     throw new Error('No job id returned');
   }
 
-  // Deduct credits AFTER successful job start
-  applyCreditsDeduction(kind, job_id);
+  // Confirm reservation now that we have a job_id
+  confirmCreditsReservation(reservation.reservationId, job_id);
 
   State.addActiveJob(job_id);
   State.savePendingMeta(job_id, { ...meta, stage: kind, source_model_id: meta.source_model_id || meta.id });
@@ -657,6 +730,9 @@ export async function onGenerateClick() {
 
   const prog = UI.makeProgressDriver();
 
+  // Track reservations for cleanup on failure
+  const reservations = [];
+
   try {
     let promptTextarea = byId('modelPrompt') || byId('imagePrompt') || byId('texturePrompt') || byId('videoMotion');
 
@@ -685,9 +761,23 @@ export async function onGenerateClick() {
     const batchGroupId = createBatchGroupId();
 
     log('Generating with:', { prompt, art_style, model, batchCount, symmetry, isPose, license });
-    prog.label(batchCount > 1 ? `Queuing ${batchCount} previews...` : 'Queuing job...');
 
     const queueOne = async (slot) => {
+      // Reserve credits for this job BEFORE API call
+      prog.label(batchCount > 1
+        ? `Reserving credits for preview ${slot + 1}/${batchCount}...`
+        : 'Reserving credits...');
+
+      const reservation = reserveCreditsForAction('text-to-3d', 1);
+      if (reservation.insufficient) {
+        return null; // Insufficient credits modal shown
+      }
+      reservations.push(reservation);
+
+      prog.label(batchCount > 1
+        ? `Generating preview ${slot + 1}/${batchCount}...`
+        : 'Generating...');
+
       const payload = {
         prompt,
         art_style,
@@ -709,16 +799,21 @@ export async function onGenerateClick() {
       });
 
       if (!resp.ok) {
-        if (handleApiError(resp, 'text-to-3d')) return null;
+        if (handleApiError(resp, 'text-to-3d', reservation.reservationId)) return null;
+        // Release reservation on other errors
+        releaseCreditsReservation(reservation.reservationId);
         throw new Error(await resp.text());
       }
       const data = await resp.json();
       const { job_id } = data;
 
-      if (!job_id) throw new Error('No job id returned');
+      if (!job_id) {
+        releaseCreditsReservation(reservation.reservationId);
+        throw new Error('No job id returned');
+      }
 
-      // Deduct credits AFTER successful job start (per job)
-      applyCreditsDeduction('text-to-3d', job_id);
+      // Confirm reservation now that we have a job_id
+      confirmCreditsReservation(reservation.reservationId, job_id);
 
       State.addActiveJob(job_id);
       const jobMeta = {
@@ -740,15 +835,18 @@ export async function onGenerateClick() {
     };
 
     for (let i = 0; i < batchCount; i++) {
-      if (batchCount > 1) prog.label(`Queuing preview ${i + 1}/${batchCount}...`);
       const result = await queueOne(i);
-      if (result === null) return; // 402 error handled
+      if (result === null) return; // 402 error handled or insufficient credits
     }
 
   } catch (err) {
     console.error(err);
     prog.fail(err?.message || String(err));
     alert(`Generation failed: ${err?.message || err}`);
+    // Release any remaining reservations on error
+    reservations.forEach(r => {
+      if (r.reservationId) releaseCreditsReservation(r.reservationId);
+    });
   } finally {
     startLock = false;
     const allGenBtns = document.querySelectorAll('button[id*="generate"]');
@@ -775,6 +873,14 @@ export async function startOpenAIImageGeneration() {
   const resolution = byId('imageResolution')?.value || '1024x1024';
   const model = 'gpt-image-1';
 
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('text-to-image', 1);
+  if (reservation.insufficient) {
+    startLock = false;
+    return; // Insufficient credits modal shown
+  }
+
   State.historyState.filter = 'image';
   State.historyState.page = 1;
   renderHistory();
@@ -797,7 +903,7 @@ export async function startOpenAIImageGeneration() {
   renderHistory();
 
   try {
-    prog.label('Queuing image...');
+    prog.label('Generating image...');
     const resp = await fetch(`${BACKEND}/api/image/openai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -811,22 +917,26 @@ export async function startOpenAIImageGeneration() {
     });
 
     if (!resp.ok) {
-      if (handleApiError(resp, 'text-to-image')) {
+      if (handleApiError(resp, 'text-to-image', reservation.reservationId)) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
         renderHistory();
         return;
       }
+      releaseCreditsReservation(reservation.reservationId);
       const text = await resp.text();
       throw new Error(text || `OpenAI HTTP ${resp.status}`);
     }
     const data = await resp.json();
     const imageUrl = preferHttpUrl(data.image_urls || data.image_url || null);
-    if (!imageUrl) throw new Error('OpenAI did not return an image URL');
+    if (!imageUrl) {
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error('OpenAI did not return an image URL');
+    }
 
-    // Deduct credits AFTER successful image generation
-    applyCreditsDeduction('text-to-image', tempId);
+    // Confirm reservation now that image is generated
+    confirmCreditsReservation(reservation.reservationId, tempId);
 
     const historyData = {
       id: tempId,
@@ -906,6 +1016,14 @@ export async function startImageTo3DFromHistory(item) {
   };
 
   const prog = UI.makeProgressDriver();
+
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('image-to-3d', 1);
+  if (reservation.insufficient) {
+    return; // Insufficient credits modal shown
+  }
+
   prog.label('Starting image to 3D...');
   try {
     const resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
@@ -916,18 +1034,20 @@ export async function startImageTo3DFromHistory(item) {
     });
 
     if (!resp.ok) {
-      if (handleApiError(resp, 'image-to-3d')) return;
+      if (handleApiError(resp, 'image-to-3d', reservation.reservationId)) return;
+      releaseCreditsReservation(reservation.reservationId);
       throw new Error(await resp.text());
     }
     const data = await resp.json();
     const { job_id } = data;
 
     if (!job_id) {
+      releaseCreditsReservation(reservation.reservationId);
       throw new Error('No job id returned');
     }
 
-    // Deduct credits AFTER successful job start
-    applyCreditsDeduction('image-to-3d', job_id);
+    // Confirm reservation now that we have a job_id
+    confirmCreditsReservation(reservation.reservationId, job_id);
 
     State.addActiveJob(job_id);
     State.savePendingMeta(job_id, { ...meta, type: 'model' });
@@ -957,22 +1077,38 @@ export async function onPostProcessFromHistory(item, type) {
 
   postProcessLock = true;
   const prog = UI.makeProgressDriver();
-  prog.label(`Starting ${type}...`);
+
+  // For remesh, delegate to the function that uses beginMeshyTask
+  if (type === 'remesh') {
+    try {
+      await startRemeshFromHistory(item);
+    } finally {
+      postProcessLock = false;
+    }
+    return;
+  }
+
+  if (type !== 'refine') {
+    postProcessLock = false;
+    throw new Error('Unknown post-process type');
+  }
+
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('refine', 1);
+  if (reservation.insufficient) {
+    postProcessLock = false;
+    return; // Insufficient credits modal shown
+  }
+
+  prog.label('Starting refine...');
 
   try {
-    if (type === 'remesh') {
-      await startRemeshFromHistory(item);
-      return;
-    }
-
-    if (type !== 'refine') {
-      throw new Error('Unknown post-process type');
-    }
-
     const previewTaskIdFromItem = item.preview_task_id || (item.stage === 'preview' ? item.id : null);
     const previewTaskId = previewTaskIdFromItem;
 
     if (!previewTaskId) {
+      releaseCreditsReservation(reservation.reservationId);
       throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
     }
 
@@ -991,18 +1127,20 @@ export async function onPostProcessFromHistory(item, type) {
     });
 
     if (!r.ok) {
-      if (handleApiError(r, 'refine')) return;
+      if (handleApiError(r, 'refine', reservation.reservationId)) return;
+      releaseCreditsReservation(reservation.reservationId);
       throw new Error(await r.text());
     }
     const data = await r.json();
     const { job_id } = data;
 
     if (!job_id) {
+      releaseCreditsReservation(reservation.reservationId);
       throw new Error(`No job id returned for ${type}`);
     }
 
-    // Deduct credits AFTER successful job start
-    applyCreditsDeduction('refine', job_id);
+    // Confirm reservation now that we have a job_id
+    confirmCreditsReservation(reservation.reservationId, job_id);
 
     State.addActiveJob(job_id);
     const jobMeta = {
