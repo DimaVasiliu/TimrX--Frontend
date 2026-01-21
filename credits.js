@@ -290,19 +290,25 @@
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
 
     if (isPending) {
-      // Webhook hasn't arrived yet - show pending message
+      // Show immediate feedback - don't block on credits update
       if (successTitle) successTitle.textContent = 'Payment Received';
       if (successMessage) {
-        successMessage.textContent = 'Your payment is being processed. Credits will appear shortly.';
+        successMessage.textContent = 'Applying credits to your account…';
       }
       successModal.classList.add('pending');
+      successModal.classList.remove('failed');
     } else {
-      // Credits have been granted
+      // Credits have been granted - transition to success state
       if (successTitle) successTitle.textContent = 'Payment Successful';
       if (successMessage) {
         successMessage.textContent = 'Your credits have been added to your account.';
       }
       successModal.classList.remove('pending');
+      successModal.classList.remove('failed');
+
+      // Restore credits display (in case it was hidden by failed state)
+      const creditsDisplay = successModal.querySelector('.success-credits');
+      if (creditsDisplay) creditsDisplay.style.display = '';
     }
 
     successModal.classList.add('open');
@@ -313,6 +319,52 @@
     if (!successModal) return;
     successModal.classList.remove('open');
     successModal.setAttribute('aria-hidden', 'true');
+  }
+
+  /**
+   * Update success modal to show payment failed state
+   */
+  function updateSuccessModalToFailed(status) {
+    if (!successModal) return;
+
+    const successTitle = successModal.querySelector('.success-title, h2');
+    const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+    const creditsDisplay = successModal.querySelector('.success-credits');
+
+    if (successTitle) {
+      successTitle.textContent = status === 'canceled' ? 'Payment Cancelled' : 'Payment Failed';
+    }
+    if (successMessage) {
+      successMessage.textContent = status === 'canceled'
+        ? 'Your payment was cancelled. No credits were charged.'
+        : 'Your payment could not be processed. Please try again.';
+    }
+    // Hide credits display for failed payments
+    if (creditsDisplay) {
+      creditsDisplay.style.display = 'none';
+    }
+
+    successModal.classList.remove('pending');
+    successModal.classList.add('failed');
+  }
+
+  /**
+   * Update success modal to show syncing state (credits still processing)
+   */
+  function updateSuccessModalToSyncing() {
+    if (!successModal) return;
+
+    const successTitle = successModal.querySelector('.success-title, h2');
+    const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+
+    if (successTitle) successTitle.textContent = 'Payment Received';
+    if (successMessage) {
+      successMessage.textContent = 'Credits are being processed. They will appear shortly.';
+    }
+
+    // Keep pending class for visual styling
+    successModal.classList.add('pending');
+    successModal.classList.remove('failed');
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -511,13 +563,18 @@
     // Get stored payment_id from sessionStorage
     const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
 
-    (async function handleCheckoutSuccess() {
-      const initialBalance = walletAvailable;
-      console.log('[Credits] Checkout success - initial balance:', initialBalance);
+    // IMMEDIATELY show success modal in "pending" state - don't wait for anything
+    const cachedBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
+    console.log('[Credits] Checkout success - showing immediate pending UI, cached balance:', cachedBalance);
+    openSuccessModal(cachedBalance, true); // Show "Payment received — applying credits…" immediately
 
-      // Step 1: If we have payment_id, call confirm endpoint to ensure credits are granted
+    // Now run reconciliation in background (non-blocking)
+    (async function reconcilePayment() {
+      const initialBalance = cachedBalance;
+
+      // Step 1: If we have payment_id, call confirm endpoint
       if (pendingPaymentId) {
-        console.log('[Credits] Confirming payment:', pendingPaymentId);
+        console.log('[Credits] Confirming payment in background:', pendingPaymentId);
 
         try {
           const confirmRes = await fetch(
@@ -532,39 +589,36 @@
           const confirmData = await confirmRes.json();
           console.log('[Credits] Confirm response:', confirmData);
 
-          // Clear stored payment_id regardless of result
+          // Clear stored payment_id
           sessionStorage.removeItem('timrx_pending_payment_id');
 
           if (confirmData.ok && confirmData.credits_granted) {
-            // Credits were granted - refresh and show success
+            // Credits were granted - refresh and update modal to success state
             const wallet = await fetchWallet();
             const newBalance = wallet ? wallet.available : 0;
             console.log('[Credits] Credits confirmed! New balance:', newBalance);
-            openSuccessModal(newBalance, false);
-            return;
-          } else if (confirmData.status === 'open' || confirmData.status === 'pending') {
-            // Payment still processing - show pending message
-            console.log('[Credits] Payment still processing');
-            openSuccessModal(initialBalance, true);
+            openSuccessModal(newBalance, false); // Update modal to "success" state
             return;
           } else if (confirmData.status === 'failed' || confirmData.status === 'canceled' || confirmData.status === 'expired') {
-            // Payment failed
+            // Payment failed - update modal message
             console.log('[Credits] Payment failed:', confirmData.status);
-            // Could show an error message here
+            updateSuccessModalToFailed(confirmData.status);
             return;
           }
+          // For 'open'/'pending', continue to polling below
         } catch (err) {
           console.error('[Credits] Confirm error:', err);
-          // Fall through to polling
+          // Continue to polling
         }
       } else {
-        console.log('[Credits] No payment_id found, falling back to polling');
+        console.log('[Credits] No payment_id found, starting polling');
+        sessionStorage.removeItem('timrx_pending_payment_id');
       }
 
-      // Step 2: Fallback - poll for wallet update (in case confirm failed or no payment_id)
+      // Step 2: Fast polling to detect credit grant (500ms intervals, ~10s total)
       let attempts = 0;
-      const maxAttempts = 6;
-      const pollInterval = 2000; // 2 seconds
+      const maxAttempts = 20; // 20 * 500ms = 10 seconds max
+      const pollInterval = 500; // Fast polling
 
       async function pollBalance() {
         attempts++;
@@ -573,26 +627,25 @@
 
         console.log(`[Credits] Poll ${attempts}/${maxAttempts}: balance=${newBalance} (was ${initialBalance})`);
 
-        // If balance increased, show success with "credits updated" message
+        // If balance increased, update modal to success state
         if (newBalance > initialBalance) {
-          console.log('[Credits] Balance updated! Showing success modal');
-          openSuccessModal(newBalance, false); // false = not pending
+          console.log('[Credits] Balance updated! Updating modal to success');
+          openSuccessModal(newBalance, false); // Update to "success" state
           return;
         }
 
-        // If we've reached max attempts, show "pending" message
-        if (attempts >= maxAttempts) {
-          console.log('[Credits] Max attempts reached, webhook may be delayed');
-          openSuccessModal(newBalance, true); // true = pending
-          return;
+        // Continue polling if not at max attempts
+        if (attempts < maxAttempts) {
+          setTimeout(pollBalance, pollInterval);
+        } else {
+          // Max attempts reached - update message to show syncing state
+          console.log('[Credits] Max poll attempts - credits may arrive via webhook later');
+          updateSuccessModalToSyncing();
         }
-
-        // Otherwise, schedule next poll
-        setTimeout(pollBalance, pollInterval);
       }
 
-      // Start polling after a short delay (give webhook a head start)
-      setTimeout(pollBalance, 1000);
+      // Start polling immediately (confirm may have timed out or returned pending)
+      pollBalance();
     })();
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
     // Clean URL and clear stored payment_id
