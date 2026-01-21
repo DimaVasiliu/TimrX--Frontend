@@ -808,6 +808,12 @@ window.addEventListener('DOMContentLoaded', () => {
   onThreeReady(async () => {
     log('Three.js ready, initializing modules...');
 
+    // Start credits fetch FIRST and in parallel (don't block on it)
+    // The early render from localStorage already shows cached value immediately
+    const creditsPromise = Credits.initCredits().catch(e => {
+      console.error('Credits init failed:', e);
+    });
+
     // Initialize viewer
     try {
       Viewer.initViewer();
@@ -827,14 +833,6 @@ window.addEventListener('DOMContentLoaded', () => {
       wireGallery();
     } catch (e) {
       console.error('Gallery wire failed:', e);
-    }
-
-    // Initialize credits system (fetch wallet + action costs)
-    // Must await to ensure credits are loaded before resuming jobs
-    try {
-      await Credits.initCredits();
-    } catch (e) {
-      console.error('Credits init failed:', e);
     }
 
     // Load history from database and render
@@ -862,6 +860,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Hide progress initially
     UI.showOutputEmpty();
+
+    // Ensure credits are loaded before resuming jobs (they may need credit checks)
+    await creditsPromise;
 
     // Resume any pending jobs
     await API.resumePendingJobs({ skipEmptyUI: true });
