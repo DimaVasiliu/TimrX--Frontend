@@ -42,6 +42,9 @@ const creditsState = {
   // Optimistic updates tracking
   pendingDeductions: [],  // Array of { id, amount, action, timestamp }
   lastServerBalance: null,
+  // Reservation tracking (credits held during generation)
+  reservations: new Map(),  // Map<jobId, { amount, action, timestamp }>
+  totalReserved: 0,  // Sum of all active reservations
 };
 
 // Idempotency: track job IDs that have already been charged
@@ -563,6 +566,142 @@ export function getPendingAmount() {
 }
 
 // ============================================================================
+// CREDIT RESERVATIONS (hold credits during generation)
+// ============================================================================
+
+/**
+ * Reserve credits for a pending operation.
+ * Shows "Reserving credits..." state and immediately reduces available.
+ *
+ * @param {string} action - The action key (e.g., 'text-to-3d', 'image-to-3d')
+ * @param {number} count - Number of items (default 1, for batch operations)
+ * @returns {{ reservationId: string, amount: number }} Reservation info
+ */
+export function reserveCredits(action, count = 1) {
+  const costPerItem = getActionCost(action);
+  const totalCost = costPerItem * count;
+
+  if (totalCost === 0) {
+    log('[Credits] Reserve: action has no cost', action);
+    return { reservationId: null, amount: 0 };
+  }
+
+  // Check if enough credits available (accounting for existing reservations)
+  const effectiveAvailable = creditsState.wallet.available - creditsState.totalReserved;
+  if (effectiveAvailable < totalCost) {
+    log('[Credits] Reserve failed: insufficient credits', {
+      action,
+      required: totalCost,
+      effectiveAvailable,
+    });
+    return { reservationId: null, amount: 0, insufficient: true };
+  }
+
+  const reservationId = `res_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  const reservation = {
+    amount: totalCost,
+    action,
+    count,
+    timestamp: Date.now(),
+  };
+
+  // Track reservation
+  creditsState.reservations.set(reservationId, reservation);
+  creditsState.totalReserved += totalCost;
+
+  log('[Credits] Reserved:', {
+    reservationId,
+    action,
+    amount: totalCost,
+    totalReserved: creditsState.totalReserved,
+    effectiveAvailable: creditsState.wallet.available - creditsState.totalReserved,
+  });
+
+  // Update UI to show reservation
+  updateCreditsUI();
+
+  return { reservationId, amount: totalCost };
+}
+
+/**
+ * Confirm a reservation (job started successfully).
+ * Converts reservation to actual deduction.
+ *
+ * @param {string} reservationId - The reservation ID from reserveCredits
+ * @param {string} jobId - The actual job ID from backend
+ */
+export function confirmReservation(reservationId, jobId) {
+  const reservation = creditsState.reservations.get(reservationId);
+  if (!reservation) {
+    log('[Credits] confirmReservation: not found', reservationId);
+    return;
+  }
+
+  // Remove from reservations
+  creditsState.reservations.delete(reservationId);
+  creditsState.totalReserved -= reservation.amount;
+
+  // Apply actual deduction
+  applyDelta(-reservation.amount, reservation.action, jobId);
+
+  log('[Credits] Reservation confirmed:', {
+    reservationId,
+    jobId,
+    amount: reservation.amount,
+    newBalance: creditsState.wallet.available,
+  });
+}
+
+/**
+ * Release a reservation (job failed to start or was cancelled).
+ * Returns credits to available.
+ *
+ * @param {string} reservationId - The reservation ID from reserveCredits
+ */
+export function releaseReservation(reservationId) {
+  const reservation = creditsState.reservations.get(reservationId);
+  if (!reservation) {
+    log('[Credits] releaseReservation: not found', reservationId);
+    return;
+  }
+
+  // Remove from reservations
+  creditsState.reservations.delete(reservationId);
+  creditsState.totalReserved -= reservation.amount;
+
+  log('[Credits] Reservation released:', {
+    reservationId,
+    amount: reservation.amount,
+    totalReserved: creditsState.totalReserved,
+  });
+
+  // Update UI
+  updateCreditsUI();
+}
+
+/**
+ * Get total currently reserved credits
+ */
+export function getTotalReserved() {
+  return creditsState.totalReserved;
+}
+
+/**
+ * Get effective available credits (available minus reserved)
+ */
+export function getEffectiveAvailable() {
+  return Math.max(0, creditsState.wallet.available - creditsState.totalReserved);
+}
+
+/**
+ * Check if enough credits for action (accounting for reservations)
+ */
+export function hasEffectiveCreditsFor(action, count = 1) {
+  const cost = getActionCost(action) * count;
+  return getEffectiveAvailable() >= cost;
+}
+
+// ============================================================================
 // WALLET STATE MANAGEMENT
 // ============================================================================
 
@@ -596,16 +735,31 @@ export function updateCreditsUI() {
   const creditsPill = document.getElementById('workspaceCredits');
   const creditsValue = document.getElementById('workspaceCreditsValue');
   const creditsGroup = document.getElementById('workspaceCreditsGroup');
+  const reservedIndicator = document.getElementById('workspaceCreditsReserved');
+
+  // Calculate effective available (balance - reserved)
+  const effectiveAvailable = getEffectiveAvailable();
+  const hasReservations = creditsState.totalReserved > 0;
 
   if (creditsValue) {
-    creditsValue.textContent = creditsState.wallet.available.toLocaleString();
+    creditsValue.textContent = effectiveAvailable.toLocaleString();
+  }
+
+  // Show/hide reserved indicator
+  if (reservedIndicator) {
+    if (hasReservations) {
+      reservedIndicator.textContent = `(${creditsState.totalReserved} reserved)`;
+      reservedIndicator.classList.remove('hidden');
+    } else {
+      reservedIndicator.classList.add('hidden');
+    }
   }
 
   if (creditsPill) {
-    const available = creditsState.wallet.available;
-    creditsPill.classList.toggle('low', available < 30 && available > 0);
-    creditsPill.classList.toggle('empty', available === 0);
-    creditsPill.classList.toggle('has-credits', available > 0);
+    creditsPill.classList.toggle('low', effectiveAvailable < 30 && effectiveAvailable > 0);
+    creditsPill.classList.toggle('empty', effectiveAvailable === 0);
+    creditsPill.classList.toggle('has-credits', effectiveAvailable > 0);
+    creditsPill.classList.toggle('has-reservations', hasReservations);
 
     // Make credits pill clickable to show buy options
     if (!creditsPill.dataset.clickWired) {
@@ -617,13 +771,17 @@ export function updateCreditsUI() {
       });
     }
 
-    // Update tooltip based on balance
-    if (available === 0) {
+    // Update tooltip based on balance and reservations
+    if (effectiveAvailable === 0 && hasReservations) {
+      creditsPill.setAttribute('title', `${creditsState.totalReserved} credits reserved for generation - click to buy more`);
+    } else if (effectiveAvailable === 0) {
       creditsPill.setAttribute('title', 'No credits - click to buy');
-    } else if (available < 30) {
-      creditsPill.setAttribute('title', `${available} credits remaining - running low`);
+    } else if (hasReservations) {
+      creditsPill.setAttribute('title', `${effectiveAvailable} available (${creditsState.totalReserved} reserved)`);
+    } else if (effectiveAvailable < 30) {
+      creditsPill.setAttribute('title', `${effectiveAvailable} credits remaining - running low`);
     } else {
-      creditsPill.setAttribute('title', `${available} credits available`);
+      creditsPill.setAttribute('title', `${effectiveAvailable} credits available`);
     }
   }
 
@@ -684,6 +842,9 @@ function getBatchCountForButton(btnId) {
  * Maps button IDs to action keys for cost lookup
  */
 function updateGenerateButtonCosts() {
+  // Use effective available (accounting for reservations)
+  const effectiveAvailable = getEffectiveAvailable();
+
   Object.entries(BUTTON_CONFIG).forEach(([btnId, config]) => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
@@ -693,7 +854,7 @@ function updateGenerateButtonCosts() {
     const batchCount = getBatchCountForButton(btnId);
     const costPerItem = getActionCost(action);
     const totalCost = costPerItem * batchCount;
-    const hasCreds = creditsState.wallet.available >= totalCost;
+    const hasCreds = effectiveAvailable >= totalCost;
 
     // Find the .gen-credits span in the same footer card
     const footerCard = btn.closest('.gen-footer-card');
@@ -712,18 +873,27 @@ function updateGenerateButtonCosts() {
     // Add/update insufficient state on button
     btn.classList.toggle('insufficient-credits', !hasCreds);
 
-    // Disable button when insufficient credits (but don't override other disabled states)
+    // Disable button when insufficient credits
+    // Only manage the disabled state for credits - don't override other reasons
+    const currentlyDisabledForCredits = btn.getAttribute('data-disabled-reason') === 'insufficient-credits';
+    const hasOtherDisabledReason = btn.disabled && !currentlyDisabledForCredits;
+
     if (!hasCreds) {
       btn.setAttribute('data-disabled-reason', 'insufficient-credits');
-    } else {
+      btn.disabled = true;
+    } else if (currentlyDisabledForCredits) {
+      // Only re-enable if we were the ones who disabled it
       btn.removeAttribute('data-disabled-reason');
+      if (!hasOtherDisabledReason) {
+        btn.disabled = false;
+      }
     }
 
-    // Add/update cost tooltip - show "need X more" when insufficient
+    // Update tooltip with clear message about required credits
     btn.setAttribute('data-credits', totalCost);
     if (!hasCreds) {
-      const needed = totalCost - creditsState.wallet.available;
-      btn.setAttribute('title', `Need ${needed} more credits (${totalCost} required)`);
+      const needed = totalCost - effectiveAvailable;
+      btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${needed} more needed)`);
     } else {
       btn.setAttribute('title', `${totalCost} credits`);
     }
@@ -1108,6 +1278,13 @@ window.WorkspaceCredits = {
   rollback,
   clearPending,
   getPendingAmount,
+  // Reservation functions (hold credits during generation)
+  reserveCredits,
+  confirmReservation,
+  releaseReservation,
+  getTotalReserved,
+  getEffectiveAvailable,
+  hasEffectiveCreditsFor,
   // Simple client API (credits-client interface)
   initCreditsUI,
   getCredits,
