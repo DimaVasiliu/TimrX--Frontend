@@ -830,8 +830,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize credits system (fetch wallet + action costs)
+    // Must await to ensure credits are loaded before resuming jobs
     try {
-      Credits.initCredits();
+      await Credits.initCredits();
     } catch (e) {
       console.error('Credits init failed:', e);
     }
