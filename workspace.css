@@ -444,7 +444,7 @@
   /* Stack of compact control cards in left panel */
   .timrx-3dprint .pane-stack {
     display: grid;
-    gap: 6px;
+    gap: 5px;
     grid-auto-rows: min-content;
   }
   
@@ -458,39 +458,59 @@
   .timrx-3dprint .card {
     background: var(--ws-card-bg);
     border: 1px solid var(--ws-card-border);
-    border-radius: 12px;
+    border-radius: 11px;
     padding: 10px 12px;
     box-shadow: none;
   }
-  
+
   /* Card title */
   .timrx-3dprint .card h3 {
-    margin: 0 0 12px;
-    font-size: 15px;
+    margin: 0 0 10px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--ws-text);
   }
-  
+
   /* General text + labels inside cards */
   .timrx-3dprint .card p,
   .timrx-3dprint .card label {
-    font-size: 13px;
-    margin-bottom: 6px;
+    font-size: 12px;
+    margin-bottom: 5px;
   }
-  
+
   .timrx-3dprint .card label {
     display: block;
     font-weight: 600;
     color: #cccccc;
   }
+
+  /* Inline label + select layout for compact forms */
+  .timrx-3dprint .card .inline-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .timrx-3dprint .card .inline-field label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+    min-width: 70px;
+  }
+
+  .timrx-3dprint .card .inline-field select,
+  .timrx-3dprint .card .inline-field input {
+    flex: 1;
+    min-width: 0;
+  }
   
   /* List content (notes, requirements) inside cards */
   .timrx-3dprint .card ul,
   .timrx-3dprint .card ol {
-    margin: 6px 0;
+    margin: 5px 0;
     padding-left: 16px;
   }
-  
+
   .timrx-3dprint .card li {
     font-size: 11px;
     margin-bottom: 3px;
@@ -505,14 +525,14 @@
     width: 100%;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 10px 12px;
+    border-radius: 7px;
+    padding: 8px 10px;
     color: var(--ws-text);
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
     transition: border-color 0.2s ease, background-color 0.2s ease;
   }
-  
+
   /* Global compact sizing for workspace controls */
   .timrx-3dprint input[type="text"],
   .timrx-3dprint input[type="number"],
@@ -545,33 +565,33 @@
   /* Textarea behaviour */
   .timrx-3dprint .card textarea {
     resize: vertical;
-    min-height: 100px;
+    min-height: 80px;
   }
   
   /* Horizontal layout for small multi-option controls ----------------------- */
   .timrx-3dprint .control-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 5px;
   }
-  
+
   .timrx-3dprint .control-row button {
-    padding: 6px 4px;
+    padding: 5px 4px;
     font-size: 10px;
   }
-  
+
   /* Compact button groups inside cards -------------------------------------- */
   .timrx-3dprint .btn-group {
     display: flex;
     gap: 4px;
   }
-  
+
   .timrx-3dprint .btn-group button {
     flex: 1;
     padding: 6px 8px;
     font-size: 10px;
   }
-  
+
   /* Small helper label / description text ----------------------------------- */
   .timrx-3dprint .field-label {
     font-size: 11px;
@@ -579,7 +599,7 @@
     margin-bottom: 4px;
     display: block;
   }
-  
+
   .timrx-3dprint .field-desc {
     font-size: 10px;
     opacity: 0.6;
@@ -590,24 +610,24 @@
   .timrx-3dprint .number-input-compact {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
   }
-  
+
   .timrx-3dprint .number-input-compact button {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     font-size: 14px;
     line-height: 1;
     min-height: auto;
   }
-  
+
   .timrx-3dprint .number-input-compact input {
-    width: 50px;
+    width: 46px;
     text-align: center;
     padding: 4px;
-    min-height: 24px;
-    height: 24px;
+    min-height: 26px;
+    height: 26px;
   }
   
   /* Button interaction states */
@@ -634,13 +654,13 @@
   .timrx-3dprint .card .field-hint {
     display: block;
     margin-top: 4px;
-    font-size: 12px;
+    font-size: 11px;
     color: #666666;
   }
-  
+
   /* Vertical rhythm between stacked cards ----------------------------------- */
   .timrx-3dprint .card + .card {
-    margin-top: 12px;
+    margin-top: 6px;
   }
 
   /* ============================================================================
