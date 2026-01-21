@@ -25,20 +25,26 @@ import { renderHistory, shortTitle } from './history.js';
 let startLock = false;
 let postProcessLock = false;
 
+// Track jobs that have already had credits refreshed on completion/failure
+// Prevents multiple refresh calls for the same job
+const creditsRefreshedJobs = new Set();
+
 // ============================================================================
-// CREDITS HELPERS (Optimistic Updates)
+// CREDITS HELPERS
 // ============================================================================
 
 /**
- * Check if user has enough credits for an action
+ * Check if user has enough credits for an action (pre-flight check)
  * @returns {boolean} true if can proceed, false if insufficient
  */
-function checkCreditsFor(action) {
+function checkCreditsFor(action, count = 1) {
   if (!window.WorkspaceCredits) return true; // Skip if credits system not loaded
   if (!window.WorkspaceCredits.isLoaded()) return true; // Skip if not yet loaded
 
-  const hasCredits = window.WorkspaceCredits.hasCreditsFor(action);
-  if (!hasCredits) {
+  const cost = window.WorkspaceCredits.getActionCost(action) * count;
+  const available = window.WorkspaceCredits.getAvailableCredits();
+
+  if (available < cost) {
     window.WorkspaceCredits.showInsufficientCreditsMessage(action);
     return false;
   }
@@ -46,34 +52,38 @@ function checkCreditsFor(action) {
 }
 
 /**
- * Optimistically deduct credits before API call
- * @returns {{ id: string|null, amount: number }} deduction info for rollback/reconcile
+ * Apply credits deduction AFTER successful job start
+ * Call this only after receiving a valid job_id from backend
+ *
+ * @param {string} action - The action key (e.g., 'text-to-3d', 'image-to-3d')
+ * @param {string} jobId - The job ID from the backend response
+ * @param {number} count - Number of items (default 1, for batch operations)
  */
-function deductCreditsOptimistic(action, count = 1) {
-  if (!window.WorkspaceCredits?.deductOptimistic) {
-    return { id: null, amount: 0 };
+function applyCreditsDeduction(action, jobId, count = 1) {
+  if (!window.WorkspaceCredits?.applyDelta) {
+    log('[Credits] applyDelta not available');
+    return;
   }
-  return window.WorkspaceCredits.deductOptimistic(action, count);
+
+  const cost = window.WorkspaceCredits.getActionCost(action) * count;
+  if (cost > 0) {
+    window.WorkspaceCredits.applyDelta(-cost, action, jobId);
+    log('[Credits] Applied deduction:', { action, jobId, cost, count });
+
+    // Refresh in background to reconcile with server
+    refreshCreditsInBackground();
+  }
 }
 
 /**
- * Rollback optimistic deduction on API failure
+ * Refresh credits from server in background (non-blocking)
  */
-function rollbackCredits(deductionId) {
-  if (deductionId && window.WorkspaceCredits?.rollback) {
-    window.WorkspaceCredits.rollback(deductionId);
-  }
-}
-
-/**
- * Reconcile with server balance after successful API response
- */
-function reconcileCredits(serverBalance) {
-  if (typeof serverBalance === 'number' && window.WorkspaceCredits?.reconcile) {
-    window.WorkspaceCredits.reconcile(serverBalance);
-  } else if (window.WorkspaceCredits?.refresh) {
-    // Fallback: fetch from server if no balance returned
-    window.WorkspaceCredits.refresh();
+function refreshCreditsInBackground() {
+  if (window.WorkspaceCredits?.refreshCredits) {
+    // Fire and forget - don't await
+    window.WorkspaceCredits.refreshCredits().catch(err => {
+      log('[Credits] Background refresh failed:', err);
+    });
   }
 }
 
@@ -81,10 +91,8 @@ function reconcileCredits(serverBalance) {
  * Handle API response errors, specifically 402 insufficient credits
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
-function handleApiError(response, action, deductionId = null) {
+function handleApiError(response, action) {
   if (response.status === 402) {
-    // Insufficient credits - rollback optimistic deduction and show buy modal
-    rollbackCredits(deductionId);
     log('[Credits] 402 Insufficient credits for:', action);
     if (window.WorkspaceCredits) {
       window.WorkspaceCredits.showInsufficientCreditsMessage(action);
@@ -93,19 +101,7 @@ function handleApiError(response, action, deductionId = null) {
     }
     return true;
   }
-  // For other errors, also rollback
-  rollbackCredits(deductionId);
   return false;
-}
-
-/**
- * Refresh wallet after a successful job start (credits were deducted)
- * @deprecated Use reconcileCredits() instead for optimistic updates
- */
-function refreshWalletAfterJob() {
-  if (window.WorkspaceCredits?.refresh) {
-    window.WorkspaceCredits.refresh();
-  }
 }
 
 // ============================================================================
@@ -334,11 +330,14 @@ export function watchJob(job_id) {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
 
-        // Update wallet - use returned data or refresh from API
-        if (st.wallet && window.WorkspaceCredits?.updateWallet) {
-          window.WorkspaceCredits.updateWallet(st.wallet);
-        } else {
-          refreshWalletAfterJob(); // Fallback: refresh from API
+        // Update wallet - use returned data or refresh from API (once per job)
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          if (st.wallet && window.WorkspaceCredits?.updateWallet) {
+            window.WorkspaceCredits.updateWallet(st.wallet);
+          } else {
+            refreshCreditsInBackground(); // Fallback: refresh from API
+          }
         }
 
         const glbProxy = `${BACKEND}/api/proxy-glb?u=${encodeURIComponent(st.glb_url)}`;
@@ -401,7 +400,11 @@ export function watchJob(job_id) {
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        refreshWalletAfterJob(); // Refresh to show released credits
+        // Refresh credits (once per job) to show released credits
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          refreshCreditsInBackground();
+        }
         prog.fail(st.message || 'Job failed');
         alert(st.message || 'Job failed');
         return;
@@ -475,11 +478,14 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
 
-        // Update wallet - use returned data or refresh from API
-        if (st.wallet && window.WorkspaceCredits?.updateWallet) {
-          window.WorkspaceCredits.updateWallet(st.wallet);
-        } else {
-          refreshWalletAfterJob(); // Fallback: refresh from API
+        // Update wallet - use returned data or refresh from API (once per job)
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          if (st.wallet && window.WorkspaceCredits?.updateWallet) {
+            window.WorkspaceCredits.updateWallet(st.wallet);
+          } else {
+            refreshCreditsInBackground(); // Fallback: refresh from API
+          }
         }
 
         const glbDirect = st.glb_url
@@ -553,7 +559,11 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        refreshWalletAfterJob(); // Refresh to show released credits
+        // Refresh credits (once per job) to show released credits
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          refreshCreditsInBackground();
+        }
         prog.fail(st.message || `${stageLabel} failed`);
         alert(st.message || `${stageLabel} failed`);
         return;
@@ -580,9 +590,6 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return;
   }
 
-  // Optimistically deduct credits immediately
-  const deduction = deductCreditsOptimistic(kind);
-
   const endpoint = kind === 'texture'
     ? '/api/mesh/retexture'
     : kind === 'rig'
@@ -601,25 +608,22 @@ async function beginMeshyTask(kind, payload, meta = {}) {
       body: JSON.stringify(payload)
     });
   } catch (err) {
-    rollbackCredits(deduction.id);
     throw err;
   }
 
   if (!resp.ok) {
-    if (handleApiError(resp, kind, deduction.id)) return;
-    rollbackCredits(deduction.id);
+    if (handleApiError(resp, kind)) return;
     throw new Error(await resp.text());
   }
   const data = await resp.json();
   const { job_id } = data;
 
-  // Reconcile with server balance if returned, otherwise refresh
-  reconcileCredits(data.new_balance ?? data.wallet?.available);
-
   if (!job_id) {
-    rollbackCredits(deduction.id);
     throw new Error('No job id returned');
   }
+
+  // Deduct credits AFTER successful job start
+  applyCreditsDeduction(kind, job_id);
 
   State.addActiveJob(job_id);
   State.savePendingMeta(job_id, { ...meta, stage: kind, source_model_id: meta.source_model_id || meta.id });
@@ -637,8 +641,12 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 export async function onGenerateClick() {
   if (startLock) return;
 
-  // Check credits before proceeding
-  if (!checkCreditsFor('text-to-3d')) {
+  // Get batch count first for credit check
+  const batchRaw = parseInt(byId('modelBatchCount')?.value || '1', 10);
+  const batchCount = Math.min(4, Math.max(1, Number.isFinite(batchRaw) ? batchRaw : 1));
+
+  // Check credits for entire batch before proceeding
+  if (!checkCreditsFor('text-to-3d', batchCount)) {
     return;
   }
 
@@ -674,17 +682,12 @@ export async function onGenerateClick() {
     const license = (byId('modelLicense')?.value || 'private').trim() || 'private';
     const symmetry = (byId('modelSymmetry')?.value || 'auto').trim() || 'auto';
     const isPose = !!byId('modelPoseToggle')?.checked;
-    const batchRaw = parseInt(byId('modelBatchCount')?.value || '1', 10);
-    const batchCount = Math.min(4, Math.max(1, Number.isFinite(batchRaw) ? batchRaw : 1));
     const batchGroupId = createBatchGroupId();
 
     log('Generating with:', { prompt, art_style, model, batchCount, symmetry, isPose, license });
     prog.label(batchCount > 1 ? `Queuing ${batchCount} previews...` : 'Queuing job...');
 
-    // Optimistically deduct credits for entire batch upfront
-    const deduction = deductCreditsOptimistic('text-to-3d', batchCount);
-
-    const queueOne = async (slot, deductionId) => {
+    const queueOne = async (slot) => {
       const payload = {
         prompt,
         art_style,
@@ -698,34 +701,24 @@ export async function onGenerateClick() {
         refine: false
       };
 
-      let resp;
-      try {
-        resp = await fetch(`${BACKEND}/api/text-to-3d/start`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        // Only rollback on first slot failure (entire batch)
-        if (slot === 0) rollbackCredits(deductionId);
-        throw err;
-      }
+      const resp = await fetch(`${BACKEND}/api/text-to-3d/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
 
       if (!resp.ok) {
-        if (handleApiError(resp, 'text-to-3d', slot === 0 ? deductionId : null)) return;
-        if (slot === 0) rollbackCredits(deductionId);
+        if (handleApiError(resp, 'text-to-3d')) return null;
         throw new Error(await resp.text());
       }
       const data = await resp.json();
       const { job_id } = data;
 
-      // Reconcile with server balance on first successful response
-      if (slot === 0) {
-        reconcileCredits(data.new_balance ?? data.wallet?.available);
-      }
-
       if (!job_id) throw new Error('No job id returned');
+
+      // Deduct credits AFTER successful job start (per job)
+      applyCreditsDeduction('text-to-3d', job_id);
 
       State.addActiveJob(job_id);
       const jobMeta = {
@@ -743,11 +736,13 @@ export async function onGenerateClick() {
       State.savePendingMeta(job_id, jobMeta);
       addGeneratingPlaceholder(job_id, jobMeta);
       watchJob(job_id);
+      return job_id;
     };
 
     for (let i = 0; i < batchCount; i++) {
       if (batchCount > 1) prog.label(`Queuing preview ${i + 1}/${batchCount}...`);
-      await queueOne(i, deduction.id);
+      const result = await queueOne(i);
+      if (result === null) return; // 402 error handled
     }
 
   } catch (err) {
@@ -801,47 +796,37 @@ export async function startOpenAIImageGeneration() {
   State.setHistoryActiveModelId(tempId);
   renderHistory();
 
-  // Optimistically deduct credits
-  const deduction = deductCreditsOptimistic('text-to-image');
-
   try {
     prog.label('Queuing image...');
-    let resp;
-    try {
-      resp = await fetch(`${BACKEND}/api/image/openai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          prompt: promptRaw,
-          size: resolution,
-          model,
-          client_id: tempId
-        })
-      });
-    } catch (err) {
-      rollbackCredits(deduction.id);
-      throw err;
-    }
+    const resp = await fetch(`${BACKEND}/api/image/openai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        prompt: promptRaw,
+        size: resolution,
+        model,
+        client_id: tempId
+      })
+    });
 
     if (!resp.ok) {
-      if (handleApiError(resp, 'text-to-image', deduction.id)) {
+      if (handleApiError(resp, 'text-to-image')) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
         renderHistory();
         return;
       }
-      rollbackCredits(deduction.id);
       const text = await resp.text();
       throw new Error(text || `OpenAI HTTP ${resp.status}`);
     }
     const data = await resp.json();
-
-    // Reconcile with server balance
-    reconcileCredits(data.new_balance ?? data.wallet?.available);
     const imageUrl = preferHttpUrl(data.image_urls || data.image_url || null);
     if (!imageUrl) throw new Error('OpenAI did not return an image URL');
+
+    // Deduct credits AFTER successful image generation
+    applyCreditsDeduction('text-to-image', tempId);
 
     const historyData = {
       id: tempId,
@@ -919,40 +904,31 @@ export async function startImageTo3DFromHistory(item) {
     stage: 'image3d',
     thumbnail_url: item.thumbnail_url || item.image_url || ''
   };
-  // Optimistically deduct credits
-  const deduction = deductCreditsOptimistic('image-to-3d');
 
   const prog = UI.makeProgressDriver();
   prog.label('Starting image to 3D...');
   try {
-    let resp;
-    try {
-      resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ image_url: item.image_url, prompt })
-      });
-    } catch (err) {
-      rollbackCredits(deduction.id);
-      throw err;
-    }
+    const resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ image_url: item.image_url, prompt })
+    });
 
     if (!resp.ok) {
-      if (handleApiError(resp, 'image-to-3d', deduction.id)) return;
-      rollbackCredits(deduction.id);
+      if (handleApiError(resp, 'image-to-3d')) return;
       throw new Error(await resp.text());
     }
     const data = await resp.json();
     const { job_id } = data;
 
-    // Reconcile with server balance
-    reconcileCredits(data.new_balance ?? data.wallet?.available);
-
     if (!job_id) {
-      rollbackCredits(deduction.id);
       throw new Error('No job id returned');
     }
+
+    // Deduct credits AFTER successful job start
+    applyCreditsDeduction('image-to-3d', job_id);
+
     State.addActiveJob(job_id);
     State.savePendingMeta(job_id, { ...meta, type: 'model' });
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
@@ -1000,9 +976,6 @@ export async function onPostProcessFromHistory(item, type) {
       throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
     }
 
-    // Optimistically deduct credits for refine
-    const deduction = deductCreditsOptimistic('refine');
-
     const url = `${BACKEND}/api/text-to-3d/refine`;
     const body = {
       preview_task_id: previewTaskId,
@@ -1010,34 +983,26 @@ export async function onPostProcessFromHistory(item, type) {
       enable_pbr: true
     };
 
-    let r;
-    try {
-      r = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(body)
-      });
-    } catch (err) {
-      rollbackCredits(deduction.id);
-      throw err;
-    }
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body)
+    });
 
     if (!r.ok) {
-      if (handleApiError(r, 'refine', deduction.id)) return;
-      rollbackCredits(deduction.id);
+      if (handleApiError(r, 'refine')) return;
       throw new Error(await r.text());
     }
     const data = await r.json();
     const { job_id } = data;
 
-    // Reconcile with server balance
-    reconcileCredits(data.new_balance ?? data.wallet?.available);
-
     if (!job_id) {
-      rollbackCredits(deduction.id);
       throw new Error(`No job id returned for ${type}`);
     }
+
+    // Deduct credits AFTER successful job start
+    applyCreditsDeduction('refine', job_id);
 
     State.addActiveJob(job_id);
     const jobMeta = {
@@ -1402,6 +1367,23 @@ export async function resumePendingJobs(options = {}) {
       textIds.length = 0;
       textIds.push(...validIds);
     }
+  }
+
+  // OpenAI image jobs are synchronous (no polling) - if we refresh mid-request,
+  // they can't be resumed. Mark them as failed and clean up.
+  if (imageIds.length) {
+    log(`[Resume] Cleaning up ${imageIds.length} stale image job(s) - cannot resume synchronous requests`);
+    imageIds.forEach(id => {
+      State.removeActiveJob(id);
+      // Mark as failed in history so user knows it didn't complete
+      if (State.historyHasJobId(id)) {
+        State.updateHistoryItem(id, {
+          status: 'failed',
+          status_label: 'Interrupted - please retry'
+        });
+      }
+    });
+    renderHistory();
   }
 
   const allToResume = [...meshIds, ...textIds];
