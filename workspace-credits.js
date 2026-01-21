@@ -26,6 +26,10 @@ const creditsState = {
   lastServerBalance: null,
 };
 
+// Idempotency: track job IDs that have already been charged
+// Prevents duplicate deductions from double-clicks or retries
+const chargedJobs = new Set();
+
 // ============================================================================
 // API FETCHING
 // ============================================================================
@@ -150,19 +154,20 @@ export async function fetchActionCosts() {
  * Keys match backend ACTION_KEY_MAP in credits.py
  *
  * Backend mapping:
- *   text_to_3d    → MESHY_TEXT_TO_3D
- *   image_to_3d   → MESHY_IMAGE_TO_3D
- *   texture       → MESHY_RETEXTURE
- *   remesh/refine → MESHY_REFINE
- *   rig           → MESHY_REFINE
- *   image_generate→ OPENAI_IMAGE
- *   preview       → MESHY_TEXT_TO_3D (alias)
- *   upscale       → MESHY_REFINE (alias)
+ *   text_to_3d    → MESHY_TEXT_TO_3D (20c)
+ *   image_to_3d   → MESHY_IMAGE_TO_3D (30c)
+ *   texture       → MESHY_RETEXTURE (15c)
+ *   remesh/refine → MESHY_REFINE (10c)
+ *   rig           → MESHY_RIG (25c)
+ *   image_generate→ OPENAI_IMAGE (10c)
+ *   video         → VIDEO_GENERATE (60c)
+ *   preview       → MESHY_TEXT_TO_3D (alias, 20c)
+ *   upscale       → MESHY_REFINE (alias, 10c)
  */
 function getDefaultActionCosts() {
   return {
     // === Core 3D generation ===
-    'text_to_3d': 20,           // Text-to-3D preview (latest model)
+    'text_to_3d': 20,           // Text-to-3D preview (draft)
     'text-to-3d': 20,           // Alias (hyphenated)
     'preview': 20,              // Preview is same as text_to_3d
 
@@ -170,22 +175,28 @@ function getDefaultActionCosts() {
     'image-to-3d': 30,          // Alias (hyphenated)
 
     // === Post-processing ===
-    'texture': 10,              // Retexture a model
+    'texture': 15,              // Retexture a model
     'remesh': 10,               // Remesh/retopologize
-    'refine': 10,               // Refine preview to full model
-    'rig': 10,                  // Auto-rig a humanoid
+    'refine': 10,               // Refine preview to full model (same as remesh)
+    'rig': 25,                  // Auto-rig a humanoid
     'upscale': 10,              // Upscale (alias for refine)
 
     // === Image generation ===
-    'image_generate': 10,       // OpenAI image generation
+    'image_generate': 10,       // OpenAI image generation (2D)
     'text-to-image': 10,        // Alias (hyphenated)
+
+    // === Video generation ===
+    'video': 60,                // Video generation
+    'video_generate': 60,       // Alias
 
     // === Backend DB action codes (for direct lookups) ===
     'MESHY_TEXT_TO_3D': 20,
     'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 10,
+    'MESHY_RETEXTURE': 15,
     'MESHY_REFINE': 10,
+    'MESHY_RIG': 25,
     'OPENAI_IMAGE': 10,
+    'VIDEO_GENERATE': 60,
 
     // === Legacy keys (backward compatibility) ===
     'text_to_3d_generate': 20,
@@ -450,6 +461,7 @@ export function updateCreditsUI() {
   // Update credits pill if it exists
   const creditsPill = document.getElementById('workspaceCredits');
   const creditsValue = document.getElementById('workspaceCreditsValue');
+  const creditsGroup = document.getElementById('workspaceCreditsGroup');
 
   if (creditsValue) {
     creditsValue.textContent = creditsState.wallet.available.toLocaleString();
@@ -460,6 +472,30 @@ export function updateCreditsUI() {
     creditsPill.classList.toggle('low', available < 30 && available > 0);
     creditsPill.classList.toggle('empty', available === 0);
     creditsPill.classList.toggle('has-credits', available > 0);
+
+    // Make credits pill clickable to show buy options
+    if (!creditsPill.dataset.clickWired) {
+      creditsPill.dataset.clickWired = 'true';
+      creditsPill.style.cursor = 'pointer';
+      creditsPill.addEventListener('click', () => {
+        // Redirect to pricing section
+        window.location.href = 'hub.html#pricing';
+      });
+    }
+
+    // Update tooltip based on balance
+    if (available === 0) {
+      creditsPill.setAttribute('title', 'No credits - click to buy');
+    } else if (available < 30) {
+      creditsPill.setAttribute('title', `${available} credits remaining - running low`);
+    } else {
+      creditsPill.setAttribute('title', `${available} credits available`);
+    }
+  }
+
+  // Toggle syncing class on group
+  if (creditsGroup) {
+    creditsGroup.classList.toggle('syncing', creditsState.loading);
   }
 
   // Update generate buttons with cost indicators
@@ -506,7 +542,8 @@ function updateGenerateButtonCosts() {
     const btn = document.getElementById(btnId);
     if (!btn) return;
 
-    const { action } = config;
+    // Check for dynamic action override (e.g., when switching between text-to-3d and image-to-3d tabs)
+    const action = btn.dataset.currentAction || config.action;
     const batchCount = getBatchCountForButton(btnId);
     const costPerItem = getActionCost(action);
     const totalCost = costPerItem * batchCount;
@@ -529,9 +566,21 @@ function updateGenerateButtonCosts() {
     // Add/update insufficient state on button
     btn.classList.toggle('insufficient-credits', !hasCreds);
 
-    // Add/update cost tooltip on button (always visible on hover)
+    // Disable button when insufficient credits (but don't override other disabled states)
+    if (!hasCreds) {
+      btn.setAttribute('data-disabled-reason', 'insufficient-credits');
+    } else {
+      btn.removeAttribute('data-disabled-reason');
+    }
+
+    // Add/update cost tooltip - show "need X more" when insufficient
     btn.setAttribute('data-credits', totalCost);
-    btn.setAttribute('title', `${totalCost} credits`);
+    if (!hasCreds) {
+      const needed = totalCost - creditsState.wallet.available;
+      btn.setAttribute('title', `Need ${needed} more credits (${totalCost} required)`);
+    } else {
+      btn.setAttribute('title', `${totalCost} credits`);
+    }
 
     // Add cost badge to button if totalCost > 0
     let costBadge = btn.querySelector('.btn-cost-badge');
@@ -575,30 +624,8 @@ function setupBatchCountListeners() {
     input.addEventListener('input', updateHandler);
     input.addEventListener('change', updateHandler);
 
-    // Also handle stepper buttons
-    const stepper = input.closest('.stepper-input');
-    if (stepper) {
-      const upBtn = stepper.querySelector('.stepper-up');
-      const downBtn = stepper.querySelector('.stepper-down');
-
-      if (upBtn) {
-        upBtn.addEventListener('click', () => {
-          const current = parseInt(input.value, 10) || 1;
-          const max = parseInt(input.max, 10) || 4;
-          input.value = Math.min(current + 1, max);
-          updateHandler();
-        });
-      }
-
-      if (downBtn) {
-        downBtn.addEventListener('click', () => {
-          const current = parseInt(input.value, 10) || 1;
-          const min = parseInt(input.min, 10) || 1;
-          input.value = Math.max(current - 1, min);
-          updateHandler();
-        });
-      }
-    }
+    // Note: Stepper buttons are handled by 3dprint-app.js which dispatches
+    // change events that we listen to above. No duplicate handlers needed.
   });
 
   log('[Credits] Batch count listeners setup for:', batchInputIds);
@@ -738,6 +765,17 @@ export function setCredits(n) {
  * @returns {{ id: string, previousBalance: number, newBalance: number }}
  */
 export function applyDelta(delta, reason = 'unknown', jobId = null) {
+  // Idempotency: skip if this jobId was already charged (prevents double-click/retry duplicates)
+  if (jobId && delta < 0 && chargedJobs.has(jobId)) {
+    log('[Credits] applyDelta: skipping duplicate charge for jobId:', jobId);
+    return {
+      id: jobId,
+      previousBalance: creditsState.wallet.available,
+      newBalance: creditsState.wallet.available,
+      skipped: true,
+    };
+  }
+
   const previousBalance = creditsState.wallet.available;
   const deductionId = jobId || `delta_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
@@ -754,6 +792,10 @@ export function applyDelta(delta, reason = 'unknown', jobId = null) {
   if (delta < 0) {
     // Deduction - track as pending
     creditsState.pendingDeductions.push(change);
+    // Mark this jobId as charged for idempotency
+    if (jobId) {
+      chargedJobs.add(jobId);
+    }
   }
 
   // Store last server balance if not set
@@ -792,6 +834,10 @@ export function applyDelta(delta, reason = 'unknown', jobId = null) {
 export async function refreshCredits() {
   const url = `${BACKEND}/api/credits/wallet`;
   log('[Credits] Refreshing from:', url);
+
+  // Show syncing indicator
+  creditsState.loading = true;
+  updateCreditsUI();
 
   try {
     const res = await fetch(url, {
@@ -833,7 +879,30 @@ export async function refreshCredits() {
     log('[Credits] refreshCredits error:', err);
     // Fallback to /api/me
     return fetchWallet().then(() => creditsState.wallet.available);
+  } finally {
+    // Hide syncing indicator
+    creditsState.loading = false;
+    updateCreditsUI();
   }
+}
+
+// ============================================================================
+// IDEMPOTENCY HELPERS
+// ============================================================================
+
+/**
+ * Clear charged jobs set (useful for testing or session reset)
+ */
+export function clearChargedJobs() {
+  chargedJobs.clear();
+  log('[Credits] Cleared chargedJobs set');
+}
+
+/**
+ * Check if a job ID has already been charged
+ */
+export function isJobCharged(jobId) {
+  return chargedJobs.has(jobId);
 }
 
 // ============================================================================
@@ -876,4 +945,7 @@ window.WorkspaceCredits = {
   setCredits,
   applyDelta,
   refreshCredits,
+  // Idempotency helpers
+  clearChargedJobs,
+  isJobCharged,
 };
