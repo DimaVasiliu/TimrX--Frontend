@@ -87,24 +87,45 @@
     const statsWrap = document.getElementById('aboutStats');
     const statNums = statsWrap ? [...statsWrap.querySelectorAll('.stat-number')] : [];
   
-    // helper: count up once
+    // helper: count up once (IO-based like blogs)
     let counted = false;
+    function animateCounter(element, target, duration = 1000) {
+      const start = 0;
+      const increment = target / (duration / 16);
+      let current = start;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString();
+      }, 16);
+    }
+
     function runCounters() {
       if (counted || !statNums.length) return;
       counted = true;
-      statNums.forEach(el => {
-        const target = Number(el.getAttribute('data-count') || 0);
-        const dur = 900; // ms
-        const t0 = performance.now();
-        function tick(t){
-          const k = Math.min(1, (t - t0) / dur);
-          const val = Math.floor(target * (0.1 + 0.9 * (k*k*(3 - 2*k)))); // smoothstep-ish
-          el.textContent = val.toLocaleString();
-          if (k < 1) requestAnimationFrame(tick);
-          else el.textContent = target.toLocaleString();
-        }
-        requestAnimationFrame(tick);
+      const nowYear = new Date().getFullYear();
+      statNums.forEach((el, index) => {
+        const startYear = Number(el.getAttribute('data-start-year') || 0);
+        const baseTarget = Number(el.getAttribute('data-target') || 0);
+        const target = startYear ? Math.max(0, nowYear - startYear) : baseTarget;
+        el.setAttribute('data-target', String(target));
+        setTimeout(() => animateCounter(el, target, 1200), index * 120);
       });
+    }
+
+    if (statsWrap) {
+      const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            runCounters();
+            statsObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.5 });
+      statsObserver.observe(statsWrap);
     }
   
     if (hasGSAP) {
@@ -140,7 +161,6 @@
         scrollTrigger: {
           trigger: statsWrap || '#about',
           start: 'top 78%',
-          onEnter: runCounters,
         }
       });
     } else {
