@@ -244,47 +244,89 @@
 
     /* ------------------------------
        4) WORKS grid
-       - Staggered entrance on scroll
-       - Subtle 3D tilt on hover
-       - Auto-zoom nudge for tall images
+       - Section reveal
+       - Orbit motion + ambient float
+       - Flip cards + pointer tilt
        ------------------------------ */
     (function worksGrid() {
-      // Entrance + tilt
+      const works = document.getElementById('works');
+      if (!works) return;
+
+      const cards = Array.from(works.querySelectorAll('.work-card'));
+      const flipCards = Array.from(works.querySelectorAll('.flip-card'));
+      const orbit = works.querySelector('.works-orbit');
+
       if (hasGSAP) {
-        gsap.utils.toArray('.work').forEach((el, i) => {
-          // entrance
-          gsap.from(el, {
+        gsap.from(works.querySelectorAll('.works-head .title-xl, .works-head .works-sub, .works-meta .meta-pill'), {
+          opacity: 0,
+          y: 16,
+          duration: 0.6,
+          ease: 'power2.out',
+          stagger: 0.08,
+          scrollTrigger: { trigger: works, start: 'top 78%' }
+        });
+
+        if (orbit) {
+          gsap.from(orbit, {
             opacity: 0,
-            y: 18,
-            duration: 0.55,
-            delay: i * 0.03,
-            ease: 'power2.out',
-            scrollTrigger: { trigger: el, start: 'top 85%' }
+            scale: 0.7,
+            rotate: -8,
+            duration: 0.7,
+            ease: 'back.out(1.6)',
+            scrollTrigger: { trigger: works, start: 'top 78%' }
           });
-  
-          // pointer tilt (gentle)
-          const max = 6; // degrees
-          function onMove(e) {
-            const r = el.getBoundingClientRect();
-            const x = (e.clientX - r.left) / r.width  - 0.5;
-            const y = (e.clientY - r.top)  / r.height - 0.5;
-            el.style.transform = `translateY(-4px) rotateX(${y*max}deg) rotateY(${-x*max}deg)`;
-          }
-          function onLeave() { el.style.transform = ''; }
-          el.addEventListener('pointermove', onMove);
-          el.addEventListener('pointerleave', onLeave);
+
+          gsap.to(orbit, { y: -10, duration: 3.4, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+          gsap.to('.orbit-ring', { rotation: 360, duration: 22, repeat: -1, ease: 'none', transformOrigin: '50% 50%' });
+          gsap.to('.orbit-cube__spin', { rotationX: 360, rotationY: -360, duration: 18, repeat: -1, ease: 'none', transformOrigin: '50% 50%' });
+        }
+
+        gsap.from(cards, {
+          opacity: 0,
+          y: 24,
+          duration: 0.65,
+          ease: 'power2.out',
+          stagger: 0.12,
+          scrollTrigger: { trigger: '.works-grid', start: 'top 82%' }
         });
       }
-  
-      // Auto-zoom nudge for portrait-ish images so they don't look smaller
-      document.querySelectorAll('.work .thumb img').forEach((img) => {
-        if (img.complete) tune(); else img.addEventListener('load', tune, { once: true });
-        function tune(){
-          const r = img.naturalWidth / img.naturalHeight;
-          const base = parseFloat(getComputedStyle(img).getPropertyValue('--zoom')) || 1.10;
-          const bump = r < 1.5 ? 0.03 : 0.00; // small bump for tall images
-          img.style.setProperty('--zoom', (base + bump).toFixed(2));
+
+      // Flip toggle
+      flipCards.forEach((card) => {
+        const toggles = card.querySelectorAll('.flip-cta');
+        toggles.forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            card.classList.toggle('is-flipped');
+          });
+        });
+      });
+
+      // Pointer tilt + light
+      const allowTilt = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (!allowTilt) return;
+
+      flipCards.forEach((card) => {
+        const max = 8;
+        function onMove(e) {
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width;
+          const y = (e.clientY - r.top) / r.height;
+          const rx = (0.5 - y) * max;
+          const ry = (x - 0.5) * max;
+          card.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
+          card.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
+          card.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
+          card.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
         }
+        function onLeave() {
+          card.style.setProperty('--rx', '0deg');
+          card.style.setProperty('--ry', '0deg');
+          card.style.setProperty('--mx', '50%');
+          card.style.setProperty('--my', '50%');
+        }
+        card.addEventListener('pointermove', onMove);
+        card.addEventListener('pointerleave', onLeave);
       });
     })();
   
@@ -295,7 +337,33 @@
        ------------------------------ */
     (function servicesGrid() {
       if (!hasGSAP) return;
-  
+      const services = document.getElementById('services');
+      const orbit = services ? services.querySelector('.services-orbit') : null;
+
+      if (services) {
+        gsap.from(services.querySelectorAll('.title-xl, .services-sub'), {
+          opacity: 0,
+          y: 14,
+          duration: 0.6,
+          ease: 'power2.out',
+          stagger: 0.08,
+          scrollTrigger: { trigger: services, start: 'top 82%' }
+        });
+      }
+
+      if (orbit) {
+        gsap.from(orbit, {
+          opacity: 0,
+          scale: 0.7,
+          rotate: -6,
+          duration: 0.7,
+          ease: 'back.out(1.6)',
+          scrollTrigger: { trigger: services, start: 'top 82%' }
+        });
+
+        gsap.to(orbit, { y: -8, duration: 3.2, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      }
+
       gsap.utils.toArray('.service-card').forEach((el, i) => {
         // entrance
         gsap.from(el, {
