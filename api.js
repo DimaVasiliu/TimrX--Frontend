@@ -12,7 +12,8 @@ import {
   log,
   byId,
   fileToDataURL,
-  createBatchGroupId
+  createBatchGroupId,
+  apiFetch
 } from './config.js';
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
@@ -373,13 +374,13 @@ export function watchJob(job_id) {
   const poll = async (delay = 900) => {
     if (aborted) return;
     try {
-      const r = await fetch(`${BACKEND}/api/text-to-3d/status/${job_id}`, { credentials: 'include' });
-      if (r.status === 404) {
+      const result = await apiFetch(`/api/text-to-3d/status/${job_id}`);
+      if (result.status === 404) {
         State.removeActiveJob(job_id);
         prog.clear();
         return;
       }
-      const st = await r.json();
+      const st = result.data;
 
       if (st.message) prog.label(st.message);
       if (typeof st.pct === 'number') {
@@ -515,13 +516,13 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
   const poll = async (delay = 900) => {
     if (aborted) return;
     try {
-      const r = await fetch(`${BACKEND}${endpoint}/${job_id}`, { credentials: 'include' });
-      if (r.status === 404) {
+      const result = await apiFetch(`${endpoint}/${job_id}`);
+      if (result.status === 404) {
         State.removeActiveJob(job_id);
         prog.clear();
         return;
       }
-      const st = await r.json();
+      const st = result.data;
 
       // Use real progress if available, otherwise simulate for image3d
       if (typeof st.pct === 'number' && st.pct > 0) {
@@ -669,25 +670,23 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 
   prog.label(statusLabel);
 
-  let resp;
+  let result;
   try {
-    resp = await fetch(`${BACKEND}${endpoint}`, {
+    result = await apiFetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(payload)
+      body: payload
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
     throw err;
   }
 
-  if (!resp.ok) {
-    if (handleApiError(resp, kind, reservation.reservationId)) return;
+  if (!result.ok) {
+    if (handleApiError(result, kind, reservation.reservationId)) return;
     releaseCreditsReservation(reservation.reservationId);
-    throw new Error(await resp.text());
+    throw new Error(result.error || `HTTP ${result.status}`);
   }
-  const data = await resp.json();
+  const data = result.data;
   const { job_id } = data;
 
   if (!job_id) {
@@ -791,20 +790,18 @@ export async function onGenerateClick() {
         refine: false
       };
 
-      const resp = await fetch(`${BACKEND}/api/text-to-3d/start`, {
+      const result = await apiFetch('/api/text-to-3d/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
+        body: payload
       });
 
-      if (!resp.ok) {
-        if (handleApiError(resp, 'text-to-3d', reservation.reservationId)) return null;
+      if (!result.ok) {
+        if (handleApiError(result, 'text-to-3d', reservation.reservationId)) return null;
         // Release reservation on other errors
         releaseCreditsReservation(reservation.reservationId);
-        throw new Error(await resp.text());
+        throw new Error(result.error || `HTTP ${result.status}`);
       }
-      const data = await resp.json();
+      const data = result.data;
       const { job_id } = data;
 
       if (!job_id) {
@@ -904,20 +901,18 @@ export async function startOpenAIImageGeneration() {
 
   try {
     prog.label('Generating image...');
-    const resp = await fetch(`${BACKEND}/api/image/openai`, {
+    const result = await apiFetch('/api/image/openai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
+      body: {
         prompt: promptRaw,
         size: resolution,
         model,
         client_id: tempId
-      })
+      }
     });
 
-    if (!resp.ok) {
-      if (handleApiError(resp, 'text-to-image', reservation.reservationId)) {
+    if (!result.ok) {
+      if (handleApiError(result, 'text-to-image', reservation.reservationId)) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
@@ -925,10 +920,9 @@ export async function startOpenAIImageGeneration() {
         return;
       }
       releaseCreditsReservation(reservation.reservationId);
-      const text = await resp.text();
-      throw new Error(text || `OpenAI HTTP ${resp.status}`);
+      throw new Error(result.error || `OpenAI HTTP ${result.status}`);
     }
-    const data = await resp.json();
+    const data = result.data;
     const imageUrl = preferHttpUrl(data.image_urls || data.image_url || null);
     if (!imageUrl) {
       releaseCreditsReservation(reservation.reservationId);
@@ -1026,19 +1020,17 @@ export async function startImageTo3DFromHistory(item) {
 
   prog.label('Starting image to 3D...');
   try {
-    const resp = await fetch(`${BACKEND}/api/image-to-3d/start`, {
+    const result = await apiFetch('/api/image-to-3d/start', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ image_url: item.image_url, prompt })
+      body: { image_url: item.image_url, prompt }
     });
 
-    if (!resp.ok) {
-      if (handleApiError(resp, 'image-to-3d', reservation.reservationId)) return;
+    if (!result.ok) {
+      if (handleApiError(result, 'image-to-3d', reservation.reservationId)) return;
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error(await resp.text());
+      throw new Error(result.error || `HTTP ${result.status}`);
     }
-    const data = await resp.json();
+    const data = result.data;
     const { job_id } = data;
 
     if (!job_id) {
@@ -1112,26 +1104,21 @@ export async function onPostProcessFromHistory(item, type) {
       throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
     }
 
-    const url = `${BACKEND}/api/text-to-3d/refine`;
-    const body = {
-      preview_task_id: previewTaskId,
-      model: item.model || 'meshy-6',
-      enable_pbr: true
-    };
-
-    const r = await fetch(url, {
+    const result = await apiFetch('/api/text-to-3d/refine', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(body)
+      body: {
+        preview_task_id: previewTaskId,
+        model: item.model || 'meshy-6',
+        enable_pbr: true
+      }
     });
 
-    if (!r.ok) {
-      if (handleApiError(r, 'refine', reservation.reservationId)) return;
+    if (!result.ok) {
+      if (handleApiError(result, 'refine', reservation.reservationId)) return;
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error(await r.text());
+      throw new Error(result.error || `HTTP ${result.status}`);
     }
-    const data = await r.json();
+    const data = result.data;
     const { job_id } = data;
 
     if (!job_id) {
@@ -1409,9 +1396,9 @@ export async function startRigFromHistory(item) {
  */
 async function fetchBackendJobIds() {
   try {
-    const resp = await fetch(`${BACKEND}/api/text-to-3d/list`, { credentials: 'include' });
-    if (!resp.ok) return null;
-    const payload = await resp.json();
+    const result = await apiFetch('/api/text-to-3d/list');
+    if (!result.ok) return null;
+    const payload = result.data;
     if (!Array.isArray(payload)) return [];
     return payload
       .map((entry) => {
