@@ -4,20 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>3D Print Hub — TimrX</title>
-  <!-- Canonical redirect: ensure workspace runs on 3d.timrx.live -->
-  <script>
-    (function() {
-      var CANONICAL = '3d.timrx.live';
-      var host = window.location.hostname;
-      // Redirect if on wrong origin (e.g., timrx.live/3dprint instead of 3d.timrx.live/3dprint)
-      if (host !== CANONICAL && host !== 'localhost' && !host.startsWith('127.') && !host.startsWith('192.168.')) {
-        var url = new URL(window.location.href);
-        url.hostname = CANONICAL;
-        url.searchParams.set('refresh', '1'); // Force credits refresh after redirect
-        window.location.replace(url.toString());
-      }
-    })();
-  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="burger.css">
   <link rel="stylesheet" href="main.css">
@@ -483,6 +469,30 @@
 
   <script>
     window.TIMRX_3D_API_BASE = 'https://3d.timrx.live';
+  </script>
+
+  <!-- Three.js Setup -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE_NS from 'three';
+    import { GLTFLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
+
+    const THREE_MUT = Object.assign({}, THREE_NS);
+    THREE_MUT.GLTFLoader      = GLTFLoader;
+    THREE_MUT.OrbitControls   = OrbitControls;
+    THREE_MUT.RoomEnvironment = RoomEnvironment;
+
+    window.THREE = THREE_MUT;
+    window.dispatchEvent(new Event('three-ready'));
   </script>
 
   <script src="burger.js"></script>
@@ -2019,15 +2029,8 @@
   <!-- Signal our workspace JS that Three is ready -->
   <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
 
-  <!-- Workspace JS - load in dependency order (no ES modules) -->
-  <script src="./config.js"></script>
-  <script src="./state.js"></script>
-  <script src="./ui-utils.js"></script>
-  <script src="./viewer.js"></script>
-  <script src="./history.js"></script>
-  <script src="./workspace-credits.js"></script>
-  <script src="./api.js"></script>
-  <script src="./converter.js"></script>
-  <script src="./main.js"></script>
+  <!-- Clean modular architecture - ACTIVE -->
+  <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
+  <script type="module" src="main.js"></script>
 </body>
 </html>
