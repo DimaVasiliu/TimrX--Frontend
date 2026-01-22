@@ -56,6 +56,32 @@ const chargedJobs = new Set();
 // ============================================================================
 
 /**
+ * Check if we should force a fresh fetch (e.g., after purchase redirect).
+ * URL params: ?refresh=1 or referrer from hub after purchase
+ */
+function shouldForceRefresh() {
+  const params = new URLSearchParams(window.location.search);
+  // Force refresh if ?refresh=1 is in URL (set by hub after purchase)
+  if (params.get('refresh') === '1') {
+    // Clear the param from URL to avoid repeated refreshes on reload
+    const url = new URL(window.location.href);
+    url.searchParams.delete('refresh');
+    window.history.replaceState({}, '', url.toString());
+    log('[Credits] Force refresh requested via URL param');
+    return true;
+  }
+  // Force refresh if coming from hub (different origin purchase flow)
+  if (document.referrer && document.referrer.includes('timrx.live') && !document.referrer.includes('3d.timrx.live')) {
+    log('[Credits] Force refresh: navigated from hub');
+    return true;
+  }
+  return false;
+}
+
+// Track if force refresh was requested (checked at module load time)
+const FORCE_REFRESH = shouldForceRefresh();
+
+/**
  * Render cached credits immediately on page load (before async fetch).
  * This provides instant visual feedback using the last known balance.
  * Call this as early as possible - even before DOM ready if elements exist.
@@ -73,10 +99,21 @@ function renderCachedCreditsEarly() {
     return;
   }
 
+  // Skip cache if force refresh was requested (show syncing immediately)
+  if (FORCE_REFRESH) {
+    log('[Credits] Skipping cache render due to force refresh');
+    creditsValue.textContent = '—';
+    if (creditsGroup) creditsGroup.classList.add('syncing');
+    if (creditsPill) {
+      creditsPill.classList.add('syncing');
+      creditsPill.setAttribute('title', 'Syncing credits...');
+    }
+    return;
+  }
+
   // Read cached balance from localStorage
   const cached = localStorage.getItem(CREDITS_CACHE_KEY);
   let displayValue = '—';
-  let isSyncing = true;
 
   if (cached !== null) {
     const cachedBalance = parseInt(cached, 10);
@@ -208,6 +245,18 @@ export async function fetchWallet() {
         lastRefreshTime = Date.now(); // Track for visibility throttling
 
         log('[Credits] Wallet loaded:', creditsState.wallet);
+
+        // Debug: Log identity info for session diagnostics
+        console.log('[Session Debug] identity_id:', data.identity_id, 'credits:', available, 'apiBase:', BACKEND);
+
+        // Expose identity for debugging (compare with hub to verify same session)
+        window.__TIMRX_SESSION__ = {
+          identity_id: data.identity_id,
+          credits: available,
+          apiBase: BACKEND,
+          page: 'workspace',
+          fetchedAt: new Date().toISOString(),
+        };
       } else {
         log('[Credits] /api/me returned ok:false');
         creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
