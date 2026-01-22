@@ -4,7 +4,7 @@
  * Falls back to localStorage for active jobs and as a cache.
  */
 
-import { BACKEND, ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log } from './config.js';
+import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch } from './config.js';
 
 // ============================================================================
 // CONSTANTS
@@ -238,23 +238,21 @@ async function migrateOldHistory() {
     log('Migrating', oldHistory.length, 'history items to database...');
 
     // Send to database
-    const resp = await fetch(`${BACKEND}/api/history`, {
+    const result = await apiFetch('/api/history', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(oldHistory.map(sanitizeHistoryItem))
+      body: oldHistory.map(sanitizeHistoryItem)
     });
 
-    if (resp.ok) {
-      const result = await resp.json();
+    if (result.ok) {
+      const data = result.data;
       // Log any skipped items (frontend should not retry these)
-      if (result.skipped && result.skipped.length > 0) {
-        console.warn('[History] Migration skipped items:', result.skipped);
+      if (data.skipped && data.skipped.length > 0) {
+        console.warn('[History] Migration skipped items:', data.skipped);
       }
       // Migration successful - clear old data
       localStorage.removeItem(OLD_HISTORY_KEY);
       localStorage.setItem(MIGRATION_FLAG, 'true');
-      log('History migration complete:', 'inserted=' + (result.inserted?.length || 0), 'updated=' + (result.updated?.length || 0), 'skipped=' + (result.skipped?.length || 0));
+      log('History migration complete:', 'inserted=' + (data.inserted?.length || 0), 'updated=' + (data.updated?.length || 0), 'skipped=' + (data.skipped?.length || 0));
     }
   } catch (err) {
     console.warn('[History] Migration failed:', err.message);
@@ -276,10 +274,9 @@ export async function loadHistoryFromDB() {
     await migrateOldHistory();
 
     try {
-      const resp = await fetch(`${BACKEND}/api/history`, { method: 'GET', credentials: 'include' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      historyCache = Array.isArray(data) ? data : [];
+      const result = await apiFetch('/api/history');
+      if (!result.ok) throw new Error(result.error || `HTTP ${result.status}`);
+      historyCache = Array.isArray(result.data) ? result.data : [];
       saveHistoryCache(historyCache);
       log('History loaded from DB:', historyCache.length, 'items');
       return historyCache;
@@ -323,22 +320,19 @@ export function saveHistory(arr) {
   saveHistoryCache(sanitized);
 
   // Save to database in background
-  fetch(`${BACKEND}/api/history`, {
+  apiFetch('/api/history', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(sanitized)
-  }).then(async resp => {
-    if (resp.ok) {
-      const result = await resp.json();
+    body: sanitized
+  }).then(result => {
+    if (result.ok && result.data) {
       // Log skipped items - frontend should not retry these
-      if (result.skipped && result.skipped.length > 0) {
-        console.warn('[History] Sync skipped items (will not retry):', result.skipped);
+      if (result.data.skipped && result.data.skipped.length > 0) {
+        console.warn('[History] Sync skipped items (will not retry):', result.data.skipped);
         // Mark skipped items in local cache so we don't retry them
-        const skippedIds = new Set(result.skipped.map(s => s.client_id));
+        const skippedIds = new Set(result.data.skipped.map(s => s.client_id));
         historyCache = historyCache.map(item => {
           if (skippedIds.has(item.id)) {
-            return { ...item, _skipReason: result.skipped.find(s => s.client_id === item.id)?.reason };
+            return { ...item, _skipReason: result.data.skipped.find(s => s.client_id === item.id)?.reason };
           }
           return item;
         });
@@ -365,20 +359,17 @@ export function addHistoryItem(item) {
   saveHistoryCache(historyCache);
 
   // Save to database
-  fetch(`${BACKEND}/api/history/item`, {
+  apiFetch('/api/history/item', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(sanitized)
-  }).then(async resp => {
-    if (resp.ok) {
-      const result = await resp.json();
+    body: sanitized
+  }).then(result => {
+    if (result.ok && result.data) {
       // If item was skipped, mark it in local cache
-      if (result.skipped) {
-        console.warn('[History] Item skipped (will not retry):', result.skipped);
+      if (result.data.skipped) {
+        console.warn('[History] Item skipped (will not retry):', result.data.skipped);
         const idx = historyCache.findIndex(x => x.id === sanitized.id);
         if (idx !== -1) {
-          historyCache[idx] = { ...historyCache[idx], _skipReason: result.skipped.reason };
+          historyCache[idx] = { ...historyCache[idx], _skipReason: result.data.skipped.reason };
           saveHistoryCache(historyCache);
         }
       }
@@ -401,11 +392,9 @@ export function updateHistoryItem(jobId, updates = {}) {
     saveHistoryCache(historyCache);
 
     // Update in database
-    fetch(`${BACKEND}/api/history/item/${encodeURIComponent(jobId)}`, {
+    apiFetch(`/api/history/item/${encodeURIComponent(jobId)}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ ...updates, status: updates.status || 'finished' })
+      body: { ...updates, status: updates.status || 'finished' }
     }).catch(err => {
       console.warn('[History] Failed to update item in DB:', err.message);
     });
@@ -429,9 +418,8 @@ export function deleteHistoryItem(jobId, options = {}) {
 
   if (!options.skipRemote) {
     // Delete from database
-    fetch(`${BACKEND}/api/history/item/${encodeURIComponent(jobId)}`, {
-      method: 'DELETE',
-      credentials: 'include'
+    apiFetch(`/api/history/item/${encodeURIComponent(jobId)}`, {
+      method: 'DELETE'
     }).catch(err => {
       console.warn('[History] Failed to delete item from DB:', err.message);
     });
@@ -458,10 +446,9 @@ export async function forceRestoreFromDB() {
 
   // Load fresh from database
   try {
-    const resp = await fetch(`${BACKEND}/api/history`, { method: 'GET', credentials: 'include' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    historyCache = Array.isArray(data) ? data : [];
+    const result = await apiFetch('/api/history');
+    if (!result.ok) throw new Error(result.error || `HTTP ${result.status}`);
+    historyCache = Array.isArray(result.data) ? result.data : [];
     saveHistoryCache(historyCache);
     log('History restored from DB:', historyCache.length, 'items');
     return historyCache;
