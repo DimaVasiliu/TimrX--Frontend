@@ -11,12 +11,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <!-- Font Awesome (icons) -->
-<!-- Font Awesome 6 -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="hub.css" />
-    <link rel="stylesheet" href="burger.css" />
-    <link rel="stylesheet" href="hub.css" />
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <!-- CSS (flattened) -->
+  <link rel="stylesheet" href="hub.css" />
+  <link rel="stylesheet" href="burger.css" />
+  <link rel="stylesheet" href="media/hub.css" />
 
 </head>
 <body>
@@ -116,7 +116,7 @@
     <div class="hero" id="hero">
       <div class="kicker">TIMRX • 3D PRINT HUB</div>
       <h1>The Easiest Way to Create 3D Models</h1>
-      <p>Clean, minimal pipeline for makers: prompt to 3D, image to 3D, and text to image. Powered by your APIs (Meshy, OpenAI/Gemini) when you’re ready.</p>
+      <p>Clean, minimal pipeline for makers: prompt to 3D, image to 3D, and text to image. Powered by your APIs (Meshy, OpenAI/Gemini) when you're ready.</p>
 
       <!-- Slider of options -->
       <div class="hero-slider" id="slider">
@@ -134,10 +134,10 @@
         <!-- HERO FX confined to hero only -->
         <div class="hero-fx" aria-hidden="true">
             <div class="aurora"></div>
-        
+
             <!-- TOP-LEFT — DRAGON (zoom in/out, slight CW spin) -->
             <model-viewer
-                src="/TimrX/Frontend/img/dragon.glb"
+                src="dragon.glb"
                 class="floater floater-3d corner-tl motion-zoomZ"
                 style="width:220px;height:220px; --t:12s; --delay:-1.2s; --sFar:.62; --sNear:1.38; --zFar:-260px; --zNear:180px; --yaw:6deg;"
                 camera-controls="false"
@@ -149,7 +149,7 @@
                 exposure="1.05"
                 environment-image="neutral">
             </model-viewer>
-        
+
             <!-- TOP-RIGHT — FOX (zoom in/out, CCW spin) -->
             <model-viewer
                 src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb"
@@ -163,7 +163,7 @@
                 exposure="1.10"
                 environment-image="neutral">
             </model-viewer>
-        
+
             <!-- BOTTOM-LEFT — ASTRONAUT (rotate only, faster CW) -->
             <model-viewer
                 src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
@@ -210,7 +210,7 @@
                 Move your cursor over the white field. Click to pulse the force.
             </p>
             </div>
-        
+
             <div class="strip strip--light is-fx" id="usecases-strip">
             <div class="strip-fx" aria-hidden="true">
                 <canvas class="strip-canvas"></canvas>
@@ -235,7 +235,7 @@
         <h2>Powering <span class="grad">TimrX 3D</span></h2>
         <p class="muted">Trusted tech and creative platforms behind the magic.</p>
       </div>
-  
+
       <div class="logos-grid">
         <a href="https://threejs.org" class="logo" target="_blank" title="Three.js">
           <img src="https://raw.githubusercontent.com/mrdoob/three.js/dev/files/favicon.ico" alt="Three.js">
@@ -266,7 +266,7 @@
         <h2 class="grad">Smart Tools. Seamless Workflow.</h2>
         <p>Explore the creative power behind TimrX — where every tool feels like magic.</p>
       </div>
-  
+
       <!-- 1) Text → 3D -->
       <article class="feature-card">
         <div class="feature-body">
@@ -279,7 +279,7 @@
             <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/box.svg" alt="3D box icon">
         </div>
       </article>
-  
+
       <!-- 2) Image → 3D (reversed) -->
       <article class="feature-card reverse">
         <div class="feature-icon-tile">
@@ -291,7 +291,7 @@
           <a href="https://3d.timrx.live/3dprint.html?refresh=1" class="btn ghost">Learn More</a>
         </div>
       </article>
-  
+
       <!-- 3) Text → Image -->
       <article class="feature-card">
         <div class="feature-body">
@@ -303,7 +303,7 @@
           <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/wand-2.svg" alt="Magic wand icon">
         </div>
       </article>
-  
+
       <!-- 4) 3D → Video (reversed) -->
       <article class="feature-card reverse">
         <div class="feature-icon-tile">
@@ -325,7 +325,7 @@
         <h2 class="grad">Simple Pricing</h2>
         <p class="muted">Credits power model generation. Pricing includes infrastructure &amp; processing.</p>
       </div>
-  
+
       <div class="pricing-grid">
         <!-- Card 1 -->
         <div class="price-card">
@@ -391,7 +391,7 @@
           <button class="btn block ghost pricing-cta" type="button" data-plan="studio_600">Get Studio</button>
         </div>
       </div>
-  
+
       <p class="foot-note">1 model ≈ 30 credits (generation + refine).</p>
     </div>
   </section>
@@ -486,7 +486,7 @@
             </div>
             <span class="cc-cta">Join</span>
           </a>
-  
+
           <!-- Docs -->
           <a class="comm-card" href="blogs.html">
             <div class="cc-icon">
@@ -502,7 +502,7 @@
             </div>
             <span class="cc-cta">Read</span>
           </a>
-  
+
           <!-- Updates -->
           <a class="comm-card" href="blogs.html">
             <div class="cc-icon">
@@ -518,19 +518,19 @@
             <span class="cc-cta">Follow</span>
           </a>
         </div>
-  
+
         <!-- Right: copy -->
         <div class="comm-copy">
           <h2>Community & Resources</h2>
           <p class="muted">A lightweight hub for early users: share results, trade prompts, and help shape the roadmap. Docs cover setup, best practices, and pipeline examples.</p>
-  
+
           <div class="chips">
             <span class="chip">Prompt tips</span>
             <span class="chip">API snippets</span>
             <span class="chip">Showcase</span>
             <span class="chip">Bug reports</span>
           </div>
-  
+
           <div class="cta-row">
             <a class="btn" href="https://discord.com" target="_blank" rel="noreferrer">Join Discord</a>
             <a class="btn ghost" href="blogs.html">Open Docs</a>
@@ -686,6 +686,7 @@
       </div>
     </div>
 
+    <!-- Scripts (flattened) -->
     <script src="hub.js"></script>
     <script src="burger.js"></script>
     <script src="credits.js"></script>
