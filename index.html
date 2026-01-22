@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="burger.css" />
-<link rel="stylesheet" href="index.css" />
+<link rel="stylesheet" href="media/index.css" />
 </head>
 <body>
 
@@ -100,7 +100,7 @@
     
             <figure class="hero-photo">
                 <!-- Using a placeholder image for demonstration -->
-                <img class="portrait" src="dima.jpg" alt="Portrait of Dima Vasiliu" />
+                <img class="portrait" src="/TimrX/Frontend/img/dima.JPG" alt="Portrait of Dima Vasiliu" />
             </figure>
         </div>
     
@@ -164,7 +164,7 @@
                         <!-- Stats -->
                         <div class="about-stats" id="aboutStats">
                             <div class="stat-item">
-                                <div class="stat-number" data-target="2">0</div>
+                                <div class="stat-number" data-target="4" data-start-year="2022">0</div>
                                 <div class="stat-label">Years Exp.</div>
                             </div>
                             <div class="stat-divider"></div>
@@ -174,7 +174,7 @@
                             </div>
                             <div class="stat-divider"></div>
                             <div class="stat-item">
-                                <div class="stat-number" data-target="10">0</div>
+                                <div class="stat-number" data-target="16">0</div>
                                 <div class="stat-label">Skills</div>
                             </div>
                         </div>
@@ -194,7 +194,7 @@
                             <div class="info-card-icon">🛠️</div>
                             <div class="info-card-content">
                                 <h3>Tools I enjoy</h3>
-                                <p class="muted">HTML/CSS/JS, React, GSAP, Three.js, Flask, Meshy, Figma</p>
+                                <p class="muted">HTML/CSS/JS, TypeScript, React, GSAP, Three.js, Flask, Meshy, Figma, Blender, Git, Python, Node.js, PostgreSQL, WebGL</p>
                             </div>
                         </div>
 
@@ -996,35 +996,6 @@
           }
         })();
 
-        // Animate about stats counter
-        (function animateAboutStats() {
-          const statsEl = document.getElementById('aboutStats');
-          if (!statsEl) return;
-
-          let done = false;
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting && !done) {
-                done = true;
-
-                // Animate all stat numbers with data-target attribute
-                const statNumbers = statsEl.querySelectorAll('.stat-number[data-target]');
-
-                statNumbers.forEach((el, index) => {
-                  const target = parseInt(el.getAttribute('data-target'), 10);
-                  setTimeout(() => {
-                    animateCounter(el, target, 1500);
-                  }, index * 100);
-                });
-
-                observer.disconnect();
-              }
-            });
-          }, { threshold: 0.35 });
-
-          observer.observe(statsEl);
-        })();
-
         // Parallax effect on about section scroll
         (function aboutParallax() {
           const aboutSection = document.getElementById('about');
@@ -1216,7 +1187,8 @@
             }
 
             // Update stats counters
-            const statsNumbers = document.querySelectorAll('.stat-number');
+            const statsEl = document.getElementById('blogsStats');
+            const statsNumbers = statsEl ? statsEl.querySelectorAll('.stat-number') : [];
             if (statsNumbers.length >= 3) {
               const totalMinutes = posts.reduce((sum, post) => {
                 const minutes = post.minutes || Math.max(3, Math.round(((post.excerpt || '') + (post.title || '')).length / 60));
