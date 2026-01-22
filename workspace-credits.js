@@ -1391,3 +1391,58 @@ document.addEventListener('visibilitychange', () => {
     maybeRefreshOnVisibility();
   }
 });
+
+// ============================================================================
+// CROSS-TAB SYNC: Detect wallet cache changes from hub purchases
+// ============================================================================
+
+/**
+ * Listen for localStorage changes from other tabs.
+ * When hub completes a purchase and writes to timrx_last_wallet,
+ * this tab will detect it and refresh credits immediately.
+ */
+window.addEventListener('storage', (event) => {
+  // Only react to wallet cache changes
+  if (event.key !== 'timrx_last_wallet') return;
+
+  log('[Credits] Cross-tab storage event detected');
+
+  // Parse the new value
+  if (event.newValue) {
+    try {
+      const newCache = JSON.parse(event.newValue);
+      if (newCache && typeof newCache.available_credits === 'number') {
+        const newCredits = newCache.available_credits;
+        const currentCredits = creditsState.wallet.available;
+
+        log('[Credits] Cross-tab wallet update:', currentCredits, '→', newCredits);
+
+        // If credits increased (purchase in another tab), update immediately
+        if (newCredits > currentCredits) {
+          creditsState.wallet.available = newCredits;
+          creditsState.wallet.balance = newCredits;
+
+          // Update identity if provided
+          if (newCache.identity_id) {
+            creditsState.identityId = newCache.identity_id;
+          }
+
+          // Cache locally
+          cacheCreditsBalance(newCredits);
+
+          // Update UI immediately
+          updateCreditsUI();
+
+          log('[Credits] Cross-tab sync complete: credits now', newCredits);
+
+          // Also verify with server in background (non-blocking)
+          refreshCredits().catch(err => {
+            log('[Credits] Background refresh after cross-tab sync failed:', err.message);
+          });
+        }
+      }
+    } catch (e) {
+      log('[Credits] Failed to parse cross-tab storage value:', e.message);
+    }
+  }
+});
