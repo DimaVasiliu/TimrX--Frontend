@@ -4,24 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>3D Print Hub — TimrX</title>
+  <!-- Canonical redirect: ensure workspace runs on 3d.timrx.live -->
+  <script>
+    (function() {
+      var CANONICAL = '3d.timrx.live';
+      var host = window.location.hostname;
+      // Redirect if on wrong origin (e.g., timrx.live/3dprint instead of 3d.timrx.live/3dprint)
+      if (host !== CANONICAL && host !== 'localhost' && !host.startsWith('127.') && !host.startsWith('192.168.')) {
+        var url = new URL(window.location.href);
+        url.hostname = CANONICAL;
+        url.searchParams.set('refresh', '1'); // Force credits refresh after redirect
+        window.location.replace(url.toString());
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="burger.css">
-  <!-- CSS modules (flattened from 3dprint-modules/css/) -->
-  <link rel="stylesheet" href="variables.css">
-  <link rel="stylesheet" href="layout.css">
-  <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="workspace.css">
-  <link rel="stylesheet" href="viewer.css">
-  <link rel="stylesheet" href="history.css">
-  <link rel="stylesheet" href="pages.css">
-  <link rel="modulepreload" href="config.js">
-  <link rel="modulepreload" href="state.js">
-  <link rel="modulepreload" href="viewer.js">
-  <link rel="modulepreload" href="ui-utils.js">
-  <link rel="modulepreload" href="history.js">
-  <link rel="modulepreload" href="api.js">
-  <link rel="modulepreload" href="converter.js">
-  <link rel="modulepreload" href="workspace-credits.js">
+  <link rel="stylesheet" href="main.css">
   <script defer src="3dprint-app.js"></script>
 </head>
 <body class="print3d-page">
@@ -2044,8 +2043,15 @@
   <!-- Signal our workspace JS that Three is ready -->
   <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
 
-  <!-- JS modules (flattened from js/) - main.js is entry point, imports: -->
-  <!-- config.js, state.js, viewer.js, ui-utils.js, api.js, converter.js, workspace-credits.js -->
-  <script type="module" src="main.js"></script>
+  <!-- Workspace JS - load in dependency order (no ES modules) -->
+  <script src="config.js"></script>
+  <script src="state.js"></script>
+  <script src="ui-utils.js"></script>
+  <script src="viewer.js"></script>
+  <script src="history.js"></script>
+  <script src="workspace-credits.js"></script>
+  <script src="api.js"></script>
+  <script src="converter.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
