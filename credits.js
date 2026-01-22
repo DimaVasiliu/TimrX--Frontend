@@ -8,8 +8,112 @@
 
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+  const API_TIMEOUT_MS = 10000;
 
-  console.log('[Credits] Init - API_BASE:', API_BASE || '(same-origin)', 'hostname:', window.location.hostname);
+  console.log('[Credits] Init - API_BASE:', API_BASE, 'hostname:', window.location.hostname);
+  console.log('[Credits] Cross-origin API?', new URL(API_BASE).hostname !== window.location.hostname);
+
+  // ─────────────────────────────────────────────────────────────
+  // Centralized API Client - ALWAYS includes credentials for cross-origin cookies
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Check if response is HTML (wrong routing/redirect)
+   * Handles whitespace, case variations, and various HTML patterns
+   */
+  function isHtmlResponse(text, contentType) {
+    if (contentType && contentType.toLowerCase().includes('text/html')) return true;
+    if (!text) return false;
+
+    const trimmed = text.trim().toLowerCase();
+    if (trimmed.startsWith('<!doctype')) return true;
+    if (trimmed.startsWith('<html')) return true;
+    if (trimmed.startsWith('<head')) return true;
+    if (trimmed.startsWith('<body')) return true;
+    if (trimmed.startsWith('<') && !trimmed.startsWith('<[')) return true;
+
+    return false;
+  }
+
+  /**
+   * Centralized fetch with credentials, timeout, retry, and HTML detection.
+   * @param {string} url - Full URL or path (if path, API_BASE is prepended)
+   * @param {object} options - { method, body, timeout, retry }
+   * @returns {Promise<{ok: boolean, status: number, data?: any, error?: string}>}
+   */
+  async function apiFetch(url, options = {}) {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    const { method = 'GET', body, timeout = API_TIMEOUT_MS, retry = true, ...rest } = options;
+
+    const headers = { 'Accept': 'application/json', ...(rest.headers || {}) };
+    if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const fetchOptions = {
+      method,
+      credentials: 'include',
+      mode: 'cors',
+      headers,
+    };
+    if (body) {
+      fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+    }
+
+    const doFetch = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      try {
+        const response = await fetch(fullUrl, { ...fetchOptions, signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        const text = await response.text();
+        const contentType = response.headers.get('content-type') || '';
+
+        if (isHtmlResponse(text, contentType)) {
+          console.error(`[API] HTML response from ${fullUrl} - possible wrong routing`);
+          return { ok: false, status: response.status, error: `HTML response from ${fullUrl}`, isHtml: true };
+        }
+
+        let data;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (e) {
+          console.error(`[API] Invalid JSON from ${fullUrl}:`);
+          console.error(`[API]   Status: ${response.status}`);
+          console.error(`[API]   Content-Type: ${contentType}`);
+          console.error(`[API]   Response preview: ${text.slice(0, 300)}`);
+          return { ok: false, status: response.status, error: `Invalid JSON (${e.message})` };
+        }
+
+        return {
+          ok: response.ok,
+          status: response.status,
+          data,
+          error: response.ok ? null : (data?.error?.message || data?.message || `HTTP ${response.status}`),
+        };
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          return { ok: false, status: 0, error: 'Request timeout', isTimeout: true };
+        }
+        console.error(`[API] Fetch error for ${fullUrl}:`, err.message);
+        return { ok: false, status: 0, error: err.message };
+      }
+    };
+
+    let result = await doFetch();
+
+    // Retry once on timeout for GET /api/me
+    if (result.isTimeout && retry && method === 'GET' && fullUrl.includes('/api/me')) {
+      console.log(`[API] Retrying ${fullUrl} after timeout...`);
+      await new Promise(r => setTimeout(r, 500));
+      result = await doFetch();
+    }
+
+    return result;
+  }
 
   // Plan definitions (must match DB: starter_80, creator_300, studio_600)
   const PLANS = {
@@ -54,85 +158,67 @@
   // ─────────────────────────────────────────────────────────────
 
   /**
-   * Fetch wallet/session info from /api/me
-   * Response format:
-   * {
-   *   ok: true,
-   *   identity_id: "uuid",
-   *   email: null | "email@example.com",
-   *   balance_credits: 100,
-   *   reserved_credits: 0,
-   *   available_credits: 100,
-   *   ...
-   * }
+   * Fetch wallet/session info from /api/me using centralized API client
    */
   async function fetchWallet() {
-    const url = `${API_BASE}/api/me`;
-    console.log('[Credits] Fetching wallet from:', url);
+    console.log('[Credits] Fetching wallet from:', `${API_BASE}/api/me`);
 
-    try {
-      const res = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
+    const result = await apiFetch('/api/me');
 
-      if (!res.ok) {
-        // Log error details
-        const text = await res.text().catch(() => '');
-        console.warn('[Credits] Wallet fetch failed:', res.status, text.slice(0, 200));
-        updateCreditsDisplay(0, 0, 0);
-        return null;
+    if (!result.ok) {
+      console.warn('[Credits] Wallet fetch failed:', result.status, result.error);
+      updateCreditsDisplay(0, 0, 0);
+      return null;
+    }
+
+    const data = result.data;
+    console.log('[Credits] /api/me response:', {
+      ok: data.ok,
+      identity_id: data.identity_id,
+      balance_credits: data.balance_credits,
+      reserved_credits: data.reserved_credits,
+      available_credits: data.available_credits,
+      email: data.email
+    });
+
+    if (data.ok) {
+      // Read credits from top-level fields (new format)
+      walletBalance = data.balance_credits ?? data.wallet?.balance ?? 0;
+      walletReserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
+      walletAvailable = data.available_credits ?? data.wallet?.available ?? Math.max(0, walletBalance - walletReserved);
+      identityId = data.identity_id || null;
+
+      // Debug: Log identity info for session diagnostics
+      console.log('[Session Debug] identity_id:', identityId, 'credits:', walletAvailable, 'apiBase:', API_BASE);
+
+      // Expose identity for debugging (compare with workspace to verify same session)
+      window.__TIMRX_SESSION__ = {
+        identity_id: identityId,
+        credits: walletAvailable,
+        apiBase: API_BASE,
+        page: 'hub',
+        fetchedAt: new Date().toISOString(),
+      };
+
+      // Write to cross-page wallet cache (for instant display on workspace after purchase)
+      if (window.TimrXApi?.writeWalletCache && identityId) {
+        window.TimrXApi.writeWalletCache(identityId, walletAvailable);
       }
 
-      const data = await res.json();
-      console.log('[Credits] /api/me response:', {
-        ok: data.ok,
-        identity_id: data.identity_id,
-        balance_credits: data.balance_credits,
-        reserved_credits: data.reserved_credits,
-        available_credits: data.available_credits,
-        email: data.email
-      });
+      updateCreditsDisplay(walletAvailable, walletBalance, walletReserved);
 
-      if (data.ok) {
-        // Read credits from top-level fields (new format)
-        walletBalance = data.balance_credits ?? data.wallet?.balance ?? 0;
-        walletReserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
-        walletAvailable = data.available_credits ?? data.wallet?.available ?? Math.max(0, walletBalance - walletReserved);
-        identityId = data.identity_id || null;
-
-        // Debug: Log identity info for session diagnostics
-        console.log('[Session Debug] identity_id:', identityId, 'credits:', walletAvailable, 'apiBase:', API_BASE);
-
-        // Expose identity for debugging (compare with workspace to verify same session)
-        window.__TIMRX_SESSION__ = {
-          identity_id: identityId,
-          credits: walletAvailable,
-          apiBase: API_BASE,
-          page: 'hub',
-          fetchedAt: new Date().toISOString(),
-        };
-
-        updateCreditsDisplay(walletAvailable, walletBalance, walletReserved);
-
-        // Store email if available
-        if (data.email) {
-          userEmail = data.email;
-          if (checkoutEmail && !checkoutEmail.value) {
-            checkoutEmail.value = userEmail;
-            validateCheckoutForm();
-          }
+      // Store email if available
+      if (data.email) {
+        userEmail = data.email;
+        if (checkoutEmail && !checkoutEmail.value) {
+          checkoutEmail.value = userEmail;
+          validateCheckoutForm();
         }
-
-        return { balance: walletBalance, reserved: walletReserved, available: walletAvailable };
-      } else {
-        console.warn('[Credits] /api/me returned ok:false');
-        updateCreditsDisplay(0, 0, 0);
-        return null;
       }
-    } catch (err) {
-      console.error('[Credits] Failed to fetch wallet:', err);
+
+      return { balance: walletBalance, reserved: walletReserved, available: walletAvailable };
+    } else {
+      console.warn('[Credits] /api/me returned ok:false');
       updateCreditsDisplay(0, 0, 0);
       return null;
     }
@@ -396,27 +482,20 @@
     clearCheckoutError();
 
     try {
-      // Call POST /api/billing/checkout (Mollie)
-      // Redirect URL is configured server-side via PUBLIC_BASE_URL
-      const res = await fetch(`${API_BASE}/api/billing/checkout`, {
+      // Call POST /api/billing/checkout (Mollie) using centralized API client
+      const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
+        body: {
           plan_code: selectedPlan.id,  // plan_code matches DB: starter_80, creator_300, studio_600
           email: email
-        })
+        }
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || data.error?.message || `Checkout failed (${res.status})`);
+      if (!result.ok) {
+        throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
+      const data = result.data;
       if (data.checkout_url) {
         // Store payment_id for post-redirect confirmation
         if (data.payment_id) {
@@ -589,16 +668,13 @@
         console.log('[Credits] Confirming payment in background:', pendingPaymentId);
 
         try {
-          const confirmRes = await fetch(
-            `${API_BASE}/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`,
-            {
-              method: 'GET',
-              credentials: 'include',
-              headers: { 'Accept': 'application/json' }
-            }
-          );
+          const confirmResult = await apiFetch(`/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`);
 
-          const confirmData = await confirmRes.json();
+          if (!confirmResult.ok) {
+            throw new Error(confirmResult.error || 'Confirm failed');
+          }
+
+          const confirmData = confirmResult.data;
           console.log('[Credits] Confirm response:', confirmData);
 
           // Clear stored payment_id
@@ -609,6 +685,12 @@
             const wallet = await fetchWallet();
             const newBalance = wallet ? wallet.available : 0;
             console.log('[Credits] Credits confirmed! New balance:', newBalance);
+
+            // Write to cross-page cache for instant workspace display
+            if (window.TimrXApi?.writeWalletCache && identityId) {
+              window.TimrXApi.writeWalletCache(identityId, newBalance);
+            }
+
             openSuccessModal(newBalance, false); // Update modal to "success" state
             return;
           } else if (confirmData.status === 'failed' || confirmData.status === 'canceled' || confirmData.status === 'expired') {
@@ -642,6 +724,12 @@
         // If balance increased, update modal to success state
         if (newBalance > initialBalance) {
           console.log('[Credits] Balance updated! Updating modal to success');
+
+          // Write to cross-page cache for instant workspace display
+          if (window.TimrXApi?.writeWalletCache && identityId) {
+            window.TimrXApi.writeWalletCache(identityId, newBalance);
+          }
+
           openSuccessModal(newBalance, false); // Update to "success" state
           return;
         }
@@ -818,29 +906,25 @@
 
     try {
       const endpoint = isRestoreMode
-        ? `${API_BASE}/api/auth/restore/request`
-        : `${API_BASE}/api/auth/email/attach`;
+        ? '/api/auth/restore/request'
+        : '/api/auth/email/attach';
 
-      const res = await fetch(endpoint, {
+      const result = await apiFetch(endpoint, {
         method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email })
+        body: { email }
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!result.ok) {
+        const data = result.data || {};
         if (data.error?.code === 'RATE_LIMITED') {
           setSecureError(data.error.message || 'Please wait before requesting another code');
         } else {
-          setSecureError(data.error?.message || 'Failed to send code');
+          setSecureError(data.error?.message || result.error || 'Failed to send code');
         }
         return;
       }
+
+      const data = result.data;
 
       // Success - move to state 2
       pendingEmail = email;
@@ -883,30 +967,24 @@
 
     try {
       const endpoint = isRestoreMode
-        ? `${API_BASE}/api/auth/restore/redeem`
-        : `${API_BASE}/api/auth/email/verify`;
+        ? '/api/auth/restore/redeem'
+        : '/api/auth/email/verify';
 
-      const res = await fetch(endpoint, {
+      const result = await apiFetch(endpoint, {
         method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email: pendingEmail, code })
+        body: { email: pendingEmail, code }
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (data.error?.code === 'INVALID_CODE') {
+      if (!result.ok) {
+        const errorCode = result.data?.error?.code;
+        if (errorCode === 'INVALID_CODE') {
           setVerifyError('Invalid or expired code');
-        } else if (data.error?.code === 'TOO_MANY_ATTEMPTS') {
+        } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
           setVerifyError('Too many attempts. Please request a new code.');
-        } else if (data.error?.code === 'CODE_EXPIRED') {
+        } else if (errorCode === 'CODE_EXPIRED') {
           setVerifyError('Code has expired. Please request a new one.');
         } else {
-          setVerifyError(data.error?.message || 'Verification failed');
+          setVerifyError(result.error || 'Verification failed');
         }
         return;
       }
@@ -975,23 +1053,16 @@
 
     try {
       const endpoint = isRestoreMode
-        ? `${API_BASE}/api/auth/restore/request`
-        : `${API_BASE}/api/auth/email/attach`;
+        ? '/api/auth/restore/request'
+        : '/api/auth/email/attach';
 
-      const res = await fetch(endpoint, {
+      const result = await apiFetch(endpoint, {
         method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email: pendingEmail })
+        body: { email: pendingEmail }
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setVerifyError(data.error?.message || 'Failed to resend code');
+      if (!result.ok) {
+        setVerifyError(result.error || 'Failed to resend code');
         return;
       }
 
@@ -1098,18 +1169,11 @@
     // (userEmail is already set in originalFetchWallet)
     // We need to track email_verified separately
     try {
-      const meRes = await fetch(`${API_BASE}/api/me`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        if (meData.ok) {
-          userEmail = meData.email || '';
-          emailVerified = meData.email_verified || false;
-          updateSecureCreditsUI();
-        }
+      const meResult = await apiFetch('/api/me');
+      if (meResult.ok && meResult.data?.ok) {
+        userEmail = meResult.data.email || '';
+        emailVerified = meResult.data.email_verified || false;
+        updateSecureCreditsUI();
       }
     } catch (err) {
       console.warn('[Credits] Failed to update email state:', err);
@@ -1122,18 +1186,11 @@
   // This happens after the first fetchWallet call
   setTimeout(async () => {
     try {
-      const meRes = await fetch(`${API_BASE}/api/me`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        if (meData.ok) {
-          userEmail = meData.email || '';
-          emailVerified = meData.email_verified || false;
-          updateSecureCreditsUI();
-        }
+      const meResult = await apiFetch('/api/me');
+      if (meResult.ok && meResult.data?.ok) {
+        userEmail = meResult.data.email || '';
+        emailVerified = meResult.data.email_verified || false;
+        updateSecureCreditsUI();
       }
     } catch (err) {
       console.warn('[Credits] Failed to get email state:', err);
