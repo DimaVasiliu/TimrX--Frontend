@@ -81,101 +81,81 @@
    ------------------------------ */
    (function aboutMotion() {
     const hasGSAP = !!window.gsap && !!window.ScrollTrigger;
+    const aboutSection = document.getElementById('about');
+    if (!aboutSection) return;
     const title = document.getElementById('aboutTitle');
-    const plates = document.querySelectorAll('.about-plate');
-    const leftNote = document.querySelector('.about-left-note');
+    const plates = aboutSection.querySelectorAll('.about-plate');
+    const leftNote = aboutSection.querySelector('.about-left-note');
     const statsWrap = document.getElementById('aboutStats');
-    const statNums = statsWrap ? [...statsWrap.querySelectorAll('.stat-number')] : [];
-  
-    // helper: count up once (IO-based like blogs)
-    let counted = false;
-    function animateCounter(element, target, duration = 1000) {
-      const start = 0;
-      const increment = target / (duration / 16);
-      let current = start;
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-          current = target;
-          clearInterval(timer);
-        }
-        element.textContent = Math.floor(current).toLocaleString();
-      }, 16);
+    const yearBadge = statsWrap ? statsWrap.querySelector('.about-year') : null;
+    if (yearBadge) {
+      const startYear = Number(yearBadge.getAttribute('data-start-year') || 0);
+      if (startYear) {
+        const years = Math.max(1, new Date().getFullYear() - startYear);
+        yearBadge.textContent = `${years}Y+`;
+      }
     }
 
-    function runCounters() {
-      if (counted || !statNums.length) return;
-      counted = true;
-      const nowYear = new Date().getFullYear();
-      statNums.forEach((el, index) => {
-        const startYear = Number(el.getAttribute('data-start-year') || 0);
-        const baseTarget = Number(el.getAttribute('data-target') || 0);
-        const target = startYear ? Math.max(0, nowYear - startYear) : baseTarget;
-        el.setAttribute('data-target', String(target));
-        setTimeout(() => animateCounter(el, target, 1200), index * 120);
-      });
-    }
-
-    if (statsWrap) {
-      const statsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            runCounters();
-            statsObserver.disconnect();
-          }
-        });
-      }, { threshold: 0.5 });
-      statsObserver.observe(statsWrap);
-    }
   
     if (hasGSAP) {
       gsap.registerPlugin(ScrollTrigger);
-  
+
       // Title: from bottom (we keep initial CSS transform/opacity on .about-title)
-      gsap.to('.about-title', {
-        y: 0, opacity: 1,
-        ease: 'power3.out', duration: 0.9,
-        scrollTrigger: { trigger: '#about', start: 'top 78%' }
-      });
-  
+      if (title) {
+        gsap.to(title, {
+          y: 0, opacity: 1,
+          ease: 'power3.out', duration: 0.9,
+          scrollTrigger: { trigger: aboutSection, start: 'top 78%' }
+        });
+      }
+
       // Kicker fade-in
-      gsap.fromTo('.about-kicker', { autoAlpha: 0, y: 10 }, {
-        autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out',
-        scrollTrigger: { trigger: '#about', start: 'top 82%' }
-      });
-  
+      const aboutKicker = document.querySelector('.about-kicker');
+      if (aboutKicker) {
+        gsap.fromTo(aboutKicker, { autoAlpha: 0, y: 10 }, {
+          autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out',
+          scrollTrigger: { trigger: aboutSection, start: 'top 82%' }
+        });
+      }
+
       // Left note + right plates
-      gsap.fromTo(leftNote, { autoAlpha: 0, x: -16 }, {
-        autoAlpha: 0.5, x: 0, duration: 0.6, ease: 'power2.out',
-        scrollTrigger: { trigger: '#about', start: 'top 82%' }
-      });
-  
-      gsap.from(plates, {
-        autoAlpha: 0, x: 18, duration: 0.6, ease: 'power2.out', stagger: 0.08,
-        scrollTrigger: { trigger: '#about', start: 'top 78%' }
-      });
-  
-      // Stats (fade up + count)
-      gsap.from('#about .about-stats .stat-item', {
-        autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.out', stagger: 0.06,
-        scrollTrigger: {
-          trigger: statsWrap || '#about',
-          start: 'top 78%',
-        }
-      });
+      if (leftNote) {
+        gsap.fromTo(leftNote, { autoAlpha: 0, x: -16 }, {
+          autoAlpha: 0.5, x: 0, duration: 0.6, ease: 'power2.out',
+          scrollTrigger: { trigger: aboutSection, start: 'top 82%' }
+        });
+      }
+
+      if (plates.length) {
+        gsap.from(plates, {
+          autoAlpha: 0, x: 18, duration: 0.6, ease: 'power2.out', stagger: 0.08,
+          scrollTrigger: { trigger: aboutSection, start: 'top 78%' }
+        });
+      }
+
+      // Stats (fade up)
+      const statItems = statsWrap ? statsWrap.querySelectorAll('.stat-item') : [];
+      if (statItems.length) {
+        gsap.from(statItems, {
+          autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.out', stagger: 0.06,
+          scrollTrigger: {
+            trigger: statsWrap,
+            start: 'top 78%',
+          }
+        });
+      }
     } else {
-      // Fallback: minimal IO animations + counters
+      // Fallback: minimal IO animations
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => {
           if (e.isIntersecting) {
             title && (title.style.cssText += 'opacity:1;transform:translateY(0)');
             leftNote && (leftNote.style.cssText += 'opacity:.5;transform:none');
             plates.forEach(p => (p.style.opacity = 1, p.style.transform = 'none'));
-            runCounters();
           }
         });
       }, { rootMargin: '0px 0px -20% 0px', threshold: 0.1 });
-      document.getElementById('about') && io.observe(document.getElementById('about'));
+      io.observe(aboutSection);
     }
   })();
 
@@ -184,64 +164,84 @@
        ------------------------------ */
     (function blogsMotion() {
       if (!hasGSAP) return;
+      const blogs = document.getElementById('blogs');
+      if (!blogs) return;
 
       // Left column: Badge slides in from left with scale
-      gsap.set('.blogs-badge', { autoAlpha: 0, x: -20, scale: 0.9 });
-      gsap.to('.blogs-badge', {
-        autoAlpha: 1, x: 0, scale: 1,
-        duration: 0.6, ease: 'back.out(1.7)',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsBadge = blogs.querySelector('.blogs-badge');
+      if (blogsBadge) {
+        gsap.set(blogsBadge, { autoAlpha: 0, x: -20, scale: 0.9 });
+        gsap.to(blogsBadge, {
+          autoAlpha: 1, x: 0, scale: 1,
+          duration: 0.6, ease: 'back.out(1.7)',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Title fades up with powerful entrance
-      gsap.set('.blogs-title', { autoAlpha: 0, y: 30 });
-      gsap.to('.blogs-title', {
-        autoAlpha: 1, y: 0,
-        duration: 0.8, ease: 'power3.out',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsTitle = blogs.querySelector('.blogs-title');
+      if (blogsTitle) {
+        gsap.set(blogsTitle, { autoAlpha: 0, y: 30 });
+        gsap.to(blogsTitle, {
+          autoAlpha: 1, y: 0,
+          duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Subtitle fades in smoothly
-      gsap.set('.blogs-sub', { autoAlpha: 0, y: 20 });
-      gsap.to('.blogs-sub', {
-        autoAlpha: 1, y: 0,
-        duration: 0.7, delay: 0.2, ease: 'power2.out',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsSub = blogs.querySelector('.blogs-sub');
+      if (blogsSub) {
+        gsap.set(blogsSub, { autoAlpha: 0, y: 20 });
+        gsap.to(blogsSub, {
+          autoAlpha: 1, y: 0,
+          duration: 0.7, delay: 0.2, ease: 'power2.out',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Right column: Tagline slides from right with fade
-      gsap.set('.blogs-tagline', { autoAlpha: 0, x: 30 });
-      gsap.to('.blogs-tagline', {
-        autoAlpha: 1, x: 0,
-        duration: 0.6, delay: 0.3, ease: 'power2.out',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsTagline = blogs.querySelector('.blogs-tagline');
+      if (blogsTagline) {
+        gsap.set(blogsTagline, { autoAlpha: 0, x: 30 });
+        gsap.to(blogsTagline, {
+          autoAlpha: 1, x: 0,
+          duration: 0.6, delay: 0.3, ease: 'power2.out',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Stats box: scale + fade from right
-      gsap.set('.blogs-stats', { autoAlpha: 0, x: 40, scale: 0.95 });
-      gsap.to('.blogs-stats', {
-        autoAlpha: 1, x: 0, scale: 1,
-        duration: 0.7, delay: 0.45, ease: 'back.out(1.4)',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsStats = blogs.querySelector('.blogs-stats');
+      if (blogsStats) {
+        gsap.set(blogsStats, { autoAlpha: 0, x: 40, scale: 0.95 });
+        gsap.to(blogsStats, {
+          autoAlpha: 1, x: 0, scale: 1,
+          duration: 0.7, delay: 0.45, ease: 'back.out(1.4)',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Individual stat items cascade in
-      gsap.utils.toArray('.blogs-stats .stat-item').forEach((el, i) => {
+      gsap.utils.toArray(blogs.querySelectorAll('.blogs-stats .stat-item')).forEach((el, i) => {
         gsap.set(el, { autoAlpha: 0, x: 20 });
         gsap.to(el, {
           autoAlpha: 1, x: 0,
           duration: 0.5, delay: 0.6 + (i * 0.1), ease: 'power2.out',
-          scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
         });
       });
 
       // View all button bounces in
-      gsap.set('.blogs-view-all', { autoAlpha: 0, y: 20 });
-      gsap.to('.blogs-view-all', {
-        autoAlpha: 1, y: 0,
-        duration: 0.6, delay: 0.9, ease: 'back.out(2)',
-        scrollTrigger: { trigger: '#blogs', start: 'top 75%' }
-      });
+      const blogsViewAll = blogs.querySelector('.blogs-view-all');
+      if (blogsViewAll) {
+        gsap.set(blogsViewAll, { autoAlpha: 0, y: 20 });
+        gsap.to(blogsViewAll, {
+          autoAlpha: 1, y: 0,
+          duration: 0.6, delay: 0.9, ease: 'back.out(2)',
+          scrollTrigger: { trigger: blogs, start: 'top 75%' }
+        });
+      }
 
       // Blog cards: enhanced stagger with scale
       gsap.utils.toArray('.blog-card').forEach((el, i) => {
