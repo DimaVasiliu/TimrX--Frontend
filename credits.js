@@ -102,6 +102,18 @@
         walletAvailable = data.available_credits ?? data.wallet?.available ?? Math.max(0, walletBalance - walletReserved);
         identityId = data.identity_id || null;
 
+        // Debug: Log identity info for session diagnostics
+        console.log('[Session Debug] identity_id:', identityId, 'credits:', walletAvailable, 'apiBase:', API_BASE);
+
+        // Expose identity for debugging (compare with workspace to verify same session)
+        window.__TIMRX_SESSION__ = {
+          identity_id: identityId,
+          credits: walletAvailable,
+          apiBase: API_BASE,
+          page: 'hub',
+          fetchedAt: new Date().toISOString(),
+        };
+
         updateCreditsDisplay(walletAvailable, walletBalance, walletReserved);
 
         // Store email if available
