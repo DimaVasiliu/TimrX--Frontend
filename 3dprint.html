@@ -485,30 +485,6 @@
     window.TIMRX_3D_API_BASE = 'https://3d.timrx.live';
   </script>
 
-  <!-- Three.js Setup -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-    }
-  }
-  </script>
-
-  <script type="module">
-    import * as THREE_NS from 'three';
-    import { GLTFLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
-
-    const THREE_MUT = Object.assign({}, THREE_NS);
-    THREE_MUT.GLTFLoader      = GLTFLoader;
-    THREE_MUT.OrbitControls   = OrbitControls;
-    THREE_MUT.RoomEnvironment = RoomEnvironment;
-
-    window.THREE = THREE_MUT;
-    window.dispatchEvent(new Event('three-ready'));
-  </script>
-
   <script src="burger.js"></script>
 
   <!-- Dropdown Navigation Script -->
@@ -2044,14 +2020,14 @@
   <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
 
   <!-- Workspace JS - load in dependency order (no ES modules) -->
-  <script src="config.js"></script>
-  <script src="state.js"></script>
-  <script src="ui-utils.js"></script>
-  <script src="viewer.js"></script>
-  <script src="history.js"></script>
-  <script src="workspace-credits.js"></script>
-  <script src="api.js"></script>
-  <script src="converter.js"></script>
-  <script src="main.js"></script>
+  <script src="./config.js"></script>
+  <script src="./state.js"></script>
+  <script src="./ui-utils.js"></script>
+  <script src="./viewer.js"></script>
+  <script src="./history.js"></script>
+  <script src="./workspace-credits.js"></script>
+  <script src="./api.js"></script>
+  <script src="./converter.js"></script>
+  <script src="./main.js"></script>
 </body>
 </html>
