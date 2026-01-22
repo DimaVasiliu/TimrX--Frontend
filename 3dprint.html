@@ -6,7 +6,22 @@
   <title>3D Print Hub — TimrX</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="burger.css">
-  <link rel="stylesheet" href="main.css">
+  <!-- CSS modules (flattened from 3dprint-modules/css/) -->
+  <link rel="stylesheet" href="variables.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="workspace.css">
+  <link rel="stylesheet" href="viewer.css">
+  <link rel="stylesheet" href="history.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="modulepreload" href="config.js">
+  <link rel="modulepreload" href="state.js">
+  <link rel="modulepreload" href="viewer.js">
+  <link rel="modulepreload" href="ui-utils.js">
+  <link rel="modulepreload" href="history.js">
+  <link rel="modulepreload" href="api.js">
+  <link rel="modulepreload" href="converter.js">
+  <link rel="modulepreload" href="workspace-credits.js">
   <script defer src="3dprint-app.js"></script>
 </head>
 <body class="print3d-page">
@@ -2029,8 +2044,8 @@
   <!-- Signal our workspace JS that Three is ready -->
   <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
 
-  <!-- Clean modular architecture - ACTIVE -->
-  <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
+  <!-- JS modules (flattened from js/) - main.js is entry point, imports: -->
+  <!-- config.js, state.js, viewer.js, ui-utils.js, api.js, converter.js, workspace-credits.js -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
