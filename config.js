@@ -10,7 +10,9 @@
 export const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 export const CHAT_API = window.TIMRX_API_BASE || 'https://timrx-chat-1.onrender.com';
 
+// Debug: log API base and hostname at startup
 console.log('[Config] BACKEND:', BACKEND, 'hostname:', window.location.hostname);
+console.log('[Config] Cross-origin API?', new URL(BACKEND).hostname !== window.location.hostname);
 
 // ============================================================================
 // STORAGE KEYS
@@ -46,11 +48,13 @@ export function safe(el, fn) {
 }
 
 /**
- * POST JSON to a URL and return parsed response
+ * POST JSON to a URL and return parsed response.
+ * Always includes credentials for cross-origin cookie support.
  */
 export async function postJSON(url, data) {
   const response = await fetch(url, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
