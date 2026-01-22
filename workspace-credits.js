@@ -4,14 +4,13 @@
  * Fetches wallet balance and action costs on load, provides helpers for credit checks.
  */
 
-import { BACKEND, log } from './config.js';
+import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWalletCache, clearWalletCache } from './config.js';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const CREDITS_CACHE_KEY = 'timrx_credits_last';
-const FETCH_TIMEOUT_MS = 2000; // 2s timeout for credits fetch
 
 // ============================================================================
 // SINGLE-FLIGHT GUARD
@@ -111,20 +110,36 @@ function renderCachedCreditsEarly() {
     return;
   }
 
-  // Read cached balance from localStorage
-  const cached = localStorage.getItem(CREDITS_CACHE_KEY);
+  // Priority 1: Check cross-page wallet cache (fresher, from hub after purchase)
+  const walletCache = readWalletCache();
   let displayValue = '—';
+  let cacheSource = null;
 
-  if (cached !== null) {
-    const cachedBalance = parseInt(cached, 10);
-    if (Number.isFinite(cachedBalance) && cachedBalance >= 0) {
-      displayValue = cachedBalance.toLocaleString();
-      // Pre-populate state so hasCreditsFor() works with cached value
-      creditsState.wallet.available = cachedBalance;
-      creditsState.wallet.balance = cachedBalance;
-      log('[Credits] Early render with cached balance:', cachedBalance);
-    }
+  if (walletCache && typeof walletCache.available_credits === 'number') {
+    displayValue = walletCache.available_credits.toLocaleString();
+    // Pre-populate state so hasCreditsFor() works with cached value
+    creditsState.wallet.available = walletCache.available_credits;
+    creditsState.wallet.balance = walletCache.available_credits;
+    creditsState.identityId = walletCache.identity_id || null;
+    cacheSource = 'cross-page';
+    log('[Credits] Early render from cross-page cache:', walletCache.available_credits);
   } else {
+    // Priority 2: Fall back to local credits cache
+    const cached = localStorage.getItem(CREDITS_CACHE_KEY);
+    if (cached !== null) {
+      const cachedBalance = parseInt(cached, 10);
+      if (Number.isFinite(cachedBalance) && cachedBalance >= 0) {
+        displayValue = cachedBalance.toLocaleString();
+        // Pre-populate state so hasCreditsFor() works with cached value
+        creditsState.wallet.available = cachedBalance;
+        creditsState.wallet.balance = cachedBalance;
+        cacheSource = 'local';
+        log('[Credits] Early render from local cache:', cachedBalance);
+      }
+    }
+  }
+
+  if (!cacheSource) {
     log('[Credits] No cached balance, showing syncing placeholder');
   }
 
@@ -156,29 +171,6 @@ function cacheCreditsBalance(balance) {
 // ============================================================================
 
 /**
- * Fetch with timeout helper
- */
-async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return res;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error('Request timeout');
-    }
-    throw err;
-  }
-}
-
-/**
  * Fetch wallet balance from /api/me
  * Single-flight: returns existing promise if already in flight
  * Response format:
@@ -204,24 +196,20 @@ export async function fetchWallet() {
   // Create the fetch promise with single-flight tracking
   walletFetchInFlight = (async () => {
     try {
-      const res = await fetchWithTimeout(url, {
-        method: 'GET',
-        credentials: 'include',
+      const result = await apiFetch('/api/me', {
         cache: 'no-store',
         keepalive: true,
-        headers: { 'Accept': 'application/json' },
       });
 
-      if (!res.ok) {
+      if (!result.ok) {
         // Not authenticated or error - log details
-        const text = await res.text().catch(() => '');
-        log('[Credits] Wallet fetch failed:', res.status, text.slice(0, 200));
+        log('[Credits] Wallet fetch failed:', result.status, result.error);
         creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
         pendingRetry = true; // Schedule retry on window.focus
         return creditsState.wallet;
       }
 
-      const data = await res.json();
+      const data = result.data;
       log('[Credits] /api/me response:', {
         ok: data.ok,
         identity_id: data.identity_id,
@@ -235,28 +223,35 @@ export async function fetchWallet() {
         const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
         const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
         const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
+        const serverIdentityId = data.identity_id || null;
+
+        // Check if identity differs from cross-page cache - if so, discard cache
+        const walletCache = readWalletCache();
+        if (walletCache && walletCache.identity_id && serverIdentityId && walletCache.identity_id !== serverIdentityId) {
+          log('[Credits] Identity mismatch - clearing cross-page cache');
+          log('[Credits]   Cached:', walletCache.identity_id?.slice(0, 8) + '...');
+          log('[Credits]   Server:', serverIdentityId?.slice(0, 8) + '...');
+          clearWalletCache();
+        }
 
         creditsState.wallet = { balance, reserved, available };
-        creditsState.identityId = data.identity_id || null;
+        creditsState.identityId = serverIdentityId;
 
         // Cache balance for next page load (perceived performance)
         cacheCreditsBalance(available);
+
+        // Also write to cross-page wallet cache
+        if (serverIdentityId) {
+          writeWalletCache(serverIdentityId, available);
+        }
+
         pendingRetry = false; // Clear retry flag on success
         lastRefreshTime = Date.now(); // Track for visibility throttling
 
         log('[Credits] Wallet loaded:', creditsState.wallet);
 
-        // Debug: Log identity info for session diagnostics
-        console.log('[Session Debug] identity_id:', data.identity_id, 'credits:', available, 'apiBase:', BACKEND);
-
-        // Expose identity for debugging (compare with hub to verify same session)
-        window.__TIMRX_SESSION__ = {
-          identity_id: data.identity_id,
-          credits: available,
-          apiBase: BACKEND,
-          page: 'workspace',
-          fetchedAt: new Date().toISOString(),
-        };
+        // Update global session info for debugging
+        updateSessionInfo(data, 'workspace');
       } else {
         log('[Credits] /api/me returned ok:false');
         creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
@@ -284,19 +279,15 @@ export async function fetchWallet() {
  */
 export async function fetchActionCosts() {
   try {
-    const res = await fetch(`${BACKEND}/api/billing/action-costs`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
-    });
+    const result = await apiFetch('/api/billing/action-costs');
 
-    if (!res.ok) {
-      log('[Credits] Action costs fetch failed:', res.status);
+    if (!result.ok) {
+      log('[Credits] Action costs fetch failed:', result.status);
       creditsState.actionCosts = getDefaultActionCosts();
       return creditsState.actionCosts;
     }
 
-    const data = await res.json();
+    const data = result.data;
 
     // Handle array format from backend: { action_costs: [{ action_key, credits }, ...] }
     if (data.ok && Array.isArray(data.action_costs)) {
@@ -1215,22 +1206,19 @@ export async function refreshCredits() {
 
   refreshInFlight = (async () => {
     try {
-      const res = await fetchWithTimeout(url, {
-        method: 'GET',
-        credentials: 'include',
+      const result = await apiFetch('/api/credits/wallet', {
         cache: 'no-store',
         keepalive: true,
-        headers: { 'Accept': 'application/json' },
       });
 
-      if (!res.ok) {
-        log('[Credits] refreshCredits failed:', res.status);
+      if (!result.ok) {
+        log('[Credits] refreshCredits failed:', result.status, result.error);
         pendingRetry = true;
         // Fall back to /api/me
         return fetchWallet().then(() => creditsState.wallet.available);
       }
 
-      const data = await res.json();
+      const data = result.data;
       log('[Credits] /api/credits/wallet response:', data);
 
       if (data.ok && typeof data.credits_balance === 'number') {
@@ -1248,8 +1236,17 @@ export async function refreshCredits() {
 
         // Cache balance for next page load
         cacheCreditsBalance(serverBalance);
+
+        // Also write to cross-page wallet cache
+        if (data.identity_id) {
+          writeWalletCache(data.identity_id, serverBalance);
+        }
+
         pendingRetry = false; // Clear retry flag on success
         lastRefreshTime = Date.now(); // Track for visibility throttling
+
+        // Update global session info
+        updateSessionInfo({ ok: true, identity_id: data.identity_id, available_credits: serverBalance }, 'workspace');
 
         log('[Credits] Refreshed to server balance:', serverBalance);
         updateCreditsUI();
