@@ -1,0 +1,3310 @@
+/* ============================================================================
+   RESPONSIVE TWEAKS — Viewer Controls
+   - Tighten spacing on low-height viewports
+   - Slightly shrink controls to avoid overlap
+   ============================================================================ */
+
+@media (max-height: 800px) {
+  /* Reduce viewer height a bit to avoid crowding bottom */
+  .timrx-3dprint .ws-viewer {
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 1.5));
+  }
+
+  /* Smaller gear button + closer to edges */
+  .timrx-3dprint .viewer-gear {
+    --gear-size: 34px;
+    right: 12px;
+    bottom: 12px;
+    font-size: 16px;
+  }
+
+  /* Autorotate pill hugs gear closer and is more compact */
+  .timrx-3dprint .viewer-autorotate {
+    right: 12px;
+    bottom: calc(12px + var(--gear-size, 34px) + 8px);
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .timrx-3dprint .viewer-autorotate .label {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .timrx-3dprint .viewer-autorotate .toggle {
+    --w: 34px;
+    --h: 20px;
+    --knob: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* On narrow layouts, pull controls slightly inward */
+  .timrx-3dprint .viewer-gear {
+    right: 10px;
+  }
+
+  .timrx-3dprint .viewer-autorotate {
+    right: 10px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RIGHT PANEL · GENERATION HISTORY + PROGRESS
+   - Desktop: fixed-width column on the right
+   - Tablet/Mobile: slides into a full-width bottom panel
+   - Sticky compact progress pill while something is generating
+   ========================================================================== */
+
+/* === Shell / Layout ======================================================= */
+.timrx-3dprint .ws-right {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-self: flex-start;
+  height: calc(100vh - var(--ws-navH) - calc(var(--ws-gap) * 2));
+  min-height: 0;
+  padding-left: 4px;
+}
+
+/* Right panel headline */
+.timrx-3dprint .ws-right .pane-head {
+  margin: 0 0 8px;
+  padding-bottom: 0;
+}
+
+.timrx-3dprint .ws-right .pane-head h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-family: Inter, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  background: #ffffff;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.timrx-3dprint .ws-right .pane-head .pane-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #ffffff;
+  opacity: 0.7;
+}
+
+/* Hide legacy output card – we now only use history + compact progress */
+.timrx-3dprint .card.output {
+  display: none !important;
+}
+
+/* === Compact Progress – sticky pill above history ========================= */
+/* Container: shows *only* while a job is running */
+.timrx-3dprint .compact-progress {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(18, 18, 18, 0.8);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  padding: 12px 16px;
+  margin-bottom: 0;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.timrx-3dprint .compact-progress.hidden {
+  display: none;
+}
+
+/* Inner row: icon + label + percentage */
+.timrx-3dprint .compact-progress-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* Spinning refresh icon */
+.timrx-3dprint .compact-progress-icon {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  animation: spin 2s linear infinite;
+}
+
+/* Text row: "Generating..." + % */
+.timrx-3dprint .compact-progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.timrx-3dprint .compact-progress-text #compactProgressLabel {
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: -0.01em;
+}
+
+.timrx-3dprint .compact-progress-text #compactProgressPct {
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+  min-width: 35px;
+  text-align: right;
+  font-size: 11px;
+}
+
+/* Progress bar - minimal and clean */
+.timrx-3dprint .compact-progress-bar {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.timrx-3dprint .compact-progress-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  width: 0%;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+}
+
+/* === Legacy (centered empty state + old bar) kept for compatibility ======= */
+.timrx-3dprint .output-empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 12px;
+}
+
+.timrx-3dprint .output-empty svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.3;
+  margin-bottom: 10px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.timrx-3dprint .output-empty p {
+  margin: 0 0 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.timrx-3dprint .output-empty span {
+  font-size: 11.5px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Old full-width progress bar (hidden in UI but still updated by JS) */
+.timrx-3dprint .output-progress {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.timrx-3dprint .progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.timrx-3dprint .progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.timrx-3dprint .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0ea5e9, #8b5cf6);
+  transition: width 0.3s ease;
+  width: 0%;
+  box-shadow:
+    0 0 8px rgba(14, 165, 233, 0.6),
+    0 0 14px rgba(139, 92, 246, 0.5);
+}
+
+/* Result summary card (used if you bring it back later) */
+.timrx-3dprint .output-result {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.timrx-3dprint .result-thumbnail {
+  max-width: 280px;
+  height: auto;
+  border-radius: 10px;
+  margin: 0 auto 12px;
+  display: block;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.9),
+    0 0 26px rgba(59, 130, 246, 0.35);
+}
+
+.timrx-3dprint .result-status {
+  margin-bottom: 8px;
+}
+
+/* Stage pill */
+.timrx-3dprint .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: radial-gradient(circle at top left,
+              rgba(56, 189, 248, 0.15),
+              rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #e5e7eb;
+}
+
+/* === History Card Styling ================================================== */
+.timrx-3dprint .ws-right .card.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* History grid scroll */
+.timrx-3dprint .history-collections {
+  margin-top: 4px;
+  padding-right: 4px;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--ws-navH) - 240px);
+}
+
+/* Slim scrollbar inside history */
+.timrx-3dprint .history-collections::-webkit-scrollbar {
+  width: 6px;
+}
+.timrx-3dprint .history-collections::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 999px;
+}
+.timrx-3dprint .history-collections::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+}
+.timrx-3dprint .history-collections::-webkit-scrollbar-thumb:hover {
+  background: rgba(209, 213, 219, 0.7);
+}
+
+/* === Responsive Behaviour ================================================== */
+
+/* ≥ 1440px — slightly wider history column */
+@media (min-width: 1440px) {
+  .timrx-3dprint .ws-right {
+    max-width: 520px;
+  }
+}
+
+/* ≤ 1200px — right panel becomes bottom strip, full width */
+@media (max-width: 1200px) {
+  .timrx-3dprint .ws-right {
+    max-width: 100%;
+    grid-column: 1 / -1;
+    height: auto;
+    min-height: 0;
+    margin-top: 10px;
+  }
+
+  .timrx-3dprint .history-collections {
+    max-height: min(420px, 55vh);
+  }
+}
+
+/* ≤ 768px — tighter spacing on phones */
+@media (max-width: 768px) {
+  .timrx-3dprint .ws-right {
+    gap: 12px;
+    padding-left: 0;
+  }
+
+  .timrx-3dprint .ws-right .pane-head h2 {
+    font-size: 18px;
+  }
+
+  .timrx-3dprint .ws-right .pane-head .pane-sub {
+    font-size: 12px;
+  }
+
+  .timrx-3dprint .compact-progress {
+    padding: 9px 12px;
+  }
+
+  .timrx-3dprint .history-collections {
+    max-height: min(360px, 55vh);
+  }
+}
+
+/* Search bar + upload button container */
+.timrx-3dprint .history-search-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+/* Search field shell */
+.timrx-3dprint .history-search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(30, 30, 30, 0.6);
+  transition: border-color 0.2s ease;
+}
+
+.timrx-3dprint .history-search-field svg {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.timrx-3dprint .history-search-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 400;
+  outline: none;
+}
+
+.timrx-3dprint .history-search-field input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.timrx-3dprint .history-search-field:focus-within {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Upload button */
+.timrx-3dprint .history-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  background: #d4ff4f;
+  color: #0b0b0b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.timrx-3dprint .history-upload-btn:hover {
+  background: #e0ff70;
+}
+
+.timrx-3dprint .history-upload-btn:active {
+  background: #c8f240;
+}
+
+.timrx-3dprint .history-upload-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 640px) {
+  .timrx-3dprint .history-search-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .timrx-3dprint .history-upload-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* History Head */
+.timrx-3dprint .history-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.timrx-3dprint .history-head-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timrx-3dprint .history-head-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.timrx-3dprint .history-head-center {
+  flex: 1;
+}
+
+.timrx-3dprint .history-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease;
+}
+
+.timrx-3dprint .history-search-wrapper:focus-within {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.timrx-3dprint .history-search-wrapper .search-icon {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.timrx-3dprint .history-search-wrapper input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 400;
+  outline: none;
+}
+
+.timrx-3dprint .history-search-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.timrx-3dprint .history-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sort Button — Apple/Revolut Minimalist Style */
+.timrx-3dprint .history-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timrx-3dprint .history-sort-btn:hover {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.timrx-3dprint .history-sort-btn:active {
+  transform: scale(0.97);
+}
+
+.timrx-3dprint .history-sort-btn__label {
+  transition: opacity 0.15s ease;
+}
+
+.timrx-3dprint .history-sort-btn__arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ascending state - arrow points up */
+.timrx-3dprint .history-sort-btn.is-asc .history-sort-btn__arrow {
+  transform: rotate(180deg);
+}
+
+/* Hover effect on arrow */
+.timrx-3dprint .history-sort-btn:hover .history-sort-btn__arrow {
+  color: #0ea5e9;
+}
+
+/* Legacy class support */
+.timrx-3dprint .history-sort-arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timrx-3dprint .history-sort-btn.is-asc .history-sort-arrow {
+  transform: rotate(180deg);
+}
+
+/* Refresh DB Button — Apple/Revolut Minimalist Style */
+.timrx-3dprint .history-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timrx-3dprint .history-refresh-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.timrx-3dprint .history-refresh-btn:hover {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.timrx-3dprint .history-refresh-btn:hover svg {
+  transform: rotate(45deg);
+}
+
+.timrx-3dprint .history-refresh-btn:active {
+  transform: scale(0.95);
+  background: rgba(14, 165, 233, 0.15);
+}
+
+/* Loading/Spinning state */
+.timrx-3dprint .history-refresh-btn.is-loading {
+  pointer-events: none;
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.3);
+  color: #0ea5e9;
+}
+
+.timrx-3dprint .history-refresh-btn.is-loading svg {
+  animation: refreshSpin 0.8s linear infinite;
+}
+
+@keyframes refreshSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Success state - brief green flash */
+.timrx-3dprint .history-refresh-btn.is-success {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #22c55e;
+}
+
+.timrx-3dprint .history-head-row-bottom {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.timrx-3dprint .history-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+}
+
+/* Exit Button - subtle style */
+.timrx-3dprint .history-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timrx-3dprint .history-exit-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.timrx-3dprint .history-exit-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timrx-3dprint .history-exit-btn[hidden] {
+  display: none;
+}
+
+/* History Pager Footer - Centered & Minimal */
+.timrx-3dprint .history-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  margin-top: 6px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.timrx-3dprint .history-pager:hover {
+  opacity: 1;
+}
+
+/* Page Size Select - Compact Square */
+.timrx-3dprint .page-size-select {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  max-width: 30px !important;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 !important;
+  text-align: center;
+  text-align-last: center;
+  text-indent: 0px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: all 0.15s ease;
+}
+
+.timrx-3dprint .page-size-select:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.timrx-3dprint .page-size-select:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.timrx-3dprint .page-size-select option {
+  background: #1a1a1a;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Pagination Nav - Inline with Page Size */
+.timrx-3dprint .history-pager-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.timrx-3dprint .history-pager button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+  font-weight: 300;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.timrx-3dprint .history-pager button:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.timrx-3dprint .history-pager button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.timrx-3dprint .history-pager #historyPageLabel {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 6px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.timrx-3dprint .filter-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  outline: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.timrx-3dprint .filter-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
+.timrx-3dprint .filter-btn:hover {
+  color: #fff;
+  transform: scale(1.15);
+}
+
+.timrx-3dprint .filter-btn.active {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Bigger filter buttons in expanded mode */
+body.history-expanded .timrx-3dprint .filter-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Expand view button active when in expanded mode */
+body.history-expanded .timrx-3dprint .filter-btn[data-filter="all"] {
+  color: #fff;
+}
+
+/* Root workspace behaviour in expanded mode */
+body.history-expanded .timrx-3dprint {
+  overflow: visible;
+  min-height: 100vh;
+  padding-bottom: clamp(40px, 8vh, 120px);
+}
+
+/* ╔════════════════════════════════════════════════════════════════════╗
+   ║  EXPANDED HISTORY VIEW (Full-page gallery mode)                    ║
+   ║  Isolated styles - only active when body.history-expanded          ║
+   ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* Grid collapses into a single full-width column */
+body.history-expanded .timrx-3dprint .ws-grid {
+  grid-template-columns: 1fr;
+  height: auto;
+  min-height: 100vh;
+  align-content: flex-start;
+}
+
+/* Hide rail, left panel, and viewer in expanded mode */
+body.history-expanded .timrx-3dprint .ws-rail,
+body.history-expanded .timrx-3dprint .ws-left,
+body.history-expanded .timrx-3dprint .ws-viewer {
+  display: none;
+}
+
+/* History panel becomes full-width primary content */
+body.history-expanded .timrx-3dprint .ws-right {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  height: auto;
+  min-height: 0;
+}
+
+/* History grid becomes free-flowing, no internal scroll */
+body.history-expanded .timrx-3dprint .history .history-grid {
+  max-height: none;
+  overflow: visible;
+}
+
+/* Default pager hidden in expanded gallery mode */
+body.history-expanded .timrx-3dprint .history-pager {
+  display: none;
+}
+
+/* ╔════════════════════════════════════════════════════════════════════╗
+   ║  EXPANDED VIEW - Dedicated Thumbnail Classes                       ║
+   ║  These classes are separate from the regular history thumbnails    ║
+   ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* Grid container for expanded view thumbnails */
+.expanded-thumbs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 0;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+/* Staggered entrance animation for expanded thumbnails */
+@keyframes expandedThumbEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Individual expanded thumbnail */
+.expanded-thumb {
+  --expanded-thumb-size: 140px;
+  width: var(--expanded-thumb-size);
+  min-width: var(--expanded-thumb-size);
+  max-width: var(--expanded-thumb-size);
+  aspect-ratio: 1;
+  position: relative;
+  border-radius: 12px;
+  background: #0c1018;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  /* Staggered animation */
+  opacity: 0;
+  animation: expandedThumbEnter 0.4s ease-out forwards;
+}
+
+.expanded-thumb:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+.expanded-thumb:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+
+/* Image wrapper inside expanded thumbnail */
+.expanded-thumb__image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.expanded-thumb__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.expanded-thumb:hover .expanded-thumb__image img {
+  transform: scale(1.05);
+}
+
+/* Preview canvas/video for expanded thumbnail */
+.expanded-thumb__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* Status badge for expanded thumbnail */
+.expanded-thumb__status {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Loading state for expanded thumbnail */
+.expanded-thumb--loading {
+  background: linear-gradient(110deg, #0c1018 8%, #151c28 18%, #0c1018 33%);
+  background-size: 200% 100%;
+  animation: expandedThumbShimmer 1.5s infinite;
+}
+
+@keyframes expandedThumbShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Error state for expanded thumbnail */
+.expanded-thumb--error {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.expanded-thumb--error::after {
+  content: '!';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ef4444;
+}
+
+/* Section header in expanded view */
+.expanded-section {
+  margin-bottom: 24px;
+}
+
+.expanded-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.expanded-section__divider {
+  display: none;
+}
+
+/* Extra spacing between lineage groups */
+.expanded-thumb--group-start {
+  margin-left: 18px;
+}
+
+
+/* Modifiers for expanded thumbnail types */
+.expanded-thumb--image,
+.expanded-thumb--single,
+.expanded-thumb--bundle {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Image wrapper for expanded thumbnails */
+.expanded-thumb__image-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Status bar at the top of expanded thumbnail */
+.expanded-thumb__status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+  font-size: 9px;
+  color: rgba(255,255,255,0.7);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.expanded-thumb__status-date {
+  opacity: 0.8;
+}
+
+.expanded-thumb__stage {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #a855f7, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  z-index: 5;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+.expanded-thumb__name {
+  position: absolute;
+  bottom: 24px;
+  left: 6px;
+  right: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPANDED THUMB — Processing Overlay (Apple/Revolut Style)
+   Centered, clean, subtle glass effect
+   ═══════════════════════════════════════════════════════════════ */
+
+.expanded-thumb__processing,
+.expanded-thumb__processing--image {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: inherit;
+  z-index: 10;
+}
+
+.expanded-thumb__processing-label {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: none;
+}
+
+.expanded-thumb__processing-pct {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* Indeterminate state - subtle pulse */
+.expanded-thumb__processing-pct--indeterminate {
+  animation: processingPulse 1.5s ease-in-out infinite;
+}
+
+.expanded-thumb__processing-pct--indeterminate::before {
+  content: '...';
+  letter-spacing: 0.1em;
+}
+
+/* Progress bar - thin, elegant */
+.expanded-thumb__progress-bar {
+  width: 60%;
+  max-width: 120px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.expanded-thumb__progress-fill {
+  height: 100%;
+  background: #ffffff;
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
+}
+
+/* Indeterminate progress bar animation */
+.expanded-thumb__progress-bar--indeterminate .expanded-thumb__progress-fill {
+  width: 30%;
+  animation: indeterminateSlide 1.2s ease-in-out infinite;
+}
+
+/* Processing placeholder shimmer */
+.expanded-thumb__processing-placeholder {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, #0c1018 8%, #1a1f2e 18%, #0c1018 33%);
+  background-size: 200% 100%;
+  animation: processingShimmer 1.8s ease-in-out infinite;
+}
+
+/* Composite grid for variants in expanded thumbnail */
+.expanded-thumb__composite {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+
+.expanded-thumb__composite-tile {
+  position: relative;
+  overflow: hidden;
+  background: #0c1018;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.expanded-thumb__composite-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.expanded-thumb__composite-tile:hover img {
+  transform: scale(1.05);
+}
+
+.expanded-thumb__composite-tile.is-focused {
+  outline: 2px solid #0ea5e9;
+  outline-offset: -2px;
+}
+
+.expanded-thumb__composite-count {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  padding: 2px 6px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 4px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.9);
+  z-index: 3;
+}
+
+/* Error card for failed generation */
+.expanded-thumb__error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.expanded-thumb__error-icon {
+  font-size: 24px;
+  color: #ef4444;
+  margin-bottom: 4px;
+}
+
+.expanded-thumb__error-text {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Overlay indicator for expanded thumbnail - centered at bottom */
+.expanded-thumb__overlay {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.expanded-thumb__overlay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(214, 255, 60, 0.3);
+  color: var(--history-lime, #d6ff3c);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.expanded-thumb__overlay-pill svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Rig indicator for expanded thumbnail - top-right position */
+.expanded-thumb__rig {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  z-index: 6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.expanded-thumb__rig svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Preview button styling */
+.expanded-thumb__preview {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+}
+
+.expanded-thumb__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.expanded-thumb__preview:hover img {
+  transform: scale(1.05);
+}
+
+.expanded-thumb__preview.is-focused {
+  outline: 2px solid #0ea5e9;
+  outline-offset: -2px;
+}
+
+.expanded-thumb__preview.is-loading {
+  opacity: 0.7;
+}
+
+/* ╔════════════════════════════════════════════════════════════════════╗
+   ║  GENERATION HISTORY – Rows + Horizontal Thumbnails (Right Panel)  ║
+   ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* Main history container inside the right panel */
+.timrx-3dprint .history-card {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: calc(88vh - 240px);
+  min-width: 0;
+  overflow: auto;
+  position: relative;
+}
+
+/* Toolbar row: search + per-page selector */
+.timrx-3dprint .history-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+/* Search input */
+.timrx-3dprint .history-search {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timrx-3dprint .history-search::placeholder {
+  color: rgba(229, 231, 235, 0.65);
+}
+
+.timrx-3dprint .history-search:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
+}
+
+/* "Per page" label + select */
+.timrx-3dprint .per-page {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+
+/* ── Generation Rows ────────────────────────────────────────────────── */
+
+/* Each row = one generation group */
+.timrx-3dprint .generation-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  transition: background 0.18s ease;
+}
+
+.timrx-3dprint .generation-row:hover {
+  background: radial-gradient(
+    circle at top left,
+    rgba(148, 163, 184, 0.09),
+    transparent 55%
+  );
+}
+
+.timrx-3dprint .generation-row:last-child {
+  border-bottom: 0;
+}
+
+/* Left column: model name + "view all" link */
+.timrx-3dprint .row-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  max-width: 140px;
+  flex-shrink: 0;
+}
+
+.timrx-3dprint .model-name {
+  color: #ededed;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.timrx-3dprint .view-all-link {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.timrx-3dprint .view-all-link svg {
+  width: 12px;
+  height: 12px;
+}
+
+.timrx-3dprint .view-all-link:hover {
+  color: #0ea5e9;
+  transform: translateX(1px);
+}
+
+/* ── Horizontal Thumbnails Strip ────────────────────────────────────── */
+
+.timrx-3dprint .assets-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 2px;
+  margin: -2px;
+  flex: 1;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.timrx-3dprint .assets-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.timrx-3dprint .assets-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timrx-3dprint .assets-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+}
+
+.timrx-3dprint .assets-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Single asset card */
+.timrx-3dprint .asset-item {
+  position: relative;
+  flex-shrink: 0;
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* Thumbnail frame */
+.timrx-3dprint .asset-thumb-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 0%, #111827, #020617);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.4),
+    0 0 0 1px rgba(15, 23, 42, 0.7);
+}
+
+.timrx-3dprint .asset-thumb-wrapper:hover {
+  transform: translateY(-3px);
+  opacity: 0.96;
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.75),
+    0 0 0 1px rgba(56, 189, 248, 0.4);
+}
+
+/* Thumbnail image */
+.timrx-3dprint .asset-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Status Badge Overlay ───────────────────────────────────────────── */
+
+.timrx-3dprint .status-badge-thumb {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  text-align: center;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  border: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status color accents */
+.timrx-3dprint .status-badge-thumb.preview {
+  color: #60a5fa;
+}
+
+.timrx-3dprint .status-badge-thumb.refined {
+  color: #34d399;
+}
+
+.timrx-3dprint .status-badge-thumb.remeshed {
+  color: #a78bfa;
+}
+
+.timrx-3dprint .status-badge-thumb.textured {
+  color: #fbbf24;
+}
+
+/* ── Responsive Tweaks ─────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .timrx-3dprint .history-card {
+    max-height: none;
+  }
+
+  .timrx-3dprint .generation-row {
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .timrx-3dprint .row-header {
+    min-width: 120px;
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .timrx-3dprint .generation-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 0;
+  }
+
+  .timrx-3dprint .row-header {
+    max-width: 100%;
+  }
+
+  .timrx-3dprint .assets-container {
+    width: 100%;
+  }
+
+  .timrx-3dprint .asset-item,
+  .timrx-3dprint .asset-thumb-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Utility Classes */
+.timrx-3dprint .hidden {
+  display: none !important;
+}
+
+/* Header actions (icon button in viewer header) */
+.timrx-3dprint .pane-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timrx-3dprint .icon-btn {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ws-text);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.timrx-3dprint .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ╔════════════════════════════════════════════════════════════════════╗
+   ║  TABS, RESPONSIVE LAYOUT & MODAL (TimrX Workspace)                ║
+   ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* ──────────────────────────────────────────────────────────────────────
+   TAB CONTENT
+   Only fade in/out; visibility is controlled via .hidden / JS classes.
+   ──────────────────────────────────────────────────────────────────── */
+
+   .timrx-3dprint .tab-content {
+    transition: opacity 0.2s ease;
+  }
+  
+  .timrx-3dprint .tab-content.hidden {
+    display: none;
+  }
+  
+  /* Tab button hover refinements (base .tab-btn styles defined elsewhere) */
+  .timrx-3dprint .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  .timrx-3dprint .tab-btn.active:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+  }
+  
+  
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  RESPONSIVE LAYOUT FOR WORKSPACE GRID                             ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+  
+  /* Medium screens – hide right panel, keep sidebar + left + viewer */
+  @media (max-width: 1280px) {
+    .timrx-3dprint .ws-grid {
+      grid-template-columns: 56px 300px 1fr;
+    }
+  
+    .timrx-3dprint .ws-left {
+      width: 300px;
+    }
+  
+    /* Right panel collapses on medium screens – history moves into main flow */
+    .timrx-3dprint .ws-right {
+      display: none;
+    }
+  }
+  
+  /* Small screens – single column, tools rail becomes a horizontal bar */
+  @media (max-width: 980px) {
+    .timrx-3dprint .ws-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  
+    /* Icon rail turns into centered horizontal toolbar */
+    .timrx-3dprint .ws-rail {
+      flex-direction: row;
+      position: static;
+      justify-content: center;
+      padding: 12px 0;
+      padding-top: 12px;
+      gap: 12px;
+    }
+  
+    .timrx-3dprint .ws-left,
+    .timrx-3dprint .ws-viewer,
+    .timrx-3dprint .ws-right {
+      width: 100%;
+      position: static;
+    }
+  
+    .timrx-3dprint .ws-viewer,
+    .timrx-3dprint .ws-right {
+      height: auto;
+      min-height: 0;
+    }
+  
+    /* Right panel reappears stacked under viewer on mobile */
+    .timrx-3dprint .ws-right {
+      display: flex;
+      padding: 0 12px;
+    }
+  
+    /* Viewer gets a taller fixed height for better touch interaction */
+    .timrx-3dprint .viewer-wrap {
+      height: 60vh;
+    }
+  }
+  
+  
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  GENERIC MODAL (UPLOAD / SETTINGS / GLOBAL DIALOGS)               ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+  
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .modal.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Modal shell */
+  .modal-content {
+    width: 100%;
+    max-width: 500px;
+    padding: 24px;
+    border-radius: 20px;
+  
+    background: linear-gradient(135deg, #1a1a1a 0%, #151515 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+  
+  .modal.show .modal-content {
+    transform: scale(1);
+  }
+  
+  /* Header: title + close */
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+  
+  /* Close button */
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    color: #999;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .modal-close:hover {
+    background: rgba(255, 0, 0, 0.15);
+    border-color: rgba(255, 0, 0, 0.3);
+    color: #ff6b6b;
+  }
+  
+  .modal-close svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Body copy / form area */
+  .modal-body {
+    margin-bottom: 20px;
+  }
+  
+  /* Footer actions */
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  
+  /* Primary / secondary buttons (shared modal actions) */
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  /* Primary: gradient accent */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border: 0;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.35);
+  }
+  
+  /* Secondary: subtle glass outline */
+  .btn-secondary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+  }
+  
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════════╗
+   ║  UPLOAD MODAL – TimrX Custom Overlay                              ║
+   ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* Root overlay – sits on top of the generic .modal system */
+#uploadModal {
+  position: fixed;
+  inset: 0;
+  display: none !important;           /* Hidden by default – toggled via .open */
+  place-items: center;
+  z-index: 99999 !important;
+
+  background:
+    radial-gradient(
+      1200px 700px at 50% 10%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    rgba(0, 0, 0, 0.62);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  pointer-events: none;
+}
+
+/* Open state – click-through enabled, grid centering active */
+#uploadModal.open {
+  display: grid !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Modal shell for the upload dialog only */
+#uploadModal .modal-content {
+  position: relative;
+  width: min(640px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(0, 0, 0, 0)
+    ),
+    #0f0f0f;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 22px;
+
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  animation: modalPop 0.22s ease-out;
+  outline: none;
+}
+
+/* Pop-in animation when opening */
+@keyframes modalPop {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header – title + close icon */
+#uploadModal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#uploadModal .modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+/* Close button (X) */
+#uploadModal .modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#uploadModal .modal-close:hover {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff6b6b;
+}
+
+/* Body – stacked form fields */
+#uploadModal .modal-body {
+  margin-bottom: 16px;
+}
+
+#uploadModal .modal-body .form-field {
+  margin-bottom: 16px;
+}
+
+#uploadModal .modal-body .form-field:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer – primary / secondary actions aligned right */
+#uploadModal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#uploadModal .btn-primary,
+#uploadModal .btn-secondary {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary action – gradient accent */
+#uploadModal .btn-primary {
+  background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+  border: 0;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+
+#uploadModal .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.35);
+}
+
+/* Secondary action – subtle outline button */
+#uploadModal .btn-secondary {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+#uploadModal .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* When any modal is open, freeze page scroll */
+body.has-modal {
+  overflow: hidden;
+}
+
+
+
+
+
+
+/* ─────────────────────────────────────────────────────────
+   History Workspace — Enhanced Neon Dark Catalogue
+   Professional 3D asset manager with clean grid design
+   -------------------------------------------------------- */
+   .timrx-3dprint .history {
+    --history-panel-bg: #07090e;
+    --history-toolbar: #0a0e16;
+    --history-toolbar-alt: #080b12;
+    --history-line: rgba(255, 255, 255, 0.06);
+    --history-text: #e4e8f4;
+    --history-muted: rgba(228, 232, 244, 0.6);
+    --history-lime: #d6ff3c;
+    --history-highlight: #38bdf8;
+    --history-thumb-bg: #0c1018;
+    --history-thumb-border: rgba(255, 255, 255, 0.06);
+    --history-thumb-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --history-thumb-size: 90px;
+  }
+
+  
+  /* ═══════════════════════════════════════════════════════════════
+     1. SEARCH BAR ROW
+     Clean search with sort button, no extra background
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ═══════════════════════════════════════════════════════════════
+     2. VIEW / FILTER TOOLBAR
+     Transparent toolbar with icon-style controls
+     ═══════════════════════════════════════════════════════════════ */
+  
+  .timrx-3dprint .history-toolbar-side {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .timrx-3dprint .history-toolbar-side--left {
+    flex-wrap: wrap;
+  }
+  
+  .timrx-3dprint .history-toolbar-side--right {
+    flex-shrink: 0;
+  }
+  
+  /* Icon buttons (filters, layout toggles, etc.) */
+  .timrx-3dprint .history-toolbar-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  }
+  
+  .timrx-3dprint .history-toolbar-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .timrx-3dprint .history-toolbar-btn:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(148, 163, 184, 0.12);
+    transform: translateY(-1px);
+  }
+  
+  .timrx-3dprint .history-toolbar-btn.active {
+    color: var(--history-lime);
+    background: rgba(214, 255, 60, 0.12);
+  }
+  
+  /* Text-style button variant */
+  .timrx-3dprint .history-toolbar-btn--text {
+    width: auto;
+    padding: 0 12px;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  
+  /* Optional divider row under toolbar */
+  .timrx-3dprint .history-toolbar-divider {
+    display: block;
+    width: 100%;
+    height: 1px;
+    margin: 0;
+    background: var(--history-line);
+  }
+
+
+/* ===========================================================
+   HISTORY PANEL – GRID + THUMBNAILS
+   Scoped under .timrx-3dprint to avoid leaks
+   =========================================================== */
+
+/* Main container for generation rows */
+.history .history-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.history .history-grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.history .history-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history .history-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Each generation row */
+.timrx-3dprint .history-row {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  position: relative;
+}
+
+/* Separator line between rows */
+.timrx-3dprint .history-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.timrx-3dprint .history-row:last-child::after {
+  display: none;
+}
+
+/* Row meta info (date, etc) */
+.timrx-3dprint .history-row__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.timrx-3dprint .history-row__date {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Thumbnails container - horizontal, max 3 visible */
+.timrx-3dprint .history-row__thumbs {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+/* Hide thumbnails after the 3rd one */
+.timrx-3dprint .history-row__thumbs .history-thumb:nth-child(n+4) {
+  display: none;
+}
+
+/* When row is expanded, show all */
+.timrx-3dprint .history-row.expanded .history-row__thumbs .history-thumb:nth-child(n+4) {
+  display: flex;
+}
+
+/* "ALL N ASSETS" button */
+.timrx-3dprint .history-row__expand {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Show expand button when row has more than 3 items */
+.timrx-3dprint .history-row.has-more .history-row__expand {
+  display: flex;
+}
+
+/* Hide expand button when expanded */
+.timrx-3dprint .history-row.expanded .history-row__expand {
+  display: none;
+}
+
+.timrx-3dprint .history-row__expand:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Row divider - not used in this layout */
+.timrx-3dprint .history-row__divider {
+  display: none;
+}
+
+/* ===========================================================
+   THUMBNAIL CARD
+   =========================================================== */
+
+.timrx-3dprint .history-thumb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  flex: 1;
+  max-width: calc(33.333% - 6px);
+
+  border-radius: 10px;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Bundle/summary card (x4 etc.) */
+.timrx-3dprint .history-thumb--summary {
+  min-width: var(--history-thumb-size);
+}
+
+
+/* ===========================================================
+   THUMBNAIL IMAGE
+   =========================================================== */
+
+.history-thumb__image-wrapper {
+  position: relative;
+  width: var(--history-thumb-size);
+  height: var(--history-thumb-size);
+}
+
+/* Main square image */
+.history-thumb__image {
+  width: var(--history-thumb-size);
+  height: var(--history-thumb-size);
+  border-radius: var(--history-thumb-radius);
+  background: #0c1019;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  position: relative;
+
+  box-shadow: 0 8px 16px rgba(4, 7, 12, 0.65);
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+.history-thumb__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+/* Loading state (skeleton-ish) */
+.history-thumb__image.is-loading img {
+  opacity: 0.25;
+  filter: grayscale(0.6);
+}
+
+/* “x4” summary tile */
+.history-thumb__image.summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d0d7e3;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* Keyboard focus outline */
+.history-thumb__image:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline-offset: -1px;
+}
+
+/* ===========================================================
+   IMAGE THUMBNAIL VARIANT
+   Specific styles for image thumbnails to match 3D models
+   =========================================================== */
+
+.history-thumb--image .history-thumb__image-wrapper {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0a0e15 0%, #151922 100%);
+}
+
+.history-thumb--image .history-thumb__image {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: linear-gradient(135deg, #0f1319, #1a1f2b);
+  border: none;
+  box-shadow: none;
+}
+
+.history-thumb--image .history-thumb__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history-thumb--image .history-thumb__image.is-loading {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.08) 0%,
+    rgba(59, 130, 246, 0.08) 50%,
+    rgba(139, 92, 246, 0.08) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientShift 2s ease infinite;
+}
+
+.history-thumb--image .history-thumb__image.is-loading img {
+  opacity: 0.3;
+  filter: blur(2px) grayscale(0.8);
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Ensure name is always visible and properly positioned */
+.history-thumb--image .history-thumb__name {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 12px 6px 6px;
+  border-radius: 0 0 8px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+/* Active state for image thumbnails */
+.history-thumb--image.is-active {
+  border-color: rgba(139, 92, 246, 0.8);
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 92, 246, 0.3),
+    0 8px 16px rgba(139, 92, 246, 0.25);
+}
+
+/* Fresh animation for new images */
+.history-thumb--image.is-fresh {
+  animation: imageFreshPulse 1.5s ease-out;
+}
+
+@keyframes imageFreshPulse {
+  0% {
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+  100% {
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Menu button positioning for image thumbnails */
+.history-thumb--image .history-thumb__menu-wrap {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: auto;
+  z-index: 20;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+}
+
+.history-thumb--image .history-thumb__menu-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  z-index: 100;
+  position: relative;
+  pointer-events: auto;
+}
+
+.history-thumb--image .history-thumb__menu-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===========================================================
+   IMAGE GRID LAYOUT
+   Simple 3-column grid for image thumbnails (no collections)
+   =========================================================== */
+
+.history-image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+/* Adjust image thumbnail sizing in grid and add animation */
+.history-image-grid .history-thumb--image {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  animation: imageGridFadeIn 0.4s ease-out backwards;
+}
+
+/* Responsive: 2 columns on smaller screens */
+@media (max-width: 900px) {
+  .history-image-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive: 1 column on mobile */
+@media (max-width: 480px) {
+  .history-image-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* When history grid is in image mode */
+.history-grid--images {
+  padding: 0 8px;
+}
+
+.history-image-grid .history-thumb--image:nth-child(1) { animation-delay: 0.05s; }
+.history-image-grid .history-thumb--image:nth-child(2) { animation-delay: 0.1s; }
+.history-image-grid .history-thumb--image:nth-child(3) { animation-delay: 0.15s; }
+.history-image-grid .history-thumb--image:nth-child(4) { animation-delay: 0.2s; }
+.history-image-grid .history-thumb--image:nth-child(5) { animation-delay: 0.25s; }
+.history-image-grid .history-thumb--image:nth-child(6) { animation-delay: 0.3s; }
+.history-image-grid .history-thumb--image:nth-child(7) { animation-delay: 0.35s; }
+.history-image-grid .history-thumb--image:nth-child(8) { animation-delay: 0.4s; }
+.history-image-grid .history-thumb--image:nth-child(9) { animation-delay: 0.45s; }
+
+@keyframes imageGridFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. THUMBNAIL LAYOUT
+   Small square thumbnails, gallery-ready with subtle neon accents
+   ═══════════════════════════════════════════════════════════════ */
+
+  /* Collection row with divider */
+  .history-collection {
+    padding: 14px 0;
+    position: relative;
+  }
+
+  .history-collection::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    animation: dividerPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes dividerPulse {
+    0%, 100% {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    50% {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  .history-collection:last-child::after {
+    display: none;
+  }
+
+  /* Collection header with title and count */
+  .history-collection__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+  }
+
+  .history-collection__title {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
+  }
+
+  .history-collection__count {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: right;
+  }
+
+  .history-collection__count:hover {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Arrow animation */
+  .history-collection__arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    transform-origin: center;
+  }
+
+  .history-collection.is-expanded .history-collection__arrow {
+    transform: rotate(90deg);
+  }
+
+  .history-collection__counter {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 5px;
+    background: rgba(214, 255, 60, 0.15);
+    color: var(--history-lime);
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+   .history-collection__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  /* Extra thumbnails - hidden by default, shown when collection is expanded */
+  .history-collection__thumbs-extra {
+    display: none;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 0;
+  }
+
+  /* Show extra thumbs when collection is expanded */
+  .history-collection.is-expanded .history-collection__thumbs-extra {
+    display: flex;
+    animation: expandDown 0.3s ease-out;
+  }
+
+  @keyframes expandDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      margin-top: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+      margin-top: 10px;
+    }
+  }
+
+  .history-collection__thumbs--gallery {
+    flex-wrap: wrap;
+  }
+
+  .history-collection--gallery .history-collection__divider {
+    display: none;
+  }
+  
+  .history-thumb {
+    width: var(--history-thumb-size);
+    min-width: var(--history-thumb-size);
+    max-width: var(--history-thumb-size);
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 10px;
+    background: var(--history-thumb-bg);
+    border: 1px solid var(--history-thumb-border);
+    box-shadow: inset 0 0 12px rgba(16, 160, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .history-thumb__preview,
+  .history-thumb__composite {
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  
+  .history-thumb--skeleton {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  
+  /* Selected/Active state - subtle white border */
+  .history-thumb:focus-within,
+  .history-thumb.is-active {
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     5. LABELS & ICONS INSIDE THUMBNAILS
+     Status strip, multi-view, rig icon, menu & overlay pills
+     ═══════════════════════════════════════════════════════════════ */
+  
+  .history-thumb__status-bar {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  gap: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 4px 6px;
+  z-index: 5;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+
+  .history-thumb__status-label {
+    display: block;
+    font-weight: 700;
+    color: #d6ff3c;
+    line-height: 1.2;
+  }
+
+  .history-thumb__status-pct {
+    display: block;
+    font-weight: 700;
+    color: #d6ff3c;
+    line-height: 1.2;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     PROCESSING OVERLAY — Apple/Revolut Minimalist Style
+     Centered, clean, subtle glass effect
+     ═══════════════════════════════════════════════════════════════ */
+
+  .history-thumb__processing,
+  .history-thumb__processing--image {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-radius: inherit;
+    z-index: 10;
+  }
+
+  .history-thumb__processing-label {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: none;
+  }
+
+  .history-thumb__processing-pct {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  /* Indeterminate state - subtle pulse */
+  .history-thumb__processing-pct--indeterminate {
+    animation: processingPulse 1.5s ease-in-out infinite;
+  }
+
+  .history-thumb__processing-pct--indeterminate::before {
+    content: '...';
+    letter-spacing: 0.1em;
+  }
+
+  /* Progress bar - thin, elegant */
+  .history-thumb__progress-bar {
+    width: 60%;
+    max-width: 100px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .history-thumb__progress-fill {
+    height: 100%;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: width 0.3s ease-out;
+  }
+
+  /* Indeterminate progress bar animation */
+  .history-thumb__progress-bar--indeterminate .history-thumb__progress-fill {
+    width: 30%;
+    animation: indeterminateSlide 1.2s ease-in-out infinite;
+  }
+
+  @keyframes indeterminateSlide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+  }
+
+  @keyframes processingPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Processing placeholder shimmer */
+  .history-thumb__processing-placeholder {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(110deg, #0c1018 8%, #1a1f2e 18%, #0c1018 33%);
+    background-size: 200% 100%;
+    animation: processingShimmer 1.8s ease-in-out infinite;
+  }
+
+  @keyframes processingShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .history-thumb__placeholder {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(110deg, #0c1018 8%, #151c28 18%, #0c1018 33%);
+    background-size: 200% 100%;
+    animation: expandedThumbShimmer 1.4s infinite;
+  }
+
+  .history-thumb__status-date {
+    font-size: 10px;
+    font-weight: 500;
+    color: #ffffff;
+  }
+  
+  /* Canvas / preview area */
+.history-thumb__preview,
+.history-thumb__composite-tile {
+  position: absolute;
+  inset: 0;
+    border: none;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    cursor: pointer;
+  }
+  
+  .history-thumb__preview img,
+  .history-thumb__composite-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  .history-thumb__preview.is-focused,
+  .history-thumb__composite-tile.is-focused {
+    outline: 1px solid rgba(255, 255, 255, 0.5);
+    outline-offset: -1px;
+  }
+  
+  /* Loading shimmer using global @keyframes shimmer */
+  .history-thumb__preview.is-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.22),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+  
+  /* Multi-view composite (2x2) */
+  .history-thumb__composite {
+    position: absolute;
+    inset: 4px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 3px;
+  }
+  
+  .history-thumb__composite-tile {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .history-thumb__composite-count {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+  }
+  
+  /* Rig badge in top-right */
+  .history-thumb__rig {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 6;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+
+  .history-thumb__rig svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Stage badge in bottom-left */
+  .history-thumb__stage {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #a855f7, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    z-index: 5;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+    animation: refinedGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes refinedGlow {
+    0%, 100% {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 4px rgba(168, 85, 247, 0.4));
+    }
+    50% {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.6));
+    }
+  }
+
+  /* Bottom overlay pill (for variants/icons) */
+  .history-thumb__overlay {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    z-index: 5;
+  }
+  
+  .history-thumb__overlay-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(214, 255, 60, 0.3);
+    color: var(--history-lime);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  
+  .history-thumb__overlay-pill svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  /* Error thumbnail state */
+  .history-thumb__error-card {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 5, 5, 0.9);
+    color: #ff6b6b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 4px;
+  }
+  
+  .history-thumb__error-icon {
+    font-size: 16px;
+    opacity: 0.7;
+  }
+  
+  .history-thumb__error-text {
+    padding: 0 4px;
+  }
+
+/* ===========================================================
+   LABEL & BADGE OVERLAYS
+   =========================================================== */
+
+/* Top-left small label (e.g. "preview") */
+.history-thumb__label {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(4, 6, 12, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+/* Bottom-left badge (e.g. "Model", "Bundle") */
+.history-thumb__badge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(8, 10, 16, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+/* Fresh items: hide overlays/date chip until "settled" */
+.history-thumb.is-fresh .history-thumb__label,
+.history-thumb.is-fresh .history-thumb__badge,
+.history-thumb.is-fresh .history-thumb__date-chip {
+  opacity: 0 !important;
+}
+
+
+
