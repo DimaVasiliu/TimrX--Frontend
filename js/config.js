@@ -54,17 +54,49 @@ export function safe(el, fn) {
 /**
  * Default timeout for API requests (ms)
  */
-const API_TIMEOUT_MS = 10000;
+const API_TIMEOUT_MS = 12000;
 
 /**
- * Longer timeout for slower endpoints (ms)
+ * Endpoint-specific timeouts (ms) - Render cold starts can take 5-10s
  */
-const SLOW_ENDPOINT_TIMEOUT_MS = 15000;
+const ENDPOINT_TIMEOUTS = {
+  '/api/me': 20000,                    // 20s - called frequently, can be slow on cold start
+  '/api/auth/restore/redeem': 30000,   // 30s - critical auth flow, must not abort early
+  '/api/auth/email/verify': 25000,     // 25s - verification can be slow
+  '/api/auth/email/attach': 20000,     // 20s - email operations
+  '/api/auth/restore/request': 20000,  // 20s - code request
+  '/api/billing/confirm': 20000,       // 20s - payment confirmation
+  '/api/billing/checkout': 20000,      // 20s - checkout initiation
+};
 
 /**
- * Endpoints that need longer timeouts
+ * Fallback timeout for slow endpoints not in ENDPOINT_TIMEOUTS
  */
-const SLOW_ENDPOINTS = ['/api/me', '/api/billing/confirm', '/api/auth/email/attach', '/api/auth/email/verify', '/api/auth/restore'];
+const SLOW_ENDPOINT_TIMEOUT_MS = 20000;
+
+/**
+ * Pattern-based slow endpoints (if not in ENDPOINT_TIMEOUTS)
+ */
+const SLOW_ENDPOINT_PATTERNS = ['/api/auth/', '/api/billing/', '/api/me'];
+
+/**
+ * Get timeout for a specific endpoint
+ */
+function getEndpointTimeout(url) {
+  // Check exact matches first
+  for (const [endpoint, timeout] of Object.entries(ENDPOINT_TIMEOUTS)) {
+    if (url.includes(endpoint)) {
+      return timeout;
+    }
+  }
+  // Check pattern matches
+  for (const pattern of SLOW_ENDPOINT_PATTERNS) {
+    if (url.includes(pattern)) {
+      return SLOW_ENDPOINT_TIMEOUT_MS;
+    }
+  }
+  return API_TIMEOUT_MS;
+}
 
 /**
  * Endpoints that should retry with backoff on timeout (GET only)
@@ -74,7 +106,7 @@ const RETRY_ENDPOINTS = ['/api/me', '/api/credits/wallet'];
 /**
  * Retry delays in ms for progressive backoff
  */
-const RETRY_DELAYS = [0, 500, 1500];
+const RETRY_DELAYS = [0, 1000, 3000];
 
 /**
  * Check if response is HTML (wrong routing/redirect)
@@ -129,14 +161,13 @@ export async function apiFetch(url, options = {}) {
   // Prepend BACKEND if url is a relative path
   const fullUrl = url.startsWith('http') ? url : `${BACKEND}${url}`;
 
-  // Check if this is a slow endpoint that needs longer timeout
-  const isSlowEndpoint = SLOW_ENDPOINTS.some(ep => fullUrl.includes(ep));
-  const defaultTimeout = isSlowEndpoint ? SLOW_ENDPOINT_TIMEOUT_MS : API_TIMEOUT_MS;
+  // Get endpoint-specific timeout (handles cold start delays on Render)
+  const endpointTimeout = getEndpointTimeout(fullUrl);
 
   const {
     method = 'GET',
     body,
-    timeout = defaultTimeout,
+    timeout = endpointTimeout,
     retry = true,
     maxRetries = 3,
     ...rest
