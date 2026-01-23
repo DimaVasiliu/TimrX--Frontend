@@ -1264,34 +1264,46 @@ export async function refreshCredits() {
 
       if (data.ok && typeof data.credits_balance === 'number') {
         const serverBalance = data.credits_balance;
+        const serverReserved = data.reserved_credits || 0;
+        const serverAvailable = typeof data.available_credits === 'number'
+          ? data.available_credits
+          : Math.max(0, serverBalance - serverReserved);
 
-        // Clear all pending deductions - server is truth
+        // Server is truth - use server's available (accounts for backend reservations)
         creditsState.pendingDeductions = [];
-        creditsState.wallet.available = serverBalance;
         creditsState.wallet.balance = serverBalance;
+        creditsState.wallet.reserved = serverReserved;
+        creditsState.wallet.available = serverAvailable;
         creditsState.lastServerBalance = serverBalance;
+
+        // Clear local reservations if server has none (reconciliation)
+        if (serverReserved === 0) {
+          creditsState.reservations.clear();
+          creditsState.totalReserved = 0;
+        }
 
         if (data.identity_id) {
           creditsState.identityId = data.identity_id;
         }
 
-        // Cache balance for next page load
-        cacheCreditsBalance(serverBalance);
+        // Cache available for next page load (not raw balance)
+        cacheCreditsBalance(serverAvailable);
 
         // Also write to cross-page wallet cache
         if (data.identity_id) {
-          writeWalletCache(data.identity_id, serverBalance);
+          writeWalletCache(data.identity_id, serverAvailable);
         }
 
         pendingRetry = false; // Clear retry flag on success
         lastRefreshTime = Date.now(); // Track for visibility throttling
 
         // Update global session info
-        updateSessionInfo({ ok: true, identity_id: data.identity_id, available_credits: serverBalance }, 'workspace');
+        updateSessionInfo({ ok: true, identity_id: data.identity_id, available_credits: serverAvailable }, 'workspace');
 
-        log('[Credits] Refreshed to server balance:', serverBalance);
+        log('[Credits] Refreshed from server: balance=%d, reserved=%d, available=%d',
+            serverBalance, serverReserved, serverAvailable);
         updateCreditsUI();
-        return serverBalance;
+        return serverAvailable;
       }
 
       // Fallback to /api/me if response format unexpected
