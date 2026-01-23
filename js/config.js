@@ -57,9 +57,24 @@ export function safe(el, fn) {
 const API_TIMEOUT_MS = 10000;
 
 /**
- * Endpoints that should retry once on timeout
+ * Longer timeout for slower endpoints (ms)
+ */
+const SLOW_ENDPOINT_TIMEOUT_MS = 15000;
+
+/**
+ * Endpoints that need longer timeouts
+ */
+const SLOW_ENDPOINTS = ['/api/me', '/api/billing/confirm', '/api/auth/email/attach', '/api/auth/email/verify', '/api/auth/restore'];
+
+/**
+ * Endpoints that should retry with backoff on timeout (GET only)
  */
 const RETRY_ENDPOINTS = ['/api/me', '/api/credits/wallet'];
+
+/**
+ * Retry delays in ms for progressive backoff
+ */
+const RETRY_DELAYS = [0, 500, 1500];
 
 /**
  * Check if response is HTML (wrong routing/redirect)
@@ -114,11 +129,16 @@ export async function apiFetch(url, options = {}) {
   // Prepend BACKEND if url is a relative path
   const fullUrl = url.startsWith('http') ? url : `${BACKEND}${url}`;
 
+  // Check if this is a slow endpoint that needs longer timeout
+  const isSlowEndpoint = SLOW_ENDPOINTS.some(ep => fullUrl.includes(ep));
+  const defaultTimeout = isSlowEndpoint ? SLOW_ENDPOINT_TIMEOUT_MS : API_TIMEOUT_MS;
+
   const {
     method = 'GET',
     body,
-    timeout = API_TIMEOUT_MS,
+    timeout = defaultTimeout,
     retry = true,
+    maxRetries = 3,
     ...rest
   } = options;
 
@@ -208,19 +228,34 @@ export async function apiFetch(url, options = {}) {
     }
   };
 
+  // Determine if this endpoint supports retry
+  const canRetry = retry && method.toUpperCase() === 'GET' && RETRY_ENDPOINTS.some(ep => fullUrl.includes(ep));
+
   // First attempt
   let result = await doFetch();
+  let attemptCount = 1;
 
-  // Retry logic for specific GET endpoints on timeout
-  if (
+  // Retry logic with progressive backoff for specific GET endpoints on timeout
+  while (
     result.isTimeout &&
-    retry &&
-    method.toUpperCase() === 'GET' &&
-    RETRY_ENDPOINTS.some(ep => fullUrl.includes(ep))
+    canRetry &&
+    attemptCount < Math.min(maxRetries, RETRY_DELAYS.length)
   ) {
-    console.log(`[API] Retrying ${fullUrl} after timeout...`);
-    await new Promise(r => setTimeout(r, 500)); // Wait 500ms before retry
+    const delay = RETRY_DELAYS[attemptCount] || 1000;
+    console.log(`[API] Retry ${attemptCount}/${maxRetries - 1} for ${fullUrl} after ${delay}ms...`);
+
+    if (delay > 0) {
+      await new Promise(r => setTimeout(r, delay));
+    }
+
     result = await doFetch();
+    attemptCount++;
+
+    // If this attempt succeeded, clear the timeout flag so callers know it worked
+    if (result.ok) {
+      result.retriedSuccessfully = true;
+      console.log(`[API] Retry succeeded for ${fullUrl}`);
+    }
   }
 
   return result;
