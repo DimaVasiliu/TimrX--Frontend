@@ -795,6 +795,13 @@ function wireGallery() {
 window.addEventListener('DOMContentLoaded', () => {
   log('Initializing TimrX 3D Print Hub...');
 
+  // =========================================================================
+  // CREDITS: Initialize IMMEDIATELY - must not depend on Three.js
+  // =========================================================================
+  const creditsPromise = Credits.initCredits().catch(e => {
+    console.error('Credits init failed:', e);
+  });
+
   // Initialize converter tool
   try {
     Converter.init();
@@ -802,15 +809,9 @@ window.addEventListener('DOMContentLoaded', () => {
     console.error('Converter init failed:', e);
   }
 
-  // Wait for Three.js to be ready
+  // Wait for Three.js to be ready (credits already initializing above)
   onThreeReady(async () => {
     log('Three.js ready, initializing modules...');
-
-    // Start credits fetch FIRST and in parallel (don't block on it)
-    // The early render from localStorage already shows cached value immediately
-    const creditsPromise = Credits.initCredits().catch(e => {
-      console.error('Credits init failed:', e);
-    });
 
     // Initialize viewer
     try {
