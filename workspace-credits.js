@@ -378,8 +378,16 @@ function getDefaultActionCosts() {
 
 /**
  * Initialize credits - fetch wallet and action costs
+ * Idempotent: safe to call multiple times, will only run once
  */
 export async function initCredits() {
+  // Guard: already initialized
+  if (creditsState.loaded) {
+    log('[Credits] Already initialized, skipping...');
+    return;
+  }
+
+  // Guard: currently loading (prevent concurrent calls)
   if (creditsState.loading) {
     log('[Credits] Already loading, skipping...');
     return;
