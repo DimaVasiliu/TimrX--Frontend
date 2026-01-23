@@ -8,7 +8,25 @@
 
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
-  const API_TIMEOUT_MS = 10000;
+
+  // Endpoint-specific timeouts (ms) - Render cold starts can take 5-10s
+  const ENDPOINT_TIMEOUTS = {
+    '/api/me': 20000,                    // 20s
+    '/api/auth/restore/redeem': 30000,   // 30s - critical auth flow
+    '/api/auth/email/verify': 25000,     // 25s
+    '/api/auth/email/attach': 20000,     // 20s
+    '/api/auth/restore/request': 20000,  // 20s
+    '/api/billing/confirm': 20000,       // 20s
+    '/api/billing/checkout': 20000,      // 20s
+  };
+  const DEFAULT_TIMEOUT_MS = 15000;
+
+  function getEndpointTimeout(url) {
+    for (const [endpoint, timeout] of Object.entries(ENDPOINT_TIMEOUTS)) {
+      if (url.includes(endpoint)) return timeout;
+    }
+    return DEFAULT_TIMEOUT_MS;
+  }
 
   console.log('[Credits] Init - API_BASE:', API_BASE, 'hostname:', window.location.hostname);
   console.log('[Credits] Cross-origin API?', new URL(API_BASE).hostname !== window.location.hostname);
@@ -19,7 +37,6 @@
 
   /**
    * Check if response is HTML (wrong routing/redirect)
-   * Handles whitespace, case variations, and various HTML patterns
    */
   function isHtmlResponse(text, contentType) {
     if (contentType && contentType.toLowerCase().includes('text/html')) return true;
@@ -43,7 +60,8 @@
    */
   async function apiFetch(url, options = {}) {
     const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
-    const { method = 'GET', body, timeout = API_TIMEOUT_MS, retry = true, ...rest } = options;
+    const endpointTimeout = getEndpointTimeout(fullUrl);
+    const { method = 'GET', body, timeout = endpointTimeout, retry = true, ...rest } = options;
 
     const headers = { 'Accept': 'application/json', ...(rest.headers || {}) };
     if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
@@ -875,7 +893,7 @@
 
         try {
           const confirmResult = await apiFetch(`/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`, {
-            timeout: 15000  // Longer timeout for confirm
+            timeout: 20000  // Longer timeout for confirm
           });
 
           // Clear stored payment_id regardless of result
@@ -886,8 +904,26 @@
             console.log('[Credits] Confirm response:', confirmData);
 
             if (confirmData.ok && confirmData.credits_granted) {
-              // Credits were granted - refresh wallet (will broadcast event and update modal)
-              console.log('[Credits] Credits confirmed, refreshing wallet...');
+              // Credits were granted - USE BALANCE FROM CONFIRM RESPONSE if available
+              const newBalance = confirmData.available_credits ?? confirmData.balance_credits ?? null;
+
+              if (newBalance !== null && newBalance > initialBalance) {
+                // We have a valid balance from confirm response - update directly!
+                console.log('[Credits] Using balance from confirm response:', newBalance);
+                WalletStore.update({
+                  balance: confirmData.balance_credits ?? newBalance,
+                  reserved: confirmData.reserved_credits ?? 0,
+                  available: newBalance,
+                  identityId: confirmData.identity_id || identityId,
+                  email: confirmData.email || userEmail,
+                  emailVerified: confirmData.email_verified ?? emailVerified,
+                });
+                // Modal will auto-update via wallet event listener
+                return;
+              }
+
+              // Fallback: refresh wallet if confirm didn't include balance
+              console.log('[Credits] Credits confirmed but no balance in response, refreshing wallet...');
               await refreshCredits({ force: true, maxRetries: 3 });
               // Modal will auto-update via wallet event listener
               return;
@@ -1253,6 +1289,7 @@
 
   /**
    * Verify the entered code
+   * Includes timeout handling with retry for slow backend responses
    */
   async function verifyCode() {
     const code = verifyCodeInput?.value?.trim();
@@ -1270,38 +1307,135 @@
     verifyCodeBtn?.classList.add('loading');
     clearSecureMessages();
 
-    try {
-      const endpoint = isRestoreMode
-        ? '/api/auth/restore/redeem'
-        : '/api/auth/email/verify';
+    // Show progress message for long requests
+    setVerifyMessage('Verifying...');
 
-      const result = await apiFetch(endpoint, {
-        method: 'POST',
-        body: { email: pendingEmail, code }
-      });
+    const endpoint = isRestoreMode
+      ? '/api/auth/restore/redeem'
+      : '/api/auth/email/verify';
 
-      if (!result.ok) {
-        const errorCode = result.data?.error?.code;
-        if (errorCode === 'INVALID_CODE') {
-          setVerifyError('Invalid or expired code');
-        } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
-          setVerifyError('Too many attempts. Please request a new code.');
-        } else if (errorCode === 'CODE_EXPIRED') {
-          setVerifyError('Code has expired. Please request a new one.');
-        } else if (errorCode === 'EMAIL_IN_USE') {
-          // Email belongs to another identity - switch to restore mode
-          setVerifyError('This email is linked to another account. Switching to restore mode...');
-          // Auto-switch to restore mode and try again with the same code
-          isRestoreMode = true;
-          setTimeout(async () => {
-            clearSecureMessages();
-            const restoreResult = await apiFetch('/api/auth/restore/redeem', {
-              method: 'POST',
-              body: { email: pendingEmail, code },
-              timeout: 15000
-            });
-            if (restoreResult.ok) {
-              console.log('[Credits] Account restored successfully');
+    // Retry logic for timeout - backend may be slow but still processing
+    const maxAttempts = 2;
+    let lastResult = null;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (attempt > 0) {
+        console.log(`[Credits] Verify retry ${attempt}/${maxAttempts - 1}`);
+        setVerifyMessage('Still verifying, please wait...');
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      try {
+        const result = await apiFetch(endpoint, {
+          method: 'POST',
+          body: { email: pendingEmail, code }
+        });
+
+        lastResult = result;
+
+        // If not a timeout, break out of retry loop
+        if (!result.isTimeout) {
+          break;
+        }
+
+        console.log(`[Credits] Verify attempt ${attempt + 1} timed out, will retry`);
+      } catch (err) {
+        console.error(`[Credits] Verify attempt ${attempt + 1} error:`, err);
+        lastResult = { ok: false, error: err.message };
+        break;
+      }
+    }
+
+    const result = lastResult;
+
+    // Handle timeout after all retries
+    if (result?.isTimeout) {
+      console.log('[Credits] Verify timed out after retries, will check session');
+      setVerifyMessage('Verification taking longer than expected...');
+
+      // Check if verification succeeded by polling /api/me
+      try {
+        const meResult = await apiFetch('/api/me', { timeout: 10000 });
+        if (meResult.ok && meResult.data?.ok && meResult.data.email_verified && meResult.data.email === pendingEmail) {
+          // Verification succeeded in background!
+          console.log('[Credits] Verification confirmed via /api/me');
+          userEmail = pendingEmail;
+          emailVerified = true;
+          isRestoreMode = false;
+          WalletStore.update({
+            balance: meResult.data.balance_credits ?? 0,
+            reserved: meResult.data.reserved_credits ?? 0,
+            available: meResult.data.available_credits ?? 0,
+            identityId: meResult.data.identity_id,
+            email: meResult.data.email,
+            emailVerified: true,
+          });
+          if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+          showSecureState(3);
+          verifyCodeBtn?.classList.remove('loading');
+          return;
+        }
+      } catch (meErr) {
+        console.warn('[Credits] /api/me check failed:', meErr);
+      }
+
+      // Still timing out - show friendly error
+      setVerifyError('Verification is taking too long. Please try again in a moment.');
+      verifyCodeBtn?.classList.remove('loading');
+      return;
+    }
+
+    if (!result?.ok) {
+      const errorCode = result?.data?.error?.code;
+      if (errorCode === 'INVALID_CODE') {
+        setVerifyError('Invalid or expired code');
+      } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
+        setVerifyError('Too many attempts. Please request a new code.');
+      } else if (errorCode === 'CODE_EXPIRED') {
+        setVerifyError('Code has expired. Please request a new one.');
+      } else if (errorCode === 'EMAIL_IN_USE') {
+        // Email belongs to another identity - prompt before switching to restore mode
+        const currentCredits = walletAvailable || 0;
+        let shouldRestore = true;
+
+        if (currentCredits > 0 && !emailVerified) {
+          // Warn user about potential credit loss
+          shouldRestore = window.confirm(
+            `This email is linked to another account.\n\n` +
+            `You currently have ${currentCredits} credits on this device. ` +
+            `Restoring will switch you to the other account's credits.\n\n` +
+            `Do you want to restore the other account?`
+          );
+        }
+
+        if (!shouldRestore) {
+          setVerifyError('Restore cancelled. Your current credits are preserved.');
+          verifyCodeBtn?.classList.remove('loading');
+          return;
+        }
+
+        // Auto-switch to restore mode and try again with the same code
+        setVerifyError('This email is linked to another account. Switching to restore mode...');
+        isRestoreMode = true;
+        setTimeout(async () => {
+          clearSecureMessages();
+          setVerifyMessage('Restoring account...');
+          const restoreResult = await apiFetch('/api/auth/restore/redeem', {
+            method: 'POST',
+            body: { email: pendingEmail, code }
+          });
+          if (restoreResult.ok) {
+            console.log('[Credits] Account restored successfully');
+            userEmail = pendingEmail;
+            emailVerified = true;
+            isRestoreMode = false;
+            await fetchWallet();
+            if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+            showSecureState(3);
+          } else if (restoreResult.isTimeout) {
+            // Check /api/me for success
+            const meCheck = await apiFetch('/api/me', { timeout: 10000 });
+            if (meCheck.ok && meCheck.data?.ok && meCheck.data.email === pendingEmail) {
               userEmail = pendingEmail;
               emailVerified = true;
               isRestoreMode = false;
@@ -1309,36 +1443,37 @@
               if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
               showSecureState(3);
             } else {
-              setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
+              setVerifyError('Restore is taking too long. Please try again.');
             }
-            verifyCodeBtn?.classList.remove('loading');
-          }, 500);
-          return; // Don't remove loading state here - async handler will do it
-        } else {
-          setVerifyError(result.error || 'Verification failed');
-        }
-        return;
+          } else {
+            setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
+          }
+          verifyCodeBtn?.classList.remove('loading');
+        }, 500);
+        return; // Don't remove loading state here - async handler will do it
+      } else {
+        setVerifyError(result?.error || 'Verification failed');
       }
-
-      // Success!
-      console.log('[Credits] Email verified successfully');
-      userEmail = pendingEmail;
-      emailVerified = true;
-      isRestoreMode = false;
-
-      // Refresh wallet to get updated state (especially for restore)
-      await fetchWallet();
-
-      // Show verified state
-      if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-      showSecureState(3);
-
-    } catch (err) {
-      console.error('[Credits] verifyCode error:', err);
-      setVerifyError('Verification failed. Please try again.');
-    } finally {
       verifyCodeBtn?.classList.remove('loading');
+      return;
     }
+
+    // Success!
+    console.log('[Credits] Email verified successfully');
+    userEmail = pendingEmail;
+    emailVerified = true;
+    isRestoreMode = false;
+
+    // Clear any messages and show success briefly
+    clearSecureMessages();
+
+    // Refresh wallet to get updated state (especially for restore)
+    await fetchWallet();
+
+    // Show verified state
+    if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+    showSecureState(3);
+    verifyCodeBtn?.classList.remove('loading');
   }
 
   /**
@@ -1436,8 +1571,25 @@
 
   /**
    * Switch to restore mode for existing account
+   * Shows warning if user has credits on current identity
    */
   function showRestoreMode() {
+    // Check if user has credits on their current anonymous identity
+    const currentCredits = walletAvailable || 0;
+
+    if (currentCredits > 0 && !emailVerified) {
+      // Warn user about potential credit loss
+      const confirmRestore = window.confirm(
+        `You currently have ${currentCredits} credits on this device.\n\n` +
+        `If you restore a different account, you'll switch to that account's credits instead.\n\n` +
+        `Do you want to continue with restore?`
+      );
+
+      if (!confirmRestore) {
+        return; // User cancelled
+      }
+    }
+
     isRestoreMode = true;
     // Update UI to indicate restore mode
     if (secureState1) {
