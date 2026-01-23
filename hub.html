@@ -134,59 +134,64 @@
         <!-- HERO FX confined to hero only -->
         <div class="hero-fx" aria-hidden="true">
             <div class="aurora"></div>
-        
-            <!-- TOP-LEFT — DRAGON (zoom in/out, slight CW spin) -->
-            <model-viewer
-                src="/TimrX/Frontend/img/dragon.glb"
-                class="floater floater-3d corner-tl motion-zoomZ"
-                style="width:220px;height:220px; --t:12s; --delay:-1.2s; --sFar:.62; --sNear:1.38; --zFar:-260px; --zNear:180px; --yaw:6deg;"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="8deg"
-                shadow-intensity="0"
-                exposure="1.05"
-                environment-image="neutral">
-            </model-viewer>
-        
-            <!-- TOP-RIGHT — FOX (zoom in/out, CCW spin) -->
+
+            <!-- TOP RUNNER — FOX (sprints right-to-left, playful bounce) -->
             <model-viewer
                 src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb"
-                class="floater floater-3d corner-tr motion-zoomZ"
-                style="width:220px;height:220px; --t:13.5s; --delay:-3s; --sFar:.68; --sNear:1.32; --zFar:-240px; --zNear:170px; --yaw:-8deg;"
+                class="floater floater-3d runner runner-top runner-rtl"
+                style="--duration:18s; --delay:0s; --size:280px; --bounce-height:25px; --wobble:8deg;"
+                bounds="tight"
                 camera-controls="false"
                 disable-zoom
+                disable-tap
                 interaction-prompt="none"
                 auto-rotate
-                rotation-per-second="-10deg"
-                exposure="1.10"
-                environment-image="neutral">
-            </model-viewer>
-        
-            <!-- BOTTOM-LEFT — ASTRONAUT (rotate only, faster CW) -->
-            <model-viewer
-                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                class="floater floater-3d corner-bl"
-                style="width:220px;height:220px"
-                camera-controls="false"
-                disable-zoom
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="16deg"
+                rotation-per-second="45deg"
+                camera-orbit="30deg 70deg auto"
+                min-field-of-view="60deg"
+                max-field-of-view="90deg"
+                field-of-view="80deg"
+                exposure="1.3"
                 environment-image="neutral">
             </model-viewer>
 
-            <!-- BOTTOM-RIGHT — CESIUM MAN (rotate only, slower CCW) -->
+            <!-- MIDDLE FLOATER — ASTRONAUT (drifts left-to-right, zero-G tumble) -->
             <model-viewer
-                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
-                class="floater floater-3d corner-br"
-                style="width:220px;height:220px"
+                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                class="floater floater-3d runner runner-mid runner-ltr"
+                style="--duration:25s; --delay:-8s; --size:300px; --bounce-height:40px; --wobble:15deg;"
+                bounds="tight"
                 camera-controls="false"
                 disable-zoom
+                disable-tap
                 interaction-prompt="none"
                 auto-rotate
-                rotation-per-second="-20deg"
+                rotation-per-second="-25deg"
+                camera-orbit="0deg 75deg auto"
+                min-field-of-view="60deg"
+                max-field-of-view="90deg"
+                field-of-view="75deg"
+                exposure="1.2"
+                environment-image="neutral">
+            </model-viewer>
+
+            <!-- BOTTOM WALKER — CESIUM MAN (marches left-to-right, determined stride) -->
+            <model-viewer
+                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
+                class="floater floater-3d runner runner-bottom runner-ltr"
+                style="--duration:22s; --delay:-12s; --size:320px; --bounce-height:15px; --wobble:5deg;"
+                bounds="tight"
+                camera-controls="false"
+                disable-zoom
+                disable-tap
+                interaction-prompt="none"
+                auto-rotate
+                rotation-per-second="60deg"
+                camera-orbit="0deg 75deg auto"
+                min-field-of-view="60deg"
+                max-field-of-view="90deg"
+                field-of-view="80deg"
+                exposure="1.25"
                 environment-image="neutral">
             </model-viewer>
         </div>
