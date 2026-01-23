@@ -503,6 +503,11 @@
           console.log('[Credits] Stored payment_id for confirmation:', data.payment_id);
         }
 
+        // Store current balance BEFORE redirect - used to detect balance change on return
+        // This is critical: if webhook arrives before redirect, walletAvailable will already be updated
+        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+        console.log('[Credits] Stored pre-checkout balance:', walletAvailable || 0);
+
         // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
       } else {
@@ -655,13 +660,20 @@
     const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
 
     // IMMEDIATELY show success modal in "pending" state - don't wait for anything
-    const cachedBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
-    console.log('[Credits] Checkout success - showing immediate pending UI, cached balance:', cachedBalance);
-    openSuccessModal(cachedBalance, true); // Show "Payment received — applying credits…" immediately
+    // Use pre-checkout balance (stored before redirect) to detect changes, not current walletAvailable
+    // This fixes race condition where webhook arrives before redirect and walletAvailable is already updated
+    const preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
+    const displayBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
+    console.log('[Credits] Checkout success - pre-checkout balance:', preCheckoutBalance, 'current display:', displayBalance);
+    openSuccessModal(displayBalance, true); // Show "Payment received — applying credits…" immediately
 
     // Now run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
-      const initialBalance = cachedBalance;
+      // Use pre-checkout balance for comparison (critical for detecting webhook-granted credits)
+      const initialBalance = preCheckoutBalance;
+
+      // Clean up stored balance
+      sessionStorage.removeItem('timrx_pre_checkout_balance');
 
       // Step 1: If we have payment_id, call confirm endpoint
       if (pendingPaymentId) {
