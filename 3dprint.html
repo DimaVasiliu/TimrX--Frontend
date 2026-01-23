@@ -6,23 +6,8 @@
   <title>3D Print Hub — TimrX</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="burger.css">
-  <!-- CSS modules (flattened from 3dprint-modules/css/) -->
-  <link rel="stylesheet" href="variables.css">
-  <link rel="stylesheet" href="layout.css">
-  <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="workspace.css">
-  <link rel="stylesheet" href="viewer.css">
-  <link rel="stylesheet" href="history.css">
-  <link rel="stylesheet" href="pages.css">
-  <link rel="modulepreload" href="config.js">
-  <link rel="modulepreload" href="state.js">
-  <link rel="modulepreload" href="viewer.js">
-  <link rel="modulepreload" href="ui-utils.js">
-  <link rel="modulepreload" href="history.js">
-  <link rel="modulepreload" href="api.js">
-  <link rel="modulepreload" href="converter.js">
-  <link rel="modulepreload" href="workspace-credits.js">
-  <script defer src="3dprint-app.js"></script>
+  <link rel="stylesheet" href="3dprint-modules/main.css">
+  <script defer src="3dprint-modules/3dprint-app.js"></script>
 </head>
 <body class="print3d-page">
 
@@ -2032,8 +2017,20 @@
     </div>
   </div>
 
-  <!-- JS modules (flattened from js/) - main.js is entry point, imports: -->
-  <!-- config.js, state.js, viewer.js, ui-utils.js, api.js, converter.js, workspace-credits.js -->
-  <script type="module" src="main.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/STLLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/FBXLoader.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/GLTFExporter.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/OBJExporter.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/STLExporter.js"></script>
+  <!-- Signal our workspace JS that Three is ready -->
+  <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
+
+  <!-- Clean modular architecture - ACTIVE -->
+  <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>
