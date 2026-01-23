@@ -9,17 +9,18 @@
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 
-  // Endpoint-specific timeouts (ms) - Render cold starts can take 5-10s
+  // Endpoint-specific timeouts (ms) - Render cold starts can take 10-30s
+  // These are generous to handle worst-case cold start scenarios
   const ENDPOINT_TIMEOUTS = {
-    '/api/me': 20000,                    // 20s
-    '/api/auth/restore/redeem': 30000,   // 30s - critical auth flow
-    '/api/auth/email/verify': 25000,     // 25s
-    '/api/auth/email/attach': 20000,     // 20s
-    '/api/auth/restore/request': 20000,  // 20s
-    '/api/billing/confirm': 20000,       // 20s
-    '/api/billing/checkout': 20000,      // 20s
+    '/api/me': 25000,                    // 25s - called frequently, can be slow on cold start
+    '/api/auth/restore/redeem': 45000,   // 45s - critical auth flow, must not abort early
+    '/api/auth/email/verify': 40000,     // 40s - verification can be slow
+    '/api/auth/email/attach': 30000,     // 30s - email operations
+    '/api/auth/restore/request': 30000,  // 30s - code request (email sending can be slow)
+    '/api/billing/confirm': 25000,       // 25s - payment confirmation
+    '/api/billing/checkout': 25000,      // 25s - checkout initiation
   };
-  const DEFAULT_TIMEOUT_MS = 15000;
+  const DEFAULT_TIMEOUT_MS = 20000;
 
   function getEndpointTimeout(url) {
     for (const [endpoint, timeout] of Object.entries(ENDPOINT_TIMEOUTS)) {
@@ -1289,7 +1290,7 @@
 
   /**
    * Verify the entered code
-   * Includes timeout handling with retry for slow backend responses
+   * Includes robust timeout handling with retry and background polling
    */
   async function verifyCode() {
     const code = verifyCodeInput?.value?.trim();
@@ -1305,7 +1306,7 @@
     }
 
     verifyCodeBtn?.classList.add('loading');
-    clearSecureMessages();
+    clearSecureMessages();  // Reset error state before new request
 
     // Show progress message for long requests
     setVerifyMessage('Verifying...');
@@ -1315,14 +1316,15 @@
       : '/api/auth/email/verify';
 
     // Retry logic for timeout - backend may be slow but still processing
-    const maxAttempts = 2;
+    const maxAttempts = 3;
     let lastResult = null;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (attempt > 0) {
         console.log(`[Credits] Verify retry ${attempt}/${maxAttempts - 1}`);
-        setVerifyMessage('Still verifying, please wait...');
-        await new Promise(r => setTimeout(r, 1000));
+        clearSecureMessages();  // Clear previous error before retry
+        setVerifyMessage(`Still verifying (attempt ${attempt + 1})...`);
+        await new Promise(r => setTimeout(r, 2000));  // Wait longer between retries
       }
 
       try {
@@ -1348,39 +1350,50 @@
 
     const result = lastResult;
 
-    // Handle timeout after all retries
+    // Handle timeout after all retries - poll /api/me multiple times to detect eventual success
     if (result?.isTimeout) {
-      console.log('[Credits] Verify timed out after retries, will check session');
-      setVerifyMessage('Verification taking longer than expected...');
+      console.log('[Credits] Verify timed out after retries, will poll for success');
+      setVerifyMessage('Verification taking longer than expected, checking status...');
 
-      // Check if verification succeeded by polling /api/me
-      try {
-        const meResult = await apiFetch('/api/me', { timeout: 10000 });
-        if (meResult.ok && meResult.data?.ok && meResult.data.email_verified && meResult.data.email === pendingEmail) {
-          // Verification succeeded in background!
-          console.log('[Credits] Verification confirmed via /api/me');
-          userEmail = pendingEmail;
-          emailVerified = true;
-          isRestoreMode = false;
-          WalletStore.update({
-            balance: meResult.data.balance_credits ?? 0,
-            reserved: meResult.data.reserved_credits ?? 0,
-            available: meResult.data.available_credits ?? 0,
-            identityId: meResult.data.identity_id,
-            email: meResult.data.email,
-            emailVerified: true,
-          });
-          if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-          showSecureState(3);
-          verifyCodeBtn?.classList.remove('loading');
-          return;
+      // Poll /api/me multiple times to detect eventual success
+      const pollMaxAttempts = 5;
+      const pollInterval = 3000;  // 3 seconds between polls
+
+      for (let pollAttempt = 0; pollAttempt < pollMaxAttempts; pollAttempt++) {
+        if (pollAttempt > 0) {
+          await new Promise(r => setTimeout(r, pollInterval));
+          setVerifyMessage(`Checking verification status (${pollAttempt + 1}/${pollMaxAttempts})...`);
         }
-      } catch (meErr) {
-        console.warn('[Credits] /api/me check failed:', meErr);
+
+        try {
+          const meResult = await apiFetch('/api/me', { timeout: 15000 });
+          if (meResult.ok && meResult.data?.ok && meResult.data.email_verified && meResult.data.email === pendingEmail) {
+            // Verification succeeded in background!
+            console.log('[Credits] Verification confirmed via /api/me poll');
+            clearSecureMessages();  // Clear any error messages
+            userEmail = pendingEmail;
+            emailVerified = true;
+            isRestoreMode = false;
+            WalletStore.update({
+              balance: meResult.data.balance_credits ?? 0,
+              reserved: meResult.data.reserved_credits ?? 0,
+              available: meResult.data.available_credits ?? 0,
+              identityId: meResult.data.identity_id,
+              email: meResult.data.email,
+              emailVerified: true,
+            });
+            if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+            showSecureState(3);
+            verifyCodeBtn?.classList.remove('loading');
+            return;
+          }
+        } catch (meErr) {
+          console.warn(`[Credits] /api/me poll ${pollAttempt + 1} failed:`, meErr);
+        }
       }
 
-      // Still timing out - show friendly error
-      setVerifyError('Verification is taking too long. Please try again in a moment.');
+      // Still not verified after polling - show friendly error with retry suggestion
+      setVerifyError('Verification is taking too long. Your code may still be processing. Please wait a moment and click Verify again.');
       verifyCodeBtn?.classList.remove('loading');
       return;
     }
@@ -1415,17 +1428,17 @@
         }
 
         // Auto-switch to restore mode and try again with the same code
-        setVerifyError('This email is linked to another account. Switching to restore mode...');
+        clearSecureMessages();
+        setVerifyMessage('This email is linked to another account. Restoring...');
         isRestoreMode = true;
         setTimeout(async () => {
-          clearSecureMessages();
-          setVerifyMessage('Restoring account...');
           const restoreResult = await apiFetch('/api/auth/restore/redeem', {
             method: 'POST',
             body: { email: pendingEmail, code }
           });
           if (restoreResult.ok) {
             console.log('[Credits] Account restored successfully');
+            clearSecureMessages();
             userEmail = pendingEmail;
             emailVerified = true;
             isRestoreMode = false;
@@ -1433,18 +1446,34 @@
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
           } else if (restoreResult.isTimeout) {
-            // Check /api/me for success
-            const meCheck = await apiFetch('/api/me', { timeout: 10000 });
-            if (meCheck.ok && meCheck.data?.ok && meCheck.data.email === pendingEmail) {
-              userEmail = pendingEmail;
-              emailVerified = true;
-              isRestoreMode = false;
-              await fetchWallet();
-              if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-              showSecureState(3);
-            } else {
-              setVerifyError('Restore is taking too long. Please try again.');
+            // Poll /api/me multiple times for eventual success
+            setVerifyMessage('Restore taking longer, checking status...');
+            const pollMaxAttempts = 4;
+            const pollInterval = 3000;
+
+            for (let pollAttempt = 0; pollAttempt < pollMaxAttempts; pollAttempt++) {
+              if (pollAttempt > 0) {
+                await new Promise(r => setTimeout(r, pollInterval));
+              }
+              try {
+                const meCheck = await apiFetch('/api/me', { timeout: 15000 });
+                if (meCheck.ok && meCheck.data?.ok && meCheck.data.email === pendingEmail) {
+                  console.log('[Credits] Restore confirmed via /api/me poll');
+                  clearSecureMessages();
+                  userEmail = pendingEmail;
+                  emailVerified = true;
+                  isRestoreMode = false;
+                  await fetchWallet();
+                  if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+                  showSecureState(3);
+                  verifyCodeBtn?.classList.remove('loading');
+                  return;
+                }
+              } catch (meErr) {
+                console.warn(`[Credits] /api/me poll ${pollAttempt + 1} failed:`, meErr);
+              }
             }
+            setVerifyError('Restore is taking too long. Please wait a moment and try again.');
           } else {
             setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
           }
