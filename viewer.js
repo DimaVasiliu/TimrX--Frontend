@@ -129,6 +129,27 @@ async function loadGlbFromUrl(url) {
   }
   if (viewerPlaceholder) viewerPlaceholder.style.display = 'none';
 
+  // Defensive check: pre-validate URL returns binary/model data, not HTML
+  try {
+    const headRes = await fetch(url, { method: 'HEAD', mode: 'cors' });
+    const contentType = headRes.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      const err = new Error(`Model URL returned HTML (likely 404 or redirect): ${url}`);
+      err.isHtmlResponse = true;
+      console.error('[Viewer]', err.message);
+      throw err;
+    }
+    if (!headRes.ok) {
+      const err = new Error(`Model URL returned ${headRes.status}: ${url}`);
+      console.error('[Viewer]', err.message);
+      throw err;
+    }
+  } catch (prefetchErr) {
+    if (prefetchErr.isHtmlResponse) throw prefetchErr;
+    // HEAD failed (CORS?), continue and let GLTFLoader handle it
+    console.warn('[Viewer] HEAD prefetch failed, continuing:', prefetchErr.message);
+  }
+
   const gltfLoader = new THREE.GLTFLoader();
   if (gltfLoader.setCrossOrigin) gltfLoader.setCrossOrigin('anonymous');
 
