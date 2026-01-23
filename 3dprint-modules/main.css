@@ -1,0 +1,39 @@
+/* ==========================================================================
+   MAIN.CSS — Primary Stylesheet Entry Point (Modular Architecture)
+   ==========================================================================
+
+   This file imports all CSS modules for the 3D Print Hub workspace.
+   Extracted directly from the original 3dstyle.css (10,384 lines).
+
+   Module Structure:
+   ─────────────────────────────────────────────────────────────────────────
+   1. variables.css   — Root variables, body styles, utilities (lines 1-135)
+   2. layout.css      — Navigation, brand, dropdowns (lines 136-617)
+   3. components.css  — Buttons, forms, tabs, chips (lines 618-1304)
+   4. workspace.css   — Workspace grid, rail, cards (lines 1305-2234)
+   5. viewer.css      — 3D viewer controls (lines 2235-2507)
+   6. history.css     — History panel, thumbnails (lines 2508-5557)
+   7. pages.css       — Tutorials, Stories, Converter, About (lines 5558+)
+   ─────────────────────────────────────────────────────────────────────────
+   ========================================================================== */
+
+/* 1. Root Variables & Body Styles */
+@import url('css/variables.css');
+
+/* 2. Navigation & Brand */
+@import url('css/layout.css');
+
+/* 3. Buttons, Forms, Tabs, Chips */
+@import url('css/components.css');
+
+/* 4. Workspace Grid & Cards */
+@import url('css/workspace.css');
+
+/* 5. 3D Viewer Controls */
+@import url('css/viewer.css');
+
+/* 6. History Panel */
+@import url('css/history.css');
+
+/* 7. Expanded View Pages */
+@import url('css/pages.css');
