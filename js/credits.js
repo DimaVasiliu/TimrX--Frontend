@@ -1272,4 +1272,9 @@
     isEmailVerified: () => emailVerified
   };
 
+  // Standardized ready flag for diagnostics (hub page)
+  window.__TIMRX_CREDITS_READY__ = true;
+  window.__TIMRX_CREDITS_PAGE__ = 'hub';
+  console.log('[Credits] Hub credits module ready');
+
 })();
