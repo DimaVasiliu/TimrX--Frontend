@@ -154,19 +154,125 @@
   let selectedPlan = null;
 
   // ─────────────────────────────────────────────────────────────
+  // WalletStore - Single Source of Truth for wallet state
+  // ─────────────────────────────────────────────────────────────
+
+  const WalletStore = {
+    _state: {
+      balance: 0,
+      reserved: 0,
+      available: 0,
+      identityId: null,
+      email: null,
+      emailVerified: false,
+      fetchedAt: null,
+      lastError: null,
+      isFetching: false,
+    },
+
+    /**
+     * Get current wallet snapshot
+     * @returns {{ available: number, balance: number, reserved: number, identityId: string|null, email: string|null, fetchedAt: string|null }}
+     */
+    getSnapshot() {
+      return {
+        available: this._state.available,
+        balance: this._state.balance,
+        reserved: this._state.reserved,
+        identityId: this._state.identityId,
+        email: this._state.email,
+        emailVerified: this._state.emailVerified,
+        fetchedAt: this._state.fetchedAt,
+      };
+    },
+
+    /**
+     * Update wallet state and broadcast event
+     */
+    update(data) {
+      const prev = { ...this._state };
+
+      this._state.balance = data.balance ?? this._state.balance;
+      this._state.reserved = data.reserved ?? this._state.reserved;
+      this._state.available = data.available ?? this._state.available;
+      this._state.identityId = data.identityId ?? this._state.identityId;
+      this._state.email = data.email ?? this._state.email;
+      this._state.emailVerified = data.emailVerified ?? this._state.emailVerified;
+      this._state.fetchedAt = new Date().toISOString();
+      this._state.lastError = null;
+
+      // Update module-level vars for backward compatibility
+      walletBalance = this._state.balance;
+      walletReserved = this._state.reserved;
+      walletAvailable = this._state.available;
+      identityId = this._state.identityId;
+      userEmail = this._state.email || '';
+
+      // Broadcast wallet update event
+      this.broadcast();
+
+      console.log('[WalletStore] Updated:', this._state.available, 'credits (was:', prev.available, ')');
+    },
+
+    /**
+     * Set error state
+     */
+    setError(error) {
+      this._state.lastError = error;
+    },
+
+    /**
+     * Set fetching state
+     */
+    setFetching(isFetching) {
+      this._state.isFetching = isFetching;
+    },
+
+    /**
+     * Broadcast wallet update event
+     */
+    broadcast() {
+      const event = new CustomEvent('timrx:wallet', {
+        detail: this.getSnapshot(),
+        bubbles: true,
+      });
+      window.dispatchEvent(event);
+      console.log('[WalletStore] Broadcasted timrx:wallet event');
+    },
+  };
+
+  // Expose WalletStore globally for debugging and external access
+  window.__TIMRX_WALLET__ = WalletStore;
+
+  /**
+   * Get wallet snapshot - convenience function
+   * @returns {{ available: number, balance: number, reserved: number, identityId: string|null, fetchedAt: string|null }}
+   */
+  function getWalletSnapshot() {
+    return WalletStore.getSnapshot();
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Wallet API
   // ─────────────────────────────────────────────────────────────
 
   /**
    * Fetch wallet/session info from /api/me using centralized API client
+   * @param {object} options - { force: boolean, timeout: number }
+   * @returns {Promise<{balance: number, reserved: number, available: number}|null>}
    */
-  async function fetchWallet() {
-    console.log('[Credits] Fetching wallet from:', `${API_BASE}/api/me`);
+  async function fetchWallet(options = {}) {
+    const { force = false, timeout = 15000 } = options;
 
-    const result = await apiFetch('/api/me');
+    console.log('[Credits] Fetching wallet from:', `${API_BASE}/api/me`, force ? '(forced)' : '');
+    WalletStore.setFetching(true);
+
+    const result = await apiFetch('/api/me', { timeout });
 
     if (!result.ok) {
       console.warn('[Credits] Wallet fetch failed:', result.status, result.error);
+      WalletStore.setError(result.error);
+      WalletStore.setFetching(false);
       updateCreditsDisplay(0, 0, 0);
       return null;
     }
@@ -183,53 +289,86 @@
 
     if (data.ok) {
       // Read credits from top-level fields (new format)
-      walletBalance = data.balance_credits ?? data.wallet?.balance ?? 0;
-      walletReserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
-      walletAvailable = data.available_credits ?? data.wallet?.available ?? Math.max(0, walletBalance - walletReserved);
-      identityId = data.identity_id || null;
+      const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
+      const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
+      const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
+      const id = data.identity_id || null;
+
+      // Update WalletStore (this also broadcasts the event and updates module vars)
+      WalletStore.update({
+        balance,
+        reserved,
+        available,
+        identityId: id,
+        email: data.email || null,
+        emailVerified: data.email_verified || false,
+      });
+      WalletStore.setFetching(false);
 
       // Debug: Log identity info for session diagnostics
-      console.log('[Session Debug] identity_id:', identityId, 'credits:', walletAvailable, 'apiBase:', API_BASE);
+      console.log('[Session Debug] identity_id:', id, 'credits:', available, 'apiBase:', API_BASE);
 
       // Expose identity for debugging (compare with workspace to verify same session)
       window.__TIMRX_SESSION__ = {
-        identity_id: identityId,
-        credits: walletAvailable,
+        identity_id: id,
+        credits: available,
         apiBase: API_BASE,
         page: 'hub',
         fetchedAt: new Date().toISOString(),
       };
 
       // Write to cross-page wallet cache (for instant display on workspace after purchase)
-      if (window.TimrXApi?.writeWalletCache && identityId) {
-        window.TimrXApi.writeWalletCache(identityId, walletAvailable);
+      if (window.TimrXApi?.writeWalletCache && id) {
+        window.TimrXApi.writeWalletCache(id, available);
       }
 
-      updateCreditsDisplay(walletAvailable, walletBalance, walletReserved);
+      updateCreditsDisplay(available, balance, reserved);
 
       // Store email if available
       if (data.email) {
-        userEmail = data.email;
         if (checkoutEmail && !checkoutEmail.value) {
-          checkoutEmail.value = userEmail;
+          checkoutEmail.value = data.email;
           validateCheckoutForm();
         }
       }
 
-      return { balance: walletBalance, reserved: walletReserved, available: walletAvailable };
+      return { balance, reserved, available };
     } else {
       console.warn('[Credits] /api/me returned ok:false');
+      WalletStore.setFetching(false);
       updateCreditsDisplay(0, 0, 0);
       return null;
     }
   }
 
   /**
-   * Refresh credits - alias for fetchWallet with return value
+   * Refresh credits with retry support
+   * @param {object} options - { force: boolean, maxRetries: number }
+   * @returns {Promise<number>} - Available credits
    */
-  async function refreshCredits() {
-    const wallet = await fetchWallet();
-    return wallet ? wallet.available : 0;
+  async function refreshCredits(options = {}) {
+    const { force = false, maxRetries = 3 } = options;
+
+    let lastResult = null;
+    const delays = [0, 500, 1500]; // Progressive backoff
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      if (attempt > 0) {
+        const delay = delays[attempt] || 1000;
+        console.log(`[Credits] Refresh retry ${attempt}/${maxRetries - 1} after ${delay}ms`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      const wallet = await fetchWallet({ force, timeout: 15000 });
+      lastResult = wallet;
+
+      if (wallet) {
+        return wallet.available;
+      }
+    }
+
+    console.warn('[Credits] All refresh attempts failed');
+    return lastResult ? lastResult.available : 0;
   }
 
   function updateCreditsDisplay(available, total, reserved) {
@@ -372,40 +511,54 @@
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Success Modal
+  // Success Modal - Driven by WalletStore as single source of truth
   // ─────────────────────────────────────────────────────────────
 
+  // Track modal state
+  const successModalState = {
+    isOpen: false,
+    isPending: true,
+    preCheckoutBalance: 0,
+  };
+
+  /**
+   * Open success modal
+   * @param {number|null} credits - Credits to display (null = show "Updating...")
+   * @param {boolean} isPending - Whether credits are still being processed
+   */
   function openSuccessModal(credits, isPending = false) {
     if (!successModal) return;
 
-    // Update credits display
-    if (successCreditsValue) {
-      successCreditsValue.textContent = credits.toLocaleString();
-    }
+    successModalState.isOpen = true;
+    successModalState.isPending = isPending;
 
-    // Update message based on whether webhook has processed
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+    const creditsDisplay = successModal.querySelector('.success-credits');
 
     if (isPending) {
-      // Show immediate feedback - don't block on credits update
+      // Show immediate feedback with "Updating balance..." state
       if (successTitle) successTitle.textContent = 'Payment Received';
-      if (successMessage) {
-        successMessage.textContent = 'Applying credits to your account…';
-      }
+      if (successMessage) successMessage.textContent = 'Updating balance…';
       successModal.classList.add('pending');
       successModal.classList.remove('failed');
-    } else {
-      // Credits have been granted - transition to success state
-      if (successTitle) successTitle.textContent = 'Payment Successful';
-      if (successMessage) {
-        successMessage.textContent = 'Your credits have been added to your account.';
+
+      // Show current balance or placeholder
+      if (successCreditsValue) {
+        successCreditsValue.textContent = credits != null ? credits.toLocaleString() : '—';
       }
+      if (creditsDisplay) creditsDisplay.style.display = '';
+    } else {
+      // Credits have been granted - show success state
+      if (successTitle) successTitle.textContent = 'Payment Successful';
+      if (successMessage) successMessage.textContent = 'Your credits have been added to your account.';
       successModal.classList.remove('pending');
       successModal.classList.remove('failed');
 
-      // Restore credits display (in case it was hidden by failed state)
-      const creditsDisplay = successModal.querySelector('.success-credits');
+      // Update balance display
+      if (successCreditsValue && credits != null) {
+        successCreditsValue.textContent = credits.toLocaleString();
+      }
       if (creditsDisplay) creditsDisplay.style.display = '';
     }
 
@@ -413,10 +566,35 @@
     successModal.setAttribute('aria-hidden', 'false');
   }
 
+  /**
+   * Transition modal from pending to success state with new balance
+   */
+  function transitionSuccessModalToComplete(balance) {
+    if (!successModal || !successModalState.isOpen) return;
+
+    successModalState.isPending = false;
+
+    const successTitle = successModal.querySelector('.success-title, h2');
+    const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+    const creditsDisplay = successModal.querySelector('.success-credits');
+
+    if (successTitle) successTitle.textContent = 'Payment Successful';
+    if (successMessage) successMessage.textContent = 'Your credits have been added to your account.';
+    if (successCreditsValue) successCreditsValue.textContent = balance.toLocaleString();
+    if (creditsDisplay) creditsDisplay.style.display = '';
+
+    successModal.classList.remove('pending');
+    successModal.classList.remove('failed');
+
+    console.log('[Credits] Modal transitioned to complete, balance:', balance);
+  }
+
   function closeSuccessModal() {
     if (!successModal) return;
     successModal.classList.remove('open');
     successModal.setAttribute('aria-hidden', 'true');
+    successModalState.isOpen = false;
+    successModalState.isPending = false;
   }
 
   /**
@@ -424,6 +602,8 @@
    */
   function updateSuccessModalToFailed(status) {
     if (!successModal) return;
+
+    successModalState.isPending = false;
 
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
@@ -437,17 +617,14 @@
         ? 'Your payment was cancelled. No credits were charged.'
         : 'Your payment could not be processed. Please try again.';
     }
-    // Hide credits display for failed payments
-    if (creditsDisplay) {
-      creditsDisplay.style.display = 'none';
-    }
+    if (creditsDisplay) creditsDisplay.style.display = 'none';
 
     successModal.classList.remove('pending');
     successModal.classList.add('failed');
   }
 
   /**
-   * Update success modal to show syncing state (credits still processing)
+   * Update success modal to show syncing state (credits still processing but no error)
    */
   function updateSuccessModalToSyncing() {
     if (!successModal) return;
@@ -457,13 +634,29 @@
 
     if (successTitle) successTitle.textContent = 'Payment Received';
     if (successMessage) {
-      successMessage.textContent = 'Credits are being processed. They will appear shortly.';
+      successMessage.textContent = 'Credits will appear shortly. Refresh if needed.';
     }
 
     // Keep pending class for visual styling
     successModal.classList.add('pending');
     successModal.classList.remove('failed');
   }
+
+  // Subscribe to wallet events to update modal automatically
+  window.addEventListener('timrx:wallet', (event) => {
+    const wallet = event.detail;
+    if (!wallet || !successModalState.isOpen) return;
+
+    console.log('[Credits] Wallet event while modal open, pending:', successModalState.isPending, 'balance:', wallet.available);
+
+    // If modal is pending and balance increased, transition to complete
+    if (successModalState.isPending && wallet.available > successModalState.preCheckoutBalance) {
+      transitionSuccessModalToComplete(wallet.available);
+    } else if (!successModalState.isPending && successCreditsValue) {
+      // Update balance display if modal is showing success
+      successCreditsValue.textContent = wallet.available.toLocaleString();
+    }
+  });
 
   // ─────────────────────────────────────────────────────────────
   // Checkout Flow
@@ -656,107 +849,109 @@
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Get stored payment_id from sessionStorage
+    // Get stored payment_id and pre-checkout balance from sessionStorage
     const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
-
-    // IMMEDIATELY show success modal in "pending" state - don't wait for anything
-    // Use pre-checkout balance (stored before redirect) to detect changes, not current walletAvailable
-    // This fixes race condition where webhook arrives before redirect and walletAvailable is already updated
     const preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
     const displayBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
-    console.log('[Credits] Checkout success - pre-checkout balance:', preCheckoutBalance, 'current display:', displayBalance);
-    openSuccessModal(displayBalance, true); // Show "Payment received — applying credits…" immediately
 
-    // Now run reconciliation in background (non-blocking)
+    console.log('[Credits] Checkout success - pre-checkout balance:', preCheckoutBalance, 'current display:', displayBalance);
+
+    // Store pre-checkout balance in modal state for event listener comparison
+    successModalState.preCheckoutBalance = preCheckoutBalance;
+
+    // IMMEDIATELY show success modal in "pending/updating" state
+    openSuccessModal(displayBalance, true);
+
+    // Clean up stored values
+    sessionStorage.removeItem('timrx_pre_checkout_balance');
+
+    // Run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
-      // Use pre-checkout balance for comparison (critical for detecting webhook-granted credits)
       const initialBalance = preCheckoutBalance;
 
-      // Clean up stored balance
-      sessionStorage.removeItem('timrx_pre_checkout_balance');
-
-      // Step 1: If we have payment_id, call confirm endpoint
+      // Step 1: If we have payment_id, call confirm endpoint with longer timeout
       if (pendingPaymentId) {
-        console.log('[Credits] Confirming payment in background:', pendingPaymentId);
+        console.log('[Credits] Confirming payment:', pendingPaymentId);
 
         try {
-          const confirmResult = await apiFetch(`/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`);
+          const confirmResult = await apiFetch(`/api/billing/confirm?payment_id=${encodeURIComponent(pendingPaymentId)}`, {
+            timeout: 15000  // Longer timeout for confirm
+          });
 
-          if (!confirmResult.ok) {
-            throw new Error(confirmResult.error || 'Confirm failed');
-          }
-
-          const confirmData = confirmResult.data;
-          console.log('[Credits] Confirm response:', confirmData);
-
-          // Clear stored payment_id
+          // Clear stored payment_id regardless of result
           sessionStorage.removeItem('timrx_pending_payment_id');
 
-          if (confirmData.ok && confirmData.credits_granted) {
-            // Credits were granted - refresh and update modal to success state
-            const wallet = await fetchWallet();
-            const newBalance = wallet ? wallet.available : 0;
-            console.log('[Credits] Credits confirmed! New balance:', newBalance);
+          if (confirmResult.ok && confirmResult.data) {
+            const confirmData = confirmResult.data;
+            console.log('[Credits] Confirm response:', confirmData);
 
-            // Write to cross-page cache for instant workspace display
-            if (window.TimrXApi?.writeWalletCache && identityId) {
-              window.TimrXApi.writeWalletCache(identityId, newBalance);
+            if (confirmData.ok && confirmData.credits_granted) {
+              // Credits were granted - refresh wallet (will broadcast event and update modal)
+              console.log('[Credits] Credits confirmed, refreshing wallet...');
+              await refreshCredits({ force: true, maxRetries: 3 });
+              // Modal will auto-update via wallet event listener
+              return;
+            } else if (confirmData.status === 'failed' || confirmData.status === 'canceled' || confirmData.status === 'expired') {
+              console.log('[Credits] Payment failed:', confirmData.status);
+              updateSuccessModalToFailed(confirmData.status);
+              return;
             }
-
-            openSuccessModal(newBalance, false); // Update modal to "success" state
-            return;
-          } else if (confirmData.status === 'failed' || confirmData.status === 'canceled' || confirmData.status === 'expired') {
-            // Payment failed - update modal message
-            console.log('[Credits] Payment failed:', confirmData.status);
-            updateSuccessModalToFailed(confirmData.status);
-            return;
+            // For 'open'/'pending', continue to polling below
+          } else if (confirmResult.isTimeout) {
+            console.log('[Credits] Confirm timed out, continuing to polling...');
           }
-          // For 'open'/'pending', continue to polling below
         } catch (err) {
           console.error('[Credits] Confirm error:', err);
           // Continue to polling
         }
       } else {
-        console.log('[Credits] No payment_id found, starting polling');
+        console.log('[Credits] No payment_id found, starting wallet refresh');
         sessionStorage.removeItem('timrx_pending_payment_id');
       }
 
-      // Step 2: Fast polling to detect credit grant (500ms intervals, ~10s total)
+      // Step 2: Poll for credit update with progressive backoff
+      // The wallet event listener will auto-update the modal when balance changes
       let attempts = 0;
-      const maxAttempts = 20; // 20 * 500ms = 10 seconds max
-      const pollInterval = 500; // Fast polling
+      const maxAttempts = 20; // 20 * 500ms = ~10 seconds max
+      const pollInterval = 500;
 
       async function pollBalance() {
         attempts++;
-        const wallet = await fetchWallet();
-        const newBalance = wallet ? wallet.available : 0;
 
-        console.log(`[Credits] Poll ${attempts}/${maxAttempts}: balance=${newBalance} (was ${initialBalance})`);
-
-        // If balance increased, update modal to success state
-        if (newBalance > initialBalance) {
-          console.log('[Credits] Balance updated! Updating modal to success');
-
-          // Write to cross-page cache for instant workspace display
-          if (window.TimrXApi?.writeWalletCache && identityId) {
-            window.TimrXApi.writeWalletCache(identityId, newBalance);
-          }
-
-          openSuccessModal(newBalance, false); // Update to "success" state
+        // Modal might have already been updated by wallet event listener
+        if (!successModalState.isPending) {
+          console.log('[Credits] Modal already updated, stopping poll');
           return;
         }
 
-        // Continue polling if not at max attempts
-        if (attempts < maxAttempts) {
+        try {
+          const wallet = await fetchWallet({ force: true, timeout: 8000 });
+          const newBalance = wallet ? wallet.available : 0;
+
+          console.log(`[Credits] Poll ${attempts}/${maxAttempts}: balance=${newBalance} (was ${initialBalance})`);
+
+          // If balance increased, transition modal (also handled by event listener as backup)
+          if (newBalance > initialBalance) {
+            console.log('[Credits] Balance increased! Transitioning modal...');
+            transitionSuccessModalToComplete(newBalance);
+            return;
+          }
+        } catch (err) {
+          console.warn(`[Credits] Poll ${attempts} error:`, err.message);
+          // Continue polling on error
+        }
+
+        // Continue polling if not at max attempts and modal still pending
+        if (attempts < maxAttempts && successModalState.isPending) {
           setTimeout(pollBalance, pollInterval);
-        } else {
-          // Max attempts reached - update message to show syncing state
-          console.log('[Credits] Max poll attempts - credits may arrive via webhook later');
+        } else if (successModalState.isPending) {
+          // Max attempts reached but modal still pending - show fallback message
+          console.log('[Credits] Max poll attempts - showing sync message');
           updateSuccessModalToSyncing();
         }
       }
 
-      // Start polling immediately (confirm may have timed out or returned pending)
+      // Start polling immediately
       pollBalance();
     })();
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
@@ -958,6 +1153,8 @@
 
   /**
    * Send verification code to email
+   * Uses optimistic UI - transitions to code entry immediately even if request times out,
+   * since the email may still arrive (backend might process before timeout).
    */
   async function sendCode() {
     const email = secureEmailInput?.value?.trim().toLowerCase();
@@ -975,6 +1172,9 @@
     sendCodeBtn?.classList.add('loading');
     clearSecureMessages();
 
+    // Store pending email immediately for optimistic UI
+    pendingEmail = email;
+
     try {
       const endpoint = isRestoreMode
         ? '/api/auth/restore/request'
@@ -982,26 +1182,25 @@
 
       const result = await apiFetch(endpoint, {
         method: 'POST',
-        body: { email }
+        body: { email },
+        timeout: 15000  // Longer timeout for this endpoint
       });
 
-      if (!result.ok) {
-        const data = result.data || {};
-        if (data.error?.code === 'RATE_LIMITED') {
-          setSecureError(data.error.message || 'Please wait before requesting another code');
-        } else {
-          setSecureError(data.error?.message || result.error || 'Failed to send code');
-        }
+      // Handle rate limiting - this is the only case where we show an error and stay on state 1
+      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
+        setSecureError(result.data.error.message || 'Please wait before requesting another code');
+        sendCodeBtn?.classList.remove('loading');
         return;
       }
 
-      const data = result.data;
-
-      // Success - move to state 2
-      pendingEmail = email;
+      // For all other cases (success, timeout, other errors), proceed to state 2
+      // The backend returns generic success for anti-enumeration, and even on timeout
+      // the request may have been processed server-side
       if (sentToEmail) sentToEmail.textContent = email;
       showSecureState(2);
-      setVerifyMessage('Code sent! Check your email.');
+
+      // Show neutral message (anti-enumeration safe)
+      setVerifyMessage('If an account exists for this email, a code has been sent.');
 
       // Start resend cooldown
       startResendCooldown();
@@ -1009,12 +1208,47 @@
       // Focus code input
       verifyCodeInput?.focus();
 
+      // Log if there was a timeout but we're proceeding anyway
+      if (result.isTimeout) {
+        console.log('[Credits] Send code timed out but proceeding optimistically');
+      }
+
     } catch (err) {
       console.error('[Credits] sendCode error:', err);
-      setSecureError('Failed to send code. Please try again.');
+      // Even on unexpected errors, proceed to state 2 optimistically
+      // The user can still enter a code if they receive it
+      if (sentToEmail) sentToEmail.textContent = email;
+      showSecureState(2);
+      setVerifyMessage('If an account exists for this email, a code has been sent.');
+      startResendCooldown();
+      verifyCodeInput?.focus();
     } finally {
       sendCodeBtn?.classList.remove('loading');
     }
+  }
+
+  /**
+   * Skip to code entry without sending a new code
+   * For users who already have a code from a previous request
+   */
+  function skipToCodeEntry() {
+    const email = secureEmailInput?.value?.trim().toLowerCase();
+
+    if (!email) {
+      setSecureError('Please enter your email address first');
+      return;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      setSecureError('Please enter a valid email address');
+      return;
+    }
+
+    pendingEmail = email;
+    if (sentToEmail) sentToEmail.textContent = email;
+    showSecureState(2);
+    setVerifyMessage('Enter the code you received.');
+    verifyCodeInput?.focus();
   }
 
   /**
@@ -1054,6 +1288,32 @@
           setVerifyError('Too many attempts. Please request a new code.');
         } else if (errorCode === 'CODE_EXPIRED') {
           setVerifyError('Code has expired. Please request a new one.');
+        } else if (errorCode === 'EMAIL_IN_USE') {
+          // Email belongs to another identity - switch to restore mode
+          setVerifyError('This email is linked to another account. Switching to restore mode...');
+          // Auto-switch to restore mode and try again with the same code
+          isRestoreMode = true;
+          setTimeout(async () => {
+            clearSecureMessages();
+            const restoreResult = await apiFetch('/api/auth/restore/redeem', {
+              method: 'POST',
+              body: { email: pendingEmail, code },
+              timeout: 15000
+            });
+            if (restoreResult.ok) {
+              console.log('[Credits] Account restored successfully');
+              userEmail = pendingEmail;
+              emailVerified = true;
+              isRestoreMode = false;
+              await fetchWallet();
+              if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+              showSecureState(3);
+            } else {
+              setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
+            }
+            verifyCodeBtn?.classList.remove('loading');
+          }, 500);
+          return; // Don't remove loading state here - async handler will do it
         } else {
           setVerifyError(result.error || 'Verification failed');
         }
@@ -1115,6 +1375,7 @@
 
   /**
    * Resend verification code
+   * Uses optimistic UI - shows success message even on timeout
    */
   async function resendCode() {
     if (resendCooldown > 0) return;
@@ -1129,23 +1390,33 @@
 
       const result = await apiFetch(endpoint, {
         method: 'POST',
-        body: { email: pendingEmail }
+        body: { email: pendingEmail },
+        timeout: 15000  // Longer timeout
       });
 
-      if (!result.ok) {
-        setVerifyError(result.error || 'Failed to resend code');
+      // Handle rate limiting - show error
+      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
+        setVerifyError(result.data.error.message || 'Please wait before requesting another code');
         return;
       }
 
-      setVerifyMessage('New code sent!');
+      // For all other cases (success, timeout, other errors), show optimistic message
+      setVerifyMessage('New code sent! Check your email.');
       startResendCooldown();
 
       // Clear code input
       if (verifyCodeInput) verifyCodeInput.value = '';
 
+      if (result.isTimeout) {
+        console.log('[Credits] Resend code timed out but proceeding optimistically');
+      }
+
     } catch (err) {
       console.error('[Credits] resendCode error:', err);
-      setVerifyError('Failed to resend code. Please try again.');
+      // Even on error, show optimistic message
+      setVerifyMessage('New code sent! Check your email.');
+      startResendCooldown();
+      if (verifyCodeInput) verifyCodeInput.value = '';
     } finally {
       resendCodeBtn?.classList.remove('loading');
     }
@@ -1202,6 +1473,27 @@
     changeEmail();
   });
   showRestoreBtn?.addEventListener('click', showRestoreMode);
+
+  // "I already have a code" link - bind if exists, or add dynamically
+  const alreadyHaveCodeBtn = document.getElementById('alreadyHaveCodeBtn');
+  if (alreadyHaveCodeBtn) {
+    alreadyHaveCodeBtn.addEventListener('click', skipToCodeEntry);
+  } else if (secureState1) {
+    // Create the link dynamically if not in HTML
+    const existingLink = secureState1.querySelector('.already-have-code-link');
+    if (!existingLink) {
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.className = 'already-have-code-link text-link';
+      link.textContent = 'I already have a code';
+      link.addEventListener('click', skipToCodeEntry);
+      // Insert after the send code button
+      const sendBtnParent = sendCodeBtn?.parentElement;
+      if (sendBtnParent) {
+        sendBtnParent.appendChild(link);
+      }
+    }
+  }
 
   // Enter key handlers
   secureEmailInput?.addEventListener('keydown', (e) => {
@@ -1281,7 +1573,10 @@
     getAvailable: () => walletAvailable,
     getIdentityId: () => identityId,
     getEmail: () => userEmail,
-    isEmailVerified: () => emailVerified
+    isEmailVerified: () => emailVerified,
+    // New: Single source of truth snapshot
+    getWalletSnapshot: getWalletSnapshot,
+    WalletStore: WalletStore,
   };
 
   // Standardized ready flag for diagnostics (hub page)
