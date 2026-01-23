@@ -7,7 +7,6 @@
 import {
   BACKEND,
   CHAT_API,
-  postJSON,
   normalizeEpochMs,
   log,
   byId,
