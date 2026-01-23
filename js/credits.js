@@ -1482,15 +1482,43 @@
     // Create the link dynamically if not in HTML
     const existingLink = secureState1.querySelector('.already-have-code-link');
     if (!existingLink) {
+      // Create a subtle text link placed below the email/button row
       const link = document.createElement('button');
       link.type = 'button';
-      link.className = 'already-have-code-link text-link';
+      link.className = 'already-have-code-link';
       link.textContent = 'I already have a code';
       link.addEventListener('click', skipToCodeEntry);
-      // Insert after the send code button
+
+      // Style it as a subtle link with tight spacing
+      Object.assign(link.style, {
+        background: 'none',
+        border: 'none',
+        color: 'rgba(255, 255, 255, 0.5)',
+        fontSize: '0.8rem',
+        cursor: 'pointer',
+        padding: '0.25rem 0',
+        marginTop: '0.35rem',
+        marginBottom: '0',
+        display: 'block',
+        width: '100%',
+        textAlign: 'center',
+        transition: 'color 0.2s ease',
+      });
+
+      // Hover effect
+      link.addEventListener('mouseenter', () => {
+        link.style.color = 'rgba(255, 255, 255, 0.8)';
+        link.style.textDecoration = 'underline';
+      });
+      link.addEventListener('mouseleave', () => {
+        link.style.color = 'rgba(255, 255, 255, 0.5)';
+        link.style.textDecoration = 'none';
+      });
+
+      // Insert after the email input row (parent of sendCodeBtn)
       const sendBtnParent = sendCodeBtn?.parentElement;
-      if (sendBtnParent) {
-        sendBtnParent.appendChild(link);
+      if (sendBtnParent && sendBtnParent.parentElement) {
+        sendBtnParent.parentElement.insertBefore(link, sendBtnParent.nextSibling);
       }
     }
   }
