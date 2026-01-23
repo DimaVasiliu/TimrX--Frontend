@@ -2550,7 +2550,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 }
 
 .secure-subtitle {
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   font-size: 14px;
   color: var(--muted);
 }
@@ -2561,7 +2561,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 }
 
 .secure-helper {
-  margin: 16px 0;
+  margin: 10px 0;
   font-size: 13px;
   color: var(--muted);
 }
@@ -2569,7 +2569,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 .secure-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .secure-input-group {
@@ -2642,15 +2642,15 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
 }
 
 .restore-panel {
-  margin-top: 24px;
-  padding-top: 24px;
+  margin-top: 12px;
+  padding-top: 12px;
 }
 
 .restore-divider {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .restore-divider::before,
