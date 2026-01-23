@@ -57,16 +57,17 @@ export function safe(el, fn) {
 const API_TIMEOUT_MS = 12000;
 
 /**
- * Endpoint-specific timeouts (ms) - Render cold starts can take 5-10s
+ * Endpoint-specific timeouts (ms) - Render cold starts can take 10-30s
+ * These are generous to handle worst-case cold start scenarios
  */
 const ENDPOINT_TIMEOUTS = {
-  '/api/me': 20000,                    // 20s - called frequently, can be slow on cold start
-  '/api/auth/restore/redeem': 30000,   // 30s - critical auth flow, must not abort early
-  '/api/auth/email/verify': 25000,     // 25s - verification can be slow
-  '/api/auth/email/attach': 20000,     // 20s - email operations
-  '/api/auth/restore/request': 20000,  // 20s - code request
-  '/api/billing/confirm': 20000,       // 20s - payment confirmation
-  '/api/billing/checkout': 20000,      // 20s - checkout initiation
+  '/api/me': 25000,                    // 25s - called frequently, can be slow on cold start
+  '/api/auth/restore/redeem': 45000,   // 45s - critical auth flow, must not abort early (cold start + DB)
+  '/api/auth/email/verify': 40000,     // 40s - verification can be slow (cold start + email check)
+  '/api/auth/email/attach': 30000,     // 30s - email operations
+  '/api/auth/restore/request': 30000,  // 30s - code request (email sending can be slow)
+  '/api/billing/confirm': 25000,       // 25s - payment confirmation
+  '/api/billing/checkout': 25000,      // 25s - checkout initiation
 };
 
 /**
