@@ -1352,6 +1352,11 @@ window.WorkspaceCredits = {
   renderCachedCreditsEarly,
 };
 
+// Standardized ready flag for diagnostics (workspace page)
+window.__TIMRX_CREDITS_READY__ = true;
+window.__TIMRX_CREDITS_PAGE__ = 'workspace';
+console.log('[Credits] Workspace credits module ready');
+
 // ============================================================================
 // IMMEDIATE EXECUTION: Render cached credits ASAP
 // ============================================================================
