@@ -720,6 +720,11 @@
         sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
         console.log('[Credits] Stored pre-checkout balance:', walletAvailable || 0);
 
+        // Store the plan's credit grant for optimistic balance display on return
+        const planCredits = selectedPlan.credits || PLANS[selectedPlan.id]?.credits || 0;
+        sessionStorage.setItem('timrx_pending_plan_credits', String(planCredits));
+        console.log('[Credits] Stored plan credits:', planCredits);
+
         // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
       } else {
@@ -868,21 +873,43 @@
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Get stored payment_id and pre-checkout balance from sessionStorage
+    // Get stored payment_id, pre-checkout balance, and plan credits from sessionStorage
     const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
     const preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
+    const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+
+    // Calculate OPTIMISTIC balance immediately (don't wait for server)
+    const optimisticBalance = preCheckoutBalance + planCredits;
     const displayBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
 
-    console.log('[Credits] Checkout success - pre-checkout balance:', preCheckoutBalance, 'current display:', displayBalance);
+    console.log('[Credits] Checkout success - pre:', preCheckoutBalance, 'plan credits:', planCredits, 'optimistic:', optimisticBalance);
 
     // Store pre-checkout balance in modal state for event listener comparison
     successModalState.preCheckoutBalance = preCheckoutBalance;
 
-    // IMMEDIATELY show success modal in "pending/updating" state
-    openSuccessModal(displayBalance, true);
+    // IMMEDIATELY show success modal with OPTIMISTIC balance (not pending state)
+    // This gives instant feedback - user sees expected new balance right away
+    if (planCredits > 0) {
+      // We know how many credits were purchased - show optimistic balance immediately
+      openSuccessModal(optimisticBalance, false);  // false = not pending, show as complete
+      console.log('[Credits] Showing optimistic balance:', optimisticBalance);
+
+      // Update local wallet state optimistically
+      walletAvailable = optimisticBalance;
+      walletBalance = optimisticBalance;
+      WalletStore.update({
+        balance: optimisticBalance,
+        reserved: 0,
+        available: optimisticBalance,
+      });
+    } else {
+      // Fallback: no plan credits stored, show pending state
+      openSuccessModal(displayBalance, true);
+    }
 
     // Clean up stored values
     sessionStorage.removeItem('timrx_pre_checkout_balance');
+    sessionStorage.removeItem('timrx_pending_plan_credits');
 
     // Run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
@@ -946,50 +973,53 @@
         sessionStorage.removeItem('timrx_pending_payment_id');
       }
 
-      // Step 2: Poll for credit update with progressive backoff
-      // The wallet event listener will auto-update the modal when balance changes
+      // Step 2: Refresh wallet to reconcile with server (even if we showed optimistic balance)
+      // This ensures our local state matches the server truth
       let attempts = 0;
-      const maxAttempts = 20; // 20 * 500ms = ~10 seconds max
-      const pollInterval = 500;
+      const maxAttempts = 10; // Fewer attempts since we already showed optimistic
+      const pollInterval = 1000; // Slower polling since we're just reconciling
 
-      async function pollBalance() {
+      async function reconcileBalance() {
         attempts++;
-
-        // Modal might have already been updated by wallet event listener
-        if (!successModalState.isPending) {
-          console.log('[Credits] Modal already updated, stopping poll');
-          return;
-        }
 
         try {
           const wallet = await fetchWallet({ force: true, timeout: 8000 });
-          const newBalance = wallet ? wallet.available : 0;
+          const serverBalance = wallet ? wallet.available : 0;
 
-          console.log(`[Credits] Poll ${attempts}/${maxAttempts}: balance=${newBalance} (was ${initialBalance})`);
+          console.log(`[Credits] Reconcile ${attempts}/${maxAttempts}: server=${serverBalance}, expected=${initialBalance + planCredits}`);
 
-          // If balance increased, transition modal (also handled by event listener as backup)
-          if (newBalance > initialBalance) {
-            console.log('[Credits] Balance increased! Transitioning modal...');
-            transitionSuccessModalToComplete(newBalance);
+          // If server balance is what we expected (or higher), we're done
+          if (serverBalance >= initialBalance + planCredits) {
+            console.log('[Credits] Server balance confirmed:', serverBalance);
+            // WalletStore.update already happened in fetchWallet, which triggers modal update
+            return;
+          }
+
+          // If modal was showing pending state and balance increased, transition it
+          if (successModalState.isPending && serverBalance > initialBalance) {
+            console.log('[Credits] Balance increased, transitioning modal');
+            transitionSuccessModalToComplete(serverBalance);
             return;
           }
         } catch (err) {
-          console.warn(`[Credits] Poll ${attempts} error:`, err.message);
-          // Continue polling on error
+          console.warn(`[Credits] Reconcile ${attempts} error:`, err.message);
+          // Continue reconciling on error
         }
 
-        // Continue polling if not at max attempts and modal still pending
-        if (attempts < maxAttempts && successModalState.isPending) {
-          setTimeout(pollBalance, pollInterval);
+        // Continue reconciling if not at max attempts
+        if (attempts < maxAttempts) {
+          setTimeout(reconcileBalance, pollInterval);
         } else if (successModalState.isPending) {
           // Max attempts reached but modal still pending - show fallback message
-          console.log('[Credits] Max poll attempts - showing sync message');
+          console.log('[Credits] Max reconcile attempts - showing sync message');
           updateSuccessModalToSyncing();
+        } else {
+          console.log('[Credits] Reconciliation complete after max attempts');
         }
       }
 
-      // Start polling immediately
-      pollBalance();
+      // Start reconciliation after a short delay (give webhook time to process)
+      setTimeout(reconcileBalance, 500);
     })();
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
     // Clean URL and clear stored payment_id
