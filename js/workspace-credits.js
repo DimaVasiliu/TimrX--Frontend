@@ -455,11 +455,60 @@ export async function initCredits() {
 // CREDIT CHECKS
 // ============================================================================
 
+// Track which actions we've already warned about (avoid log spam)
+const _warnedActions = new Set();
+
 /**
- * Get cost for a specific action
+ * Resolve cost for an action key, trying multiple aliases.
+ * Returns null if action is not found (distinct from 0 which means free).
+ *
+ * @param {string} action - The action key (e.g., 'text-to-3d', 'refine')
+ * @returns {number|null} - Cost in credits, or null if unknown
+ */
+export function resolveCost(action) {
+  if (!action) return null;
+
+  // Direct lookup
+  if (action in creditsState.actionCosts) {
+    return creditsState.actionCosts[action];
+  }
+
+  // Try common aliases (hyphen <-> underscore)
+  const underscore = action.replace(/-/g, '_');
+  const hyphen = action.replace(/_/g, '-');
+
+  if (underscore !== action && underscore in creditsState.actionCosts) {
+    return creditsState.actionCosts[underscore];
+  }
+  if (hyphen !== action && hyphen in creditsState.actionCosts) {
+    return creditsState.actionCosts[hyphen];
+  }
+
+  // Try with common suffixes
+  const withGenerate = `${action}_generate`;
+  if (withGenerate in creditsState.actionCosts) {
+    return creditsState.actionCosts[withGenerate];
+  }
+
+  // Not found - log warning once per action key
+  if (!_warnedActions.has(action) && creditsState.loaded) {
+    _warnedActions.add(action);
+    console.warn(`[Credits] Unknown action: "${action}". Available keys:`, Object.keys(creditsState.actionCosts).join(', '));
+  }
+
+  return null;
+}
+
+/**
+ * Get cost for a specific action.
+ * Returns 0 for unknown actions (backward compatible) - use resolveCost() for nullable result.
+ *
+ * @param {string} action - The action key
+ * @returns {number} - Cost in credits (0 if unknown)
  */
 export function getActionCost(action) {
-  return creditsState.actionCosts[action] || 0;
+  const cost = resolveCost(action);
+  return cost !== null ? cost : 0;
 }
 
 /**
@@ -921,6 +970,7 @@ function getBatchCountForButton(btnId) {
 /**
  * Update generate buttons to show credit costs
  * Maps button IDs to action keys for cost lookup
+ * Uses resolveCost() to show "—" for unknown costs instead of "0"
  */
 function updateGenerateButtonCosts() {
   // Use effective available (accounting for reservations)
@@ -933,21 +983,30 @@ function updateGenerateButtonCosts() {
     // Check for dynamic action override (e.g., when switching between text-to-3d and image-to-3d tabs)
     const action = btn.dataset.currentAction || config.action;
     const batchCount = getBatchCountForButton(btnId);
-    const costPerItem = getActionCost(action);
-    const totalCost = costPerItem * batchCount;
-    const hasCreds = effectiveAvailable >= totalCost;
+
+    // Use resolveCost to detect unknown actions (null vs 0)
+    const costPerItem = resolveCost(action);
+    const isUnknown = costPerItem === null;
+    const totalCost = isUnknown ? 0 : costPerItem * batchCount;
+    const hasCreds = isUnknown ? false : effectiveAvailable >= totalCost;
 
     // Find the .gen-credits span in the same footer card
     const footerCard = btn.closest('.gen-footer-card');
     if (footerCard) {
       const creditsSpan = footerCard.querySelector('.gen-credits');
       if (creditsSpan) {
-        // Show batch multiplier if > 1
-        const costText = batchCount > 1
-          ? `${costPerItem} × ${batchCount} = ${totalCost}`
-          : `${totalCost}`;
-        creditsSpan.innerHTML = `<i class="fa-solid fa-coins"></i> ${costText}`;
-        creditsSpan.classList.toggle('insufficient', !hasCreds);
+        // Show "—" for unknown costs, otherwise show the cost
+        if (isUnknown) {
+          creditsSpan.textContent = '—';
+          creditsSpan.title = `Cost unknown for action: ${action}`;
+        } else {
+          // Show batch multiplier if > 1
+          const costText = batchCount > 1
+            ? `${costPerItem} × ${batchCount} = ${totalCost}`
+            : `${totalCost}`;
+          creditsSpan.innerHTML = `<i class="fa-solid fa-coins"></i> ${costText}`;
+          creditsSpan.classList.toggle('insufficient', !hasCreds);
+        }
       }
     }
 
@@ -971,26 +1030,35 @@ function updateGenerateButtonCosts() {
     }
 
     // Update tooltip with clear message about required credits
-    btn.setAttribute('data-credits', totalCost);
-    if (!hasCreds) {
+    btn.setAttribute('data-credits', isUnknown ? '' : totalCost);
+    if (isUnknown) {
+      btn.setAttribute('title', `Cost unknown for action: ${action}`);
+    } else if (!hasCreds) {
       const needed = totalCost - effectiveAvailable;
       btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${needed} more needed)`);
     } else {
       btn.setAttribute('title', `${totalCost} credits`);
     }
 
-    // Add cost badge to button if totalCost > 0
+    // Add cost badge to button (show "—" for unknown, cost for known)
     let costBadge = btn.querySelector('.btn-cost-badge');
-    if (totalCost > 0) {
+    if (isUnknown || totalCost > 0) {
       if (!costBadge) {
         costBadge = document.createElement('span');
         costBadge.className = 'btn-cost-badge';
         btn.appendChild(costBadge);
       }
-      // Show batch multiplier in badge if > 1
-      costBadge.textContent = batchCount > 1 ? `${totalCost}` : totalCost;
-      costBadge.classList.toggle('insufficient', !hasCreds);
-      costBadge.classList.toggle('has-batch', batchCount > 1);
+      if (isUnknown) {
+        costBadge.textContent = '—';
+        costBadge.classList.add('unknown');
+        costBadge.classList.remove('insufficient', 'has-batch');
+      } else {
+        // Show batch multiplier in badge if > 1
+        costBadge.textContent = batchCount > 1 ? `${totalCost}` : totalCost;
+        costBadge.classList.toggle('insufficient', !hasCreds);
+        costBadge.classList.toggle('has-batch', batchCount > 1);
+        costBadge.classList.remove('unknown');
+      }
     } else if (costBadge) {
       costBadge.remove();
     }
@@ -1362,6 +1430,7 @@ window.WorkspaceCredits = {
   getWallet,
   getAvailableCredits,
   getActionCost,
+  resolveCost,  // New: returns null for unknown actions (vs 0)
   getActionCosts,
   hasCreditsFor,
   updateWallet,
