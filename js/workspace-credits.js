@@ -297,18 +297,49 @@ export async function fetchActionCosts() {
           costsMap[item.action_key] = item.credits;
         }
       });
-      // Add legacy aliases for backward compatibility
-      if (costsMap['text_to_3d_generate']) costsMap['text-to-3d'] = costsMap['text_to_3d_generate'];
-      if (costsMap['image_to_3d_generate']) costsMap['image-to-3d'] = costsMap['image_to_3d_generate'];
-      if (costsMap['image_studio_generate']) costsMap['text-to-image'] = costsMap['image_studio_generate'];
 
-      creditsState.actionCosts = costsMap;
-      log('[Credits] Action costs loaded:', creditsState.actionCosts);
-    } else if (data.costs) {
+      // Add all frontend aliases for backward compatibility
+      // These ensure BUTTON_CONFIG action keys are covered
+      if (costsMap['text_to_3d_generate']) {
+        costsMap['text-to-3d'] = costsMap['text_to_3d_generate'];
+        costsMap['text_to_3d'] = costsMap['text_to_3d_generate'];
+        costsMap['preview'] = costsMap['text_to_3d_generate'];
+      }
+      if (costsMap['image_to_3d_generate']) {
+        costsMap['image-to-3d'] = costsMap['image_to_3d_generate'];
+        costsMap['image_to_3d'] = costsMap['image_to_3d_generate'];
+      }
+      if (costsMap['image_studio_generate']) {
+        costsMap['text-to-image'] = costsMap['image_studio_generate'];
+        costsMap['image_generate'] = costsMap['image_studio_generate'];
+      }
+      if (costsMap['refine']) {
+        costsMap['upscale'] = costsMap['refine'];
+      }
+      if (costsMap['texture']) {
+        costsMap['retexture'] = costsMap['texture'];
+      }
+      if (costsMap['video']) {
+        costsMap['video_generate'] = costsMap['video'];
+      }
+
+      // If no costs were parsed, use defaults
+      if (Object.keys(costsMap).length === 0) {
+        log('[Credits] API returned empty action_costs array, using defaults');
+        creditsState.actionCosts = getDefaultActionCosts();
+      } else {
+        creditsState.actionCosts = costsMap;
+        log('[Credits] Action costs loaded:', Object.keys(costsMap).length, 'keys:', Object.keys(costsMap).join(', '));
+      }
+    } else if (data.costs && Object.keys(data.costs).length > 0) {
       // Handle old object format (backward compatibility)
       creditsState.actionCosts = data.costs;
+      log('[Credits] Action costs from legacy format:', Object.keys(data.costs).length, 'keys');
     } else {
+      // Fallback to defaults if API returns empty or unexpected format
       creditsState.actionCosts = getDefaultActionCosts();
+      log('[Credits] Using default action costs (API returned empty or unexpected format)');
+      log('[Credits] API response was:', data);
     }
 
     return creditsState.actionCosts;
@@ -631,6 +662,8 @@ export function reserveCredits(action, count = 1) {
 
   if (totalCost === 0) {
     log('[Credits] Reserve: action has no cost', action);
+    log('[Credits] Available action costs:', Object.keys(creditsState.actionCosts).join(', ') || '(empty)');
+    log('[Credits] Action costs state:', creditsState.actionCosts);
     return { reservationId: null, amount: 0 };
   }
 
