@@ -322,6 +322,20 @@
 <section id="pricing" class="pricing-wrap">
     <div class="container">
       <div class="pricing-head">
+        <div class="pricing-secure">
+          <button type="button" id="secureToggleBtn" class="secure-toggle-btn compact" aria-label="Secure your credits" aria-controls="secureCreditsCard" aria-expanded="false">
+            <i class="fa-solid fa-shield-halved"></i>
+            <i class="fa-solid fa-chevron-down toggle-chevron" aria-hidden="true"></i>
+          </button>
+          <div class="secure-alert-wrap" id="secureInfoWrap">
+            <button type="button" id="secureInfoBtn" class="secure-info-btn" aria-label="Why secure credits?" aria-haspopup="dialog" aria-controls="secureInfoPopover" aria-expanded="false">
+              <span class="secure-alert-dot">!</span>
+            </button>
+            <div id="secureInfoPopover" class="secure-info-pop" role="dialog" aria-hidden="true">
+              <p>Add an email to protect your credits. On a new device or browser, choose Restore and use that email to bring them back.</p>
+            </div>
+          </div>
+        </div>
         <h2 class="grad">Simple Pricing</h2>
         <p class="muted">Credits power model generation. Pricing includes infrastructure &amp; processing.</p>
       </div>
@@ -399,13 +413,6 @@
   <!-- ====================== SECURE CREDITS ====================== -->
   <section id="secure-credits" class="secure-credits-wrap">
     <div class="container">
-      <!-- Toggle Button -->
-      <button type="button" id="secureToggleBtn" class="secure-toggle-btn">
-        <i class="fa-solid fa-shield-halved"></i>
-        <span>Secure Your Credits</span>
-        <i class="fa-solid fa-chevron-down toggle-chevron"></i>
-      </button>
-
       <!-- Collapsible Card -->
       <div id="secureCreditsCard" class="secure-credits-card collapsed">
         <div class="secure-icon">
