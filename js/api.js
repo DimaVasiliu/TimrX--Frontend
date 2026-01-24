@@ -670,6 +670,92 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
   poll();
 }
 
+/**
+ * Watch an OpenAI image generation job until completion
+ */
+export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
+  if (State.watchers.has(jobId)) return;
+  let aborted = false;
+  const ctl = { abort() { aborted = true; } };
+  State.watchers.set(jobId, ctl);
+
+  const prog = UI.makeProgressDriver();
+  const startTime = Date.now();
+  const estimatedDuration = 45000;
+
+  const poll = async (delay = 900) => {
+    if (aborted) return;
+    try {
+      const result = await apiFetch(`/api/image/openai/status/${jobId}`);
+      if (result.status === 404) {
+        setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+        return;
+      }
+
+      const st = result.data || {};
+      if (st.message) prog.label(st.message);
+
+      if (st.status !== 'done' && st.status !== 'failed') {
+        const elapsed = Date.now() - startTime;
+        const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
+        prog.jump(pct);
+        updateThumbnailProgress(jobId, pct);
+      }
+
+      if (st.status === 'done') {
+        let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
+        if (!imageUrl && st.image_base64) {
+          imageUrl = `data:image/png;base64,${st.image_base64}`;
+        }
+        if (!imageUrl) {
+          throw new Error('OpenAI did not return an image URL');
+        }
+
+        const historyData = {
+          id: jobId,
+          type: 'image',
+          status: 'finished',
+          created_at: Date.now(),
+          prompt: meta.prompt || '',
+          title: shortTitle(meta.prompt || 'Generated image'),
+          image_url: imageUrl,
+          thumbnail_url: imageUrl,
+          stage: 'image'
+        };
+
+        if (State.historyHasJobId(jobId)) {
+          State.updateHistoryItem(jobId, historyData);
+        } else {
+          State.addHistoryItem(historyData);
+        }
+
+        State.setHistoryActiveModelId(jobId);
+        renderHistory();
+        Viewer.showImageInViewer(imageUrl);
+        prog.done('Image ready.');
+
+        confirmCreditsReservation(reservationId, jobId);
+        refreshCreditsInBackground();
+        return;
+      }
+
+      if (st.status === 'failed') {
+        releaseCreditsReservation(reservationId);
+        prog.fail(st.error || 'Image generation failed');
+        alert(st.error || 'Image generation failed');
+        State.deleteHistoryItem(jobId, { skipRemote: true });
+        return;
+      }
+
+      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+    } catch (err) {
+      setTimeout(() => poll(1500), 1500);
+    }
+  };
+
+  poll();
+}
+
 // ============================================================================
 // MESHY TASK STARTER (shared)
 // ============================================================================
@@ -938,8 +1024,10 @@ export async function startOpenAIImageGeneration() {
   State.setHistoryActiveModelId(tempId);
   renderHistory();
 
+  let activeHistoryId = tempId;
+
   try {
-    prog.label('Generating image...');
+    prog.label('Queueing image...');
     const result = await apiFetch('/api/image/openai', {
       method: 'POST',
       body: {
@@ -970,45 +1058,51 @@ export async function startOpenAIImageGeneration() {
       throw new Error(result.error || `OpenAI HTTP ${result.status}`);
     }
     const data = result.data;
-    const imageUrl = preferHttpUrl(data.image_urls || data.image_url || null);
-    if (!imageUrl) {
+    const jobId = data.job_id || data.image_id;
+    if (!jobId) {
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error('OpenAI did not return an image URL');
+      throw new Error('No job id returned');
     }
 
-    // Confirm reservation now that image is generated
-    confirmCreditsReservation(reservation.reservationId, tempId);
+    if (jobId !== tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      activeHistoryId = jobId;
+    }
 
-    const historyData = {
-      id: tempId,
-      type: 'image',
-      status: 'finished',
-      created_at: Date.now(),
-      prompt: promptRaw,
-      title: shortTitle(promptRaw),
-      image_url: imageUrl,
-      thumbnail_url: imageUrl,
-      stage: 'image'
+    const queuedPlaceholder = {
+      ...placeholder,
+      id: activeHistoryId,
+      status: 'generating',
+      status_label: 'Generating image...'
     };
 
-    if (State.historyHasJobId(tempId)) {
-      State.updateHistoryItem(tempId, historyData);
+    if (State.historyHasJobId(activeHistoryId)) {
+      State.updateHistoryItem(activeHistoryId, queuedPlaceholder);
     } else {
-      State.addHistoryItem(historyData);
+      State.addHistoryItem(queuedPlaceholder);
     }
 
-    State.setHistoryActiveModelId(tempId);
+    State.setHistoryActiveModelId(activeHistoryId);
     renderHistory();
-    setTimeout(() => renderHistory(), 100);
 
-    Viewer.showImageInViewer(imageUrl);
-    prog.done('Image ready.');
+    State.savePendingMeta(activeHistoryId, {
+      prompt: promptRaw,
+      model,
+      size: resolution,
+      stage: 'image'
+    });
+
+    watchOpenAIImageJob(activeHistoryId, reservation.reservationId, {
+      prompt: promptRaw,
+      model,
+      size: resolution
+    });
   } catch (err) {
     console.error('[OpenAI] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
     alert(err?.message || 'Image generation failed.');
     // Clean up placeholder on error
-    const arr = State.getHistory().filter((x) => x.id !== tempId);
+    const arr = State.getHistory().filter((x) => x.id !== activeHistoryId);
     State.saveHistory(arr);
     renderHistory();
   } finally {
