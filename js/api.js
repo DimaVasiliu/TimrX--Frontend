@@ -166,6 +166,37 @@ function handleApiError(response, action, reservationId = null) {
   return false;
 }
 
+/**
+ * Check if API result is a timeout error
+ * @param {object} result - API response from apiFetch
+ * @returns {boolean} true if timeout
+ */
+function isTimeoutError(result) {
+  return result?.isTimeout === true || result?.error === 'Request timeout';
+}
+
+/**
+ * Handle timeout gracefully for generation requests
+ * Shows "Still generating..." message instead of error
+ * Does NOT release reservation (backend will handle it)
+ *
+ * @param {object} result - API response from apiFetch
+ * @param {string} action - Action name for logging
+ * @returns {boolean} true if was timeout (caller should not release reservation)
+ */
+function handleGenerationTimeout(result, action) {
+  if (!isTimeoutError(result)) return false;
+
+  log(`[Timeout] ${action} request timed out - job may still be processing on server`);
+
+  // Show user-friendly message
+  const msg = 'Still generating... The server is still processing your request. ' +
+              'Check back in a moment - your credits will only be charged if generation succeeds.';
+  alert(msg);
+
+  return true;
+}
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -676,11 +707,16 @@ async function beginMeshyTask(kind, payload, meta = {}) {
       body: payload
     });
   } catch (err) {
+    // Network errors (not timeout) - release reservation
     releaseCreditsReservation(reservation.reservationId);
     throw err;
   }
 
   if (!result.ok) {
+    // Handle timeout gracefully - DON'T release reservation (backend handles it)
+    if (handleGenerationTimeout(result, kind)) {
+      return; // Don't throw, don't release - job may still be processing
+    }
     if (handleApiError(result, kind, reservation.reservationId)) return;
     releaseCreditsReservation(reservation.reservationId);
     throw new Error(result.error || `HTTP ${result.status}`);
@@ -795,8 +831,12 @@ export async function onGenerateClick() {
       });
 
       if (!result.ok) {
+        // Handle timeout gracefully - DON'T release reservation (backend handles it)
+        if (handleGenerationTimeout(result, 'text-to-3d')) {
+          return null; // Don't throw, don't release - job may still be processing
+        }
         if (handleApiError(result, 'text-to-3d', reservation.reservationId)) return null;
-        // Release reservation on other errors
+        // Release reservation on other (non-timeout) errors
         releaseCreditsReservation(reservation.reservationId);
         throw new Error(result.error || `HTTP ${result.status}`);
       }
@@ -911,6 +951,14 @@ export async function startOpenAIImageGeneration() {
     });
 
     if (!result.ok) {
+      // Handle timeout gracefully - DON'T release reservation (backend handles it)
+      if (handleGenerationTimeout(result, 'text-to-image')) {
+        // Update placeholder to show "still generating" state
+        State.updateHistoryItem(tempId, { status_label: 'Still generating...' });
+        renderHistory();
+        prog.label('Still generating...');
+        return; // Don't throw, don't release - job may still be processing
+      }
       if (handleApiError(result, 'text-to-image', reservation.reservationId)) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
@@ -1025,6 +1073,10 @@ export async function startImageTo3DFromHistory(item) {
     });
 
     if (!result.ok) {
+      // Handle timeout gracefully - DON'T release reservation (backend handles it)
+      if (handleGenerationTimeout(result, 'image-to-3d')) {
+        return; // Don't throw, don't release - job may still be processing
+      }
       if (handleApiError(result, 'image-to-3d', reservation.reservationId)) return;
       releaseCreditsReservation(reservation.reservationId);
       throw new Error(result.error || `HTTP ${result.status}`);
