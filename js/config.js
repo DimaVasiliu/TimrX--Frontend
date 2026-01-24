@@ -68,6 +68,11 @@ const ENDPOINT_TIMEOUTS = {
   '/api/auth/restore/request': 30000,  // 30s - code request (email sending can be slow)
   '/api/billing/confirm': 25000,       // 25s - payment confirmation
   '/api/billing/checkout': 25000,      // 25s - checkout initiation
+  // Generation endpoints - long timeout while async refactor is in progress
+  '/api/text-to-3d/start': 120000,     // 120s - generation can take time
+  '/api/image-to-3d/start': 120000,    // 120s - generation can take time
+  '/api/image/openai': 120000,         // 120s - image generation
+  '/api/text-to-3d/refine': 120000,    // 120s - refinement
 };
 
 /**
