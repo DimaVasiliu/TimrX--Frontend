@@ -791,6 +791,12 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return; // Insufficient credits modal shown
   }
 
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${kind}-${Date.now()}`);
+  const tempMeta = { ...meta, stage: kind };
+  const startingLabel = `Starting ${statusLabel.replace(/\.+$/, '').toLowerCase()}...`;
+  addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: startingLabel, stage: kind });
+  State.savePendingMeta(tempId, tempMeta);
+
   prog.label(statusLabel);
 
   let result;
@@ -802,6 +808,8 @@ async function beginMeshyTask(kind, payload, meta = {}) {
   } catch (err) {
     // Network errors (not timeout) - release reservation
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     throw err;
   }
 
@@ -810,8 +818,14 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     if (handleGenerationTimeout(result, kind)) {
       return; // Don't throw, don't release - job may still be processing
     }
-    if (handleApiError(result, kind, reservation.reservationId)) return;
+    if (handleApiError(result, kind, reservation.reservationId)) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      return;
+    }
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     throw new Error(result.error || `HTTP ${result.status}`);
   }
   const data = result.data;
@@ -819,8 +833,13 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     throw new Error('No job id returned');
   }
+
+  State.deleteHistoryItem(tempId, { skipRemote: true });
+  State.deletePendingMeta(tempId);
 
   // Confirm reservation now that we have a job_id
   confirmCreditsReservation(reservation.reservationId, job_id);
@@ -1195,6 +1214,11 @@ export async function startImageTo3DFromHistory(item) {
     return; // Insufficient credits modal shown
   }
 
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `image3d-temp-${Date.now()}`);
+  const tempMeta = { ...meta, type: 'model' };
+  addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: 'Starting image to 3D...', type: 'model' });
+  State.savePendingMeta(tempId, tempMeta);
+
   prog.label('Starting image to 3D...');
   try {
     const result = await apiFetch('/api/image-to-3d/start', {
@@ -1207,8 +1231,14 @@ export async function startImageTo3DFromHistory(item) {
       if (handleGenerationTimeout(result, 'image-to-3d')) {
         return; // Don't throw, don't release - job may still be processing
       }
-      if (handleApiError(result, 'image-to-3d', reservation.reservationId)) return;
+      if (handleApiError(result, 'image-to-3d', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        return;
+      }
       releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
       throw new Error(result.error || `HTTP ${result.status}`);
     }
     const data = result.data;
@@ -1216,8 +1246,13 @@ export async function startImageTo3DFromHistory(item) {
 
     if (!job_id) {
       releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
       throw new Error('No job id returned');
     }
+
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
 
     // Confirm reservation now that we have a job_id
     confirmCreditsReservation(reservation.reservationId, job_id);
@@ -1227,6 +1262,8 @@ export async function startImageTo3DFromHistory(item) {
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
     watchMeshyTask(job_id, 'image3d');
   } catch (err) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     prog.fail(err?.message || 'Image to 3D failed');
     alert(err?.message || 'Image to 3D failed');
   }
@@ -1274,6 +1311,8 @@ export async function onPostProcessFromHistory(item, type) {
     return; // Insufficient credits modal shown
   }
 
+  let tempId = null;
+
   prog.label('Starting refine...');
 
   try {
@@ -1285,32 +1324,6 @@ export async function onPostProcessFromHistory(item, type) {
       throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
     }
 
-    const result = await apiFetch('/api/text-to-3d/refine', {
-      method: 'POST',
-      body: {
-        preview_task_id: previewTaskId,
-        model: item.model || 'meshy-6',
-        enable_pbr: true
-      }
-    });
-
-    if (!result.ok) {
-      if (handleApiError(result, 'refine', reservation.reservationId)) return;
-      releaseCreditsReservation(reservation.reservationId);
-      throw new Error(result.error || `HTTP ${result.status}`);
-    }
-    const data = result.data;
-    const { job_id } = data;
-
-    if (!job_id) {
-      releaseCreditsReservation(reservation.reservationId);
-      throw new Error(`No job id returned for ${type}`);
-    }
-
-    // Confirm reservation now that we have a job_id
-    confirmCreditsReservation(reservation.reservationId, job_id);
-
-    State.addActiveJob(job_id);
     const jobMeta = {
       prompt: `(${type}) ${item.prompt || item.title}`,
       art_style: item.art_style || 'realistic',
@@ -1324,6 +1337,51 @@ export async function onPostProcessFromHistory(item, type) {
       batch_count: 1,
       batch_group_id: item.lineage_root_id || item.id
     };
+
+    tempId = (crypto?.randomUUID ? crypto.randomUUID() : `refine-temp-${Date.now()}`);
+    addGeneratingPlaceholder(tempId, {
+      ...jobMeta,
+      status_label: 'Starting refine...'
+    });
+    State.savePendingMeta(tempId, jobMeta);
+
+    const result = await apiFetch('/api/text-to-3d/refine', {
+      method: 'POST',
+      body: {
+        preview_task_id: previewTaskId,
+        model: item.model || 'meshy-6',
+        enable_pbr: true
+      }
+    });
+
+    if (!result.ok) {
+      if (handleApiError(result, 'refine', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error(result.error || `HTTP ${result.status}`);
+    }
+    const data = result.data;
+    const { job_id } = data;
+
+    if (!job_id) {
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error(`No job id returned for ${type}`);
+    }
+
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+
+    // Confirm reservation now that we have a job_id
+    confirmCreditsReservation(reservation.reservationId, job_id);
+
+    State.addActiveJob(job_id);
     State.savePendingMeta(job_id, jobMeta);
     addGeneratingPlaceholder(job_id, {
       ...jobMeta,
@@ -1331,6 +1389,10 @@ export async function onPostProcessFromHistory(item, type) {
     });
     watchJob(job_id);
   } catch (e) {
+    if (tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+    }
     prog.fail(`${type} failed`);
     console.error(e);
     alert(e.message || `${type} failed`);
