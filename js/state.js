@@ -152,6 +152,13 @@ export function sanitizeHistoryItem(item = {}) {
   return copy;
 }
 
+function shouldSkipRemoteHistoryItem(item = {}) {
+  if (!item || typeof item !== 'object') return true;
+  if (item.status && item.status !== 'finished') return true;
+  if (item.model_id || item.image_id) return false;
+  return true;
+}
+
 /**
  * Get cached history from localStorage (fast, synchronous)
  */
@@ -357,6 +364,10 @@ export function addHistoryItem(item) {
   historyCache.unshift(sanitized);
   if (historyCache.length > HISTORY_LIMIT) historyCache.length = HISTORY_LIMIT;
   saveHistoryCache(historyCache);
+
+  if (shouldSkipRemoteHistoryItem(sanitized)) {
+    return true;
+  }
 
   // Save to database
   apiFetch('/api/history/item', {
