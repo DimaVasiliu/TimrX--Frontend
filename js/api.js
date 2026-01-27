@@ -400,16 +400,23 @@ export function watchJob(job_id) {
   State.watchers.set(job_id, ctl);
 
   const prog = UI.makeProgressDriver();
+  let notFoundAttempts = 0;
 
   const poll = async (delay = 900) => {
     if (aborted) return;
     try {
       const result = await apiFetch(`/api/text-to-3d/status/${job_id}`);
       if (result.status === 404) {
+        notFoundAttempts += 1;
+        if (notFoundAttempts <= 5) {
+          setTimeout(() => poll(Math.min(1500, delay)), 1000);
+          return;
+        }
         State.removeActiveJob(job_id);
         prog.clear();
         return;
       }
+      notFoundAttempts = 0;
       const st = result.data;
 
       if (st.message) prog.label(st.message);
@@ -898,6 +905,24 @@ export async function onGenerateClick() {
         ? `Generating preview ${slot + 1}/${batchCount}...`
         : 'Generating...');
 
+      const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${Date.now()}-${slot}`);
+      const tempMeta = {
+        prompt,
+        art_style,
+        model,
+        root_prompt: prompt,
+        license,
+        symmetry_mode: symmetry,
+        is_a_t_pose: isPose,
+        batch_count: batchCount,
+        batch_slot: slot + 1,
+        batch_group_id: batchGroupId,
+        stage: 'preview',
+        status_label: 'Starting...'
+      };
+      addGeneratingPlaceholder(tempId, tempMeta);
+      State.savePendingMeta(tempId, tempMeta);
+
       const payload = {
         prompt,
         art_style,
@@ -921,9 +946,15 @@ export async function onGenerateClick() {
         if (handleGenerationTimeout(result, 'text-to-3d')) {
           return null; // Don't throw, don't release - job may still be processing
         }
-        if (handleApiError(result, 'text-to-3d', reservation.reservationId)) return null;
+        if (handleApiError(result, 'text-to-3d', reservation.reservationId)) {
+          State.deleteHistoryItem(tempId, { skipRemote: true });
+          State.deletePendingMeta(tempId);
+          return null;
+        }
         // Release reservation on other (non-timeout) errors
         releaseCreditsReservation(reservation.reservationId);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
         throw new Error(result.error || `HTTP ${result.status}`);
       }
       const data = result.data;
@@ -931,8 +962,13 @@ export async function onGenerateClick() {
 
       if (!job_id) {
         releaseCreditsReservation(reservation.reservationId);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
         throw new Error('No job id returned');
       }
+
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
 
       // Confirm reservation now that we have a job_id
       confirmCreditsReservation(reservation.reservationId, job_id);
