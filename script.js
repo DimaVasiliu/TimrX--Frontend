@@ -114,7 +114,8 @@
       if (aboutKicker) {
         gsap.fromTo(aboutKicker, { autoAlpha: 0, y: 10 }, {
           autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out',
-          scrollTrigger: { trigger: aboutSection, start: 'top 82%' }
+          immediateRender: false,
+          scrollTrigger: { trigger: aboutSection, start: 'top 82%', toggleActions: 'play none none none' }
         });
       }
 
@@ -122,14 +123,16 @@
       if (leftNote) {
         gsap.fromTo(leftNote, { autoAlpha: 0, x: -16 }, {
           autoAlpha: 0.5, x: 0, duration: 0.6, ease: 'power2.out',
-          scrollTrigger: { trigger: aboutSection, start: 'top 82%' }
+          immediateRender: false,
+          scrollTrigger: { trigger: aboutSection, start: 'top 82%', toggleActions: 'play none none none' }
         });
       }
 
       if (plates.length) {
         gsap.from(plates, {
           autoAlpha: 0, x: 18, duration: 0.6, ease: 'power2.out', stagger: 0.08,
-          scrollTrigger: { trigger: aboutSection, start: 'top 78%' }
+          immediateRender: false,
+          scrollTrigger: { trigger: aboutSection, start: 'top 78%', toggleActions: 'play none none none' }
         });
       }
 
@@ -138,9 +141,11 @@
       if (statItems.length) {
         gsap.from(statItems, {
           autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.out', stagger: 0.06,
+          immediateRender: false,
           scrollTrigger: {
             trigger: statsWrap,
             start: 'top 78%',
+            toggleActions: 'play none none none'
           }
         });
       }
@@ -413,49 +418,71 @@
     (function contactMotion(){
       if (!window.gsap || !window.ScrollTrigger) return;
 
-      // left side
-      gsap.from('.contact-info .info-card', {
-        opacity: 0, y: 14, duration: 0.45, ease: 'power2.out',
-        stagger: 0.08,
-        scrollTrigger: { trigger: '.contact-info', start: 'top 85%' }
-      });
+      const contactInfoCards = gsap.utils.toArray('.contact-info .contact-info-card');
+      const contactFormFields = gsap.utils.toArray('#contactForm .contact-field, #contactForm .contact-chips, #contactForm .contact-submit-btn');
+
+      // left side - info cards (only animate if elements exist)
+      if (contactInfoCards.length) {
+        gsap.from(contactInfoCards, {
+          opacity: 0, y: 14, duration: 0.45, ease: 'power2.out',
+          stagger: 0.08,
+          immediateRender: false,
+          scrollTrigger: { trigger: '.contact-info', start: 'top 85%', toggleActions: 'play none none none' }
+        });
+      }
 
       // right side (form fields)
-      gsap.from('#contactForm .field, #contactForm .chips, #contactForm .submit', {
-        opacity: 0, y: 14, duration: 0.45, ease: 'power2.out',
-        stagger: 0.06,
-        scrollTrigger: { trigger: '#contactForm', start: 'top 85%' }
-      });
+      if (contactFormFields.length) {
+        gsap.from(contactFormFields, {
+          opacity: 0, y: 14, duration: 0.45, ease: 'power2.out',
+          stagger: 0.06,
+          immediateRender: false,
+          scrollTrigger: { trigger: '#contactForm', start: 'top 85%', toggleActions: 'play none none none' }
+        });
+      }
     })();
 
-    gsap.utils.toArray('.info-card').forEach(el=>{
-      const k = 3; // degrees
-      function move(e){
-        const r = el.getBoundingClientRect();
-        const x = (e.clientX - r.left)/r.width - .5;
-        const y = (e.clientY - r.top)/r.height - .5;
-        el.style.transform = `translateY(-2px) rotateX(${y*k}deg) rotateY(${-x*k}deg)`;
-      }
-      function leave(){ el.style.transform = ''; }
-      el.addEventListener('pointermove', move);
-      el.addEventListener('pointerleave', leave);
-    });
+    // Contact card hover effect (vanilla JS, no GSAP dependency)
+    (function contactHover(){
+      document.querySelectorAll('.contact-info-card').forEach(el=>{
+        const k = 3; // degrees
+        function move(e){
+          const r = el.getBoundingClientRect();
+          const x = (e.clientX - r.left)/r.width - .5;
+          const y = (e.clientY - r.top)/r.height - .5;
+          el.style.transform = `translateY(-2px) rotateX(${y*k}deg) rotateY(${-x*k}deg)`;
+        }
+        function leave(){ el.style.transform = ''; }
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerleave', leave);
+      });
+    })();
 
     // CONTACT: cap badges + form reveal
     (function contactCapMotion(){
       if (!window.gsap || !window.ScrollTrigger) return;
 
+      const badges = gsap.utils.toArray('.contact-badges .kbadge');
+      const formCard = document.querySelector('.contact-form-card');
+
       // badges
-      gsap.from('.contact-badges .kbadge', {
-        opacity:0, y:8, duration:.35, ease:'power2.out',
-        stagger:.06, scrollTrigger:{ trigger:'.contact-badges', start:'top 90%' }
-      });
+      if (badges.length) {
+        gsap.from(badges, {
+          opacity:0, y:8, duration:.35, ease:'power2.out',
+          stagger:.06,
+          immediateRender: false,
+          scrollTrigger:{ trigger:'.contact-badges', start:'top 90%', toggleActions: 'play none none none' }
+        });
+      }
 
       // form card slight lift
-      gsap.from('.contact-card', {
-        opacity:0, y:14, duration:.45, ease:'power2.out',
-        scrollTrigger:{ trigger:'.contact-card', start:'top 88%' }
-      });
+      if (formCard) {
+        gsap.from(formCard, {
+          opacity:0, y:14, duration:.45, ease:'power2.out',
+          immediateRender: false,
+          scrollTrigger:{ trigger:'.contact-form-card', start:'top 88%', toggleActions: 'play none none none' }
+        });
+      }
     })();
   
     /* ------------------------------
