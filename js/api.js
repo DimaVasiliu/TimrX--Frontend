@@ -5,14 +5,15 @@
  */
 
 import {
-  BACKEND,
   CHAT_API,
   normalizeEpochMs,
   log,
   byId,
   fileToDataURL,
   createBatchGroupId,
-  apiFetch
+  apiFetch,
+  getLoadableModelUrl,
+  isTimrxS3Url
 } from './config.js';
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
@@ -405,7 +406,7 @@ export function watchJob(job_id) {
   const poll = async (delay = 900) => {
     if (aborted) return;
     try {
-      const result = await apiFetch(`/api/text-to-3d/status/${job_id}`);
+      const result = await apiFetch(`/api/_mod/text-to-3d/status/${job_id}`);
       if (result.status === 404) {
         notFoundAttempts += 1;
         if (notFoundAttempts <= 5) {
@@ -440,8 +441,9 @@ export function watchJob(job_id) {
           }
         }
 
-        const glbProxy = `${BACKEND}/api/proxy-glb?u=${encodeURIComponent(st.glb_url)}`;
-        log('Job done:', { st, glbProxy });
+        // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
+        const glbProxy = getLoadableModelUrl(st.glb_url);
+        log('Job done:', { st, glbProxy, isS3: isTimrxS3Url(st.glb_url) });
 
         const title = shortTitle(meta);
         const stage = st.stage || 'preview';
@@ -528,12 +530,12 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
   State.watchers.set(job_id, ctl);
 
   const endpoint = kind === 'texture'
-    ? '/api/mesh/retexture'
+    ? '/api/_mod/mesh/retexture'
     : kind === 'rig'
-      ? '/api/mesh/rigging'
+      ? '/api/_mod/mesh/rigging'
       : kind === 'image3d'
-        ? '/api/image-to-3d/status'
-        : '/api/mesh/remesh';
+        ? '/api/_mod/image-to-3d/status'
+        : '/api/_mod/mesh/remesh';
 
   const stageLabel = kind === 'texture'
     ? 'Texturing'
@@ -592,7 +594,8 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           || st.rigged_character_glb_url
           || (st.model_urls && st.model_urls.glb)
           || '';
-        const glbProxy = glbDirect ? `${BACKEND}/api/proxy-glb?u=${encodeURIComponent(glbDirect)}` : '';
+        // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
+        const glbProxy = glbDirect ? getLoadableModelUrl(glbDirect) : '';
         const existingItem = State.getHistory().find((x) => x.id === job_id) || {};
         const existingPrompt = existingItem.prompt || '';
         const existingRootPrompt = existingItem.root_prompt || '';
@@ -693,7 +696,7 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
   const poll = async (delay = 900) => {
     if (aborted) return;
     try {
-      const result = await apiFetch(`/api/image/openai/status/${jobId}`);
+      const result = await apiFetch(`/api/_mod/image/openai/status/${jobId}`);
       if (result.status === 404) {
         setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
         return;
@@ -777,10 +780,10 @@ async function beginMeshyTask(kind, payload, meta = {}) {
   }
 
   const endpoint = kind === 'texture'
-    ? '/api/mesh/retexture'
+    ? '/api/_mod/mesh/retexture'
     : kind === 'rig'
-      ? '/api/mesh/rigging'
-      : '/api/mesh/remesh';
+      ? '/api/_mod/mesh/rigging'
+      : '/api/_mod/mesh/remesh';
   const statusLabel = kind === 'texture' ? 'Texturing...' : kind === 'rig' ? 'Rigging...' : 'Remeshing...';
   const prog = UI.makeProgressDriver();
 
@@ -955,7 +958,7 @@ export async function onGenerateClick() {
         refine: false
       };
 
-      const result = await apiFetch('/api/text-to-3d/start', {
+      const result = await apiFetch('/api/_mod/text-to-3d/start', {
         method: 'POST',
         body: payload
       });
@@ -1083,7 +1086,7 @@ export async function startOpenAIImageGeneration() {
 
   try {
     prog.label('Queueing image...');
-    const result = await apiFetch('/api/image/openai', {
+    const result = await apiFetch('/api/_mod/image/openai', {
       method: 'POST',
       body: {
         prompt: promptRaw,
@@ -1221,7 +1224,7 @@ export async function startImageTo3DFromHistory(item) {
 
   prog.label('Starting image to 3D...');
   try {
-    const result = await apiFetch('/api/image-to-3d/start', {
+    const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
       body: { image_url: item.image_url, prompt }
     });
@@ -1345,7 +1348,7 @@ export async function onPostProcessFromHistory(item, type) {
     });
     State.savePendingMeta(tempId, jobMeta);
 
-    const result = await apiFetch('/api/text-to-3d/refine', {
+    const result = await apiFetch('/api/_mod/text-to-3d/refine', {
       method: 'POST',
       body: {
         preview_task_id: previewTaskId,
@@ -1639,7 +1642,7 @@ export async function startRigFromHistory(item) {
  */
 async function fetchBackendJobIds() {
   try {
-    const result = await apiFetch('/api/text-to-3d/list');
+    const result = await apiFetch('/api/_mod/text-to-3d/list');
     if (!result.ok) return null;
     const payload = result.data;
     if (!Array.isArray(payload)) return [];
