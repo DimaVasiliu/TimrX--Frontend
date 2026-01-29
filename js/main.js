@@ -4,7 +4,7 @@
  * and sets up the primary event listeners.
  */
 
-import { byId, safe, log, onThreeReady, normalizeEpochMs, BACKEND, apiFetch } from './config.js';
+import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
 import * as UI from './ui-utils.js';
@@ -615,7 +615,8 @@ function wireGallery() {
           });
         }
 
-        const primary = item.glb_proxy || item.glb_url;
+        // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
+        const primary = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
         const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
         await Viewer.loadModelWithFallback(primary, fallback);
         if (genHintEl) genHintEl.textContent = 'Loaded from history.';
@@ -694,7 +695,7 @@ function wireGallery() {
       if (act === 'delete') {
         if (!confirm('Delete from database and S3 permanently?')) return;
         try {
-          const result = await apiFetch(`/api/history/item/${encodeURIComponent(id)}`, {
+          const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
             method: 'DELETE'
           });
           if (!result.ok) {
