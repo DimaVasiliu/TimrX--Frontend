@@ -6,6 +6,9 @@
     --stage-gap: clamp(28px, 4vw, 56px); --hero-top-pad: clamp(8px, 2.2vh, 28px);
     --photo-max: 520px;   --stage-lift: clamp(-160px, -10vw, -90px);
     --navH: 72px;
+  --warm-white: #f6f1e9;
+  --warm-white-2: #f1ebe2;
+  --warm-white-3: #efe8dd;
   --chat-offset: 56px;
   /* Chat variables */
   --chat-bg: rgba(10, 12, 16, .86);
