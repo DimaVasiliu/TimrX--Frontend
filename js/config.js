@@ -8,7 +8,7 @@
 // ============================================================================
 // Always use the custom domain for proper cookie handling
 export const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
-export const CHAT_API = window.TIMRX_API_BASE || 'https://timrx-chat-1.onrender.com';
+export const CHAT_API = window.TIMRX_API_BASE || 'https://chat.timrx.live';
 
 // Debug: log API base and hostname at startup
 console.log('[Config] BACKEND:', BACKEND, 'hostname:', window.location.hostname);
