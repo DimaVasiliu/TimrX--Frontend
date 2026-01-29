@@ -1066,6 +1066,63 @@
   const secureInfoBtn = document.getElementById('secureInfoBtn');
   const secureInfoPopover = document.getElementById('secureInfoPopover');
 
+  // Restore success modal elements
+  const restoreSuccessModal = document.getElementById('restoreSuccessModal');
+  const restoreCreditsValue = document.getElementById('restoreCreditsValue');
+  const restoreSuccessCloseBtn = document.getElementById('restoreSuccessCloseBtn');
+
+  /**
+   * Open the restore success modal with animation
+   * @param {number} credits - The restored credits balance to display
+   */
+  function openRestoreSuccessModal(credits) {
+    if (!restoreSuccessModal) return;
+
+    // Update credits display
+    if (restoreCreditsValue) {
+      restoreCreditsValue.textContent = credits != null ? credits.toLocaleString() : '--';
+    }
+
+    // Force reflow to restart animations
+    restoreSuccessModal.classList.remove('open');
+    void restoreSuccessModal.offsetWidth;
+
+    // Open modal
+    restoreSuccessModal.classList.add('open');
+    restoreSuccessModal.setAttribute('aria-hidden', 'false');
+
+    console.log('[Credits] Restore success modal opened with', credits, 'credits');
+  }
+
+  /**
+   * Close the restore success modal
+   */
+  function closeRestoreSuccessModal() {
+    if (!restoreSuccessModal) return;
+    restoreSuccessModal.classList.remove('open');
+    restoreSuccessModal.setAttribute('aria-hidden', 'true');
+  }
+
+  // Restore success modal event listeners
+  restoreSuccessCloseBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeRestoreSuccessModal();
+  });
+
+  // Backdrop click closes modal
+  restoreSuccessModal?.addEventListener('click', (e) => {
+    if (e.target === restoreSuccessModal) {
+      closeRestoreSuccessModal();
+    }
+  });
+
+  // ESC key closes restore modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && restoreSuccessModal?.classList.contains('open')) {
+      closeRestoreSuccessModal();
+    }
+  });
+
   /**
    * Toggle the secure credits card visibility
    */
@@ -1401,13 +1458,15 @@
             // Verification succeeded in background!
             console.log('[Credits] Verification confirmed via /api/me poll');
             clearSecureMessages();  // Clear any error messages
+            const wasRestoreMode = isRestoreMode;  // Capture before resetting
             userEmail = pendingEmail;
             emailVerified = true;
             isRestoreMode = false;
+            const restoredCredits = meResult.data.available_credits ?? 0;
             WalletStore.update({
               balance: meResult.data.balance_credits ?? 0,
               reserved: meResult.data.reserved_credits ?? 0,
-              available: meResult.data.available_credits ?? 0,
+              available: restoredCredits,
               identityId: meResult.data.identity_id,
               email: meResult.data.email,
               emailVerified: true,
@@ -1415,6 +1474,10 @@
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
             verifyCodeBtn?.classList.remove('loading');
+            // Show restore success popup if this was a restore operation
+            if (wasRestoreMode) {
+              openRestoreSuccessModal(restoredCredits);
+            }
             return;
           }
         } catch (meErr) {
@@ -1472,9 +1535,12 @@
             userEmail = pendingEmail;
             emailVerified = true;
             isRestoreMode = false;
-            await fetchWallet();
+            const wallet = await fetchWallet();
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
+            // Show restore success popup
+            const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
+            openRestoreSuccessModal(restoredCredits);
           } else if (restoreResult.isTimeout) {
             // Poll /api/me multiple times for eventual success
             setVerifyMessage('Restore taking longer, checking status...');
@@ -1493,10 +1559,13 @@
                   userEmail = pendingEmail;
                   emailVerified = true;
                   isRestoreMode = false;
-                  await fetchWallet();
+                  const wallet = await fetchWallet();
                   if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
                   showSecureState(3);
                   verifyCodeBtn?.classList.remove('loading');
+                  // Show restore success popup
+                  const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
+                  openRestoreSuccessModal(restoredCredits);
                   return;
                 }
               } catch (meErr) {
@@ -1519,6 +1588,7 @@
 
     // Success!
     console.log('[Credits] Email verified successfully');
+    const wasRestoreMode = isRestoreMode; // Capture before resetting
     userEmail = pendingEmail;
     emailVerified = true;
     isRestoreMode = false;
@@ -1527,12 +1597,18 @@
     clearSecureMessages();
 
     // Refresh wallet to get updated state (especially for restore)
-    await fetchWallet();
+    const wallet = await fetchWallet();
 
     // Show verified state
     if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
     showSecureState(3);
     verifyCodeBtn?.classList.remove('loading');
+
+    // Show restore success popup if this was a restore operation
+    if (wasRestoreMode) {
+      const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
+      openRestoreSuccessModal(restoredCredits);
+    }
   }
 
   /**
