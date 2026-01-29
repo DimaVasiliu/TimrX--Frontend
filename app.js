@@ -1,7 +1,7 @@
 /* ========= TimrX Chat API helper (fixed) ========= */
 
 /** 1) Deployed + local URLs */
-const TIMRX_API_RENDER = 'https://timrx-chat-1.onrender.com';
+const TIMRX_API_RENDER = 'https://chat.timrx.live';
 const TIMRX_API_LOCAL  = 'http://localhost:8000'; // if you run locally
 
 /** 2) Pick the best available API automatically */
