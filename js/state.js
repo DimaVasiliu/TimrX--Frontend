@@ -245,7 +245,7 @@ async function migrateOldHistory() {
     log('Migrating', oldHistory.length, 'history items to database...');
 
     // Send to database
-    const result = await apiFetch('/api/history', {
+    const result = await apiFetch('/api/_mod/history', {
       method: 'POST',
       body: oldHistory.map(sanitizeHistoryItem)
     });
@@ -277,18 +277,43 @@ export async function loadHistoryFromDB() {
 
   historyLoading = true;
   historyLoadPromise = (async () => {
-    // First, try to migrate old localStorage data
-    await migrateOldHistory();
-
     try {
-      const result = await apiFetch('/api/history');
-      if (!result.ok) throw new Error(result.error || `HTTP ${result.status}`);
-      historyCache = Array.isArray(result.data) ? result.data : [];
-      saveHistoryCache(historyCache);
-      log('History loaded from DB:', historyCache.length, 'items');
-      return historyCache;
-    } catch (err) {
-      console.warn('[History] Failed to load from DB, using cache:', err.message);
+      // First, try to migrate old localStorage data
+      await migrateOldHistory();
+
+      // Helper to attempt a single fetch
+      const attemptFetch = async () => {
+        const result = await apiFetch('/api/_mod/history');
+        if (!result.ok) {
+          const err = new Error(result.error || `HTTP ${result.status}`);
+          err.isTimeout = result.isTimeout;
+          throw err;
+        }
+        return Array.isArray(result.data) ? result.data : [];
+      };
+
+      // Try up to 2 times on timeout
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          historyCache = await attemptFetch();
+          saveHistoryCache(historyCache);
+          log('History loaded from DB:', historyCache.length, 'items', attempt > 1 ? '(retry succeeded)' : '');
+          return historyCache;
+        } catch (err) {
+          // Only retry on timeout, and only once
+          if (err.isTimeout && attempt < 2) {
+            console.warn('[History] Load timeout, retrying in 1s...');
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+          // All attempts failed - use cache
+          console.warn('[History] Failed to load from DB, using cache:', err.message);
+          historyCache = getHistoryCache();
+          return historyCache;
+        }
+      }
+
+      // Fallback (shouldn't reach here)
       historyCache = getHistoryCache();
       return historyCache;
     } finally {
@@ -327,7 +352,7 @@ export function saveHistory(arr) {
   saveHistoryCache(sanitized);
 
   // Save to database in background
-  apiFetch('/api/history', {
+  apiFetch('/api/_mod/history', {
     method: 'POST',
     body: sanitized
   }).then(result => {
@@ -370,7 +395,7 @@ export function addHistoryItem(item) {
   }
 
   // Save to database
-  apiFetch('/api/history/item', {
+  apiFetch('/api/_mod/history/item', {
     method: 'POST',
     body: sanitized
   }).then(result => {
@@ -403,7 +428,7 @@ export function updateHistoryItem(jobId, updates = {}) {
     saveHistoryCache(historyCache);
 
     // Update in database
-    apiFetch(`/api/history/item/${encodeURIComponent(jobId)}`, {
+    apiFetch(`/api/_mod/history/item/${encodeURIComponent(jobId)}`, {
       method: 'PATCH',
       body: { ...updates, status: updates.status || 'finished' }
     }).catch(err => {
@@ -429,7 +454,7 @@ export function deleteHistoryItem(jobId, options = {}) {
 
   if (!options.skipRemote) {
     // Delete from database
-    apiFetch(`/api/history/item/${encodeURIComponent(jobId)}`, {
+    apiFetch(`/api/_mod/history/item/${encodeURIComponent(jobId)}`, {
       method: 'DELETE'
     }).catch(err => {
       console.warn('[History] Failed to delete item from DB:', err.message);
@@ -455,20 +480,42 @@ export async function forceRestoreFromDB() {
   historyLoading = false;
   historyLoadPromise = null;
 
-  // Load fresh from database
-  try {
-    const result = await apiFetch('/api/history');
-    if (!result.ok) throw new Error(result.error || `HTTP ${result.status}`);
-    historyCache = Array.isArray(result.data) ? result.data : [];
-    saveHistoryCache(historyCache);
-    log('History restored from DB:', historyCache.length, 'items');
-    return historyCache;
-  } catch (err) {
-    historyCache = Array.isArray(fallbackCache) ? fallbackCache : [];
-    saveHistoryCache(historyCache);
-    console.error('[History] Failed to restore from DB:', err.message);
-    throw err;
+  // Helper to attempt a single fetch
+  const attemptFetch = async () => {
+    const result = await apiFetch('/api/_mod/history');
+    if (!result.ok) {
+      const err = new Error(result.error || `HTTP ${result.status}`);
+      err.isTimeout = result.isTimeout;
+      throw err;
+    }
+    return Array.isArray(result.data) ? result.data : [];
+  };
+
+  // Load fresh from database with retry on timeout
+  let lastError = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      historyCache = await attemptFetch();
+      saveHistoryCache(historyCache);
+      log('History restored from DB:', historyCache.length, 'items', attempt > 1 ? '(retry succeeded)' : '');
+      return historyCache;
+    } catch (err) {
+      lastError = err;
+      // Only retry on timeout, and only once
+      if (err.isTimeout && attempt < 2) {
+        console.warn('[History] Fetch timeout, retrying in 1s...');
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+      break;
+    }
   }
+
+  // All attempts failed
+  historyCache = Array.isArray(fallbackCache) ? fallbackCache : [];
+  saveHistoryCache(historyCache);
+  console.error('[History] Failed to restore from DB:', lastError?.message);
+  throw lastError;
 }
 
 /**
