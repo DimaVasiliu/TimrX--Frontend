@@ -536,3 +536,55 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
     swapped = true;
   }
 })();
+
+// =================== COMMUNITY RESOURCE TABS ===================
+(function() {
+  const tabs = document.querySelectorAll('.resource-tab');
+  const panels = document.querySelectorAll('.resource-panel');
+
+  if (!tabs.length || !panels.length) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.dataset.tab;
+      const targetPanel = document.getElementById(`panel-${targetId}`);
+
+      if (!targetPanel) return;
+
+      // Update tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Update panels
+      panels.forEach(p => p.classList.remove('active'));
+      targetPanel.classList.add('active');
+    });
+  });
+
+  // Copy button functionality for code snippets
+  const copyBtns = document.querySelectorAll('.copy-btn');
+
+  copyBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const targetId = btn.dataset.copy;
+      const codeEl = document.getElementById(targetId);
+
+      if (!codeEl) return;
+
+      const code = codeEl.textContent;
+
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<i class="fa-solid fa-copy"></i>';
+        }, 2000);
+      } catch (err) {
+        console.warn('Copy failed:', err);
+      }
+    });
+  });
+})();
