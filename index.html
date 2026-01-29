@@ -240,6 +240,7 @@
   </nav>
 
 
+  <main class="page" style="flex:1;">
     <!-- HERO -->
     <header class="container hero" id="hero" role="banner">
     
@@ -491,83 +492,85 @@
     </section>
 
 <!-- SERVICES -->
-<section id="services" class="section container services">
-    <div class="title-xl">SERVICES</div>
-    <p class="muted services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
+<section id="services" class="section services" style="background:linear-gradient(180deg,#ffffff 0%,#f9f9f9 100%);color:#0b0b0b;border-top:1px solid #ececec;padding:clamp(60px,8vh,100px) 0;position:relative;overflow:hidden;">
+    <div class="container" style="position:relative;z-index:1;">
+    <div class="title-xl" style="color:#0b0b0b;">SERVICES</div>
+    <p class="services-sub" style="color:#5a5a5a;">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
     <div class="services-fx" aria-hidden="true">
-      <div class="services-orbit">
-        <span class="svc-ring ring-a"></span>
-        <span class="svc-ring ring-b"></span>
-        <span class="svc-ring ring-c"></span>
-        <span class="svc-core"></span>
+      <div class="services-orbit" style="opacity:0.25;">
+        <span class="svc-ring ring-a" style="border-color:#3b82f6;"></span>
+        <span class="svc-ring ring-b" style="border-color:#8b5cf6;"></span>
+        <span class="svc-ring ring-c" style="border-color:#06b6d4;"></span>
+        <span class="svc-core" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);"></span>
       </div>
     </div>
-  
+
     <div class="services-grid" role="list">
       <!-- Web Design -->
-      <article class="service-card" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🖥️</div>
-        <h3 class="svc-title">Web Design</h3>
-        <p class="svc-copy muted">Wireframes to polished UI with motion. Accessible, scalable, fast.</p>
-        <ul class="svc-bullets muted">
-          <li>Figma → Dev-ready</li>
-          <li>Design systems</li>
-          <li>Landing pages</li>
+      <article class="service-card svc-card-light" role="listitem" style="background:#ffffff;border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+        <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);padding:16px;border-radius:12px;">🖥️</div>
+        <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Web Design</h3>
+        <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Wireframes to polished UI with motion. Accessible, scalable, fast.</p>
+        <ul class="svc-bullets-light" style="color:#6a6a6a;list-style:none;padding:0;margin:0 0 20px;">
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Figma → Dev-ready</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Design systems</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Landing pages</li>
         </ul>
-        <a class="svc-cta" href="#contact">Get a quote →</a>
+        <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:#f5f5f5;border-radius:8px;transition:all 0.2s ease;">Get a quote <span style="transition:transform 0.2s;">→</span></a>
       </article>
-  
+
       <!-- UX/UI -->
-      <article class="service-card" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🎛️</div>
-        <h3 class="svc-title">UX / UI</h3>
-        <p class="svc-copy muted">Clear flows, components, and micro-interactions that guide attention.</p>
-        <ul class="svc-bullets muted">
-          <li>User flows & IA</li>
-          <li>Components & tokens</li>
-          <li>Motion guidelines</li>
+      <article class="service-card svc-card-light" role="listitem" style="background:#ffffff;border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+        <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);padding:16px;border-radius:12px;">🎛️</div>
+        <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">UX / UI</h3>
+        <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Clear flows, components, and micro-interactions that guide attention.</p>
+        <ul class="svc-bullets-light" style="color:#6a6a6a;list-style:none;padding:0;margin:0 0 20px;">
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> User flows & IA</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Components & tokens</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Motion guidelines</li>
         </ul>
-        <a class="svc-cta" href="#contact">Let’s map it →</a>
+        <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:#f5f5f5;border-radius:8px;transition:all 0.2s ease;">Let's map it <span style="transition:transform 0.2s;">→</span></a>
       </article>
-  
+
       <!-- Development -->
-      <article class="service-card" role="listitem">
-        <div class="svc-icon" aria-hidden="true">⚙️</div>
-        <h3 class="svc-title">Development</h3>
-        <p class="svc-copy muted">Clean, semantic code with performance and SEO in mind.</p>
-        <ul class="svc-bullets muted">
-          <li>HTML/CSS/JS</li>
-          <li>GSAP / Three.js</li>
-          <li>Flask backends</li>
+      <article class="service-card svc-card-light" role="listitem" style="background:#ffffff;border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+        <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);padding:16px;border-radius:12px;">⚙️</div>
+        <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Development</h3>
+        <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Clean, semantic code with performance and SEO in mind.</p>
+        <ul class="svc-bullets-light" style="color:#6a6a6a;list-style:none;padding:0;margin:0 0 20px;">
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> HTML/CSS/JS</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> GSAP / Three.js</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Flask backends</li>
         </ul>
-        <a class="svc-cta" href="#contact">Ship it →</a>
+        <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:#f5f5f5;border-radius:8px;transition:all 0.2s ease;">Ship it <span style="transition:transform 0.2s;">→</span></a>
       </article>
-  
+
       <!-- 3D -->
-      <article class="service-card" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🧊</div>
-        <h3 class="svc-title">3D Modeling & Print</h3>
-        <p class="svc-copy muted">Prompt-to-3D, remesh, viewer integration, print-ready exports.</p>
-        <ul class="svc-bullets muted">
-          <li>GLB/GLTF assets</li>
-          <li>Viewer embeds</li>
-          <li>FDM/SLA prep</li>
+      <article class="service-card svc-card-light" role="listitem" style="background:#ffffff;border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+        <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);padding:16px;border-radius:12px;">🧊</div>
+        <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">3D Modeling & Print</h3>
+        <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Prompt-to-3D, remesh, viewer integration, print-ready exports.</p>
+        <ul class="svc-bullets-light" style="color:#6a6a6a;list-style:none;padding:0;margin:0 0 20px;">
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> GLB/GLTF assets</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Viewer embeds</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> FDM/SLA prep</li>
         </ul>
-        <a class="svc-cta" href="#contact">Make it 3D →</a>
+        <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:#f5f5f5;border-radius:8px;transition:all 0.2s ease;">Make it 3D <span style="transition:transform 0.2s;">→</span></a>
       </article>
-  
+
       <!-- Video -->
-      <article class="service-card" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🎬</div>
-        <h3 class="svc-title">Video / Shorts</h3>
-        <p class="svc-copy muted">Platform-native cuts, hooks, and pacing. Mythic vibes optional.</p>
-        <ul class="svc-bullets muted">
-          <li>TikTok/Shorts edits</li>
-          <li>Audio polish</li>
-          <li>Title/thumbnail</li>
+      <article class="service-card svc-card-light" role="listitem" style="background:#ffffff;border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+        <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);padding:16px;border-radius:12px;">🎬</div>
+        <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Video / Shorts</h3>
+        <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Platform-native cuts, hooks, and pacing. Mythic vibes optional.</p>
+        <ul class="svc-bullets-light" style="color:#6a6a6a;list-style:none;padding:0;margin:0 0 20px;">
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> TikTok/Shorts edits</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Audio polish</li>
+          <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Title/thumbnail</li>
         </ul>
-        <a class="svc-cta" href="#contact">Cut a teaser →</a>
+        <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:#f5f5f5;border-radius:8px;transition:all 0.2s ease;">Cut a teaser <span style="transition:transform 0.2s;">→</span></a>
       </article>
+    </div>
     </div>
   </section>
 
@@ -748,79 +751,96 @@
 </section>
 
 <!-- CONTACT -->
-<section id="contact" class="section container contact">
-    <h2 class="title-xl contact-title">CONTACT</h2>
-        <div class="contact-badges">
-            <span class="kbadge">Available for new projects</span>
-            <span class="kbadge">Web/UI</span>
-            <span class="kbadge">GSAP • Three.js</span>
-            <span class="kbadge">3D & Print</span>
-        </div>
-    <p class="muted contact-sub">Tell me a bit about your project and budget. I’ll reply within 24–48h.</p>
-  
+<section id="contact" class="section contact" style="background:linear-gradient(180deg,#ffffff 0%,#f9f9f9 100%);position:relative;overflow:hidden;border-top:1px solid #ececec;">
+  <!-- Decorative floating element - minimal monochrome style -->
+  <div class="contact-deco" aria-hidden="true" style="position:absolute;top:60px;right:10%;pointer-events:none;z-index:0;opacity:0.12;">
+    <div style="position:relative;width:140px;height:140px;">
+      <!-- Abstract envelope shape -->
+      <div class="contact-shape" style="position:absolute;top:0;left:0;width:80px;height:56px;border:2px solid #0b0b0b;border-radius:3px;transform:rotate(-12deg);animation:contactFloat 8s ease-in-out infinite;">
+        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:40px solid transparent;border-right:40px solid transparent;border-top:28px solid #0b0b0b;"></div>
+      </div>
+      <!-- Orbiting rings -->
+      <div style="position:absolute;top:28px;left:50px;width:60px;height:60px;border:2px solid #0b0b0b;border-radius:50%;animation:contactSpin 25s linear infinite;"></div>
+      <div style="position:absolute;top:38px;left:60px;width:40px;height:40px;border:2px dashed #0b0b0b;border-radius:50%;animation:contactSpin 18s linear infinite reverse;"></div>
+      <!-- Dots -->
+      <div style="position:absolute;top:10px;right:18px;width:7px;height:7px;background:#0b0b0b;border-radius:50%;animation:contactPulse 3s ease-in-out infinite;"></div>
+      <div style="position:absolute;bottom:35px;left:20px;width:4px;height:4px;background:#0b0b0b;border-radius:50%;animation:contactPulse 2.5s ease-in-out infinite 0.5s;"></div>
+    </div>
+  </div>
+
+  <div class="container" style="position:relative;z-index:1;">
+    <h2 class="title-xl contact-title" style="color:#0b0b0b;">CONTACT</h2>
+    <div class="contact-badges">
+      <span class="kbadge" style="background:#0b0b0b;color:#fff;border:none;">Available for new projects</span>
+      <span class="kbadge" style="background:transparent;color:#0b0b0b;border:1px solid #d0d0d0;">Web/UI</span>
+      <span class="kbadge" style="background:transparent;color:#0b0b0b;border:1px solid #d0d0d0;">GSAP • Three.js</span>
+      <span class="kbadge" style="background:transparent;color:#0b0b0b;border:1px solid #d0d0d0;">3D & Print</span>
+    </div>
+    <p class="muted contact-sub" style="color:#5a5a5a;font-size:0.9rem;margin-bottom:1.5rem;">Tell me a bit about your project and budget. I'll reply within 24–48h.</p>
+
     <div class="contact-grid">
       <!-- Left: info -->
       <aside class="contact-info">
-        <div class="info-card">
-          <div class="info-icon">📍</div>
+        <div class="contact-info-card" style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:38px;height:38px;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">📍</div>
           <div>
-            <strong>Based in London</strong>
-            <p class="muted">Available for remote and hybrid work.</p>
+            <strong style="color:#0b0b0b;font-size:0.95rem;display:block;margin-bottom:2px;">Based in London</strong>
+            <p style="color:#6a6a6a;font-size:0.85rem;margin:0;">Available for remote and hybrid work.</p>
           </div>
         </div>
-        <div class="info-card">
-          <div class="info-icon">🕒</div>
+        <div class="contact-info-card" style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:38px;height:38px;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🕒</div>
           <div>
-            <strong>Response</strong>
-            <p class="muted">Usually within 24–48 hours.</p>
+            <strong style="color:#0b0b0b;font-size:0.95rem;display:block;margin-bottom:2px;">Response</strong>
+            <p style="color:#6a6a6a;font-size:0.85rem;margin:0;">Usually within 24–48 hours.</p>
           </div>
         </div>
-        <div class="info-card">
-          <div class="info-icon">🧊</div>
+        <div class="contact-info-card" style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:38px;height:38px;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">⚡</div>
           <div>
-            <strong>What I do</strong>
-            <p class="muted">Web/UI, GSAP/Three.js, 3D modeling & print, Shorts.</p>
+            <strong style="color:#0b0b0b;font-size:0.95rem;display:block;margin-bottom:2px;">Services</strong>
+            <p style="color:#6a6a6a;font-size:0.85rem;margin:0;">Web & UI/UX, motion dev, AI 3D generation, print prep.</p>
           </div>
         </div>
       </aside>
-  
+
       <!-- Right: form -->
-      <form id="contactForm" class="contact-card" novalidate>
-        <!-- budget chips (kept for your JS) -->
-        <label class="label">Budget (required)</label>
-        <div id="budgetChips" class="chips">
-          <label class="chip"><input type="radio" name="budget" value="£500–£1,500" />£500–£1,500</label>
-          <label class="chip"><input type="radio" name="budget" value="£1,500–£3,000" />£1,500–£3,000</label>
-          <label class="chip"><input type="radio" name="budget" value="£3,000–£7,000" />£3,000–£7,000</label>
-          <label class="chip"><input type="radio" name="budget" value="£7,000+" />£7,000+</label>
+      <form id="contactForm" class="contact-form-card" novalidate style="background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,0.06);">
+        <label style="color:#0b0b0b;font-weight:600;font-size:0.9rem;display:block;margin-bottom:10px;">Budget (required)</label>
+        <div id="budgetChips" class="contact-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <label class="contact-chip" style="background:#f5f5f5;color:#0b0b0b;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;border:2px solid transparent;"><input type="radio" name="budget" value="£500–£1,500" style="display:none;" />£500–£1,500</label>
+          <label class="contact-chip" style="background:#f5f5f5;color:#0b0b0b;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;border:2px solid transparent;"><input type="radio" name="budget" value="£1,500–£3,000" style="display:none;" />£1,500–£3,000</label>
+          <label class="contact-chip" style="background:#f5f5f5;color:#0b0b0b;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;border:2px solid transparent;"><input type="radio" name="budget" value="£3,000–£7,000" style="display:none;" />£3,000–£7,000</label>
+          <label class="contact-chip" style="background:#f5f5f5;color:#0b0b0b;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;border:2px solid transparent;"><input type="radio" name="budget" value="£7,000+" style="display:none;" />£7,000+</label>
         </div>
-  
-        <div class="grid2">
-          <div class="field">
-            <span class="icon">👤</span>
-            <input name="name" type="text" placeholder="Your name *" required />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div class="contact-field" style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;opacity:0.5;">👤</span>
+            <input name="name" type="text" placeholder="Your name *" required style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e8e8e8;border-radius:10px;font-size:0.9rem;color:#0b0b0b;background:#fafafa;transition:all 0.2s ease;outline:none;" />
           </div>
-          <div class="field">
-            <span class="icon">✉️</span>
-            <input name="email" type="email" placeholder="Email *" required />
+          <div class="contact-field" style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;opacity:0.5;">✉️</span>
+            <input name="email" type="email" placeholder="Email *" required style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e8e8e8;border-radius:10px;font-size:0.9rem;color:#0b0b0b;background:#fafafa;transition:all 0.2s ease;outline:none;" />
           </div>
         </div>
-  
-        <div class="field">
-          <span class="icon">🏷️</span>
-          <input name="subject" type="text" placeholder="Subject (optional)" />
+
+        <div class="contact-field" style="position:relative;margin-bottom:10px;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;opacity:0.5;">🏷️</span>
+          <input name="subject" type="text" placeholder="Subject (optional)" style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e8e8e8;border-radius:10px;font-size:0.9rem;color:#0b0b0b;background:#fafafa;transition:all 0.2s ease;outline:none;" />
         </div>
-  
-        <div class="field">
-          <span class="icon area">📝</span>
-          <textarea name="message" placeholder="Tell me about the project *" required></textarea>
+
+        <div class="contact-field" style="position:relative;margin-bottom:12px;">
+          <span style="position:absolute;left:12px;top:14px;font-size:0.9rem;opacity:0.5;">📝</span>
+          <textarea name="message" placeholder="Tell me about the project *" required style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e8e8e8;border-radius:10px;font-size:0.9rem;color:#0b0b0b;background:#fafafa;transition:all 0.2s ease;outline:none;min-height:100px;resize:vertical;font-family:inherit;"></textarea>
         </div>
-  
-        <p id="formNote" class="muted"></p>
-        <button class="btn submit" type="submit">Send message →</button>
+
+        <p id="formNote" style="color:#5a5a5a;font-size:0.85rem;margin-bottom:10px;min-height:18px;"></p>
+        <button class="contact-submit-btn" type="submit" style="background:#0b0b0b;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.3s ease;display:inline-flex;align-items:center;gap:8px;">Send message <span style="transition:transform 0.2s;">→</span></button>
       </form>
     </div>
-  </section>
+  </div>
+</section>
     
     
 <!-- BLOGS -->
@@ -885,19 +905,31 @@
   </div>
 </section>
 
-  <!-- SEO: About this page -->
-  <section style="max-width:900px;margin:2rem auto;padding:0 1.5rem;opacity:0.9;">
-    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">About this page</summary>
-      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
-        <p style="margin-bottom:1rem;">Welcome to TimrX, the creative portfolio of Dima Vasiliu. This site showcases a range of projects spanning web development, UX/UI design, 3D modeling, and AI-powered tools. The flagship product is the <a href="hub.html">TimrX 3D Print Hub</a>, where you can generate 3D models from text prompts or images using AI.</p>
-        <p style="margin-bottom:1rem;">Explore the Works section to see completed projects, or jump straight into the <a href="3dprint.html">AI workspace</a> to create your own 3D assets. The <a href="blogs.html">blog</a> covers development insights, 3D workflows, and creative experiments.</p>
-        <p>Whether you need a custom web experience, motion design, or help turning ideas into printable models, this portfolio demonstrates real-world capabilities and shipped projects.</p>
+  <!-- SEO: About TimrX -->
+  <section aria-labelledby="aboutPageTitle" style="background:#ffffff;color:#0b0b0b;border-top:1px solid #ececec;padding:clamp(60px,8vh,100px) 0;">
+    <div class="container">
+      <!-- Centered Header -->
+      <div style="text-align:center;max-width:700px;margin:0 auto 40px;">
+        <h2 id="aboutPageTitle" style="font-family:'Bebas Neue',system-ui,sans-serif;font-size:clamp(36px,6vw,60px);margin:0 0 12px;letter-spacing:0.5px;color:#0b0b0b;">About TimrX</h2>
+        <p style="color:#5a5a5a;font-size:16px;line-height:1.6;margin:0;">AI tools, 3D workflows, and web products under one banner. A focused studio blending rapid prototyping with shipped, client-ready experiences.</p>
       </div>
-    </details>
-  </section>
 
-  <footer>
+      <!-- Resource Buttons -->
+      <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px;">
+        <button type="button" data-modal="aboutTimrxModal" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#f8f8f8;color:#0b0b0b;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s ease;">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About TimrX</span>
+        </button>
+        <button type="button" data-modal="faqModal" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#f8f8f8;color:#0b0b0b;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s ease;">
+          <i class="fa-solid fa-question-circle"></i>
+          <span>FAQ</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer style="margin-top:0;margin-bottom:0;padding-bottom:8px;">
     <div class="container foot">
       <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
       <nav class="foot-nav"><a href="#about">About</a><a href="#works">Works</a><a href="#services">Services</a><a href="#contact">Contact</a></nav>
@@ -913,9 +945,8 @@
     
 <!-- CHAT -->
 <!-- CHAT TOGGLE -->
-<button id="chatToggle" class="chat-toggle chat-min" aria-controls="chatPanel" aria-expanded="false">
+<button id="chatToggle" class="chat-toggle chat-min" aria-controls="chatPanel" aria-expanded="false" aria-label="Open chat">
     <i class="fa-solid fa-comments" aria-hidden="true"></i>
-    <span class="label">Ask TimrX</span>
   </button>
 
 <div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-modal="false">
@@ -1445,5 +1476,218 @@
     <script src="script.js" defer></script>
     <script src="app.js"></script>
     <script src="burger.js"></script>
+
+    <!-- About TimrX Modal -->
+    <div class="modal about-modal" id="aboutTimrxModal" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;">
+      <div class="card about-modal-card" style="background:#ffffff;border:1px solid #ececec;border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative;scrollbar-width:none;-ms-overflow-style:none;transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+        <button class="close-x" data-close-modal aria-label="Close" style="position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:50%;color:#0b0b0b;font-size:20px;cursor:pointer;transition:all 0.2s;">&times;</button>
+        <div class="about-modal-header" style="display:flex;align-items:center;gap:12px;padding:24px 24px 0;color:#0b0b0b;">
+          <i class="fa-solid fa-circle-info" style="font-size:24px;color:#0b0b0b;"></i>
+          <h4 style="margin:0;font-size:1.5rem;font-weight:700;">About TimrX</h4>
+        </div>
+        <div class="about-modal-body" style="padding:24px;line-height:1.7;color:#5a5a5a;">
+          <p style="margin-bottom:1rem;"><strong style="color:#0b0b0b;">TimrX is the creative lab of Dima Vasiliu</strong>, focused on AI-powered 3D production and polished web experiences.</p>
+          <p style="margin-bottom:1rem;">The flagship <a href="hub.html" style="color:#0b0b0b;text-decoration:underline;">TimrX 3D Print Hub</a> turns prompts or images into printable models with a fast, iterative workflow. Whether you're a game developer, 3D printing enthusiast, or digital artist, the Hub streamlines your workflow with intuitive tools.</p>
+          <p style="margin-bottom:1rem;">This portfolio highlights shipped builds, experiments, and client work across web development, AI integrations, and creative consulting.</p>
+          <div style="margin-top:20px;padding:16px;background:#f8f8f8;border:1px solid #ececec;border-radius:8px;">
+            <p style="margin:0;font-size:14px;color:#5a5a5a;"><i class="fa-solid fa-link" style="color:#0b0b0b;margin-right:8px;"></i><strong style="color:#0b0b0b;">Quick links:</strong></p>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;">
+              <a href="3dprint.html" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">AI Workspace</a>
+              <a href="#works" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Works</a>
+              <a href="blogs.html" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Blog</a>
+              <a href="#contact" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Modal -->
+    <div class="modal about-modal" id="faqModal" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;">
+      <div class="card about-modal-card" style="background:#ffffff;border:1px solid #ececec;border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative;scrollbar-width:none;-ms-overflow-style:none;transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+        <button class="close-x" data-close-modal aria-label="Close" style="position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:50%;color:#0b0b0b;font-size:20px;cursor:pointer;transition:all 0.2s;">&times;</button>
+        <div class="about-modal-header" style="display:flex;align-items:center;gap:12px;padding:24px 24px 0;color:#0b0b0b;">
+          <i class="fa-solid fa-question-circle" style="font-size:24px;color:#0b0b0b;"></i>
+          <h4 style="margin:0;font-size:1.5rem;font-weight:700;">Frequently Asked Questions</h4>
+        </div>
+        <div class="about-modal-body" style="padding:24px;line-height:1.7;color:#5a5a5a;">
+          <div style="background:#f8f8f8;border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What is TimrX?</strong></p>
+            <p style="margin:0;color:#5a5a5a;">TimrX is a creative studio specializing in AI-powered 3D workflows, web development, and digital experiences—founded by Dima Vasiliu.</p>
+          </div>
+          <div style="background:#f8f8f8;border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What services do you offer?</strong></p>
+            <p style="margin:0;color:#5a5a5a;">3D model generation, web development, AI integrations, and creative consulting for digital projects of any scale.</p>
+          </div>
+          <div style="background:#f8f8f8;border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">How do I start a project?</strong></p>
+            <p style="margin:0;color:#5a5a5a;">Use the <a href="#contact" style="color:#0b0b0b;text-decoration:underline;">contact form</a> or <a href="mailto:admin@timrx.live" style="color:#0b0b0b;text-decoration:underline;">email directly</a>. Typical response time is within 24 hours.</p>
+          </div>
+          <div style="background:#f8f8f8;border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What is the 3D Print Hub?</strong></p>
+            <p style="margin:0;color:#5a5a5a;">The <a href="hub.html" style="color:#0b0b0b;text-decoration:underline;">3D Print Hub</a> is an AI tool that turns text prompts or images into downloadable 3D models—perfect for games, printing, and visualisation.</p>
+          </div>
+          <div style="background:#f8f8f8;border:1px solid #ececec;border-radius:12px;padding:20px;">
+            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">Where can I see your work?</strong></p>
+            <p style="margin:0;color:#5a5a5a;">Browse the <a href="#works" style="color:#0b0b0b;text-decoration:underline;">Works section</a> for featured projects, or visit the <a href="blogs.html" style="color:#0b0b0b;text-decoration:underline;">blog</a> for process breakdowns and tutorials.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Modal JS -->
+    <script>
+    (function() {
+      const modalButtons = document.querySelectorAll('[data-modal]');
+      if (!modalButtons.length) return;
+
+      // Button hover effects
+      modalButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          btn.style.background = '#f0f0f0';
+          btn.style.borderColor = '#d0d0d0';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.background = '#f8f8f8';
+          btn.style.borderColor = '#e0e0e0';
+        });
+
+        btn.addEventListener('click', () => {
+          const modalId = btn.dataset.modal;
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            const card = modal.querySelector('.about-modal-card');
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            if (card) {
+              card.style.transform = 'translateY(0) scale(1)';
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.about-modal').forEach(modal => {
+        const closeBtn = modal.querySelector('[data-close-modal]');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => closeModal(modal));
+          closeBtn.addEventListener('mouseenter', () => {
+            closeBtn.style.background = '#e0e0e0';
+            closeBtn.style.borderColor = '#d0d0d0';
+            closeBtn.style.transform = 'scale(1.1)';
+          });
+          closeBtn.addEventListener('mouseleave', () => {
+            closeBtn.style.background = '#f0f0f0';
+            closeBtn.style.borderColor = '#e0e0e0';
+            closeBtn.style.transform = 'scale(1)';
+          });
+        }
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal(modal);
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.about-modal').forEach(modal => {
+            if (modal.style.visibility === 'visible') closeModal(modal);
+          });
+        }
+      });
+
+      function closeModal(modal) {
+        const card = modal.querySelector('.about-modal-card');
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (card) {
+          card.style.transform = 'translateY(20px) scale(0.95)';
+        }
+      }
+    })();
+    </script>
+
+    <!-- Hide scrollbar in modal cards + Service card hover effects -->
+    <style>
+    .about-modal-card::-webkit-scrollbar { display: none; }
+
+    /* Service cards light theme - flexbox for button alignment */
+    .svc-card-light {
+      display: flex;
+      flex-direction: column;
+    }
+    .svc-card-light .svc-cta-light {
+      margin-top: auto;
+    }
+    .svc-card-light:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+      border-color: #d0d0d0 !important;
+    }
+    .svc-card-light:hover .svc-icon {
+      transform: scale(1.1);
+    }
+    .svc-card-light .svc-icon {
+      transition: transform 0.3s ease;
+    }
+    .svc-cta-light:hover {
+      background: #0b0b0b !important;
+      color: #ffffff !important;
+    }
+    .svc-cta-light:hover span {
+      transform: translateX(4px);
+    }
+
+    /* Contact section animations */
+    @keyframes contactFloat {
+      0%, 100% { transform: rotate(-12deg) translateY(0); }
+      50% { transform: rotate(-8deg) translateY(-12px); }
+    }
+    @keyframes contactSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes contactPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+
+    /* Contact form styling - minimal black/white */
+    .contact-chip:hover {
+      background: #ebebeb !important;
+      transform: translateY(-2px);
+    }
+    .contact-chip:has(input:checked) {
+      background: #0b0b0b !important;
+      color: #fff !important;
+      border-color: #0b0b0b !important;
+    }
+    .contact-field input:focus,
+    .contact-field textarea:focus {
+      border-color: #0b0b0b !important;
+      background: #fff !important;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+    .contact-submit-btn:hover {
+      background: #2a2a2a !important;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+    }
+    .contact-submit-btn:hover span {
+      transform: translateX(5px);
+    }
+    .contact-info-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.08) !important;
+      border-color: #d0d0d0 !important;
+    }
+    /* Responsive decorative element */
+    @media (max-width: 900px) {
+      .contact-deco { display: none; }
+    }
+    </style>
+
     </body>
 </html>
