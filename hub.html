@@ -640,263 +640,24 @@
         <p class="muted">Everything you need to master 3D generation: prompt guides, code snippets, inspiration gallery, and direct support channels.</p>
       </div>
 
-      <!-- Resource Tabs -->
+      <!-- Resource Buttons (open modals) -->
       <div class="resource-tabs" id="resourceTabs">
-        <button class="resource-tab active" data-tab="prompt-tips">
+        <button class="resource-tab" data-modal="promptTipsModal" type="button">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           <span>Prompt Tips</span>
         </button>
-        <button class="resource-tab" data-tab="api-snippets">
+        <button class="resource-tab" data-modal="apiSnippetsModal" type="button">
           <i class="fa-solid fa-code"></i>
           <span>API Snippets</span>
         </button>
-        <button class="resource-tab" data-tab="showcase">
+        <button class="resource-tab" data-modal="showcaseModal" type="button">
           <i class="fa-solid fa-images"></i>
           <span>Showcase</span>
         </button>
-        <button class="resource-tab" data-tab="bug-reports">
+        <button class="resource-tab" data-modal="bugReportsModal" type="button">
           <i class="fa-solid fa-bug"></i>
           <span>Bug Reports</span>
         </button>
-      </div>
-
-      <!-- Tab Content Panels -->
-      <div class="resource-panels">
-        <!-- Prompt Tips Panel -->
-        <div class="resource-panel active" id="panel-prompt-tips">
-          <div class="panel-grid">
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">01</span>
-                <h4>Structure Your Prompt</h4>
-              </div>
-              <p>Use the formula: <strong>Subject + Modifiers + Style</strong></p>
-              <div class="tip-example">
-                <span class="example-label">Example:</span>
-                <code>"A fearsome dragon, with polished obsidian scales, glowing red eyes, in dark fantasy style"</code>
-              </div>
-            </div>
-
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">02</span>
-                <h4>Be Specific with Materials</h4>
-              </div>
-              <p>Instead of vague descriptions, specify exact materials.</p>
-              <div class="tip-compare">
-                <span class="compare-bad"><i class="fa-solid fa-xmark"></i> "looks beautiful"</span>
-                <span class="compare-good"><i class="fa-solid fa-check"></i> "smooth gold metal"</span>
-              </div>
-            </div>
-
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">03</span>
-                <h4>One Object at a Time</h4>
-              </div>
-              <p>Focus on a single subject for best results. Combine multiple assets later in Blender or Unity.</p>
-            </div>
-
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">04</span>
-                <h4>Use Pose Keywords</h4>
-              </div>
-              <p>For characters, add pose terms for rigging-ready models.</p>
-              <div class="tip-tags">
-                <span class="mini-tag">T-pose</span>
-                <span class="mini-tag">A-pose</span>
-                <span class="mini-tag">dynamic action</span>
-              </div>
-            </div>
-
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">05</span>
-                <h4>3-6 Key Details</h4>
-              </div>
-              <p>Keep it focused. Too many details dilute the output. Prioritize what matters most.</p>
-            </div>
-
-            <div class="tip-card">
-              <div class="tip-header">
-                <span class="tip-number">06</span>
-                <h4>Style Keywords</h4>
-              </div>
-              <p>Add artistic direction for cohesive results.</p>
-              <div class="tip-tags">
-                <span class="mini-tag">low-poly</span>
-                <span class="mini-tag">realistic</span>
-                <span class="mini-tag">cartoon</span>
-                <span class="mini-tag">voxel</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-footer">
-            <p class="footer-tip"><i class="fa-solid fa-lightbulb"></i> <strong>Pro tip:</strong> Mention scale, silhouette, era cues (retro-futurism, dieselpunk), and finish (matte ceramic, lacquered wood) for refined results.</p>
-          </div>
-        </div>
-
-        <!-- API Snippets Panel -->
-        <div class="resource-panel" id="panel-api-snippets">
-          <div class="snippet-grid">
-            <div class="snippet-card">
-              <div class="snippet-header">
-                <span class="snippet-lang">JavaScript</span>
-                <button type="button" class="copy-btn" data-copy="snippet-js" aria-label="Copy JavaScript code"><i class="fa-solid fa-copy"></i></button>
-              </div>
-              <pre class="snippet-code" id="snippet-js"><code>// Text to 3D Generation
-const response = await fetch('https://3d.timrx.live/api/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify({
-    prompt: 'A futuristic robot with chrome armor',
-    art_style: 'realistic',
-    negative_prompt: 'blurry, low quality'
-  })
-});
-const { task_id } = await response.json();</code></pre>
-            </div>
-
-            <div class="snippet-card">
-              <div class="snippet-header">
-                <span class="snippet-lang">Python</span>
-                <button type="button" class="copy-btn" data-copy="snippet-py" aria-label="Copy Python code"><i class="fa-solid fa-copy"></i></button>
-              </div>
-              <pre class="snippet-code" id="snippet-py"><code># Check generation status
-import requests
-
-task_id = "your_task_id"
-response = requests.get(
-    f"https://3d.timrx.live/api/task/{task_id}",
-    cookies=session_cookies
-)
-status = response.json()
-print(f"Status: {status['status']}")</code></pre>
-            </div>
-
-            <div class="snippet-card">
-              <div class="snippet-header">
-                <span class="snippet-lang">cURL</span>
-                <button type="button" class="copy-btn" data-copy="snippet-curl" aria-label="Copy cURL command"><i class="fa-solid fa-copy"></i></button>
-              </div>
-              <pre class="snippet-code" id="snippet-curl"><code># Download generated model
-curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
-  -H "Accept: application/octet-stream" \
-  -o model.glb</code></pre>
-            </div>
-          </div>
-
-          <div class="panel-footer">
-            <p class="footer-tip"><i class="fa-solid fa-book"></i> Full API documentation available in the docs. Includes webhooks, batch processing, and advanced parameters.</p>
-          </div>
-        </div>
-
-        <!-- Showcase Panel -->
-        <div class="resource-panel" id="panel-showcase">
-          <div class="showcase-intro">
-            <p>Community creations and inspiration gallery. See what others are building with TimrX.</p>
-          </div>
-
-          <div class="showcase-grid">
-            <div class="showcase-item">
-              <div class="showcase-preview">
-                <i class="fa-solid fa-cube"></i>
-              </div>
-              <div class="showcase-info">
-                <strong>Mech Warrior</strong>
-                <span class="showcase-author">by @creator</span>
-                <span class="showcase-prompt">"Futuristic mech suit, titanium armor, glowing blue joints, battle-ready pose"</span>
-              </div>
-            </div>
-
-            <div class="showcase-item">
-              <div class="showcase-preview">
-                <i class="fa-solid fa-dragon"></i>
-              </div>
-              <div class="showcase-info">
-                <strong>Crystal Dragon</strong>
-                <span class="showcase-author">by @artist</span>
-                <span class="showcase-prompt">"Elegant dragon, crystalline scales, ethereal glow, fantasy art style"</span>
-              </div>
-            </div>
-
-            <div class="showcase-item">
-              <div class="showcase-preview">
-                <i class="fa-solid fa-car"></i>
-              </div>
-              <div class="showcase-info">
-                <strong>Retro Racer</strong>
-                <span class="showcase-author">by @designer</span>
-                <span class="showcase-prompt">"1960s race car, chrome details, vintage red paint, low-poly style"</span>
-              </div>
-            </div>
-
-            <div class="showcase-item">
-              <div class="showcase-preview">
-                <i class="fa-solid fa-hat-wizard"></i>
-              </div>
-              <div class="showcase-info">
-                <strong>Wizard Tower</strong>
-                <span class="showcase-author">by @builder</span>
-                <span class="showcase-prompt">"Medieval wizard tower, stone texture, magical runes, diorama style"</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-footer">
-            <p class="footer-tip"><i class="fa-solid fa-share"></i> Share your creations on Discord to be featured here!</p>
-          </div>
-        </div>
-
-        <!-- Bug Reports Panel -->
-        <div class="resource-panel" id="panel-bug-reports">
-          <div class="bug-intro">
-            <p>Found an issue? Help us improve TimrX by reporting bugs through the proper channels.</p>
-          </div>
-
-          <div class="bug-grid">
-            <div class="bug-card">
-              <div class="bug-icon">
-                <i class="fa-brands fa-discord"></i>
-              </div>
-              <h4>Discord #bugs Channel</h4>
-              <p>Quick reports and community discussion. Get help from other users while we investigate.</p>
-              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="bug-link">Open Discord <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-
-            <div class="bug-card">
-              <div class="bug-icon">
-                <i class="fa-solid fa-envelope"></i>
-              </div>
-              <h4>Email Support</h4>
-              <p>For detailed reports, account issues, or sensitive bugs. We respond within 24-48 hours.</p>
-              <a href="mailto:support@timrx.live" class="bug-link">support@timrx.live <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-
-            <div class="bug-card">
-              <div class="bug-icon">
-                <i class="fa-brands fa-github"></i>
-              </div>
-              <h4>GitHub Issues</h4>
-              <p>Technical bugs, feature requests, and integration issues. Track progress publicly.</p>
-              <a href="https://github.com/timrx" target="_blank" rel="noopener noreferrer" class="bug-link">View Issues <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-          </div>
-
-          <div class="bug-template">
-            <h5><i class="fa-solid fa-clipboard-list"></i> Bug Report Template</h5>
-            <ul>
-              <li><strong>Description:</strong> What happened?</li>
-              <li><strong>Expected:</strong> What should have happened?</li>
-              <li><strong>Steps:</strong> How to reproduce?</li>
-              <li><strong>Browser/Device:</strong> Your environment</li>
-              <li><strong>Screenshots:</strong> If applicable</li>
-            </ul>
-          </div>
-        </div>
       </div>
 
       <!-- Quick Links Cards -->
@@ -1162,6 +923,246 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
             <i class="fa-solid fa-compass"></i>
             <span>Explore Hub</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Tips Modal -->
+    <div class="modal resource-modal" id="promptTipsModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <h4>Prompt Tips</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="panel-grid">
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">01</span>
+                <h4>Structure Your Prompt</h4>
+              </div>
+              <p>Use the formula: <strong>Subject + Modifiers + Style</strong></p>
+              <div class="tip-example">
+                <span class="example-label">Example:</span>
+                <code>"A fearsome dragon, with polished obsidian scales, glowing red eyes, in dark fantasy style"</code>
+              </div>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">02</span>
+                <h4>Be Specific with Materials</h4>
+              </div>
+              <p>Instead of vague descriptions, specify exact materials.</p>
+              <div class="tip-compare">
+                <span class="compare-bad"><i class="fa-solid fa-xmark"></i> "looks beautiful"</span>
+                <span class="compare-good"><i class="fa-solid fa-check"></i> "smooth gold metal"</span>
+              </div>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">03</span>
+                <h4>One Object at a Time</h4>
+              </div>
+              <p>Focus on a single subject for best results. Combine multiple assets later in Blender or Unity.</p>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">04</span>
+                <h4>Use Pose Keywords</h4>
+              </div>
+              <p>For characters, add pose terms for rigging-ready models.</p>
+              <div class="tip-tags">
+                <span class="mini-tag">T-pose</span>
+                <span class="mini-tag">A-pose</span>
+                <span class="mini-tag">dynamic action</span>
+              </div>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">05</span>
+                <h4>3-6 Key Details</h4>
+              </div>
+              <p>Keep it focused. Too many details dilute the output. Prioritize what matters most.</p>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">
+                <span class="tip-number">06</span>
+                <h4>Style Keywords</h4>
+              </div>
+              <p>Add artistic direction for cohesive results.</p>
+              <div class="tip-tags">
+                <span class="mini-tag">low-poly</span>
+                <span class="mini-tag">realistic</span>
+                <span class="mini-tag">cartoon</span>
+                <span class="mini-tag">voxel</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <p class="footer-tip"><i class="fa-solid fa-lightbulb"></i> <strong>Pro tip:</strong> Mention scale, silhouette, era cues (retro-futurism, dieselpunk), and finish (matte ceramic, lacquered wood) for refined results.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Snippets Modal -->
+    <div class="modal resource-modal" id="apiSnippetsModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-code"></i>
+          <h4>API Snippets</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="snippet-grid">
+            <div class="snippet-card">
+              <div class="snippet-header">
+                <span class="snippet-lang">JavaScript</span>
+                <button type="button" class="copy-btn" data-copy="snippet-js" aria-label="Copy JavaScript code"><i class="fa-solid fa-copy"></i></button>
+              </div>
+              <pre class="snippet-code" id="snippet-js"><code>// Text to 3D Generation
+const response = await fetch('https://3d.timrx.live/api/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({
+    prompt: 'A futuristic robot with chrome armor',
+    art_style: 'realistic',
+    negative_prompt: 'blurry, low quality'
+  })
+});
+const { task_id } = await response.json();</code></pre>
+            </div>
+            <div class="snippet-card">
+              <div class="snippet-header">
+                <span class="snippet-lang">Python</span>
+                <button type="button" class="copy-btn" data-copy="snippet-py" aria-label="Copy Python code"><i class="fa-solid fa-copy"></i></button>
+              </div>
+              <pre class="snippet-code" id="snippet-py"><code># Check generation status
+import requests
+
+task_id = "your_task_id"
+response = requests.get(
+    f"https://3d.timrx.live/api/task/{task_id}",
+    cookies=session_cookies
+)
+status = response.json()
+print(f"Status: {status['status']}")</code></pre>
+            </div>
+            <div class="snippet-card">
+              <div class="snippet-header">
+                <span class="snippet-lang">cURL</span>
+                <button type="button" class="copy-btn" data-copy="snippet-curl" aria-label="Copy cURL command"><i class="fa-solid fa-copy"></i></button>
+              </div>
+              <pre class="snippet-code" id="snippet-curl"><code># Download generated model
+curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
+  -H "Accept: application/octet-stream" \
+  -o model.glb</code></pre>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <p class="footer-tip"><i class="fa-solid fa-book"></i> Full API documentation available in the docs. Includes webhooks, batch processing, and advanced parameters.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Showcase Modal -->
+    <div class="modal resource-modal" id="showcaseModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-images"></i>
+          <h4>Showcase</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="showcase-intro">
+            <p>Community creations and inspiration gallery. See what others are building with TimrX.</p>
+          </div>
+          <div class="showcase-grid">
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-cube"></i></div>
+              <div class="showcase-info">
+                <strong>Mech Warrior</strong>
+                <span class="showcase-author">by @creator</span>
+                <span class="showcase-prompt">"Futuristic mech suit, titanium armor, glowing blue joints, battle-ready pose"</span>
+              </div>
+            </div>
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-dragon"></i></div>
+              <div class="showcase-info">
+                <strong>Crystal Dragon</strong>
+                <span class="showcase-author">by @artist</span>
+                <span class="showcase-prompt">"Elegant dragon, crystalline scales, ethereal glow, fantasy art style"</span>
+              </div>
+            </div>
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-car"></i></div>
+              <div class="showcase-info">
+                <strong>Retro Racer</strong>
+                <span class="showcase-author">by @designer</span>
+                <span class="showcase-prompt">"1960s race car, chrome details, vintage red paint, low-poly style"</span>
+              </div>
+            </div>
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-hat-wizard"></i></div>
+              <div class="showcase-info">
+                <strong>Wizard Tower</strong>
+                <span class="showcase-author">by @builder</span>
+                <span class="showcase-prompt">"Medieval wizard tower, stone texture, magical runes, diorama style"</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <p class="footer-tip"><i class="fa-solid fa-share"></i> Share your creations on Discord to be featured here!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bug Reports Modal -->
+    <div class="modal resource-modal" id="bugReportsModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-bug"></i>
+          <h4>Bug Reports</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="bug-intro">
+            <p>Found an issue? Help us improve TimrX by reporting bugs through the proper channels.</p>
+          </div>
+          <div class="bug-grid">
+            <div class="bug-card">
+              <div class="bug-icon"><i class="fa-brands fa-discord"></i></div>
+              <h4>Discord #bugs Channel</h4>
+              <p>Quick reports and community discussion. Get help from other users while we investigate.</p>
+              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="bug-link">Open Discord <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="bug-card">
+              <div class="bug-icon"><i class="fa-solid fa-envelope"></i></div>
+              <h4>Email Support</h4>
+              <p>For detailed reports, account issues, or sensitive bugs. We respond within 24-48 hours.</p>
+              <a href="mailto:support@timrx.live" class="bug-link">support@timrx.live <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="bug-card">
+              <div class="bug-icon"><i class="fa-brands fa-github"></i></div>
+              <h4>GitHub Issues</h4>
+              <p>Technical bugs, feature requests, and integration issues. Track progress publicly.</p>
+              <a href="https://github.com/timrx" target="_blank" rel="noopener noreferrer" class="bug-link">View Issues <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+          <div class="bug-template">
+            <h5><i class="fa-solid fa-clipboard-list"></i> Bug Report Template</h5>
+            <ul>
+              <li><strong>Description:</strong> What happened?</li>
+              <li><strong>Expected:</strong> What should have happened?</li>
+              <li><strong>Steps:</strong> How to reproduce?</li>
+              <li><strong>Browser/Device:</strong> Your environment</li>
+              <li><strong>Screenshots:</strong> If applicable</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
