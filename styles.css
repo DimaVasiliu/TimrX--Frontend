@@ -809,7 +809,9 @@ img{max-width:100%;display:block}
   line-height: 1.35;
   margin-top: auto;
   max-width: 24ch;
-  margin-left: 0;
+  margin-left: -20px;
+  text-align: left;
+  padding-right: 8px;
 }
 
 /* About figurine (top-right) */
@@ -3568,9 +3570,6 @@ footer{border-top:1px solid var(--line);padding:14px 0 2px;color:var(--muted); m
     max-width: 88%;
   }
 }
-
-
-
 
 /* ===== Global Click Lock ===== */
 html.locked * {
