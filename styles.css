@@ -96,7 +96,6 @@ img{max-width:100%;display:block}
   from{ opacity:0; }
   to{ opacity:1; }
 }
-
 /* === Bottom Sheet (base) === */
 .nav-sheet{
   position:fixed; left:0; right:0; bottom:0;
