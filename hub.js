@@ -537,28 +537,53 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
   }
 })();
 
-// =================== COMMUNITY RESOURCE TABS ===================
+// =================== COMMUNITY RESOURCE MODALS ===================
 (function() {
-  const tabs = document.querySelectorAll('.resource-tab');
-  const panels = document.querySelectorAll('.resource-panel');
+  const tabs = document.querySelectorAll('.resource-tab[data-modal]');
 
-  if (!tabs.length || !panels.length) return;
+  if (!tabs.length) return;
 
+  // Open modal when tab is clicked
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      const targetId = tab.dataset.tab;
-      const targetPanel = document.getElementById(`panel-${targetId}`);
-
-      if (!targetPanel) return;
-
-      // Update tabs
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      // Update panels
-      panels.forEach(p => p.classList.remove('active'));
-      targetPanel.classList.add('active');
+      const modalId = tab.dataset.modal;
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
     });
+  });
+
+  // Close modal handlers
+  function closeResourceModal(modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // Close button click
+  document.querySelectorAll('.resource-modal [data-close-modal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modal = btn.closest('.resource-modal');
+      if (modal) closeResourceModal(modal);
+    });
+  });
+
+  // Backdrop click closes modal
+  document.querySelectorAll('.resource-modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeResourceModal(modal);
+    });
+  });
+
+  // ESC key closes any open resource modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const openModal = document.querySelector('.resource-modal.open');
+      if (openModal) closeResourceModal(openModal);
+    }
   });
 
   // Copy button functionality for code snippets
