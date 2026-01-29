@@ -68,11 +68,14 @@ const ENDPOINT_TIMEOUTS = {
   '/api/auth/restore/request': 30000,  // 30s - code request (email sending can be slow)
   '/api/billing/confirm': 25000,       // 25s - payment confirmation
   '/api/billing/checkout': 25000,      // 25s - checkout initiation
+  // History endpoint - can be slow with many items (now paginated)
+  '/api/_mod/history': 20000,          // 20s - history fetch
+  '/api/history': 20000,               // 20s - legacy path
   // Generation endpoints - long timeout while async refactor is in progress
-  '/api/text-to-3d/start': 120000,     // 120s - generation can take time
-  '/api/image-to-3d/start': 120000,    // 120s - generation can take time
-  '/api/image/openai': 120000,         // 120s - image generation
-  '/api/text-to-3d/refine': 120000,    // 120s - refinement
+  '/api/_mod/text-to-3d/start': 120000,     // 120s - generation can take time
+  '/api/_mod/image-to-3d/start': 120000,    // 120s - generation can take time
+  '/api/_mod/image/openai': 120000,         // 120s - image generation
+  '/api/_mod/text-to-3d/refine': 120000,    // 120s - refinement
 };
 
 /**
@@ -529,6 +532,78 @@ export async function pollForCreditsUpdate(previousCredits, maxWaitMs = 10000, o
 }
 
 // ============================================================================
+// S3 URL HELPERS - Detect our S3 bucket URLs (no proxy needed for these)
+// ============================================================================
+
+/**
+ * Our S3 bucket patterns - URLs from these don't need proxying
+ * They're served directly with proper CORS headers
+ */
+const TIMRX_S3_PATTERNS = [
+  'timrx-3d-models.s3.',        // Primary bucket pattern
+  'timrx-3d-models.s3.eu-west-2.amazonaws.com',
+  'timrx-3d-models.s3.amazonaws.com',
+];
+
+/**
+ * Check if a URL is from our S3 bucket (doesn't need proxying)
+ * @param {string} url - URL to check
+ * @returns {boolean} - True if URL is from our S3 bucket
+ */
+export function isTimrxS3Url(url) {
+  if (!url || typeof url !== 'string') return false;
+  return TIMRX_S3_PATTERNS.some(pattern => url.includes(pattern));
+}
+
+/**
+ * Check if a URL needs to be proxied (external URLs like Meshy)
+ * Returns false for our S3 URLs (load directly), true for others
+ * @param {string} url - URL to check
+ * @returns {boolean} - True if URL should be proxied
+ */
+export function shouldProxyUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+
+  // Our S3 URLs don't need proxying - load directly
+  if (isTimrxS3Url(url)) return false;
+
+  // Meshy asset URLs need proxying (CORS blocked)
+  if (url.includes('assets.meshy.ai')) return true;
+
+  // Other external URLs may need proxying
+  if (url.includes('meshy.ai')) return true;
+
+  // Default: don't proxy (assume CORS is OK or it's a data URL)
+  return false;
+}
+
+/**
+ * Get the best URL for loading a model:
+ * - S3 URLs: return directly (no proxy needed)
+ * - Meshy URLs: wrap in proxy
+ * - Other: return directly
+ *
+ * @param {string} url - Original URL
+ * @returns {string} - URL to use for loading
+ */
+export function getLoadableModelUrl(url) {
+  if (!url) return '';
+
+  // S3 URLs load directly - CORS is configured
+  if (isTimrxS3Url(url)) {
+    return url;
+  }
+
+  // Meshy URLs need proxying
+  if (shouldProxyUrl(url)) {
+    return `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(url)}`;
+  }
+
+  // Everything else (data URLs, other sources): return as-is
+  return url;
+}
+
+// ============================================================================
 // GLOBAL EXPOSURE - Allow non-module scripts (like credits.js) to use API helpers
 // ============================================================================
 window.TimrXApi = {
@@ -541,4 +616,8 @@ window.TimrXApi = {
   writeWalletCache,
   clearWalletCache,
   pollForCreditsUpdate,
+  // S3 helpers
+  isTimrxS3Url,
+  shouldProxyUrl,
+  getLoadableModelUrl,
 };
