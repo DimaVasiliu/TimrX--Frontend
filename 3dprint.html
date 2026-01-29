@@ -3,9 +3,113 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Print Hub — TimrX</title>
-  <meta name="description" content="TimrX 3D Print Hub workspace — create 3D models from text or images with AI." />
+
+  <!-- Primary Meta Tags -->
+  <title>AI 3D Model Generator Workspace | TimrX</title>
+  <meta name="title" content="AI 3D Model Generator Workspace | TimrX" />
+  <meta name="description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview, GLB/GLTF export, and professional-grade 3D assets for games, printing, and design." />
+  <meta name="keywords" content="3D workspace, AI 3D generator, text to 3D, image to 3D, 3D model creator, GLB export, GLTF, 3D printing, game assets, TimrX workspace, online 3D tool" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
   <link rel="canonical" href="https://timrx.live/3dprint" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="msapplication-TileColor" content="#0b0b0b" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/3dprint" />
+  <meta property="og:title" content="AI 3D Model Generator Workspace | TimrX" />
+  <meta property="og:description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview and GLB/GLTF export." />
+  <meta property="og:image" content="https://timrx.live/og-image-workspace.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="TimrX 3D Workspace - AI Model Generator" />
+  <meta property="og:site_name" content="TimrX" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/3dprint" />
+  <meta name="twitter:title" content="AI 3D Model Generator Workspace | TimrX" />
+  <meta name="twitter:description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview." />
+  <meta name="twitter:image" content="https://timrx.live/og-image-workspace.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Additional SEO -->
+  <meta name="application-name" content="TimrX 3D Workspace" />
+  <meta name="apple-mobile-web-app-title" content="TimrX 3D" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Structured Data - SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TimrX 3D Workspace",
+    "description": "AI-powered 3D model generator workspace. Create professional 3D models from text descriptions or images with real-time preview and export capabilities.",
+    "url": "https://timrx.live/3dprint",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP",
+      "description": "Credit-based pricing with free tier available"
+    },
+    "featureList": [
+      "Text to 3D generation",
+      "Image to 3D conversion",
+      "Real-time 3D preview",
+      "GLB/GLTF export",
+      "Multiple art styles",
+      "AI texture generation"
+    ],
+    "screenshot": "https://timrx.live/og-image-workspace.png",
+    "author": {
+      "@type": "Person",
+      "name": "Dima Vasiliu",
+      "url": "https://timrx.live"
+    }
+  }
+  </script>
+
+  <!-- Structured Data - BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "TimrX",
+        "item": "https://timrx.live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "3D Print Hub",
+        "item": "https://timrx.live/hub"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Workspace",
+        "item": "https://timrx.live/3dprint"
+      }
+    ]
+  }
+  </script>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="burger.css">
   <link rel="stylesheet" href="3dprint-modules/main.css">
@@ -83,6 +187,21 @@
                 <span class="nav-dropdown-item-desc">Get in touch with our team</span>
               </a>
             </div>
+            <div class="nav-dropdown-section">
+              <span class="nav-dropdown-section-title">Legal</span>
+              <a href="terms.html" class="nav-dropdown-item">
+                <span class="nav-dropdown-item-title">Terms of Use</span>
+                <span class="nav-dropdown-item-desc">Usage terms and conditions</span>
+              </a>
+              <a href="privacy.html" class="nav-dropdown-item">
+                <span class="nav-dropdown-item-title">Privacy Policy</span>
+                <span class="nav-dropdown-item-desc">How we handle your data</span>
+              </a>
+              <a href="cookies.html" class="nav-dropdown-item">
+                <span class="nav-dropdown-item-title">Cookie Policy</span>
+                <span class="nav-dropdown-item-desc">Cookie usage and preferences</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -150,6 +269,9 @@
       </a>
     </div>
   </nav>
+
+  <!-- SEO: Hidden h1 for screen readers and search engines -->
+  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">AI 3D Model Generator Workspace – Create 3D Models from Text or Images | TimrX</h1>
 
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
@@ -2018,6 +2140,31 @@
       </div>
     </div>
   </div>
+
+  <!-- About This Page -->
+  <section style="max-width:900px;margin:2rem auto;padding:0 1.5rem;opacity:0.9;">
+    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
+      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">About This Workspace</summary>
+      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
+        <p>The TimrX 3D Workspace is an AI-powered creation environment where you can generate detailed 3D models from simple text descriptions or reference images. Whether you're designing game assets, prototyping products, or preparing prints for your 3D printer, the workspace offers intuitive tools that handle complex 3D modelling automatically.</p>
+        <p style="margin-top:0.75rem;">Use the sidebar to switch between generation modes—Text-to-3D, Image-to-3D, Remesh, and Texture—then preview your models in the integrated 3D viewer before downloading. Exported assets arrive in GLB/GLTF format, compatible with Blender, Unity, Unreal Engine, and most slicers. Visit the <a href="hub.html" style="color:#00d4ff;text-decoration:underline;">3D Print Hub</a> for pricing and credits, or explore the <a href="blogs.html" style="color:#00d4ff;text-decoration:underline;">blog</a> for tips on crafting effective prompts.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- FAQ Section -->
+  <section style="max-width:900px;margin:2rem auto 3rem;padding:0 1.5rem;opacity:0.9;">
+    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
+      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">Frequently Asked Questions</summary>
+      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
+        <p><strong>What can I create here?</strong><br>Any 3D object you can describe: characters, vehicles, furniture, props, architectural elements, and more. Describe it in words or upload a reference image.</p>
+        <p style="margin-top:0.75rem;"><strong>How long does generation take?</strong><br>Most models finish in 3-5 minutes depending on complexity and server load. You'll see a progress indicator throughout the process.</p>
+        <p style="margin-top:0.75rem;"><strong>What file formats are supported?</strong><br>Models export as GLB and GLTF. The built-in converter also supports OBJ, STL, and FBX for broader compatibility.</p>
+        <p style="margin-top:0.75rem;"><strong>Are the models print-ready?</strong><br>Many generated models print well directly. For complex prints, use the Remesh tool to create watertight, manifold meshes optimised for slicers.</p>
+        <p style="margin-top:0.75rem;"><strong>How do credits work?</strong><br>Each generation costs a set number of credits. Buy credit packs on the <a href="hub.html#pricing" style="color:#00d4ff;text-decoration:underline;">Hub pricing page</a> and track your balance in the header.</p>
+      </div>
+    </details>
+  </section>
 
   <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
