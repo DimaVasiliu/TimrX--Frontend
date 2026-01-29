@@ -1,9 +1,40 @@
+# TimrX Robots.txt
+# https://timrx.live
+
+# Allow all crawlers
 User-agent: *
 Allow: /
 
-# Sitemap
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Disallow admin/private paths
+Disallow: /api/
+Disallow: /admin/
+Disallow: /*.json$
+
+# Allow important resources
+Allow: /hub
+Allow: /hub.html
+Allow: /index.html
+Allow: /blogs
+Allow: /blogs.html
+Allow: /3dprint.html
+Allow: /blogs.html
+
+# Sitemap location
 Sitemap: https://timrx.live/sitemap.xml
 
-# Disallow admin pages
-Disallow: /admin
-Disallow: /admin.html
+# Google specific
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing specific
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Google Images
+User-agent: Googlebot-Image
+Allow: /

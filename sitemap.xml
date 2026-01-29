@@ -1,28 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Homepage / Portfolio -->
   <url>
     <loc>https://timrx.live/</loc>
-    <changefreq>monthly</changefreq>
+    <lastmod>2025-01-29</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  
+  <!-- 3D Print Hub (Main Product) -->
   <url>
     <loc>https://timrx.live/hub</loc>
+    <lastmod>2025-01-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://timrx.live/og-image-hub.png</image:loc>
+      <image:title>TimrX 3D Print Hub - AI 3D Model Generator</image:title>
+      <image:caption>Create 3D models from text or images with AI</image:caption>
+    </image:image>
   </url>
+  
+  <!-- 3D Workspace -->
   <url>
     <loc>https://timrx.live/3dprint</loc>
+    <lastmod>2025-01-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://timrx.live/og-image-workspace.png</image:loc>
+      <image:title>TimrX 3D Workspace - AI Model Generator</image:title>
+      <image:caption>Create 3D models from text or images with AI</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- Blogs -->
+  <url>
+    <loc>https://timrx.live/blogs.html</loc>
+    <lastmod>2025-01-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://timrx.live/og-image-blog.png</image:loc>
+      <image:title>TimrX Blog - 3D Development Tutorials</image:title>
+      <image:caption>Expert guides on Three.js, GSAP, and 3D printing workflows</image:caption>
+    </image:image>
   </url>
+  
+  <!-- Legal Pages -->
   <url>
-    <loc>https://timrx.live/blogs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://timrx.live/terms.html</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
+  
   <url>
-    <loc>https://timrx.live/write</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://timrx.live/privacy.html</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
+  
+  <url>
+    <loc>https://timrx.live/cookies.html</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
 </urlset>
