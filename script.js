@@ -497,26 +497,83 @@
     })();
   
     /* ------------------------------
-       7) Contact form front-end feedback
+       7) Contact form submission
        ------------------------------ */
     (function contactForm() {
       const form = byId('contactForm');
       if (!form) return;
-  
-      form.addEventListener('submit', (e) => {
+
+      const submitBtn = form.querySelector('.contact-submit-btn');
+      const API_URL = 'https://3d.timrx.live/api/contact/submit';
+
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = new FormData(form);
+
+        // Validate required fields
         if (!data.get('budget') || !data.get('name') || !data.get('email') || !data.get('message')) {
-          return note('Please fill the required fields (budget, name, email, message).');
+          return note('Please fill the required fields (budget, name, email, message).', true);
         }
-        note("Thanks — I'll reply within 24–48h.");
-        form.reset();
-        byId('budgetChips')?.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+
+        // Validate email format
+        const email = data.get('email');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return note('Please enter a valid email address.', true);
+        }
+
+        // Disable button and show loading state
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = 'Sending... <span style="display:inline-block;animation:spin 1s linear infinite;">⟳</span>';
+        }
+
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: data.get('name'),
+              email: data.get('email'),
+              subject: data.get('subject') || '',
+              budget: data.get('budget'),
+              message: data.get('message')
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.ok) {
+            note(result.message || "Thanks — I'll reply within 24–48h.", false);
+            form.reset();
+            byId('budgetChips')?.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+            // Also reset contact-chip styling
+            form.querySelectorAll('.contact-chip').forEach((c) => {
+              c.style.background = '#f5f5f5';
+              c.style.color = '#0b0b0b';
+              c.style.borderColor = 'transparent';
+            });
+          } else {
+            note(result.error?.message || 'Something went wrong. Please try again.', true);
+          }
+        } catch (err) {
+          console.error('[Contact] Submit error:', err);
+          note('Network error. Please try again or email directly.', true);
+        } finally {
+          // Re-enable button
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Send message <span style="transition:transform 0.2s;">→</span>';
+          }
+        }
       });
-  
-      function note(msg) {
+
+      function note(msg, isError = false) {
         const n = byId('formNote');
-        if (n) n.textContent = msg;
+        if (n) {
+          n.textContent = msg;
+          n.style.color = isError ? '#dc3545' : '#28a745';
+        }
       }
     })();
   
