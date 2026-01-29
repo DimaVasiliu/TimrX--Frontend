@@ -662,11 +662,12 @@ img{max-width:100%;display:block}
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.6;
-  animation: gridPulse 10s ease-in-out infinite;
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.12));
+  animation: gridPulse 8s ease-in-out infinite;
 }
 
 /* Header: badge + title */
@@ -812,14 +813,15 @@ img{max-width:100%;display:block}
 .about-drone{
   position:absolute;
   top: clamp(18px, 3vw, 28px);
-  right: clamp(22px, 4vw, 40px);
-  width: clamp(120px, 16vw, 170px);
-  height: clamp(120px, 16vw, 170px);
+  right: clamp(60px, 9vw, 140px);
+  width: clamp(150px, 20vw, 220px);
+  height: clamp(150px, 20vw, 220px);
   pointer-events:none;
   z-index:0;
   display:grid;
   place-items:center;
-  opacity: 0.72;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 18px rgba(14,165,233,0.25));
 }
 .about-drone .drone-orbit{
   position:absolute;
@@ -831,7 +833,7 @@ img{max-width:100%;display:block}
 .about-drone .drone-ring{
   position:absolute;
   border-radius:50%;
-  border:1px solid rgba(255,255,255,0.18);
+  border:1px solid rgba(59,130,246,0.35);
   transform: rotateX(70deg);
   animation: ringSpin 48s linear infinite;
 }
@@ -843,8 +845,8 @@ img{max-width:100%;display:block}
   width:6px;
   height:6px;
   border-radius:50%;
-  background: rgba(247,200,106,0.65);
-  box-shadow: 0 0 8px rgba(247,200,106,0.45);
+  background: rgba(236,72,153,0.75);
+  box-shadow: 0 0 10px rgba(236,72,153,0.5);
   transform: translateX(-50%);
 }
 .about-drone .drone-ring.ring-a{
@@ -854,13 +856,13 @@ img{max-width:100%;display:block}
 .about-drone .drone-ring.ring-b{
   width: 92%;
   height: 92%;
-  border-color: rgba(247,200,106,0.18);
+  border-color: rgba(236,72,153,0.28);
   animation-duration: 64s;
 }
 .about-drone .drone-ring.ring-c{
   width: 114%;
   height: 114%;
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(14,165,233,0.22);
   animation-duration: 80s;
 }
 .about-drone .drone-body{
@@ -881,8 +883,8 @@ img{max-width:100%;display:block}
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff7d6, rgba(247,200,106,0.85));
-  box-shadow: none;
+  background: radial-gradient(circle at 30% 30%, #e6f7ff, rgba(59,130,246,0.85), rgba(236,72,153,0.55));
+  box-shadow: 0 0 14px rgba(59,130,246,0.45);
   animation: sunPulse 3.2s ease-in-out infinite;
 }
 .about-drone .drone-display{
@@ -900,7 +902,7 @@ img{max-width:100%;display:block}
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #e6f6ff;
+  color: #e7f1ff;
   z-index: 2;
 }
 .about-drone .display-track{
@@ -1012,9 +1014,9 @@ img{max-width:100%;display:block}
   }
 
   .about-drone{
-    width: min(140px, 32vw);
-    height: min(140px, 32vw);
-    opacity: 0.55;
+    width: min(170px, 38vw);
+    height: min(170px, 38vw);
+    opacity: 0.7;
   }
 
   .about-content-right {
@@ -1928,8 +1930,8 @@ img{max-width:100%;display:block}
 .services-orbit{
   position:absolute;
   right:clamp(12px, 5vw, 80px);
-  top:clamp(-10px, 4vw, 26px);
-  width:min(220px, 34vw);
+  top:calc(clamp(-26px, 3vw, 24px) - 60px);
+  width:min(299px, 43.7vw);
   aspect-ratio:1;
 }
 .svc-ring{
