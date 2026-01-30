@@ -105,6 +105,11 @@
                 <option value="inspiring and motivational">Inspiring</option>
               </select>
             </div>
+            <div class="form-group affiliate-section">
+              <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
+              <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
+              <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+            </div>
             <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
           </form>
 
@@ -227,6 +232,50 @@
     </div>
   </div>
 
+  <!-- Cover Image Result Modal -->
+  <div class="modal" id="coverModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Cover Image Ready</h3>
+        <button class="modal-close" id="closeCoverModal">&times;</button>
+      </div>
+      <div class="cover-modal-content">
+        <img id="modalCoverImage" alt="Generated cover"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalCopyCoverUrl">Copy URL</button>
+        <button class="btn primary" id="modalUseCover">Use as Cover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generated Blog Post Modal -->
+  <div class="modal" id="blogModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Blog Post Generated</h3>
+        <button class="modal-close" id="closeBlogModal">&times;</button>
+      </div>
+      <div class="blog-modal-content">
+        <div class="blog-preview-title" id="modalPreviewTitle"></div>
+        <div class="blog-preview-excerpt" id="modalPreviewExcerpt"></div>
+        <div class="blog-preview-meta">
+          <span class="blog-preview-tag type" id="modalPreviewType"></span>
+          <span class="blog-preview-tag tags" id="modalPreviewTags"></span>
+        </div>
+        <div class="blog-preview-cover-prompt">
+          <span class="label">Cover Prompt:</span>
+          <span id="modalPreviewCoverPrompt"></span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalPreviewEdit">Edit in Editor</button>
+        <button class="btn" id="modalGenerateCover">Generate Cover</button>
+        <button class="btn primary" id="modalPreviewPublish">Save as Draft</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
     const API = API_BASE + '/api';
@@ -303,6 +352,9 @@
       btn.innerHTML = '<span class="spinner"></span>Generating...';
 
       try {
+        const affiliateUrl = $('#ai_affiliate_url').value.trim();
+        const productName = $('#ai_product_name').value.trim();
+
         const r = await fetch(API + '/admin/ai/generate', {
           method: 'POST',
           headers: headers(),
@@ -311,20 +363,24 @@
             style: $('#ai_style').value,
             length: $('#ai_length').value,
             tone: $('#ai_tone').value,
+            affiliate_url: affiliateUrl || undefined,
+            product_name: productName || undefined,
           })
         });
         const j = await r.json();
 
         if (j.ok) {
           generatedBlog = j;
-          $('#previewTitle').textContent = j.title;
-          $('#previewExcerpt').textContent = j.excerpt;
-          $('#previewType').textContent = j.type;
-          $('#previewTags').textContent = j.tags;
-          $('#generatePreview').style.display = 'block';
+          // Show in modal instead of inline
+          $('#modalPreviewTitle').textContent = j.title;
+          $('#modalPreviewExcerpt').textContent = j.excerpt;
+          $('#modalPreviewType').textContent = j.type;
+          $('#modalPreviewTags').textContent = j.tags;
+          $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
           if (j.cover_prompt) {
             $('#cover_prompt').value = j.cover_prompt;
           }
+          $('#blogModal').classList.add('show');
         } else {
           alert('Generation failed: ' + (j.error || 'Unknown error'));
         }
@@ -336,9 +392,15 @@
       }
     };
 
-    // Save generated blog as draft
-    $('#previewPublish').onclick = async () => {
+    // Close blog modal
+    $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
+
+    // Save generated blog as draft (modal version)
+    $('#modalPreviewPublish').onclick = async () => {
       if (!generatedBlog) return;
+      const btn = $('#modalPreviewPublish');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
       try {
         const r = await fetch(API + '/post', {
           method: 'POST',
@@ -359,7 +421,7 @@
         if (j.ok || j.slug) {
           alert('Draft saved! Slug: ' + j.slug);
           load();
-          $('#generatePreview').style.display = 'none';
+          $('#blogModal').classList.remove('show');
           $('#ai_topic').value = '';
           generatedBlog = null;
         } else {
@@ -367,14 +429,32 @@
         }
       } catch (err) {
         alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save as Draft';
       }
     };
 
-    // Edit in full editor
-    $('#previewEdit').onclick = () => {
+    // Edit in full editor (modal version)
+    $('#modalPreviewEdit').onclick = () => {
       if (!generatedBlog) return;
       sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
       window.location.href = 'write.html?ai=1';
+    };
+
+    // Generate cover from blog modal
+    $('#modalGenerateCover').onclick = () => {
+      if (generatedBlog && generatedBlog.cover_prompt) {
+        $('#cover_prompt').value = generatedBlog.cover_prompt;
+        $('#blogModal').classList.remove('show');
+        // Switch to cover tab
+        $$('.tab').forEach(t => t.classList.remove('active'));
+        $$('.tab-content').forEach(s => s.classList.remove('active'));
+        $('[data-tab="cover"]').classList.add('active');
+        $('#tab-cover').classList.add('active');
+        // Auto-generate
+        $('#coverForm').dispatchEvent(new Event('submit'));
+      }
     };
 
     // AI Assist functions
@@ -456,11 +536,9 @@
 
         if (j.ok && j.url) {
           generatedCoverUrl = j.url;
-          $('#coverImage').src = j.url;
-          $('#coverPreview').style.display = 'block';
-          if (!j.permanent) {
-            alert('Note: This is a temporary URL. Click "Use as Cover" to save it.');
-          }
+          // Show in modal instead of inline
+          $('#modalCoverImage').src = j.url;
+          $('#coverModal').classList.add('show');
         } else {
           alert('Image generation failed: ' + (j.error || 'Unknown error'));
         }
@@ -472,21 +550,26 @@
       }
     };
 
-    // Copy cover URL
-    $('#copyCoverUrl').onclick = () => {
+    // Close cover modal
+    $('#closeCoverModal').onclick = () => $('#coverModal').classList.remove('show');
+
+    // Copy cover URL (modal version)
+    $('#modalCopyCoverUrl').onclick = () => {
       if (generatedCoverUrl) {
         navigator.clipboard.writeText(generatedCoverUrl);
-        $('#copyCoverUrl').textContent = 'Copied!';
-        setTimeout(() => $('#copyCoverUrl').textContent = 'Copy URL', 1500);
+        $('#modalCopyCoverUrl').textContent = 'Copied!';
+        setTimeout(() => $('#modalCopyCoverUrl').textContent = 'Copy URL', 1500);
       }
     };
 
-    // Use cover for current edit
-    $('#useCover').onclick = () => {
+    // Use cover (modal version)
+    $('#modalUseCover').onclick = () => {
       if (generatedCoverUrl) {
+        // If editing a post, set the cover URL
         if ($('#edit').classList.contains('show')) {
           $('#e_cover').value = generatedCoverUrl;
         }
+        $('#coverModal').classList.remove('show');
         alert('Cover URL ready! Use it when creating/editing a post.');
       }
     };
@@ -609,6 +692,20 @@
     $('#reload').onclick = load;
     $('#flt').onchange = load;
     $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    // Close modals on backdrop click or Escape key
+    ['coverModal', 'blogModal'].forEach(id => {
+      const modal = $('#' + id);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        $('#coverModal').classList.remove('show');
+        $('#blogModal').classList.remove('show');
+      }
+    });
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
