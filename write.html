@@ -1,4 +1,4 @@
-<!-- write.html — PUBLIC WRITER with left sidebar (Author, Status, Stats, Markdown Guide) and content template prefilled -->
+<!-- write.html — PUBLIC WRITER with Editor.js block editor -->
 <!DOCTYPE html>
 <html lang="en" class="write-page">
 <head>
@@ -9,6 +9,7 @@
   <link rel="canonical" href="https://timrx.live/write" />
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="write.css"/>
+  <link rel="stylesheet" href="editor.css"/>
   <link rel="stylesheet" href="burger.css"/>
   <link rel="stylesheet" href="media/write.css"/>
 </head>
@@ -93,11 +94,25 @@
       </div>
 
       <div class="card">
-        <h4>Markdown Guide</h4>
-        <div class="help-item"><code># Heading 1</code><code>## Heading 2</code></div>
-        <div class="help-item"><code>**bold**</code><code>*italic*</code></div>
-        <div class="help-item"><code>[link](url)</code><code>![image](url)</code></div>
-        <div class="help-item"><code>`code`</code><code>```code block```</code></div>
+        <h4>Formatting Tips</h4>
+        <div class="formatting-tips">
+          <div class="tip-item">
+            <span class="tip-icon">+</span>
+            <span class="tip-text">Click <strong>+</strong> or press <strong>/</strong> to add blocks</span>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">H</span>
+            <span class="tip-text">Use <strong>Headers</strong> to structure your post</span>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">T</span>
+            <span class="tip-text">Select text for <strong>bold</strong>, <strong>italic</strong>, links</span>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">I</span>
+            <span class="tip-text">Add <strong>images</strong> via URL or upload</span>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -134,21 +149,8 @@
           </div>
 
           <div class="field-group">
-            <label for="content">Content (Markdown) <span class="accent-star">*</span></label>
-            <textarea id="content" rows="18" required>
-## Introduction
-
-Start your post here with an engaging opening...
-
-## Main Content
-
-- **Bold text**
-- *Italic text*
-- [Links](https://example.com)
-- ![Images](https://example.com/image.jpg)
-
-## Conclusion
-            </textarea>
+            <label>Content <span class="accent-star">*</span></label>
+            <div id="editorjs"></div>
           </div>
 
           <div class="action-bar">
@@ -160,45 +162,168 @@ Start your post here with an engaging opening...
     </main>
   </div>
 
+  <!-- Editor.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.29.1/dist/editorjs.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1/dist/header.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.0/dist/image.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.0/dist/delimiter.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js"></script>
+
   <script>
-    // API endpoint (readers never configure this)
+    // API endpoint
     const API_BASE = 'https://timrx-blogs-api-1.onrender.com';
     const API = API_BASE.replace(/\/$/, '') + '/api';
 
     const $ = s => document.querySelector(s);
     const msg = $('#msg');
     const btn = $('#submitBtn');
-    const contentEl = $('#content');
+
+    // Initialize Editor.js
+    const editor = new EditorJS({
+      holder: 'editorjs',
+      placeholder: 'Start writing your story...',
+      autofocus: true,
+      tools: {
+        header: {
+          class: Header,
+          config: {
+            placeholder: 'Enter a header',
+            levels: [2, 3, 4],
+            defaultLevel: 2
+          }
+        },
+        list: {
+          class: List,
+          inlineToolbar: true,
+          config: {
+            defaultStyle: 'unordered'
+          }
+        },
+        image: {
+          class: ImageTool,
+          config: {
+            uploader: {
+              uploadByFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                return fetch(API + '/upload', {
+                  method: 'POST',
+                  body: formData
+                })
+                .then(r => r.json())
+                .then(data => data);
+              },
+              uploadByUrl(url) {
+                return Promise.resolve({
+                  success: 1,
+                  file: { url: url }
+                });
+              }
+            }
+          }
+        },
+        code: {
+          class: CodeTool,
+          config: {
+            placeholder: 'Enter code here...'
+          }
+        },
+        quote: {
+          class: Quote,
+          inlineToolbar: true,
+          config: {
+            quotePlaceholder: 'Enter a quote',
+            captionPlaceholder: 'Quote author'
+          }
+        },
+        delimiter: Delimiter,
+        checklist: {
+          class: Checklist,
+          inlineToolbar: true
+        }
+      },
+      data: {
+        blocks: [
+          {
+            type: 'header',
+            data: { text: 'Introduction', level: 2 }
+          },
+          {
+            type: 'paragraph',
+            data: { text: 'Start your post here with an engaging opening...' }
+          },
+          {
+            type: 'header',
+            data: { text: 'Main Content', level: 2 }
+          },
+          {
+            type: 'paragraph',
+            data: { text: 'Write your main content here. Use the + button or press / to add different block types.' }
+          },
+          {
+            type: 'header',
+            data: { text: 'Conclusion', level: 2 }
+          }
+        ]
+      },
+      onChange: updateStats
+    });
 
     // Live stats
-    function updateStats(){
-      const text = contentEl.value || '';
-      const words = (text.trim().match(/\S+/g) || []).length;
-      const chars = text.length;
-      const minutes = Math.max(1, Math.round(words / 200));
-      $('#wordCount').textContent = words.toString();
-      $('#charCount').textContent = chars.toString();
-      $('#estTime').textContent = minutes + ' min';
+    async function updateStats() {
+      try {
+        const data = await editor.save();
+        let text = '';
+        for (const block of data.blocks) {
+          if (block.data.text) text += block.data.text + ' ';
+          if (block.data.items) {
+            for (const item of block.data.items) {
+              text += (typeof item === 'string' ? item : item.content || '') + ' ';
+            }
+          }
+        }
+        const words = (text.trim().match(/\S+/g) || []).length;
+        const chars = text.length;
+        const minutes = Math.max(1, Math.round(words / 200));
+        $('#wordCount').textContent = words.toString();
+        $('#charCount').textContent = chars.toString();
+        $('#estTime').textContent = minutes + ' min';
+      } catch (e) {
+        // Editor not ready yet
+      }
     }
-    contentEl.addEventListener('input', updateStats);
-    updateStats();
 
-    function setMsg(text, ok){
+    function setMsg(text, ok) {
       msg.textContent = text;
       msg.style.color = ok ? '#10b981' : 'var(--accent-blue)';
     }
-    function setErr(text){
+    function setErr(text) {
       msg.textContent = text;
       msg.style.color = '#ef4444';
     }
 
-    // Submit -> always saved; backend enforces draft for public submit
-    document.getElementById('editor').addEventListener('submit', async (e)=>{
+    // Submit with Editor.js content
+    document.getElementById('editor').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const title = $('#title').value.trim();
-      const content_md = contentEl.value.trim();
-      if(!title || !content_md){ setErr('Please fill in Title and Content.'); return; }
+      if (!title) { setErr('Please fill in the Title.'); return; }
+
+      let content_blocks;
+      try {
+        const outputData = await editor.save();
+        if (!outputData.blocks || outputData.blocks.length === 0) {
+          setErr('Please add some content.');
+          return;
+        }
+        content_blocks = JSON.stringify(outputData);
+      } catch (err) {
+        setErr('Error saving editor content.');
+        return;
+      }
 
       const body = {
         title,
@@ -208,30 +333,41 @@ Start your post here with an engaging opening...
         author: ($('#author')?.value || 'Guest').trim(),
         email: ($('#email')?.value || '').trim(),
         excerpt: $('#excerpt').value.trim(),
-        content_md,
+        content_blocks,
+        content_format: 'blocks',
         status: $('#status')?.value || 'draft'
       };
 
       btn.disabled = true;
-      setMsg('Sending draft…', false);
+      setMsg('Sending draft...', false);
 
-      try{
+      try {
         const r = await fetch(API + '/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
-        const j = await r.json().catch(()=>({}));
-        if(!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
 
-        setMsg('Thank you! Your draft was sent for review. Check your email for confirmation (if provided).', true);
-        e.target.reset(); updateStats();
-      }catch(err){
+        setMsg('Thank you! Your draft was sent for review.', true);
+        // Reset editor
+        editor.clear();
+        $('#title').value = '';
+        $('#cover').value = '';
+        $('#type').value = '';
+        $('#tags').value = '';
+        $('#excerpt').value = '';
+        updateStats();
+      } catch (err) {
         setErr('Error: ' + (err.message || err));
-      }finally{
+      } finally {
         btn.disabled = false;
       }
     });
+
+    // Initial stats
+    editor.isReady.then(() => updateStats());
   </script>
   <script src="burger.js"></script>
 </body>
