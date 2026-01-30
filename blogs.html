@@ -137,98 +137,72 @@
   <link rel="stylesheet" href="media/blogs.css">
 </head>
 <body>
-  <!-- NAV (reuse global) -->
-  <nav class="nav divider" aria-label="Main">
-    <div class="container nav-inner">
-      <a class="brand" href="index.html" aria-label="Home">
-        <span class="b-tim">Timr</span><span class="b-x">X</span>
-      </a>
+  <!-- MINIMAL HEADER -->
+  <header class="blog-header" aria-label="Site header">
+    <a class="blog-brand" href="index.html" aria-label="Home">
+      <span class="b-tim">Timr</span><span class="b-x">X</span>
+    </a>
+    <a class="blog-contact-btn" href="index.html#contact" aria-label="Contact">Contact ↗</a>
+  </header>
 
-      <div class="nav-links" role="navigation" aria-label="Primary">
-        <a href="index.html#app3d">→ 3D Print Hub</a>
-        <a href="index.html#works">WORKS</a>
-        <a href="index.html#services">SERVICES</a>
-        <a href="index.html#contact">CONTACT</a>
-      </div>
-
-      <a class="nav-cta" href="index.html#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
-
-      <!-- Burger button (2-line Apple style - mobile only) -->
-      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-        <div class="burger-icon">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </div>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Burger overlay (mobile) -->
-  <div id="burgerOverlay"></div>
-
-  <!-- Burger menu (mobile) -->
-  <nav id="burgerMenu" aria-label="Mobile menu">
-    <div class="burger-menu__items">
-      <a href="index.html" class="burger-menu__item">
-        <span class="burger-menu__icon">🏠</span>
-        <span class="burger-menu__text">Home</span>
-      </a>
-      <a href="index.html#app3d" class="burger-menu__item">
-        <span class="burger-menu__icon">🖨</span>
-        <span class="burger-menu__text">3D Print Hub</span>
-      </a>
-      <a href="index.html#works" class="burger-menu__item">
-        <span class="burger-menu__icon">💼</span>
-        <span class="burger-menu__text">Works</span>
-      </a>
-      <a href="index.html#services" class="burger-menu__item">
-        <span class="burger-menu__icon">⚙️</span>
-        <span class="burger-menu__text">Services</span>
-      </a>
-      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
-        <span class="burger-menu__icon">✉️</span>
-        <span class="burger-menu__text">Contact Me</span>
-      </a>
-    </div>
-  </nav>
   <!-- HERO -->
   <header class="blogs-hero" id="hero" role="banner">
-    <div class="hero-geometric-bg" aria-hidden="true">
-      <div class="geo-line geo-line-1"></div>
-      <div class="geo-line geo-line-2"></div>
-      <div class="geo-line geo-line-3"></div>
-      <div class="geo-circle geo-circle-1"></div>
-      <div class="geo-circle geo-circle-2"></div>
-      <div class="geo-grid"></div>
+    <!-- Hub Hint (stays within hero) -->
+    <a class="hub-hint" href="hub.html" aria-label="Visit 3D Print Hub">
+      <span class="hub-hint-icon">◆</span>
+      <span class="hub-hint-text">Try the 3D Hub</span>
+    </a>
+    <div class="hero-noise" aria-hidden="true"></div>
+    <div class="hero-gradient" aria-hidden="true"></div>
+    <div class="hero-watermark" aria-hidden="true">BLOG</div>
+    <div class="hero-lines" aria-hidden="true">
+      <span class="h-line"></span>
+      <span class="h-line"></span>
+      <span class="h-line"></span>
+    </div>
+    <div class="hero-arc" aria-hidden="true"></div>
+    <div class="hero-brand" aria-hidden="true">TimrX</div>
+    <div class="hero-particles" aria-hidden="true">
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
     </div>
     <div class="container hero-content">
-      <div class="hero-badge">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
-        <span>TIMRX BLOG</span>
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">The Blog</span>
       </div>
       <h1 class="hero-title">
         <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">TimrX Blog: AI, 3D, Web Performance and Monetisation Experiments</span>
-        <span class="hero-title-line" aria-hidden="true">Stories, Guides,</span>
-        <span class="hero-title-line" aria-hidden="true">Experiments</span>
+        <span class="hero-word" aria-hidden="true">Ideas.</span>
+        <span class="hero-word" aria-hidden="true">Code.</span>
+        <span class="hero-word hero-word--outline" aria-hidden="true">Craft.</span>
       </h1>
-      <p class="hero-description">Motion-first web, Three.js viewers, 3D print workflows, performance optimization, UX design, and practical IT notes.</p>
-      <div class="hero-tags" aria-hidden="true">
-        <span class="hero-tag">3D</span>
-        <span class="hero-tag">Three.js</span>
-        <span class="hero-tag">GSAP</span>
-        <span class="hero-tag">Performance</span>
-        <span class="hero-tag">UX</span>
-        <span class="hero-tag">IT</span>
+      <p class="hero-description">Deep dives into 3D web, motion design, and the craft of building digital products that feel right.</p>
+      <div class="hero-meta">
+        <div class="hero-topics">
+          <span class="topic">Three.js</span>
+          <span class="topic-dot"></span>
+          <span class="topic">GSAP</span>
+          <span class="topic-dot"></span>
+          <span class="topic">3D Printing</span>
+          <span class="topic-dot"></span>
+          <span class="topic">Performance</span>
+        </div>
       </div>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <span class="scroll-text">Scroll</span>
+      <span class="scroll-line"></span>
     </div>
   </header>
   <!-- FILTER STRIP -->
-  <section class="strip strip--light" aria-label="Filters">
+  <section class="strip strip--light is-fx" id="filter-strip" aria-label="Filters">
+    <div class="strip-fx" aria-hidden="true">
+      <canvas class="strip-canvas"></canvas>
+    </div>
     <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Filter Articles by Category</h2>
-    <div class="container controls-inner strip-inner">
+    <div class="filter-bar">
       <div class="chips" id="chipBar" role="tablist" aria-label="Tags">
         <button class="chip active" data-tag="all" role="tab" aria-selected="true">All</button>
         <button class="chip" data-tag="GSAP" role="tab">GSAP</button>
@@ -255,7 +229,7 @@
           </select>
         </div>
       </div>
-    </div> 
+    </div>
   </section>
     <!-- FEATURED -->
     <section class="featured" aria-label="Featured posts">
@@ -342,8 +316,8 @@
     const qs = s => document.querySelector(s);
     const qsa = s => Array.from(document.querySelectorAll(s));
 
-    // API base resolution: localStorage first, then fallback
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://timrx-blogs-api-1.onrender.com').replace(/\/$/, '');
+    // API base resolution: localStorage first, then custom domain
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
     const API = API_BASE + '/api';
 
     // Year in footer
@@ -476,6 +450,196 @@
     (async function init(){
       await loadMore();
       if (posts.length < 6 && !done) await loadMore();
+    })();
+
+    // Magnetized particles + click ripple for filter strip
+    (function initFilterStripParticles() {
+      function start() {
+        const strip = document.getElementById('filter-strip');
+        if (!strip) return;
+        const canvas = strip.querySelector('.strip-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d', { alpha: true });
+
+        // Sizing
+        let dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+        let lastW = 0, lastH = 0;
+        let firstSized = false;
+        const parts = [];
+        const palette = [
+          'rgba(40,40,40,0.40)','rgba(72,66,58,0.38)','rgba(90,82,72,0.35)','rgba(26,26,26,0.42)'
+        ];
+        const rnd = (a,b)=> a + Math.random()*(b-a);
+
+        function targetCount(){
+          const area = canvas.width * canvas.height;
+          return Math.max(120, Math.min(800, Math.floor(area / 500)));
+        }
+        function spawnOne(x, y){
+          if (x == null) x = Math.random()*canvas.width;
+          if (y == null) y = Math.random()*canvas.height;
+          return {
+            x, y, hx:x, hy:y,
+            vx:rnd(-0.25,0.25), vy:rnd(-0.25,0.25),
+            r: rnd(0.9, 2.3) * (dpr*0.9),
+            c: palette[(Math.random()*palette.length)|0]
+          };
+        }
+        function scatterHomes() {
+          for (const p of parts) {
+            p.x = p.hx = Math.random()*canvas.width;
+            p.y = p.hy = Math.random()*canvas.height;
+            p.vx = p.vy = 0;
+          }
+        }
+        function rebalance(){
+          const want = targetCount();
+          if (want > parts.length) { for (let i=parts.length;i<want;i++) parts.push(spawnOne()); }
+          else if (want < parts.length) { parts.length = want; }
+          for (const p of parts) {
+            p.hx = Math.min(Math.max(p.hx,0), canvas.width);
+            p.hy = Math.min(Math.max(p.hy,0), canvas.height);
+            p.r  = Math.min(Math.max(p.r, 0.8*dpr), 2.6*dpr);
+          }
+        }
+
+        function ensureSize() {
+          dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+          const w = Math.max(1, Math.floor(strip.clientWidth));
+          const h = Math.max(1, Math.floor(strip.clientHeight));
+          const sizeChanged = (w !== lastW || h !== lastH);
+          if (sizeChanged || canvas.width === 0 || canvas.height === 0) {
+            const prevW = lastW, prevH = lastH;
+            lastW = w; lastH = h;
+            canvas.width  = Math.max(1, Math.floor(w * dpr));
+            canvas.height = Math.max(1, Math.floor(h * dpr));
+            canvas.style.width  = w + 'px';
+            canvas.style.height = h + 'px';
+
+            if (!firstSized) {
+              firstSized = true;
+              const N = targetCount();
+              parts.length = 0;
+              for (let i=0;i<N;i++) parts.push(spawnOne());
+            } else {
+              const big =
+                prevW === 0 || prevH === 0 ||
+                Math.abs(w - prevW)/Math.max(1,prevW) > 0.2 ||
+                Math.abs(h - prevH)/Math.max(1,prevH) > 0.2;
+              rebalance();
+              if (big) scatterHomes();
+            }
+          }
+          return canvas.width > 0 && canvas.height > 0;
+        }
+
+        // Interaction / ripple
+        const pointer = { x:0, y:0, active:false };
+        const INFLUENCE = ()=> 160*dpr;
+        const STRENGTH  = 0.09, FRICTION = 0.90, HOME_PULL = 0.008, NOISE = 0.25;
+        const inBg = (e)=> !e.target.closest('.filter-bar') && strip.contains(e.target);
+
+        strip.addEventListener('mousemove', (e)=>{
+          if (!inBg(e)) { pointer.active=false; return; }
+          const r = strip.getBoundingClientRect();
+          pointer.x = (e.clientX - r.left) * dpr;
+          pointer.y = (e.clientY - r.top)  * dpr;
+          pointer.active = true;
+        }, {passive:true});
+        strip.addEventListener('mouseleave', ()=>{ pointer.active=false; }, {passive:true});
+
+        const ripples = [];
+        const easeOutCubic = t=> 1 - Math.pow(1-t,3);
+        strip.addEventListener('pointerdown', (e)=>{
+          if (!inBg(e)) return;
+          const r = strip.getBoundingClientRect();
+          ripples.push({
+            x: (e.clientX - r.left) * dpr,
+            y: (e.clientY - r.top)  * dpr,
+            t: 0, life: 900,
+            maxR: Math.hypot(canvas.width, canvas.height) * 0.65,
+            band: 44*dpr, power: 0.95,
+            mode: e.altKey ? 'repel' : 'attract'
+          });
+        });
+
+        // Animation loop
+        function frame(){
+          if (!ensureSize()) { requestAnimationFrame(frame); return; }
+
+          // Fade toward white
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(255,255,255,0.10)';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+
+          // Ripples
+          for (let i=ripples.length-1;i>=0;i--){
+            const rp = ripples[i];
+            rp.t += 16;
+            const k = Math.min(1, rp.t / rp.life);
+            rp.radius = easeOutCubic(k) * rp.maxR;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(60,60,70,0.24)';
+            ctx.lineWidth = Math.max(1, Math.min(6, rp.radius*0.006));
+            ctx.arc(rp.x, rp.y, rp.radius, 0, Math.PI*2);
+            ctx.stroke();
+            if (k>=1) ripples.splice(i,1);
+          }
+
+          // Particles
+          for (const p of parts){
+            p.vx += (Math.random()-0.5)*NOISE;
+            p.vy += (Math.random()-0.5)*NOISE;
+
+            if (pointer.active){
+              const dx = pointer.x - p.x, dy = pointer.y - p.y;
+              const inf = INFLUENCE(); const d2 = dx*dx + dy*dy;
+              if (d2 < inf*inf){
+                const d = Math.sqrt(d2)||1, m = (1 - d/inf) * STRENGTH;
+                p.vx += (dx/d)*m; p.vy += (dy/d)*m;
+              }
+            } else {
+              p.vx += (p.hx - p.x) * HOME_PULL;
+              p.vy += (p.hy - p.y) * HOME_PULL;
+            }
+
+            for (const rp of ripples){
+              const dx = p.x - rp.x, dy = p.y - rp.y;
+              const dist = Math.hypot(dx,dy)||1;
+              const dr = Math.abs(dist - rp.radius);
+              if (dr < rp.band){
+                const fall = 1 - (dr / rp.band);
+                let dirX = dx/dist, dirY = dy/dist;
+                if (rp.mode === 'attract'){
+                  const sign = dist < rp.radius ? -1 : 1;
+                  dirX *= sign; dirY *= sign;
+                }
+                const imp = rp.power * fall * 0.18;
+                p.vx += dirX * imp; p.vy += dirY * imp;
+              }
+            }
+
+            p.vx *= FRICTION; p.vy *= FRICTION;
+            p.x += p.vx;       p.y += p.vy;
+
+            ctx.beginPath(); ctx.fillStyle = p.c;
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+
+            ctx.beginPath(); ctx.globalAlpha = 0.32;
+            ctx.arc(p.x - p.vx*2.2, p.y - p.vy*2.2, Math.max(0.6, p.r*0.9), 0, Math.PI*2);
+            ctx.fill(); ctx.globalAlpha = 1;
+          }
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once:true });
+      } else {
+        start();
+      }
     })();
   </script>
   <script src="burger.js"></script>
