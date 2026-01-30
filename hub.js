@@ -492,51 +492,6 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
   });
 })();
 
-// Brand swap animation (TimrX <-> Dima Vasiliu)
-(function brandSwap() {
-  const brand = document.getElementById('brand');
-  const tim = document.getElementById('brandTim');
-  const dima = document.getElementById('brandDima');
-  const hero = document.querySelector('header');
-
-  if (!brand || !tim || !dima || !hero) return;
-
-  function lockBrandWidth() {
-    brand.style.width = Math.max(tim.offsetWidth, dima.offsetWidth) + 'px';
-  }
-
-  function swap(toDima) {
-    tim.classList.toggle('out', toDima);
-    dima.classList.toggle('out', !toDima);
-  }
-
-  window.addEventListener('load', lockBrandWidth);
-  window.addEventListener('resize', lockBrandWidth);
-  document.fonts?.ready.then(lockBrandWidth);
-
-  // Simple scroll-based swap (no GSAP needed)
-  let swapped = false;
-  window.addEventListener('scroll', () => {
-    const heroBottom = hero.getBoundingClientRect().bottom;
-    const shouldSwap = heroBottom <= window.innerHeight * 0.1;
-
-    if (shouldSwap && !swapped) {
-      swap(true);
-      swapped = true;
-    } else if (!shouldSwap && swapped) {
-      swap(false);
-      swapped = false;
-    }
-  });
-
-  // Check initial state
-  const heroBottom = hero.getBoundingClientRect().bottom;
-  if (heroBottom <= window.innerHeight * 0.1) {
-    swap(true);
-    swapped = true;
-  }
-})();
-
 // =================== COMMUNITY RESOURCE MODALS ===================
 (function() {
   const tabs = document.querySelectorAll('.resource-tab[data-modal]');
@@ -571,10 +526,11 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
     });
   });
 
-  // Backdrop click closes modal
+  // Backdrop click closes modal (click outside card)
   document.querySelectorAll('.resource-modal').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeResourceModal(modal);
+    modal.addEventListener('mousedown', (e) => {
+      const card = modal.querySelector('.resource-modal-card');
+      if (card && !card.contains(e.target)) closeResourceModal(modal);
     });
   });
 
