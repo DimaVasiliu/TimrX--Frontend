@@ -147,7 +147,7 @@
     $('#list').addEventListener('click', async e=>{
       const b = e.target.closest('button'); if(!b) return;
       const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
-      if(b.dataset.edit){ openEdit(slug); return; }
+      if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
       if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.del){ if(confirm('Delete this post?')){ await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()}); load(); } }
