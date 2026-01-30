@@ -1396,8 +1396,8 @@
           const API = API_BASE + '/api';
 
           try {
-            // Fetch latest 5 published posts
-            const response = await fetch(`${API}/posts?page=1&size=5`, { cache: 'no-store' });
+            // Fetch latest 9 published posts (4 on first row + 5 on second row)
+            const response = await fetch(`${API}/posts?page=1&size=9`, { cache: 'no-store' });
 
             if (!response.ok) throw new Error('Failed to fetch posts');
 
@@ -1443,21 +1443,21 @@
                 : '';
 
               return `
-                <article class="blog-card${isFeatured ? ' featured' : ''}" role="listitem">
-                  <a class="cover" href="${url}" aria-label="Open: ${post.title}">
+                <a class="blog-card${isFeatured ? ' featured' : ''}" href="${url}" role="listitem">
+                  <div class="cover">
                     <img
                       src="${coverUrl}"
                       ${srcsetAttr}
                       alt="${post.title}" loading="lazy" decoding="async" />
                     ${isFeatured ? '<span class="pill featured-pill">FEATURED</span>' : ''}
                     <span class="pill category-pill">${tag}</span>
-                  </a>
+                  </div>
                   <div class="inner">
-                    <a class="title" href="${url}">${post.title}</a>
+                    <h3 class="title">${post.title}</h3>
                     <p class="excerpt muted">${post.excerpt || ''}</p>
                     <div class="blog-footer">
                       <div class="author-mini">
-                        <img src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=80&auto=format&fit=crop" alt="${post.author || 'Dima Vasiliu'}" class="author-mini-avatar" />
+                        <img src="img/dima.jpg" alt="${post.author || 'Dima Vasiliu'}" class="author-mini-avatar" />
                         <span class="author-mini-name">${post.author || 'Dima Vasiliu'}</span>
                       </div>
                       <div class="meta">
@@ -1467,7 +1467,7 @@
                       </div>
                     </div>
                   </div>
-                </article>
+                </a>
               `;
             }).join('');
 
