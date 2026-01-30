@@ -96,6 +96,7 @@ img{max-width:100%;display:block}
   from{ opacity:0; }
   to{ opacity:1; }
 }
+
 /* === Bottom Sheet (base) === */
 .nav-sheet{
   position:fixed; left:0; right:0; bottom:0;
@@ -256,26 +257,32 @@ img{max-width:100%;display:block}
 .sheet-link--emph .sheet-link__icon{
   color:var(--accent-pink);
 }
-/* Brand — premium swap with accented X and surname */
+/* Brand — accented X with optional swap animation */
 .brand{
-    display:inline-grid;
+    display:inline-flex;
     align-items:center;
     font-weight:900;
     letter-spacing:.03em;
-    font-size: clamp(16px, 1.25vw, 22px); /* a bit bigger */
+    font-size: clamp(16px, 1.25vw, 22px);
     line-height:1;
-    position: relative;
     cursor: pointer;
   }
-  
+
+  /* When brand has swap children, use grid for overlapping */
+  .brand:has(.swap){
+    display:inline-grid;
+  }
+
   .brand .swap{
     grid-area: 1/1;
-    transition: opacity .35s ease, transform .35s ease, letter-spacing .25s ease;
+    display: inline-flex;
+    align-items: center;
+    transition: opacity .35s ease, transform .35s ease;
     will-change: opacity, transform;
   }
   .brand .swap.out{ opacity:0; transform: translateY(-6px); pointer-events: none; }
-  
-  /* “Timr” normal, the “X” in accent gradient with soft glow */
+
+  /* "Timr" normal, the "X" in accent gradient with soft glow */
   .b-tim{ color: var(--text); }
   .b-x{
     margin-left:2px;
@@ -289,8 +296,8 @@ img{max-width:100%;display:block}
     transition: transform .25s ease, filter .25s ease;
   }
   .brand:hover .b-x{ transform: translateY(-1px); filter: brightness(1.06); }
-  
-  /* “Dima” steady, “Vasiliu” highlighted + slightly larger */
+
+  /* "Dima" steady, "Vasiliu" highlighted + slightly larger */
   .b-dima{ color: var(--text); opacity:.9; font-weight:800; }
   .b-surname{
     color: var(--accent2);
