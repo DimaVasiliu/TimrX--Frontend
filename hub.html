@@ -179,13 +179,8 @@
   <nav class="nav" aria-label="Primary">
     <div class="container nav-inner">
       <div class="nav-left">
-        <a class="brand" id="brand" href="index.html" aria-label="Home">
-          <span class="swap" id="brandTim" aria-label="TimrX">
-            <span class="b-tim">Timr</span><span class="b-x">X</span>
-          </span>
-          <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
-            <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
-          </span>
+        <a class="brand" href="index.html" aria-label="Home">
+          <span class="b-tim">Timr</span><span class="b-x">X</span>
         </a>
         <ul class="menu" role="menubar">
           <li>
@@ -753,29 +748,25 @@
     </div>
   </section>
 
-  <!-- About This Page -->
-  <section style="max-width:900px;margin:2rem auto;padding:0 1.5rem;opacity:0.9;">
-    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">About TimrX 3D Print Hub</summary>
-      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
-        <p>TimrX 3D Print Hub is an AI-powered online platform for generating 3D models from text descriptions or images. Whether you're a game developer, 3D printing enthusiast, educator, or digital artist, the Hub streamlines your workflow with intuitive tools that require no modelling experience. Simply describe what you want—or upload a reference image—and let the AI create a detailed 3D asset you can refine, texture, and export.</p>
-        <p style="margin-top:0.75rem;">Generated models are delivered in GLB and GLTF formats, compatible with Blender, Unity, Unreal Engine, and popular slicers for 3D printing. A credit-based system keeps pricing transparent: purchase credits, generate models, and download instantly. Explore the <a href="3dprint.html" style="color:#00d4ff;text-decoration:underline;">AI Workspace</a> to start creating, or browse the <a href="blogs.html" style="color:#00d4ff;text-decoration:underline;">blog</a> for prompting tips and tutorials.</p>
+  <!-- Info Section -->
+  <section id="info" class="community-wrap">
+    <div class="container">
+      <div class="comm-header">
+        <h2>Learn More</h2>
+        <p class="muted">Discover what TimrX 3D Print Hub offers and find answers to common questions.</p>
       </div>
-    </details>
-  </section>
 
-  <!-- FAQ Section -->
-  <section style="max-width:900px;margin:2rem auto 3rem;padding:0 1.5rem;opacity:0.9;">
-    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">Frequently Asked Questions</summary>
-      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
-        <p><strong>What is TimrX 3D Print Hub?</strong><br>An AI tool that converts text prompts or images into downloadable 3D models—ideal for games, 3D printing, and visualisation.</p>
-        <p style="margin-top:0.75rem;"><strong>How do I create a 3D model from text?</strong><br>Enter a descriptive prompt (e.g., "A futuristic robot with chrome armor") in the workspace and click Generate. The AI processes your request and produces a 3D asset.</p>
-        <p style="margin-top:0.75rem;"><strong>What file formats are supported?</strong><br>Models export in GLB and GLTF—compatible with Blender, Unity, Unreal Engine, and most 3D printing slicers.</p>
-        <p style="margin-top:0.75rem;"><strong>Is TimrX free to use?</strong><br>TimrX uses a credit-based model. New users can explore the interface, and credit packs are available for generating full models.</p>
-        <p style="margin-top:0.75rem;"><strong>How long does generation take?</strong><br>Most models complete in about 3-5 minutes, depending on complexity and current server load.</p>
+      <div class="resource-tabs">
+        <button class="resource-tab" data-modal="aboutModal" type="button">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About</span>
+        </button>
+        <button class="resource-tab" data-modal="faqModal" type="button">
+          <i class="fa-solid fa-circle-question"></i>
+          <span>FAQ</span>
+        </button>
       </div>
-    </details>
+    </div>
   </section>
 
   <footer class="site-footer">
@@ -1113,6 +1104,22 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
                 <span class="showcase-prompt">"Medieval wizard tower, stone texture, magical runes, diorama style"</span>
               </div>
             </div>
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-rocket"></i></div>
+              <div class="showcase-info">
+                <strong>Space Station</strong>
+                <span class="showcase-author">by @explorer</span>
+                <span class="showcase-prompt">"Orbital space station, solar panels, modular design, sci-fi realistic"</span>
+              </div>
+            </div>
+            <div class="showcase-item">
+              <div class="showcase-preview"><i class="fa-solid fa-landmark"></i></div>
+              <div class="showcase-info">
+                <strong>Ancient Temple</strong>
+                <span class="showcase-author">by @architect</span>
+                <span class="showcase-prompt">"Greek temple ruins, marble columns, overgrown vines, photorealistic"</span>
+              </div>
+            </div>
           </div>
           <div class="panel-footer">
             <p class="footer-tip"><i class="fa-solid fa-share"></i> Share your creations on Discord to be featured here!</p>
@@ -1162,6 +1169,82 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
               <li><strong>Browser/Device:</strong> Your environment</li>
               <li><strong>Screenshots:</strong> If applicable</li>
             </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal resource-modal" id="aboutModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-circle-info"></i>
+          <h4>About TimrX 3D Print Hub</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="about-content">
+            <p>TimrX 3D Print Hub is an AI-powered online platform for generating 3D models from text descriptions or images. Whether you're a game developer, 3D printing enthusiast, educator, or digital artist, the Hub streamlines your workflow with intuitive tools that require no modelling experience.</p>
+            <p>Simply describe what you want—or upload a reference image—and let the AI create a detailed 3D asset you can refine, texture, and export.</p>
+
+            <div class="about-features">
+              <div class="about-feature">
+                <i class="fa-solid fa-file-export"></i>
+                <div>
+                  <strong>Export Formats</strong>
+                  <span>GLB and GLTF formats, compatible with Blender, Unity, Unreal Engine, and popular slicers for 3D printing.</span>
+                </div>
+              </div>
+              <div class="about-feature">
+                <i class="fa-solid fa-coins"></i>
+                <div>
+                  <strong>Credit System</strong>
+                  <span>Transparent pricing: purchase credits, generate models, and download instantly.</span>
+                </div>
+              </div>
+              <div class="about-feature">
+                <i class="fa-solid fa-rocket"></i>
+                <div>
+                  <strong>Get Started</strong>
+                  <span>Explore the <a href="3dprint.html">AI Workspace</a> to start creating, or browse the <a href="blogs.html">blog</a> for prompting tips.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Modal -->
+    <div class="modal resource-modal" id="faqModal" aria-hidden="true">
+      <div class="card resource-modal-card">
+        <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-circle-question"></i>
+          <h4>Frequently Asked Questions</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="faq-list">
+            <div class="faq-item">
+              <h5><i class="fa-solid fa-cube"></i> What is TimrX 3D Print Hub?</h5>
+              <p>An AI tool that converts text prompts or images into downloadable 3D models—ideal for games, 3D printing, and visualisation.</p>
+            </div>
+            <div class="faq-item">
+              <h5><i class="fa-solid fa-pen-to-square"></i> How do I create a 3D model from text?</h5>
+              <p>Enter a descriptive prompt (e.g., "A futuristic robot with chrome armor") in the workspace and click Generate. The AI processes your request and produces a 3D asset.</p>
+            </div>
+            <div class="faq-item">
+              <h5><i class="fa-solid fa-file-export"></i> What file formats are supported?</h5>
+              <p>Models export in GLB and GLTF—compatible with Blender, Unity, Unreal Engine, and most 3D printing slicers.</p>
+            </div>
+            <div class="faq-item">
+              <h5><i class="fa-solid fa-coins"></i> Is TimrX free to use?</h5>
+              <p>TimrX uses a credit-based model. New users can explore the interface, and credit packs are available for generating full models.</p>
+            </div>
+            <div class="faq-item">
+              <h5><i class="fa-solid fa-clock"></i> How long does generation take?</h5>
+              <p>Most models complete in about 3-5 minutes, depending on complexity and current server load.</p>
+            </div>
           </div>
         </div>
       </div>
