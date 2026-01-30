@@ -1391,8 +1391,8 @@
           const blogsGrid = document.getElementById('blogsGrid');
           if (!blogsGrid) return;
 
-          // API configuration - matches blogs.html and write.html
-          const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://timrx-blogs-api-1.onrender.com').replace(/\/$/, '');
+          // API configuration - matches blogs.html and read.html
+          const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
           const API = API_BASE + '/api';
 
           try {
