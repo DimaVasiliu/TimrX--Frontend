@@ -1,98 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="read-page">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Read — TimrX</title>
   <meta name="description" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <link rel="canonical" href="https://timrx.live/read" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="read.css"/>
-  <link rel="stylesheet" href="burger.css"/>
-  <link rel="stylesheet" href="media/read.css"/>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body>
+<body class="read-page">
   <div id="progressBar" class="progress-bar" aria-hidden="true"></div>
 
-  <nav class="nav divider"><div class="container nav-inner">
-    <a class="brand" id="brand" href="index.html" aria-label="Home">
-      <span class="swap" id="brandTim" aria-label="TimrX">
-        <span class="b-tim">Timr</span><span class="b-x">X</span>
-      </span>
-      <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
-        <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
-      </span>
+  <!-- MINIMAL HEADER -->
+  <header class="read-header" aria-label="Site header">
+    <a class="read-brand" href="index.html" aria-label="Home">
+      <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
-    <div class="nav-links"><a href="blogs.html">BLOGS</a><a href="index.html#services">SERVICES</a></div>
-    <a class="nav-cta" href="index.html#contact">CONTACT ME ↗</a>
-
-    <!-- Burger button (2-line Apple style - mobile only) -->
-    <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-      <div class="burger-icon">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </div>
-    </button>
-  </div></nav>
-
-  <!-- Burger overlay -->
-  <div id="burgerOverlay"></div>
-
-  <!-- Burger menu -->
-  <nav id="burgerMenu" aria-label="Mobile menu">
-    <div class="burger-menu__items">
-      <a href="blogs.html" class="burger-menu__item">
-        <span class="burger-menu__icon">📝</span>
-        <span class="burger-menu__text">Blogs</span>
-      </a>
-      <a href="index.html" class="burger-menu__item">
-        <span class="burger-menu__icon">🏠</span>
-        <span class="burger-menu__text">Home</span>
-      </a>
-      <a href="index.html#services" class="burger-menu__item">
-        <span class="burger-menu__icon">⚙️</span>
-        <span class="burger-menu__text">Services</span>
-      </a>
-      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
-        <span class="burger-menu__icon">✉️</span>
-        <span class="burger-menu__text">Contact Me</span>
-      </a>
-    </div>
-  </nav>
-
-  <header class="post-hero">
-    <figure class="hero-figure" data-parallax="0.25">
-      <img id="heroImg" alt="cover"/>
-      <figcaption id="heroCap">—</figcaption>
-    </figure>
-    <div class="container post-meta-wrap">
-      <h1 id="postTitle" class="title-xl post-title">Loading…</h1>
-      <p id="postExcerpt" class="muted post-sub"></p>
-      <div class="post-meta">
-        <img class="avatar" src="/TimrX/Frontend/img/dima.JPG" alt=""/>
-        <div><div class="byline"><strong id="postAuthor">—</strong> • <time id="postDate">—</time></div>
-        <div id="readTime" class="muted">— min read</div></div>
-        <div class="post-share" style="margin-left:auto"><button id="shareBtn" class="btn small">Share</button></div>
-      </div>
-    </div>
+    <a class="read-nav-link" href="blogs.html">← Back to Blogs</a>
   </header>
 
-  <main class="container post-layout">
-    <aside class="post-toc"><div class="toc-card"><h3>Contents</h3><nav id="tocList"></nav></div></aside>
-    <article id="article" class="post-article"></article>
+  <main class="read-main">
+    <!-- Hero Section -->
+    <header class="post-hero">
+      <div class="hero-noise" aria-hidden="true"></div>
+      <div class="hero-gradient" aria-hidden="true"></div>
+      <div class="post-hero-inner">
+        <div class="post-category">
+          <span id="heroCap" class="category-pill">—</span>
+        </div>
+        <h1 id="postTitle" class="post-title">Loading…</h1>
+        <p id="postExcerpt" class="post-excerpt"></p>
+      </div>
+    </header>
+
+    <!-- Cover Image + Meta -->
+    <section class="post-cover container">
+      <figure class="cover-figure">
+        <img id="heroImg" alt="cover"/>
+      </figure>
+      <div class="post-meta">
+        <img class="avatar" id="authorAvatar" src="img/dima.jpg" alt="Author"/>
+        <div class="meta-info">
+          <div class="byline"><strong id="postAuthor">—</strong></div>
+          <div class="meta-details">
+            <time id="postDate">—</time>
+            <span class="meta-sep">•</span>
+            <span id="readTime">— min read</span>
+          </div>
+        </div>
+        <button type="button" id="shareBtn" class="share-btn" aria-label="Share this post">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Content Layout -->
+    <div class="container post-layout">
+      <aside class="post-toc">
+        <div class="toc-card">
+          <h3>Contents</h3>
+          <nav id="tocList"></nav>
+        </div>
+      </aside>
+      <article id="article" class="post-article"></article>
+    </div>
   </main>
 
-  <footer><div class="container foot"><span>© 2025 TimrX / Dima Vasiliu</span></div></footer>
+  <!-- FOOTER -->
+  <footer class="read-footer">
+    <div class="container foot">
+      <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
+      <nav class="foot-nav">
+        <a href="index.html#about">About</a>
+        <a href="index.html#works">Works</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <nav class="foot-legal">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="cookies.html">Cookies</a>
+      </nav>
+      <div class="foot-social">
+        <a href="mailto:admin@timrx.live">Email</a>
+        <a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a>
+        <a href="https://github.com/DimaVasiliu">GitHub</a>
+      </div>
+    </div>
+  </footer>
 
 <!-- Frontend/read.html - Dual format support (blocks + markdown) -->
 <script>
   const qs = s => document.querySelector(s);
   const qsa = s => Array.from(document.querySelectorAll(s));
-  const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://timrx-blogs-api-1.onrender.com').replace(/\/$/, '');
+  const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
   const API = API_BASE + '/api';
   function getParam(name){ return new URLSearchParams(location.search).get(name); }
   function md(s){ return marked.parse(s || ''); }
+
+  // Year in footer
+  (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
 
   // Render Editor.js blocks to HTML
   function renderBlocks(blocksData) {
@@ -156,7 +172,13 @@
     qs('#postAuthor').textContent = p.author || 'TimrX';
     qs('#postDate').textContent = new Date(p.created_at || Date.now()).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
     const img = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
-    qs('#heroImg').src = img; qs('#heroCap').textContent = p.type || '';
+    qs('#heroImg').src = img;
+    qs('#heroCap').textContent = (p.tags || '').split(',')[0] || p.type || 'Post';
+
+    // Set author avatar
+    if (p.author_avatar) {
+      qs('#authorAvatar').src = p.author_avatar;
+    }
 
     // Dual-format rendering: blocks or markdown
     const format = p.content_format || 'markdown';
@@ -180,12 +202,24 @@
     const total = a.scrollHeight - innerHeight; const y = Math.min(total, Math.max(0, scrollY - (a.offsetTop - 80)));
     const p = total>0 ? y/total : 0; bar.style.transform = 'scaleX('+p+')';
   }
-  function parx(){ const h=qs('.hero-figure'); if(!h) return; h.style.transform='translate3d(0,'+(scrollY*0.25)+'px,0)'; }
 
-  window.addEventListener('scroll', ()=>{ progress(); parx(); }, {passive:true});
+  // Share functionality
+  qs('#shareBtn').addEventListener('click', async () => {
+    const title = qs('#postTitle').textContent;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch {}
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  });
+
+  window.addEventListener('scroll', progress, {passive:true});
   window.addEventListener('resize', progress);
   load();
 </script>
-<script src="burger.js"></script>
 </body>
 </html>
