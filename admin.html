@@ -228,8 +228,8 @@
   </div>
 
   <script>
-    const API_BASE = 'https://timrx-blogs-api-1.onrender.com';
-    const API = API_BASE.replace(/\/$/,'') + '/api';
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+    const API = API_BASE + '/api';
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';
