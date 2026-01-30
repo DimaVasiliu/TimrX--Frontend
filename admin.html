@@ -187,31 +187,47 @@
 
         <!-- Subscribers Tab -->
         <div class="tab-content" id="tab-subscribers">
-          <div class="subs-header">
-            <div class="subs-stats">
-              <div class="subs-stat">
-                <span class="subs-stat-number" id="subsActiveCount">-</span>
-                <span class="subs-stat-label">Active</span>
-              </div>
-              <div class="subs-stat">
-                <span class="subs-stat-number" id="subsTotalCount">-</span>
-                <span class="subs-stat-label">Total</span>
-              </div>
-            </div>
-            <button class="btn" id="refreshSubs">Refresh</button>
-          </div>
-          <div class="subs-filter">
-            <select class="form-select" id="subsFilter">
-              <option value="active">Active only</option>
-              <option value="all">All subscribers</option>
-            </select>
-          </div>
-          <div class="subs-list" id="subsList">
-            <div class="muted">Click Refresh to load subscribers</div>
+          <div class="subs-tab-info">
+            <p class="muted">View and manage your newsletter subscribers.</p>
+            <button class="action-btn" id="openSubsModal">View Subscribers</button>
           </div>
         </div>
       </div>
     </aside>
+  </div>
+
+  <!-- Subscribers Modal -->
+  <div class="modal" id="subsModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Newsletter Subscribers</h3>
+        <button class="modal-close" id="closeSubsModal">&times;</button>
+      </div>
+      <div class="subs-modal-content">
+        <div class="subs-header">
+          <div class="subs-stats">
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsActiveCount">-</span>
+              <span class="subs-stat-label">Active</span>
+            </div>
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsTotalCount">-</span>
+              <span class="subs-stat-label">Total</span>
+            </div>
+          </div>
+          <div class="subs-controls">
+            <select class="form-select" id="subsFilter" title="Filter subscribers">
+              <option value="active">Active only</option>
+              <option value="all">All subscribers</option>
+            </select>
+            <button class="btn" id="refreshSubs">Refresh</button>
+          </div>
+        </div>
+        <div class="subs-list" id="subsList">
+          <div class="muted">Loading...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Login Modal -->
@@ -731,6 +747,7 @@
       if (e.key === 'Escape') {
         $('#coverModal').classList.remove('show');
         $('#blogModal').classList.remove('show');
+        $('#subsModal').classList.remove('show');
       }
     });
 
@@ -777,8 +794,21 @@
       }
     }
 
+    // Open subscribers modal
+    function openSubsModal() {
+      $('#subsModal').classList.add('show');
+      loadSubscribers();
+    }
+
+    $('#openSubsModal').onclick = openSubsModal;
+    $('#closeSubsModal').onclick = () => $('#subsModal').classList.remove('show');
     $('#refreshSubs').onclick = loadSubscribers;
     $('#subsFilter').onchange = loadSubscribers;
+
+    // Close modal on backdrop click
+    $('#subsModal').addEventListener('click', e => {
+      if (e.target === $('#subsModal')) $('#subsModal').classList.remove('show');
+    });
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
