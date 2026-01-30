@@ -16,6 +16,7 @@
 
 .ce-block {
   padding: 4px 0;
+  position: relative;
 }
 
 .ce-block__content {
@@ -231,16 +232,24 @@ h4.ce-header { font-size: 18px; }
 }
 
 /* ----------------------------------------
-   TOOLBAR
+   TOOLBAR - Positioned on the right
    ---------------------------------------- */
 .ce-toolbar {
-  position: fixed;
-  left: 24px !important;
-  top: 140px !important;
+  position: absolute !important;
+  left: auto !important;
+  right: -70px !important;
+  top: 0 !important;
   transform: none !important;
   width: auto !important;
-  z-index: 120;
+  z-index: 10;
   pointer-events: auto;
+  opacity: 0;
+  animation: toolbarFadeIn 0.4s ease 0.3s forwards;
+}
+
+@keyframes toolbarFadeIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .ce-toolbar__content {
@@ -249,7 +258,7 @@ h4.ce-header { font-size: 18px; }
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .ce-toolbar__actions {
@@ -258,68 +267,74 @@ h4.ce-header { font-size: 18px; }
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   opacity: 1 !important;
   padding: 6px;
   border-radius: 12px;
-  background: rgba(13, 13, 13, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  cursor: grab;
-  touch-action: none;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.ce-toolbar__actions:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
 .ce-toolbar__actions::before {
   content: none;
 }
 
-.ce-toolbar__actions > * {
-  position: relative;
-  z-index: 1;
-}
-
-.ce-toolbar__actions.is-dragging {
-  cursor: grabbing;
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-}
-
 /* Plus Button */
 .ce-toolbar__plus {
-  width: 34px;
-  height: 34px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #888;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #999;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  animation: plusPulse 3s ease-in-out 1s 2;
+}
+
+@keyframes plusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1); }
 }
 
 .ce-toolbar__plus:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
+  transform: scale(1.08);
+  animation: none;
+}
+
+.ce-toolbar__plus:active {
+  transform: scale(0.95);
 }
 
 .ce-toolbar__plus svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Settings Button */
 .ce-toolbar__settings-btn {
-  width: 34px;
-  height: 34px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #666;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #555;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,6 +346,11 @@ h4.ce-header { font-size: 18px; }
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
   color: #fff;
+  transform: scale(1.05);
+}
+
+.ce-toolbar__settings-btn:active {
+  transform: scale(0.95);
 }
 
 .ce-toolbar__settings-btn svg {
@@ -342,14 +362,23 @@ h4.ce-header { font-size: 18px; }
    POPOVER (Block Toolbox)
    ---------------------------------------- */
 .ce-popover {
+  position: absolute !important;
+  z-index: 100 !important;
+  margin-top: 24px !important;
   background: rgba(13, 13, 13, 0.98) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 12px !important;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
   overflow: hidden !important;
   min-width: 200px !important;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
+  animation: popoverIn 0.2s ease-out;
+}
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .ce-popover__container {
@@ -359,6 +388,8 @@ h4.ce-header { font-size: 18px; }
 .ce-popover__items {
   padding: 8px !important;
   background: transparent !important;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 /* Popover Items */
@@ -647,7 +678,11 @@ h4.ce-header { font-size: 18px; }
    SELECTION
    ---------------------------------------- */
 ::selection {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(90, 130, 170, 0.4);
+}
+
+::-moz-selection {
+  background: rgba(90, 130, 170, 0.4);
 }
 
 /* ----------------------------------------
