@@ -273,6 +273,19 @@
           return `<ul class="checklist">${checks}</ul>`;
         case 'warning':
           return `<div class="warning-block"><strong>${d.title || 'Warning'}</strong><p>${d.message || ''}</p></div>`;
+        case 'product':
+          const pName = d.name || 'Product';
+          const pDesc = d.description || '';
+          const pUrl = d.url || '#';
+          const pCta = d.cta || 'View on Amazon';
+          return `<div class="product-block">
+            <div class="product-content">
+              <div class="product-badge">Recommended</div>
+              <h4 class="product-name">${pName}</h4>
+              <p class="product-desc">${pDesc}</p>
+              <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-cta">${pCta} <span class="arrow">→</span></a>
+            </div>
+          </div>`;
         default:
           return '';
       }
