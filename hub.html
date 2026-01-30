@@ -790,7 +790,7 @@
       <div class="footer-meta">
         <span>Powered by <strong>Meshy AI</strong></span>
         <span class="footer-divider">·</span>
-        <span>© <span id="year">2025</span> Dima Vasiliu</span>
+        <span>© <span id="year"></span> Dima Vasiliu</span>
       </div>
     </div>
   </footer>
@@ -1253,5 +1253,6 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script src="hub.js"></script>
     <script src="burger.js"></script>
     <script src="js/credits.js"></script>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
