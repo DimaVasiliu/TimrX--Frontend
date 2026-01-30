@@ -127,6 +127,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
   <!-- Site base CSS -->
   <link rel="stylesheet" href="styles.css">
   <!-- Page CSS -->
@@ -139,7 +141,7 @@
   <nav class="nav divider" aria-label="Main">
     <div class="container nav-inner">
       <a class="brand" href="index.html" aria-label="Home">
-        <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        <span class="b-tim">Timr</span><span class="b-x">X</span>
       </a>
 
       <div class="nav-links" role="navigation" aria-label="Primary">
@@ -232,6 +234,7 @@
         <button class="chip" data-tag="GSAP" role="tab">GSAP</button>
         <button class="chip" data-tag="Three.js" role="tab">Three.js</button>
         <button class="chip" data-tag="3D" role="tab">3D</button>
+        <button class="chip" data-tag="3D Hub" role="tab">3D Hub</button>
         <button class="chip" data-tag="UX" role="tab">UX</button>
         <button class="chip" data-tag="Performance" role="tab">Performance</button>
         <button class="chip" data-tag="Workflow" role="tab">Workflow</button>
@@ -295,30 +298,25 @@
     </div>
   </section>
 
-  <!-- ABOUT THIS BLOG -->
-  <section id="about-blog" style="max-width:720px;margin:3rem auto;padding:0 1.5rem;opacity:0.85;">
-    <h2 style="font-size:1.25rem;margin-bottom:1rem;">About This Blog</h2>
-    <p style="line-height:1.7;margin-bottom:1rem;">
-      TimrX Blog covers practical topics at the intersection of AI, 3D graphics, web performance, and digital product building. Articles focus on real workflows rather than abstract theory—expect step-by-step guides on Three.js viewer implementation, GSAP scroll animations, AI-assisted 3D generation using the <a href="3dprint.html">TimrX AI workspace</a>, and lessons learned from shipping actual projects.
-    </p>
-    <p style="line-height:1.7;margin-bottom:1rem;">
-      This blog is written for developers, creators, and founders who want to build better digital experiences. Whether you're optimising render performance, exploring the <a href="hub.html">3D Print Hub</a> for game assets, or experimenting with new web technologies, you'll find experience-based insights here—not recycled documentation.
-    </p>
-    <p style="line-height:1.7;margin-bottom:1.5rem;">
-      Some posts recommend tools or services that have genuinely helped in real projects. Where applicable, these are clearly marked. The goal is always usefulness over promotion.
-    </p>
-
-    <!-- FAQ -->
-    <details style="margin-top:2rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1.1rem;">Blog FAQ</summary>
-      <div style="margin-top:1rem;line-height:1.7;">
-        <p style="margin-bottom:0.75rem;"><strong>What topics does TimrX Blog cover?</strong><br>AI workflows, 3D web development (Three.js, WebGL), animation (GSAP), performance optimization, UX experiments, and monetisation strategies for digital products.</p>
-        <p style="margin-bottom:0.75rem;"><strong>Is this blog beginner friendly?</strong><br>Most articles assume basic JavaScript knowledge, but each post explains concepts as needed. Start with workflow guides if you're newer to 3D or animation.</p>
-        <p style="margin-bottom:0.75rem;"><strong>Do you recommend tools or services?</strong><br>Yes, when they've genuinely helped in real projects. Recommendations are based on hands-on experience, and sponsored content is always disclosed.</p>
-        <p style="margin-bottom:0.75rem;"><strong>Can I use ideas from this blog in my own projects?</strong><br>Absolutely. Code snippets and techniques shared here are meant to be adapted and built upon.</p>
-        <p><strong>How often is new content published?</strong><br>New articles appear when there's something genuinely useful to share—typically 2-4 times per month.</p>
+  <!-- Info Section -->
+  <section id="info" class="blog-info-wrap">
+    <div class="container">
+      <div class="info-header">
+        <h2>Learn More</h2>
+        <p class="muted">Discover what TimrX Blog covers and find answers to common questions.</p>
       </div>
-    </details>
+
+      <div class="info-tabs">
+        <button class="info-tab" data-modal="blogAboutModal" type="button">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About</span>
+        </button>
+        <button class="info-tab" data-modal="blogFaqModal" type="button">
+          <i class="fa-solid fa-circle-question"></i>
+          <span>FAQ</span>
+        </button>
+      </div>
+    </div>
   </section>
 
   <!-- FOOTER -->
@@ -481,5 +479,128 @@
     })();
   </script>
   <script src="burger.js"></script>
+
+  <!-- About Modal -->
+  <div class="modal blog-modal" id="blogAboutModal" aria-hidden="true">
+    <div class="card blog-modal-card">
+      <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+      <div class="blog-modal-header">
+        <i class="fa-solid fa-circle-info"></i>
+        <h4>About TimrX Blog</h4>
+      </div>
+      <div class="blog-modal-body">
+        <div class="about-content">
+          <p>TimrX Blog covers practical topics at the intersection of AI, 3D graphics, web performance, and digital product building. Articles focus on real workflows rather than abstract theory.</p>
+          <p>Expect step-by-step guides on Three.js viewer implementation, GSAP scroll animations, AI-assisted 3D generation, and lessons learned from shipping actual projects.</p>
+
+          <div class="about-features">
+            <div class="about-feature">
+              <i class="fa-solid fa-users"></i>
+              <div>
+                <strong>Who It's For</strong>
+                <span>Developers, creators, and founders who want to build better digital experiences.</span>
+              </div>
+            </div>
+            <div class="about-feature">
+              <i class="fa-solid fa-book-open"></i>
+              <div>
+                <strong>What You'll Find</strong>
+                <span>Experience-based insights—not recycled documentation. Real experiments, honest results.</span>
+              </div>
+            </div>
+            <div class="about-feature">
+              <i class="fa-solid fa-handshake"></i>
+              <div>
+                <strong>Recommendations</strong>
+                <span>Tools and services that have genuinely helped in real projects. Sponsored content is always disclosed.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Modal -->
+  <div class="modal blog-modal" id="blogFaqModal" aria-hidden="true">
+    <div class="card blog-modal-card">
+      <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+      <div class="blog-modal-header">
+        <i class="fa-solid fa-circle-question"></i>
+        <h4>Blog FAQ</h4>
+      </div>
+      <div class="blog-modal-body">
+        <div class="faq-list">
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-layer-group"></i> What topics does TimrX Blog cover?</h5>
+            <p>AI workflows, 3D web development (Three.js, WebGL), animation (GSAP), performance optimization, UX experiments, and monetisation strategies for digital products.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-graduation-cap"></i> Is this blog beginner friendly?</h5>
+            <p>Most articles assume basic JavaScript knowledge, but each post explains concepts as needed. Start with workflow guides if you're newer to 3D or animation.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-star"></i> Do you recommend tools or services?</h5>
+            <p>Yes, when they've genuinely helped in real projects. Recommendations are based on hands-on experience, and sponsored content is always disclosed.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-code"></i> Can I use ideas from this blog in my own projects?</h5>
+            <p>Absolutely. Code snippets and techniques shared here are meant to be adapted and built upon.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-calendar"></i> How often is new content published?</h5>
+            <p>New articles appear when there's something genuinely useful to share—typically 2-4 times per month.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Script -->
+  <script>
+    (function() {
+      // Open modal
+      document.querySelectorAll('[data-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modalId = btn.dataset.modal;
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+          }
+        });
+      });
+
+      // Close modal
+      function closeModal(modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modal = btn.closest('.modal');
+          if (modal) closeModal(modal);
+        });
+      });
+
+      // Close on backdrop click
+      document.querySelectorAll('.blog-modal').forEach(modal => {
+        modal.addEventListener('mousedown', (e) => {
+          const card = modal.querySelector('.blog-modal-card');
+          if (card && !card.contains(e.target)) closeModal(modal);
+        });
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.blog-modal.open').forEach(closeModal);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
