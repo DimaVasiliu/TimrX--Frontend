@@ -817,6 +817,27 @@
     </div>
   </div>
 
+  <!-- Newsletter Popup -->
+  <div class="newsletter-popup" id="newsletterPopup" aria-hidden="true">
+    <div class="newsletter-popup-card">
+      <button class="newsletter-close" id="closeNewsletter" aria-label="Close">&times;</button>
+      <div class="newsletter-icon">
+        <i class="fa-solid fa-envelope-open-text"></i>
+      </div>
+      <h3 class="newsletter-title">Stay in the Loop</h3>
+      <p class="newsletter-desc">Get notified about new articles on AI, 3D development, and web performance. No spam, just quality content.</p>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" id="newsletterEmail" placeholder="your@email.com" required autocomplete="email" />
+        <button type="submit" class="newsletter-btn">
+          <span class="btn-text">Subscribe</span>
+          <span class="btn-loading" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i></span>
+        </button>
+      </form>
+      <p class="newsletter-note">Unsubscribe anytime. We respect your privacy.</p>
+      <button class="newsletter-dismiss" id="dismissNewsletter">No thanks, maybe later</button>
+    </div>
+  </div>
+
   <!-- Modal Script -->
   <script>
     (function() {
@@ -859,6 +880,125 @@
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           document.querySelectorAll('.blog-modal.open').forEach(closeModal);
+        }
+      });
+    })();
+  </script>
+
+  <!-- Newsletter Popup Script -->
+  <script>
+    (function() {
+      const popup = document.getElementById('newsletterPopup');
+      const closeBtn = document.getElementById('closeNewsletter');
+      const dismissBtn = document.getElementById('dismissNewsletter');
+      const form = document.getElementById('newsletterForm');
+      const emailInput = document.getElementById('newsletterEmail');
+
+      const STORAGE_KEY = 'timrx_newsletter_dismissed';
+      const SUBSCRIBED_KEY = 'timrx_newsletter_subscribed';
+      const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+      const SHOW_DELAY = 8000; // 8 seconds
+
+      function isDismissed() {
+        const dismissed = localStorage.getItem(STORAGE_KEY);
+        if (!dismissed) return false;
+        const data = JSON.parse(dismissed);
+        return Date.now() < data.until;
+      }
+
+      function isSubscribed() {
+        return localStorage.getItem(SUBSCRIBED_KEY) === 'true';
+      }
+
+      function showPopup() {
+        popup.classList.add('open');
+        popup.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function hidePopup() {
+        popup.classList.remove('open');
+        popup.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function dismissPopup(permanent = false) {
+        hidePopup();
+        if (permanent) {
+          localStorage.setItem(SUBSCRIBED_KEY, 'true');
+        } else {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            until: Date.now() + DISMISS_DURATION
+          }));
+        }
+      }
+
+      // Show popup after delay if not dismissed
+      if (!isDismissed() && !isSubscribed()) {
+        setTimeout(showPopup, SHOW_DELAY);
+      }
+
+      // Close button
+      closeBtn.addEventListener('click', () => dismissPopup(false));
+      dismissBtn.addEventListener('click', () => dismissPopup(false));
+
+      // Click outside to close
+      popup.addEventListener('mousedown', (e) => {
+        const card = popup.querySelector('.newsletter-popup-card');
+        if (card && !card.contains(e.target)) {
+          dismissPopup(false);
+        }
+      });
+
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && popup.classList.contains('open')) {
+          dismissPopup(false);
+        }
+      });
+
+      // Form submission
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        if (!email) return;
+
+        const btnText = form.querySelector('.btn-text');
+        const btnLoading = form.querySelector('.btn-loading');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+        submitBtn.disabled = true;
+
+        try {
+          const res = await fetch(`${API}/subscribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+
+          if (res.ok) {
+            // Success
+            form.innerHTML = '<p class="newsletter-success"><i class="fa-solid fa-check-circle"></i> You\'re subscribed! Check your inbox.</p>';
+            setTimeout(() => dismissPopup(true), 2500);
+          } else {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.detail || 'Subscription failed');
+          }
+        } catch (err) {
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+          submitBtn.disabled = false;
+
+          // Show error
+          let errEl = form.querySelector('.newsletter-error');
+          if (!errEl) {
+            errEl = document.createElement('p');
+            errEl.className = 'newsletter-error';
+            form.appendChild(errEl);
+          }
+          errEl.textContent = err.message || 'Something went wrong. Try again.';
         }
       });
     })();
