@@ -612,12 +612,22 @@ body.write-page {
 .editor-content-area {
   min-height: 400px;
   padding: 24px;
+  padding-right: 90px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   transition: border-color 0.3s ease;
+}
+
+/* Selection color */
+.editor-content-area ::selection {
+  background: rgba(100, 140, 180, 0.35);
+}
+
+.editor-content-area ::-moz-selection {
+  background: rgba(100, 140, 180, 0.35);
 }
 
 .editor-content-area:hover {
