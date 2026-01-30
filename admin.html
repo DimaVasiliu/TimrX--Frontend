@@ -69,6 +69,7 @@
           <button class="tab active" data-tab="generate">Generate</button>
           <button class="tab" data-tab="assist">Assist</button>
           <button class="tab" data-tab="cover">Cover</button>
+          <button class="tab" data-tab="subscribers">Subs</button>
         </div>
 
         <!-- Generate Tab -->
@@ -181,6 +182,32 @@
               <button class="btn" id="copyCoverUrl">Copy URL</button>
               <button class="btn primary" id="useCover">Use Cover</button>
             </div>
+          </div>
+        </div>
+
+        <!-- Subscribers Tab -->
+        <div class="tab-content" id="tab-subscribers">
+          <div class="subs-header">
+            <div class="subs-stats">
+              <div class="subs-stat">
+                <span class="subs-stat-number" id="subsActiveCount">-</span>
+                <span class="subs-stat-label">Active</span>
+              </div>
+              <div class="subs-stat">
+                <span class="subs-stat-number" id="subsTotalCount">-</span>
+                <span class="subs-stat-label">Total</span>
+              </div>
+            </div>
+            <button class="btn" id="refreshSubs">Refresh</button>
+          </div>
+          <div class="subs-filter">
+            <select class="form-select" id="subsFilter">
+              <option value="active">Active only</option>
+              <option value="all">All subscribers</option>
+            </select>
+          </div>
+          <div class="subs-list" id="subsList">
+            <div class="muted">Click Refresh to load subscribers</div>
           </div>
         </div>
       </div>
@@ -706,6 +733,52 @@
         $('#blogModal').classList.remove('show');
       }
     });
+
+    // Subscribers management
+    async function loadSubscribers() {
+      const filter = $('#subsFilter').value;
+      const list = $('#subsList');
+      list.innerHTML = '<div class="muted">Loading...</div>';
+
+      try {
+        const r = await fetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          list.innerHTML = '<div class="muted">Failed to load subscribers</div>';
+          return;
+        }
+
+        const items = j.items || [];
+        $('#subsActiveCount').textContent = items.filter(s => s.status === 'active').length;
+
+        // Get total count
+        const totalR = await fetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
+        const totalJ = await totalR.json();
+        $('#subsTotalCount').textContent = (totalJ.items || []).length;
+
+        if (!items.length) {
+          list.innerHTML = '<div class="muted">No subscribers found</div>';
+          return;
+        }
+
+        list.innerHTML = items.map(s => `
+          <div class="sub-item ${s.status}">
+            <div class="sub-email">${esc(s.email)}</div>
+            <div class="sub-meta">
+              <span class="sub-status">${s.status}</span>
+              <span class="sub-date">${s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        list.innerHTML = '<div class="muted">Error: ' + err.message + '</div>';
+      }
+    }
+
+    $('#refreshSubs').onclick = loadSubscribers;
+    $('#subsFilter').onchange = loadSubscribers;
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
