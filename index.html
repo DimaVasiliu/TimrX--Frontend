@@ -1436,13 +1436,18 @@
               const coverUrl = post.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
               const isFeatured = index === 0; // First post is featured
 
+              // Only use srcset for Unsplash images (they support &w= params)
+              const isUnsplash = coverUrl.includes('unsplash.com');
+              const srcsetAttr = isUnsplash
+                ? `srcset="${coverUrl}&w=640 640w, ${coverUrl}&w=960 960w, ${coverUrl}&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"`
+                : '';
+
               return `
                 <article class="blog-card${isFeatured ? ' featured' : ''}" role="listitem">
                   <a class="cover" href="${url}" aria-label="Open: ${post.title}">
                     <img
                       src="${coverUrl}"
-                      srcset="${coverUrl}&w=640 640w, ${coverUrl}&w=960 960w, ${coverUrl}&w=1280 1280w"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                      ${srcsetAttr}
                       alt="${post.title}" loading="lazy" decoding="async" />
                     ${isFeatured ? '<span class="pill featured-pill">FEATURED</span>' : ''}
                     <span class="pill category-pill">${tag}</span>
