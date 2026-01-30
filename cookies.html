@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cookie Policy — TimrX</title>
+  <meta name="description" content="Cookie Policy for TimrX 3D Print Hub. Learn about the cookies we use and how to manage your preferences." />
+  <link rel="canonical" href="https://timrx.live/cookies" />
+  <meta name="theme-color" content="#0b0b0b"/>
+  <meta name="robots" content="index, follow" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="legal.css">
+  <link rel="stylesheet" href="burger.css">
+  <style>
+    /* Cookie table styles */
+    .cookie-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 0.95rem;
+    }
+    .cookie-table th,
+    .cookie-table td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    .cookie-table th {
+      background: rgba(255, 255, 255, 0.03);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cookie-table td {
+      color: var(--muted);
+    }
+    .cookie-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .cookie-table code {
+      background: rgba(14, 165, 233, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+    .cookie-type {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .cookie-type.essential {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+    .cookie-type.functional {
+      background: rgba(14, 165, 233, 0.15);
+      color: #0ea5e9;
+    }
+    .cookie-type.analytics {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+    .cookie-type.marketing {
+      background: rgba(249, 115, 22, 0.15);
+      color: #f97316;
+    }
+    @media (max-width: 768px) {
+      .cookie-table {
+        font-size: 0.85rem;
+      }
+      .cookie-table th,
+      .cookie-table td {
+        padding: 10px 12px;
+      }
+      .cookie-table-wrap {
+        overflow-x: auto;
+        margin: 0 -20px;
+        padding: 0 20px;
+      }
+      .cookie-table {
+        min-width: 600px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Home">
+        <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+      </a>
+
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="3dprint.html">3D Print Hub</a>
+        <a href="index.html#works">WORKS</a>
+        <a href="index.html#services">SERVICES</a>
+        <a href="blogs.html">BLOGS</a>
+      </div>
+
+      <a class="nav-cta" href="index.html#contact" aria-label="Contact">CONTACT</a>
+
+      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+        <div class="burger-icon">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Burger overlay -->
+  <div id="burgerOverlay"></div>
+
+  <!-- Burger menu -->
+  <nav id="burgerMenu" aria-label="Mobile menu">
+    <div class="burger-menu__items">
+      <a href="index.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🏠</span>
+        <span class="burger-menu__text">Home</span>
+      </a>
+      <a href="3dprint.html" class="burger-menu__item">
+        <span class="burger-menu__icon">🖨</span>
+        <span class="burger-menu__text">3D Print Hub</span>
+      </a>
+      <a href="index.html#services" class="burger-menu__item">
+        <span class="burger-menu__icon">⚙️</span>
+        <span class="burger-menu__text">Services</span>
+      </a>
+      <a href="blogs.html" class="burger-menu__item">
+        <span class="burger-menu__icon">📝</span>
+        <span class="burger-menu__text">Blogs</span>
+      </a>
+      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
+        <span class="burger-menu__icon">✉️</span>
+        <span class="burger-menu__text">Contact</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="legal-hero">
+    <div class="container">
+      <h1>Cookie Policy</h1>
+      <p class="last-updated">Last updated: <strong>January 2025</strong></p>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="legal-content">
+    <div class="container">
+
+      <!-- Table of Contents -->
+      <nav class="legal-toc" aria-label="Table of contents">
+        <h4>Contents</h4>
+        <ul>
+          <li><a href="#what-are-cookies">What Are Cookies</a></li>
+          <li><a href="#how-we-use">How We Use Cookies</a></li>
+          <li><a href="#cookie-types">Types of Cookies We Use</a></li>
+          <li><a href="#cookie-list">Detailed Cookie List</a></li>
+          <li><a href="#third-party">Third-Party Cookies</a></li>
+          <li><a href="#managing">Managing Your Cookies</a></li>
+          <li><a href="#browser-settings">Browser Settings</a></li>
+          <li><a href="#impact">Impact of Disabling Cookies</a></li>
+          <li><a href="#updates">Updates to This Policy</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ul>
+      </nav>
+
+      <section id="what-are-cookies">
+        <h2>1. What Are Cookies</h2>
+        <p>Cookies are small text files that are placed on your computer, smartphone, or other device when you visit a website. They are widely used to make websites work more efficiently, provide information to site owners, and enhance your browsing experience.</p>
+        <p>Cookies can be "persistent" (remaining on your device until deleted or expired) or "session" cookies (deleted when you close your browser). They can be set by the website you're visiting ("first-party cookies") or by third parties ("third-party cookies").</p>
+        <div class="legal-info">
+          <p><strong>Note:</strong> We also use similar technologies such as local storage and session storage, which function similarly to cookies but may store different types of data.</p>
+        </div>
+      </section>
+
+      <section id="how-we-use">
+        <h2>2. How We Use Cookies</h2>
+        <p>TimrX uses cookies and similar technologies for several purposes:</p>
+        <ul>
+          <li><strong>Essential Operations:</strong> Enable core website functionality and security</li>
+          <li><strong>Authentication:</strong> Remember your login status and account preferences</li>
+          <li><strong>Preferences:</strong> Store your settings and customizations</li>
+          <li><strong>Analytics:</strong> Understand how visitors interact with our website</li>
+          <li><strong>Performance:</strong> Optimize site speed and user experience</li>
+        </ul>
+      </section>
+
+      <section id="cookie-types">
+        <h2>3. Types of Cookies We Use</h2>
+
+        <h3>3.1 Essential Cookies</h3>
+        <p>These cookies are necessary for the website to function properly. They enable basic features like page navigation, secure areas access, and remembering your cookie consent preferences. The website cannot function properly without these cookies.</p>
+        <p><strong>Can be disabled:</strong> No (required for basic functionality)</p>
+
+        <h3>3.2 Functional Cookies</h3>
+        <p>These cookies enable enhanced functionality and personalization. They remember your preferences such as language settings, theme preferences, and previously entered information. Without these cookies, some features may not work correctly.</p>
+        <p><strong>Can be disabled:</strong> Yes (some features may not work)</p>
+
+        <h3>3.3 Analytics Cookies</h3>
+        <p>These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our site and services.</p>
+        <p><strong>Can be disabled:</strong> Yes</p>
+
+        <h3>3.4 Marketing Cookies</h3>
+        <p>These cookies may be used to track visitors across websites to display relevant advertisements. We currently do not use marketing cookies, but this may change in the future with notice.</p>
+        <p><strong>Can be disabled:</strong> Yes</p>
+      </section>
+
+      <section id="cookie-list">
+        <h2>4. Detailed Cookie List</h2>
+        <p>Below is a detailed list of the cookies we use:</p>
+
+        <h3>4.1 Essential Cookies</h3>
+        <div class="cookie-table-wrap">
+          <table class="cookie-table">
+            <thead>
+              <tr>
+                <th>Cookie Name</th>
+                <th>Purpose</th>
+                <th>Duration</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>timrx_session</code></td>
+                <td>Maintains your session state across page requests</td>
+                <td>Session</td>
+                <td><span class="cookie-type essential">Essential</span></td>
+              </tr>
+              <tr>
+                <td><code>timrx_auth</code></td>
+                <td>Stores authentication token for logged-in users</td>
+                <td>30 days</td>
+                <td><span class="cookie-type essential">Essential</span></td>
+              </tr>
+              <tr>
+                <td><code>cookie_consent</code></td>
+                <td>Remembers your cookie consent preferences</td>
+                <td>1 year</td>
+                <td><span class="cookie-type essential">Essential</span></td>
+              </tr>
+              <tr>
+                <td><code>csrf_token</code></td>
+                <td>Security token to prevent cross-site request forgery</td>
+                <td>Session</td>
+                <td><span class="cookie-type essential">Essential</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>4.2 Functional Cookies</h3>
+        <div class="cookie-table-wrap">
+          <table class="cookie-table">
+            <thead>
+              <tr>
+                <th>Cookie Name</th>
+                <th>Purpose</th>
+                <th>Duration</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>timrx_prefs</code></td>
+                <td>Stores user preferences (theme, layout settings)</td>
+                <td>1 year</td>
+                <td><span class="cookie-type functional">Functional</span></td>
+              </tr>
+              <tr>
+                <td><code>workspace_state</code></td>
+                <td>Remembers your workspace configuration in 3D Hub</td>
+                <td>30 days</td>
+                <td><span class="cookie-type functional">Functional</span></td>
+              </tr>
+              <tr>
+                <td><code>recent_assets</code></td>
+                <td>Stores IDs of recently viewed assets for quick access</td>
+                <td>7 days</td>
+                <td><span class="cookie-type functional">Functional</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>4.3 Analytics Cookies</h3>
+        <div class="cookie-table-wrap">
+          <table class="cookie-table">
+            <thead>
+              <tr>
+                <th>Cookie Name</th>
+                <th>Purpose</th>
+                <th>Duration</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>_ga</code></td>
+                <td>Google Analytics: Distinguishes unique users</td>
+                <td>2 years</td>
+                <td><span class="cookie-type analytics">Analytics</span></td>
+              </tr>
+              <tr>
+                <td><code>_ga_*</code></td>
+                <td>Google Analytics: Maintains session state</td>
+                <td>2 years</td>
+                <td><span class="cookie-type analytics">Analytics</span></td>
+              </tr>
+              <tr>
+                <td><code>_gid</code></td>
+                <td>Google Analytics: Distinguishes users</td>
+                <td>24 hours</td>
+                <td><span class="cookie-type analytics">Analytics</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="third-party">
+        <h2>5. Third-Party Cookies</h2>
+        <p>Some cookies on our site are set by third-party services. We use the following third-party services that may set cookies:</p>
+
+        <h3>5.1 Google Analytics</h3>
+        <p>We use Google Analytics to understand how visitors use our website. Google Analytics collects information about page views, time spent on site, and navigation patterns. This data is aggregated and anonymous.</p>
+        <p>Learn more: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></p>
+
+        <h3>5.2 Payment Processors</h3>
+        <p>When you make a purchase, our payment processors (such as Stripe) may set cookies to process your payment securely and prevent fraud.</p>
+        <p>Learn more: <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe Privacy Policy</a></p>
+
+        <h3>5.3 Cloud Services</h3>
+        <p>Our hosting and content delivery services may set cookies for performance optimization and security purposes.</p>
+      </section>
+
+      <section id="managing">
+        <h2>6. Managing Your Cookies</h2>
+        <p>You have several options for managing cookies:</p>
+
+        <h3>6.1 Cookie Consent</h3>
+        <p>When you first visit our website, you'll see a cookie consent banner that allows you to accept or customize your cookie preferences. You can change these preferences at any time.</p>
+
+        <h3>6.2 Browser Settings</h3>
+        <p>Most web browsers allow you to control cookies through their settings. You can typically:</p>
+        <ul>
+          <li>View what cookies are stored on your device</li>
+          <li>Delete some or all cookies</li>
+          <li>Block all cookies or only third-party cookies</li>
+          <li>Set preferences for specific websites</li>
+        </ul>
+
+        <h3>6.3 Opt-Out Tools</h3>
+        <ul>
+          <li><strong>Google Analytics:</strong> Install the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a></li>
+          <li><strong>General opt-out:</strong> Visit <a href="https://www.youronlinechoices.eu" target="_blank" rel="noopener">Your Online Choices</a> (EU) or <a href="https://optout.aboutads.info" target="_blank" rel="noopener">DAA Opt-Out</a> (US)</li>
+        </ul>
+      </section>
+
+      <section id="browser-settings">
+        <h2>7. Browser Settings</h2>
+        <p>Here's how to manage cookies in popular browsers:</p>
+        <ul>
+          <li><strong>Chrome:</strong> Settings → Privacy and security → Cookies and other site data</li>
+          <li><strong>Firefox:</strong> Settings → Privacy & Security → Cookies and Site Data</li>
+          <li><strong>Safari:</strong> Preferences → Privacy → Manage Website Data</li>
+          <li><strong>Edge:</strong> Settings → Cookies and site permissions → Manage and delete cookies</li>
+        </ul>
+        <p>For detailed instructions, visit your browser's help documentation or <a href="https://www.allaboutcookies.org/manage-cookies/" target="_blank" rel="noopener">All About Cookies</a>.</p>
+      </section>
+
+      <section id="impact">
+        <h2>8. Impact of Disabling Cookies</h2>
+        <p>If you disable or delete cookies, you may experience the following:</p>
+        <ul>
+          <li><strong>Essential cookies disabled:</strong> The website may not function correctly. You may be unable to log in or use core features.</li>
+          <li><strong>Functional cookies disabled:</strong> Your preferences won't be saved, and you may need to reconfigure settings on each visit.</li>
+          <li><strong>Analytics cookies disabled:</strong> No impact on your experience, but it limits our ability to improve the site.</li>
+        </ul>
+        <div class="legal-warning">
+          <p><strong>Important:</strong> Blocking essential cookies may prevent you from using the 3D Print Hub workspace and other key features.</p>
+        </div>
+      </section>
+
+      <section id="updates">
+        <h2>9. Updates to This Policy</h2>
+        <p>We may update this Cookie Policy from time to time to reflect changes in our practices or for legal, operational, or regulatory reasons. When we make changes:</p>
+        <ul>
+          <li>The "Last updated" date at the top of this page will be revised</li>
+          <li>Significant changes will be communicated through a notice on our website</li>
+          <li>We encourage you to review this policy periodically</li>
+        </ul>
+      </section>
+
+      <section id="contact">
+        <h2>10. Contact Us</h2>
+        <p>If you have questions about this Cookie Policy or our use of cookies:</p>
+        <div class="legal-contact">
+          <h3>Cookie Inquiries</h3>
+          <p>We're happy to help with any questions about our cookie practices.</p>
+          <a href="mailto:admin@timrx.live" class="btn">admin@timrx.live</a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container foot">
+      <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
+      <nav class="foot-nav">
+        <a href="index.html#about">About</a>
+        <a href="index.html#works">Works</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <nav class="foot-legal">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="cookies.html">Cookies</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+  </button>
+
+  <script>
+    // Year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Back to top button
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      backToTop.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Smooth scroll for TOC links
+    document.querySelectorAll('.legal-toc a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+  <script src="burger.js"></script>
+</body>
+</html>
