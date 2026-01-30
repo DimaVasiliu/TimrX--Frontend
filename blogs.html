@@ -320,6 +320,11 @@
     const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
     const API = API_BASE + '/api';
 
+    // API warmup - wake up server early (fire and forget)
+    (function warmupAPI() {
+      fetch(`${API}/posts?page=1&size=1`, { method: 'GET', cache: 'no-store' }).catch(() => {});
+    })();
+
     // Year in footer
     (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
 
@@ -338,10 +343,61 @@
     let posts=[], page=1, size=9, done=false;
     let currentTag='all', searchQ='', sorter='new';
 
+    // Cache configuration
+    const CACHE_KEY = 'timrx_blogs_cache';
+    const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
+    // Get cached posts
+    function getCachedPosts() {
+      try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+        const { data, timestamp } = JSON.parse(cached);
+        // Return data even if expired (stale-while-revalidate)
+        return { data, isStale: Date.now() - timestamp > CACHE_EXPIRY };
+      } catch { return null; }
+    }
+
+    // Save posts to cache
+    function setCachedPosts(data) {
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      } catch {}
+    }
+
+    // Show skeleton loading
+    function showSkeletons() {
+      const grid = qs('#blogsGrid');
+      const skeletonHTML = Array(6).fill(`
+        <div class="card card--skeleton" role="listitem">
+          <div class="thumb skeleton-thumb"></div>
+          <div class="info">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-text"></div>
+            <div class="skeleton-line skeleton-text short"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+          </div>
+        </div>
+      `).join('');
+      grid.innerHTML = skeletonHTML;
+
+      // Also show skeleton for featured
+      qs('#feat-0 .body .t').textContent = '';
+      qs('#feat-0 .body .e').textContent = '';
+      qs('#feat-1 .body .t').textContent = '';
+      qs('#feat-0').classList.add('feat--loading');
+      qs('#feat-1').classList.add('feat--loading');
+    }
+
+    function hideSkeletons() {
+      qs('#feat-0')?.classList.remove('feat--loading');
+      qs('#feat-1')?.classList.remove('feat--loading');
+    }
+
     // Fetch posts from API with graceful fallback
     async function fetchPosts(p=1){
       try{
-        const r = await fetch(`${API}/posts?page=${p}&size=${size}`, { cache:'no-store' });
+        const r = await fetch(`${API}/posts?page=${p}&size=${size}`);
         if(!r.ok) throw 0;
         const j = await r.json();
         return j.items || j.posts || [];
@@ -446,11 +502,51 @@
       }
     });
 
-    // Initialize
+    // Initialize with cache-first strategy
     (async function init(){
-      await loadMore();
-      if (posts.length < 6 && !done) await loadMore();
+      const cached = getCachedPosts();
+
+      if (cached && cached.data.length > 0) {
+        // Show cached data immediately
+        posts = cached.data;
+        render();
+        done = posts.length < size * 2; // Assume 2 pages loaded
+        page = Math.ceil(posts.length / size) + 1;
+
+        // If cache is stale, refresh in background
+        if (cached.isStale) {
+          refreshInBackground();
+        }
+      } else {
+        // No cache - show skeletons and fetch
+        showSkeletons();
+        await loadMore();
+        if (posts.length < 6 && !done) await loadMore();
+        setCachedPosts(posts);
+        hideSkeletons();
+      }
     })();
+
+    // Background refresh (stale-while-revalidate)
+    async function refreshInBackground() {
+      try {
+        const freshPosts = [];
+        let p = 1;
+        while (p <= 2) {
+          const items = await fetchPosts(p++);
+          if (!items.length) break;
+          freshPosts.push(...items);
+          if (items.length < size) break;
+        }
+        if (freshPosts.length > 0) {
+          posts = freshPosts;
+          done = freshPosts.length < size * 2;
+          page = Math.ceil(posts.length / size) + 1;
+          setCachedPosts(posts);
+          render();
+        }
+      } catch {}
+    }
 
     // Magnetized particles + click ripple for filter strip
     (function initFilterStripParticles() {
