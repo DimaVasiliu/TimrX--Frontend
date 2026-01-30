@@ -956,6 +956,132 @@
     transform: translateY(-2px);
   }
 
+  /* ===== Block Editor Content Styles ===== */
+
+  /* Post images from block editor */
+  .post-article .post-image{
+    margin: 28px 0;
+  }
+
+  .post-article .post-image img{
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 40px rgba(0,0,0,.4);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .post-article .post-image:hover img{
+    border-color: rgba(14, 165, 233, 0.3);
+    box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 20px rgba(14, 165, 233, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .post-article .post-image figcaption{
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    margin-top: 12px;
+    font-style: italic;
+  }
+
+  /* Delimiter / horizontal rule from block editor */
+  .post-article hr.delimiter{
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+    margin: 40px auto;
+    max-width: 100px;
+  }
+
+  /* Checklist from block editor */
+  .post-article .checklist{
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+  }
+
+  .post-article .checklist-item{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 16px;
+    color: #c8c8c8;
+    line-height: 1.6;
+  }
+
+  .post-article .checklist-item:last-child{
+    border-bottom: none;
+  }
+
+  .post-article .checklist-item .checkbox{
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .post-article .checklist-item.checked .checkbox{
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+  }
+
+  .post-article .checklist-item.checked .checkbox::after{
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .post-article .checklist-item.checked{
+    color: #888;
+    text-decoration: line-through;
+  }
+
+  /* Warning block from block editor */
+  .post-article .warning-block{
+    margin: 24px 0;
+    padding: 20px 24px;
+    background: rgba(234, 179, 8, 0.08);
+    border-left: 4px solid #eab308;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .post-article .warning-block strong{
+    display: block;
+    color: #fcd34d;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+
+  .post-article .warning-block p{
+    margin: 0;
+    color: #d8d8d8;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* Quote with cite */
+  .post-article blockquote cite{
+    display: block;
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--accent-blue);
+    font-style: normal;
+    font-weight: 600;
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{
