@@ -85,7 +85,7 @@
 
   <footer><div class="container foot"><span>© 2025 TimrX / Dima Vasiliu</span></div></footer>
 
-<!-- Frontend/read.html (ONLY the small JS change: API base resolution) -->
+<!-- Frontend/read.html - Dual format support (blocks + markdown) -->
 <script>
   const qs = s => document.querySelector(s);
   const qsa = s => Array.from(document.querySelectorAll(s));
@@ -93,6 +93,58 @@
   const API = API_BASE + '/api';
   function getParam(name){ return new URLSearchParams(location.search).get(name); }
   function md(s){ return marked.parse(s || ''); }
+
+  // Render Editor.js blocks to HTML
+  function renderBlocks(blocksData) {
+    let data;
+    try {
+      data = typeof blocksData === 'string' ? JSON.parse(blocksData) : blocksData;
+    } catch {
+      return '<p>Error parsing content</p>';
+    }
+    if (!data || !data.blocks) return '';
+
+    return data.blocks.map(block => {
+      const d = block.data || {};
+      switch (block.type) {
+        case 'paragraph':
+          return `<p>${d.text || ''}</p>`;
+        case 'header':
+          const lvl = d.level || 2;
+          return `<h${lvl}>${d.text || ''}</h${lvl}>`;
+        case 'list':
+          const tag = d.style === 'ordered' ? 'ol' : 'ul';
+          const items = (d.items || []).map(item => {
+            const text = typeof item === 'string' ? item : (item.content || '');
+            return `<li>${text}</li>`;
+          }).join('');
+          return `<${tag}>${items}</${tag}>`;
+        case 'image':
+          const url = d.file?.url || d.url || '';
+          const cap = d.caption || '';
+          return `<figure class="post-image"><img src="${url}" alt="${cap}"/>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+        case 'code':
+          const code = (d.code || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<pre><code>${code}</code></pre>`;
+        case 'quote':
+          const quote = d.text || '';
+          const author = d.caption || '';
+          return `<blockquote><p>${quote}</p>${author ? `<cite>— ${author}</cite>` : ''}</blockquote>`;
+        case 'delimiter':
+          return '<hr class="delimiter"/>';
+        case 'checklist':
+          const checks = (d.items || []).map(item => {
+            const checked = item.checked ? 'checked' : '';
+            return `<li class="checklist-item ${checked}"><span class="checkbox"></span>${item.text || ''}</li>`;
+          }).join('');
+          return `<ul class="checklist">${checks}</ul>`;
+        case 'warning':
+          return `<div class="warning-block"><strong>${d.title || 'Warning'}</strong><p>${d.message || ''}</p></div>`;
+        default:
+          return '';
+      }
+    }).join('\n');
+  }
 
   async function load(){
     const slug = getParam('slug'); if(!slug){ qs('#postTitle').textContent = 'Post not found'; return; }
@@ -106,7 +158,15 @@
     const img = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
     qs('#heroImg').src = img; qs('#heroCap').textContent = p.type || '';
 
-    qs('#article').innerHTML = md(p.content_md);
+    // Dual-format rendering: blocks or markdown
+    const format = p.content_format || 'markdown';
+    if (format === 'blocks' && p.content_blocks) {
+      qs('#article').innerHTML = renderBlocks(p.content_blocks);
+    } else {
+      qs('#article').innerHTML = md(p.content_md);
+    }
+
+    // Build table of contents
     const heads = qsa('.post-article h2, .post-article h3'); const toc = qs('#tocList'); const frag=document.createDocumentFragment();
     heads.forEach(h=>{ if(!h.id) h.id=h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-'); const a=document.createElement('a'); a.href='#'+h.id; a.textContent=h.textContent; a.className=h.tagName==='H3'?'toc-l2':'toc-l1'; frag.appendChild(a);});
     toc.appendChild(frag);
