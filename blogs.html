@@ -361,17 +361,17 @@
       const tag = (p.tags||'').split(',')[0] || 'Post';
       const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
       return `
-        <article class="card" role="listitem">
-          <a class="thumb" href="${url}" aria-label="${p.title}">
+        <a class="card" href="${url}" role="listitem">
+          <div class="thumb">
             <img src="${p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop'}" alt="" loading="lazy" decoding="async"/>
             <span class="pill">${tag}</span>
-          </a>
+          </div>
           <div class="info">
-            <a class="title" href="${url}">${p.title}</a>
+            <h3 class="title">${p.title}</h3>
             <p class="muted">${p.excerpt || ''}</p>
             <div class="meta muted"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
           </div>
-        </article>`;
+        </a>`;
     }
 
     // Apply sorting
