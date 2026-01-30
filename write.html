@@ -337,6 +337,156 @@
       onChange: updateStats
     });
 
+    function clampToolbarPosition(toolbar, x, y) {
+      const pad = 12;
+      const maxX = window.innerWidth - toolbar.offsetWidth - pad;
+      const maxY = window.innerHeight - toolbar.offsetHeight - pad;
+      const nextX = Math.min(Math.max(pad, x), Math.max(pad, maxX));
+      const nextY = Math.min(Math.max(pad, y), Math.max(pad, maxY));
+      toolbar.style.setProperty('left', `${nextX}px`, 'important');
+      toolbar.style.setProperty('top', `${nextY}px`, 'important');
+    }
+
+    function positionToolbarDefault(toolbar) {
+      const editorArea = document.getElementById('editorjs');
+      if (!editorArea) return;
+      const rect = editorArea.getBoundingClientRect();
+      const x = Math.min(window.innerWidth - 120, rect.right + 16);
+      const y = Math.max(140, rect.top + 80);
+      clampToolbarPosition(toolbar, x, y);
+    }
+
+    function initFloatingToolbar() {
+      const toolbar = document.querySelector('.ce-toolbar');
+      if (!toolbar) return;
+      if (toolbar.dataset.floated !== 'true') {
+        toolbar.dataset.floated = 'true';
+        document.body.appendChild(toolbar);
+      }
+
+      const saved = window.localStorage.getItem('timrxToolbarPos');
+      if (saved) {
+        try {
+          const { x, y } = JSON.parse(saved);
+          if (Number.isFinite(x) && Number.isFinite(y)) {
+            clampToolbarPosition(toolbar, x, y);
+          } else {
+            positionToolbarDefault(toolbar);
+          }
+        } catch {
+          positionToolbarDefault(toolbar);
+        }
+      } else {
+        positionToolbarDefault(toolbar);
+      }
+
+      const handle = toolbar.querySelector('.ce-toolbar__actions');
+      if (!handle) return;
+
+      let dragging = null;
+      let suppressClick = false;
+      const dragThreshold = 6;
+
+      handle.addEventListener('pointerdown', (event) => {
+        dragging = {
+          startX: event.clientX,
+          startY: event.clientY,
+          baseX: toolbar.offsetLeft,
+          baseY: toolbar.offsetTop,
+          moved: false
+        };
+        handle.setPointerCapture(event.pointerId);
+      });
+
+      handle.addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        const dx = event.clientX - dragging.startX;
+        const dy = event.clientY - dragging.startY;
+        if (!dragging.moved && Math.hypot(dx, dy) >= dragThreshold) {
+          dragging.moved = true;
+          handle.classList.add('is-dragging');
+          suppressClick = true;
+        }
+        if (!dragging.moved) return;
+        const nextX = dragging.baseX + dx;
+        const nextY = dragging.baseY + dy;
+        clampToolbarPosition(toolbar, nextX, nextY);
+        positionPopoverNearToolbar();
+      });
+
+      function endDrag(event) {
+        if (!dragging) return;
+        handle.classList.remove('is-dragging');
+        if (dragging.moved) {
+          window.localStorage.setItem('timrxToolbarPos', JSON.stringify({
+            x: toolbar.offsetLeft,
+            y: toolbar.offsetTop
+          }));
+          suppressClick = true;
+          requestAnimationFrame(() => {
+            suppressClick = false;
+          });
+        }
+        dragging = null;
+        if (event?.pointerId) {
+          handle.releasePointerCapture(event.pointerId);
+        }
+      }
+
+      handle.addEventListener('pointerup', endDrag);
+      handle.addEventListener('pointercancel', endDrag);
+      handle.addEventListener('click', (event) => {
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+        suppressClick = false;
+      }, true);
+
+      window.addEventListener('resize', () => {
+        clampToolbarPosition(toolbar, toolbar.offsetLeft, toolbar.offsetTop);
+      });
+    }
+
+    function positionPopoverNearToolbar() {
+      const popover = document.querySelector('.ce-popover');
+      const toolbar = document.querySelector('.ce-toolbar');
+      if (!popover || !toolbar) return;
+
+      const pad = 12;
+      const anchor = toolbar.getBoundingClientRect();
+      popover.style.position = 'fixed';
+
+      let x = anchor.left;
+      let y = anchor.bottom + 10;
+
+      const rect = popover.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth - pad) {
+        x = window.innerWidth - rect.width - pad;
+      }
+      if (x < pad) x = pad;
+
+      if (y + rect.height > window.innerHeight - pad) {
+        y = anchor.top - rect.height - 10;
+      }
+      if (y < pad) y = pad;
+
+      popover.style.left = `${x}px`;
+      popover.style.top = `${y}px`;
+      popover.style.right = 'auto';
+      popover.style.bottom = 'auto';
+      popover.style.maxHeight = 'calc(100vh - 24px)';
+    }
+
+    function observePopoverPosition() {
+      const observer = new MutationObserver(() => {
+        const popover = document.querySelector('.ce-popover');
+        if (!popover) return;
+        requestAnimationFrame(positionPopoverNearToolbar);
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+      window.addEventListener('resize', positionPopoverNearToolbar);
+    }
+
     // Live stats
     async function updateStats() {
       try {
@@ -431,8 +581,52 @@
       }
     });
 
-    // Initial stats
-    editor.isReady.then(() => updateStats());
+    // Check for AI-generated draft
+    function loadAIDraft() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('ai') !== '1') return null;
+
+      const draft = sessionStorage.getItem('TX_AI_DRAFT');
+      if (!draft) return null;
+
+      try {
+        const data = JSON.parse(draft);
+        sessionStorage.removeItem('TX_AI_DRAFT');
+        return data;
+      } catch (e) {
+        console.error('Failed to parse AI draft:', e);
+        return null;
+      }
+    }
+
+    // Initial setup
+    editor.isReady.then(() => {
+      updateStats();
+      initFloatingToolbar();
+      observePopoverPosition();
+
+      // Load AI draft if available
+      const aiDraft = loadAIDraft();
+      if (aiDraft) {
+        // Fill form fields
+        if (aiDraft.title) $('#title').value = aiDraft.title;
+        if (aiDraft.excerpt) $('#excerpt').value = aiDraft.excerpt;
+        if (aiDraft.tags) $('#tags').value = aiDraft.tags;
+        if (aiDraft.type) $('#type').value = aiDraft.type;
+
+        // Load blocks into editor
+        if (aiDraft.blocks && Array.isArray(aiDraft.blocks)) {
+          editor.render({
+            time: Date.now(),
+            blocks: aiDraft.blocks,
+            version: '2.29.1'
+          }).then(() => {
+            updateStats();
+            setMsg('AI-generated draft loaded. Review and edit before submitting!', true);
+          });
+        }
+      }
+    });
   </script>
   <script src="burger.js"></script>
 </body>
