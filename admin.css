@@ -804,16 +804,31 @@ body {
 }
 
 /* Subscribers Tab */
+.subs-tab-info {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.subs-tab-info p {
+  margin-bottom: 16px;
+}
+
+.subs-modal-content {
+  padding: 20px 0;
+}
+
 .subs-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .subs-stats {
   display: flex;
-  gap: 20px;
+  gap: 32px;
 }
 
 .subs-stat {
@@ -823,7 +838,7 @@ body {
 }
 
 .subs-stat-number {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 600;
   color: #fff;
   line-height: 1;
@@ -834,15 +849,17 @@ body {
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-.subs-filter {
-  margin-bottom: 16px;
+.subs-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-.subs-filter .form-select {
-  width: 100%;
+.subs-controls .form-select {
+  width: 140px;
 }
 
 .subs-list {
