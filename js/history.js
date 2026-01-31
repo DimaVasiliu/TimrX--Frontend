@@ -139,6 +139,9 @@ function dedupeHistoryItems(items = []) {
 
 function getLineageKey(item = {}) {
   if (!item || typeof item !== 'object') return '';
+  // Priority: lineage_origin_id is the primary grouping key (set by backend)
+  if (item.lineage_origin_id) return String(item.lineage_origin_id);
+  // Fallback candidates for backward compatibility with older records
   const candidates = [
     'lineage_root_id', 'preview_task_id', 'root_lineage_id', 'origin_id',
     'source_job_id', 'parent_job_id', 'root_id', 'parent_id', 'job_id'
