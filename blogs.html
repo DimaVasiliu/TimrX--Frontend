@@ -258,8 +258,7 @@
     <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">All Articles</h2>
     <div class="grid" id="blogsGrid" role="list"></div>
     <div class="loadbar">
-      <button id="loadMore" class="btn">Load more</button>
-      <span id="loadStatus" class="muted" style="display:none">No more posts.</span>
+      <a href="archive.html" class="btn" id="browseAll">Browse All Posts →</a>
     </div>
   </main>
   <!-- CTA: WRITE -->
@@ -299,7 +298,7 @@
     <div class="container foot">
       <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
       <nav class="foot-nav">
-        <a href="index.html#about">About</a>
+        <a href="archive.html">All Posts</a>
         <a href="index.html#works">Works</a>
         <a href="index.html#services">Services</a>
         <a href="index.html#contact">Contact</a>
@@ -468,9 +467,6 @@
         b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
       }
 
-      // Update load more status
-      qs('#loadStatus').style.display = done ? 'inline' : 'none';
-      qs('#loadMore').disabled = done;
     }
 
     // Load more posts
@@ -493,7 +489,6 @@
     });
     qs('#blogSearch').addEventListener('input', e=>{ searchQ = e.target.value.trim(); render(); });
     qs('#sortSelect').addEventListener('change', e=>{ sorter = e.target.value; render(); });
-    qs('#loadMore').addEventListener('click', loadMore);
 
     // Quick "/" keyboard shortcut to focus search
     window.addEventListener('keydown', e=>{
@@ -511,7 +506,7 @@
         // Show cached data immediately
         posts = cached.data;
         render();
-        done = posts.length < size * 2; // Assume 2 pages loaded
+        done = false; // Always allow loading more - let the API determine when done
         page = Math.ceil(posts.length / size) + 1;
 
         // If cache is stale, refresh in background
@@ -541,7 +536,7 @@
         }
         if (freshPosts.length > 0) {
           posts = freshPosts;
-          done = freshPosts.length < size * 2;
+          done = false; // Always allow loading more - let the API determine when done
           page = Math.ceil(posts.length / size) + 1;
           setCachedPosts(posts);
           render();
