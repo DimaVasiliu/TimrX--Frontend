@@ -413,45 +413,99 @@
     }, 2500);
   }
 
-  // Engagement: Likes
+  // ===== REAL ENGAGEMENT TRACKING =====
   const postSlug = getParam('slug');
-  const likeKey = `timrx_like_${postSlug}`;
   const likeBtn = qs('#likeBtn');
   const likeCount = qs('#likeCount');
+  const viewCount = qs('#viewCount');
 
-  function getLikes() {
-    return parseInt(localStorage.getItem(`timrx_likes_${postSlug}`) || '0', 10);
+  // Generate a fingerprint for tracking unique users
+  function getUserFingerprint() {
+    let fp = localStorage.getItem('timrx_fingerprint');
+    if (!fp) {
+      fp = 'fp_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+      localStorage.setItem('timrx_fingerprint', fp);
+    }
+    return fp;
   }
 
-  function setLikes(count) {
-    localStorage.setItem(`timrx_likes_${postSlug}`, count);
-    likeCount.textContent = count;
-  }
-
-  function isLiked() {
-    return localStorage.getItem(likeKey) === 'true';
-  }
-
-  function updateLikeUI() {
-    likeCount.textContent = getLikes();
-    if (isLiked()) {
-      likeBtn.classList.add('liked');
+  // Track page view
+  async function trackView() {
+    if (!postSlug) return;
+    try {
+      await fetch(`${API}/post/${encodeURIComponent(postSlug)}/view`, { method: 'POST' });
+    } catch (e) {
+      console.log('[Engagement] View tracking failed:', e);
     }
   }
 
-  likeBtn.addEventListener('click', () => {
-    const currentLikes = getLikes();
-    if (isLiked()) {
-      localStorage.removeItem(likeKey);
-      likeBtn.classList.remove('liked');
-      setLikes(Math.max(0, currentLikes - 1));
-    } else {
-      localStorage.setItem(likeKey, 'true');
-      likeBtn.classList.add('liked');
-      setLikes(currentLikes + 1);
-      // Animate heart
+  // Load engagement stats
+  async function loadEngagement() {
+    if (!postSlug) return;
+    try {
+      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/engagement`);
+      const data = await r.json();
+      if (data.ok) {
+        likeCount.textContent = data.likes || 0;
+        viewCount.textContent = `${data.views || 0} views`;
+      }
+    } catch (e) {
+      console.log('[Engagement] Failed to load stats:', e);
+    }
+  }
+
+  // Check if user has liked
+  async function checkIfLiked() {
+    if (!postSlug) return;
+    const fp = getUserFingerprint();
+    try {
+      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/liked?fingerprint=${encodeURIComponent(fp)}`);
+      const data = await r.json();
+      if (data.liked) {
+        likeBtn.classList.add('liked');
+      }
+    } catch (e) {
+      console.log('[Engagement] Like check failed:', e);
+    }
+  }
+
+  // Toggle like
+  likeBtn.addEventListener('click', async () => {
+    if (!postSlug) return;
+    const fp = getUserFingerprint();
+
+    // Optimistic UI update
+    const wasLiked = likeBtn.classList.contains('liked');
+    likeBtn.classList.toggle('liked');
+    const currentCount = parseInt(likeCount.textContent) || 0;
+    likeCount.textContent = wasLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+
+    // Animate heart
+    if (!wasLiked) {
       likeBtn.style.transform = 'scale(1.2)';
       setTimeout(() => likeBtn.style.transform = '', 150);
+    }
+
+    try {
+      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fingerprint: fp })
+      });
+      const data = await r.json();
+      if (data.ok) {
+        likeCount.textContent = data.likes;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+        } else {
+          likeBtn.classList.remove('liked');
+        }
+      }
+    } catch (e) {
+      // Revert on error
+      likeBtn.classList.toggle('liked');
+      likeCount.textContent = currentCount;
+      console.log('[Engagement] Like toggle failed:', e);
     }
   });
 
@@ -472,11 +526,24 @@
     e.stopPropagation();
   });
 
+  // Track share action
+  async function trackShare() {
+    if (!postSlug) return;
+    try {
+      await fetch(`${API}/post/${encodeURIComponent(postSlug)}/share`, { method: 'POST' });
+    } catch (e) {
+      console.log('[Engagement] Share tracking failed:', e);
+    }
+  }
+
   qsa('.share-option').forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.share;
       const title = encodeURIComponent(qs('#postTitle').textContent);
       const url = encodeURIComponent(window.location.href);
+
+      // Track the share
+      trackShare();
 
       switch(type) {
         case 'twitter':
@@ -497,49 +564,11 @@
     });
   });
 
-  // Engagement: Comments
-  const commentsKey = `timrx_comments_${postSlug}`;
+  // ===== REAL COMMENTS SYSTEM =====
   const commentForm = qs('#commentForm');
   const commentsList = qs('#commentsList');
   const noComments = qs('#noComments');
   const commentCount = qs('#commentCount');
-
-  function getComments() {
-    try {
-      return JSON.parse(localStorage.getItem(commentsKey) || '[]');
-    } catch {
-      return [];
-    }
-  }
-
-  function saveComments(comments) {
-    localStorage.setItem(commentsKey, JSON.stringify(comments));
-  }
-
-  function renderComments() {
-    const comments = getComments();
-    commentCount.textContent = comments.length;
-
-    if (comments.length === 0) {
-      commentsList.innerHTML = '';
-      noComments.classList.remove('hidden');
-      return;
-    }
-
-    noComments.classList.add('hidden');
-    commentsList.innerHTML = comments.map(c => `
-      <div class="comment-item">
-        <div class="comment-avatar">${c.name.charAt(0).toUpperCase()}</div>
-        <div class="comment-body">
-          <div class="comment-header">
-            <span class="comment-author">${escapeHtml(c.name)}</span>
-            <span class="comment-date">${formatDate(c.date)}</span>
-          </div>
-          <p class="comment-text">${escapeHtml(c.text)}</p>
-        </div>
-      </div>
-    `).join('');
-  }
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -562,31 +591,91 @@
     return date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
   }
 
-  commentForm.addEventListener('submit', (e) => {
+  function renderCommentsUI(comments) {
+    commentCount.textContent = comments.length;
+
+    if (comments.length === 0) {
+      commentsList.innerHTML = '';
+      noComments.classList.remove('hidden');
+      return;
+    }
+
+    noComments.classList.add('hidden');
+    commentsList.innerHTML = comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-avatar">${(c.author_name || 'A').charAt(0).toUpperCase()}</div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <span class="comment-author">${escapeHtml(c.author_name)}</span>
+            <span class="comment-date">${formatDate(c.created_at)}</span>
+          </div>
+          <p class="comment-text">${escapeHtml(c.content)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function loadComments() {
+    if (!postSlug) return;
+    try {
+      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/comments`);
+      const data = await r.json();
+      if (data.ok) {
+        renderCommentsUI(data.comments || []);
+      }
+    } catch (e) {
+      console.log('[Comments] Failed to load:', e);
+      commentsList.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">Failed to load comments</p>';
+    }
+  }
+
+  commentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = qs('#commenterName').value.trim();
-    const text = qs('#commentText').value.trim();
+    const content = qs('#commentText').value.trim();
 
-    if (!name || !text) return;
+    if (!name || !content) return;
 
-    const comments = getComments();
-    comments.unshift({
-      name,
-      text,
-      date: new Date().toISOString()
-    });
-    saveComments(comments);
-    renderComments();
+    const submitBtn = commentForm.querySelector('.comment-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Posting...</span>';
 
-    qs('#commenterName').value = '';
-    qs('#commentText').value = '';
-    showToast('Comment posted!');
+    try {
+      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, content })
+      });
+      const data = await r.json();
+
+      if (data.ok) {
+        qs('#commenterName').value = '';
+        qs('#commentText').value = '';
+        showToast('Comment posted!');
+        // Reload comments to show the new one
+        loadComments();
+      } else {
+        showToast(data.error || 'Failed to post comment');
+      }
+    } catch (e) {
+      console.log('[Comments] Post error:', e);
+      showToast('Failed to post comment');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Post Comment</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    }
   });
 
   // Initialize engagement
-  function initEngagement() {
-    updateLikeUI();
-    renderComments();
+  async function initEngagement() {
+    // Track the view
+    trackView();
+    // Load engagement stats
+    await loadEngagement();
+    // Check if user has liked
+    await checkIfLiked();
+    // Load comments
+    await loadComments();
   }
 
   window.addEventListener('scroll', progress, {passive:true});
