@@ -221,6 +221,12 @@
               <option value="all">All subscribers</option>
             </select>
             <button class="btn" id="refreshSubs">Refresh</button>
+            <button class="btn" id="checkEmailStatus" title="Check email configuration">Email Status</button>
+          </div>
+        </div>
+        <div class="email-status-panel" id="emailStatusPanel">
+          <div class="email-status-content" id="emailStatusContent">
+            Checking email configuration...
           </div>
         </div>
         <div class="subs-list" id="subsList">
@@ -804,6 +810,44 @@
     $('#closeSubsModal').onclick = () => $('#subsModal').classList.remove('show');
     $('#refreshSubs').onclick = loadSubscribers;
     $('#subsFilter').onchange = loadSubscribers;
+
+    // Email status check
+    $('#checkEmailStatus').onclick = async () => {
+      const panel = $('#emailStatusPanel');
+      const content = $('#emailStatusContent');
+
+      panel.classList.toggle('visible');
+      if (!panel.classList.contains('visible')) return;
+
+      content.innerHTML = '<span class="muted">Checking email configuration...</span>';
+
+      try {
+        const r = await fetch(`${API}/admin/email-status`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          content.innerHTML = '<span class="error">Failed to check email status</span>';
+          return;
+        }
+
+        const statusIcon = (ok) => ok ? '<span class="status-ok">✓</span>' : '<span class="status-err">✗</span>';
+        const hints = (j.hints || []).filter(h => h);
+
+        content.innerHTML = `
+          <div class="status-grid">
+            <div class="status-item">${statusIcon(j.email_enabled)} EMAIL_ENABLED</div>
+            <div class="status-item">${statusIcon(j.ses_from_email)} SES_FROM_EMAIL: ${j.ses_from_email || 'not set'}</div>
+            <div class="status-item">${statusIcon(j.aws_credentials_set)} AWS Credentials</div>
+            <div class="status-item">${statusIcon(j.ses_client_available)} SES Client</div>
+            <div class="status-item">${statusIcon(j.ses_identity_verified)} Sender Verified</div>
+            <div class="status-item">${statusIcon(!j.ses_sandbox_mode)} Production Mode ${j.ses_sandbox_mode ? '(Sandbox)' : ''}</div>
+          </div>
+          ${hints.length ? `<div class="status-hints"><strong>Issues:</strong><ul>${hints.map(h => `<li>${h}</li>`).join('')}</ul></div>` : '<div class="status-ok-msg">Email configuration looks good!</div>'}
+        `;
+      } catch (err) {
+        content.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
+      }
+    };
 
     // Close modal on backdrop click
     $('#subsModal').addEventListener('click', e => {
