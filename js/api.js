@@ -147,7 +147,7 @@ function refreshCreditsInBackground() {
 }
 
 /**
- * Handle API response errors, specifically 402 insufficient credits
+ * Handle API response errors, specifically 402 insufficient credits and 400 expired models
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
 function handleApiError(response, action, reservationId = null) {
@@ -164,6 +164,20 @@ function handleApiError(response, action, reservationId = null) {
     }
     return true;
   }
+
+  // Handle 400 errors for expired/unavailable models
+  if (response.status === 400) {
+    const errorMsg = response.error || response.data?.error || '';
+    if (isExpiredModelError(errorMsg)) {
+      log('[Model] 400 Expired/unavailable model for:', action);
+      if (reservationId) {
+        releaseCreditsReservation(reservationId);
+      }
+      showExpiredModelError(action);
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -258,6 +272,120 @@ function promptFingerprint(input = '') {
   const normalized = (input || '').trim().toLowerCase().replace(/\s+/g, ' ');
   if (!normalized) return '';
   return normalized.length > 200 ? normalized.slice(0, 200) : normalized;
+}
+
+// ============================================================================
+// ERROR MODAL FOR EXPIRED/OLD MODELS
+// ============================================================================
+
+/**
+ * Check if an error message indicates an expired or unavailable model
+ */
+function isExpiredModelError(message) {
+  if (!message || typeof message !== 'string') return false;
+  const lowerMsg = message.toLowerCase();
+  return (
+    lowerMsg.includes('preview task not found') ||
+    lowerMsg.includes('task not found') ||
+    lowerMsg.includes('source task id not found') ||
+    lowerMsg.includes('not yet ready') ||
+    lowerMsg.includes('model url not found') ||
+    lowerMsg.includes('input_task_id') && lowerMsg.includes('not found')
+  );
+}
+
+/**
+ * Show a styled error modal for job failures
+ * @param {string} title - Modal title
+ * @param {string} message - Main message
+ * @param {string} [suggestion] - Optional suggestion text
+ * @param {string} [icon] - Optional icon (emoji or HTML)
+ */
+function showErrorModal(title, message, suggestion = '', icon = '') {
+  // Remove any existing error modal
+  const existing = document.getElementById('timrx-error-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'timrx-error-modal';
+  modal.className = 'modal show';
+  modal.style.cssText = 'z-index: 10000;';
+
+  modal.innerHTML = `
+    <div class="modal-panel" style="max-width: 480px; text-align: center;">
+      ${icon ? `<div style="font-size: 48px; margin-bottom: 16px;">${icon}</div>` : ''}
+      <h3 style="color: #fca5a5; margin-bottom: 12px;">${title}</h3>
+      <p class="modal-desc" style="margin-bottom: 16px; line-height: 1.6;">${message}</p>
+      ${suggestion ? `<p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">${suggestion}</p>` : ''}
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn-submit" id="timrx-error-modal-close" style="min-width: 120px;">Got it</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add('modal-open');
+
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    setTimeout(() => modal.remove(), 200);
+  };
+
+  modal.querySelector('#timrx-error-modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // ESC key
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      window.removeEventListener('keydown', escHandler);
+    }
+  };
+  window.addEventListener('keydown', escHandler);
+}
+
+/**
+ * Show user-friendly error for expired/old models
+ * @param {string} operation - 'refine', 'remesh', 'texture', or 'rig'
+ */
+function showExpiredModelError(operation = 'process') {
+  const opNames = {
+    refine: 'refine',
+    remesh: 'remesh',
+    texture: 'retexture',
+    rig: 'rig'
+  };
+  const opName = opNames[operation] || operation;
+
+  showErrorModal(
+    'Model No Longer Available',
+    `This model's original data has expired on Meshy's servers and can no longer be ${opName}d.`,
+    `<strong>What you can do:</strong><br>
+    • Generate a new model with the same prompt<br>
+    • Use a recently created model instead<br>
+    • Download and re-upload the GLB file if you have it saved`,
+    '⏰'
+  );
+}
+
+/**
+ * Handle job failure - shows appropriate modal or alert
+ * @param {string} message - Error message from server
+ * @param {string} operation - Operation type (refine, texture, etc.)
+ * @returns {boolean} true if handled with modal, false if used alert
+ */
+function handleJobFailure(message, operation = '') {
+  if (isExpiredModelError(message)) {
+    showExpiredModelError(operation);
+    return true;
+  }
+  // Fall back to regular alert for other errors
+  alert(message || 'Job failed');
+  return false;
 }
 
 /**
@@ -508,7 +636,7 @@ export function watchJob(job_id) {
           refreshCreditsInBackground();
         }
         prog.fail(st.message || 'Job failed');
-        alert(st.message || 'Job failed');
+        handleJobFailure(st.message || 'Job failed', 'refine');
         return;
       }
 
@@ -668,7 +796,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           refreshCreditsInBackground();
         }
         prog.fail(st.message || `${stageLabel} failed`);
-        alert(st.message || `${stageLabel} failed`);
+        handleJobFailure(st.message || `${stageLabel} failed`, kind);
         return;
       }
 
