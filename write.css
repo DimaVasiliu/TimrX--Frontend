@@ -217,7 +217,7 @@ body.write-page {
   position: absolute;
   top: 50%;
   right: 0%;
-   left: auto;
+  left: auto;
   transform: translateY(-50%);
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(140px, 20vw, 320px);
