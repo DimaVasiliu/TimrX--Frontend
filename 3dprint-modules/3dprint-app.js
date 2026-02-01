@@ -70,10 +70,13 @@
           <div class="inline-field">
             <label for="imageAIProvider">Provider</label>
             <select id="imageAIProvider">
-              <option value="openai" selected>OpenAI (DALL-E)</option>
+              <option value="openai" selected>OpenAI (DALL·E)</option>
+              <option value="google">Google (Imagen)</option>
             </select>
           </div>
-          <div class="inline-field">
+
+          <!-- Style (OpenAI modes; Google uses prompt-based styling) -->
+          <div class="inline-field" id="imageStyleRow">
             <label for="imageStyle">Style</label>
             <select id="imageStyle">
               <option value="realistic" selected>Realistic</option>
@@ -83,24 +86,41 @@
               <option value="cinematic">Cinematic</option>
             </select>
           </div>
+
+          <!-- Aspect Ratio (Google Imagen only) -->
+          <div class="inline-field google-only-field hidden" id="imageAspectRatioRow">
+            <label for="imageAspectRatio">Aspect Ratio</label>
+            <select id="imageAspectRatio">
+              <option value="1:1" selected>1:1 (Square)</option>
+              <option value="3:4">3:4 (Portrait)</option>
+              <option value="4:3">4:3 (Landscape)</option>
+              <option value="9:16">9:16 (Tall)</option>
+              <option value="16:9">16:9 (Wide)</option>
+            </select>
+          </div>
+
+          <!-- Resolution (provider-dependent options) -->
           <div class="inline-field">
             <label for="imageResolution">Resolution</label>
             <select id="imageResolution">
-              <option value="512x512">512x512</option>
+              <!-- OpenAI options (default) -->
               <option value="1024x1024" selected>1024x1024</option>
-              <option value="1024x1792">1024x1792 (Portrait)</option>
-              <option value="1792x1024">1792x1024 (Landscape)</option>
+              <option value="1024x1536">1024x1536 (Portrait)</option>
+              <option value="1536x1024">1536x1024 (Landscape)</option>
             </select>
           </div>
+          <span class="field-hint resolution-hint hidden" id="imageResolutionHint">Higher resolution increases cost and latency.</span>
+
+          <div class="provider-hint" id="imageProviderHint"></div>
         </div>
 
         <div class="card gen-footer-card">
           <div class="gen-meta">
-            <span class="gen-time">30 sec</span>
+            <span class="gen-time" id="imageGenTime">30 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits" data-provider="openai">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -398,6 +418,42 @@
   
       video: `
         <div class="card">
+          <h3>Video Mode</h3>
+          <div class="inline-field" style="margin-bottom:10px">
+            <label for="videoAIProvider">Provider</label>
+            <select id="videoAIProvider">
+              <option value="google" selected>Google (Veo)</option>
+            </select>
+          </div>
+          <div class="video-mode-switcher" id="videoModeSwitcher">
+            <button type="button" class="video-mode-btn is-active" data-mode="text2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <path d="M4 6h16M4 12h16M4 18h10"/>
+              </svg>
+              Text → Video
+            </button>
+            <button type="button" class="video-mode-btn" data-mode="image2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+              Image → Video
+            </button>
+          </div>
+          <input type="hidden" id="videoModeValue" value="text2video" />
+        </div>
+
+        <!-- Text-to-Video: Prompt input -->
+        <div class="card video-mode-content" id="text2videoContent">
+          <h3>Video Prompt</h3>
+          <label for="videoTextPrompt" style="font-size:12px">Describe your video scene</label>
+          <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
+          <span class="field-hint">Keep prompts simple. Short clips look best.</span>
+        </div>
+
+        <!-- Image-to-Video: Image upload -->
+        <div class="card video-mode-content hidden" id="image2videoContent">
           <h3>Source Image</h3>
           <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:5px">Upload Reference Image</label>
           <div id="videoImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
@@ -412,39 +468,87 @@
         </div>
 
         <div class="card">
-          <h3>Video Settings</h3>
+          <div class="card-header-row">
+            <h3>Video Settings</h3>
+            <div class="info-tooltip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="info-icon">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+              <div class="info-bubble">
+                <ul>
+                  <li>Keep prompts simple. Short clips look best.</li>
+                  <li>Use Motion Description for camera moves (pan, orbit, zoom).</li>
+                  <li>Enable Add Audio to generate sound (extra credits).</li>
+                  <li>Higher resolution and longer duration cost more.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
           <label for="videoMotion" style="font-size:12px">Motion Description</label>
-          <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..."></textarea>
-          <div class="inline-field" style="margin-top:8px">
-            <label for="videoDuration">Duration</label>
-            <select id="videoDuration">
-              <option value="2">2 sec</option>
-              <option value="4" selected>4 sec</option>
-              <option value="6">6 sec</option>
-              <option value="8">8 sec</option>
-            </select>
+          <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..." style="min-height:60px"></textarea>
+          <span class="field-hint">Describe camera movement: pan, orbit, zoom, dolly, etc.</span>
+
+          <div class="video-settings-grid">
+            <div class="video-grid-cell">
+              <label for="videoDuration">Duration</label>
+              <select id="videoDuration">
+                <option value="4" selected>4 sec</option>
+                <option value="6">6 sec</option>
+                <option value="8">8 sec</option>
+              </select>
+            </div>
+            <div class="video-grid-cell">
+              <label for="videoAspectRatio">
+                Aspect
+                <span class="grid-cell-hint">
+                  ⓘ
+                  <span class="grid-cell-tooltip">16:9 = landscape<br>1:1 = square<br>9:16 = portrait/social</span>
+                </span>
+              </label>
+              <select id="videoAspectRatio">
+                <option value="16:9" selected>16:9</option>
+                <option value="1:1">1:1</option>
+                <option value="9:16">9:16</option>
+              </select>
+            </div>
+            <div class="video-grid-cell">
+              <label for="videoResolution">Resolution</label>
+              <select id="videoResolution">
+                <option value="720p" selected>720p</option>
+                <option value="1080p">1080p</option>
+                <option value="4k">4K</option>
+              </select>
+            </div>
+            <div class="video-grid-cell">
+              <label for="videoFPS">FPS</label>
+              <select id="videoFPS" disabled title="Google Veo outputs 24 FPS">
+                <option value="24" selected>24</option>
+              </select>
+            </div>
           </div>
-          <div class="inline-field">
-            <label for="videoFPS">Frame Rate</label>
-            <select id="videoFPS">
-              <option value="24" selected>24 FPS</option>
-              <option value="30">30 FPS</option>
-              <option value="60">60 FPS</option>
-            </select>
-          </div>
-          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
+          <span class="field-hint aspect-hint">Supported aspect ratios depend on the video model. If a ratio isn't supported, an error will be shown after Generate.</span>
+
+          <label style="margin-top:10px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="videoLoop" checked>
             <span>Loop Seamlessly</span>
+          </label>
+          <span class="field-hint loop-hint" style="margin-left:24px;margin-top:2px">Looping works best with orbit/constant motion prompts.</span>
+
+          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
+            <input type="checkbox" id="videoAudio">
+            <span>Add Audio</span>
+            <span class="audio-cost-badge" style="font-size:10px;color:rgba(255,255,255,.4);margin-left:auto" title="Audio generation increases cost">+30 credits</span>
           </label>
         </div>
 
         <div class="card gen-footer-card">
           <div class="gen-meta">
-            <span class="gen-time">3 min</span>
+            <span class="gen-time" id="videoGenTime">~2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 60</span>
+            <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 30</span>
           </div>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="60 credits">
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="30 credits" data-base-credits="30" data-video-mode="text2video" data-provider="google" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -897,6 +1001,518 @@
         });
       }
 
+      // ========================================
+      // VIDEO: Mode Switching & Credits Logic
+      // ========================================
+      const videoModeSwitcher = leftStack.querySelector('#videoModeSwitcher');
+      const videoModeValue = leftStack.querySelector('#videoModeValue');
+      const text2videoContent = leftStack.querySelector('#text2videoContent');
+      const image2videoContent = leftStack.querySelector('#image2videoContent');
+      const videoTextPrompt = leftStack.querySelector('#videoTextPrompt');
+      const videoAudioToggle = leftStack.querySelector('#videoAudio');
+      const videoCreditsDisplay = leftStack.querySelector('#videoCreditsDisplay');
+      const videoGenTime = leftStack.querySelector('#videoGenTime');
+      const generateVideoBtn = leftStack.querySelector('#generateVideoBtn');
+      const videoDuration = leftStack.querySelector('#videoDuration');
+      const videoFPS = leftStack.querySelector('#videoFPS');
+      const videoLoop = leftStack.querySelector('#videoLoop');
+      const videoMotion = leftStack.querySelector('#videoMotion');
+      const videoAspectRatio = leftStack.querySelector('#videoAspectRatio');
+      const videoResolution = leftStack.querySelector('#videoResolution');
+      const videoAIProvider = leftStack.querySelector('#videoAIProvider');
+
+      // ========================================
+      // VIDEO: Pricing Constants
+      // ========================================
+      const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
+      const VIDEO_RES_MULTIPLIER = { '720p': 1.0, '1080p': 1.5, '4k': 2.5 };
+      const VIDEO_AUDIO_ADDON = 30;
+      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~5 min' };
+
+      /**
+       * Get current video settings from UI
+       * @returns {Object} Video settings object
+       */
+      function getVideoSettingsFromUI() {
+        const durationRaw = videoDuration?.value || '4';
+        const resolutionRaw = videoResolution?.value || '720p';
+        // Normalize resolution (handle "4K" vs "4k")
+        const resolution = resolutionRaw.toLowerCase();
+
+        return {
+          durationSec: parseInt(durationRaw, 10) || 4,
+          resolution: resolution,
+          aspect: videoAspectRatio?.value || '16:9',
+          fps: parseInt(videoFPS?.value, 10) || 24,
+          loop: videoLoop?.checked ?? true,
+          addAudio: videoAudioToggle?.checked ?? false,
+          mode: videoModeValue?.value || 'text2video'
+        };
+      }
+
+      /**
+       * Compute video credits based on settings
+       * @param {Object} settings - Video settings from getVideoSettingsFromUI()
+       * @returns {number} Total credits (integer)
+       */
+      function computeVideoCredits(settings) {
+        const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
+        const mult = VIDEO_RES_MULTIPLIER[settings.resolution] || 1.0;
+        let cost = Math.round(base * mult);
+        if (settings.addAudio) {
+          cost += VIDEO_AUDIO_ADDON;
+        }
+        return cost;
+      }
+
+      /**
+       * Update the video footer UI (credits display, time estimate, button)
+       */
+      function updateVideoFooter() {
+        if (!videoCreditsDisplay || !generateVideoBtn) return;
+
+        const settings = getVideoSettingsFromUI();
+        const totalCredits = computeVideoCredits(settings);
+
+        // Update credits display
+        videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
+
+        // Update time estimate
+        if (videoGenTime) {
+          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
+        }
+
+        // Update button attributes
+        generateVideoBtn.title = `${totalCredits} credits`;
+        generateVideoBtn.dataset.baseCredits = totalCredits;
+        generateVideoBtn.dataset.audioEnabled = settings.addAudio ? 'true' : 'false';
+
+        // Trigger workspace credits update if available
+        if (window.WorkspaceCredits?.updateButtonCosts) {
+          window.WorkspaceCredits.updateButtonCosts();
+        }
+      }
+
+      /**
+       * Validate video form and enable/disable Generate button
+       */
+      function validateVideoForm() {
+        if (!generateVideoBtn) return;
+
+        const mode = videoModeValue?.value || 'text2video';
+        let isValid = false;
+
+        if (mode === 'text2video') {
+          // Text-to-Video: require video prompt
+          const prompt = videoTextPrompt?.value?.trim() || '';
+          isValid = prompt.length > 0;
+        } else {
+          // Image-to-Video: require uploaded image
+          const hasImage = videoSource && videoSource.files && videoSource.files.length > 0;
+          isValid = hasImage;
+        }
+
+        // Only manage disabled state for validation - don't override credits check
+        const disabledForCredits = generateVideoBtn.getAttribute('data-disabled-reason') === 'insufficient-credits';
+
+        if (!isValid) {
+          generateVideoBtn.disabled = true;
+          if (!disabledForCredits) {
+            generateVideoBtn.setAttribute('data-disabled-reason', 'validation');
+          }
+        } else if (generateVideoBtn.getAttribute('data-disabled-reason') === 'validation') {
+          generateVideoBtn.removeAttribute('data-disabled-reason');
+          if (!disabledForCredits) {
+            generateVideoBtn.disabled = false;
+          }
+        }
+      }
+
+      // Video mode switcher
+      if (videoModeSwitcher) {
+        const modeButtons = videoModeSwitcher.querySelectorAll('.video-mode-btn');
+        modeButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+
+            // Update active state
+            modeButtons.forEach(b => b.classList.remove('is-active'));
+            this.classList.add('is-active');
+
+            // Update hidden input
+            if (videoModeValue) videoModeValue.value = mode;
+            if (generateVideoBtn) generateVideoBtn.dataset.videoMode = mode;
+
+            // Show/hide content sections
+            if (text2videoContent && image2videoContent) {
+              text2videoContent.classList.toggle('hidden', mode !== 'text2video');
+              image2videoContent.classList.toggle('hidden', mode !== 'image2video');
+            }
+
+            // Re-validate form
+            validateVideoForm();
+
+            console.log('[Video] Mode switched to:', mode);
+          });
+        });
+      }
+
+      // Wire up video credits calculation on any option change
+      [videoDuration, videoResolution, videoAspectRatio, videoAudioToggle, videoLoop].forEach(el => {
+        if (el) {
+          el.addEventListener('change', updateVideoFooter);
+        }
+      });
+
+      // Wire up form validation on input changes
+      if (videoTextPrompt) {
+        videoTextPrompt.addEventListener('input', validateVideoForm);
+      }
+      if (videoSource) {
+        videoSource.addEventListener('change', () => {
+          validateVideoForm();
+          updateVideoFooter();
+        });
+      }
+      if (videoMotion) {
+        videoMotion.addEventListener('input', validateVideoForm);
+      }
+
+      // Initial calculation and validation
+      updateVideoFooter();
+      validateVideoForm();
+
+      // ========================================
+      // VIDEO: Generate Button Click Handler
+      // ========================================
+      if (generateVideoBtn) {
+        generateVideoBtn.addEventListener('click', function() {
+          const provider = videoAIProvider?.value || 'google';
+          const settings = getVideoSettingsFromUI();
+          const totalCredits = computeVideoCredits(settings);
+          const motion = videoMotion?.value?.trim() || '';
+
+          // Build Google Veo payload
+          const payload = {
+            provider: provider,
+            task: settings.mode,
+            duration_sec: settings.durationSec,
+            fps: settings.fps,
+            aspect_ratio: settings.aspect,
+            resolution: settings.resolution,
+            motion: motion,
+            audio: settings.addAudio,
+            loop_seamlessly: settings.loop,
+            estimated_credits: totalCredits,
+          };
+
+          if (settings.mode === 'text2video') {
+            payload.prompt = videoTextPrompt?.value?.trim() || '';
+            payload.image_file = null;
+          } else {
+            // Image-to-video: include file reference
+            payload.prompt = '';
+            payload.image_file = videoSource?.files?.[0] || null;
+            payload.has_image = !!(videoSource?.files?.length);
+          }
+
+          console.log('[Video] Generate payload:', payload);
+          console.log('[Video] Computed credits:', totalCredits, '(base:', VIDEO_BASE_CREDITS[settings.durationSec], '* mult:', VIDEO_RES_MULTIPLIER[settings.resolution], '+ audio:', settings.addAudio ? VIDEO_AUDIO_ADDON : 0, ')');
+          console.log('[Video] Ready for backend integration at: POST /api/video/generate');
+
+          // TODO: Replace with actual API call
+          // Example with aspect ratio error handling:
+          // try {
+          //   const response = await fetch('/api/video/generate', { method: 'POST', body: JSON.stringify(payload) });
+          //   const data = await response.json();
+          //   if (!response.ok) {
+          //     if (data.error?.includes('aspect') || data.error?.includes('ratio')) {
+          //       showVideoError(`Aspect ratio "${settings.aspect}" is not supported by this model. Try 16:9 or 9:16.`);
+          //     } else {
+          //       showVideoError(data.error || 'Video generation failed. Please try again.');
+          //     }
+          //     return;
+          //   }
+          //   // Success handling...
+          // } catch (err) {
+          //   showVideoError('Network error. Please check your connection and try again.');
+          // }
+        });
+      }
+
+      /**
+       * Show a video error message to the user
+       * @param {string} message - Error message to display
+       */
+      function showVideoError(message) {
+        // Find or create error container
+        let errorEl = leftStack.querySelector('.video-error-message');
+        if (!errorEl) {
+          errorEl = document.createElement('div');
+          errorEl.className = 'video-error-message';
+          const footerCard = leftStack.querySelector('.gen-footer-card');
+          if (footerCard) {
+            footerCard.parentNode.insertBefore(errorEl, footerCard);
+          }
+        }
+        errorEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+        errorEl.style.display = 'block';
+
+        // Auto-hide after 8 seconds
+        setTimeout(() => {
+          if (errorEl) errorEl.style.display = 'none';
+        }, 8000);
+      }
+
+      // ========================================
+      // IMAGE: Provider Switching & Credits Logic
+      // ========================================
+      const imageAIProvider = leftStack.querySelector('#imageAIProvider');
+      const imageStyle = leftStack.querySelector('#imageStyle');
+      const imageStyleRow = leftStack.querySelector('#imageStyleRow');
+      const imageResolution = leftStack.querySelector('#imageResolution');
+      const imageAspectRatio = leftStack.querySelector('#imageAspectRatio');
+      const imageAspectRatioRow = leftStack.querySelector('#imageAspectRatioRow');
+      const imageResolutionHint = leftStack.querySelector('#imageResolutionHint');
+      const imageProviderHint = leftStack.querySelector('#imageProviderHint');
+      const imagePrompt = leftStack.querySelector('#imagePrompt');
+      const imageCreditsDisplay = leftStack.querySelector('#imageCreditsDisplay');
+      const imageGenTime = leftStack.querySelector('#imageGenTime');
+      const generateImageBtn = leftStack.querySelector('#generateImageBtn');
+
+      // Google Imagen exact resolution mapping by aspect ratio
+      const GOOGLE_IMAGE_RESOLUTIONS = {
+        '1:1':  [{ value: '1024x1024', label: '1024x1024', tier: 1 }, { value: '2048x2048', label: '2048x2048', tier: 2 }],
+        '3:4':  [{ value: '896x1280', label: '896x1280', tier: 1 }, { value: '1792x2560', label: '1792x2560', tier: 2 }],
+        '4:3':  [{ value: '1280x896', label: '1280x896', tier: 1 }, { value: '2560x1792', label: '2560x1792', tier: 2 }],
+        '9:16': [{ value: '768x1408', label: '768x1408', tier: 1 }, { value: '1536x2816', label: '1536x2816', tier: 2 }],
+        '16:9': [{ value: '1408x768', label: '1408x768', tier: 1 }, { value: '2816x1536', label: '2816x1536', tier: 2 }],
+      };
+
+      // OpenAI DALL·E resolutions
+      const OPENAI_IMAGE_RESOLUTIONS = [
+        { value: '1024x1024', label: '1024x1024', tier: 1 },
+        { value: '1024x1536', label: '1024x1536 (Portrait)', tier: 1 },
+        { value: '1536x1024', label: '1536x1024 (Landscape)', tier: 1 },
+      ];
+
+      // Provider-specific configurations
+      const IMAGE_PROVIDER_CONFIG = {
+        openai: {
+          name: 'OpenAI (DALL·E)',
+          baseCredits: 10,
+          genTime: '30 sec',
+          hasStyles: true,
+          hasAspectRatio: false,
+          hint: ''
+        },
+        google: {
+          name: 'Google (Imagen)',
+          baseCredits: 10,
+          tier2Credits: 15,  // Higher res costs more
+          genTime: '45 sec',
+          hasStyles: false,  // Google uses prompt-based styling
+          hasAspectRatio: true,
+          hint: 'Style is controlled via prompt text. Select aspect ratio and resolution.'
+        }
+      };
+
+      /**
+       * Calculate image credits based on provider and resolution tier
+       */
+      function calculateImageCredits() {
+        const provider = imageAIProvider?.value || 'openai';
+        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+
+        if (provider === 'google' && imageResolution) {
+          const aspectRatio = imageAspectRatio?.value || '1:1';
+          const resolutions = GOOGLE_IMAGE_RESOLUTIONS[aspectRatio] || GOOGLE_IMAGE_RESOLUTIONS['1:1'];
+          const selected = resolutions.find(r => r.value === imageResolution.value);
+          return selected?.tier === 2 ? config.tier2Credits : config.baseCredits;
+        }
+        return config.baseCredits;
+      }
+
+      /**
+       * Update resolution dropdown based on aspect ratio (Google only)
+       */
+      function updateImageResolutionOptions() {
+        if (!imageResolution) return;
+
+        const provider = imageAIProvider?.value || 'openai';
+
+        if (provider === 'google') {
+          const aspectRatio = imageAspectRatio?.value || '1:1';
+          const resolutions = GOOGLE_IMAGE_RESOLUTIONS[aspectRatio] || GOOGLE_IMAGE_RESOLUTIONS['1:1'];
+
+          // Clear and repopulate resolution dropdown
+          imageResolution.innerHTML = '';
+          resolutions.forEach((res, idx) => {
+            const opt = document.createElement('option');
+            opt.value = res.value;
+            opt.textContent = res.label;
+            if (idx === 0) opt.selected = true;
+            imageResolution.appendChild(opt);
+          });
+        } else {
+          // OpenAI resolutions
+          imageResolution.innerHTML = '';
+          OPENAI_IMAGE_RESOLUTIONS.forEach((res, idx) => {
+            const opt = document.createElement('option');
+            opt.value = res.value;
+            opt.textContent = res.label;
+            if (idx === 0) opt.selected = true;
+            imageResolution.appendChild(opt);
+          });
+        }
+
+        updateImageCreditsDisplay();
+      }
+
+      /**
+       * Update image credits display
+       */
+      function updateImageCreditsDisplay() {
+        const credits = calculateImageCredits();
+        const provider = imageAIProvider?.value || 'openai';
+        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+
+        if (imageCreditsDisplay) {
+          imageCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${credits}`;
+        }
+        if (imageGenTime) {
+          imageGenTime.textContent = config.genTime;
+        }
+        if (generateImageBtn) {
+          generateImageBtn.title = `${credits} credits`;
+          generateImageBtn.dataset.provider = provider;
+        }
+
+        // Trigger workspace credits update if available
+        if (window.WorkspaceCredits?.updateButtonCosts) {
+          window.WorkspaceCredits.updateButtonCosts();
+        }
+      }
+
+      /**
+       * Update image options based on selected provider
+       */
+      function updateImageProviderOptions() {
+        if (!imageAIProvider) return;
+
+        const provider = imageAIProvider.value || 'openai';
+        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+        const isGoogle = provider === 'google';
+
+        // Show/hide style row (OpenAI only)
+        if (imageStyleRow) {
+          imageStyleRow.classList.toggle('hidden', !config.hasStyles);
+        }
+
+        // Show/hide aspect ratio row (Google only)
+        if (imageAspectRatioRow) {
+          imageAspectRatioRow.classList.toggle('hidden', !config.hasAspectRatio);
+        }
+
+        // Show/hide resolution hint (Google only)
+        if (imageResolutionHint) {
+          imageResolutionHint.classList.toggle('hidden', !isGoogle);
+        }
+
+        // Update resolution options
+        updateImageResolutionOptions();
+
+        // Update provider hint
+        if (imageProviderHint) {
+          imageProviderHint.textContent = config.hint;
+          imageProviderHint.style.display = config.hint ? 'block' : 'none';
+        }
+
+        console.log('[Image] Provider changed to:', provider, config);
+      }
+
+      /**
+       * Validate image form and enable/disable Generate button
+       */
+      function validateImageForm() {
+        if (!generateImageBtn) return;
+
+        const prompt = imagePrompt?.value?.trim() || '';
+        const isValid = prompt.length > 0;
+
+        // Only manage disabled state for validation - don't override credits check
+        const disabledForCredits = generateImageBtn.getAttribute('data-disabled-reason') === 'insufficient-credits';
+
+        if (!isValid) {
+          generateImageBtn.disabled = true;
+          if (!disabledForCredits) {
+            generateImageBtn.setAttribute('data-disabled-reason', 'validation');
+          }
+        } else if (generateImageBtn.getAttribute('data-disabled-reason') === 'validation') {
+          generateImageBtn.removeAttribute('data-disabled-reason');
+          if (!disabledForCredits) {
+            generateImageBtn.disabled = false;
+          }
+        }
+      }
+
+      // Wire up provider change handler
+      if (imageAIProvider) {
+        imageAIProvider.addEventListener('change', updateImageProviderOptions);
+        // Initial setup
+        updateImageProviderOptions();
+      }
+
+      // Wire up aspect ratio change (updates resolution options for Google)
+      if (imageAspectRatio) {
+        imageAspectRatio.addEventListener('change', updateImageResolutionOptions);
+      }
+
+      // Wire up resolution change (updates credits)
+      if (imageResolution) {
+        imageResolution.addEventListener('change', updateImageCreditsDisplay);
+      }
+
+      // Wire up form validation
+      if (imagePrompt) {
+        imagePrompt.addEventListener('input', validateImageForm);
+        validateImageForm();
+      }
+
+      // ========================================
+      // IMAGE: Generate Button Click Handler
+      // ========================================
+      if (generateImageBtn) {
+        generateImageBtn.addEventListener('click', function() {
+          const provider = imageAIProvider?.value || 'openai';
+          const credits = calculateImageCredits();
+
+          // Build provider-specific payload
+          const payload = {
+            provider: provider,
+            task: 'text2image',
+            prompt: imagePrompt?.value?.trim() || '',
+            estimated_credits: credits,
+          };
+
+          if (provider === 'google') {
+            // Google Imagen payload
+            payload.image_aspect_ratio = imageAspectRatio?.value || '1:1';
+            payload.image_size = imageResolution?.value || '1024x1024';
+          } else {
+            // OpenAI DALL·E payload
+            payload.style = imageStyle?.value || 'realistic';
+            payload.resolution = imageResolution?.value || '1024x1024';
+          }
+
+          console.log('[Image] Generate payload:', payload);
+          console.log('[Image] Ready for backend integration at: POST /api/image/generate');
+
+          // TODO: Replace with actual API call
+          // await fetch('/api/image/generate', { method: 'POST', body: JSON.stringify(payload) });
+        });
+      }
+
       // Texture model upload section toggle
       const textureModelSelect   = leftStack.querySelector('#textureModelSelect');
       const textureUploadSection = leftStack.querySelector('#textureModelUploadSection');
@@ -1333,4 +1949,51 @@
     initViewerSettings();
     initModal();
     bootstrapInitialPanel();
-   })();
+
+})();
+
+/* =============================================================================
+   WORKSPACE HEADER DROPDOWN (separate from workspace - runs independently)
+   ============================================================================= */
+(function initWsDropdown() {
+  const dropdown = document.querySelector('.ws-dropdown');
+  if (!dropdown) return;
+
+  const toggle = dropdown.querySelector('.ws-dropdown-toggle');
+  const menu = dropdown.querySelector('.ws-dropdown-menu');
+  if (!toggle || !menu) return;
+
+  function open() {
+    dropdown.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function close() {
+    dropdown.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // Toggle on click
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropdown.classList.contains('open') ? close() : open();
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) {
+      close();
+    }
+  });
+
+  // Close on escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+
+  // Close on link click
+  menu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', close);
+  });
+})();
