@@ -35,5 +35,11 @@
 /* 6. History Panel */
 @import url('css/history.css');
 
-/* 7. Expanded View Pages */
+/* 7. Expanded View Pages (tutorials, stories, about, etc.) */
 @import url('css/pages.css');
+
+/* 8. Converter Styles (separate file for converter page) */
+@import url('css/converter.css');
+
+/* 9. Tutorials Styles (separate file for tutorials page) */
+@import url('css/tutorials.css');
