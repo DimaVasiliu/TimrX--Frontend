@@ -984,8 +984,12 @@ function updateGenerateButtonCosts() {
     const action = btn.dataset.currentAction || config.action;
     const batchCount = getBatchCountForButton(btnId);
 
-    // Use resolveCost to detect unknown actions (null vs 0)
-    const costPerItem = resolveCost(action);
+    // Check for dynamic cost override from UI (e.g., video panel with duration/resolution/audio options)
+    // The data-base-credits attribute is set by panel-specific JS when options change
+    const dynamicCost = btn.dataset.baseCredits ? parseInt(btn.dataset.baseCredits, 10) : null;
+
+    // Use dynamic cost if available, otherwise fall back to static action cost
+    const costPerItem = dynamicCost !== null && !isNaN(dynamicCost) ? dynamicCost : resolveCost(action);
     const isUnknown = costPerItem === null;
     const totalCost = isUnknown ? 0 : costPerItem * batchCount;
     const hasCreds = isUnknown ? false : effectiveAvailable >= totalCost;
@@ -1097,7 +1101,7 @@ function setupBatchCountListeners() {
 }
 
 /**
- * Show insufficient credits modal
+ * Show insufficient credits message and redirect to pricing
  */
 export function showInsufficientCreditsMessage(action) {
   const cost = getActionCost(action);
@@ -1113,78 +1117,11 @@ export function showInsufficientCreditsMessage(action) {
     return;
   }
 
-  // Use the insufficient credits modal in 3dprint.html
-  const modal = document.getElementById('insufficientCreditsModal');
-  if (!modal) {
-    // Fallback if modal doesn't exist
-    log('[Credits] Modal not found, using fallback');
-    const msg = `Insufficient credits.\n\nYou need ${cost} credits for this action but only have ${available} available.\nYou need ${needed} more credits.`;
-    if (confirm(msg + '\n\nWould you like to buy more credits?')) {
-      window.location.href = 'hub.html#pricing';
-    }
-    return;
-  }
-
-  // Populate modal values
-  const messageEl = document.getElementById('creditsModalMessage');
-  const requiredEl = document.getElementById('creditsModalRequired');
-  const availableEl = document.getElementById('creditsModalAvailable');
-  const neededEl = document.getElementById('creditsModalNeeded');
-  const buyBtn = document.getElementById('creditsModalBuy');
-  const cancelBtn = document.getElementById('creditsModalCancel');
-
-  if (messageEl) {
-    messageEl.textContent = `You need more credits to perform this action.`;
-  }
-  if (requiredEl) requiredEl.textContent = cost.toLocaleString();
-  if (availableEl) availableEl.textContent = available.toLocaleString();
-  if (neededEl) neededEl.textContent = needed.toLocaleString();
-
-  // Show modal
-  modal.setAttribute('aria-hidden', 'false');
-  modal.classList.add('visible');
-
-  // Handle buy button
-  const handleBuy = () => {
-    closeCreditsModal();
+  // Simple confirm dialog and redirect to pricing
+  const msg = `Insufficient credits.\n\nYou need ${cost} credits for this action but only have ${available} available.\nYou need ${needed} more credits.`;
+  if (confirm(msg + '\n\nWould you like to buy more credits?')) {
     window.location.href = 'hub.html#pricing';
-  };
-
-  // Handle cancel button
-  const handleCancel = () => {
-    closeCreditsModal();
-  };
-
-  // Handle backdrop click
-  const handleBackdrop = (e) => {
-    if (e.target === modal) {
-      closeCreditsModal();
-    }
-  };
-
-  // Handle escape key
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      closeCreditsModal();
-    }
-  };
-
-  // Close modal helper
-  const closeCreditsModal = () => {
-    modal.setAttribute('aria-hidden', 'true');
-    modal.classList.remove('visible');
-    // Clean up event listeners
-    if (buyBtn) buyBtn.removeEventListener('click', handleBuy);
-    if (cancelBtn) cancelBtn.removeEventListener('click', handleCancel);
-    modal.removeEventListener('click', handleBackdrop);
-    document.removeEventListener('keydown', handleEscape);
-  };
-
-  // Attach event listeners
-  if (buyBtn) buyBtn.addEventListener('click', handleBuy);
-  if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
-  modal.addEventListener('click', handleBackdrop);
-  document.addEventListener('keydown', handleEscape);
+  }
 }
 
 // ============================================================================
