@@ -1,3 +1,400 @@
+/* ==========================================================================
+   MINIMAL WORKSPACE HEADER — 3D Print Page
+   Floating elements, no navbar background
+   ========================================================================== */
+
+.ws-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px clamp(20px, 3vw, 40px);
+  pointer-events: none;
+}
+
+.ws-header > * {
+  pointer-events: auto;
+}
+
+body.print3d-page > .ws-header {
+  position: fixed;
+  z-index: 100000;
+}
+
+.ws-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+}
+
+/* --- Brand (top-left) --- */
+.ws-brand {
+  display: inline-grid;
+  align-items: center;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  font-size: clamp(18px, 1.4vw, 24px);
+  line-height: 1;
+  cursor: pointer;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ws-brand .swap {
+  grid-area: 1/1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.ws-brand .swap.out {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+
+.ws-brand .b-tim { color: var(--text); }
+
+.ws-brand .b-x {
+  margin-left: 2px;
+  background: linear-gradient(90deg, var(--accent-blue), #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 18px rgba(14, 165, 233, 0.35);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.ws-brand:hover .b-x {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.ws-brand .b-dima { color: var(--text); opacity: 0.9; font-weight: 800; }
+.ws-brand .b-surname { color: #ff4d4d; font-weight: 900; letter-spacing: 0.04em; font-size: 1.06em; }
+
+/* --- Blogs CTA (next to brand) --- */
+.ws-blog-cta {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  animation: blogAura 4.8s ease-in-out infinite;
+}
+
+.ws-blog-cta:hover,
+.ws-blog-cta:focus-visible {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  transform: scale(1.05);
+  animation: none;
+}
+
+@keyframes blogAura {
+  0%, 100% {
+    color: rgba(255, 255, 255, 0.7);
+    border-color: transparent;
+    background: transparent;
+  }
+  50% {
+    color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-blog-cta {
+    animation: none;
+  }
+}
+
+
+/* --- Center Navigation (matching index nav-links style) --- */
+.ws-nav {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.ws-nav-link {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ws-nav-link:hover,
+.ws-nav-link:focus-visible {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  transform: scale(1.05);
+}
+
+.ws-nav-link.is-active {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ws-nav-link svg {
+  width: 10px;
+  height: 10px;
+  opacity: 0.7;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.ws-nav-link:hover svg {
+  opacity: 1;
+}
+
+/* --- Dropdown Menu (matching hub style) --- */
+.ws-dropdown {
+  position: relative;
+}
+
+.ws-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dropdown menu - positioned below toggle */
+.ws-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  padding: 8px;
+  background: rgba(16, 16, 16, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: none;
+}
+
+.ws-dropdown.open .ws-dropdown-menu {
+  display: block;
+}
+
+.ws-dropdown-menu a,
+.ws-dropdown-item {
+  display: block;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ws-dropdown-menu a:last-child,
+.ws-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.ws-dropdown-menu a:hover,
+.ws-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.ws-dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 6px 0;
+}
+
+.ws-dropdown-item--muted {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ws-dropdown-item--muted:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* --- Credits (top-right) --- */
+.ws-credits {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.ws-credits-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ws-credits-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ws-credits-pill i {
+  color: #a78bfa;
+  font-size: 12px;
+  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.4));
+}
+
+.ws-credits-value {
+  min-width: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-credits-buy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #fff;
+  border: none;
+  border-radius: 999px;
+  color: #0b0b0b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ws-credits-buy:hover {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+  transform: translateY(-1px);
+}
+
+/* Low credits state */
+.ws-credits-pill.low {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.ws-credits-pill.low i {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
+}
+
+/* Empty credits state */
+.ws-credits-pill.empty {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.ws-credits-pill.empty i {
+  color: #ef4444;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+}
+
+/* Syncing animation */
+.ws-credits-pill.syncing .ws-credits-value {
+  animation: creditsPulse 1.2s ease-in-out infinite;
+}
+
+/* --- Burger Button (mobile) --- */
+.ws-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ws-burger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ws-burger .burger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 18px;
+}
+
+.ws-burger .burger-line {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 1px;
+  transition: all 0.2s ease;
+}
+
+/* Hide old nav on 3dprint page */
+.print3d-page .nav {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ws-nav {
+    display: none;
+  }
+
+  .ws-burger {
+    display: flex;
+  }
+
+  .ws-header {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ws-credits-buy {
+    display: none;
+  }
+}
+
 /* ===== NAVIGATION ===== */
 .nav {
   position: fixed;
