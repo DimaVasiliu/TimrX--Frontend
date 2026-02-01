@@ -43,3 +43,6 @@
 
 /* 9. Tutorials Styles (separate file for tutorials page) */
 @import url('css/tutorials.css');
+
+/* 10. About Styles (separate file for about page) */
+@import url('css/about.css');
