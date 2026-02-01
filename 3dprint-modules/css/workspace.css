@@ -307,7 +307,7 @@
   height: calc(100vh - var(--ws-navH));
   max-width: 100%;
   margin: 0 auto;
-  margin-top: var(--ws-navH);
+  margin-top: 5px;
   overflow: hidden;
   grid-auto-rows: minmax(0, 1fr);
 }
@@ -316,10 +316,9 @@
 .timrx-3dprint .ws-rail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   padding: 8px 0;
-  padding-top: 105px;
 }
 
 .timrx-3dprint .rail-btn {
@@ -327,31 +326,41 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--ws-text);
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: pointer;
-  padding: 10px;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  padding: 12px 10px;
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .timrx-3dprint .rail-btn svg {
   width: 22px;
   height: 22px;
-  stroke-width: 2;
+  stroke-width: 1.8;
+  transition: transform 0.2s ease;
 }
 
 .timrx-3dprint .rail-btn span {
-  font-size: 11px;
-  opacity: 0.8;
-  font-weight: 500;
+  font-size: 10px;
+  opacity: 0.9;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .timrx-3dprint .rail-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+
+.timrx-3dprint .rail-btn:hover svg {
+  transform: scale(1.08);
 }
 
 .timrx-3dprint .rail-btn:focus {
@@ -367,8 +376,14 @@
 
 .timrx-3dprint .rail-btn.is-active {
   opacity: 1;
-  background: rgba(14, 165, 233, 0.15);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(139, 92, 246, 0.08));
+  border-color: rgba(14, 165, 233, 0.25);
   color: #0ea5e9;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+}
+
+.timrx-3dprint .rail-btn.is-active svg {
+  filter: drop-shadow(0 0 4px rgba(14, 165, 233, 0.4));
 }
 
 /* SHARED PANE SHELL
@@ -387,10 +402,11 @@
   
   /* Pane header: title + supporting text */
   .timrx-3dprint .pane-head {
-    margin: 0 0 8px;
+    margin: 0 0 12px;
     padding-bottom: 0;
+    position: relative;
   }
-  
+
   .timrx-3dprint .pane-head h2 {
     margin: 0 0 4px;
     font-size: 22px;
@@ -398,18 +414,31 @@
     line-height: 1.1;
     font-family: Inter, system-ui, sans-serif;
     letter-spacing: -0.02em;
-    background: #ffffff;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .timrx-3dprint .pane-head .pane-sub {
     margin: 6px 0 0;
     font-size: 13px;
     line-height: 1.4;
-    color: #ffffff;
-    opacity: 0.7;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.01em;
+  }
+
+  /* Decorative line under pane header */
+  .timrx-3dprint .pane-head::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 1px;
+    opacity: 0.6;
   }
   
   /* LEFT PANEL (controls column)
@@ -417,8 +446,17 @@
   .timrx-3dprint .ws-left {
     width: 320px;
     overflow-y: auto;
-    max-height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+    min-height: 0;
     padding-right: 5px;
+  }
+
+  /* RIGHT PANEL (history/output column)
+     -------------------------------------------------------------------------- */
+  .timrx-3dprint .ws-right {
+    overflow-y: auto;
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+    min-height: 0;
   }
   
   /* Left panel scrollbar styling */
@@ -456,11 +494,31 @@
      - any generic "boxed" content in the workspace
      -------------------------------------------------------------------------- */
   .timrx-3dprint .card {
-    background: var(--ws-card-bg);
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(18, 18, 20, 0.95) 100%);
     border: 1px solid var(--ws-card-border);
-    border-radius: 11px;
-    padding: 10px 12px;
-    box-shadow: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle inner glow on cards */
+  .timrx-3dprint .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    pointer-events: none;
+  }
+
+  .timrx-3dprint .card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
   /* Card title */
@@ -469,6 +527,7 @@
     font-size: 14px;
     font-weight: 700;
     color: var(--ws-text);
+    letter-spacing: -0.01em;
   }
 
   /* General text + labels inside cards */
@@ -675,9 +734,11 @@
 
 /* Viewer column shell (middle pane in ws-grid) ----------------------------- */
 .timrx-3dprint .ws-viewer {
-  min-width: 0;
-  min-height: 0;
-  height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    min-height: 0;
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
 }
 
 /* Canvas frame: dark card with rounded corners ---------------------------- */
@@ -689,6 +750,32 @@
   border: 1px solid var(--ws-card-border);
   border-radius: 14px;
   overflow: hidden;
+}
+
+/* Subtle gradient overlay on viewer */
+.timrx-3dprint .viewer-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(14, 165, 233, 0.03), transparent 60%),
+    radial-gradient(ellipse 50% 30% at 100% 100%, rgba(139, 92, 246, 0.02), transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Decorative corner accent */
+.timrx-3dprint .viewer-wrap::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, transparent 50%, rgba(14, 165, 233, 0.08) 50%);
+  border-radius: 0 16px 0 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* FLOATING VIEWER CONTROLS
@@ -947,4 +1034,3 @@
   font-size: 13px;
   color: #666666;
 }
-
