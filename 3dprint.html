@@ -111,16 +111,19 @@
   </script>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
+  <!-- COMMENTED OUT: burger.css - menu is disabled
   <link rel="stylesheet" href="burger.css">
+  -->
   <link rel="stylesheet" href="3dprint-modules/main.css">
   <script defer src="3dprint-modules/3dprint-app.js"></script>
 </head>
 <body class="print3d-page">
 
-  <!-- Navigation -->
-  <nav class="nav divider">
-    <div class="container nav-inner">
-      <a class="brand" id="brand" href="index.html" aria-label="Home">
+  <!-- Minimal Workspace Header -->
+  <header class="ws-header" aria-label="Workspace header">
+    <!-- Brand (top-left) -->
+    <div class="ws-header-left">
+      <a class="ws-brand" id="brand" href="index.html" aria-label="Home">
         <span class="swap" id="brandTim" aria-label="TimrX">
           <span class="b-tim">Timr</span><span class="b-x">X</span>
         </span>
@@ -128,107 +131,54 @@
           <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
         </span>
       </a>
-      <div class="nav-links">
-        <a href="hub.html" class="nav-hub-btn is-active">HUB</a>
-        <a href="#stories" data-open-user-stories>COMMUNITY</a>
-        <a href="#my-assets">MY ASSETS</a>
-        <a href="blogs.html">BLOGS</a>
-
-        <!-- Learn Dropdown -->
-        <div class="nav-dropdown">
-          <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
-            LEARN
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-grid">
-              <a href="#tutorials" class="nav-dropdown-item" data-open-tutorials>
-                <span class="nav-dropdown-item-title">Tutorials</span>
-                <span class="nav-dropdown-item-desc">Step-by-step guides to master 3D creation</span>
-              </a>
-        <a href="#stories" class="nav-dropdown-item" data-open-user-stories>
-                <span class="nav-dropdown-item-title">User Stories</span>
-                <span class="nav-dropdown-item-desc">Learn from our community creators</span>
-              </a>
-              <a href="https://discord.gg/timrx" target="_blank" rel="noopener" class="nav-dropdown-item">
-                <span class="nav-dropdown-item-title">Discord</span>
-                <span class="nav-dropdown-item-desc">Join our community server</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Resources Dropdown -->
-        <div class="nav-dropdown">
-          <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
-            RESOURCES
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-section">
-              <span class="nav-dropdown-section-title">Tools</span>
-              <a href="#converter" class="nav-dropdown-item" data-open-converter>
-                <span class="nav-dropdown-item-title">3D File Converter</span>
-                <span class="nav-dropdown-item-desc">Convert between 3D formats</span>
-              </a>
-            </div>
-            <div class="nav-dropdown-section">
-              <span class="nav-dropdown-section-title">Company</span>
-              <a href="#about" class="nav-dropdown-item" data-open-about>
-                <span class="nav-dropdown-item-title">About</span>
-                <span class="nav-dropdown-item-desc">Our story and mission</span>
-              </a>
-              <a href="index.html#contact" class="nav-dropdown-item">
-                <span class="nav-dropdown-item-title">Contact Sales</span>
-                <span class="nav-dropdown-item-desc">Get in touch with our team</span>
-              </a>
-            </div>
-            <div class="nav-dropdown-section">
-              <span class="nav-dropdown-section-title">Legal</span>
-              <a href="terms.html" class="nav-dropdown-item">
-                <span class="nav-dropdown-item-title">Terms of Use</span>
-                <span class="nav-dropdown-item-desc">Usage terms and conditions</span>
-              </a>
-              <a href="privacy.html" class="nav-dropdown-item">
-                <span class="nav-dropdown-item-title">Privacy Policy</span>
-                <span class="nav-dropdown-item-desc">How we handle your data</span>
-              </a>
-              <a href="cookies.html" class="nav-dropdown-item">
-                <span class="nav-dropdown-item-title">Cookie Policy</span>
-                <span class="nav-dropdown-item-desc">Cookie usage and preferences</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Credits Pill -->
-      <div class="credits-group" id="workspaceCreditsGroup">
-        <span class="credits-pill" id="workspaceCredits" title="Available credits">
-          <i class="fa-solid fa-coins"></i>
-          <span class="credits-value" id="workspaceCreditsValue">--</span>
-        </span>
-        <a href="hub.html#pricing" class="credits-buy-btn" id="workspaceBuyBtn">Buy</a>
-      </div>
-
-      <!-- Burger button (2-line Apple style - mobile only) -->
-      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-        <div class="burger-icon">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </div>
-      </button>
+      <a class="ws-blog-cta" href="blogs.html" aria-label="Blogs">
+        Blogs
+      </a>
     </div>
-  </nav>
 
-  <!-- Burger overlay -->
+    <!-- Center Links -->
+    <nav class="ws-nav" aria-label="Workspace navigation">
+      <a href="hub.html" class="ws-nav-link is-active">HUB</a>
+      <a href="#stories" class="ws-nav-link" data-open-user-stories>COMMUNITY</a>
+      <a href="#my-assets" class="ws-nav-link">MY ASSETS</a>
+
+      <!-- Menu Dropdown (combines Learn + Resources) -->
+      <div class="ws-dropdown">
+        <button type="button" class="ws-nav-link ws-dropdown-toggle" aria-expanded="false">
+          MENU
+        </button>
+        <div class="ws-dropdown-menu">
+          <a href="#tutorials" class="ws-dropdown-item" data-open-tutorials>Tutorials</a>
+          <a href="#converter" class="ws-dropdown-item" data-open-converter>Converter</a>
+          <a href="#about" class="ws-dropdown-item" data-open-about>About</a>
+          <div class="ws-dropdown-divider"></div>
+          <a href="terms.html" class="ws-dropdown-item ws-dropdown-item--muted">Terms</a>
+          <a href="privacy.html" class="ws-dropdown-item ws-dropdown-item--muted">Privacy</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Credits (top-right) -->
+    <div class="ws-credits" id="workspaceCreditsGroup">
+      <span class="ws-credits-pill" id="workspaceCredits" title="Available credits">
+        <i class="fa-solid fa-coins"></i>
+        <span class="ws-credits-value" id="workspaceCreditsValue">--</span>
+      </span>
+      <a href="hub.html#pricing" class="ws-credits-buy" id="workspaceBuyBtn">Buy</a>
+    </div>
+
+    <!-- COMMENTED OUT: Burger button - menu is disabled
+    <button id="burgerBtn" class="ws-burger" aria-label="Open menu" aria-expanded="false">
+      <div class="burger-icon">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </div>
+    </button>
+    -->
+  </header>
+
+  <!-- COMMENTED OUT: Burger overlay and menu - not needed with minimal header
   <div id="burgerOverlay"></div>
-
-  <!-- Burger menu -->
   <nav id="burgerMenu" aria-label="Mobile menu">
     <div class="burger-menu__items">
       <a href="index.html" class="burger-menu__item">
@@ -269,12 +219,22 @@
       </a>
     </div>
   </nav>
+  END COMMENTED OUT -->
 
   <!-- SEO: Hidden h1 for screen readers and search engines -->
   <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">AI 3D Model Generator Workspace – Create 3D Models from Text or Images | TimrX</h1>
 
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
+  <!-- Floating particles (decorative) -->
+  <div class="ws-particles" aria-hidden="true">
+    <span class="ws-particle"></span>
+    <span class="ws-particle"></span>
+    <span class="ws-particle"></span>
+    <span class="ws-particle"></span>
+    <span class="ws-particle"></span>
+    <span class="ws-particle"></span>
+  </div>
   <div class="ws-grid" role="region" aria-label="3D creation workspace">
 
     <!-- Icon Rail -->
@@ -619,7 +579,9 @@
     window.dispatchEvent(new Event('three-ready'));
   </script>
 
+  <!-- COMMENTED OUT: burger.js - menu is disabled
   <script src="burger.js"></script>
+  -->
 
   <!-- Dropdown Navigation Script -->
   <script>
@@ -868,7 +830,7 @@
   </script>
 
   <!-- Upload Model Modal (positioned at document root for proper z-index stacking) -->
-  <div id="uploadModal" class="timrx-3dprint modal">
+  <div id="uploadModal" class="modal">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
       <div class="modal-header">
@@ -936,6 +898,7 @@
           </ul>
         </div>
         <button type="button" class="tutorials-exit-btn" id="tutorialsExit" aria-label="Close tutorials">Exit Tutorials ✕</button>
+        <span class="tutorials-watermark">LEARN</span>
       </header>
 
       <section class="tutorials-section">
@@ -1009,7 +972,7 @@
       </section>
 
       <!-- Feature Tutorials Section -->
-      <section class="tutorials-section">
+      <section class="tutorials-section tutorials-section--with-model">
         <div class="tutorials-section-header">
           <div class="tutorials-section-content">
             <h2>Text to 3D</h2>
@@ -1017,41 +980,61 @@
           </div>
           <div class="tutorials-highlight">Generation</div>
         </div>
-        <div class="tutorials-guides-grid">
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Meshy 6 (Latest)</h3>
-            <p class="tutorials-card__body">The newest and most powerful model. Best for detailed, high-quality 3D assets with complex geometry.</p>
-            <ul class="tutorials-card__list">
-              <li>20 credits per generation</li>
-              <li>Highest detail and accuracy</li>
-              <li>Best for characters and complex objects</li>
-              <li>Supports symmetry and pose options</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Meshy 5</h3>
-            <p class="tutorials-card__body">Balanced model offering great quality at lower cost. Ideal for most everyday 3D generation tasks.</p>
-            <ul class="tutorials-card__list">
-              <li>10 credits per generation</li>
-              <li>Fast generation times</li>
-              <li>Good for props and simple objects</li>
-              <li>Reliable and consistent results</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Meshy 4</h3>
-            <p class="tutorials-card__body">Legacy model for quick prototyping and iteration. Use for rapid ideation before committing to higher quality.</p>
-            <ul class="tutorials-card__list">
-              <li>10 credits per generation</li>
-              <li>Fastest generation speed</li>
-              <li>Great for quick concepts</li>
-              <li>Lower polygon output</li>
-            </ul>
-          </article>
+        <div class="tutorials-split-layout">
+          <div class="tutorials-split-cards">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Meshy 6 (Latest)</h3>
+              <p class="tutorials-card__body">The newest and most powerful model. Best for detailed, high-quality 3D assets with complex geometry.</p>
+              <ul class="tutorials-card__list">
+                <li>20 credits per generation</li>
+                <li>Highest detail and accuracy</li>
+                <li>Best for characters and complex objects</li>
+                <li>Supports symmetry and pose options</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Meshy 5</h3>
+              <p class="tutorials-card__body">Balanced model offering great quality at lower cost. Ideal for most everyday 3D generation tasks.</p>
+              <ul class="tutorials-card__list">
+                <li>10 credits per generation</li>
+                <li>Fast generation times</li>
+                <li>Good for props and simple objects</li>
+                <li>Reliable and consistent results</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Meshy 4</h3>
+              <p class="tutorials-card__body">Legacy model for quick prototyping and iteration. Use for rapid ideation before committing to higher quality.</p>
+              <ul class="tutorials-card__list">
+                <li>10 credits per generation</li>
+                <li>Fastest generation speed</li>
+                <li>Great for quick concepts</li>
+                <li>Lower polygon output</li>
+              </ul>
+            </article>
+          </div>
+          <div class="tutorials-split-model">
+            <model-viewer
+              id="undead-model-viewer"
+              src="3dprint-modules/3dmodels/undead_creature_preview.glb"
+              data-preview="3dprint-modules/3dmodels/undead_creature_preview.glb"
+              data-refined="3dprint-modules/3dmodels/undead_creature_refined.glb"
+              alt="3D Model Preview - Click to toggle refined"
+              auto-rotate
+              rotation-per-second="30deg"
+              camera-controls
+              disable-zoom
+              shadow-intensity="0"
+              environment-image="legacy"
+              exposure="0.35"
+              style="cursor: pointer;"
+            ></model-viewer>
+            <span class="model-toggle-hint">Click model to view refined version</span>
+          </div>
         </div>
       </section>
 
-      <section class="tutorials-section">
+      <section class="tutorials-section tutorials-section--with-model tutorials-section--model-right">
         <div class="tutorials-section-header">
           <div class="tutorials-section-content">
             <h2>Image to 3D</h2>
@@ -1059,41 +1042,61 @@
           </div>
           <div class="tutorials-highlight">Generation</div>
         </div>
-        <div class="tutorials-guides-grid">
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Prepare Your Image</h3>
-            <p class="tutorials-card__body">Image quality matters. Follow these guidelines for best results when converting 2D to 3D.</p>
-            <ul class="tutorials-card__list">
-              <li>Use clear, well-lit images</li>
-              <li>Single subject works best</li>
-              <li>Remove busy backgrounds</li>
-              <li>PNG with transparency recommended</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Upload & Generate</h3>
-            <p class="tutorials-card__body">Drag and drop or click to upload. Name your model and let the AI analyze your image.</p>
-            <ul class="tutorials-card__list">
-              <li>Supports PNG, JPG, WEBP formats</li>
-              <li>Max file size: 10MB</li>
-              <li>Name your model for easy tracking</li>
-              <li>Preview before generating</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Best Practices</h3>
-            <p class="tutorials-card__body">Get the most out of Image to 3D with these expert tips from our community.</p>
-            <ul class="tutorials-card__list">
-              <li>Front-facing views work best</li>
-              <li>Concept art converts beautifully</li>
-              <li>Avoid extreme angles or foreshortening</li>
-              <li>Combine with Refine for added detail</li>
-            </ul>
-          </article>
+        <div class="tutorials-split-layout tutorials-split-layout--with-extra">
+          <div class="tutorials-split-cards tutorials-split-cards--grid-with-extra">
+            <div class="tutorials-reference-img">
+              <img src="3dprint-modules/3dmodels/dogimg.png" alt="Reference Image">
+              <span class="reference-label">Reference</span>
+            </div>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Prepare Your Image</h3>
+              <p class="tutorials-card__body">Image quality matters. Follow these guidelines for best results.</p>
+              <ul class="tutorials-card__list">
+                <li>Use clear, well-lit images</li>
+                <li>Single subject works best</li>
+                <li>Remove busy backgrounds</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Upload & Generate</h3>
+              <p class="tutorials-card__body">Drag and drop or click to upload your image.</p>
+              <ul class="tutorials-card__list">
+                <li>Supports PNG, JPG, WEBP</li>
+                <li>Max file size: 10MB</li>
+                <li>Preview before generating</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Best Practices</h3>
+              <p class="tutorials-card__body">Expert tips from our community.</p>
+              <ul class="tutorials-card__list">
+                <li>Front-facing views work best</li>
+                <li>Concept art converts beautifully</li>
+                <li>Combine with Refine for detail</li>
+              </ul>
+            </article>
+            <article class="tutorials-card tutorials-card--span-full">
+              <h3 class="tutorials-card__title">What You Get</h3>
+              <p class="tutorials-card__body">Your 3D model comes ready to use. Download it as GLB, FBX, OBJ, or USDZ - whatever works for your project. Models include textures and materials that look realistic. You can choose between detailed or low-poly styles depending on what you need. Want it print-ready? Use Remesh after to make it perfect for 3D printing.</p>
+            </article>
+          </div>
+          <div class="tutorials-split-model tutorials-split-model--tall">
+            <model-viewer
+              src="3dprint-modules/3dmodels/dog3d.glb"
+              alt="3D Model from Image"
+              auto-rotate
+              rotation-per-second="30deg"
+              camera-controls
+              disable-zoom
+              shadow-intensity="0"
+              environment-image="legacy"
+              exposure="0.35"
+            ></model-viewer>
+          </div>
         </div>
       </section>
 
-      <section class="tutorials-section">
+      <section class="tutorials-section tutorials-section--with-model">
         <div class="tutorials-section-header">
           <div class="tutorials-section-content">
             <h2>Remesh</h2>
@@ -1101,41 +1104,75 @@
           </div>
           <div class="tutorials-highlight">Post-Processing</div>
         </div>
-        <div class="tutorials-guides-grid">
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Why Remesh?</h3>
-            <p class="tutorials-card__body">AI-generated models often have topology issues. Remeshing fixes these for successful prints.</p>
-            <ul class="tutorials-card__list">
-              <li>Fixes non-manifold geometry</li>
-              <li>Closes holes and gaps</li>
-              <li>Creates uniform polygon distribution</li>
-              <li>Ensures watertight meshes</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Resolution Settings</h3>
-            <p class="tutorials-card__body">Choose the right resolution based on your print size and detail requirements.</p>
-            <ul class="tutorials-card__list">
-              <li>Low: Fast, fewer polygons (prototypes)</li>
-              <li>Medium: Balanced (most prints)</li>
-              <li>High: Maximum detail (miniatures)</li>
-              <li>Custom: Set exact polygon count</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Export Formats</h3>
-            <p class="tutorials-card__body">Export your remeshed model in the format your slicer or DCC app needs.</p>
-            <ul class="tutorials-card__list">
-              <li>GLB: Universal, includes textures</li>
-              <li>GLTF: Separate files, DCC-friendly</li>
-              <li>STL: Classic print format</li>
-              <li>OBJ: Wide compatibility</li>
-            </ul>
-          </article>
+        <div class="tutorials-split-layout tutorials-split-layout--with-extra">
+          <div class="tutorials-split-cards tutorials-split-cards--grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Why Remesh?</h3>
+              <p class="tutorials-card__body">AI-generated models often have topology issues. Remeshing fixes these for successful prints.</p>
+              <ul class="tutorials-card__list">
+                <li>Fixes non-manifold geometry</li>
+                <li>Closes holes and gaps</li>
+                <li>Creates uniform polygon distribution</li>
+                <li>Ensures watertight meshes</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Resolution Settings</h3>
+              <p class="tutorials-card__body">Choose the right resolution based on your print size and detail requirements.</p>
+              <ul class="tutorials-card__list">
+                <li>Low: Fast, fewer polygons (prototypes)</li>
+                <li>Medium: Balanced (most prints)</li>
+                <li>High: Maximum detail (miniatures)</li>
+                <li>Custom: Set exact polygon count</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Export Formats</h3>
+              <p class="tutorials-card__body">Export your remeshed model in the format your slicer or DCC app needs.</p>
+              <ul class="tutorials-card__list">
+                <li>GLB: Universal, includes textures</li>
+                <li>GLTF: Separate files, DCC-friendly</li>
+                <li>STL: Classic print format</li>
+                <li>OBJ: Wide compatibility</li>
+              </ul>
+            </article>
+            <article class="tutorials-card tutorials-card--explained">
+              <h3 class="tutorials-card__title">Remesh Explained</h3>
+              <p class="tutorials-card__body">Both models look the same? That's correct! Remeshing preserves appearance while fixing internal geometry.</p>
+              <div class="remesh-comparison">
+                <div class="remesh-comparison__item" data-tooltip="The original AI-generated mesh. May contain holes, non-manifold edges, or overlapping faces that could cause print failures.">
+                  <strong>Preview</strong>
+                  <span>Original mesh</span>
+                </div>
+                <div class="remesh-comparison__item" data-tooltip="Clean, watertight mesh ready for slicing. All topology issues fixed while preserving the visual appearance.">
+                  <strong>Remeshed</strong>
+                  <span>Print-ready</span>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div class="tutorials-split-model tutorials-split-model--tall">
+            <model-viewer
+              id="remesh-model-viewer"
+              src="3dprint-modules/3dmodels/character_preview.glb"
+              data-preview="3dprint-modules/3dmodels/character_preview.glb"
+              data-refined="3dprint-modules/3dmodels/character_remeshed.glb"
+              alt="3D Model Preview - Click to toggle remeshed"
+              auto-rotate
+              rotation-per-second="30deg"
+              camera-controls
+              disable-zoom
+              shadow-intensity="0"
+              environment-image="legacy"
+              exposure="0.35"
+              style="cursor: pointer;"
+            ></model-viewer>
+            <span class="model-toggle-hint">Click model to view remeshed version</span>
+          </div>
         </div>
       </section>
 
-      <section class="tutorials-section">
+      <section class="tutorials-section tutorials-section--with-model tutorials-section--model-right">
         <div class="tutorials-section-header">
           <div class="tutorials-section-content">
             <h2>Texture</h2>
@@ -1143,37 +1180,52 @@
           </div>
           <div class="tutorials-highlight">Post-Processing</div>
         </div>
-        <div class="tutorials-guides-grid">
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Text to Texture</h3>
-            <p class="tutorials-card__body">Describe the material you want and let AI generate matching PBR textures for your model.</p>
-            <ul class="tutorials-card__list">
-              <li>"Weathered bronze with patina"</li>
-              <li>"Polished marble with gold veins"</li>
-              <li>"Worn leather with scratches"</li>
-              <li>"Glowing neon cyberpunk"</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Image to Texture</h3>
-            <p class="tutorials-card__body">Upload a reference image and apply its style or material to your 3D model.</p>
-            <ul class="tutorials-card__list">
-              <li>Upload material photos</li>
-              <li>Use artwork as reference</li>
-              <li>AI extracts color and patterns</li>
-              <li>Seamless UV mapping</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">PBR Maps Generated</h3>
-            <p class="tutorials-card__body">Full PBR workflow with all maps needed for realistic rendering.</p>
-            <ul class="tutorials-card__list">
-              <li>Albedo/Diffuse map</li>
-              <li>Normal map for surface detail</li>
-              <li>Roughness/Metallic maps</li>
-              <li>Ambient Occlusion</li>
-            </ul>
-          </article>
+        <div class="tutorials-split-layout">
+          <div class="tutorials-split-cards">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Text to Texture</h3>
+              <p class="tutorials-card__body">Describe the material you want and let AI generate matching PBR textures for your model.</p>
+              <ul class="tutorials-card__list">
+                <li>"Weathered bronze with patina"</li>
+                <li>"Polished marble with gold veins"</li>
+                <li>"Worn leather with scratches"</li>
+                <li>"Glowing neon cyberpunk"</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Image to Texture</h3>
+              <p class="tutorials-card__body">Upload a reference image and apply its style or material to your 3D model.</p>
+              <ul class="tutorials-card__list">
+                <li>Upload material photos</li>
+                <li>Use artwork as reference</li>
+                <li>AI extracts color and patterns</li>
+                <li>Seamless UV mapping</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">PBR Maps Generated</h3>
+              <p class="tutorials-card__body">Full PBR workflow with all maps needed for realistic rendering.</p>
+              <ul class="tutorials-card__list">
+                <li>Albedo/Diffuse map</li>
+                <li>Normal map for surface detail</li>
+                <li>Roughness/Metallic maps</li>
+                <li>Ambient Occlusion</li>
+              </ul>
+            </article>
+          </div>
+          <div class="tutorials-split-model">
+            <model-viewer
+              src="3dprint-modules/3dmodels/lamp.glb"
+              alt="3D Model Preview"
+              auto-rotate
+              rotation-per-second="30deg"
+              camera-controls
+              disable-zoom
+              shadow-intensity="0"
+              environment-image="legacy"
+              exposure="0.35"
+            ></model-viewer>
+          </div>
         </div>
       </section>
 
@@ -1538,6 +1590,7 @@
           </ul>
         </div>
         <button type="button" class="converter-exit-btn" id="converterExit" aria-label="Close converter">Exit Converter ✕</button>
+        <span class="converter-watermark">CONVERT</span>
       </header>
 
       <!-- Main Converter Tool -->
@@ -2104,67 +2157,8 @@
     </div>
   </section>
 
-
-  <!-- Insufficient Credits Modal -->
-  <div class="credits-modal-overlay" id="insufficientCreditsModal" aria-hidden="true">
-    <div class="credits-modal">
-      <div class="credits-modal-icon">
-        <i class="fa-solid fa-coins"></i>
-      </div>
-      <h3 class="credits-modal-title">Insufficient Credits</h3>
-      <p class="credits-modal-message" id="creditsModalMessage">
-        You need more credits to perform this action.
-      </p>
-      <div class="credits-modal-info">
-        <div class="credits-info-row">
-          <span class="credits-info-label">Required</span>
-          <span class="credits-info-value" id="creditsModalRequired">0</span>
-        </div>
-        <div class="credits-info-row">
-          <span class="credits-info-label">Available</span>
-          <span class="credits-info-value available" id="creditsModalAvailable">0</span>
-        </div>
-        <div class="credits-info-row highlight">
-          <span class="credits-info-label">Need</span>
-          <span class="credits-info-value needed" id="creditsModalNeeded">0</span>
-        </div>
-      </div>
-      <div class="credits-modal-actions">
-        <button type="button" class="credits-modal-btn primary" id="creditsModalBuy">
-          <i class="fa-solid fa-cart-shopping"></i>
-          Buy Credits
-        </button>
-        <button type="button" class="credits-modal-btn secondary" id="creditsModalCancel">
-          Cancel
-        </button> 
-      </div>
-    </div>
-  </div>
-
-  <!-- About This Page -->
-  <section style="max-width:900px;margin:2rem auto;padding:0 1.5rem;opacity:0.9;">
-    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">About This Workspace</summary>
-      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
-        <p>The TimrX 3D Workspace is an AI-powered creation environment where you can generate detailed 3D models from simple text descriptions or reference images. Whether you're designing game assets, prototyping products, or preparing prints for your 3D printer, the workspace offers intuitive tools that handle complex 3D modelling automatically.</p>
-        <p style="margin-top:0.75rem;">Use the sidebar to switch between generation modes—Text-to-3D, Image-to-3D, Remesh, and Texture—then preview your models in the integrated 3D viewer before downloading. Exported assets arrive in GLB/GLTF format, compatible with Blender, Unity, Unreal Engine, and most slicers. Visit the <a href="hub.html" style="color:#00d4ff;text-decoration:underline;">3D Print Hub</a> for pricing and credits, or explore the <a href="blogs.html" style="color:#00d4ff;text-decoration:underline;">blog</a> for tips on crafting effective prompts.</p>
-      </div>
-    </details>
-  </section>
-
-  <!-- FAQ Section -->
-  <section style="max-width:900px;margin:2rem auto 3rem;padding:0 1.5rem;opacity:0.9;">
-    <details style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem;">Frequently Asked Questions</summary>
-      <div style="margin-top:1rem;line-height:1.7;font-size:0.95rem;">
-        <p><strong>What can I create here?</strong><br>Any 3D object you can describe: characters, vehicles, furniture, props, architectural elements, and more. Describe it in words or upload a reference image.</p>
-        <p style="margin-top:0.75rem;"><strong>How long does generation take?</strong><br>Most models finish in 3-5 minutes depending on complexity and server load. You'll see a progress indicator throughout the process.</p>
-        <p style="margin-top:0.75rem;"><strong>What file formats are supported?</strong><br>Models export as GLB and GLTF. The built-in converter also supports OBJ, STL, and FBX for broader compatibility.</p>
-        <p style="margin-top:0.75rem;"><strong>Are the models print-ready?</strong><br>Many generated models print well directly. For complex prints, use the Remesh tool to create watertight, manifold meshes optimised for slicers.</p>
-        <p style="margin-top:0.75rem;"><strong>How do credits work?</strong><br>Each generation costs a set number of credits. Buy credit packs on the <a href="hub.html#pricing" style="color:#00d4ff;text-decoration:underline;">Hub pricing page</a> and track your balance in the header.</p>
-      </div>
-    </details>
-  </section>
+  <!-- Model Viewer for 3D model display -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
@@ -2181,5 +2175,85 @@
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
   <script type="module" src="./js/main.js"></script>
+
+  <!-- Model viewer toggle script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Setup toggle for any model-viewer with data-preview and data-refined
+      function setupModelToggle(viewerId, previewText, refinedText) {
+        const modelViewer = document.getElementById(viewerId);
+        if (modelViewer) {
+          const hint = modelViewer.parentElement.querySelector('.model-toggle-hint');
+          let isRefined = false;
+
+          modelViewer.addEventListener('click', () => {
+            isRefined = !isRefined;
+            if (isRefined) {
+              modelViewer.src = modelViewer.dataset.refined;
+              if (hint) {
+                hint.textContent = previewText;
+                hint.classList.add('refined');
+              }
+            } else {
+              modelViewer.src = modelViewer.dataset.preview;
+              if (hint) {
+                hint.textContent = refinedText;
+                hint.classList.remove('refined');
+              }
+            }
+          });
+        }
+      }
+
+      // Text to 3D section - undead creature
+      setupModelToggle('undead-model-viewer', 'Click model to view preview version', 'Click model to view refined version');
+
+      // Remesh section - character
+      setupModelToggle('remesh-model-viewer', 'Click model to view original version', 'Click model to view remeshed version');
+
+      // Nav hide on scroll for expanded views
+      const nav = document.querySelector('.ws-nav');
+      const blogsCta = document.querySelector('.ws-blog-cta');
+      const creditsGroup = document.querySelector('.ws-credits');
+      const hideableElements = [nav, blogsCta, creditsGroup].filter(Boolean);
+
+      if (hideableElements.length > 0) {
+        let lastScrollY = 0;
+        let ticking = false;
+
+        const handleScroll = () => {
+          const isExpandedView = document.body.classList.contains('tutorials-view') ||
+                                  document.body.classList.contains('converter-view') ||
+                                  document.body.classList.contains('stories-view') ||
+                                  document.body.classList.contains('about-view');
+
+          if (!isExpandedView) {
+            hideableElements.forEach(el => el.classList.remove('nav-hidden'));
+            return;
+          }
+
+          const currentScrollY = window.scrollY;
+
+          if (currentScrollY > lastScrollY && currentScrollY > 80) {
+            // Scrolling down & past threshold
+            hideableElements.forEach(el => el.classList.add('nav-hidden'));
+          } else {
+            // Scrolling up
+            hideableElements.forEach(el => el.classList.remove('nav-hidden'));
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            window.requestAnimationFrame(handleScroll);
+            ticking = true;
+          }
+        }, { passive: true });
+      }
+    });
+  </script>
 </body>
 </html>
