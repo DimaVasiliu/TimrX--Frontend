@@ -1481,35 +1481,15 @@
 
       // ========================================
       // IMAGE: Generate Button Click Handler
+      // Note: Actual API call is handled by main.js via event delegation
+      // This handler is for debug logging only
       // ========================================
       if (generateImageBtn) {
-        generateImageBtn.addEventListener('click', function() {
+        generateImageBtn.addEventListener('click', function(e) {
           const provider = imageAIProvider?.value || 'openai';
           const credits = calculateImageCredits();
-
-          // Build provider-specific payload
-          const payload = {
-            provider: provider,
-            task: 'text2image',
-            prompt: imagePrompt?.value?.trim() || '',
-            estimated_credits: credits,
-          };
-
-          if (provider === 'google') {
-            // Google Imagen payload
-            payload.image_aspect_ratio = imageAspectRatio?.value || '1:1';
-            payload.image_size = imageResolution?.value || '1024x1024';
-          } else {
-            // OpenAI DALL·E payload
-            payload.style = imageStyle?.value || 'realistic';
-            payload.resolution = imageResolution?.value || '1024x1024';
-          }
-
-          console.log('[Image] Generate payload:', payload);
-          console.log('[Image] Ready for backend integration at: POST /api/image/generate');
-
-          // TODO: Replace with actual API call
-          // await fetch('/api/image/generate', { method: 'POST', body: JSON.stringify(payload) });
+          console.log('[Image] Generate clicked - provider:', provider, 'credits:', credits);
+          // Event bubbles to main.js which calls API.startImageGenerationByProvider()
         });
       }
 
