@@ -191,7 +191,7 @@ function setupGenerateButtonListeners() {
     } else if (btnId === 'generateImageBtn') {
       API.startImageGenerationByProvider();
     } else if (btnId === 'generateVideoBtn') {
-      API.onGenerateClick();
+      API.startVideoGeneration();
     }
   });
 
