@@ -1459,6 +1459,244 @@ export async function startImageGenerationByProvider() {
 }
 
 /**
+ * Video credit calculation constants (must match 3dprint-app.js)
+ */
+const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
+const VIDEO_RES_MULTIPLIER = { '720p': 1.0, '1080p': 1.5, '4k': 2.5 };
+const VIDEO_AUDIO_ADDON = 30;
+
+/**
+ * Compute video credits based on settings
+ */
+function computeVideoCredits(durationSec, resolution, addAudio) {
+  const base = VIDEO_BASE_CREDITS[durationSec] || 30;
+  const mult = VIDEO_RES_MULTIPLIER[resolution] || 1.0;
+  let cost = Math.round(base * mult);
+  if (addAudio) {
+    cost += VIDEO_AUDIO_ADDON;
+  }
+  return cost;
+}
+
+/**
+ * Start video generation (Google Veo)
+ */
+export async function startVideoGeneration() {
+  if (startLock) return;
+
+  // Get video settings from UI
+  const durationSec = parseInt(byId('videoDuration')?.value || '6', 10);
+  const resolutionRaw = byId('videoResolution')?.value || '720p';
+  const resolution = resolutionRaw.toLowerCase();
+  const aspectRatio = byId('videoAspectRatio')?.value || '16:9';
+  const addAudio = byId('videoAudio')?.checked ?? false;
+  const motion = (byId('videoMotion')?.value || '').trim();
+  const prompt = (byId('videoTextPrompt')?.value || '').trim();
+  const mode = byId('videoModeValue')?.value || 'text2video';
+
+  // Compute credits
+  const totalCredits = computeVideoCredits(durationSec, resolution, addAudio);
+
+  // Check credits before proceeding
+  if (!checkCreditsFor('video', 1)) {
+    return;
+  }
+
+  startLock = true;
+
+  const prog = UI.makeProgressDriver();
+
+  // Reserve credits for video action
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('video', totalCredits);
+  if (reservation.insufficient) {
+    startLock = false;
+    return;
+  }
+
+  State.historyState.filter = 'video';
+  State.historyState.page = 1;
+  renderHistory();
+
+  const tempId = crypto?.randomUUID ? crypto.randomUUID() : `video-temp-${Date.now()}`;
+  const placeholder = {
+    id: tempId,
+    type: 'video',
+    status: 'generating',
+    status_label: 'Generating video...',
+    created_at: Date.now(),
+    prompt: prompt || motion || 'Video generation',
+    title: shortTitle(prompt || motion || 'Video'),
+    video_url: '',
+    thumbnail_url: '',
+    stage: 'video',
+    provider: 'google'
+  };
+  State.addHistoryItem(placeholder);
+  State.setHistoryActiveModelId(tempId);
+  renderHistory();
+
+  try {
+    prog.label('Generating video with Veo...');
+
+    // Build payload
+    const payload = {
+      provider: 'google',
+      task: mode,
+      prompt: prompt,
+      duration_sec: durationSec,
+      aspect_ratio: aspectRatio,
+      resolution: resolution,
+      motion: motion,
+      audio: addAudio,
+    };
+
+    const result = await apiFetch('/api/video/generate', {
+      method: 'POST',
+      body: payload
+    });
+
+    if (!result.ok) {
+      if (handleApiError(result, 'video', reservation.reservationId)) {
+        const arr = State.getHistory().filter((x) => x.id !== tempId);
+        State.saveHistory(arr);
+        renderHistory();
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error(result.error?.message || result.error || `Video generation failed: HTTP ${result.status}`);
+    }
+
+    const data = result.data;
+    const jobId = data.job_id || data.video_id;
+
+    if (!jobId) {
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error('No job ID returned');
+    }
+
+    // Update placeholder with real job ID
+    if (jobId !== tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+    }
+
+    const queuedPlaceholder = {
+      ...placeholder,
+      id: jobId,
+      status: 'generating',
+      status_label: 'Generating video...'
+    };
+
+    if (State.historyHasJobId(jobId)) {
+      State.updateHistoryItem(jobId, queuedPlaceholder);
+    } else {
+      State.addHistoryItem(queuedPlaceholder);
+    }
+
+    State.setHistoryActiveModelId(jobId);
+    renderHistory();
+
+    // Watch the video job
+    watchVideoJob(jobId, reservation.reservationId, {
+      prompt: prompt || motion,
+      duration_sec: durationSec,
+      resolution: resolution,
+      stage: 'video'
+    });
+
+  } catch (err) {
+    console.error('[Video] Error:', err);
+    prog.fail(err?.message || 'Video generation failed');
+    alert(err?.message || 'Video generation failed.');
+    const arr = State.getHistory().filter((x) => x.id !== tempId);
+    State.saveHistory(arr);
+    renderHistory();
+  } finally {
+    startLock = false;
+  }
+}
+
+/**
+ * Watch a video generation job for completion
+ */
+async function watchVideoJob(jobId, reservationId, meta) {
+  const POLL_INTERVAL = 5000;
+  const MAX_POLLS = 180; // 15 minutes max
+
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+
+    try {
+      const result = await apiFetch(`/api/video/generate/status/${encodeURIComponent(jobId)}`);
+
+      if (!result.ok) {
+        console.warn('[Video] Status check failed:', result.error);
+        continue;
+      }
+
+      const data = result.data;
+      const status = data.status;
+
+      if (status === 'done') {
+        // Finalize credits
+        finalizeCreditsReservation(reservationId, jobId);
+
+        // Update history
+        State.updateHistoryItem(jobId, {
+          status: 'finished',
+          status_label: '',
+          video_url: data.video_url,
+          thumbnail_url: data.thumbnail_url,
+          stage: 'video',
+          type: 'video'
+        });
+        renderHistory();
+
+        // Update balance
+        if (data.new_balance !== undefined) {
+          State.setCreditsBalance(data.new_balance);
+          updateCreditsDisplay();
+        }
+
+        UI.makeProgressDriver().done('Video generated!');
+        return;
+      }
+
+      if (status === 'failed') {
+        releaseCreditsReservation(reservationId);
+        State.updateHistoryItem(jobId, {
+          status: 'failed',
+          status_label: data.message || 'Video generation failed'
+        });
+        renderHistory();
+        UI.makeProgressDriver().fail(data.message || 'Video generation failed');
+        return;
+      }
+
+      // Still processing - update progress
+      if (data.progress !== undefined) {
+        State.updateHistoryItem(jobId, {
+          status: 'generating',
+          status_label: `Generating... ${data.progress}%`
+        });
+        renderHistory();
+      }
+
+    } catch (err) {
+      console.warn('[Video] Poll error:', err);
+    }
+  }
+
+  // Timeout
+  releaseCreditsReservation(reservationId);
+  State.updateHistoryItem(jobId, {
+    status: 'failed',
+    status_label: 'Video generation timed out'
+  });
+  renderHistory();
+}
+
+/**
  * Start image-to-3D from a history item
  */
 export async function startImageTo3DFromHistory(item) {
@@ -2059,4 +2297,5 @@ window.startRemeshFromHistory = startRemeshFromHistory;
 window.startRigFromHistory = startRigFromHistory;
 window.startImageTo3DFromHistory = startImageTo3DFromHistory;
 window.onGenerateClick = onGenerateClick;
+window.startVideoGeneration = startVideoGeneration;
 window.getActiveHistoryItem = getActiveHistoryItem;
