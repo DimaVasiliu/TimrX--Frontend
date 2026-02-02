@@ -1297,6 +1297,150 @@ export async function startOpenAIImageGeneration() {
 }
 
 /**
+ * Start Gemini (Google Imagen) image generation
+ */
+export async function startGeminiImageGeneration() {
+  if (startLock) return;
+
+  // Check credits before proceeding
+  if (!checkCreditsFor('text-to-image')) {
+    return;
+  }
+
+  startLock = true;
+
+  const prog = UI.makeProgressDriver();
+  let promptRaw = (byId('imagePrompt')?.value || '').trim();
+  if (!promptRaw) promptRaw = 'Generated image';
+
+  // Get Gemini-specific options
+  const aspectRatio = byId('imageAspectRatio')?.value || '1:1';
+  // Map resolution dropdown (pixel dims) to Gemini image_size ("1K" or "2K")
+  const resolutionValue = byId('imageResolution')?.value || '1024x1024';
+  // Tier 2 resolutions (2K): 2048x2048, 1792x2560, 2560x1792, 1920x1088, 1088x1920
+  const is2K = resolutionValue.includes('2048') || resolutionValue.includes('1792') || resolutionValue.includes('2560') || resolutionValue.includes('1920');
+  const imageSize = is2K ? '2K' : '1K';
+
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('text-to-image', 1);
+  if (reservation.insufficient) {
+    startLock = false;
+    return; // Insufficient credits modal shown
+  }
+
+  State.historyState.filter = 'image';
+  State.historyState.page = 1;
+  renderHistory();
+
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `gemini-temp-${Date.now()}`);
+  const placeholder = {
+    id: tempId,
+    type: 'image',
+    status: 'generating',
+    status_label: 'Generating image with Imagen...',
+    created_at: Date.now(),
+    prompt: promptRaw,
+    title: shortTitle(promptRaw),
+    image_url: '',
+    thumbnail_url: '',
+    stage: 'image',
+    provider: 'google'
+  };
+  State.addHistoryItem(placeholder);
+  State.setHistoryActiveModelId(tempId);
+  renderHistory();
+
+  try {
+    prog.label('Generating image with Gemini...');
+
+    // Call unified endpoint with provider=google
+    const result = await apiFetch('/api/image/generate', {
+      method: 'POST',
+      body: {
+        provider: 'google',
+        prompt: promptRaw,
+        aspect_ratio: aspectRatio,
+        image_size: imageSize,
+        client_id: tempId
+      }
+    });
+
+    if (!result.ok) {
+      // Handle timeout gracefully
+      if (handleGenerationTimeout(result, 'text-to-image')) {
+        State.updateHistoryItem(tempId, { status_label: 'Still generating...' });
+        renderHistory();
+        prog.label('Still generating...');
+        return;
+      }
+      if (handleApiError(result, 'text-to-image', reservation.reservationId)) {
+        const arr = State.getHistory().filter((x) => x.id !== tempId);
+        State.saveHistory(arr);
+        renderHistory();
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error(result.error?.message || result.error || `Gemini image failed: HTTP ${result.status}`);
+    }
+
+    const data = result.data;
+    const imageId = data.image_id || data.job_id;
+    const imageUrl = data.image_url;
+
+    if (!imageUrl) {
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error('No image returned from Gemini');
+    }
+
+    // Gemini returns image synchronously - update history immediately
+    const finalItem = {
+      id: imageId || tempId,
+      type: 'image',
+      status: 'finished',
+      status_label: '',
+      created_at: Date.now(),
+      prompt: promptRaw,
+      title: shortTitle(promptRaw),
+      image_url: imageUrl,
+      thumbnail_url: imageUrl,
+      stage: 'image',
+      provider: 'google',
+      model: 'imagen-4.0'
+    };
+
+    // Replace temp placeholder with final item
+    if (imageId && imageId !== tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.addHistoryItem(finalItem);
+      State.setHistoryActiveModelId(imageId);
+    } else {
+      State.updateHistoryItem(tempId, finalItem);
+    }
+
+    renderHistory();
+    prog.done('Image generated!');
+
+    // Update balance from response
+    if (data.new_balance !== undefined) {
+      State.setCreditsBalance(data.new_balance);
+      updateCreditsDisplay();
+    }
+
+  } catch (err) {
+    console.error('[Gemini Image] Error:', err);
+    prog.fail(err?.message || 'Gemini image generation failed');
+    alert(err?.message || 'Gemini image generation failed.');
+    // Clean up placeholder on error
+    const arr = State.getHistory().filter((x) => x.id !== tempId);
+    State.saveHistory(arr);
+    renderHistory();
+  } finally {
+    startLock = false;
+  }
+}
+
+/**
  * Start image generation by selected provider
  */
 export async function startImageGenerationByProvider() {
@@ -1307,8 +1451,10 @@ export async function startImageGenerationByProvider() {
 
   if (provider === 'openai') {
     await startOpenAIImageGeneration();
+  } else if (provider === 'google') {
+    await startGeminiImageGeneration();
   } else {
-    alert('Selected image provider is not yet available.');
+    alert(`Image provider "${provider}" is not yet available. Use "openai" or "google".`);
   }
 }
 
