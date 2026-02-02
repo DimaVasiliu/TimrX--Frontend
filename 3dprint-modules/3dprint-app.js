@@ -1184,59 +1184,16 @@
 
       // ========================================
       // VIDEO: Generate Button Click Handler
+      // Note: Actual API call is handled by main.js via event delegation
+      // This handler is for debug logging only
       // ========================================
       if (generateVideoBtn) {
         generateVideoBtn.addEventListener('click', function() {
           const provider = videoAIProvider?.value || 'google';
           const settings = getVideoSettingsFromUI();
           const totalCredits = computeVideoCredits(settings);
-          const motion = videoMotion?.value?.trim() || '';
-
-          // Build Google Veo payload
-          const payload = {
-            provider: provider,
-            task: settings.mode,
-            duration_sec: settings.durationSec,
-            fps: settings.fps,
-            aspect_ratio: settings.aspect,
-            resolution: settings.resolution,
-            motion: motion,
-            audio: settings.addAudio,
-            loop_seamlessly: settings.loop,
-            estimated_credits: totalCredits,
-          };
-
-          if (settings.mode === 'text2video') {
-            payload.prompt = videoTextPrompt?.value?.trim() || '';
-            payload.image_file = null;
-          } else {
-            // Image-to-video: include file reference
-            payload.prompt = '';
-            payload.image_file = videoSource?.files?.[0] || null;
-            payload.has_image = !!(videoSource?.files?.length);
-          }
-
-          console.log('[Video] Generate payload:', payload);
-          console.log('[Video] Computed credits:', totalCredits, '(base:', VIDEO_BASE_CREDITS[settings.durationSec], '* mult:', VIDEO_RES_MULTIPLIER[settings.resolution], '+ audio:', settings.addAudio ? VIDEO_AUDIO_ADDON : 0, ')');
-          console.log('[Video] Ready for backend integration at: POST /api/video/generate');
-
-          // TODO: Replace with actual API call
-          // Example with aspect ratio error handling:
-          // try {
-          //   const response = await fetch('/api/video/generate', { method: 'POST', body: JSON.stringify(payload) });
-          //   const data = await response.json();
-          //   if (!response.ok) {
-          //     if (data.error?.includes('aspect') || data.error?.includes('ratio')) {
-          //       showVideoError(`Aspect ratio "${settings.aspect}" is not supported by this model. Try 16:9 or 9:16.`);
-          //     } else {
-          //       showVideoError(data.error || 'Video generation failed. Please try again.');
-          //     }
-          //     return;
-          //   }
-          //   // Success handling...
-          // } catch (err) {
-          //   showVideoError('Network error. Please check your connection and try again.');
-          // }
+          console.log('[Video] Generate clicked - provider:', provider, 'credits:', totalCredits, 'settings:', settings);
+          // Event bubbles to main.js which calls API.startVideoGeneration()
         });
       }
 
