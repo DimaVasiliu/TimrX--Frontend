@@ -1007,6 +1007,79 @@ function wireGallery() {
         return;
       }
 
+      if (act === 'image-to-video') {
+        const imageUrl = btn.getAttribute('data-image-url') || item.image_url;
+        if (!imageUrl) {
+          showErrorToast('No image URL found');
+          return;
+        }
+
+        // Switch to video panel
+        const videoStudioTab = document.querySelector('[data-panel="video"]');
+        if (videoStudioTab) videoStudioTab.click();
+
+        // Set mode to image2video
+        const videoModeValue = byId('videoModeValue');
+        if (videoModeValue) videoModeValue.value = 'image2video';
+
+        // Update mode switcher buttons (both primary and alt)
+        document.querySelectorAll('.video-mode-btn').forEach(b => {
+          b.classList.toggle('is-active', b.getAttribute('data-mode') === 'image2video');
+        });
+
+        // Toggle content cards
+        const text2videoContent = byId('text2videoContent');
+        const image2videoContent = byId('image2videoContent');
+        if (text2videoContent) text2videoContent.classList.add('hidden');
+        if (image2videoContent) image2videoContent.classList.remove('hidden');
+
+        // Set duration to 6s, quality to high
+        const videoDuration = byId('videoDuration');
+        const videoQuality = byId('videoQuality');
+        if (videoDuration) {
+          videoDuration.value = '6';
+          videoDuration.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (videoQuality) {
+          videoQuality.value = 'high';
+          videoQuality.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // Load image into the preview
+        const videoImagePreview = byId('videoImagePreview');
+        if (videoImagePreview) {
+          videoImagePreview.src = imageUrl;
+          videoImagePreview.style.display = 'block';
+        }
+
+        // Use original prompt as motion hint if available
+        const videoMotion = byId('videoMotion');
+        if (videoMotion && item.prompt) {
+          videoMotion.value = '';
+          videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
+        }
+
+        // Update credits display (6s high = 45 * 1.5 = 68 credits)
+        const videoCreditsDisplay = byId('videoCreditsDisplay');
+        if (videoCreditsDisplay) {
+          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 68';
+        }
+        const generateVideoBtn = byId('generateVideoBtn');
+        if (generateVideoBtn) {
+          generateVideoBtn.title = '68 credits';
+          generateVideoBtn.dataset.baseCredits = '68';
+          // Enable button since we have a valid image loaded
+          generateVideoBtn.disabled = false;
+          generateVideoBtn.removeAttribute('data-disabled-reason');
+        }
+        // Trigger workspace credits update
+        if (window.WorkspaceCredits?.updateButtonCosts) {
+          window.WorkspaceCredits.updateButtonCosts();
+        }
+
+        return;
+      }
+
       if (act === 'retry-video') {
         // Pre-fill video prompt with the original prompt and switch to video tab
         const originalPrompt = btn.getAttribute('data-prompt') || item.prompt || '';
