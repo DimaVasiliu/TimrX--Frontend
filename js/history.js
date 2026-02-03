@@ -1124,7 +1124,15 @@ export function renderHistory() {
   }
 
   // MODEL/ALL FILTER - lineage grouping
-  const lineages = groupByLineage(src);
+  // Filter out videos when in 'all' filter and not in gallery mode
+  // Videos should only be visible in video tab or expanded gallery view
+  const srcForLineage = (historyState.filter === 'all' && !isGallery)
+    ? src.filter(item => {
+        const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
+        return type !== 'video';
+      })
+    : src;
+  const lineages = groupByLineage(srcForLineage);
   const currentLineageKeys = new Set(lineages.map(l => String(l.rootId || l.id)));
   historyLineageCounts.forEach((_, key) => {
     if (!currentLineageKeys.has(key)) historyLineageCounts.delete(key);
