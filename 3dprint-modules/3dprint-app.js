@@ -1376,16 +1376,15 @@
       /**
        * Update image options based on selected provider
        * Syncs UI dropdown with GenerationState
+       * @param {string} source - 'user' | 'init' for logging
        */
-      function updateImageProviderOptions() {
+      function updateImageProviderOptions(source = 'user') {
         if (!imageAIProvider) return;
 
         const provider = imageAIProvider.value || 'openai';
 
         // Sync to GenerationState (this also normalizes settings)
-        window.GenerationState.setProvider('image', provider);
-
-        const caps = window.GenerationState.getProviderCapabilities('image', provider);
+        window.GenerationState.setProvider('image', provider, source);
 
         // Google (Imagen) shows hint that style is via prompt
         const hint = provider === 'google' ? 'Style is controlled via prompt text.' : '';
@@ -1396,8 +1395,6 @@
 
         // Update credits display
         updateImageCreditsDisplay();
-
-        console.log('[GEN] Image provider changed:', { provider, caps });
       }
 
       /**
@@ -1427,9 +1424,14 @@
 
       // Wire up provider change handler
       if (imageAIProvider) {
-        imageAIProvider.addEventListener('change', updateImageProviderOptions);
-        // Initial setup - sync default UI value to GenerationState
-        updateImageProviderOptions();
+        imageAIProvider.addEventListener('change', () => updateImageProviderOptions('user'));
+        // Initial setup - sync default UI value to GenerationState (don't override if already set)
+        const currentProvider = window.GenerationState?.getProvider?.('image');
+        if (currentProvider && imageAIProvider.value !== currentProvider) {
+          // Sync UI to match existing state (don't override state)
+          imageAIProvider.value = currentProvider;
+        }
+        updateImageProviderOptions('init');
       }
 
       // Wire up aspect ratio change - sync to GenerationState
