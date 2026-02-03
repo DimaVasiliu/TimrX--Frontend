@@ -1186,7 +1186,10 @@
           const provider = videoAIProvider?.value || 'google';
           const settings = getVideoSettingsFromUI();
           const totalCredits = computeVideoCredits(settings);
-          console.log('[Video] Generate clicked - provider:', provider, 'credits:', totalCredits, 'settings:', settings);
+          const available = window.WorkspaceCredits?.getCredits?.() || 0;
+          console.log('[GEN] mode=video provider=' + provider +
+                      ' cost=' + totalCredits + ' available=' + available +
+                      ' settings=' + JSON.stringify(settings));
           // Event bubbles to main.js which calls API.startVideoGeneration()
         });
       }
