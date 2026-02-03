@@ -587,6 +587,24 @@ function wireGallery() {
           State.historyState.page = 1;
         }
 
+        // Handle video type
+        if (item.type === 'video' || item.video_url) {
+          const videoUrl = item.video_url;
+          if (videoUrl) {
+            State.setHistoryActiveModelId(id);
+            renderHistory();
+            const videoRailBtn = document.querySelector('[data-panel="video"]');
+            if (videoRailBtn) videoRailBtn.click();
+            Viewer.showVideoInViewer(videoUrl, {
+              title: shortTitle(item) || 'Video Preview',
+              hint: item.prompt || 'Generated video',
+              autoplay: true
+            });
+          }
+          return;
+        }
+
+        // Handle image type
         if (!glbUrl && (item.type === 'image' || item.image_url)) {
             State.setHistoryActiveModelId(id);
             renderHistory();
@@ -648,6 +666,59 @@ function wireGallery() {
         return;
       }
 
+      // Video actions
+      if (act === 'download-video') {
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (!videoUrl) {
+          alert('No video available to download.');
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = videoUrl;
+        a.download = `${shortTitle(item)}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        return;
+      }
+
+      if (act === 'open-video') {
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (videoUrl) {
+          const videoRailBtn = document.querySelector('[data-panel="video"]');
+          if (videoRailBtn) videoRailBtn.click();
+          // Show video in the viewer panel
+          Viewer.showVideoInViewer(videoUrl, {
+            title: shortTitle(item) || 'Video Preview',
+            hint: item.prompt || 'Generated video',
+            autoplay: true
+          });
+          // Update active state
+          State.setHistoryActiveModelId(item.id);
+          renderHistory();
+        }
+        return;
+      }
+
+      if (act === 'copy-video-link') {
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (!videoUrl) {
+          alert('No video link available.');
+          return;
+        }
+        if (navigator.clipboard?.writeText) {
+          try {
+            await navigator.clipboard.writeText(videoUrl);
+            alert('Video link copied to clipboard.');
+          } catch {
+            prompt('Copy video link manually:', videoUrl);
+          }
+        } else {
+          prompt('Copy video link manually:', videoUrl);
+        }
+        return;
+      }
+
       if (act === 'copy-link') {
         const link = item.glb_proxy || item.glb_url || item.image_url;
         if (!link) {
@@ -689,6 +760,25 @@ function wireGallery() {
 
       if (act === 'image-to-3d') {
         await API.startImageTo3DFromHistory(item);
+        return;
+      }
+
+      if (act === 'retry-video') {
+        // Pre-fill video prompt with the original prompt and switch to video tab
+        const originalPrompt = btn.getAttribute('data-prompt') || item.prompt || '';
+        const videoPromptEl = byId('videoTextPrompt');
+        if (videoPromptEl) {
+          videoPromptEl.value = originalPrompt;
+          // Trigger input event for any listeners
+          videoPromptEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        // Switch to video studio tab
+        const videoStudioTab = document.querySelector('[data-panel="video"]');
+        if (videoStudioTab) {
+          videoStudioTab.click();
+        }
+        // Focus the prompt input
+        videoPromptEl?.focus();
         return;
       }
 
