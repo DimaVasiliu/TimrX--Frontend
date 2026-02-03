@@ -1833,8 +1833,9 @@ export async function startVideoGeneration() {
     // Watch the video job
     watchVideoJob(jobId, reservation.reservationId, {
       prompt: prompt || motion,
-      duration_sec: durationSec,
-      resolution: resolution,
+      duration_sec: settings.durationSec,
+      quality: settings.quality,
+      aspect_ratio: settings.aspectRatio,
       stage: 'video'
     });
 
