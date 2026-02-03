@@ -113,24 +113,27 @@ function releaseCreditsReservation(reservationId) {
  * Show insufficient credits modal with exact required vs available
  * Replaces alert() for better UX
  *
- * @param {number} required - Credits required for this action
+ * @param {number} cost - Credits required for this action
  * @param {number} available - Credits currently available
  * @param {string} actionType - Type of action (for analytics)
  */
-function showInsufficientCreditsModal(required, available, actionType = 'generation') {
-  const needed = required - available;
+function showInsufficientCreditsModal(cost, available, actionType = 'generation') {
+  // Ensure numeric and compute missing (never negative)
+  const numCost = Number(cost) || 0;
+  const numAvailable = Number(available) || 0;
+  const missing = Math.max(0, numCost - numAvailable);
 
   // Try to use the workspace modal if available
   const modalEl = document.getElementById('insufficientCreditsModal');
   if (modalEl) {
-    // Update modal content
+    // Update modal content - only show missing credits
     const requiredEl = modalEl.querySelector('.credits-required');
     const availableEl = modalEl.querySelector('.credits-available');
     const neededEl = modalEl.querySelector('.credits-needed');
 
-    if (requiredEl) requiredEl.textContent = required;
-    if (availableEl) availableEl.textContent = available;
-    if (neededEl) neededEl.textContent = Math.max(0, needed);
+    if (requiredEl) requiredEl.textContent = numCost;
+    if (availableEl) availableEl.textContent = numAvailable;
+    if (neededEl) neededEl.textContent = missing;
 
     // Show modal
     modalEl.classList.remove('hidden');
@@ -145,12 +148,33 @@ function showInsufficientCreditsModal(required, available, actionType = 'generat
     return;
   }
 
-  // Final fallback: confirm dialog (no negative numbers)
-  const msg = `This ${actionType} requires ${required} credits.\n\nYou currently have ${available} credits.\nYou need ${Math.max(0, needed)} more credits.`;
+  // Final fallback: confirm dialog (never show negative numbers)
+  const msg = `This ${actionType} requires ${numCost} credits.\n\nYou currently have ${numAvailable} credits.\nYou need ${missing} more credits.`;
   if (confirm(msg + '\n\nWould you like to buy more credits?')) {
     window.location.href = '/pricing';
   }
-  log('[Credits] Released reservation:', reservationId);
+}
+
+/**
+ * Unified credit check helper for all generation types
+ * Performs proper numeric conversion and logs debug info
+ *
+ * @param {number|string} cost - Credits required for this action
+ * @param {string} mode - Generation mode ('image', 'video', 'model')
+ * @returns {{ available: number, cost: number, missing: number, shouldBlock: boolean }}
+ */
+function checkCreditsForGeneration(cost, mode = 'generation') {
+  // Get wallet and ensure numeric conversion
+  const wallet = window.WorkspaceCredits?.getWallet?.() || {};
+  const available = Number(wallet.available ?? wallet.available_credits ?? 0);
+  const numCost = Number(cost) || 0;
+  const missing = Math.max(0, numCost - available);
+  const shouldBlock = missing > 0;
+
+  // Debug log before block decision
+  console.log(`[CREDITS] available=${available}, cost=${numCost}, missing=${missing}, willBlock=${shouldBlock}`);
+
+  return { available, cost: numCost, missing, shouldBlock };
 }
 
 /**
@@ -1239,10 +1263,10 @@ export async function startOpenAIImageGeneration() {
     return;
   }
 
-  // Check credits (flat 10 for images)
-  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
-  if (available < IMAGE_CREDITS) {
-    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+  // Unified credit check with proper numeric conversion
+  const creditCheck = checkCreditsForGeneration(IMAGE_CREDITS, 'image');
+  if (creditCheck.shouldBlock) {
+    showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
     return;
   }
 
@@ -1278,7 +1302,7 @@ export async function startOpenAIImageGeneration() {
   const reservation = reserveCreditsForAction('text-to-image', 1);
   if (reservation.insufficient) {
     startLock = false;
-    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+    showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
     return;
   }
 
@@ -1324,7 +1348,7 @@ export async function startOpenAIImageGeneration() {
       client_id: tempId
     };
     console.log('[GEN] mode=image provider=openai cost=' + IMAGE_CREDITS +
-                ' available=' + available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
     const result = await apiFetch('/api/_mod/image/openai', {
       method: 'POST',
@@ -1435,10 +1459,10 @@ export async function startGeminiImageGeneration() {
     return;
   }
 
-  // Check credits (flat 10 for images)
-  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
-  if (available < IMAGE_CREDITS) {
-    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+  // Unified credit check with proper numeric conversion
+  const creditCheck = checkCreditsForGeneration(IMAGE_CREDITS, 'image');
+  if (creditCheck.shouldBlock) {
+    showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
     return;
   }
 
@@ -1474,7 +1498,7 @@ export async function startGeminiImageGeneration() {
   const reservation = reserveCreditsForAction('text-to-image', 1);
   if (reservation.insufficient) {
     startLock = false;
-    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+    showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
     return;
   }
 
@@ -1519,7 +1543,7 @@ export async function startGeminiImageGeneration() {
       client_id: tempId
     };
     console.log('[GEN] mode=image provider=google cost=' + IMAGE_CREDITS +
-                ' available=' + available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
     // Call unified endpoint with provider=google
     const result = await apiFetch('/api/image/generate', {
@@ -1678,10 +1702,10 @@ export async function startVideoGeneration() {
   // Compute credits using the SAME formula as UI
   const totalCredits = computeVideoCredits(settings);
 
-  // Check if user has enough credits (use computed credits, not action cost)
-  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
-  if (available < totalCredits) {
-    showInsufficientCreditsModal(totalCredits, available, 'video');
+  // Unified credit check with proper numeric conversion
+  const creditCheck = checkCreditsForGeneration(totalCredits, 'video');
+  if (creditCheck.shouldBlock) {
+    showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'video');
     return;
   }
 
@@ -1694,7 +1718,7 @@ export async function startVideoGeneration() {
   const reservation = reserveCreditsForAction('video', totalCredits);
   if (reservation.insufficient) {
     startLock = false;
-    showInsufficientCreditsModal(totalCredits, available, 'video');
+    showInsufficientCreditsModal(totalCredits, creditCheck.available, 'video');
     return;
   }
 
@@ -1740,7 +1764,7 @@ export async function startVideoGeneration() {
 
     // Debug log before API call
     console.log('[GEN] mode=video provider=google cost=' + totalCredits +
-                ' available=' + available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
     const result = await apiFetch('/api/video/generate', {
       method: 'POST',
