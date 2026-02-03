@@ -160,3 +160,60 @@ export function showImageInViewer(url) {
     }
     if (ph) ph.classList.add('hidden');
 }
+
+/**
+ * Show a video in the viewer panel
+ * @param {string} videoUrl - URL of the video to display
+ * @param {object} meta - Optional metadata { title, hint, autoplay }
+ */
+export function showVideoInViewer(videoUrl, meta = {}) {
+    const modelV = byId('model3dViewer');
+    const imageV = byId('imageViewer');
+    const videoV = byId('videoViewer');
+    const genVideo = byId('generatedVideo');
+    const videoPh = byId('videoPlaceholder');
+    const viewerTitle = byId('viewerTitle');
+    const genHint = byId('genHint');
+
+    // Hide other viewers, show video viewer
+    if (modelV) modelV.classList.add('hidden');
+    if (imageV) imageV.classList.add('hidden');
+    if (videoV) videoV.classList.remove('hidden');
+
+    // Update title and hint
+    if (viewerTitle) viewerTitle.textContent = meta.title || 'Video Preview';
+    if (genHint) genHint.textContent = meta.hint || 'Generated video is displayed.';
+
+    // Show video element, hide placeholder
+    if (genVideo) {
+        genVideo.src = videoUrl;
+        genVideo.classList.remove('hidden');
+        genVideo.load();
+        // Auto-play if desired
+        if (meta.autoplay) {
+            genVideo.play().catch(err => {
+                console.warn('[Viewer] Autoplay blocked:', err);
+            });
+        }
+    }
+    if (videoPh) videoPh.classList.add('hidden');
+
+    log('[Viewer] Showing video:', videoUrl);
+}
+
+/**
+ * Clear the video viewer
+ */
+export function clearVideoViewer() {
+    const genVideo = byId('generatedVideo');
+    const videoV = byId('videoViewer');
+    const videoPh = byId('videoPlaceholder');
+
+    if (genVideo) {
+        genVideo.pause();
+        genVideo.src = '';
+        genVideo.classList.add('hidden');
+    }
+    if (videoPh) videoPh.classList.remove('hidden');
+    if (videoV) videoV.classList.add('hidden');
+}
