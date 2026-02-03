@@ -89,18 +89,29 @@
 
           <!-- Aspect Ratio (Google Imagen only) -->
           <div class="inline-field google-only-field hidden" id="imageAspectRatioRow">
-            <label for="imageAspectRatio">Aspect Ratio</label>
+            <label for="imageAspectRatio">Aspect</label>
             <select id="imageAspectRatio">
-              <option value="1:1" selected>1:1 (Square)</option>
-              <option value="3:4">3:4 (Portrait)</option>
-              <option value="4:3">4:3 (Landscape)</option>
-              <option value="9:16">9:16 (Tall)</option>
-              <option value="16:9">16:9 (Wide)</option>
+              <option value="1:1" selected>Square (1:1)</option>
+              <option value="9:16">Portrait (9:16)</option>
+              <option value="16:9">Landscape (16:9)</option>
             </select>
           </div>
+          <span class="field-hint google-only-field hidden" id="imageAspectHint">Aspect changes framing only — quality stays the same.</span>
 
-          <!-- Resolution (provider-dependent options) -->
-          <div class="inline-field">
+          <!-- Quality (Google Imagen only) -->
+          <div class="inline-field google-only-field hidden" id="imageQualityRow">
+            <label for="imageQuality">Quality</label>
+            <select id="imageQuality">
+              <option value="512">Draft (512)</option>
+              <option value="768">Standard (768)</option>
+              <option value="1K" selected>High (1K)</option>
+              <option value="2K">Ultra (2K)</option>
+            </select>
+          </div>
+          <span class="field-hint google-only-field hidden" id="imageQualityHint">Quality controls detail and speed — pick Standard for most results.</span>
+
+          <!-- Resolution (OpenAI only) -->
+          <div class="inline-field" id="imageResolutionRow">
             <label for="imageResolution">Resolution</label>
             <select id="imageResolution">
               <!-- OpenAI options (default) -->
@@ -109,7 +120,6 @@
               <option value="1536x1024">1536x1024 (Landscape)</option>
             </select>
           </div>
-          <span class="field-hint resolution-hint hidden" id="imageResolutionHint">Higher resolution increases cost and latency.</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
@@ -1228,23 +1238,29 @@
       const imageStyle = leftStack.querySelector('#imageStyle');
       const imageStyleRow = leftStack.querySelector('#imageStyleRow');
       const imageResolution = leftStack.querySelector('#imageResolution');
+      const imageResolutionRow = leftStack.querySelector('#imageResolutionRow');
       const imageAspectRatio = leftStack.querySelector('#imageAspectRatio');
       const imageAspectRatioRow = leftStack.querySelector('#imageAspectRatioRow');
-      const imageResolutionHint = leftStack.querySelector('#imageResolutionHint');
+      const imageAspectHint = leftStack.querySelector('#imageAspectHint');
+      const imageQuality = leftStack.querySelector('#imageQuality');
+      const imageQualityRow = leftStack.querySelector('#imageQualityRow');
+      const imageQualityHint = leftStack.querySelector('#imageQualityHint');
       const imageProviderHint = leftStack.querySelector('#imageProviderHint');
       const imagePrompt = leftStack.querySelector('#imagePrompt');
       const imageCreditsDisplay = leftStack.querySelector('#imageCreditsDisplay');
       const imageGenTime = leftStack.querySelector('#imageGenTime');
       const generateImageBtn = leftStack.querySelector('#generateImageBtn');
 
-      // Google Imagen exact resolution mapping by aspect ratio
-      const GOOGLE_IMAGE_RESOLUTIONS = {
-        '1:1':  [{ value: '1024x1024', label: '1024x1024', tier: 1 }, { value: '2048x2048', label: '2048x2048', tier: 2 }],
-        '3:4':  [{ value: '896x1280', label: '896x1280', tier: 1 }, { value: '1792x2560', label: '1792x2560', tier: 2 }],
-        '4:3':  [{ value: '1280x896', label: '1280x896', tier: 1 }, { value: '2560x1792', label: '2560x1792', tier: 2 }],
-        '9:16': [{ value: '768x1408', label: '768x1408', tier: 1 }, { value: '1536x2816', label: '1536x2816', tier: 2 }],
-        '16:9': [{ value: '1408x768', label: '1408x768', tier: 1 }, { value: '2816x1536', label: '2816x1536', tier: 2 }],
+      // Google Imagen quality tiers (credits based on quality, not aspect)
+      const GOOGLE_QUALITY_CONFIG = {
+        '512':  { label: 'Draft (512)', credits: 5 },
+        '768':  { label: 'Standard (768)', credits: 8 },
+        '1K':   { label: 'High (1K)', credits: 10 },
+        '2K':   { label: 'Ultra (2K)', credits: 15 }
       };
+
+      // Valid aspect ratios for Google Imagen
+      const GOOGLE_VALID_ASPECTS = ['1:1', '9:16', '16:9'];
 
       // OpenAI DALL·E resolutions
       const OPENAI_IMAGE_RESOLUTIONS = [
@@ -1261,69 +1277,56 @@
           genTime: '30 sec',
           hasStyles: true,
           hasAspectRatio: false,
+          hasQuality: false,
           hint: ''
         },
         google: {
           name: 'Google (Imagen)',
           baseCredits: 10,
-          tier2Credits: 15,  // Higher res costs more
           genTime: '45 sec',
           hasStyles: false,  // Google uses prompt-based styling
           hasAspectRatio: true,
-          hint: 'Style is controlled via prompt text. Select aspect ratio and resolution.'
+          hasQuality: true,
+          hint: 'Style is controlled via prompt text.'
         }
       };
 
       /**
-       * Calculate image credits based on provider and resolution tier
+       * Calculate image credits based on provider and quality/resolution
        */
       function calculateImageCredits() {
         const provider = imageAIProvider?.value || 'openai';
         const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
 
-        if (provider === 'google' && imageResolution) {
-          const aspectRatio = imageAspectRatio?.value || '1:1';
-          const resolutions = GOOGLE_IMAGE_RESOLUTIONS[aspectRatio] || GOOGLE_IMAGE_RESOLUTIONS['1:1'];
-          const selected = resolutions.find(r => r.value === imageResolution.value);
-          return selected?.tier === 2 ? config.tier2Credits : config.baseCredits;
+        if (provider === 'google' && imageQuality) {
+          const quality = imageQuality?.value || '1K';
+          const qualityConfig = GOOGLE_QUALITY_CONFIG[quality] || GOOGLE_QUALITY_CONFIG['1K'];
+          return qualityConfig.credits;
         }
         return config.baseCredits;
       }
 
       /**
-       * Update resolution dropdown based on aspect ratio (Google only)
+       * Update credits display when aspect/quality changes (Google) or resolution changes (OpenAI)
        */
-      function updateImageResolutionOptions() {
-        if (!imageResolution) return;
-
-        const provider = imageAIProvider?.value || 'openai';
-
-        if (provider === 'google') {
-          const aspectRatio = imageAspectRatio?.value || '1:1';
-          const resolutions = GOOGLE_IMAGE_RESOLUTIONS[aspectRatio] || GOOGLE_IMAGE_RESOLUTIONS['1:1'];
-
-          // Clear and repopulate resolution dropdown
-          imageResolution.innerHTML = '';
-          resolutions.forEach((res, idx) => {
-            const opt = document.createElement('option');
-            opt.value = res.value;
-            opt.textContent = res.label;
-            if (idx === 0) opt.selected = true;
-            imageResolution.appendChild(opt);
-          });
-        } else {
-          // OpenAI resolutions
-          imageResolution.innerHTML = '';
-          OPENAI_IMAGE_RESOLUTIONS.forEach((res, idx) => {
-            const opt = document.createElement('option');
-            opt.value = res.value;
-            opt.textContent = res.label;
-            if (idx === 0) opt.selected = true;
-            imageResolution.appendChild(opt);
-          });
-        }
-
+      function updateImageOptionsOnChange() {
         updateImageCreditsDisplay();
+      }
+
+      /**
+       * Validate and get Google aspect ratio (fallback to 1:1 if invalid)
+       */
+      function getValidAspectRatio() {
+        const aspect = imageAspectRatio?.value || '1:1';
+        return GOOGLE_VALID_ASPECTS.includes(aspect) ? aspect : '1:1';
+      }
+
+      /**
+       * Validate and get Google quality (fallback to 1K if invalid)
+       */
+      function getValidQuality() {
+        const quality = imageQuality?.value || '1K';
+        return GOOGLE_QUALITY_CONFIG[quality] ? quality : '1K';
       }
 
       /**
@@ -1366,18 +1369,39 @@
           imageStyleRow.classList.toggle('hidden', !config.hasStyles);
         }
 
-        // Show/hide aspect ratio row (Google only)
+        // Show/hide aspect ratio row + hint (Google only)
         if (imageAspectRatioRow) {
           imageAspectRatioRow.classList.toggle('hidden', !config.hasAspectRatio);
         }
-
-        // Show/hide resolution hint (Google only)
-        if (imageResolutionHint) {
-          imageResolutionHint.classList.toggle('hidden', !isGoogle);
+        if (imageAspectHint) {
+          imageAspectHint.classList.toggle('hidden', !config.hasAspectRatio);
         }
 
-        // Update resolution options
-        updateImageResolutionOptions();
+        // Show/hide quality row + hint (Google only)
+        if (imageQualityRow) {
+          imageQualityRow.classList.toggle('hidden', !config.hasQuality);
+        }
+        if (imageQualityHint) {
+          imageQualityHint.classList.toggle('hidden', !config.hasQuality);
+        }
+
+        // Show/hide resolution row (OpenAI only - hide for Google)
+        if (imageResolutionRow) {
+          imageResolutionRow.classList.toggle('hidden', isGoogle);
+        }
+
+        // Set defaults when switching to Google
+        if (isGoogle) {
+          if (imageAspectRatio && imageAspectRatio.value !== '1:1' && !GOOGLE_VALID_ASPECTS.includes(imageAspectRatio.value)) {
+            imageAspectRatio.value = '1:1';
+          }
+          if (imageQuality && !GOOGLE_QUALITY_CONFIG[imageQuality.value]) {
+            imageQuality.value = '1K';
+          }
+        }
+
+        // Update credits display
+        updateImageCreditsDisplay();
 
         // Update provider hint
         if (imageProviderHint) {
@@ -1420,12 +1444,17 @@
         updateImageProviderOptions();
       }
 
-      // Wire up aspect ratio change (updates resolution options for Google)
+      // Wire up aspect ratio change (updates credits display for Google)
       if (imageAspectRatio) {
-        imageAspectRatio.addEventListener('change', updateImageResolutionOptions);
+        imageAspectRatio.addEventListener('change', updateImageOptionsOnChange);
       }
 
-      // Wire up resolution change (updates credits)
+      // Wire up quality change (updates credits for Google)
+      if (imageQuality) {
+        imageQuality.addEventListener('change', updateImageOptionsOnChange);
+      }
+
+      // Wire up resolution change (updates credits for OpenAI)
       if (imageResolution) {
         imageResolution.addEventListener('change', updateImageCreditsDisplay);
       }
