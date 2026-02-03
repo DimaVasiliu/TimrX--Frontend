@@ -78,24 +78,18 @@
             <i class="fa-solid fa-lock"></i> <span id="imageProviderLockText">Provider locked while generating.</span>
           </div>
 
-          <!-- Aspect Ratio (simplified + advanced) -->
-          <div class="inline-field" id="imageAspectRatioRow">
-            <label for="imageAspectRatio">Orientation</label>
-            <button type="button" id="imageAdvancedToggle" class="advanced-toggle" title="Show more aspect ratios">
-              <i class="fa-solid fa-sliders"></i>
-            </button>
-            <select id="imageAspectRatio">
-              <option value="square" selected>Square (1:1)</option>
-              <option value="portrait">Portrait (9:16)</option>
-              <option value="landscape">Landscape (16:9)</option>
-              <!-- Advanced options (hidden by default) -->
-              <option value="portrait_34" class="advanced-option" style="display:none">Portrait 3:4</option>
-              <option value="landscape_43" class="advanced-option" style="display:none">Landscape 4:3</option>
+          <!-- Shape (controls aspect ratio only) -->
+          <div class="inline-field" id="imageShapeRow">
+            <label for="imageShape">Shape</label>
+            <select id="imageShape">
+              <option value="square" selected>Square</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
             </select>
           </div>
-          <span class="field-hint" id="imageAspectHint">Orientation = shape of the image, not quality.</span>
+          <span class="field-hint" id="imageShapeHint">Shape controls layout, not quality.</span>
 
-          <!-- Quality (all providers) -->
+          <!-- Quality (controls resolution per provider) -->
           <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
@@ -103,7 +97,7 @@
               <option value="high">High</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Quality affects detail, time, and credits.</span>
+          <span class="field-hint" id="imageQualityHint">Higher quality uses more credits and takes longer.</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
@@ -1228,7 +1222,7 @@
       // IMAGE: Provider Switching & Credits Logic
       // ========================================
       const imageAIProvider = leftStack.querySelector('#imageAIProvider');
-      const imageAspectRatio = leftStack.querySelector('#imageAspectRatio');
+      const imageShape = leftStack.querySelector('#imageShape');
       const imageQuality = leftStack.querySelector('#imageQuality');
       const imageProviderHint = leftStack.querySelector('#imageProviderHint');
       const imagePrompt = leftStack.querySelector('#imagePrompt');
@@ -1267,7 +1261,7 @@
 
         // Disable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = true;
-        if (imageAspectRatio) imageAspectRatio.disabled = true;
+        if (imageShape) imageShape.disabled = true;
         if (imageQuality) imageQuality.disabled = true;
         if (imagePrompt) imagePrompt.disabled = true;
 
@@ -1291,7 +1285,7 @@
 
         // Re-enable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = false;
-        if (imageAspectRatio) imageAspectRatio.disabled = false;
+        if (imageShape) imageShape.disabled = false;
         if (imageQuality) imageQuality.disabled = false;
         if (imagePrompt) imagePrompt.disabled = false;
 
@@ -1343,10 +1337,10 @@
 
         return {
           provider: snapshot.provider,
-          aspect: snapshot.settings.aspect,
+          shape: snapshot.settings.shape,
           quality: snapshot.settings.quality,
           // Map to provider-specific format
-          aspectRatio: caps?.aspectMap?.[snapshot.settings.aspect] || '1024x1024',
+          aspectRatio: caps?.shapeMap?.[snapshot.settings.shape] || '1024x1024',
           qualityValue: caps?.qualityMap?.[snapshot.settings.quality] || 'standard',
           credits: snapshot.credits
         };
@@ -1393,6 +1387,10 @@
         // Log dropdown changes for debugging provider conflicts
         if (source === 'user' && previousProvider !== provider) {
           console.log(`[Provider UI] User changed image provider: ${previousProvider} -> ${provider}`);
+          console.log(`[Provider UI] ========================================`);
+          console.log(`[Provider UI] PROVIDER SWITCH: ${previousProvider} -> ${provider}`);
+          console.log(`[Provider UI] Source: ${source}`);
+          console.log(`[Provider UI] ========================================`);
         }
 
         // Sync to GenerationState (this is the ONLY authorized source)
@@ -1453,38 +1451,33 @@
         updateImageProviderOptions('init');
       }
 
-      // Wire up aspect ratio change - sync to GenerationState
-      if (imageAspectRatio) {
-        imageAspectRatio.addEventListener('change', () => {
-          const aspect = imageAspectRatio.value || 'square';
-          window.GenerationState.setSetting('image', 'aspect', aspect);
-          updateImageCreditsDisplay();
+      // Register provider change callback to handle cleanup when provider switches
+      if (window.GenerationState?.onProviderChange) {
+        window.GenerationState.onProviderChange((mode, oldProvider, newProvider) => {
+          if (mode === 'image') {
+            console.log(`[Provider Callback] Image provider changed: ${oldProvider} -> ${newProvider}`);
+            // Sync UI dropdown if needed
+            if (imageAIProvider && imageAIProvider.value !== newProvider) {
+              imageAIProvider.value = newProvider;
+            }
+            // Update provider hint
+            const hint = newProvider === 'google' ? 'Style is controlled via prompt text.' : '';
+            if (imageProviderHint) {
+              imageProviderHint.textContent = hint;
+              imageProviderHint.style.display = hint ? 'block' : 'none';
+            }
+            // Update credits display for new provider
+            updateImageCreditsDisplay();
+          }
         });
       }
 
-      // Wire up Advanced toggle for aspect ratio
-      const advancedToggle = leftStack.querySelector('#imageAdvancedToggle');
-      if (advancedToggle && imageAspectRatio) {
-        let advancedMode = false;
-        const advancedOptions = imageAspectRatio.querySelectorAll('.advanced-option');
-        const aspectHint = leftStack.querySelector('#imageAspectHint');
-
-        advancedToggle.addEventListener('click', () => {
-          advancedMode = !advancedMode;
-          advancedToggle.classList.toggle('active', advancedMode);
-          advancedToggle.title = advancedMode ? 'Show simple options' : 'Show more aspect ratios';
-
-          // Show/hide advanced options
-          advancedOptions.forEach(opt => {
-            opt.style.display = advancedMode ? '' : 'none';
-          });
-
-          // Update hint text
-          if (aspectHint) {
-            aspectHint.textContent = advancedMode
-              ? 'Advanced: More aspect ratios for specific use cases.'
-              : 'Orientation = shape of the image, not quality.';
-          }
+      // Wire up shape change - sync to GenerationState
+      if (imageShape) {
+        imageShape.addEventListener('change', () => {
+          const shape = imageShape.value || 'square';
+          window.GenerationState.setSetting('image', 'shape', shape);
+          updateImageCreditsDisplay();
         });
       }
 
