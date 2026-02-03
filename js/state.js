@@ -674,26 +674,32 @@ export function getProvider(mode) {
  * Set provider for a mode and normalize settings
  * @param {string} mode - 'image' | 'video' | 'model'
  * @param {string} provider
+ * @param {string} source - 'user' | 'init' (for logging)
  * @returns {boolean} success
  */
-export function setProvider(mode, provider) {
+export function setProvider(mode, provider, source = 'user') {
   if (generation.locked) {
-    console.warn('[GEN] Cannot change provider while generation is in progress');
+    console.warn(`[Image] Provider change blocked (locked) -> ${provider} (source: ${source})`);
     return false;
   }
 
   const caps = getProviderCapabilities(mode, provider);
   if (!caps) {
-    console.warn('[GEN] Unknown provider:', provider, 'for mode:', mode);
+    console.warn(`[Image] Provider set FAILED -> ${provider} (source: ${source}) - unknown provider`);
     return false;
   }
 
+  const previousProvider = generation.provider[mode];
   generation.provider[mode] = provider;
 
   // Normalize settings for the new provider
   normalizeSettings(mode, provider);
 
-  console.log('[GEN] Provider changed:', { mode, provider, settings: generation[mode] });
+  // Log provider change with source
+  if (previousProvider !== provider) {
+    console.log(`[Image] Provider set -> ${provider} (source: ${source})`);
+  }
+
   return true;
 }
 
