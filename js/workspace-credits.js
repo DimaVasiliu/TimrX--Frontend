@@ -717,14 +717,34 @@ export function reserveCredits(action, count = 1) {
   }
 
   // Check if enough credits available (accounting for existing reservations)
-  const effectiveAvailable = creditsState.wallet.available - creditsState.totalReserved;
-  if (effectiveAvailable < totalCost) {
+  const available = Number(creditsState.wallet.available) || 0;
+  const reserved = Number(creditsState.totalReserved) || 0;
+  const effectiveAvailable = available - reserved;
+  const missing = Math.max(0, totalCost - effectiveAvailable);
+  const shouldBlock = missing > 0;
+
+  // Detailed logging for debugging credit issues
+  console.log(`[CREDITS] ========================================`);
+  console.log(`[CREDITS] RESERVE CREDITS CHECK (action-based)`);
+  console.log(`[CREDITS] action=${action}`);
+  console.log(`[CREDITS] costPerItem=${costPerItem}, count=${count}, totalCost=${totalCost}`);
+  console.log(`[CREDITS] available=${available}`);
+  console.log(`[CREDITS] reserved=${reserved}`);
+  console.log(`[CREDITS] effectiveAvailable=${effectiveAvailable}`);
+  console.log(`[CREDITS] missing=${missing}`);
+  console.log(`[CREDITS] shouldBlock=${shouldBlock}`);
+  console.log(`[CREDITS] ========================================`);
+
+  if (shouldBlock) {
     log('[Credits] Reserve failed: insufficient credits', {
       action,
-      required: totalCost,
+      cost: totalCost,
+      available,
+      reserved,
       effectiveAvailable,
+      missing,
     });
-    return { reservationId: null, amount: 0, insufficient: true };
+    return { reservationId: null, amount: 0, insufficient: true, required: totalCost, available: effectiveAvailable, missing };
   }
 
   const reservationId = `res_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -773,18 +793,33 @@ export function reserveAmount({ action, amount, meta = {} }) {
 
   // Check if enough credits available (accounting for existing reservations)
   const available = Number(creditsState.wallet.available) || 0;
-  const effectiveAvailable = available - creditsState.totalReserved;
+  const reserved = Number(creditsState.totalReserved) || 0;
+  const effectiveAvailable = available - reserved;
+  const missing = Math.max(0, numAmount - effectiveAvailable);
+  const shouldBlock = missing > 0;
 
-  console.log(`[CREDITS] reserving amount=${numAmount} for action=${action}`);
+  // Detailed logging for debugging credit issues
+  console.log(`[CREDITS] ========================================`);
+  console.log(`[CREDITS] RESERVE AMOUNT CHECK`);
+  console.log(`[CREDITS] action=${action}`);
+  console.log(`[CREDITS] cost=${numAmount}`);
+  console.log(`[CREDITS] available=${available}`);
+  console.log(`[CREDITS] reserved=${reserved}`);
+  console.log(`[CREDITS] effectiveAvailable=${effectiveAvailable}`);
+  console.log(`[CREDITS] missing=${missing}`);
+  console.log(`[CREDITS] shouldBlock=${shouldBlock}`);
+  console.log(`[CREDITS] ========================================`);
 
-  if (effectiveAvailable < numAmount) {
+  if (shouldBlock) {
     log('[Credits] reserveAmount failed: insufficient credits', {
       action,
-      required: numAmount,
+      cost: numAmount,
       available,
+      reserved,
       effectiveAvailable,
+      missing,
     });
-    return { reservationId: null, amount: 0, insufficient: true, required: numAmount, available: effectiveAvailable };
+    return { reservationId: null, amount: 0, insufficient: true, required: numAmount, available: effectiveAvailable, missing };
   }
 
   const reservationId = `res_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -1098,8 +1133,9 @@ function updateGenerateButtonCosts() {
     if (isUnknown) {
       btn.setAttribute('title', `Cost unknown for action: ${action}`);
     } else if (!hasCreds) {
-      const needed = totalCost - effectiveAvailable;
-      btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${needed} more needed)`);
+      // Ensure missing is never negative
+      const missing = Math.max(0, totalCost - effectiveAvailable);
+      btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${missing} more needed)`);
     } else {
       btn.setAttribute('title', `${totalCost} credits`);
     }
