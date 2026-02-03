@@ -858,7 +858,9 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
           title: shortTitle(meta.prompt || 'Generated image'),
           image_url: imageUrl,
           thumbnail_url: imageUrl,
-          stage: 'image'
+          stage: 'image',
+          provider: 'openai',
+          provider_used: meta.provider_used || 'openai'  // Locked provider for this job
         };
 
         if (State.historyHasJobId(jobId)) {
@@ -874,6 +876,11 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
 
         confirmCreditsReservation(reservationId, jobId);
         refreshCreditsInBackground();
+
+        // Unlock UI after job completes
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
         return;
       }
 
@@ -882,6 +889,11 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
         prog.fail(st.error || 'Image generation failed');
         alert(st.error || 'Image generation failed');
         State.deleteHistoryItem(jobId, { skipRemote: true });
+
+        // Unlock UI after job fails
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
         return;
       }
 
@@ -1168,6 +1180,12 @@ export async function onGenerateClick() {
 export async function startOpenAIImageGeneration() {
   if (startLock) return;
 
+  // Check if already generating (job state lock)
+  if (window.ImageJobControl?.isGenerating?.()) {
+    console.warn('[OpenAI Image] Generation already in progress');
+    return;
+  }
+
   // Check credits before proceeding
   if (!checkCreditsFor('text-to-image')) {
     return;
@@ -1181,6 +1199,13 @@ export async function startOpenAIImageGeneration() {
   const resolution = byId('imageResolution')?.value || '1024x1024';
   const model = 'gpt-image-1';
 
+  // Snapshot settings for this job
+  const settingsSnapshot = {
+    prompt: promptRaw,
+    resolution,
+    model
+  };
+
   // Reserve credits BEFORE API call
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('text-to-image', 1);
@@ -1189,11 +1214,17 @@ export async function startOpenAIImageGeneration() {
     return; // Insufficient credits modal shown
   }
 
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `openai-temp-${Date.now()}`);
+
+  // Lock UI with provider and settings snapshot
+  if (window.ImageJobControl?.lock) {
+    window.ImageJobControl.lock('openai', settingsSnapshot, tempId, reservation.reservationId);
+  }
+
   State.historyState.filter = 'image';
   State.historyState.page = 1;
   renderHistory();
 
-  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `openai-temp-${Date.now()}`);
   const placeholder = {
     id: tempId,
     type: 'image',
@@ -1204,7 +1235,9 @@ export async function startOpenAIImageGeneration() {
     title: shortTitle(promptRaw),
     image_url: '',
     thumbnail_url: '',
-    stage: 'image'
+    stage: 'image',
+    provider: 'openai',
+    provider_used: 'openai'  // Locked provider for this job
   };
   State.addHistoryItem(placeholder);
   State.setHistoryActiveModelId(tempId);
@@ -1278,11 +1311,14 @@ export async function startOpenAIImageGeneration() {
       stage: 'image'
     });
 
+    // Pass provider info to watcher for proper unlock
     watchOpenAIImageJob(activeHistoryId, reservation.reservationId, {
       prompt: promptRaw,
       model,
-      size: resolution
+      size: resolution,
+      provider_used: 'openai'
     });
+    // Note: UI unlock will happen in watchOpenAIImageJob when job completes
   } catch (err) {
     console.error('[OpenAI] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
@@ -1291,6 +1327,10 @@ export async function startOpenAIImageGeneration() {
     const arr = State.getHistory().filter((x) => x.id !== activeHistoryId);
     State.saveHistory(arr);
     renderHistory();
+    // Unlock UI on error
+    if (window.ImageJobControl?.unlock) {
+      window.ImageJobControl.unlock();
+    }
   } finally {
     startLock = false;
   }
@@ -1301,6 +1341,12 @@ export async function startOpenAIImageGeneration() {
  */
 export async function startGeminiImageGeneration() {
   if (startLock) return;
+
+  // Check if already generating (job state lock)
+  if (window.ImageJobControl?.isGenerating?.()) {
+    console.warn('[Gemini Image] Generation already in progress');
+    return;
+  }
 
   // Check credits before proceeding
   if (!checkCreditsFor('text-to-image')) {
@@ -1325,6 +1371,13 @@ export async function startGeminiImageGeneration() {
   const rawQuality = byId('imageQuality')?.value || '1K';
   const imageSize = VALID_QUALITIES.includes(rawQuality) ? rawQuality : '1K';
 
+  // Snapshot settings for this job
+  const settingsSnapshot = {
+    prompt: promptRaw,
+    aspectRatio,
+    imageSize
+  };
+
   // Reserve credits BEFORE API call
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('text-to-image', 1);
@@ -1333,11 +1386,17 @@ export async function startGeminiImageGeneration() {
     return; // Insufficient credits modal shown
   }
 
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `gemini-temp-${Date.now()}`);
+
+  // Lock UI with provider and settings snapshot
+  if (window.ImageJobControl?.lock) {
+    window.ImageJobControl.lock('google', settingsSnapshot, tempId, reservation.reservationId);
+  }
+
   State.historyState.filter = 'image';
   State.historyState.page = 1;
   renderHistory();
 
-  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `gemini-temp-${Date.now()}`);
   const placeholder = {
     id: tempId,
     type: 'image',
@@ -1349,7 +1408,8 @@ export async function startGeminiImageGeneration() {
     image_url: '',
     thumbnail_url: '',
     stage: 'image',
-    provider: 'google'
+    provider: 'google',
+    provider_used: 'google'  // Locked provider for this job
   };
   State.addHistoryItem(placeholder);
   State.setHistoryActiveModelId(tempId);
@@ -1410,6 +1470,7 @@ export async function startGeminiImageGeneration() {
       thumbnail_url: imageUrl,
       stage: 'image',
       provider: 'google',
+      provider_used: 'google',  // Locked provider for this job
       model: 'imagen-4.0'
     };
 
@@ -1426,9 +1487,8 @@ export async function startGeminiImageGeneration() {
     prog.done('Image generated!');
 
     // Update balance from response
-    if (data.new_balance !== undefined) {
-      State.setCreditsBalance(data.new_balance);
-      updateCreditsDisplay();
+    if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
+      window.WorkspaceCredits.setCredits(data.new_balance);
     }
 
   } catch (err) {
@@ -1441,6 +1501,10 @@ export async function startGeminiImageGeneration() {
     renderHistory();
   } finally {
     startLock = false;
+    // Unlock UI after generation completes/fails
+    if (window.ImageJobControl?.unlock) {
+      window.ImageJobControl.unlock();
+    }
   }
 }
 
@@ -1657,9 +1721,8 @@ async function watchVideoJob(jobId, reservationId, meta) {
         renderHistory();
 
         // Update balance
-        if (data.new_balance !== undefined) {
-          State.setCreditsBalance(data.new_balance);
-          updateCreditsDisplay();
+        if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
+          window.WorkspaceCredits.setCredits(data.new_balance);
         }
 
         UI.makeProgressDriver().done('Video generated!');
