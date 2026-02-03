@@ -1263,22 +1263,27 @@ export async function onGenerateClick() {
 // Flat credit cost for images
 const IMAGE_CREDITS = 10;
 
-// Map simplified aspect to OpenAI resolution
-const OPENAI_RESOLUTION_MAP = {
-  // Simple options
-  square: '1024x1024',
-  portrait: '1024x1536',      // 9:16
-  landscape: '1536x1024',     // 16:9
-  // Advanced options (closest approximations for OpenAI)
-  portrait_34: '1024x1536',   // 3:4 → uses portrait
-  landscape_43: '1536x1024',  // 4:3 → uses landscape
+// Map shape to OpenAI resolution
+// Shape controls aspect ratio, Quality is handled separately
+const OPENAI_SHAPE_MAP = {
+  square: '1024x1024',      // 1:1
+  portrait: '1024x1792',    // 9:16
+  landscape: '1792x1024',   // 16:9
 };
 
 /**
  * Start OpenAI image generation
+ * IMPORTANT: Provider must be 'openai' in GenerationState before calling this.
  */
 export async function startOpenAIImageGeneration() {
-  console.log('[Image] OpenAI generation started (provider=openai)');
+  // Verify provider is actually openai (defensive check)
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'openai') {
+    console.error(`[OpenAI Image] BLOCKED: State provider is '${stateProvider}', not 'openai'`);
+    return;
+  }
+
+  console.log('[Image] OpenAI generation started (provider=openai, state=' + stateProvider + ')');
 
   if (startLock) return;
 
@@ -1301,21 +1306,23 @@ export async function startOpenAIImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get settings from UI (simplified)
-  const settings = window.ImageJobControl?.getSettings?.() || {
+  // Get settings from State (SINGLE SOURCE OF TRUTH - no DOM fallbacks)
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const settings = {
     provider: 'openai',
-    aspect: byId('imageAspectRatio')?.value || 'square',
-    quality: byId('imageQuality')?.value || 'standard'
+    shape: stateSettings.shape || 'square',
+    quality: stateSettings.quality || 'standard'
   };
+  console.log('[OpenAI Image] Using settings from State:', JSON.stringify(settings));
 
-  // Map aspect to OpenAI resolution
-  const resolution = OPENAI_RESOLUTION_MAP[settings.aspect] || '1024x1024';
+  // Map shape to OpenAI resolution
+  const resolution = OPENAI_SHAPE_MAP[settings.shape] || '1024x1024';
   const model = 'gpt-image-1';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
     prompt: promptRaw,
-    aspect: settings.aspect,
+    shape: settings.shape,
     quality: settings.quality,
     resolution,
     model,
@@ -1459,18 +1466,14 @@ export async function startOpenAIImageGeneration() {
   }
 }
 
-// Map simplified aspect to Google format
-const GOOGLE_ASPECT_MAP = {
-  // Simple options
+// Map shape to Google aspect ratio format
+const GOOGLE_SHAPE_MAP = {
   square: '1:1',
   portrait: '9:16',
   landscape: '16:9',
-  // Advanced options (Google Imagen supports these natively)
-  portrait_34: '3:4',
-  landscape_43: '4:3',
 };
 
-// Map simplified quality to Google imageSize
+// Map quality to Google imageSize
 const GOOGLE_QUALITY_MAP = {
   standard: '1K',
   high: '2K'
@@ -1478,9 +1481,17 @@ const GOOGLE_QUALITY_MAP = {
 
 /**
  * Start Gemini (Google Imagen) image generation
+ * IMPORTANT: Provider must be 'google' in GenerationState before calling this.
  */
 export async function startGeminiImageGeneration() {
-  console.log('[Image] Gemini generation started (provider=google)');
+  // Verify provider is actually google (defensive check)
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'google') {
+    console.error(`[Gemini Image] BLOCKED: State provider is '${stateProvider}', not 'google'`);
+    return;
+  }
+
+  console.log('[Image] Gemini generation started (provider=google, state=' + stateProvider + ')');
 
   if (startLock) return;
 
@@ -1503,21 +1514,23 @@ export async function startGeminiImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get settings from UI (simplified)
-  const settings = window.ImageJobControl?.getSettings?.() || {
+  // Get settings from State (SINGLE SOURCE OF TRUTH - no DOM fallbacks)
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const settings = {
     provider: 'google',
-    aspect: byId('imageAspectRatio')?.value || 'square',
-    quality: byId('imageQuality')?.value || 'standard'
+    shape: stateSettings.shape || 'square',
+    quality: stateSettings.quality || 'standard'
   };
+  console.log('[Gemini Image] Using settings from State:', JSON.stringify(settings));
 
-  // Map to Google-specific formats
-  const aspectRatio = GOOGLE_ASPECT_MAP[settings.aspect] || '1:1';
+  // Map shape to Google aspect ratio, quality to imageSize
+  const aspectRatio = GOOGLE_SHAPE_MAP[settings.shape] || '1:1';
   const imageSize = GOOGLE_QUALITY_MAP[settings.quality] || '1K';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
     prompt: promptRaw,
-    aspect: settings.aspect,
+    shape: settings.shape,
     quality: settings.quality,
     aspectRatio,
     imageSize,
@@ -1664,6 +1677,7 @@ export async function startGeminiImageGeneration() {
  * Start image generation by selected provider
  * IMPORTANT: Uses GenerationState as the SINGLE source of truth for provider.
  * Never reads from DOM - provider must be set via dropdown -> GenerationState.setProvider()
+ * NO AUTO-FALLBACK: If provider fails, show error - do not silently switch providers.
  */
 export async function startImageGenerationByProvider() {
   // SINGLE SOURCE OF TRUTH: GenerationState.getProvider()
@@ -1675,7 +1689,14 @@ export async function startImageGenerationByProvider() {
   }
 
   const provider = window.GenerationState.getProvider('image');
-  console.log(`[Image] Starting generation with provider: ${provider}`);
+  const snapshot = window.GenerationState.getGenerationSnapshot?.('image');
+
+  // Log the provider being used (IMPORTANT for debugging conflicts)
+  console.log(`[Image] ========================================`);
+  console.log(`[Image] STARTING GENERATION`);
+  console.log(`[Image] Provider from State: ${provider}`);
+  console.log(`[Image] Settings:`, snapshot?.settings || 'N/A');
+  console.log(`[Image] ========================================`);
 
   State.historyState.filter = 'image';
   State.historyState.page = 1;
@@ -1686,7 +1707,8 @@ export async function startImageGenerationByProvider() {
   } else if (provider === 'google') {
     await startGeminiImageGeneration();
   } else {
-    console.error(`[Image] Unknown provider: ${provider}`);
+    // NO FALLBACK - show error and stop
+    console.error(`[Image] Unknown provider: ${provider} - NO FALLBACK`);
     alert(`Image provider "${provider}" is not available. Please select OpenAI or Google.`);
   }
 }
