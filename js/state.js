@@ -551,25 +551,26 @@ export const PROVIDER_CAPABILITIES = {
   image: {
     openai: {
       name: 'OpenAI (DALL·E)',
-      aspects: ['square', 'portrait', 'landscape'],
+      shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
-      defaultAspect: 'square',
+      defaultShape: 'square',
       defaultQuality: 'standard',
       credits: 10,
       genTime: '30 sec',
-      // Map simplified values to API format
-      aspectMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      // Shape controls layout (aspect ratio), Quality controls detail level
+      shapeMap: { square: '1024x1024', portrait: '1024x1792', landscape: '1792x1024' },
       qualityMap: { standard: 'standard', high: 'hd' }
     },
     google: {
       name: 'Google (Imagen)',
-      aspects: ['square', 'portrait', 'landscape'],
+      shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
-      defaultAspect: 'square',
+      defaultShape: 'square',
       defaultQuality: 'standard',
       credits: 10,
       genTime: '45 sec',
-      aspectMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
+      // Shape controls layout (aspect ratio), Quality controls imageSize
+      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
       qualityMap: { standard: '1K', high: '2K' }
     }
   },
@@ -620,7 +621,7 @@ export const generation = {
   // Image settings
   image: {
     prompt: '',
-    aspect: 'square',
+    shape: 'square',
     quality: 'standard'
   },
 
@@ -674,6 +675,20 @@ export function getProvider(mode) {
 // ONLY 'user' and 'init' are allowed - background refreshes are blocked
 const ALLOWED_PROVIDER_SOURCES = new Set(['user', 'init']);
 
+// Provider change callbacks - called when provider switches
+// Used to cancel pending operations for the old provider
+const providerChangeCallbacks = [];
+
+/**
+ * Register a callback to be called when provider changes
+ * @param {Function} callback - (mode, oldProvider, newProvider) => void
+ */
+export function onProviderChange(callback) {
+  if (typeof callback === 'function') {
+    providerChangeCallbacks.push(callback);
+  }
+}
+
 /**
  * Set provider for a mode and normalize settings
  * IMPORTANT: Only 'user' (dropdown change) and 'init' (initial load) are allowed.
@@ -713,6 +728,15 @@ export function setProvider(mode, provider, source = 'user') {
 
     // Log provider change with source and stack trace for debugging
     console.log(`[Provider] ${mode}: ${previousProvider} -> ${provider} (source: ${source})`);
+
+    // Notify listeners to cancel pending operations for old provider
+    providerChangeCallbacks.forEach(cb => {
+      try {
+        cb(mode, previousProvider, provider);
+      } catch (e) {
+        console.error('[Provider] Callback error:', e);
+      }
+    });
   }
 
   return true;
@@ -731,7 +755,15 @@ export function normalizeSettings(mode, provider) {
   const settings = generation[mode];
   if (!settings) return;
 
-  // Normalize aspect
+  // Normalize shape (images use shape, videos use aspect)
+  if (settings.shape !== undefined && caps.shapes) {
+    if (!caps.shapes.includes(settings.shape)) {
+      settings.shape = caps.defaultShape || caps.shapes[0];
+      console.log('[GEN] Normalized shape to:', settings.shape);
+    }
+  }
+
+  // Normalize aspect (for video mode)
   if (settings.aspect !== undefined && caps.aspects) {
     if (!caps.aspects.includes(settings.aspect)) {
       settings.aspect = caps.defaultAspect || caps.aspects[0];
@@ -939,5 +971,8 @@ window.GenerationState = {
 
   // Lock/unlock
   lockGeneration,
-  unlockGeneration
+  unlockGeneration,
+
+  // Provider change notifications
+  onProviderChange
 };
