@@ -544,61 +544,320 @@ export const historyState = {
 };
 
 // ============================================================================
-// ACTIVE PROVIDER STATE (single source of truth for generation providers)
-// Prevents provider switching mid-job
+// PROVIDER CAPABILITIES MAP
+// Defines what each provider supports for each mode
 // ============================================================================
-export const activeProvider = {
-  image: 'openai',   // 'openai' | 'google'
-  video: 'google',   // 'google' (only option for now)
-  locked: false      // true while generation is in-flight
+export const PROVIDER_CAPABILITIES = {
+  image: {
+    openai: {
+      name: 'OpenAI (DALL·E)',
+      aspects: ['square', 'portrait', 'landscape'],
+      qualities: ['standard', 'high'],
+      defaultAspect: 'square',
+      defaultQuality: 'standard',
+      credits: 10,
+      genTime: '30 sec',
+      // Map simplified values to API format
+      aspectMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      qualityMap: { standard: 'standard', high: 'hd' }
+    },
+    google: {
+      name: 'Google (Imagen)',
+      aspects: ['square', 'portrait', 'landscape'],
+      qualities: ['standard', 'high'],
+      defaultAspect: 'square',
+      defaultQuality: 'standard',
+      credits: 10,
+      genTime: '45 sec',
+      aspectMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
+      qualityMap: { standard: '1K', high: '2K' }
+    }
+  },
+  video: {
+    google: {
+      name: 'Google (Veo)',
+      aspects: ['landscape', 'square', 'portrait'],
+      qualities: ['standard', 'high'],
+      durations: [4, 6, 8],
+      defaultAspect: 'landscape',
+      defaultQuality: 'standard',
+      defaultDuration: 4,
+      maxDuration: 8,
+      fps: 24,
+      genTime: '~2 min',
+      aspectMap: { landscape: '16:9', square: '1:1', portrait: '9:16' },
+      qualityMultiplier: { standard: 1.0, high: 1.5 },
+      baseCreditsByDuration: { 4: 30, 6: 45, 8: 60 },
+      audioAddon: 30
+    }
+  },
+  model: {
+    meshy: {
+      name: 'Meshy',
+      modes: ['text-to-3d', 'image-to-3d'],
+      defaultMode: 'text-to-3d',
+      credits: 50,
+      genTime: '~3 min'
+    }
+  }
+};
+
+// ============================================================================
+// GENERATION STATE (single source of truth)
+// All UI controls and API calls read/write through this state
+// ============================================================================
+export const generation = {
+  // Current mode
+  mode: 'image',  // 'image' | 'video' | 'model'
+
+  // Provider (per mode)
+  provider: {
+    image: 'openai',
+    video: 'google',
+    model: 'meshy'
+  },
+
+  // Image settings
+  image: {
+    prompt: '',
+    aspect: 'square',
+    quality: 'standard'
+  },
+
+  // Video settings
+  video: {
+    prompt: '',
+    motion: '',
+    aspect: 'landscape',
+    quality: 'standard',
+    duration: 4,
+    loop: true,
+    audio: false,
+    mode: 'text2video'  // 'text2video' | 'image2video'
+  },
+
+  // Model settings
+  model: {
+    prompt: '',
+    mode: 'text-to-3d',
+    pose: false,
+    batchCount: 1
+  },
+
+  // Lock state (prevents changes during generation)
+  locked: false,
+
+  // Current job info (when locked)
+  currentJob: null
 };
 
 /**
- * Set the active provider for a tool type
- * @param {'image'|'video'} toolType
- * @param {string} provider
+ * Get provider capabilities for current mode
+ * @param {string} mode - 'image' | 'video' | 'model'
+ * @param {string} provider - provider name
+ * @returns {object} capability config
  */
-export function setActiveProvider(toolType, provider) {
-  if (activeProvider.locked) {
-    console.warn('[State] Cannot change provider while generation is in progress');
-    return false;
-  }
-  if (toolType === 'image' || toolType === 'video') {
-    activeProvider[toolType] = provider;
-    return true;
-  }
-  return false;
+export function getProviderCapabilities(mode, provider) {
+  return PROVIDER_CAPABILITIES[mode]?.[provider] || null;
 }
 
 /**
- * Get the active provider for a tool type
- * @param {'image'|'video'} toolType
+ * Get current provider for a mode
+ * @param {string} mode
  * @returns {string}
  */
-export function getActiveProvider(toolType) {
-  return activeProvider[toolType] || (toolType === 'image' ? 'openai' : 'google');
+export function getProvider(mode) {
+  return generation.provider[mode] || 'openai';
 }
 
 /**
- * Lock providers (call when starting generation)
+ * Set provider for a mode and normalize settings
+ * @param {string} mode - 'image' | 'video' | 'model'
+ * @param {string} provider
+ * @returns {boolean} success
  */
-export function lockProviders() {
-  activeProvider.locked = true;
+export function setProvider(mode, provider) {
+  if (generation.locked) {
+    console.warn('[GEN] Cannot change provider while generation is in progress');
+    return false;
+  }
+
+  const caps = getProviderCapabilities(mode, provider);
+  if (!caps) {
+    console.warn('[GEN] Unknown provider:', provider, 'for mode:', mode);
+    return false;
+  }
+
+  generation.provider[mode] = provider;
+
+  // Normalize settings for the new provider
+  normalizeSettings(mode, provider);
+
+  console.log('[GEN] Provider changed:', { mode, provider, settings: generation[mode] });
+  return true;
 }
 
 /**
- * Unlock providers (call when generation completes/fails)
+ * Normalize settings when provider changes
+ * Auto-corrects invalid selections based on provider capabilities
+ * @param {string} mode
+ * @param {string} provider
  */
-export function unlockProviders() {
-  activeProvider.locked = false;
+export function normalizeSettings(mode, provider) {
+  const caps = getProviderCapabilities(mode, provider);
+  if (!caps) return;
+
+  const settings = generation[mode];
+  if (!settings) return;
+
+  // Normalize aspect
+  if (settings.aspect !== undefined && caps.aspects) {
+    if (!caps.aspects.includes(settings.aspect)) {
+      settings.aspect = caps.defaultAspect || caps.aspects[0];
+      console.log('[GEN] Normalized aspect to:', settings.aspect);
+    }
+  }
+
+  // Normalize quality
+  if (settings.quality !== undefined && caps.qualities) {
+    if (!caps.qualities.includes(settings.quality)) {
+      settings.quality = caps.defaultQuality || caps.qualities[0];
+      console.log('[GEN] Normalized quality to:', settings.quality);
+    }
+  }
+
+  // Normalize duration (video only)
+  if (settings.duration !== undefined && caps.durations) {
+    if (!caps.durations.includes(settings.duration)) {
+      settings.duration = caps.defaultDuration || caps.durations[0];
+      console.log('[GEN] Normalized duration to:', settings.duration);
+    }
+  }
 }
 
 /**
- * Check if providers are locked
+ * Update a setting value
+ * @param {string} mode - 'image' | 'video' | 'model'
+ * @param {string} key - setting key
+ * @param {*} value - new value
+ * @returns {boolean} success
  */
-export function isProviderLocked() {
-  return activeProvider.locked;
+export function setSetting(mode, key, value) {
+  if (generation.locked) {
+    console.warn('[GEN] Cannot change settings while generation is in progress');
+    return false;
+  }
+
+  if (!generation[mode]) {
+    console.warn('[GEN] Unknown mode:', mode);
+    return false;
+  }
+
+  generation[mode][key] = value;
+
+  // Re-normalize in case the value is invalid for current provider
+  normalizeSettings(mode, generation.provider[mode]);
+
+  return true;
 }
+
+/**
+ * Get current settings for a mode
+ * @param {string} mode
+ * @returns {object}
+ */
+export function getSettings(mode) {
+  return { ...generation[mode] };
+}
+
+/**
+ * Get full generation state snapshot for API call
+ * @param {string} mode
+ * @returns {object} { provider, settings, capabilities, credits }
+ */
+export function getGenerationSnapshot(mode) {
+  const provider = generation.provider[mode];
+  const caps = getProviderCapabilities(mode, provider);
+  const settings = { ...generation[mode] };
+
+  // Calculate credits
+  let credits = caps?.credits || 10;
+  if (mode === 'video' && caps) {
+    const base = caps.baseCreditsByDuration?.[settings.duration] || 30;
+    const mult = caps.qualityMultiplier?.[settings.quality] || 1.0;
+    credits = Math.round(base * mult);
+    if (settings.audio) {
+      credits += caps.audioAddon || 30;
+    }
+  }
+
+  return {
+    mode,
+    provider,
+    settings,
+    capabilities: caps,
+    credits
+  };
+}
+
+/**
+ * Lock generation state (call when starting)
+ * @param {object} jobInfo - { jobId, reservationId, startedAt }
+ */
+export function lockGeneration(jobInfo) {
+  generation.locked = true;
+  generation.currentJob = {
+    ...jobInfo,
+    snapshot: getGenerationSnapshot(generation.mode)
+  };
+  console.log('[GEN] Locked:', generation.currentJob);
+}
+
+/**
+ * Unlock generation state (call when complete/failed)
+ */
+export function unlockGeneration() {
+  generation.locked = false;
+  generation.currentJob = null;
+  console.log('[GEN] Unlocked');
+}
+
+/**
+ * Check if generation is locked
+ * @returns {boolean}
+ */
+export function isLocked() {
+  return generation.locked;
+}
+
+/**
+ * Set current mode
+ * @param {string} mode - 'image' | 'video' | 'model'
+ */
+export function setMode(mode) {
+  if (generation.locked) {
+    console.warn('[GEN] Cannot change mode while generation is in progress');
+    return false;
+  }
+  generation.mode = mode;
+  return true;
+}
+
+/**
+ * Get current mode
+ * @returns {string}
+ */
+export function getMode() {
+  return generation.mode;
+}
+
+// Legacy compatibility aliases
+export const activeProvider = generation.provider;
+export function getActiveProvider(mode) { return getProvider(mode); }
+export function setActiveProvider(mode, provider) { return setProvider(mode, provider); }
+export function lockProviders() { lockGeneration({}); }
+export function unlockProviders() { unlockGeneration(); }
+export function isProviderLocked() { return isLocked(); }
 
 // Track lineage counts for grouped history items
 export const historyLineageCounts = new Map();
@@ -634,3 +893,30 @@ window.deleteHistoryItem = deleteHistoryItem;
 window.loadHistoryFromDB = loadHistoryFromDB;
 window.forceRestoreFromDB = forceRestoreFromDB;
 window.clearLocalHistoryCache = clearLocalHistoryCache;
+
+// ============================================================================
+// EXPOSE GENERATION STATE GLOBALLY
+// ============================================================================
+window.GenerationState = {
+  // State object (read-only reference)
+  get generation() { return generation; },
+  get capabilities() { return PROVIDER_CAPABILITIES; },
+
+  // Getters
+  getMode,
+  getProvider,
+  getSettings,
+  getProviderCapabilities,
+  getGenerationSnapshot,
+  isLocked,
+
+  // Setters
+  setMode,
+  setProvider,
+  setSetting,
+  normalizeSettings,
+
+  // Lock/unlock
+  lockGeneration,
+  unlockGeneration
+};
