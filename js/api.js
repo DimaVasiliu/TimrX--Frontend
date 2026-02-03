@@ -107,6 +107,49 @@ function releaseCreditsReservation(reservationId) {
   }
 
   window.WorkspaceCredits.releaseReservation(reservationId);
+}
+
+/**
+ * Show insufficient credits modal with exact required vs available
+ * Replaces alert() for better UX
+ *
+ * @param {number} required - Credits required for this action
+ * @param {number} available - Credits currently available
+ * @param {string} actionType - Type of action (for analytics)
+ */
+function showInsufficientCreditsModal(required, available, actionType = 'generation') {
+  const needed = required - available;
+
+  // Try to use the workspace modal if available
+  const modalEl = document.getElementById('insufficientCreditsModal');
+  if (modalEl) {
+    // Update modal content
+    const requiredEl = modalEl.querySelector('.credits-required');
+    const availableEl = modalEl.querySelector('.credits-available');
+    const neededEl = modalEl.querySelector('.credits-needed');
+
+    if (requiredEl) requiredEl.textContent = required;
+    if (availableEl) availableEl.textContent = available;
+    if (neededEl) neededEl.textContent = Math.max(0, needed);
+
+    // Show modal
+    modalEl.classList.remove('hidden');
+    modalEl.style.display = 'flex';
+    return;
+  }
+
+  // Fallback: check for hub buy modal
+  const hubBuyModal = document.getElementById('buyCreditsModal');
+  if (hubBuyModal && window.TimrXCredits?.openModal) {
+    window.TimrXCredits.openModal();
+    return;
+  }
+
+  // Final fallback: confirm dialog (no negative numbers)
+  const msg = `This ${actionType} requires ${required} credits.\n\nYou currently have ${available} credits.\nYou need ${Math.max(0, needed)} more credits.`;
+  if (confirm(msg + '\n\nWould you like to buy more credits?')) {
+    window.location.href = '/pricing';
+  }
   log('[Credits] Released reservation:', reservationId);
 }
 
@@ -1174,6 +1217,16 @@ export async function onGenerateClick() {
   }
 }
 
+// Flat credit cost for images
+const IMAGE_CREDITS = 10;
+
+// Map simplified aspect to OpenAI resolution
+const OPENAI_RESOLUTION_MAP = {
+  square: '1024x1024',
+  portrait: '1024x1536',
+  landscape: '1536x1024'
+};
+
 /**
  * Start OpenAI image generation
  */
@@ -1186,8 +1239,10 @@ export async function startOpenAIImageGeneration() {
     return;
   }
 
-  // Check credits before proceeding
-  if (!checkCreditsFor('text-to-image')) {
+  // Check credits (flat 10 for images)
+  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
+  if (available < IMAGE_CREDITS) {
+    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
     return;
   }
 
@@ -1196,22 +1251,35 @@ export async function startOpenAIImageGeneration() {
   const prog = UI.makeProgressDriver();
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
-  const resolution = byId('imageResolution')?.value || '1024x1024';
+
+  // Get settings from UI (simplified)
+  const settings = window.ImageJobControl?.getSettings?.() || {
+    provider: 'openai',
+    aspect: byId('imageAspectRatio')?.value || 'square',
+    quality: byId('imageQuality')?.value || 'standard'
+  };
+
+  // Map aspect to OpenAI resolution
+  const resolution = OPENAI_RESOLUTION_MAP[settings.aspect] || '1024x1024';
   const model = 'gpt-image-1';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
     prompt: promptRaw,
+    aspect: settings.aspect,
+    quality: settings.quality,
     resolution,
-    model
+    model,
+    credits: IMAGE_CREDITS
   };
 
-  // Reserve credits BEFORE API call
+  // Reserve flat credits BEFORE API call
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('text-to-image', 1);
   if (reservation.insufficient) {
     startLock = false;
-    return; // Insufficient credits modal shown
+    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+    return;
   }
 
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `openai-temp-${Date.now()}`);
@@ -1336,6 +1404,19 @@ export async function startOpenAIImageGeneration() {
   }
 }
 
+// Map simplified aspect to Google format
+const GOOGLE_ASPECT_MAP = {
+  square: '1:1',
+  portrait: '9:16',
+  landscape: '16:9'
+};
+
+// Map simplified quality to Google imageSize
+const GOOGLE_QUALITY_MAP = {
+  standard: '1K',
+  high: '2K'
+};
+
 /**
  * Start Gemini (Google Imagen) image generation
  */
@@ -1348,8 +1429,10 @@ export async function startGeminiImageGeneration() {
     return;
   }
 
-  // Check credits before proceeding
-  if (!checkCreditsFor('text-to-image')) {
+  // Check credits (flat 10 for images)
+  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
+  if (available < IMAGE_CREDITS) {
+    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
     return;
   }
 
@@ -1359,31 +1442,34 @@ export async function startGeminiImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get Gemini-specific options from UI
-  const VALID_ASPECTS = ['1:1', '9:16', '16:9'];
-  const VALID_QUALITIES = ['512', '768', '1K', '2K'];
+  // Get settings from UI (simplified)
+  const settings = window.ImageJobControl?.getSettings?.() || {
+    provider: 'google',
+    aspect: byId('imageAspectRatio')?.value || 'square',
+    quality: byId('imageQuality')?.value || 'standard'
+  };
 
-  // Get aspect ratio with validation (fallback to 1:1)
-  const rawAspect = byId('imageAspectRatio')?.value || '1:1';
-  const aspectRatio = VALID_ASPECTS.includes(rawAspect) ? rawAspect : '1:1';
-
-  // Get quality with validation (fallback to 1K)
-  const rawQuality = byId('imageQuality')?.value || '1K';
-  const imageSize = VALID_QUALITIES.includes(rawQuality) ? rawQuality : '1K';
+  // Map to Google-specific formats
+  const aspectRatio = GOOGLE_ASPECT_MAP[settings.aspect] || '1:1';
+  const imageSize = GOOGLE_QUALITY_MAP[settings.quality] || '1K';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
     prompt: promptRaw,
+    aspect: settings.aspect,
+    quality: settings.quality,
     aspectRatio,
-    imageSize
+    imageSize,
+    credits: IMAGE_CREDITS
   };
 
-  // Reserve credits BEFORE API call
+  // Reserve flat credits BEFORE API call
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('text-to-image', 1);
   if (reservation.insufficient) {
     startLock = false;
-    return; // Insufficient credits modal shown
+    showInsufficientCreditsModal(IMAGE_CREDITS, available, 'image');
+    return;
   }
 
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `gemini-temp-${Date.now()}`);
@@ -1530,17 +1616,26 @@ export async function startImageGenerationByProvider() {
  * Video credit calculation constants (must match 3dprint-app.js)
  */
 const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
-const VIDEO_RES_MULTIPLIER = { '720p': 1.0, '1080p': 1.5, '4k': 2.5 };
+const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
 const VIDEO_AUDIO_ADDON = 30;
 
+// Map simplified aspect to API format
+const VIDEO_ASPECT_MAP = {
+  landscape: '16:9',
+  square: '1:1',
+  portrait: '9:16'
+};
+
 /**
- * Compute video credits based on settings
+ * Compute video credits based on settings (simplified)
+ * @param {Object} settings - { durationSec, quality, addAudio }
+ * @returns {number} Total credits
  */
-function computeVideoCredits(durationSec, resolution, addAudio) {
-  const base = VIDEO_BASE_CREDITS[durationSec] || 30;
-  const mult = VIDEO_RES_MULTIPLIER[resolution] || 1.0;
+function computeVideoCredits(settings) {
+  const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
+  const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
   let cost = Math.round(base * mult);
-  if (addAudio) {
+  if (settings.addAudio) {
     cost += VIDEO_AUDIO_ADDON;
   }
   return cost;
@@ -1552,21 +1647,27 @@ function computeVideoCredits(durationSec, resolution, addAudio) {
 export async function startVideoGeneration() {
   if (startLock) return;
 
-  // Get video settings from UI
-  const durationSec = parseInt(byId('videoDuration')?.value || '6', 10);
-  const resolutionRaw = byId('videoResolution')?.value || '720p';
-  const resolution = resolutionRaw.toLowerCase();
-  const aspectRatio = byId('videoAspectRatio')?.value || '16:9';
-  const addAudio = byId('videoAudio')?.checked ?? false;
+  // Get video settings from UI (use window.VideoJobControl if available, else read directly)
+  const settings = window.VideoJobControl?.getSettings?.() || {
+    durationSec: parseInt(byId('videoDuration')?.value || '4', 10),
+    quality: byId('videoQuality')?.value || 'standard',
+    aspect: byId('videoAspectRatio')?.value || 'landscape',
+    aspectRatio: VIDEO_ASPECT_MAP[byId('videoAspectRatio')?.value] || '16:9',
+    loop: byId('videoLoop')?.checked ?? true,
+    addAudio: byId('videoAudio')?.checked ?? false,
+    mode: byId('videoModeValue')?.value || 'text2video'
+  };
+
   const motion = (byId('videoMotion')?.value || '').trim();
   const prompt = (byId('videoTextPrompt')?.value || '').trim();
-  const mode = byId('videoModeValue')?.value || 'text2video';
 
-  // Compute credits
-  const totalCredits = computeVideoCredits(durationSec, resolution, addAudio);
+  // Compute credits using the SAME formula as UI
+  const totalCredits = computeVideoCredits(settings);
 
-  // Check credits before proceeding
-  if (!checkCreditsFor('video', 1)) {
+  // Check if user has enough credits (use computed credits, not action cost)
+  const available = window.WorkspaceCredits?.getAvailableCredits?.() || 0;
+  if (available < totalCredits) {
+    showInsufficientCreditsModal(totalCredits, available, 'video');
     return;
   }
 
@@ -1574,11 +1675,12 @@ export async function startVideoGeneration() {
 
   const prog = UI.makeProgressDriver();
 
-  // Reserve credits for video action
+  // Reserve the exact computed credits
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('video', totalCredits);
   if (reservation.insufficient) {
     startLock = false;
+    showInsufficientCreditsModal(totalCredits, available, 'video');
     return;
   }
 
@@ -1598,7 +1700,9 @@ export async function startVideoGeneration() {
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
-    provider: 'google'
+    provider: 'google',
+    provider_used: 'google',
+    credits_used: totalCredits
   };
   State.addHistoryItem(placeholder);
   State.setHistoryActiveModelId(tempId);
@@ -1607,16 +1711,17 @@ export async function startVideoGeneration() {
   try {
     prog.label('Generating video with Veo...');
 
-    // Build payload
+    // Build payload with simplified settings
     const payload = {
       provider: 'google',
-      task: mode,
+      task: settings.mode,
       prompt: prompt,
-      duration_sec: durationSec,
-      aspect_ratio: aspectRatio,
-      resolution: resolution,
+      duration_sec: settings.durationSec,
+      aspect_ratio: settings.aspectRatio,
+      quality: settings.quality,
       motion: motion,
-      audio: addAudio,
+      audio: settings.addAudio,
+      loop: settings.loop
     };
 
     const result = await apiFetch('/api/video/generate', {
