@@ -1862,6 +1862,26 @@ export async function startVideoGeneration() {
       loop: settings.loop
     };
 
+    // For image2video mode, include the reference image
+    if (settings.mode === 'image2video') {
+      const videoImagePreview = byId('videoImagePreview');
+      const imageData = videoImagePreview?.src;
+
+      // Accept both data URLs (from file upload) and HTTP URLs (from history images)
+      const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
+
+      if (!isValidImage) {
+        startLock = false;
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast('Please upload a reference image for Image to Video mode', 'error');
+        return;
+      }
+
+      payload.image_data = imageData;
+      const isDataUrl = imageData.startsWith('data:');
+      console.log('[VIDEO] Image2Video mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
+    }
+
     // Debug log before API call
     console.log('[GEN] mode=video provider=google cost=' + totalCredits +
                 ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
