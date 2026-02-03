@@ -543,6 +543,63 @@ export const historyState = {
   sort: 'desc'
 };
 
+// ============================================================================
+// ACTIVE PROVIDER STATE (single source of truth for generation providers)
+// Prevents provider switching mid-job
+// ============================================================================
+export const activeProvider = {
+  image: 'openai',   // 'openai' | 'google'
+  video: 'google',   // 'google' (only option for now)
+  locked: false      // true while generation is in-flight
+};
+
+/**
+ * Set the active provider for a tool type
+ * @param {'image'|'video'} toolType
+ * @param {string} provider
+ */
+export function setActiveProvider(toolType, provider) {
+  if (activeProvider.locked) {
+    console.warn('[State] Cannot change provider while generation is in progress');
+    return false;
+  }
+  if (toolType === 'image' || toolType === 'video') {
+    activeProvider[toolType] = provider;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Get the active provider for a tool type
+ * @param {'image'|'video'} toolType
+ * @returns {string}
+ */
+export function getActiveProvider(toolType) {
+  return activeProvider[toolType] || (toolType === 'image' ? 'openai' : 'google');
+}
+
+/**
+ * Lock providers (call when starting generation)
+ */
+export function lockProviders() {
+  activeProvider.locked = true;
+}
+
+/**
+ * Unlock providers (call when generation completes/fails)
+ */
+export function unlockProviders() {
+  activeProvider.locked = false;
+}
+
+/**
+ * Check if providers are locked
+ */
+export function isProviderLocked() {
+  return activeProvider.locked;
+}
+
 // Track lineage counts for grouped history items
 export const historyLineageCounts = new Map();
 
