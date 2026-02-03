@@ -754,6 +754,66 @@ export function reserveCredits(action, count = 1) {
 }
 
 /**
+ * Reserve an EXACT amount of credits (use for pre-computed costs like video)
+ * Unlike reserveCredits(action, count), this does NOT multiply by action cost.
+ *
+ * @param {object} params
+ * @param {string} params.action - The action type (for logging/tracking)
+ * @param {number} params.amount - Exact credits amount to reserve
+ * @param {object} params.meta - Optional metadata
+ * @returns {{ reservationId: string, amount: number, insufficient?: boolean }}
+ */
+export function reserveAmount({ action, amount, meta = {} }) {
+  const numAmount = Number(amount) || 0;
+
+  if (numAmount <= 0) {
+    log('[Credits] reserveAmount: invalid amount', { action, amount });
+    return { reservationId: null, amount: 0 };
+  }
+
+  // Check if enough credits available (accounting for existing reservations)
+  const available = Number(creditsState.wallet.available) || 0;
+  const effectiveAvailable = available - creditsState.totalReserved;
+
+  console.log(`[CREDITS] reserving amount=${numAmount} for action=${action}`);
+
+  if (effectiveAvailable < numAmount) {
+    log('[Credits] reserveAmount failed: insufficient credits', {
+      action,
+      required: numAmount,
+      available,
+      effectiveAvailable,
+    });
+    return { reservationId: null, amount: 0, insufficient: true, required: numAmount, available: effectiveAvailable };
+  }
+
+  const reservationId = `res_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  const reservation = {
+    amount: numAmount,
+    action,
+    meta,
+    timestamp: Date.now(),
+  };
+
+  // Track reservation
+  creditsState.reservations.set(reservationId, reservation);
+  creditsState.totalReserved += numAmount;
+
+  log('[Credits] reserveAmount succeeded:', {
+    reservationId,
+    action,
+    amount: numAmount,
+    totalReserved: creditsState.totalReserved,
+    effectiveAvailable: available - creditsState.totalReserved,
+  });
+
+  // Update UI to show reservation
+  updateCreditsUI();
+
+  return { reservationId, amount: numAmount };
+}
+
+/**
  * Confirm a reservation (job started successfully).
  * Converts reservation to actual deduction.
  *
@@ -1385,6 +1445,7 @@ window.WorkspaceCredits = {
   getPendingAmount,
   // Reservation functions (hold credits during generation)
   reserveCredits,
+  reserveAmount,
   confirmReservation,
   releaseReservation,
   getTotalReserved,
