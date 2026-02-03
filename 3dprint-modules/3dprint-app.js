@@ -1089,9 +1089,11 @@
           const prompt = videoTextPrompt?.value?.trim() || '';
           isValid = prompt.length > 0;
         } else {
-          // Image-to-Video: require uploaded image
-          const hasImage = videoSource && videoSource.files && videoSource.files.length > 0;
-          isValid = hasImage;
+          // Image-to-Video: require uploaded image OR image loaded from history
+          const hasFileUpload = videoSource && videoSource.files && videoSource.files.length > 0;
+          const previewSrc = videoImagePreview?.src || '';
+          const hasPreviewImage = previewSrc.startsWith('data:') || previewSrc.startsWith('http');
+          isValid = hasFileUpload || hasPreviewImage;
         }
 
         // Only manage disabled state for validation - don't override credits check
