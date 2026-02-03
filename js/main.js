@@ -90,6 +90,210 @@ function showErrorToast(message) {
   }, 2600);
 }
 
+/**
+ * Show a nice popup for Gemini quota exceeded errors
+ * Gemini API quota resets at midnight Pacific Time
+ */
+function showQuotaExceededPopup() {
+  // Remove any existing quota popup
+  const existing = document.getElementById('quotaExceededPopup');
+  if (existing) existing.remove();
+
+  // Calculate time until midnight PT (Pacific Time) - Gemini quota resets at midnight PT
+  const now = new Date();
+
+  // Calculate midnight PT
+  const midnightPT = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  midnightPT.setHours(24, 0, 0, 0);
+  const nowPT = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const msUntilReset = midnightPT - nowPT;
+  const hoursUntilReset = Math.floor(msUntilReset / (1000 * 60 * 60));
+  const minutesUntilReset = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+
+  // Format reset time in user's local timezone
+  const resetTimeLocal = new Date(now.getTime() + msUntilReset);
+  const localFormatter = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+  const resetTimeStr = localFormatter.format(resetTimeLocal);
+
+  const popup = document.createElement('div');
+  popup.id = 'quotaExceededPopup';
+  popup.setAttribute('role', 'alertdialog');
+  popup.setAttribute('aria-labelledby', 'quotaTitle');
+  popup.setAttribute('aria-describedby', 'quotaDesc');
+  popup.innerHTML = `
+    <div class="quota-popup-backdrop"></div>
+    <div class="quota-popup-content">
+      <div class="quota-popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+      <h3 id="quotaTitle">Daily Video Limit Reached</h3>
+      <p id="quotaDesc">
+        Google's Veo video generation has a daily quota limit that has been exceeded.
+        This is a platform-wide limit, not specific to your account.
+      </p>
+      <div class="quota-popup-timer">
+        <span class="quota-popup-timer-label">Quota resets in approximately</span>
+        <span class="quota-popup-timer-value">${hoursUntilReset}h ${minutesUntilReset}m</span>
+        <span class="quota-popup-timer-hint">~${resetTimeStr} your local time</span>
+      </div>
+      <p class="quota-popup-tip">
+        Tip: Try generating 3D models or images while you wait!
+      </p>
+      <button type="button" class="quota-popup-close" aria-label="Close">Got it</button>
+    </div>
+  `;
+
+  // Styles
+  const style = document.createElement('style');
+  style.textContent = `
+    #quotaExceededPopup {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: quotaFadeIn 0.2s ease;
+    }
+    @keyframes quotaFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .quota-popup-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    .quota-popup-content {
+      position: relative;
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: quotaSlideUp 0.3s ease;
+    }
+    @keyframes quotaSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .quota-popup-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quota-popup-icon svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+    .quota-popup-content h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .quota-popup-content p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+    .quota-popup-timer {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .quota-popup-timer-label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .quota-popup-timer-value {
+      display: block;
+      font-size: 32px;
+      font-weight: 700;
+      color: #667eea;
+      font-variant-numeric: tabular-nums;
+    }
+    .quota-popup-timer-hint {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 6px;
+    }
+    .quota-popup-tip {
+      font-size: 13px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      font-style: italic;
+      margin-bottom: 24px !important;
+    }
+    .quota-popup-close {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 32px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .quota-popup-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    .quota-popup-close:active {
+      transform: translateY(0);
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(popup);
+
+  // Close handlers
+  const closeBtn = popup.querySelector('.quota-popup-close');
+  const backdrop = popup.querySelector('.quota-popup-backdrop');
+  const closePopup = () => {
+    popup.style.opacity = '0';
+    setTimeout(() => {
+      popup.remove();
+      style.remove();
+    }, 200);
+  };
+  closeBtn.addEventListener('click', closePopup);
+  backdrop.addEventListener('click', closePopup);
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') {
+      closePopup();
+      document.removeEventListener('keydown', escHandler);
+    }
+  });
+
+  // Focus the close button for accessibility
+  closeBtn.focus();
+}
+
 // ============================================================================
 // FILE HANDLERS
 // ============================================================================
@@ -967,3 +1171,4 @@ window.addEventListener('DOMContentLoaded', () => {
 window.renderHistory = renderHistory;
 window.switchHistoryFilter = switchHistoryFilter;
 window.showModal = showModal;
+window.showQuotaExceededPopup = showQuotaExceededPopup;
