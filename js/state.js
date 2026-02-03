@@ -155,7 +155,10 @@ export function sanitizeHistoryItem(item = {}) {
 function shouldSkipRemoteHistoryItem(item = {}) {
   if (!item || typeof item !== 'object') return true;
   if (item.status && item.status !== 'finished') return true;
-  if (item.model_id || item.image_id) return false;
+  // Don't skip if we have a valid ID for any content type
+  if (item.model_id || item.image_id || item.video_id) return false;
+  // Also check if this is a video with a video_url (completed video)
+  if (item.type === 'video' && item.video_url) return false;
   return true;
 }
 
@@ -185,6 +188,9 @@ function saveHistoryCache(arr) {
       prompt: item.prompt,
       thumbnail_url: item.thumbnail_url,
       image_url: item.image_url,
+      video_url: item.video_url,
+      video_id: item.video_id,
+      error_message: item.error_message,
       glb_url: item.glb_url,
       glb_proxy: item.glb_proxy,
       stage: item.stage,
@@ -424,8 +430,13 @@ export function updateHistoryItem(jobId, updates = {}) {
   const idx = historyCache.findIndex(x => x.id === jobId);
 
   if (idx !== -1) {
-    historyCache[idx] = { ...historyCache[idx], ...updates, status: updates.status || 'finished' };
+    const updated = { ...historyCache[idx], ...updates, status: updates.status || 'finished' };
+    historyCache[idx] = updated;
     saveHistoryCache(historyCache);
+
+    if (shouldSkipRemoteHistoryItem(updated)) {
+      return true;
+    }
 
     // Update in database
     apiFetch(`/api/_mod/history/item/${encodeURIComponent(jobId)}`, {
