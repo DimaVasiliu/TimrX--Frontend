@@ -405,20 +405,17 @@
       `,
   
       video: `
-        <div class="card">
-          <h3>Video Mode</h3>
-          <div class="inline-field" style="margin-bottom:10px">
-            <label for="videoAIProvider">Provider</label>
-            <select id="videoAIProvider">
-              <option value="google" selected>Google (Veo)</option>
-            </select>
-          </div>
+        <input type="hidden" id="videoModeValue" value="text2video" />
+        <input type="hidden" id="videoAIProvider" value="google" />
+
+        <!-- Text-to-Video: Prompt input -->
+        <div class="card video-mode-content" id="text2videoContent">
           <div class="video-mode-switcher" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
                 <path d="M4 6h16M4 12h16M4 18h10"/>
               </svg>
-              Text → Video
+              Text to Video
             </button>
             <button type="button" class="video-mode-btn" data-mode="image2video">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
@@ -426,24 +423,33 @@
                 <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
                 <path d="M21 15l-5-5L5 21"/>
               </svg>
-              Image → Video
+              Image to Video
             </button>
           </div>
-          <input type="hidden" id="videoModeValue" value="text2video" />
-        </div>
-
-        <!-- Text-to-Video: Prompt input -->
-        <div class="card video-mode-content" id="text2videoContent">
-          <h3>Video Prompt</h3>
-          <label for="videoTextPrompt" style="font-size:12px">Describe your video scene</label>
+          <label for="videoTextPrompt" style="font-size:12px;margin-top:14px;display:block">Describe your video scene</label>
           <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
           <span class="field-hint">Keep prompts simple. Short clips look best.</span>
         </div>
 
         <!-- Image-to-Video: Image upload -->
         <div class="card video-mode-content hidden" id="image2videoContent">
-          <h3>Source Image</h3>
-          <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:5px">Upload Reference Image</label>
+          <div class="video-mode-switcher" id="videoModeSwitcherAlt">
+            <button type="button" class="video-mode-btn" data-mode="text2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <path d="M4 6h16M4 12h16M4 18h10"/>
+              </svg>
+              Text to Video
+            </button>
+            <button type="button" class="video-mode-btn is-active" data-mode="image2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+              Image to Video
+            </button>
+          </div>
+          <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-top:14px;margin-bottom:5px">Upload Reference Image</label>
           <div id="videoImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
             <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -973,6 +979,7 @@
       // VIDEO: Mode Switching & Credits Logic
       // ========================================
       const videoModeSwitcher = leftStack.querySelector('#videoModeSwitcher');
+      const videoModeSwitcherAlt = leftStack.querySelector('#videoModeSwitcherAlt');
       const videoModeValue = leftStack.querySelector('#videoModeValue');
       const text2videoContent = leftStack.querySelector('#text2videoContent');
       const image2videoContent = leftStack.querySelector('#image2videoContent');
@@ -1103,16 +1110,20 @@
         }
       }
 
-      // Video mode switcher
-      if (videoModeSwitcher) {
-        const modeButtons = videoModeSwitcher.querySelectorAll('.video-mode-btn');
+      // Video mode switcher - handles both switchers (one in each content card)
+      const allModeSwitchers = [videoModeSwitcher, videoModeSwitcherAlt].filter(Boolean);
+      const allModeButtons = leftStack.querySelectorAll('.video-mode-btn');
+
+      allModeSwitchers.forEach(switcher => {
+        const modeButtons = switcher.querySelectorAll('.video-mode-btn');
         modeButtons.forEach(btn => {
           btn.addEventListener('click', function() {
             const mode = this.dataset.mode;
 
-            // Update active state
-            modeButtons.forEach(b => b.classList.remove('is-active'));
-            this.classList.add('is-active');
+            // Update active state on ALL mode buttons across both switchers
+            allModeButtons.forEach(b => {
+              b.classList.toggle('is-active', b.dataset.mode === mode);
+            });
 
             // Update hidden input
             if (videoModeValue) videoModeValue.value = mode;
@@ -1130,7 +1141,7 @@
             console.log('[Video] Mode switched to:', mode);
           });
         });
-      }
+      });
 
       // Wire up video credits calculation on any option change
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
