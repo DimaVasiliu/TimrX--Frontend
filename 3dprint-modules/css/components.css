@@ -288,6 +288,29 @@ textarea {
   margin-top: 4px;
 }
 
+/* Provider lock hint - shown during generation */
+.provider-lock-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #e8a838;
+  background: rgba(232, 168, 56, 0.1);
+  border: 1px solid rgba(232, 168, 56, 0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.provider-lock-hint i {
+  font-size: 10px;
+}
+
+.provider-lock-hint.hidden {
+  display: none;
+}
+
 /* ===== SPLIT FIELDS (2+ controls on the right side) ===== */
 .field-split {
   display: flex;
@@ -1167,6 +1190,14 @@ textarea {
 
 .timrx-3dprint .card select:disabled option {
   color: rgba(255, 255, 255, 0.6);
+}
+
+/* Disabled textarea styling for locked state */
+.timrx-3dprint .card textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Audio cost badge tooltip styling */
