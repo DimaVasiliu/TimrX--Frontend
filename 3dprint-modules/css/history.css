@@ -2490,20 +2490,19 @@ body.has-modal {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(20, 20, 25, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--history-thumb-bg);
+  border: 1px solid var(--history-thumb-border);
   transition: all 0.2s ease;
 }
 
 .history-thumb--video .history-thumb__image-wrapper {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
+  width: var(--history-thumb-size);
+  height: var(--history-thumb-size);
   overflow: hidden;
-  border-radius: 8px;
-  margin: 8px;
-  margin-bottom: 0;
-  width: calc(100% - 16px);
+  border-radius: var(--history-thumb-radius);
+  margin: 0;
+  align-self: center;
 }
 
 .history-thumb--video .history-thumb__image {
@@ -2536,14 +2535,14 @@ body.has-modal {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
   color: white;
   transition: all 0.2s ease;
   -webkit-backdrop-filter: blur(4px);
@@ -2644,8 +2643,8 @@ body.has-modal {
 
 .history-thumb__video-placeholder::before {
   content: '';
-  width: 50px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   background: rgba(139, 92, 246, 0.15);
   border-radius: 50%;
   border: 2px solid rgba(139, 92, 246, 0.3);
@@ -2721,7 +2720,8 @@ body.has-modal {
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 20;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .history-thumb--video .history-thumb__menu-btn {
@@ -2776,7 +2776,7 @@ body.has-modal {
 
 .history-video-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 8px 0;
   width: 100%;
@@ -2806,6 +2806,12 @@ body.has-modal {
 .history-video-grid .history-thumb--video:nth-child(4) { animation-delay: 0.2s; }
 
 /* Responsive: 1 column on smaller screens */
+@media (max-width: 900px) {
+  .history-video-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 480px) {
   .history-video-grid {
     grid-template-columns: 1fr;
