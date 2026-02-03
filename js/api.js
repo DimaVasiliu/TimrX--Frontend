@@ -77,6 +77,25 @@ function reserveCreditsForAction(action, count = 1) {
 }
 
 /**
+ * Reserve an EXACT amount of credits (pre-computed, not multiplied by action cost).
+ * Use this for video/image generation where cost is already computed from settings.
+ *
+ * @param {string} action - The action key (for logging/tracking)
+ * @param {number} amount - Exact credits amount to reserve
+ * @returns {{ reservationId: string, amount: number, insufficient?: boolean }}
+ */
+function reserveExactAmount(action, amount) {
+  if (!window.WorkspaceCredits?.reserveAmount) {
+    log('[Credits] reserveAmount not available, falling back to old method');
+    // Fallback: if new function not available, try old method with count=1
+    return reserveCreditsForAction(action, 1);
+  }
+
+  const result = window.WorkspaceCredits.reserveAmount({ action, amount });
+  return result;
+}
+
+/**
  * Confirm reservation after successful job start
  * Converts reservation to actual deduction
  *
@@ -1297,9 +1316,9 @@ export async function startOpenAIImageGeneration() {
     credits: IMAGE_CREDITS
   };
 
-  // Reserve flat credits BEFORE API call
+  // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
   prog.label('Reserving credits...');
-  const reservation = reserveCreditsForAction('text-to-image', 1);
+  const reservation = reserveExactAmount('text-to-image', IMAGE_CREDITS);
   if (reservation.insufficient) {
     startLock = false;
     showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
@@ -1493,9 +1512,9 @@ export async function startGeminiImageGeneration() {
     credits: IMAGE_CREDITS
   };
 
-  // Reserve flat credits BEFORE API call
+  // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
   prog.label('Reserving credits...');
-  const reservation = reserveCreditsForAction('text-to-image', 1);
+  const reservation = reserveExactAmount('text-to-image', IMAGE_CREDITS);
   if (reservation.insufficient) {
     startLock = false;
     showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
@@ -1713,9 +1732,9 @@ export async function startVideoGeneration() {
 
   const prog = UI.makeProgressDriver();
 
-  // Reserve the exact computed credits
+  // Reserve the EXACT computed credits (not multiplied by action cost)
   prog.label('Reserving credits...');
-  const reservation = reserveCreditsForAction('video', totalCredits);
+  const reservation = reserveExactAmount('video', totalCredits);
   if (reservation.insufficient) {
     startLock = false;
     showInsufficientCreditsModal(totalCredits, creditCheck.available, 'video');
