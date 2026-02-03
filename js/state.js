@@ -670,34 +670,49 @@ export function getProvider(mode) {
   return generation.provider[mode] || 'openai';
 }
 
+// Track who is allowed to change providers
+// ONLY 'user' and 'init' are allowed - background refreshes are blocked
+const ALLOWED_PROVIDER_SOURCES = new Set(['user', 'init']);
+
 /**
  * Set provider for a mode and normalize settings
+ * IMPORTANT: Only 'user' (dropdown change) and 'init' (initial load) are allowed.
+ * Background refreshes, wallet sync, etc. must NOT change the provider.
+ *
  * @param {string} mode - 'image' | 'video' | 'model'
  * @param {string} provider
- * @param {string} source - 'user' | 'init' (for logging)
+ * @param {string} source - 'user' | 'init' (ONLY these are allowed)
  * @returns {boolean} success
  */
 export function setProvider(mode, provider, source = 'user') {
+  // CRITICAL: Block non-user/init sources from changing provider
+  if (!ALLOWED_PROVIDER_SOURCES.has(source)) {
+    console.warn(`[Provider] BLOCKED change to ${provider} (source: ${source}) - only user/init allowed`);
+    return false;
+  }
+
   if (generation.locked) {
-    console.warn(`[Image] Provider change blocked (locked) -> ${provider} (source: ${source})`);
+    console.warn(`[Provider] BLOCKED change to ${provider} (source: ${source}) - generation locked`);
     return false;
   }
 
   const caps = getProviderCapabilities(mode, provider);
   if (!caps) {
-    console.warn(`[Image] Provider set FAILED -> ${provider} (source: ${source}) - unknown provider`);
+    console.warn(`[Provider] FAILED -> ${provider} (source: ${source}) - unknown provider`);
     return false;
   }
 
   const previousProvider = generation.provider[mode];
-  generation.provider[mode] = provider;
 
-  // Normalize settings for the new provider
-  normalizeSettings(mode, provider);
-
-  // Log provider change with source
+  // Only log and update if actually changing
   if (previousProvider !== provider) {
-    console.log(`[Image] Provider set -> ${provider} (source: ${source})`);
+    generation.provider[mode] = provider;
+
+    // Normalize settings for the new provider
+    normalizeSettings(mode, provider);
+
+    // Log provider change with source and stack trace for debugging
+    console.log(`[Provider] ${mode}: ${previousProvider} -> ${provider} (source: ${source})`);
   }
 
   return true;
