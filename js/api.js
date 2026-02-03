@@ -1315,14 +1315,20 @@ export async function startOpenAIImageGeneration() {
 
   try {
     prog.label('Queueing image...');
+
+    // Debug log before API call
+    const payload = {
+      prompt: promptRaw,
+      size: resolution,
+      model,
+      client_id: tempId
+    };
+    console.log('[GEN] mode=image provider=openai cost=' + IMAGE_CREDITS +
+                ' available=' + available + ' payload=' + JSON.stringify(payload));
+
     const result = await apiFetch('/api/_mod/image/openai', {
       method: 'POST',
-      body: {
-        prompt: promptRaw,
-        size: resolution,
-        model,
-        client_id: tempId
-      }
+      body: payload
     });
 
     if (!result.ok) {
@@ -1504,16 +1510,21 @@ export async function startGeminiImageGeneration() {
   try {
     prog.label('Generating image with Gemini...');
 
+    // Debug log before API call
+    const payload = {
+      provider: 'google',
+      prompt: promptRaw,
+      aspect_ratio: aspectRatio,
+      image_size: imageSize,
+      client_id: tempId
+    };
+    console.log('[GEN] mode=image provider=google cost=' + IMAGE_CREDITS +
+                ' available=' + available + ' payload=' + JSON.stringify(payload));
+
     // Call unified endpoint with provider=google
     const result = await apiFetch('/api/image/generate', {
       method: 'POST',
-      body: {
-        provider: 'google',
-        prompt: promptRaw,
-        aspect_ratio: aspectRatio,
-        image_size: imageSize,
-        client_id: tempId
-      }
+      body: payload
     });
 
     if (!result.ok) {
@@ -1598,7 +1609,10 @@ export async function startGeminiImageGeneration() {
  * Start image generation by selected provider
  */
 export async function startImageGenerationByProvider() {
-  const provider = (byId('imageAIProvider')?.value || 'openai').toLowerCase();
+  // Use GenerationState as single source of truth for provider
+  const provider = window.GenerationState?.getProvider?.('image') ||
+                   (byId('imageAIProvider')?.value || 'openai').toLowerCase();
+
   State.historyState.filter = 'image';
   State.historyState.page = 1;
   renderHistory();
@@ -1723,6 +1737,10 @@ export async function startVideoGeneration() {
       audio: settings.addAudio,
       loop: settings.loop
     };
+
+    // Debug log before API call
+    console.log('[GEN] mode=video provider=google cost=' + totalCredits +
+                ' available=' + available + ' payload=' + JSON.stringify(payload));
 
     const result = await apiFetch('/api/video/generate', {
       method: 'POST',
