@@ -434,11 +434,17 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : null;
   const displayModel = activeModel || models[0];
   const hasVariants = bundle.isBundle && models.length > 1;
-  const itemType = (displayModel.type || ((displayModel.glb_url || displayModel.glb_proxy) ? 'model' : (displayModel.image_url ? 'image' : 'model')));
+  const itemType = (displayModel.type || (
+    (displayModel.glb_url || displayModel.glb_proxy) ? 'model' :
+    displayModel.video_url ? 'video' :
+    displayModel.image_url ? 'image' :
+    'model'
+  ));
 
   let status = displayModel.status || 'finished';
   if (itemType === 'image' && (displayModel.image_url || displayModel.thumbnail_url)) status = 'finished';
-  if (itemType !== 'image' && (displayModel.glb_url || displayModel.glb_proxy)) status = 'finished';
+  if (itemType === 'video' && displayModel.video_url) status = 'finished';
+  if (itemType === 'model' && (displayModel.glb_url || displayModel.glb_proxy)) status = 'finished';
 
   const statusClass = status === 'generating' ? 'status-generating'
     : status === 'refining' ? 'status-refining'
@@ -524,6 +530,135 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   <span>Download</span>
                 </span>
               </button>
+              <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#128465;</span>
+                  <span>Delete</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // VIDEO TYPE
+  if (itemType === 'video') {
+    const videoSrc = displayModel.video_url || '';
+    const thumbSrc = displayModel.thumbnail_url || '';
+    const name = shortTitle(displayModel);
+    const videoCanDownload = !!videoSrc;
+    const isFailed = status === 'failed';
+    const videoProcessingLabel = status === 'generating' ? 'Generating video...'
+      : status === 'processing' ? 'Processing...'
+      : status === 'queued' ? 'Queued...'
+      : processingLabel;
+    const videoStatusClass = isFailed ? 'status-failed' : statusClass;
+
+    // Failed video card
+    if (isFailed) {
+      const errorMsg = displayModel.error_message || displayModel.error || 'Video generation failed';
+      return `
+        <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
+          <div class="${thumbPrefix}__status-bar">
+            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+            <span class="${thumbPrefix}__video-badge ${thumbPrefix}__video-badge--failed">Failed</span>
+          </div>
+          <div class="${thumbPrefix}__error-card">
+            <span class="${thumbPrefix}__error-icon">&#9888;</span>
+            <span class="${thumbPrefix}__error-text">${errorMsg.length > 40 ? errorMsg.slice(0, 40) + '...' : errorMsg}</span>
+            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+              <span>&#8635;</span> Retry
+            </button>
+          </div>
+          <span class="${thumbPrefix}__name">${name}</span>
+          ${!isExpanded ? `
+          <div class="${thumbPrefix}__menu-wrap">
+            <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="19" cy="12" r="2"/>
+              </svg>
+            </button>
+            <div class="card-menu" role="menu" aria-label="Video actions">
+              <div class="card-menu__list">
+                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#8635;</span>
+                    <span>Retry Generation</span>
+                  </span>
+                </button>
+                <div class="card-menu__divider"></div>
+                <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#128465;</span>
+                    <span>Delete</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // Normal/processing video card
+    return `
+      <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
+        <div class="${thumbPrefix}__status-bar">
+          <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+          <span class="${thumbPrefix}__video-badge">${isProcessing ? 'Processing' : 'Video'}</span>
+        </div>
+        <div class="${thumbPrefix}__image-wrapper">
+          <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
+                  type="button"
+                  data-act="open-video"
+                  data-id="${displayModel.id}"
+                  data-video-url="${videoSrc}"
+                  aria-label="Play ${name}"
+                  ${isProcessing ? 'disabled' : ''}>
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `<div class="${thumbPrefix}__video-placeholder"></div>`}
+            ${!isProcessing && videoSrc ? `<span class="${thumbPrefix}__play-icon">&#9658;</span>` : ''}
+          </button>
+        </div>
+        ${isProcessing ? `
+          <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--video" data-job-id="${displayModel.id}">
+            <span class="${thumbPrefix}__processing-label">${videoProcessingLabel}</span>
+            <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
+            <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
+              <div class="${thumbPrefix}__progress-fill"></div>
+            </div>
+          </div>
+        ` : ''}
+        <span class="${thumbPrefix}__name">${name}</span>
+        ${!isExpanded ? `
+        <div class="${thumbPrefix}__menu-wrap">
+          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <circle cx="19" cy="12" r="2"/>
+            </svg>
+          </button>
+          <div class="card-menu" role="menu" aria-label="Video actions">
+            <div class="card-menu__list">
+              <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#8595;</span>
+                  <span>Download</span>
+                </span>
+              </button>
+              <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#128279;</span>
+                  <span>Copy Link</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
               <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#128465;</span>
@@ -908,6 +1043,71 @@ export function renderHistory() {
     if (pageLabel) {
       pageLabel.textContent = isGallery
         ? `Gallery - ${totalImages} image${totalImages === 1 ? '' : 's'}`
+        : `${historyState.page}/${pages}`;
+    }
+
+    const disableNav = (btn, shouldDisable) => {
+      if (!btn) return;
+      if (shouldDisable) btn.setAttribute('disabled', '');
+      else btn.removeAttribute('disabled');
+    };
+    disableNav(prevBtn, historyState.page <= 1 || isGallery);
+    disableNav(nextBtn, historyState.page >= pages || isGallery);
+    disableNav(firstBtn, historyState.page <= 1 || isGallery);
+    disableNav(lastBtn, historyState.page >= pages || isGallery);
+    return;
+  }
+
+  // VIDEO FILTER - simple grid (same structure as image filter)
+  if (historyState.filter === 'video') {
+    const sortedVideos = [...src].sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return historyState.sort === 'asc' ? aTime - bTime : bTime - aTime;
+    });
+
+    if (!sortedVideos.length) {
+      grid.innerHTML = `
+        <div class="history-empty" role="status" aria-live="polite">
+          <div class="history-empty__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p>No videos yet</p>
+          <span>Generate your first video to see it here.</span>
+        </div>
+      `;
+      if (pageLabel) pageLabel.textContent = '0/0';
+      [prevBtn, nextBtn, firstBtn, lastBtn].forEach(btn => btn?.setAttribute('disabled', ''));
+      return;
+    }
+
+    const totalVideos = sortedVideos.length;
+    let pages = Math.max(1, Math.ceil(totalVideos / pageSize));
+    if (historyState.page > pages) historyState.page = pages;
+    if (historyState.page < 1) historyState.page = 1;
+
+    let start = (historyState.page - 1) * pageSize;
+    let end = Math.min(start + pageSize, totalVideos);
+    let slice = sortedVideos.slice(start, end);
+
+    if (isGallery) {
+      pages = 1;
+      historyState.page = 1;
+      slice = sortedVideos;
+    }
+
+    const videoGridMarkup = slice.map(vid => {
+      const bundle = { models: [vid], isBundle: false };
+      return buildHistoryThumb(bundle, false);
+    }).join('');
+
+    grid.innerHTML = `<div class="history-video-grid">${videoGridMarkup}</div>`;
+
+    if (pageLabel) {
+      pageLabel.textContent = isGallery
+        ? `Gallery - ${totalVideos} video${totalVideos === 1 ? '' : 's'}`
         : `${historyState.page}/${pages}`;
     }
 
