@@ -613,58 +613,46 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       `;
     }
 
-    // Normal/processing video card - Cool blogs-inspired design
+    // Normal/processing video card - Clean modern design with big click area
     return `
       <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
-        <div class="${thumbPrefix}__video-glow"></div>
-        <div class="${thumbPrefix}__status-bar">
-          <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
-          <span class="${thumbPrefix}__video-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
-            </svg>
-            ${isProcessing ? 'Processing' : 'Video'}
-          </span>
-        </div>
-        <div class="${thumbPrefix}__image-wrapper">
-          <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
-                  type="button"
-                  data-act="open-video"
-                  data-id="${displayModel.id}"
-                  data-video-url="${videoSrc}"
-                  aria-label="Play ${name}"
-                  ${isProcessing ? 'disabled' : ''}>
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `<div class="${thumbPrefix}__video-placeholder"><div class="${thumbPrefix}__video-placeholder-rings"></div></div>`}
-            ${!isProcessing && videoSrc ? `
-              <span class="${thumbPrefix}__play-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                  <polygon points="10 8 16 12 10 16" fill="currentColor"/>
-                </svg>
-              </span>
-            ` : ''}
-          </button>
-        </div>
-        ${isProcessing ? `
-          <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--video" data-job-id="${displayModel.id}">
-            <div class="${thumbPrefix}__processing-spinner"></div>
-            <span class="${thumbPrefix}__processing-label">${videoProcessingLabel}</span>
-            <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
-              <div class="${thumbPrefix}__progress-fill"></div>
+        <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
+                type="button"
+                data-act="open-video"
+                data-id="${displayModel.id}"
+                data-video-url="${videoSrc}"
+                aria-label="Play ${name}"
+                ${isProcessing ? 'disabled' : ''}>
+          ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `
+            <div class="${thumbPrefix}__video-empty">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
             </div>
+          `}
+          ${!isProcessing && videoSrc ? `
+            <span class="${thumbPrefix}__play-btn">
+              <svg viewBox="0 0 24 24" fill="none">
+                <polygon points="9 6 18 12 9 18 9 6" fill="currentColor"/>
+              </svg>
+            </span>
+          ` : ''}
+          <span class="${thumbPrefix}__video-name">${name}</span>
+        </button>
+        ${isProcessing ? `
+          <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
+            <div class="${thumbPrefix}__video-spinner"></div>
+            <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
           </div>
         ` : ''}
-        <span class="${thumbPrefix}__name">${name}</span>
         ${!isExpanded ? `
-        <div class="${thumbPrefix}__menu-wrap">
-          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+        <div class="${thumbPrefix}__video-menu">
+          <button class="${thumbPrefix}__video-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="5" cy="12" r="2"/>
+              <circle cx="12" cy="5" r="2"/>
               <circle cx="12" cy="12" r="2"/>
-              <circle cx="19" cy="12" r="2"/>
+              <circle cx="12" cy="19" r="2"/>
             </svg>
           </button>
-          <div class="card-menu" role="menu" aria-label="Video actions">
+          <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
             <div class="card-menu__list">
               <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
