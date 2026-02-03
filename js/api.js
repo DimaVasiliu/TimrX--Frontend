@@ -1751,7 +1751,6 @@ export async function startImageGenerationByProvider() {
  */
 const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
 const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
-const VIDEO_AUDIO_ADDON = 30;
 
 // Map simplified aspect to API format (no square/1:1 - not supported by Veo)
 const VIDEO_ASPECT_MAP = {
@@ -1761,17 +1760,13 @@ const VIDEO_ASPECT_MAP = {
 
 /**
  * Compute video credits based on settings (simplified)
- * @param {Object} settings - { durationSec, quality, addAudio }
+ * @param {Object} settings - { durationSec, quality }
  * @returns {number} Total credits
  */
 function computeVideoCredits(settings) {
   const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
   const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
-  let cost = Math.round(base * mult);
-  if (settings.addAudio) {
-    cost += VIDEO_AUDIO_ADDON;
-  }
-  return cost;
+  return Math.round(base * mult);
 }
 
 /**
@@ -1787,7 +1782,6 @@ export async function startVideoGeneration() {
     aspect: byId('videoAspectRatio')?.value || 'landscape',
     aspectRatio: VIDEO_ASPECT_MAP[byId('videoAspectRatio')?.value] || '16:9',
     loop: byId('videoLoop')?.checked ?? true,
-    addAudio: byId('videoAudio')?.checked ?? false,
     mode: byId('videoModeValue')?.value || 'text2video'
   };
 
@@ -1801,9 +1795,8 @@ export async function startVideoGeneration() {
   console.log('[VIDEO] Credit check:', {
     durationSec: settings.durationSec,
     quality: settings.quality,
-    addAudio: settings.addAudio,
     computedCredits: totalCredits,
-    formula: `base(${settings.durationSec}s) * quality(${settings.quality}) + audio(${settings.addAudio ? 30 : 0})`
+    formula: `base(${settings.durationSec}s) × quality(${settings.quality})`
   });
 
   // Unified credit check with proper numeric conversion
@@ -1866,7 +1859,6 @@ export async function startVideoGeneration() {
       aspect_ratio: settings.aspectRatio,
       quality: settings.quality,
       motion: motion,
-      audio: settings.addAudio,
       loop: settings.loop
     };
 
