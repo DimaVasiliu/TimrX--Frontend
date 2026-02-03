@@ -127,30 +127,30 @@ function showQuotaExceededPopup() {
   popup.innerHTML = `
     <div class="quota-popup-backdrop"></div>
     <div class="quota-popup-content">
+      <button type="button" class="quota-popup-x" aria-label="Close">×</button>
       <div class="quota-popup-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/>
           <path d="M12 6v6l4 2"/>
         </svg>
       </div>
-      <h3 id="quotaTitle">Daily Video Limit Reached</h3>
+      <h3 id="quotaTitle">Daily Limit Reached</h3>
       <p id="quotaDesc">
-        Google's Veo video generation has a daily quota limit that has been exceeded.
-        This is a platform-wide limit, not specific to your account.
+        Google Veo's daily video quota has been exceeded. This is a platform-wide limit.
       </p>
       <div class="quota-popup-timer">
-        <span class="quota-popup-timer-label">Quota resets in approximately</span>
+        <span class="quota-popup-timer-label">Resets in approximately</span>
         <span class="quota-popup-timer-value">${hoursUntilReset}h ${minutesUntilReset}m</span>
-        <span class="quota-popup-timer-hint">~${resetTimeStr} your local time</span>
+        <span class="quota-popup-timer-hint">~${resetTimeStr} local time</span>
       </div>
       <p class="quota-popup-tip">
-        Tip: Try generating 3D models or images while you wait!
+        Try generating 3D models or images while you wait.
       </p>
       <button type="button" class="quota-popup-close" aria-label="Close">Got it</button>
     </div>
   `;
 
-  // Styles
+  // Styles matching blogs.css aesthetic
   const style = document.createElement('style');
   style.textContent = `
     #quotaExceededPopup {
@@ -160,7 +160,8 @@ function showQuotaExceededPopup() {
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: quotaFadeIn 0.2s ease;
+      padding: 20px;
+      animation: quotaFadeIn 0.3s ease;
     }
     @keyframes quotaFadeIn {
       from { opacity: 0; }
@@ -169,100 +170,136 @@ function showQuotaExceededPopup() {
     .quota-popup-backdrop {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .quota-popup-content {
       position: relative;
-      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 420px;
-      width: 90%;
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 100%;
       text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      animation: quotaSlideUp 0.3s ease;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      animation: quotaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes quotaSlideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(0); }
+    }
+    .quota-popup-x {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 20px;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .quota-popup-x:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
     }
     .quota-popup-icon {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .quota-popup-icon svg {
-      width: 32px;
-      height: 32px;
-      color: white;
+      width: 26px;
+      height: 26px;
+      color: #888;
     }
     .quota-popup-content h3 {
-      margin: 0 0 12px;
-      font-size: 22px;
-      font-weight: 600;
+      margin: 0 0 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
       color: #fff;
+      letter-spacing: -0.01em;
     }
     .quota-popup-content p {
       margin: 0 0 20px;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      color: #777;
       line-height: 1.6;
     }
     .quota-popup-timer {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(139, 92, 246, 0.08));
+      border: 1px solid rgba(14, 165, 233, 0.15);
+      border-radius: 10px;
       padding: 16px;
       margin-bottom: 20px;
     }
     .quota-popup-timer-label {
       display: block;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.5);
+      font-size: 10px;
+      color: #777;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
     .quota-popup-timer-value {
       display: block;
-      font-size: 32px;
-      font-weight: 700;
-      color: #667eea;
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
     }
     .quota-popup-timer-hint {
       display: block;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-top: 6px;
+      font-size: 11px;
+      color: #555;
+      margin-top: 4px;
     }
     .quota-popup-tip {
-      font-size: 13px !important;
-      color: rgba(255, 255, 255, 0.5) !important;
+      font-size: 0.8rem !important;
+      color: #555 !important;
       font-style: italic;
-      margin-bottom: 24px !important;
+      margin-bottom: 20px !important;
     }
     .quota-popup-close {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 32px;
-      font-size: 15px;
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 14px;
       font-weight: 600;
+      font-family: inherit;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
+      border: 1px solid rgba(14, 165, 233, 0.25);
+      border-radius: 999px;
+      color: #fff;
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.02em;
     }
     .quota-popup-close:hover {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(139, 92, 246, 0.25));
+      border-color: rgba(14, 165, 233, 0.5);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
     }
     .quota-popup-close:active {
       transform: translateY(0);
@@ -273,15 +310,18 @@ function showQuotaExceededPopup() {
 
   // Close handlers
   const closeBtn = popup.querySelector('.quota-popup-close');
+  const closeX = popup.querySelector('.quota-popup-x');
   const backdrop = popup.querySelector('.quota-popup-backdrop');
   const closePopup = () => {
     popup.style.opacity = '0';
+    popup.style.transition = 'opacity 0.25s ease';
     setTimeout(() => {
       popup.remove();
       style.remove();
-    }, 200);
+    }, 250);
   };
   closeBtn.addEventListener('click', closePopup);
+  closeX.addEventListener('click', closePopup);
   backdrop.addEventListener('click', closePopup);
   document.addEventListener('keydown', function escHandler(e) {
     if (e.key === 'Escape') {
