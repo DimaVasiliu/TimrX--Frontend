@@ -233,7 +233,7 @@ function refreshCreditsInBackground() {
 }
 
 /**
- * Handle API response errors, specifically 402 insufficient credits and 400 expired models
+ * Handle API response errors, specifically 402 insufficient credits, 429 quota exceeded, and 400 expired models
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
 function handleApiError(response, action, reservationId = null) {
@@ -251,9 +251,42 @@ function handleApiError(response, action, reservationId = null) {
     return true;
   }
 
+  // Handle 429 quota exceeded errors
+  if (response.status === 429) {
+    log('[Quota] 429 Rate limit exceeded for:', action);
+    if (reservationId) {
+      releaseCreditsReservation(reservationId);
+    }
+    if (window.showQuotaExceededPopup) {
+      window.showQuotaExceededPopup();
+    } else {
+      alert('Daily video generation limit reached. Please try again tomorrow.');
+    }
+    return true;
+  }
+
+  // Also check for quota errors in error message (some APIs return 400/500 with quota message)
+  const errorMsg = response.error?.message || response.error || response.data?.error?.message || response.data?.error || '';
+  const isQuotaError = typeof errorMsg === 'string' && (
+    errorMsg.toLowerCase().includes('quota') ||
+    errorMsg.toLowerCase().includes('resource_exhausted') ||
+    errorMsg.toLowerCase().includes('exceeded your current quota')
+  );
+  if (isQuotaError) {
+    log('[Quota] Quota error detected for:', action, errorMsg);
+    if (reservationId) {
+      releaseCreditsReservation(reservationId);
+    }
+    if (window.showQuotaExceededPopup) {
+      window.showQuotaExceededPopup();
+    } else {
+      alert('Daily video generation limit reached. Please try again tomorrow.');
+    }
+    return true;
+  }
+
   // Handle 400 errors for expired/unavailable models
   if (response.status === 400) {
-    const errorMsg = response.error || response.data?.error || '';
     if (isExpiredModelError(errorMsg)) {
       log('[Model] 400 Expired/unavailable model for:', action);
       if (reservationId) {
@@ -1720,10 +1753,9 @@ const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
 const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
 const VIDEO_AUDIO_ADDON = 30;
 
-// Map simplified aspect to API format
+// Map simplified aspect to API format (no square/1:1 - not supported by Veo)
 const VIDEO_ASPECT_MAP = {
   landscape: '16:9',
-  square: '1:1',
   portrait: '9:16'
 };
 
@@ -1899,8 +1931,23 @@ export async function startVideoGeneration() {
 
   } catch (err) {
     console.error('[Video] Error:', err);
-    prog.fail(err?.message || 'Video generation failed');
-    alert(err?.message || 'Video generation failed.');
+    const errorMsg = err?.message || 'Video generation failed';
+
+    // Check for quota/rate limit errors
+    const isQuotaError = errorMsg.toLowerCase().includes('quota') ||
+                        errorMsg.toLowerCase().includes('rate') ||
+                        errorMsg.toLowerCase().includes('resource_exhausted') ||
+                        errorMsg.toLowerCase().includes('exceeded') ||
+                        errorMsg.includes('429');
+
+    prog.fail(isQuotaError ? 'Daily limit reached' : errorMsg);
+
+    if (isQuotaError && window.showQuotaExceededPopup) {
+      window.showQuotaExceededPopup();
+    } else {
+      alert(errorMsg);
+    }
+
     const arr = State.getHistory().filter((x) => x.id !== tempId);
     State.saveHistory(arr);
     renderHistory();
@@ -1971,15 +2018,28 @@ async function watchVideoJob(jobId, reservationId, meta) {
       if (status === 'failed') {
         releaseCreditsReservation(reservationId);
         const errorMsg = data.message || data.error || 'Video generation failed';
+
+        // Check for quota/rate limit errors
+        const isQuotaError = errorMsg.toLowerCase().includes('quota') ||
+                            errorMsg.toLowerCase().includes('rate') ||
+                            errorMsg.toLowerCase().includes('resource_exhausted') ||
+                            errorMsg.toLowerCase().includes('exceeded') ||
+                            errorMsg.includes('429');
+
         State.updateHistoryItem(jobId, {
           status: 'failed',
-          status_label: errorMsg,
+          status_label: isQuotaError ? 'Daily limit reached' : errorMsg,
           error_message: errorMsg,
           video_id: jobId,
           type: 'video'
         });
         renderHistory();
-        UI.makeProgressDriver().fail(errorMsg);
+
+        if (isQuotaError && window.showQuotaExceededPopup) {
+          window.showQuotaExceededPopup();
+        } else {
+          UI.makeProgressDriver().fail(errorMsg);
+        }
         return;
       }
 
