@@ -1313,13 +1313,17 @@ export async function startGeminiImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get Gemini-specific options
-  const aspectRatio = byId('imageAspectRatio')?.value || '1:1';
-  // Map resolution dropdown (pixel dims) to Gemini image_size ("1K" or "2K")
-  const resolutionValue = byId('imageResolution')?.value || '1024x1024';
-  // Tier 2 resolutions (2K): 2048x2048, 1792x2560, 2560x1792, 1920x1088, 1088x1920
-  const is2K = resolutionValue.includes('2048') || resolutionValue.includes('1792') || resolutionValue.includes('2560') || resolutionValue.includes('1920');
-  const imageSize = is2K ? '2K' : '1K';
+  // Get Gemini-specific options from UI
+  const VALID_ASPECTS = ['1:1', '9:16', '16:9'];
+  const VALID_QUALITIES = ['512', '768', '1K', '2K'];
+
+  // Get aspect ratio with validation (fallback to 1:1)
+  const rawAspect = byId('imageAspectRatio')?.value || '1:1';
+  const aspectRatio = VALID_ASPECTS.includes(rawAspect) ? rawAspect : '1:1';
+
+  // Get quality with validation (fallback to 1K)
+  const rawQuality = byId('imageQuality')?.value || '1K';
+  const imageSize = VALID_QUALITIES.includes(rawQuality) ? rawQuality : '1K';
 
   // Reserve credits BEFORE API call
   prog.label('Reserving credits...');
