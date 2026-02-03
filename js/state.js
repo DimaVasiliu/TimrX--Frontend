@@ -599,8 +599,7 @@ export const PROVIDER_CAPABILITIES = {
       genTime: '~2 min',
       aspectMap: { landscape: '16:9', portrait: '9:16' },
       qualityMultiplier: { standard: 1.0, high: 1.5 },
-      baseCreditsByDuration: { 4: 30, 6: 45, 8: 60 },
-      audioAddon: 30
+      baseCreditsByDuration: { 4: 30, 6: 45, 8: 60 }
     }
   },
   model: {
@@ -644,7 +643,6 @@ export const generation = {
     quality: 'standard',
     duration: 4,
     loop: true,
-    audio: false,
     mode: 'text2video'  // 'text2video' | 'image2video'
   },
 
@@ -850,9 +848,6 @@ export function getGenerationSnapshot(mode) {
     const base = caps.baseCreditsByDuration?.[settings.duration] || 30;
     const mult = caps.qualityMultiplier?.[settings.quality] || 1.0;
     credits = Math.round(base * mult);
-    if (settings.audio) {
-      credits += caps.audioAddon || 30;
-    }
   }
 
   return {
