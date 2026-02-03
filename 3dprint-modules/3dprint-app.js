@@ -467,7 +467,6 @@
                 <ul>
                   <li>Keep prompts simple. Short clips look best.</li>
                   <li>Use Motion Description for camera moves (pan, orbit, zoom).</li>
-                  <li>Enable Add Audio to generate sound (extra credits).</li>
                   <li>Higher resolution and longer duration cost more.</li>
                 </ul>
               </div>
@@ -509,12 +508,6 @@
             <span>Loop Seamlessly</span>
           </label>
           <span class="field-hint loop-hint" style="margin-left:24px;margin-top:2px">Looping works best with orbit/constant motion prompts.</span>
-
-          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
-            <input type="checkbox" id="videoAudio">
-            <span>Add Audio</span>
-            <span class="audio-cost-badge" style="font-size:10px;color:rgba(255,255,255,.4);margin-left:auto" title="Audio generation increases cost">+30 credits</span>
-          </label>
         </div>
 
         <div class="card gen-footer-card">
@@ -984,7 +977,6 @@
       const text2videoContent = leftStack.querySelector('#text2videoContent');
       const image2videoContent = leftStack.querySelector('#image2videoContent');
       const videoTextPrompt = leftStack.querySelector('#videoTextPrompt');
-      const videoAudioToggle = leftStack.querySelector('#videoAudio');
       const videoCreditsDisplay = leftStack.querySelector('#videoCreditsDisplay');
       const videoGenTime = leftStack.querySelector('#videoGenTime');
       const generateVideoBtn = leftStack.querySelector('#generateVideoBtn');
@@ -1003,15 +995,12 @@
       const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
       // Quality multiplier: standard = 1x, high = 1.5x
       const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
-      // Audio addon cost
-      const VIDEO_AUDIO_ADDON = 30;
       // Time estimates by quality
       const VIDEO_TIME_ESTIMATE = { standard: '~2 min', high: '~3 min' };
 
-      // Map simplified aspect values to API format
+      // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
       const VIDEO_ASPECT_MAP = {
         landscape: '16:9',
-        square: '1:1',
         portrait: '9:16'
       };
 
@@ -1031,25 +1020,20 @@
           aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || '16:9',
           fps: 24, // Fixed for Veo
           loop: videoLoop?.checked ?? true,
-          addAudio: videoAudioToggle?.checked ?? false,
           mode: videoModeValue?.value || 'text2video'
         };
       }
 
       /**
        * Compute video credits based on settings
-       * Formula: base(duration) × quality_multiplier + audio_addon
+       * Formula: base(duration) × quality_multiplier
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
         const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
         const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
-        let cost = Math.round(base * mult);
-        if (settings.addAudio) {
-          cost += VIDEO_AUDIO_ADDON;
-        }
-        return cost;
+        return Math.round(base * mult);
       }
 
       // Expose video settings and credits calculator globally
@@ -1078,8 +1062,6 @@
         // Update button attributes
         generateVideoBtn.title = `${totalCredits} credits`;
         generateVideoBtn.dataset.baseCredits = totalCredits;
-        generateVideoBtn.dataset.audioEnabled = settings.addAudio ? 'true' : 'false';
-
         // Trigger workspace credits update if available
         if (window.WorkspaceCredits?.updateButtonCosts) {
           window.WorkspaceCredits.updateButtonCosts();
@@ -1151,7 +1133,7 @@
       }
 
       // Wire up video credits calculation on any option change
-      [videoDuration, videoQuality, videoAspectRatio, videoAudioToggle, videoLoop].forEach(el => {
+      [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
         if (el) {
           el.addEventListener('change', updateVideoFooter);
         }
