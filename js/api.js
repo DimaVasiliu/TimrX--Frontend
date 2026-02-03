@@ -1874,6 +1874,7 @@ export async function startVideoGeneration() {
     const queuedPlaceholder = {
       ...placeholder,
       id: jobId,
+      video_id: jobId,
       status: 'generating',
       status_label: 'Generating video...'
     };
@@ -1933,16 +1934,30 @@ async function watchVideoJob(jobId, reservationId, meta) {
         // Confirm credits reservation (converts to actual deduction)
         confirmCreditsReservation(reservationId, jobId);
 
-        // Update history
+        // Update history with video_id for proper remote sync
         State.updateHistoryItem(jobId, {
           status: 'finished',
           status_label: '',
           video_url: data.video_url,
-          thumbnail_url: data.thumbnail_url,
+          thumbnail_url: data.thumbnail_url || '',
+          video_id: jobId,
           stage: 'video',
-          type: 'video'
+          type: 'video',
+          provider: 'google',
+          upstream_id: data.upstream_id || jobId
         });
+        State.setHistoryActiveModelId(jobId);
         renderHistory();
+
+        if (data.video_url) {
+          const videoRailBtn = document.querySelector('[data-panel="video"]');
+          if (videoRailBtn) videoRailBtn.click();
+          Viewer.showVideoInViewer(data.video_url, {
+            title: shortTitle(meta.prompt || 'Video') || 'Video Preview',
+            hint: meta.prompt || 'Generated video',
+            autoplay: true
+          });
+        }
 
         // Update balance
         if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
@@ -1955,12 +1970,16 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
       if (status === 'failed') {
         releaseCreditsReservation(reservationId);
+        const errorMsg = data.message || data.error || 'Video generation failed';
         State.updateHistoryItem(jobId, {
           status: 'failed',
-          status_label: data.message || 'Video generation failed'
+          status_label: errorMsg,
+          error_message: errorMsg,
+          video_id: jobId,
+          type: 'video'
         });
         renderHistory();
-        UI.makeProgressDriver().fail(data.message || 'Video generation failed');
+        UI.makeProgressDriver().fail(errorMsg);
         return;
       }
 
@@ -1982,9 +2001,13 @@ async function watchVideoJob(jobId, reservationId, meta) {
   releaseCreditsReservation(reservationId);
   State.updateHistoryItem(jobId, {
     status: 'failed',
-    status_label: 'Video generation timed out'
+    status_label: 'Video generation timed out',
+    error_message: 'Video generation timed out',
+    video_id: jobId,
+    type: 'video'
   });
   renderHistory();
+  UI.makeProgressDriver().fail('Video generation timed out');
 }
 
 /**
