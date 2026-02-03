@@ -14,7 +14,9 @@ function getDomRefs() {
     imageViewer: document.getElementById('imageViewer'),
     videoViewer: document.getElementById('videoViewer'),
     generatedImage: document.getElementById('generatedImage'),
+    generatedVideo: document.getElementById('generatedVideo'),
     imagePlaceholder: document.getElementById('imagePlaceholder'),
+    videoPlaceholder: document.getElementById('videoPlaceholder'),
     viewerTitle: document.getElementById('viewerTitle'),
     genHint: document.getElementById('genHint')
   };
@@ -245,6 +247,60 @@ export function showImageInViewer(imageUrl, meta = {}) {
   }
   if (imagePlaceholder) imagePlaceholder.classList.add('hidden');
   toggleViewerToolbar(false);
+}
+
+export function showVideoInViewer(videoUrl, meta = {}) {
+  if (!videoUrl) {
+    console.warn('[Viewer] Missing video URL; nothing to display.');
+    return;
+  }
+
+  const {
+    modelViewer,
+    imageViewer,
+    videoViewer,
+    generatedVideo,
+    videoPlaceholder,
+    viewerTitle,
+    genHint
+  } = getDomRefs();
+
+  // Hide other viewers, show video viewer
+  if (modelViewer) modelViewer.classList.add('hidden');
+  if (imageViewer) imageViewer.classList.add('hidden');
+  if (videoViewer) videoViewer.classList.remove('hidden');
+
+  // Update title and hint
+  if (viewerTitle) viewerTitle.textContent = meta.title || 'Video Preview';
+  if (genHint) genHint.textContent = meta.hint || 'Generated video is displayed.';
+
+  // Show video element, hide placeholder
+  if (generatedVideo) {
+    generatedVideo.src = videoUrl;
+    generatedVideo.classList.remove('hidden');
+    generatedVideo.load();
+    // Auto-play if desired
+    if (meta.autoplay) {
+      generatedVideo.play().catch(err => {
+        console.warn('[Viewer] Autoplay blocked:', err);
+      });
+    }
+  }
+  if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+
+  toggleViewerToolbar(false);
+  console.log('[Viewer] Showing video:', videoUrl);
+}
+
+export function clearVideoViewer() {
+  const { generatedVideo, videoViewer, videoPlaceholder } = getDomRefs();
+  if (generatedVideo) {
+    generatedVideo.pause();
+    generatedVideo.src = '';
+    generatedVideo.classList.add('hidden');
+  }
+  if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
+  if (videoViewer) videoViewer.classList.add('hidden');
 }
 
 export function clearViewer() {
