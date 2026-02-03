@@ -1265,15 +1265,21 @@ const IMAGE_CREDITS = 10;
 
 // Map simplified aspect to OpenAI resolution
 const OPENAI_RESOLUTION_MAP = {
+  // Simple options
   square: '1024x1024',
-  portrait: '1024x1536',
-  landscape: '1536x1024'
+  portrait: '1024x1536',      // 9:16
+  landscape: '1536x1024',     // 16:9
+  // Advanced options (closest approximations for OpenAI)
+  portrait_34: '1024x1536',   // 3:4 → uses portrait
+  landscape_43: '1536x1024',  // 4:3 → uses landscape
 };
 
 /**
  * Start OpenAI image generation
  */
 export async function startOpenAIImageGeneration() {
+  console.log('[Image] OpenAI generation started (provider=openai)');
+
   if (startLock) return;
 
   // Check if already generating (job state lock)
@@ -1455,9 +1461,13 @@ export async function startOpenAIImageGeneration() {
 
 // Map simplified aspect to Google format
 const GOOGLE_ASPECT_MAP = {
+  // Simple options
   square: '1:1',
   portrait: '9:16',
-  landscape: '16:9'
+  landscape: '16:9',
+  // Advanced options (Google Imagen supports these natively)
+  portrait_34: '3:4',
+  landscape_43: '4:3',
 };
 
 // Map simplified quality to Google imageSize
@@ -1470,6 +1480,8 @@ const GOOGLE_QUALITY_MAP = {
  * Start Gemini (Google Imagen) image generation
  */
 export async function startGeminiImageGeneration() {
+  console.log('[Image] Gemini generation started (provider=google)');
+
   if (startLock) return;
 
   // Check if already generating (job state lock)
@@ -1650,11 +1662,20 @@ export async function startGeminiImageGeneration() {
 
 /**
  * Start image generation by selected provider
+ * IMPORTANT: Uses GenerationState as the SINGLE source of truth for provider.
+ * Never reads from DOM - provider must be set via dropdown -> GenerationState.setProvider()
  */
 export async function startImageGenerationByProvider() {
-  // Use GenerationState as single source of truth for provider
-  const provider = window.GenerationState?.getProvider?.('image') ||
-                   (byId('imageAIProvider')?.value || 'openai').toLowerCase();
+  // SINGLE SOURCE OF TRUTH: GenerationState.getProvider()
+  // No DOM fallback - if state is unavailable, something is wrong
+  if (!window.GenerationState?.getProvider) {
+    console.error('[Image] GenerationState not available - cannot determine provider');
+    alert('Image generation unavailable. Please refresh the page.');
+    return;
+  }
+
+  const provider = window.GenerationState.getProvider('image');
+  console.log(`[Image] Starting generation with provider: ${provider}`);
 
   State.historyState.filter = 'image';
   State.historyState.page = 1;
@@ -1665,7 +1686,8 @@ export async function startImageGenerationByProvider() {
   } else if (provider === 'google') {
     await startGeminiImageGeneration();
   } else {
-    alert(`Image provider "${provider}" is not yet available. Use "openai" or "google".`);
+    console.error(`[Image] Unknown provider: ${provider}`);
+    alert(`Image provider "${provider}" is not available. Please select OpenAI or Google.`);
   }
 }
 
@@ -1721,9 +1743,19 @@ export async function startVideoGeneration() {
   // Compute credits using the SAME formula as UI
   const totalCredits = computeVideoCredits(settings);
 
+  // Defensive logging for video credit flow
+  console.log('[VIDEO] Credit check:', {
+    durationSec: settings.durationSec,
+    quality: settings.quality,
+    addAudio: settings.addAudio,
+    computedCredits: totalCredits,
+    formula: `base(${settings.durationSec}s) * quality(${settings.quality}) + audio(${settings.addAudio ? 30 : 0})`
+  });
+
   // Unified credit check with proper numeric conversion
   const creditCheck = checkCreditsForGeneration(totalCredits, 'video');
   if (creditCheck.shouldBlock) {
+    console.warn('[VIDEO] Credit check blocked:', creditCheck);
     showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'video');
     return;
   }
@@ -1734,12 +1766,15 @@ export async function startVideoGeneration() {
 
   // Reserve the EXACT computed credits (not multiplied by action cost)
   prog.label('Reserving credits...');
+  console.log('[VIDEO] Reserving exact amount:', totalCredits, 'credits');
   const reservation = reserveExactAmount('video', totalCredits);
   if (reservation.insufficient) {
+    console.warn('[VIDEO] Reservation failed:', reservation);
     startLock = false;
     showInsufficientCreditsModal(totalCredits, creditCheck.available, 'video');
     return;
   }
+  console.log('[VIDEO] Reservation succeeded:', reservation.reservationId, 'for', reservation.amount, 'credits');
 
   State.historyState.filter = 'video';
   State.historyState.page = 1;
@@ -1873,8 +1908,8 @@ async function watchVideoJob(jobId, reservationId, meta) {
       const status = data.status;
 
       if (status === 'done') {
-        // Finalize credits
-        finalizeCreditsReservation(reservationId, jobId);
+        // Confirm credits reservation (converts to actual deduction)
+        confirmCreditsReservation(reservationId, jobId);
 
         // Update history
         State.updateHistoryItem(jobId, {
