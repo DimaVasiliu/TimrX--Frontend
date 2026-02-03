@@ -606,12 +606,18 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       `;
     }
 
-    // Normal/processing video card
+    // Normal/processing video card - Cool blogs-inspired design
     return `
       <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
+        <div class="${thumbPrefix}__video-glow"></div>
         <div class="${thumbPrefix}__status-bar">
           <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
-          <span class="${thumbPrefix}__video-badge">${isProcessing ? 'Processing' : 'Video'}</span>
+          <span class="${thumbPrefix}__video-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+            </svg>
+            ${isProcessing ? 'Processing' : 'Video'}
+          </span>
         </div>
         <div class="${thumbPrefix}__image-wrapper">
           <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
@@ -621,14 +627,21 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   data-video-url="${videoSrc}"
                   aria-label="Play ${name}"
                   ${isProcessing ? 'disabled' : ''}>
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `<div class="${thumbPrefix}__video-placeholder"></div>`}
-            ${!isProcessing && videoSrc ? `<span class="${thumbPrefix}__play-icon">&#9658;</span>` : ''}
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `<div class="${thumbPrefix}__video-placeholder"><div class="${thumbPrefix}__video-placeholder-rings"></div></div>`}
+            ${!isProcessing && videoSrc ? `
+              <span class="${thumbPrefix}__play-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                  <polygon points="10 8 16 12 10 16" fill="currentColor"/>
+                </svg>
+              </span>
+            ` : ''}
           </button>
         </div>
         ${isProcessing ? `
           <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--video" data-job-id="${displayModel.id}">
+            <div class="${thumbPrefix}__processing-spinner"></div>
             <span class="${thumbPrefix}__processing-label">${videoProcessingLabel}</span>
-            <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
             <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
               <div class="${thumbPrefix}__progress-fill"></div>
             </div>
