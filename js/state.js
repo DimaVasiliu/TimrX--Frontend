@@ -588,7 +588,7 @@ export const PROVIDER_CAPABILITIES = {
   video: {
     google: {
       name: 'Google (Veo)',
-      aspects: ['landscape', 'square', 'portrait'],
+      aspects: ['landscape', 'portrait'],
       qualities: ['standard', 'high'],
       durations: [4, 6, 8],
       defaultAspect: 'landscape',
@@ -597,7 +597,7 @@ export const PROVIDER_CAPABILITIES = {
       maxDuration: 8,
       fps: 24,
       genTime: '~2 min',
-      aspectMap: { landscape: '16:9', square: '1:1', portrait: '9:16' },
+      aspectMap: { landscape: '16:9', portrait: '9:16' },
       qualityMultiplier: { standard: 1.0, high: 1.5 },
       baseCreditsByDuration: { 4: 30, 6: 45, 8: 60 },
       audioAddon: 30
