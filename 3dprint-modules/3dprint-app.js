@@ -78,51 +78,26 @@
             <i class="fa-solid fa-lock"></i> <span id="imageProviderLockText">Provider locked while generating.</span>
           </div>
 
-          <!-- Style (OpenAI modes; Google uses prompt-based styling) -->
-          <div class="inline-field" id="imageStyleRow">
-            <label for="imageStyle">Style</label>
-            <select id="imageStyle">
-              <option value="realistic" selected>Realistic</option>
-              <option value="artistic">Artistic</option>
-              <option value="anime">Anime</option>
-              <option value="3d-render">3D Render</option>
-              <option value="cinematic">Cinematic</option>
-            </select>
-          </div>
-
-          <!-- Aspect Ratio (Google Imagen only) -->
-          <div class="inline-field google-only-field hidden" id="imageAspectRatioRow">
-            <label for="imageAspectRatio">Aspect</label>
+          <!-- Aspect Ratio (all providers) -->
+          <div class="inline-field" id="imageAspectRatioRow">
+            <label for="imageAspectRatio">Aspect Ratio</label>
             <select id="imageAspectRatio">
-              <option value="1:1" selected>Square (1:1)</option>
-              <option value="9:16">Portrait (9:16)</option>
-              <option value="16:9">Landscape (16:9)</option>
+              <option value="square" selected>Square</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
             </select>
           </div>
-          <span class="field-hint google-only-field hidden" id="imageAspectHint">Aspect changes framing only — quality stays the same.</span>
+          <span class="field-hint" id="imageAspectHint">Aspect ratio controls layout, not quality.</span>
 
-          <!-- Quality (Google Imagen only) -->
-          <div class="inline-field google-only-field hidden" id="imageQualityRow">
+          <!-- Quality (all providers) -->
+          <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
-              <option value="512">Draft (512)</option>
-              <option value="768">Standard (768)</option>
-              <option value="1K" selected>High (1K)</option>
-              <option value="2K">Ultra (2K)</option>
+              <option value="standard" selected>Standard</option>
+              <option value="high">High</option>
             </select>
           </div>
-          <span class="field-hint google-only-field hidden" id="imageQualityHint">Quality controls detail and speed — pick Standard for most results.</span>
-
-          <!-- Resolution (OpenAI only) -->
-          <div class="inline-field" id="imageResolutionRow">
-            <label for="imageResolution">Resolution</label>
-            <select id="imageResolution">
-              <!-- OpenAI options (default) -->
-              <option value="1024x1024" selected>1024x1024</option>
-              <option value="1024x1536">1024x1536 (Portrait)</option>
-              <option value="1536x1024">1536x1024 (Landscape)</option>
-            </select>
-          </div>
+          <span class="field-hint" id="imageQualityHint">Higher quality uses more credits and takes longer.</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
@@ -512,35 +487,23 @@
               </select>
             </div>
             <div class="video-grid-cell">
-              <label for="videoAspectRatio">
-                Aspect
-                <span class="grid-cell-hint">
-                  ⓘ
-                  <span class="grid-cell-tooltip">16:9 = landscape<br>1:1 = square<br>9:16 = portrait/social</span>
-                </span>
-              </label>
+              <label for="videoAspectRatio">Aspect Ratio</label>
               <select id="videoAspectRatio">
-                <option value="16:9" selected>16:9</option>
-                <option value="1:1">1:1</option>
-                <option value="9:16">9:16</option>
+                <option value="landscape" selected>Landscape</option>
+                <option value="square">Square</option>
+                <option value="portrait">Portrait</option>
               </select>
             </div>
             <div class="video-grid-cell">
-              <label for="videoResolution">Resolution</label>
-              <select id="videoResolution">
-                <option value="720p" selected>720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
-              </select>
-            </div>
-            <div class="video-grid-cell">
-              <label for="videoFPS">FPS</label>
-              <select id="videoFPS" disabled title="Google Veo outputs 24 FPS">
-                <option value="24" selected>24</option>
+              <label for="videoQuality">Quality</label>
+              <select id="videoQuality">
+                <option value="standard" selected>Standard</option>
+                <option value="high">High</option>
               </select>
             </div>
           </div>
-          <span class="field-hint aspect-hint">Supported aspect ratios depend on the video model. If a ratio isn't supported, an error will be shown after Generate.</span>
+          <span class="field-hint aspect-hint">Aspect ratio controls layout, not quality.</span>
+          <span class="field-hint quality-hint">Higher quality uses more credits and takes longer.</span>
 
           <label style="margin-top:10px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
             <input type="checkbox" id="videoLoop" checked>
@@ -1031,16 +994,27 @@
       const videoLoop = leftStack.querySelector('#videoLoop');
       const videoMotion = leftStack.querySelector('#videoMotion');
       const videoAspectRatio = leftStack.querySelector('#videoAspectRatio');
-      const videoResolution = leftStack.querySelector('#videoResolution');
+      const videoQuality = leftStack.querySelector('#videoQuality');
       const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
-      // VIDEO: Pricing Constants
+      // VIDEO: Pricing Constants (simplified)
       // ========================================
+      // Base credits per duration (seconds)
       const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
-      const VIDEO_RES_MULTIPLIER = { '720p': 1.0, '1080p': 1.5, '4k': 2.5 };
+      // Quality multiplier: standard = 1x, high = 1.5x
+      const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
+      // Audio addon cost
       const VIDEO_AUDIO_ADDON = 30;
-      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~5 min' };
+      // Time estimates by quality
+      const VIDEO_TIME_ESTIMATE = { standard: '~2 min', high: '~3 min' };
+
+      // Map simplified aspect values to API format
+      const VIDEO_ASPECT_MAP = {
+        landscape: '16:9',
+        square: '1:1',
+        portrait: '9:16'
+      };
 
       /**
        * Get current video settings from UI
@@ -1048,15 +1022,15 @@
        */
       function getVideoSettingsFromUI() {
         const durationRaw = videoDuration?.value || '4';
-        const resolutionRaw = videoResolution?.value || '720p';
-        // Normalize resolution (handle "4K" vs "4k")
-        const resolution = resolutionRaw.toLowerCase();
+        const qualityRaw = videoQuality?.value || 'standard';
+        const aspectRaw = videoAspectRatio?.value || 'landscape';
 
         return {
           durationSec: parseInt(durationRaw, 10) || 4,
-          resolution: resolution,
-          aspect: videoAspectRatio?.value || '16:9',
-          fps: parseInt(videoFPS?.value, 10) || 24,
+          quality: qualityRaw,
+          aspect: aspectRaw,
+          aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || '16:9',
+          fps: 24, // Fixed for Veo
           loop: videoLoop?.checked ?? true,
           addAudio: videoAudioToggle?.checked ?? false,
           mode: videoModeValue?.value || 'text2video'
@@ -1065,18 +1039,25 @@
 
       /**
        * Compute video credits based on settings
+       * Formula: base(duration) × quality_multiplier + audio_addon
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
         const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
-        const mult = VIDEO_RES_MULTIPLIER[settings.resolution] || 1.0;
+        const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
         let cost = Math.round(base * mult);
         if (settings.addAudio) {
           cost += VIDEO_AUDIO_ADDON;
         }
         return cost;
       }
+
+      // Expose video settings and credits calculator globally
+      window.VideoJobControl = {
+        getSettings: getVideoSettingsFromUI,
+        computeCredits: computeVideoCredits
+      };
 
       /**
        * Update the video footer UI (credits display, time estimate, button)
@@ -1092,7 +1073,7 @@
 
         // Update time estimate
         if (videoGenTime) {
-          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
+          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.quality] || '~2 min';
         }
 
         // Update button attributes
@@ -1171,7 +1152,7 @@
       }
 
       // Wire up video credits calculation on any option change
-      [videoDuration, videoResolution, videoAspectRatio, videoAudioToggle, videoLoop].forEach(el => {
+      [videoDuration, videoQuality, videoAspectRatio, videoAudioToggle, videoLoop].forEach(el => {
         if (el) {
           el.addEventListener('change', updateVideoFooter);
         }
@@ -1238,60 +1219,38 @@
       // IMAGE: Provider Switching & Credits Logic
       // ========================================
       const imageAIProvider = leftStack.querySelector('#imageAIProvider');
-      const imageStyle = leftStack.querySelector('#imageStyle');
-      const imageStyleRow = leftStack.querySelector('#imageStyleRow');
-      const imageResolution = leftStack.querySelector('#imageResolution');
-      const imageResolutionRow = leftStack.querySelector('#imageResolutionRow');
       const imageAspectRatio = leftStack.querySelector('#imageAspectRatio');
-      const imageAspectRatioRow = leftStack.querySelector('#imageAspectRatioRow');
-      const imageAspectHint = leftStack.querySelector('#imageAspectHint');
       const imageQuality = leftStack.querySelector('#imageQuality');
-      const imageQualityRow = leftStack.querySelector('#imageQualityRow');
-      const imageQualityHint = leftStack.querySelector('#imageQualityHint');
       const imageProviderHint = leftStack.querySelector('#imageProviderHint');
       const imagePrompt = leftStack.querySelector('#imagePrompt');
       const imageCreditsDisplay = leftStack.querySelector('#imageCreditsDisplay');
       const imageGenTime = leftStack.querySelector('#imageGenTime');
       const generateImageBtn = leftStack.querySelector('#generateImageBtn');
 
-      // Google Imagen quality tiers (credits based on quality, not aspect)
-      const GOOGLE_QUALITY_CONFIG = {
-        '512':  { label: 'Draft (512)', credits: 5 },
-        '768':  { label: 'Standard (768)', credits: 8 },
-        '1K':   { label: 'High (1K)', credits: 10 },
-        '2K':   { label: 'Ultra (2K)', credits: 15 }
-      };
+      // Flat credit cost for all images (simplified)
+      const IMAGE_CREDITS = 10;
 
-      // Valid aspect ratios for Google Imagen
-      const GOOGLE_VALID_ASPECTS = ['1:1', '9:16', '16:9'];
-
-      // OpenAI DALL·E resolutions
-      const OPENAI_IMAGE_RESOLUTIONS = [
-        { value: '1024x1024', label: '1024x1024', tier: 1 },
-        { value: '1024x1536', label: '1024x1536 (Portrait)', tier: 1 },
-        { value: '1536x1024', label: '1536x1024 (Landscape)', tier: 1 },
-      ];
-
-      // Provider-specific configurations
+      // Provider configurations (simplified)
       const IMAGE_PROVIDER_CONFIG = {
         openai: {
           name: 'OpenAI (DALL·E)',
-          baseCredits: 10,
+          credits: IMAGE_CREDITS,
           genTime: '30 sec',
-          hasStyles: true,
-          hasAspectRatio: false,
-          hasQuality: false,
           hint: ''
         },
         google: {
           name: 'Google (Imagen)',
-          baseCredits: 10,
+          credits: IMAGE_CREDITS,
           genTime: '45 sec',
-          hasStyles: false,  // Google uses prompt-based styling
-          hasAspectRatio: true,
-          hasQuality: true,
           hint: 'Style is controlled via prompt text.'
         }
+      };
+
+      // Map simplified aspect values to provider-specific formats
+      const ASPECT_RATIO_MAP = {
+        square: { openai: '1024x1024', google: '1:1' },
+        portrait: { openai: '1024x1536', google: '9:16' },
+        landscape: { openai: '1536x1024', google: '16:9' }
       };
 
       // ========================================
@@ -1331,10 +1290,8 @@
 
         // Disable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = true;
-        if (imageStyle) imageStyle.disabled = true;
         if (imageAspectRatio) imageAspectRatio.disabled = true;
         if (imageQuality) imageQuality.disabled = true;
-        if (imageResolution) imageResolution.disabled = true;
         if (imagePrompt) imagePrompt.disabled = true;
 
         // Show lock hint with provider name
@@ -1361,10 +1318,8 @@
 
         // Re-enable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = false;
-        if (imageStyle) imageStyle.disabled = false;
         if (imageAspectRatio) imageAspectRatio.disabled = false;
         if (imageQuality) imageQuality.disabled = false;
-        if (imageResolution) imageResolution.disabled = false;
         if (imagePrompt) imagePrompt.disabled = false;
 
         // Hide lock hint
@@ -1399,42 +1354,32 @@
       };
 
       /**
-       * Calculate image credits based on provider and quality/resolution
+       * Calculate image credits - flat rate for all providers
        */
       function calculateImageCredits() {
+        return IMAGE_CREDITS;
+      }
+
+      /**
+       * Get current image settings as a snapshot
+       */
+      function getImageSettings() {
         const provider = imageAIProvider?.value || 'openai';
-        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+        const aspect = imageAspectRatio?.value || 'square';
+        const quality = imageQuality?.value || 'standard';
 
-        if (provider === 'google' && imageQuality) {
-          const quality = imageQuality?.value || '1K';
-          const qualityConfig = GOOGLE_QUALITY_CONFIG[quality] || GOOGLE_QUALITY_CONFIG['1K'];
-          return qualityConfig.credits;
-        }
-        return config.baseCredits;
+        return {
+          provider,
+          aspect,
+          quality,
+          // Map to provider-specific format
+          aspectRatio: ASPECT_RATIO_MAP[aspect]?.[provider] || ASPECT_RATIO_MAP.square[provider],
+          credits: IMAGE_CREDITS
+        };
       }
 
-      /**
-       * Update credits display when aspect/quality changes (Google) or resolution changes (OpenAI)
-       */
-      function updateImageOptionsOnChange() {
-        updateImageCreditsDisplay();
-      }
-
-      /**
-       * Validate and get Google aspect ratio (fallback to 1:1 if invalid)
-       */
-      function getValidAspectRatio() {
-        const aspect = imageAspectRatio?.value || '1:1';
-        return GOOGLE_VALID_ASPECTS.includes(aspect) ? aspect : '1:1';
-      }
-
-      /**
-       * Validate and get Google quality (fallback to 1K if invalid)
-       */
-      function getValidQuality() {
-        const quality = imageQuality?.value || '1K';
-        return GOOGLE_QUALITY_CONFIG[quality] ? quality : '1K';
-      }
+      // Expose settings getter globally
+      window.ImageJobControl.getSettings = getImageSettings;
 
       /**
        * Update image credits display
@@ -1469,42 +1414,11 @@
 
         const provider = imageAIProvider.value || 'openai';
         const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
-        const isGoogle = provider === 'google';
 
-        // Show/hide style row (OpenAI only)
-        if (imageStyleRow) {
-          imageStyleRow.classList.toggle('hidden', !config.hasStyles);
-        }
-
-        // Show/hide aspect ratio row + hint (Google only)
-        if (imageAspectRatioRow) {
-          imageAspectRatioRow.classList.toggle('hidden', !config.hasAspectRatio);
-        }
-        if (imageAspectHint) {
-          imageAspectHint.classList.toggle('hidden', !config.hasAspectRatio);
-        }
-
-        // Show/hide quality row + hint (Google only)
-        if (imageQualityRow) {
-          imageQualityRow.classList.toggle('hidden', !config.hasQuality);
-        }
-        if (imageQualityHint) {
-          imageQualityHint.classList.toggle('hidden', !config.hasQuality);
-        }
-
-        // Show/hide resolution row (OpenAI only - hide for Google)
-        if (imageResolutionRow) {
-          imageResolutionRow.classList.toggle('hidden', isGoogle);
-        }
-
-        // Set defaults when switching to Google
-        if (isGoogle) {
-          if (imageAspectRatio && imageAspectRatio.value !== '1:1' && !GOOGLE_VALID_ASPECTS.includes(imageAspectRatio.value)) {
-            imageAspectRatio.value = '1:1';
-          }
-          if (imageQuality && !GOOGLE_QUALITY_CONFIG[imageQuality.value]) {
-            imageQuality.value = '1K';
-          }
+        // Update provider hint
+        if (imageProviderHint) {
+          imageProviderHint.textContent = config.hint;
+          imageProviderHint.style.display = config.hint ? 'block' : 'none';
         }
 
         // Update credits display
@@ -1551,19 +1465,14 @@
         updateImageProviderOptions();
       }
 
-      // Wire up aspect ratio change (updates credits display for Google)
+      // Wire up aspect ratio change
       if (imageAspectRatio) {
-        imageAspectRatio.addEventListener('change', updateImageOptionsOnChange);
+        imageAspectRatio.addEventListener('change', updateImageCreditsDisplay);
       }
 
-      // Wire up quality change (updates credits for Google)
+      // Wire up quality change
       if (imageQuality) {
-        imageQuality.addEventListener('change', updateImageOptionsOnChange);
-      }
-
-      // Wire up resolution change (updates credits for OpenAI)
-      if (imageResolution) {
-        imageResolution.addEventListener('change', updateImageCreditsDisplay);
+        imageQuality.addEventListener('change', updateImageCreditsDisplay);
       }
 
       // Wire up form validation
