@@ -74,6 +74,9 @@
               <option value="google">Google (Imagen)</option>
             </select>
           </div>
+          <div class="provider-lock-hint hidden" id="imageProviderLockHint">
+            <i class="fa-solid fa-lock"></i> <span id="imageProviderLockText">Provider locked while generating.</span>
+          </div>
 
           <!-- Style (OpenAI modes; Google uses prompt-based styling) -->
           <div class="inline-field" id="imageStyleRow">
@@ -1289,6 +1292,110 @@
           hasQuality: true,
           hint: 'Style is controlled via prompt text.'
         }
+      };
+
+      // ========================================
+      // IMAGE JOB STATE: Lock provider during generation
+      // ========================================
+      const imageProviderLockHint = leftStack.querySelector('#imageProviderLockHint');
+      const imageProviderLockText = leftStack.querySelector('#imageProviderLockText');
+
+      /**
+       * Image job state - tracks in-flight generation requests
+       */
+      const imageJobState = {
+        inFlight: false,
+        provider: null,        // 'openai' | 'google'
+        settingsSnapshot: null,
+        jobId: null,
+        reservationId: null,
+        startedAt: null
+      };
+
+      /**
+       * Lock image UI during generation
+       * @param {string} provider - 'openai' or 'google'
+       * @param {object} settings - snapshot of current settings
+       * @param {string} jobId - the job/temp ID
+       * @param {string} reservationId - credits reservation ID
+       */
+      function lockImageUI(provider, settings, jobId, reservationId) {
+        imageJobState.inFlight = true;
+        imageJobState.provider = provider;
+        imageJobState.settingsSnapshot = settings;
+        imageJobState.jobId = jobId;
+        imageJobState.reservationId = reservationId;
+        imageJobState.startedAt = Date.now();
+
+        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+
+        // Disable all image settings inputs
+        if (imageAIProvider) imageAIProvider.disabled = true;
+        if (imageStyle) imageStyle.disabled = true;
+        if (imageAspectRatio) imageAspectRatio.disabled = true;
+        if (imageQuality) imageQuality.disabled = true;
+        if (imageResolution) imageResolution.disabled = true;
+        if (imagePrompt) imagePrompt.disabled = true;
+
+        // Show lock hint with provider name
+        if (imageProviderLockHint) {
+          imageProviderLockHint.classList.remove('hidden');
+        }
+        if (imageProviderLockText) {
+          imageProviderLockText.textContent = `Provider locked: ${config.name}`;
+        }
+
+        console.log('[Image] UI locked for provider:', provider, imageJobState);
+      }
+
+      /**
+       * Unlock image UI after generation completes/fails
+       */
+      function unlockImageUI() {
+        imageJobState.inFlight = false;
+        imageJobState.provider = null;
+        imageJobState.settingsSnapshot = null;
+        imageJobState.jobId = null;
+        imageJobState.reservationId = null;
+        imageJobState.startedAt = null;
+
+        // Re-enable all image settings inputs
+        if (imageAIProvider) imageAIProvider.disabled = false;
+        if (imageStyle) imageStyle.disabled = false;
+        if (imageAspectRatio) imageAspectRatio.disabled = false;
+        if (imageQuality) imageQuality.disabled = false;
+        if (imageResolution) imageResolution.disabled = false;
+        if (imagePrompt) imagePrompt.disabled = false;
+
+        // Hide lock hint
+        if (imageProviderLockHint) {
+          imageProviderLockHint.classList.add('hidden');
+        }
+
+        console.log('[Image] UI unlocked');
+      }
+
+      /**
+       * Get current image job state (for api.js to check)
+       */
+      function getImageJobState() {
+        return { ...imageJobState };
+      }
+
+      /**
+       * Check if image generation is in flight
+       */
+      function isImageGenerating() {
+        return imageJobState.inFlight;
+      }
+
+      // Expose job state functions globally for api.js
+      window.ImageJobControl = {
+        lock: lockImageUI,
+        unlock: unlockImageUI,
+        getState: getImageJobState,
+        isGenerating: isImageGenerating,
+        getProviderConfig: (provider) => IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai
       };
 
       /**
