@@ -1227,66 +1227,34 @@
       const imageGenTime = leftStack.querySelector('#imageGenTime');
       const generateImageBtn = leftStack.querySelector('#generateImageBtn');
 
-      // Flat credit cost for all images (simplified)
-      const IMAGE_CREDITS = 10;
-
-      // Provider configurations (simplified)
-      const IMAGE_PROVIDER_CONFIG = {
-        openai: {
-          name: 'OpenAI (DALL·E)',
-          credits: IMAGE_CREDITS,
-          genTime: '30 sec',
-          hint: ''
-        },
-        google: {
-          name: 'Google (Imagen)',
-          credits: IMAGE_CREDITS,
-          genTime: '45 sec',
-          hint: 'Style is controlled via prompt text.'
-        }
-      };
-
-      // Map simplified aspect values to provider-specific formats
-      const ASPECT_RATIO_MAP = {
-        square: { openai: '1024x1024', google: '1:1' },
-        portrait: { openai: '1024x1536', google: '9:16' },
-        landscape: { openai: '1536x1024', google: '16:9' }
-      };
+      // ========================================
+      // IMAGE: Using centralized GenerationState
+      // Provider configs come from window.GenerationState.capabilities
+      // ========================================
 
       // ========================================
-      // IMAGE JOB STATE: Lock provider during generation
+      // IMAGE JOB STATE: Uses centralized GenerationState
       // ========================================
       const imageProviderLockHint = leftStack.querySelector('#imageProviderLockHint');
       const imageProviderLockText = leftStack.querySelector('#imageProviderLockText');
 
       /**
-       * Image job state - tracks in-flight generation requests
-       */
-      const imageJobState = {
-        inFlight: false,
-        provider: null,        // 'openai' | 'google'
-        settingsSnapshot: null,
-        jobId: null,
-        reservationId: null,
-        startedAt: null
-      };
-
-      /**
        * Lock image UI during generation
+       * Uses window.GenerationState for state management
        * @param {string} provider - 'openai' or 'google'
-       * @param {object} settings - snapshot of current settings
+       * @param {object} _settings - (unused, kept for API compat) snapshot of settings
        * @param {string} jobId - the job/temp ID
        * @param {string} reservationId - credits reservation ID
        */
-      function lockImageUI(provider, settings, jobId, reservationId) {
-        imageJobState.inFlight = true;
-        imageJobState.provider = provider;
-        imageJobState.settingsSnapshot = settings;
-        imageJobState.jobId = jobId;
-        imageJobState.reservationId = reservationId;
-        imageJobState.startedAt = Date.now();
+      function lockImageUI(provider, _settings, jobId, reservationId) {
+        // Lock the central state
+        window.GenerationState.lockGeneration({
+          jobId,
+          reservationId,
+          startedAt: Date.now()
+        });
 
-        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+        const caps = window.GenerationState.getProviderCapabilities('image', provider);
 
         // Disable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = true;
@@ -1299,22 +1267,18 @@
           imageProviderLockHint.classList.remove('hidden');
         }
         if (imageProviderLockText) {
-          imageProviderLockText.textContent = `Provider locked: ${config.name}`;
+          imageProviderLockText.textContent = `Provider locked: ${caps?.name || provider}`;
         }
 
-        console.log('[Image] UI locked for provider:', provider, imageJobState);
+        console.log('[GEN] Image UI locked for provider:', provider);
       }
 
       /**
        * Unlock image UI after generation completes/fails
        */
       function unlockImageUI() {
-        imageJobState.inFlight = false;
-        imageJobState.provider = null;
-        imageJobState.settingsSnapshot = null;
-        imageJobState.jobId = null;
-        imageJobState.reservationId = null;
-        imageJobState.startedAt = null;
+        // Unlock the central state
+        window.GenerationState.unlockGeneration();
 
         // Re-enable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = false;
@@ -1327,21 +1291,29 @@
           imageProviderLockHint.classList.add('hidden');
         }
 
-        console.log('[Image] UI unlocked');
+        console.log('[GEN] Image UI unlocked');
       }
 
       /**
-       * Get current image job state (for api.js to check)
+       * Get current image generation state (for api.js to check)
        */
       function getImageJobState() {
-        return { ...imageJobState };
+        const job = window.GenerationState.generation.currentJob;
+        return {
+          inFlight: window.GenerationState.isLocked(),
+          provider: window.GenerationState.getProvider('image'),
+          settingsSnapshot: job?.snapshot?.settings || null,
+          jobId: job?.jobId || null,
+          reservationId: job?.reservationId || null,
+          startedAt: job?.startedAt || null
+        };
       }
 
       /**
        * Check if image generation is in flight
        */
       function isImageGenerating() {
-        return imageJobState.inFlight;
+        return window.GenerationState.isLocked();
       }
 
       // Expose job state functions globally for api.js
@@ -1350,31 +1322,24 @@
         unlock: unlockImageUI,
         getState: getImageJobState,
         isGenerating: isImageGenerating,
-        getProviderConfig: (provider) => IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai
+        getProviderConfig: (provider) => window.GenerationState.getProviderCapabilities('image', provider)
       };
 
       /**
-       * Calculate image credits - flat rate for all providers
-       */
-      function calculateImageCredits() {
-        return IMAGE_CREDITS;
-      }
-
-      /**
-       * Get current image settings as a snapshot
+       * Get current image settings as a snapshot using GenerationState
        */
       function getImageSettings() {
-        const provider = imageAIProvider?.value || 'openai';
-        const aspect = imageAspectRatio?.value || 'square';
-        const quality = imageQuality?.value || 'standard';
+        const snapshot = window.GenerationState.getGenerationSnapshot('image');
+        const caps = snapshot.capabilities;
 
         return {
-          provider,
-          aspect,
-          quality,
+          provider: snapshot.provider,
+          aspect: snapshot.settings.aspect,
+          quality: snapshot.settings.quality,
           // Map to provider-specific format
-          aspectRatio: ASPECT_RATIO_MAP[aspect]?.[provider] || ASPECT_RATIO_MAP.square[provider],
-          credits: IMAGE_CREDITS
+          aspectRatio: caps?.aspectMap?.[snapshot.settings.aspect] || '1024x1024',
+          qualityValue: caps?.qualityMap?.[snapshot.settings.quality] || 'standard',
+          credits: snapshot.credits
         };
       }
 
@@ -1382,22 +1347,21 @@
       window.ImageJobControl.getSettings = getImageSettings;
 
       /**
-       * Update image credits display
+       * Update image credits display using GenerationState
        */
       function updateImageCreditsDisplay() {
-        const credits = calculateImageCredits();
-        const provider = imageAIProvider?.value || 'openai';
-        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
+        const snapshot = window.GenerationState.getGenerationSnapshot('image');
+        const caps = snapshot.capabilities;
 
         if (imageCreditsDisplay) {
-          imageCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${credits}`;
+          imageCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${snapshot.credits}`;
         }
         if (imageGenTime) {
-          imageGenTime.textContent = config.genTime;
+          imageGenTime.textContent = caps?.genTime || '30 sec';
         }
         if (generateImageBtn) {
-          generateImageBtn.title = `${credits} credits`;
-          generateImageBtn.dataset.provider = provider;
+          generateImageBtn.title = `${snapshot.credits} credits`;
+          generateImageBtn.dataset.provider = snapshot.provider;
         }
 
         // Trigger workspace credits update if available
@@ -1408,29 +1372,29 @@
 
       /**
        * Update image options based on selected provider
+       * Syncs UI dropdown with GenerationState
        */
       function updateImageProviderOptions() {
         if (!imageAIProvider) return;
 
         const provider = imageAIProvider.value || 'openai';
-        const config = IMAGE_PROVIDER_CONFIG[provider] || IMAGE_PROVIDER_CONFIG.openai;
 
-        // Update provider hint
+        // Sync to GenerationState (this also normalizes settings)
+        window.GenerationState.setProvider('image', provider);
+
+        const caps = window.GenerationState.getProviderCapabilities('image', provider);
+
+        // Google (Imagen) shows hint that style is via prompt
+        const hint = provider === 'google' ? 'Style is controlled via prompt text.' : '';
         if (imageProviderHint) {
-          imageProviderHint.textContent = config.hint;
-          imageProviderHint.style.display = config.hint ? 'block' : 'none';
+          imageProviderHint.textContent = hint;
+          imageProviderHint.style.display = hint ? 'block' : 'none';
         }
 
         // Update credits display
         updateImageCreditsDisplay();
 
-        // Update provider hint
-        if (imageProviderHint) {
-          imageProviderHint.textContent = config.hint;
-          imageProviderHint.style.display = config.hint ? 'block' : 'none';
-        }
-
-        console.log('[Image] Provider changed to:', provider, config);
+        console.log('[GEN] Image provider changed:', { provider, caps });
       }
 
       /**
@@ -1461,18 +1425,26 @@
       // Wire up provider change handler
       if (imageAIProvider) {
         imageAIProvider.addEventListener('change', updateImageProviderOptions);
-        // Initial setup
+        // Initial setup - sync default UI value to GenerationState
         updateImageProviderOptions();
       }
 
-      // Wire up aspect ratio change
+      // Wire up aspect ratio change - sync to GenerationState
       if (imageAspectRatio) {
-        imageAspectRatio.addEventListener('change', updateImageCreditsDisplay);
+        imageAspectRatio.addEventListener('change', () => {
+          const aspect = imageAspectRatio.value || 'square';
+          window.GenerationState.setSetting('image', 'aspect', aspect);
+          updateImageCreditsDisplay();
+        });
       }
 
-      // Wire up quality change
+      // Wire up quality change - sync to GenerationState
       if (imageQuality) {
-        imageQuality.addEventListener('change', updateImageCreditsDisplay);
+        imageQuality.addEventListener('change', () => {
+          const quality = imageQuality.value || 'standard';
+          window.GenerationState.setSetting('image', 'quality', quality);
+          updateImageCreditsDisplay();
+        });
       }
 
       // Wire up form validation
@@ -1484,13 +1456,15 @@
       // ========================================
       // IMAGE: Generate Button Click Handler
       // Note: Actual API call is handled by main.js via event delegation
-      // This handler is for debug logging only
+      // This handler logs debug info using GenerationState
       // ========================================
       if (generateImageBtn) {
-        generateImageBtn.addEventListener('click', function(e) {
-          const provider = imageAIProvider?.value || 'openai';
-          const credits = calculateImageCredits();
-          console.log('[Image] Generate clicked - provider:', provider, 'credits:', credits);
+        generateImageBtn.addEventListener('click', function() {
+          const snapshot = window.GenerationState.getGenerationSnapshot('image');
+          const available = window.WorkspaceCredits?.getCredits?.() || 0;
+          console.log('[GEN] mode=image provider=' + snapshot.provider +
+                      ' cost=' + snapshot.credits + ' available=' + available +
+                      ' settings=' + JSON.stringify(snapshot.settings));
           // Event bubbles to main.js which calls API.startImageGenerationByProvider()
         });
       }
