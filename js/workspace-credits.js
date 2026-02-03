@@ -1166,7 +1166,7 @@ function setupBatchCountListeners() {
 export function showInsufficientCreditsMessage(action) {
   const cost = getActionCost(action);
   const available = creditsState.wallet.available;
-  const needed = cost - available;
+  const needed = Math.max(0, cost - available);
 
   log('[Credits] Insufficient credits:', { action, cost, available, needed });
 
