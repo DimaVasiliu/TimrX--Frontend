@@ -490,7 +490,6 @@
               <label for="videoAspectRatio">Aspect Ratio</label>
               <select id="videoAspectRatio">
                 <option value="landscape" selected>Landscape</option>
-                <option value="square">Square</option>
                 <option value="portrait">Portrait</option>
               </select>
             </div>
