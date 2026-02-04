@@ -334,6 +334,156 @@ function showQuotaExceededPopup() {
   closeBtn.focus();
 }
 
+/**
+ * Show a popup when video generation is blocked by provider content filtering.
+ * Explains why the content was rejected and how to fix it.
+ */
+function showContentFilteredPopup(userMessage) {
+  const existing = document.getElementById('contentFilteredPopup');
+  if (existing) existing.remove();
+
+  const message = userMessage ||
+    'Blocked by provider safety rules (third-party content). Try removing logos/faces/copyrighted characters.';
+
+  const popup = document.createElement('div');
+  popup.id = 'contentFilteredPopup';
+  popup.setAttribute('role', 'alertdialog');
+  popup.setAttribute('aria-labelledby', 'filterTitle');
+  popup.setAttribute('aria-describedby', 'filterDesc');
+  popup.innerHTML = `
+    <div class="filter-popup-backdrop"></div>
+    <div class="filter-popup-content">
+      <button type="button" class="filter-popup-x" aria-label="Close">\u00d7</button>
+      <div class="filter-popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 9v4m0 4h.01M3.27 17.44l7.46-12.88a1.5 1.5 0 0 1 2.54 0l7.46 12.88A1.5 1.5 0 0 1 19.46 20H4.54a1.5 1.5 0 0 1-1.27-2.56Z"/>
+        </svg>
+      </div>
+      <h3 id="filterTitle">Content Blocked</h3>
+      <p id="filterDesc">${message}</p>
+      <div class="filter-popup-tips">
+        <span class="filter-popup-tips-label">Common triggers</span>
+        <ul>
+          <li>Brand logos or trademarks</li>
+          <li>Recognisable faces or celebrities</li>
+          <li>Copyrighted characters or artwork</li>
+        </ul>
+      </div>
+      <button type="button" class="filter-popup-close" aria-label="Close">Got it</button>
+    </div>
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #contentFilteredPopup {
+      position: fixed; inset: 0; z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: filterFadeIn 0.3s ease;
+    }
+    @keyframes filterFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .filter-popup-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    .filter-popup-content {
+      position: relative; background: #111;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+      padding: 32px 28px; max-width: 400px; width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+      transform: translateY(20px);
+      animation: filterSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes filterSlideUp { to { transform: translateY(0); } }
+    .filter-popup-x {
+      position: absolute; top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05); border-radius: 8px;
+      font-size: 20px; color: #666; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; line-height: 1;
+    }
+    .filter-popup-x:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2); color: #fff;
+    }
+    .filter-popup-icon {
+      width: 56px; height: 56px; margin: 0 auto 16px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.18); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .filter-popup-icon svg { width: 26px; height: 26px; color: #f59e0b; }
+    .filter-popup-content h3 {
+      margin: 0 0 10px; font-size: 1.5rem; font-weight: 700;
+      color: #fff; letter-spacing: -0.01em;
+    }
+    .filter-popup-content p {
+      margin: 0 0 20px; font-size: 0.9rem; color: #777; line-height: 1.6;
+    }
+    .filter-popup-tips {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.12);
+      border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+      text-align: left;
+    }
+    .filter-popup-tips-label {
+      display: block; font-size: 10px; color: #888;
+      text-transform: uppercase; letter-spacing: 0.15em;
+      font-weight: 600; margin-bottom: 8px;
+    }
+    .filter-popup-tips ul {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .filter-popup-tips li {
+      font-size: 0.85rem; color: #999; line-height: 1.8;
+      padding-left: 16px; position: relative;
+    }
+    .filter-popup-tips li::before {
+      content: "\\2022"; position: absolute; left: 0; color: #f59e0b;
+    }
+    .filter-popup-close {
+      width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 600;
+      font-family: inherit;
+      background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(234,88,12,0.15));
+      border: 1px solid rgba(245,158,11,0.25); border-radius: 999px;
+      color: #fff; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1); letter-spacing: 0.02em;
+    }
+    .filter-popup-close:hover {
+      background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(234,88,12,0.25));
+      border-color: rgba(245,158,11,0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.2);
+    }
+    .filter-popup-close:active { transform: translateY(0); }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(popup);
+
+  const closeBtn = popup.querySelector('.filter-popup-close');
+  const closeX = popup.querySelector('.filter-popup-x');
+  const backdrop = popup.querySelector('.filter-popup-backdrop');
+  const closePopup = () => {
+    popup.style.opacity = '0';
+    popup.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => { popup.remove(); style.remove(); }, 250);
+  };
+  closeBtn.addEventListener('click', closePopup);
+  closeX.addEventListener('click', closePopup);
+  backdrop.addEventListener('click', closePopup);
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', escHandler); }
+  });
+  closeBtn.focus();
+}
+
+// Expose globally for api.js
+window.showContentFilteredPopup = showContentFilteredPopup;
+
 // ============================================================================
 // FILE HANDLERS
 // ============================================================================
