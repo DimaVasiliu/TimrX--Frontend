@@ -1199,13 +1199,13 @@ blockquote cite {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #92400e, #7c2d12);
+  background: linear-gradient(90deg, #44260a, #2e1a06);
   opacity: 0.8;
 }
 
 .product-block:hover {
-  border-color: rgba(146, 64, 14, 0.3);
-  box-shadow: 0 8px 32px rgba(146, 64, 14, 0.1);
+  border-color: rgba(68, 38, 10, 0.4);
+  box-shadow: 0 8px 32px rgba(68, 38, 10, 0.15);
   transform: translateY(-2px);
 }
 
@@ -1221,9 +1221,9 @@ blockquote cite {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #b45309;
-  background: rgba(146, 64, 14, 0.15);
-  border: 1px solid rgba(146, 64, 14, 0.3);
+  color: #7c5a3a;
+  background: rgba(68, 38, 10, 0.2);
+  border: 1px solid rgba(68, 38, 10, 0.4);
   border-radius: 4px;
   margin-bottom: 12px;
 }
@@ -1250,18 +1250,19 @@ blockquote cite {
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #f5f5f5;
-  background: linear-gradient(135deg, #92400e, #78350f);
+  color: #d4d4d4;
+  background: linear-gradient(135deg, #44260a, #2e1a06);
   border-radius: 8px;
   text-decoration: none;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 16px rgba(120, 53, 15, 0.4);
+  box-shadow: 0 4px 16px rgba(46, 26, 6, 0.5);
 }
 
 .product-cta:hover {
-  background: linear-gradient(135deg, #a3580f, #92400e);
+  color: #e5e5e5;
+  background: linear-gradient(135deg, #5a3310, #44260a);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(120, 53, 15, 0.5);
+  box-shadow: 0 6px 20px rgba(46, 26, 6, 0.6);
 }
 
 .product-cta .arrow {
