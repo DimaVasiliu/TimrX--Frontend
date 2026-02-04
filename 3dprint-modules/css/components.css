@@ -834,18 +834,18 @@ textarea {
   color: var(--muted);
 }
 
-/* ===== VIDEO SETTINGS 2x2 GRID ===== */
+/* ===== VIDEO SETTINGS (compact desktop row + mobile fallback) ===== */
 .video-settings-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .video-grid-cell {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .video-grid-cell label {
@@ -916,12 +916,12 @@ textarea {
 
 .video-grid-cell select {
   width: 100%;
-  padding: 8px 10px;
+  padding: 7px 9px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -997,11 +997,11 @@ textarea {
 /* ===== VIDEO MODE SWITCHER - Cool Tab Design ===== */
 .video-mode-switcher {
   display: flex;
-  gap: 4px;
-  margin-bottom: 12px;
-  padding: 4px;
+  gap: 3px;
+  margin-bottom: 10px;
+  padding: 3px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -1010,14 +1010,15 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 5px;
+  padding: 7px 10px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.01em;
@@ -1046,8 +1047,8 @@ textarea {
 
 .video-mode-btn svg {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   opacity: 0.7;
   transition: opacity 0.2s ease;
 }
@@ -1064,6 +1065,22 @@ textarea {
 
 .video-mode-content.hidden {
   display: none;
+}
+
+/* Keep video style preset aligned like image options rows */
+.timrx-3dprint .card .inline-field.video-style-row {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 640px) {
+  .video-settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .video-grid-cell--quality {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ===== CARD HEADER WITH INFO TOOLTIP ===== */
