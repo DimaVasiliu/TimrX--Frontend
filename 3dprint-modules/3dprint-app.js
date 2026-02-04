@@ -1,3 +1,4 @@
+
 /* ============================================================================
    TimrX 3D Print Workspace
    - Rail panel switching (Image / Model / Remesh / Texture / Video)
@@ -430,18 +431,20 @@
           <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
           <span class="field-hint">Keep prompts simple. Short clips look best.</span>
 
-          <label for="videoStylePreset" style="font-size:12px;margin-top:12px;display:block">Style Preset</label>
-          <select id="videoStylePreset" style="width:100%">
-            <option value="" selected>Auto (cinematic default)</option>
-            <option value="cinematic">Cinematic</option>
-            <option value="documentary">Documentary</option>
-            <option value="product">Product Showcase</option>
-            <option value="aerial">Aerial / Drone</option>
-            <option value="timelapse">Timelapse</option>
-            <option value="slow_motion">Slow Motion</option>
-            <option value="anime">Anime</option>
-            <option value="noir">Film Noir</option>
-          </select>
+          <div class="inline-field video-style-row">
+            <label for="videoStylePreset">Style Preset</label>
+            <select id="videoStylePreset">
+              <option value="" selected>Auto (cinematic default)</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="documentary">Documentary</option>
+              <option value="product">Product Showcase</option>
+              <option value="aerial">Aerial / Drone</option>
+              <option value="timelapse">Timelapse</option>
+              <option value="slow_motion">Slow Motion</option>
+              <option value="anime">Anime</option>
+              <option value="noir">Film Noir</option>
+            </select>
+          </div>
           <span class="field-hint">Style hints added to your prompt for better results.</span>
         </div>
 
@@ -526,7 +529,7 @@
                 <option value="portrait">Portrait</option>
               </select>
             </div>
-            <div class="video-grid-cell">
+            <div class="video-grid-cell video-grid-cell--quality">
               <label for="videoQuality">Quality</label>
               <select id="videoQuality">
                 <option value="standard" selected>Standard</option>
