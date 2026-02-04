@@ -445,7 +445,7 @@
      -------------------------------------------------------------------------- */
   .timrx-3dprint .ws-left {
     width: 320px;
-    overflow-y: auto;
+    overflow: hidden;
     height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 2));
     min-height: 0;
     padding-right: 5px;
@@ -460,28 +460,31 @@
   }
   
   /* Left panel scrollbar styling */
-  .timrx-3dprint .ws-left::-webkit-scrollbar {
+  .timrx-3dprint .pane-stack::-webkit-scrollbar {
     width: 6px;
   }
   
-  .timrx-3dprint .ws-left::-webkit-scrollbar-track {
+  .timrx-3dprint .pane-stack::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
     border-radius: 3px;
   }
   
-  .timrx-3dprint .ws-left::-webkit-scrollbar-thumb {
+  .timrx-3dprint .pane-stack::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 3px;
     transition: background 0.2s ease;
   }
   
-  .timrx-3dprint .ws-left::-webkit-scrollbar-thumb:hover {
+  .timrx-3dprint .pane-stack::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.25);
   }
   
   /* Stack of compact control cards in left panel */
   .timrx-3dprint .pane-stack {
     display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     gap: 5px;
     grid-auto-rows: min-content;
   }
