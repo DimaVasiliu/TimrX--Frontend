@@ -1784,6 +1784,8 @@ export async function startVideoGeneration() {
 
   const motion = (byId('videoMotion')?.value || '').trim();
   const prompt = (byId('videoTextPrompt')?.value || '').trim();
+  const stylePreset = byId('videoStylePreset')?.value || '';
+  const motionPreset = byId('videoMotionPreset')?.value || '';
 
   // Compute credits using the SAME formula as UI
   const totalCredits = computeVideoCredits(settings);
@@ -1847,24 +1849,14 @@ export async function startVideoGeneration() {
   try {
     prog.label('Generating video with Veo...');
 
-    // Build payload with simplified settings
-    const payload = {
-      provider: 'google',
-      task: settings.mode,
-      prompt: prompt,
-      duration_sec: settings.durationSec,
-      aspect_ratio: settings.aspectRatio,
-      quality: settings.quality,
-      motion: motion,
-      loop: settings.loop
-    };
+    // Build payload based on mode and pick the right endpoint
+    let endpoint;
+    let payload;
 
-    // For image2video mode, include the reference image
     if (settings.mode === 'image2video') {
+      // ── C2: Image → video animation ──
       const videoImagePreview = byId('videoImagePreview');
       const imageData = videoImagePreview?.src;
-
-      // Accept both data URLs (from file upload) and HTTP URLs (from history images)
       const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
 
       if (!isValidImage) {
@@ -1874,16 +1866,39 @@ export async function startVideoGeneration() {
         return;
       }
 
-      payload.image_data = imageData;
+      endpoint = '/api/video/animate';
+      payload = {
+        image_data: imageData,
+        prompt: motion || prompt,
+        motion_preset: motionPreset || undefined,
+        duration_sec: settings.durationSec,
+        aspect_ratio: settings.aspectRatio,
+        quality: settings.quality,
+        loop: settings.loop
+      };
+
       const isDataUrl = imageData.startsWith('data:');
       console.log('[VIDEO] Image2Video mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
+
+    } else {
+      // ── C1: Text → cinematic clip ──
+      endpoint = '/api/video/text';
+      payload = {
+        prompt: prompt,
+        style_preset: stylePreset || undefined,
+        duration_sec: settings.durationSec,
+        aspect_ratio: settings.aspectRatio,
+        quality: settings.quality,
+        motion: motion,
+        loop: settings.loop
+      };
     }
 
     // Debug log before API call
-    console.log('[GEN] mode=video provider=google cost=' + totalCredits +
-                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
+    console.log('[GEN] mode=' + settings.mode + ' endpoint=' + endpoint +
+                ' cost=' + totalCredits + ' available=' + creditCheck.available);
 
-    const result = await apiFetch('/api/video/generate', {
+    const result = await apiFetch(endpoint, {
       method: 'POST',
       body: payload
     });
@@ -1969,16 +1984,35 @@ export async function startVideoGeneration() {
  * Watch a video generation job for completion
  */
 async function watchVideoJob(jobId, reservationId, meta) {
-  const POLL_INTERVAL = 5000;
-  const MAX_POLLS = 180; // 15 minutes max
+  // D2: Exponential backoff — start at 2s, cap at 15s, ~10 min total budget
+  const INITIAL_INTERVAL = 2000;
+  const MAX_INTERVAL = 15000;
+  const MAX_ELAPSED_MS = 10 * 60 * 1000; // 10 minutes
+  let interval = INITIAL_INTERVAL;
+  let elapsed = 0;
 
-  for (let i = 0; i < MAX_POLLS; i++) {
-    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+  while (elapsed < MAX_ELAPSED_MS) {
+    await new Promise(r => setTimeout(r, interval));
+    elapsed += interval;
+    // Backoff: double every poll, capped at MAX_INTERVAL
+    interval = Math.min(interval * 1.3, MAX_INTERVAL);
 
     try {
-      const result = await apiFetch(`/api/video/generate/status/${encodeURIComponent(jobId)}`);
+      const result = await apiFetch(`/api/video/status/${encodeURIComponent(jobId)}`);
 
       if (!result.ok) {
+        // Job not found on backend — stop polling immediately
+        if (result.status === 404) {
+          console.warn('[Video] Job not found on backend, stopping poll:', jobId);
+          State.updateHistoryItem(jobId, {
+            status: 'failed',
+            status_label: 'Job not found — please retry',
+            type: 'video'
+          });
+          State.removeActiveJob(jobId);
+          renderHistory();
+          return;
+        }
         console.warn('[Video] Status check failed:', result.error);
         continue;
       }
@@ -2050,6 +2084,16 @@ async function watchVideoJob(jobId, reservationId, meta) {
           UI.makeProgressDriver().fail(errorMsg);
         }
         return;
+      }
+
+      // Quota queued — job is waiting for provider quota reset
+      if (status === 'queued' && data.quota_queued) {
+        State.updateHistoryItem(jobId, {
+          status: 'generating',
+          status_label: 'Queued — waiting for provider quota reset'
+        });
+        renderHistory();
+        continue;
       }
 
       // Still processing - update progress
@@ -2688,7 +2732,7 @@ export async function resumePendingJobs(options = {}) {
     resumable.forEach(item => {
       if (!pendingMeta[item.id]) {
         State.savePendingMeta(item.id, {
-          stage: item.stage || (item.type === 'image' ? 'image' : 'remesh'),
+          stage: item.stage || (item.type === 'image' ? 'image' : item.type === 'video' ? 'video' : 'remesh'),
           type: item.type || 'model',
           prompt: item.prompt || '',
           root_prompt: item.root_prompt || item.prompt || '',
@@ -2707,7 +2751,7 @@ export async function resumePendingJobs(options = {}) {
       const item = history.find(entry => entry && entry.id === id);
       if (!item) return;
       State.savePendingMeta(id, {
-        stage: item.stage || (item.type === 'image' ? 'image' : 'remesh'),
+        stage: item.stage || (item.type === 'image' ? 'image' : item.type === 'video' ? 'video' : 'remesh'),
         type: item.type || 'model',
         prompt: item.prompt || '',
         root_prompt: item.root_prompt || item.prompt || '',
@@ -2724,6 +2768,7 @@ export async function resumePendingJobs(options = {}) {
   const meshIds = [];
   const imageIds = [];
   const textIds = [];
+  const videoIds = [];
 
   ids.forEach((id) => {
     const stage = pendingMeta?.[id]?.stage;
@@ -2731,6 +2776,8 @@ export async function resumePendingJobs(options = {}) {
       meshIds.push(id);
     } else if (stage === 'image') {
       imageIds.push(id);
+    } else if (stage === 'video') {
+      videoIds.push(id);
     } else {
       textIds.push(id);
     }
@@ -2765,7 +2812,7 @@ export async function resumePendingJobs(options = {}) {
     renderHistory();
   }
 
-  const allToResume = [...meshIds, ...textIds];
+  const allToResume = [...meshIds, ...textIds, ...videoIds];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
@@ -2780,6 +2827,11 @@ export async function resumePendingJobs(options = {}) {
 
   for (const id of textIds) {
     watchJob(id);
+  }
+
+  for (const id of videoIds) {
+    const meta = pendingMeta[id] || {};
+    watchVideoJob(id, null, meta);
   }
 }
 
