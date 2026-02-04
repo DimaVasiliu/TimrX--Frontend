@@ -837,7 +837,7 @@ textarea {
 /* ===== VIDEO SETTINGS (compact desktop row + mobile fallback) ===== */
 .video-settings-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-top: 10px;
 }
@@ -941,6 +941,27 @@ textarea {
 .video-grid-cell select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.video-grid-cell--quality {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.video-grid-cell--quality label {
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.video-grid-cell--quality select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 130px;
+  max-width: 160px;
 }
 
 /* ===== COMPACT INLINE-FIELD LAYOUT ===== */
@@ -1076,10 +1097,6 @@ textarea {
 @media (max-width: 640px) {
   .video-settings-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .video-grid-cell--quality {
-    grid-column: 1 / -1;
   }
 }
 
