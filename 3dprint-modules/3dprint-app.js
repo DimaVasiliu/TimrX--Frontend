@@ -429,6 +429,20 @@
           <label for="videoTextPrompt" style="font-size:12px;margin-top:14px;display:block">Describe your video scene</label>
           <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
           <span class="field-hint">Keep prompts simple. Short clips look best.</span>
+
+          <label for="videoStylePreset" style="font-size:12px;margin-top:12px;display:block">Style Preset</label>
+          <select id="videoStylePreset" style="width:100%">
+            <option value="" selected>Auto (cinematic default)</option>
+            <option value="cinematic">Cinematic</option>
+            <option value="documentary">Documentary</option>
+            <option value="product">Product Showcase</option>
+            <option value="aerial">Aerial / Drone</option>
+            <option value="timelapse">Timelapse</option>
+            <option value="slow_motion">Slow Motion</option>
+            <option value="anime">Anime</option>
+            <option value="noir">Film Noir</option>
+          </select>
+          <span class="field-hint">Style hints added to your prompt for better results.</span>
         </div>
 
         <!-- Image-to-Video: Image upload -->
@@ -478,9 +492,23 @@
               </div>
             </div>
           </div>
-          <label for="videoMotion" style="font-size:12px">Motion Description</label>
+          <label style="font-size:12px">Motion Preset</label>
+          <div id="videoMotionPresets" class="motion-preset-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <button type="button" class="motion-preset-btn is-active" data-preset="" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#ccc;cursor:pointer;transition:all .15s">None</button>
+            <button type="button" class="motion-preset-btn" data-preset="slow_pan" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Slow Pan</button>
+            <button type="button" class="motion-preset-btn" data-preset="parallax" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Parallax</button>
+            <button type="button" class="motion-preset-btn" data-preset="zoom_in" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Zoom In</button>
+            <button type="button" class="motion-preset-btn" data-preset="zoom_out" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Zoom Out</button>
+            <button type="button" class="motion-preset-btn" data-preset="orbit" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Orbit</button>
+            <button type="button" class="motion-preset-btn" data-preset="dolly" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Dolly</button>
+            <button type="button" class="motion-preset-btn" data-preset="tilt_up" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Tilt Up</button>
+            <button type="button" class="motion-preset-btn" data-preset="breathing" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Breathing</button>
+          </div>
+          <input type="hidden" id="videoMotionPreset" value="" />
+
+          <label for="videoMotion" style="font-size:12px">Motion Description <span style="color:#666;font-weight:400">(optional override)</span></label>
           <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..." style="min-height:60px"></textarea>
-          <span class="field-hint">Describe camera movement: pan, orbit, zoom, dolly, etc.</span>
+          <span class="field-hint">Custom motion text overrides the preset above.</span>
 
           <div class="video-settings-grid">
             <div class="video-grid-cell">
@@ -1164,6 +1192,25 @@
       }
       if (videoMotion) {
         videoMotion.addEventListener('input', validateVideoForm);
+      }
+
+      // Motion preset buttons — click toggles active state and sets hidden input
+      const motionPresetContainer = leftStack.querySelector('#videoMotionPresets');
+      const motionPresetInput = leftStack.querySelector('#videoMotionPreset');
+      if (motionPresetContainer) {
+        motionPresetContainer.querySelectorAll('.motion-preset-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            motionPresetContainer.querySelectorAll('.motion-preset-btn').forEach(b => {
+              b.classList.remove('is-active');
+              b.style.background = 'transparent';
+              b.style.color = '#999';
+            });
+            this.classList.add('is-active');
+            this.style.background = 'rgba(255,255,255,.08)';
+            this.style.color = '#ccc';
+            if (motionPresetInput) motionPresetInput.value = this.dataset.preset || '';
+          });
+        });
       }
 
       // Initial calculation and validation
