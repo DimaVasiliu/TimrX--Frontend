@@ -2061,24 +2061,31 @@ async function watchVideoJob(jobId, reservationId, meta) {
       if (status === 'failed') {
         releaseCreditsReservation(reservationId);
         const errorMsg = data.message || data.error || 'Video generation failed';
+        const errorCode = data.error || '';
+
+        // Check for content filtering (provider safety rejection)
+        const isFiltered = errorCode === 'provider_filtered_third_party';
 
         // Check for quota/rate limit errors
-        const isQuotaError = errorMsg.toLowerCase().includes('quota') ||
+        const isQuotaError = !isFiltered && (
+                            errorMsg.toLowerCase().includes('quota') ||
                             errorMsg.toLowerCase().includes('rate') ||
                             errorMsg.toLowerCase().includes('resource_exhausted') ||
                             errorMsg.toLowerCase().includes('exceeded') ||
-                            errorMsg.includes('429');
+                            errorMsg.includes('429'));
 
         State.updateHistoryItem(jobId, {
           status: 'failed',
-          status_label: isQuotaError ? 'Daily limit reached' : errorMsg,
+          status_label: isFiltered ? 'Content blocked' : isQuotaError ? 'Daily limit reached' : errorMsg,
           error_message: errorMsg,
           video_id: jobId,
           type: 'video'
         });
         renderHistory();
 
-        if (isQuotaError && window.showQuotaExceededPopup) {
+        if (isFiltered && window.showContentFilteredPopup) {
+          window.showContentFilteredPopup(data.user_message || errorMsg);
+        } else if (isQuotaError && window.showQuotaExceededPopup) {
           window.showQuotaExceededPopup();
         } else {
           UI.makeProgressDriver().fail(errorMsg);
