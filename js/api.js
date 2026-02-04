@@ -1117,10 +1117,18 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 // ============================================================================
 
 /**
- * Start text-to-3D generation
+ * Start text-to-3D or image-to-3D generation
  */
 export async function onGenerateClick() {
   if (startLock) return;
+
+  // Check if Image to 3D tab is active
+  const image3dTab = byId('image3d');
+  const isImage3dMode = image3dTab && !image3dTab.classList.contains('hidden');
+
+  if (isImage3dMode) {
+    return startImageTo3DFromUpload();
+  }
 
   // Get batch count first for credit check
   const batchRaw = parseInt(byId('modelBatchCount')?.value || '1', 10);
@@ -1143,17 +1151,6 @@ export async function onGenerateClick() {
 
   try {
     let promptTextarea = byId('modelPrompt') || byId('imagePrompt') || byId('texturePrompt') || byId('videoMotion');
-
-    if (byId('text3d') && byId('image3d')) {
-      const text3dTab = byId('text3d');
-      const image3dTab = byId('image3d');
-      if (text3dTab && !text3dTab.classList.contains('hidden')) {
-        promptTextarea = byId('modelPrompt');
-      } else if (image3dTab && !image3dTab.classList.contains('hidden')) {
-        promptTextarea = null;
-      }
-    }
-
     const prompt = (promptTextarea?.value || '').trim();
     if (!prompt) {
       prog.clear();
@@ -2081,6 +2078,119 @@ async function watchVideoJob(jobId, reservationId, meta) {
   renderHistory();
   UI.makeProgressDriver().fail('Video generation timed out');
 }
+
+/**
+ * Start image-to-3D from the upload tab (user uploaded a fresh image)
+ */
+async function startImageTo3DFromUpload() {
+  const modelImagePreview = byId('modelImagePreview');
+  const imageData = modelImagePreview?.src || '';
+
+  // Accept both data URLs (from file upload) and HTTP URLs (from history images)
+  const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
+  if (!isValidImage) {
+    alert('Please upload a reference image first.');
+    return;
+  }
+
+  if (!checkCreditsFor('image-to-3d')) {
+    return;
+  }
+
+  startLock = true;
+  const allGenBtns = document.querySelectorAll('button[id*="generate"]');
+  allGenBtns.forEach(btn => btn.setAttribute('disabled', ''));
+
+  const nameInput = byId('imageModelName');
+  const prompt = (nameInput?.value || '').trim() || 'Image to 3D';
+  const model = byId('modelAIModel')?.value || 'latest';
+
+  const meta = {
+    prompt: `(image2-3d) ${prompt}`,
+    root_prompt: prompt,
+    art_style: 'realistic',
+    model,
+    stage: 'image3d',
+    thumbnail_url: imageData.startsWith('http') ? imageData : ''
+  };
+
+  const prog = UI.makeProgressDriver();
+
+  // Reserve credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('image-to-3d', 1);
+  if (reservation.insufficient) {
+    startLock = false;
+    allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
+    return;
+  }
+
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `image3d-temp-${Date.now()}`);
+  const tempMeta = { ...meta, type: 'model' };
+  addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: 'Starting image to 3D...', type: 'model' });
+  State.savePendingMeta(tempId, tempMeta);
+
+  prog.label('Starting image to 3D...');
+  try {
+    const result = await apiFetch('/api/_mod/image-to-3d/start', {
+      method: 'POST',
+      body: { image_url: imageData, prompt, model }
+    });
+
+    if (!result.ok) {
+      if (handleGenerationTimeout(result, 'image-to-3d')) {
+        return;
+      }
+      if (handleApiError(result, 'image-to-3d', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error(result.error || `HTTP ${result.status}`);
+    }
+
+    const data = result.data;
+    const { job_id } = data;
+
+    if (!job_id) {
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error('No job id returned');
+    }
+
+    // Clean up temp placeholder
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+
+    // Confirm reservation now that we have a job_id
+    confirmCreditsReservation(reservation.reservationId, job_id);
+
+    State.addActiveJob(job_id);
+    State.savePendingMeta(job_id, { ...meta, type: 'model' });
+    addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
+    watchMeshyTask(job_id, 'image3d');
+
+    // Update balance if returned
+    if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
+      window.WorkspaceCredits.setCredits(data.new_balance);
+    }
+
+    prog.label('Generating 3D model from image...');
+  } catch (err) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+    prog.fail(err?.message || 'Image to 3D failed');
+    alert(err?.message || 'Image to 3D failed');
+  } finally {
+    startLock = false;
+    allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
+  }
+}
+
 
 /**
  * Start image-to-3D from a history item
