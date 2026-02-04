@@ -84,17 +84,26 @@
               <select class="form-select" id="ai_style">
                 <option value="tutorial">Tutorial</option>
                 <option value="guide">Guide</option>
-                <option value="story">Story</option>
-                <option value="opinion">Opinion</option>
-                <option value="news">News/Update</option>
+                <option value="listicle">Listicle (Top 10...)</option>
+                <option value="review">Product Review</option>
+                <option value="comparison">Comparison (A vs B)</option>
+                <option value="how-to">How-To / Step-by-Step</option>
+                <option value="case-study">Case Study</option>
+                <option value="story">Story / Narrative</option>
+                <option value="opinion">Opinion / Editorial</option>
+                <option value="news">News / Update</option>
+                <option value="roundup">Roundup / Best Of</option>
+                <option value="faq">FAQ / Q&A</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Length</label>
               <select class="form-select" id="ai_length">
+                <option value="micro">Micro (200-400 words)</option>
                 <option value="short">Short (500-800 words)</option>
                 <option value="medium" selected>Medium (1000-1500 words)</option>
                 <option value="long">Long (2000-3000 words)</option>
+                <option value="deep-dive">Deep Dive (3000-5000 words)</option>
               </select>
             </div>
             <div class="form-group">
@@ -104,6 +113,12 @@
                 <option value="casual and friendly">Casual</option>
                 <option value="technical and detailed">Technical</option>
                 <option value="inspiring and motivational">Inspiring</option>
+                <option value="witty and humorous">Witty / Humorous</option>
+                <option value="conversational and relatable">Conversational</option>
+                <option value="authoritative and expert">Authoritative</option>
+                <option value="beginner-friendly and simple">Beginner-Friendly</option>
+                <option value="bold and provocative">Bold / Provocative</option>
+                <option value="educational and structured">Educational</option>
               </select>
             </div>
             <div class="form-group">
@@ -121,6 +136,20 @@
               <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
               <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
               <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+              <select class="form-select" id="ai_affiliate_cta" style="margin-top:8px;">
+                <option value="Check Price on Amazon">Check Price on Amazon</option>
+                <option value="Buy Now on Amazon">Buy Now on Amazon</option>
+                <option value="View on Amazon">View on Amazon</option>
+                <option value="Shop Now">Shop Now</option>
+                <option value="Get It Here">Get It Here</option>
+                <option value="See Latest Price">See Latest Price</option>
+              </select>
+              <select class="form-select" id="ai_affiliate_placement" style="margin-top:8px;">
+                <option value="natural">Natural — AI decides placement</option>
+                <option value="early">Early — near the top</option>
+                <option value="middle">Middle — after key points</option>
+                <option value="end">End — as a recommendation</option>
+              </select>
             </div>
             <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
           </form>
@@ -426,6 +455,8 @@
             image_count: parseInt($('#ai_image_count').value, 10),
             affiliate_url: affiliateUrl || undefined,
             product_name: productName || undefined,
+            affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
+            affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
           })
         });
         const j = await r.json();
