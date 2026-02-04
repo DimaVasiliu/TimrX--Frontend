@@ -1,4 +1,3 @@
-
 /* ============================================================================
    TimrX 3D Print Workspace
    - Rail panel switching (Image / Model / Remesh / Texture / Video)
@@ -529,13 +528,13 @@
                 <option value="portrait">Portrait</option>
               </select>
             </div>
-            <div class="video-grid-cell video-grid-cell--quality">
-              <label for="videoQuality">Quality</label>
-              <select id="videoQuality">
-                <option value="standard" selected>Standard</option>
-                <option value="high">High</option>
-              </select>
-            </div>
+          </div>
+          <div class="video-grid-cell video-grid-cell--quality">
+            <label for="videoQuality">Quality</label>
+            <select id="videoQuality">
+              <option value="standard" selected>Standard</option>
+              <option value="high">High</option>
+            </select>
           </div>
           <span class="field-hint aspect-hint">Aspect ratio controls layout, not quality.</span>
           <span class="field-hint quality-hint">Higher quality uses more credits and takes longer.</span>
