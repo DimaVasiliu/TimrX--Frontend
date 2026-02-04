@@ -141,6 +141,30 @@
     studio_600: { name: 'Studio', credits: 600, price: 34.99 }
   };
 
+  // Subscription plan definitions (must match backend subscription_service.py)
+  const SUB_PLANS = {
+    monthly: {
+      starter:  { plan_code: 'starter_monthly',  name: 'Starter', credits_per_month: 120, price: 5.99,   cadence: 'monthly' },
+      creator:  { plan_code: 'creator_monthly',  name: 'Creator', credits_per_month: 300, price: 14.99,  cadence: 'monthly' },
+      studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 700, price: 29.99,  cadence: 'monthly' },
+    },
+    yearly: {
+      starter:  null, // no yearly starter
+      creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 300, price: 149.99, cadence: 'yearly' },
+      studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 700, price: 299.99, cadence: 'yearly' },
+    },
+  };
+
+  // Map pricing card data-plan to subscription tier
+  const CARD_TO_TIER = {
+    starter_80:  'starter',
+    creator_300: 'creator',
+    studio_600:  'studio',
+  };
+
+  // Current pricing mode
+  let pricingMode = localStorage.getItem('timrx_pricing_mode') || 'one_time';
+
   // DOM elements
   const creditsPill = document.getElementById('creditsPill');
   const creditsValue = document.getElementById('creditsValue');
@@ -406,6 +430,238 @@
 
     console.log('[Credits] UI updated: available=' + available + ', total=' + total + ', reserved=' + reserved);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // Pricing Mode Toggle
+  // ─────────────────────────────────────────────────────────────
+
+  const pricingModeToggle = document.getElementById('pricingModeToggle');
+  const modePills = pricingModeToggle ? pricingModeToggle.querySelectorAll('.mode-pill') : [];
+  const pricingCards = document.querySelectorAll('.price-card');
+
+  // Subscription modal elements
+  const subModal = document.getElementById('subscriptionModal');
+  const subModalClose = document.getElementById('subModalClose');
+  const subModalTitle = document.getElementById('subModalTitle');
+  const subModalSubtitle = document.getElementById('subModalSubtitle');
+  const subModalCredits = document.getElementById('subModalCredits');
+  const subModalCadence = document.getElementById('subModalCadence');
+  const subModalPrice = document.getElementById('subModalPrice');
+  const subCheckoutEmail = document.getElementById('subCheckoutEmail');
+  const subCheckoutError = document.getElementById('subCheckoutError');
+  const subCheckoutBtn = document.getElementById('subCheckoutBtn');
+
+  let selectedSubPlan = null;
+
+  /**
+   * One-time card content per tier (original values)
+   */
+  const ONE_TIME_CARDS = {
+    starter: { price: '£7.99', sub: '80 Credits · ~2-3 models', btn: 'Get Starter' },
+    creator: { price: '£19.99', sub: '300 Credits · ~10 models', btn: 'Get Creator' },
+    studio:  { price: '£34.99', sub: '600 Credits · ~20 models', btn: 'Get Studio' },
+  };
+
+  /**
+   * Switch pricing mode and update card content
+   */
+  function setPricingMode(mode) {
+    pricingMode = mode;
+    localStorage.setItem('timrx_pricing_mode', mode);
+
+    // Update pill active state
+    modePills.forEach(pill => {
+      pill.classList.toggle('active', pill.dataset.mode === mode);
+    });
+
+    // Update each pricing card
+    pricingCards.forEach(card => {
+      const ctaBtn = card.querySelector('.pricing-cta');
+      if (!ctaBtn) return;
+      const planId = ctaBtn.dataset.plan;
+      const tier = CARD_TO_TIER[planId];
+      if (!tier) return;
+
+      const priceEl = card.querySelector('.pc-price .big');
+      const subEl = card.querySelector('.pc-price small');
+
+      if (mode === 'one_time') {
+        const info = ONE_TIME_CARDS[tier];
+        if (priceEl) priceEl.textContent = info.price;
+        if (subEl) subEl.textContent = info.sub;
+        if (ctaBtn) ctaBtn.textContent = info.btn;
+      } else {
+        const cadence = mode; // 'monthly' or 'yearly'
+        const plan = SUB_PLANS[cadence]?.[tier];
+        if (!plan) {
+          // No plan for this tier/cadence (e.g. yearly starter) — hide or grey out
+          if (priceEl) priceEl.textContent = '—';
+          if (subEl) subEl.textContent = 'Not available';
+          if (ctaBtn) {
+            ctaBtn.textContent = 'Not Available';
+            ctaBtn.disabled = true;
+          }
+          return;
+        }
+        const priceStr = cadence === 'yearly'
+          ? `£${plan.price.toFixed(2)}`
+          : `£${plan.price.toFixed(2)}`;
+        const cadenceLabel = cadence === 'yearly' ? '/yr' : '/mo';
+        if (priceEl) priceEl.textContent = priceStr;
+        if (subEl) subEl.textContent = `${plan.credits_per_month} Credits/mo${cadenceLabel}`;
+        if (ctaBtn) {
+          ctaBtn.textContent = `Subscribe ${plan.name}`;
+          ctaBtn.disabled = false;
+        }
+      }
+    });
+  }
+
+  // Toggle event listeners
+  modePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      setPricingMode(pill.dataset.mode);
+    });
+  });
+
+  // Restore saved mode on load
+  if (pricingMode !== 'one_time') {
+    setPricingMode(pricingMode);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Subscription Modal
+  // ─────────────────────────────────────────────────────────────
+
+  function openSubscriptionModal(tier, cadence) {
+    const plan = SUB_PLANS[cadence]?.[tier];
+    if (!plan || !subModal) return;
+
+    selectedSubPlan = plan;
+    const cadenceLabel = cadence === 'yearly' ? 'Yearly' : 'Monthly';
+    const priceLabel = cadence === 'yearly'
+      ? `£${plan.price.toFixed(2)}<small>/yr</small>`
+      : `£${plan.price.toFixed(2)}<small>/mo</small>`;
+
+    if (subModalTitle) subModalTitle.textContent = `Subscribe — ${plan.name}`;
+    if (subModalSubtitle) subModalSubtitle.textContent = `${plan.credits_per_month} credits every month. Cancel anytime.`;
+    if (subModalCredits) subModalCredits.textContent = plan.credits_per_month.toLocaleString();
+    if (subModalCadence) subModalCadence.textContent = cadenceLabel;
+    if (subModalPrice) subModalPrice.innerHTML = priceLabel;
+
+    // Pre-fill email
+    if (subCheckoutEmail && userEmail && !subCheckoutEmail.value) {
+      subCheckoutEmail.value = userEmail;
+    }
+    validateSubCheckout();
+
+    // Clear errors
+    if (subCheckoutError) {
+      subCheckoutError.textContent = '';
+      subCheckoutError.style.display = 'none';
+    }
+
+    subModal.classList.add('open');
+    subModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSubscriptionModal() {
+    if (!subModal) return;
+    subModal.classList.remove('open');
+    subModal.setAttribute('aria-hidden', 'true');
+    selectedSubPlan = null;
+  }
+
+  function validateSubCheckout() {
+    const email = subCheckoutEmail?.value?.trim() || '';
+    const valid = selectedSubPlan && isValidEmail(email);
+    if (subCheckoutBtn) subCheckoutBtn.disabled = !valid;
+    return valid;
+  }
+
+  function showSubError(msg) {
+    if (subCheckoutError) {
+      subCheckoutError.textContent = msg;
+      subCheckoutError.style.display = 'block';
+    }
+  }
+
+  async function startSubscriptionCheckout() {
+    if (!validateSubCheckout()) {
+      showSubError('Please enter a valid email.');
+      return;
+    }
+
+    const email = subCheckoutEmail.value.trim();
+    const btnText = subCheckoutBtn.querySelector('.btn-text');
+    const btnLoader = subCheckoutBtn.querySelector('.btn-loader');
+
+    subCheckoutBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    if (btnLoader) btnLoader.style.display = 'inline-flex';
+    if (subCheckoutError) subCheckoutError.style.display = 'none';
+
+    try {
+      const result = await apiFetch('/api/billing/subscriptions/checkout', {
+        method: 'POST',
+        body: {
+          plan_code: selectedSubPlan.plan_code,
+          email: email,
+        },
+      });
+
+      if (!result.ok) {
+        throw new Error(result.data?.error || result.error || 'Checkout failed');
+      }
+
+      const data = result.data;
+      if (data.checkout_url) {
+        // Store subscription context for return handling
+        sessionStorage.setItem('timrx_pending_sub_plan', selectedSubPlan.plan_code);
+        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+        if (data.payment_id) {
+          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+        }
+
+        window.location.href = data.checkout_url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err) {
+      console.error('[Credits] Subscription checkout failed:', err);
+      showSubError(err.message || 'Failed to start checkout. Please try again.');
+      subCheckoutBtn.disabled = false;
+      if (btnText) btnText.style.display = '';
+      if (btnLoader) btnLoader.style.display = 'none';
+    }
+  }
+
+  // Subscription modal event listeners
+  subModalClose?.addEventListener('click', closeSubscriptionModal);
+  subModal?.addEventListener('click', (e) => {
+    if (e.target === subModal) closeSubscriptionModal();
+  });
+  subCheckoutEmail?.addEventListener('input', () => {
+    if (subCheckoutError) subCheckoutError.style.display = 'none';
+    validateSubCheckout();
+  });
+  subCheckoutBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    startSubscriptionCheckout();
+  });
+  subCheckoutEmail?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !subCheckoutBtn?.disabled) {
+      e.preventDefault();
+      startSubscriptionCheckout();
+    }
+  });
+
+  // ESC closes subscription modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && subModal?.classList.contains('open')) {
+      closeSubscriptionModal();
+    }
+  });
 
   // ─────────────────────────────────────────────────────────────
   // Plan Selection
@@ -806,12 +1062,21 @@
     });
   });
 
-  // Pricing page CTA buttons -> open modal with preselection
+  // Pricing page CTA buttons -> open modal with preselection (or subscription modal)
   pricingCtaButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const planId = btn.dataset.plan;
-      openBuyCreditsModal(planId);
+
+      if (pricingMode === 'one_time') {
+        openBuyCreditsModal(planId);
+      } else {
+        // Subscription mode — open subscription modal
+        const tier = CARD_TO_TIER[planId];
+        if (tier) {
+          openSubscriptionModal(tier, pricingMode);
+        }
+      }
     });
   });
 
@@ -869,7 +1134,47 @@
   const urlParams = new URLSearchParams(window.location.search);
   const checkoutStatus = urlParams.get('checkout');
 
-  if (checkoutStatus === 'success') {
+  // Check if this was a subscription return
+  const pendingSubPlan = sessionStorage.getItem('timrx_pending_sub_plan');
+
+  if (checkoutStatus === 'success' && pendingSubPlan) {
+    // ── Subscription return flow ──
+    window.history.replaceState({}, '', window.location.pathname);
+    sessionStorage.removeItem('timrx_pending_sub_plan');
+    sessionStorage.removeItem('timrx_pre_checkout_balance');
+    sessionStorage.removeItem('timrx_pending_payment_id');
+
+    const subPlanInfo = Object.values(SUB_PLANS.monthly).concat(Object.values(SUB_PLANS.yearly))
+      .filter(Boolean)
+      .find(p => p.plan_code === pendingSubPlan);
+    const planName = subPlanInfo ? subPlanInfo.name : 'Subscription';
+    const creditsPerMonth = subPlanInfo ? subPlanInfo.credits_per_month : 0;
+
+    // Show subscription success in the existing success modal
+    successModalState.preCheckoutBalance = 0;
+
+    // Open success modal with subscription-specific text
+    if (successModal) {
+      const successTitle = successModal.querySelector('.success-title, h2');
+      const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+      const creditsDisplay = successModal.querySelector('.success-credits');
+
+      if (successTitle) successTitle.textContent = 'Subscription Active';
+      if (successMessage) successMessage.textContent = `Your ${planName} plan is active. ${creditsPerMonth} credits have been added.`;
+      if (creditsDisplay) creditsDisplay.style.display = 'none';
+
+      successModal.classList.remove('pending', 'failed');
+      successModal.classList.add('open');
+      successModal.setAttribute('aria-hidden', 'false');
+      successModalState.isOpen = true;
+      successModalState.isPending = false;
+    }
+
+    // Refresh wallet to pick up the granted credits
+    refreshCredits({ force: true, maxRetries: 5 });
+
+  } else if (checkoutStatus === 'success') {
+    // ── One-time purchase return flow (existing) ──
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
@@ -1022,12 +1327,12 @@
       setTimeout(reconcileBalance, 500);
     })();
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
-    // Clean URL and clear stored payment_id
+    // Clean URL and clear stored values
     window.history.replaceState({}, '', window.location.pathname);
     sessionStorage.removeItem('timrx_pending_payment_id');
+    sessionStorage.removeItem('timrx_pending_sub_plan');
     if (checkoutStatus !== 'cancelled') {
       console.log(`[Credits] Checkout ${checkoutStatus}`);
-      // Could show a toast/alert here if needed
     }
   }
 
