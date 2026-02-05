@@ -2334,11 +2334,10 @@ body.has-modal {
   align-items: stretch;
   gap: 0;
   min-width: 0;
-  flex: 1;
-  max-width: calc(50% - 6px);
+  width: 100%;
   aspect-ratio: 1 / 1;
 
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
 
   background: rgba(255, 255, 255, 0.03);
@@ -2351,7 +2350,7 @@ body.has-modal {
 
 /* Bundle/summary card (x4 etc.) */
 .timrx-3dprint .history-thumb--summary {
-  min-width: var(--history-thumb-size);
+  min-width: 0;
 }
 
 /* ===========================================================
@@ -2360,15 +2359,15 @@ body.has-modal {
 
 .history-thumb__image-wrapper {
   position: relative;
-  width: var(--history-thumb-size);
-  height: var(--history-thumb-size);
+  width: 100%;
+  height: 100%;
 }
 
 /* Main square image */
 .history-thumb__image {
-  width: var(--history-thumb-size);
-  height: var(--history-thumb-size);
-  border-radius: var(--history-thumb-radius);
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
   background: #0c1019;
   cursor: pointer;
   overflow: hidden;
@@ -3066,9 +3065,8 @@ body.has-modal {
   }
   
   .history-thumb {
-    width: var(--history-thumb-size);
-    min-width: var(--history-thumb-size);
-    max-width: var(--history-thumb-size);
+    width: 100%;
+    min-width: 0;
     aspect-ratio: 1;
     position: relative;
     border-radius: 10px;
