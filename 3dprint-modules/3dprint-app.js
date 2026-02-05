@@ -426,7 +426,7 @@
               Image to Video
             </button>
           </div>
-          <label for="videoTextPrompt" style="font-size:12px;margin-top:14px;display:block">Describe your video scene</label>
+          <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
           <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
           <span class="field-hint">Keep prompts simple. Short clips look best.</span>
 
@@ -465,16 +465,16 @@
               Image to Video
             </button>
           </div>
-          <label for="videoSource" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-top:14px;margin-bottom:5px">Upload Reference Image</label>
-          <div id="videoImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
-            <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <label for="videoSource" class="video-section-label">Upload Reference Image</label>
+          <div id="videoImageDrop" class="video-drop-zone">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-            <span style="font-size:11px;color:#666">PNG, JPG, WEBP up to 10MB</span>
+            <p>Click or Drag & Drop</p>
+            <span>PNG, JPG, WEBP up to 10MB</span>
             <input type="file" id="videoSource" accept="image/*" hidden />
           </div>
-          <img id="videoImagePreview" style="display:none;width:100%;border-radius:7px;margin-top:10px" alt="Preview"/>
+          <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
         </div>
 
         <div class="card">
@@ -494,22 +494,22 @@
               </div>
             </div>
           </div>
-          <label style="font-size:12px">Motion Preset</label>
-          <div id="videoMotionPresets" class="motion-preset-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-            <button type="button" class="motion-preset-btn is-active" data-preset="" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#ccc;cursor:pointer;transition:all .15s">None</button>
-            <button type="button" class="motion-preset-btn" data-preset="slow_pan" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Slow Pan</button>
-            <button type="button" class="motion-preset-btn" data-preset="parallax" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Parallax</button>
-            <button type="button" class="motion-preset-btn" data-preset="zoom_in" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Zoom In</button>
-            <button type="button" class="motion-preset-btn" data-preset="zoom_out" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Zoom Out</button>
-            <button type="button" class="motion-preset-btn" data-preset="orbit" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Orbit</button>
-            <button type="button" class="motion-preset-btn" data-preset="dolly" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Dolly</button>
-            <button type="button" class="motion-preset-btn" data-preset="tilt_up" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Tilt Up</button>
-            <button type="button" class="motion-preset-btn" data-preset="breathing" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#999;cursor:pointer;transition:all .15s">Breathing</button>
+          <label class="video-section-label">Motion Preset</label>
+          <div id="videoMotionPresets" class="motion-preset-row">
+            <button type="button" class="motion-preset-btn is-active" data-preset="">None</button>
+            <button type="button" class="motion-preset-btn" data-preset="slow_pan">Slow Pan</button>
+            <button type="button" class="motion-preset-btn" data-preset="parallax">Parallax</button>
+            <button type="button" class="motion-preset-btn" data-preset="zoom_in">Zoom In</button>
+            <button type="button" class="motion-preset-btn" data-preset="zoom_out">Zoom Out</button>
+            <button type="button" class="motion-preset-btn" data-preset="orbit">Orbit</button>
+            <button type="button" class="motion-preset-btn" data-preset="dolly">Dolly</button>
+            <button type="button" class="motion-preset-btn" data-preset="tilt_up">Tilt Up</button>
+            <button type="button" class="motion-preset-btn" data-preset="breathing">Breathing</button>
           </div>
           <input type="hidden" id="videoMotionPreset" value="" />
 
-          <label for="videoMotion" style="font-size:12px">Motion Description <span style="color:#666;font-weight:400">(optional override)</span></label>
-          <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..." style="min-height:60px"></textarea>
+          <label for="videoMotion" class="video-section-label">Motion Description <span class="label-hint">(optional)</span></label>
+          <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..."></textarea>
           <span class="field-hint">Custom motion text overrides the preset above.</span>
 
           <div class="video-settings-grid">
@@ -522,28 +522,27 @@
               </select>
             </div>
             <div class="video-grid-cell">
-              <label for="videoAspectRatio">Aspect Ratio</label>
+              <label for="videoAspectRatio">Aspect</label>
               <select id="videoAspectRatio">
                 <option value="landscape" selected>Landscape</option>
                 <option value="portrait">Portrait</option>
               </select>
             </div>
+            <div class="video-grid-cell">
+              <label for="videoQuality">Quality</label>
+              <select id="videoQuality">
+                <option value="standard" selected>Standard</option>
+                <option value="high">High</option>
+              </select>
+            </div>
           </div>
-          <div class="video-grid-cell video-grid-cell--quality">
-            <label for="videoQuality">Quality</label>
-            <select id="videoQuality">
-              <option value="standard" selected>Standard</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <span class="field-hint aspect-hint">Aspect ratio controls layout, not quality.</span>
-          <span class="field-hint quality-hint">Higher quality uses more credits and takes longer.</span>
+          <span class="field-hint settings-hint">Higher quality uses more credits.</span>
 
-          <label style="margin-top:10px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
+          <label class="video-checkbox-label">
             <input type="checkbox" id="videoLoop" checked>
             <span>Loop Seamlessly</span>
           </label>
-          <span class="field-hint loop-hint" style="margin-left:24px;margin-top:2px">Looping works best with orbit/constant motion prompts.</span>
+          <span class="field-hint loop-hint">Looping works best with orbit/constant motion prompts.</span>
         </div>
 
         <div class="card gen-footer-card">
