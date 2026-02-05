@@ -45,7 +45,7 @@
   font-family: Inter, system-ui, -apple-system, sans-serif;
   color: var(--ws-text);
   padding: var(--ws-navH) 0 0;
-  overflow: visible;
+  overflow: hidden;
   height: 100vh;
   box-sizing: border-box;
   position: relative;
