@@ -210,6 +210,12 @@
           </li>
         </ul>
       </div>
+      <!-- Email Beacon - shown when user has no email attached -->
+      <button type="button" id="emailBeacon" class="email-beacon hidden" aria-label="Secure your credits - add email" title="Secure credits on any device">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span class="email-beacon-pulse"></span>
+      </button>
+
       <div class="nav-right">
         <!-- Credits Pill + Buy Button -->
         <div class="credits-group" id="creditsGroup">
@@ -259,17 +265,6 @@
       </a>
     </div>
   </nav>
-
-  <!-- Email Banner - shown when user has no email attached -->
-  <div id="emailBanner" class="email-banner hidden" role="banner" aria-live="polite">
-    <div class="email-banner-content">
-      <i class="fa-solid fa-shield-halved email-banner-icon"></i>
-      <span class="email-banner-text">Secure credits on any device — <button type="button" id="emailBannerCta" class="email-banner-link">add email</button></span>
-      <button type="button" id="emailBannerDismiss" class="email-banner-dismiss" aria-label="Dismiss">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-  </div>
 
   <!-- HERO -->
   <header class="container">
