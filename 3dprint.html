@@ -687,14 +687,17 @@
 
         const closeView = ({ skipHash = false, skipFocus = false } = {}) => {
           if (section.hidden) return;
+
+          // IMPORTANT: Move focus BEFORE hiding to avoid aria-hidden focus warning
+          if (!skipFocus && lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+          }
+
           section.hidden = true;
           section.setAttribute('aria-hidden', 'true');
           document.body.classList.remove(config.bodyClass);
           if (!skipHash && window.location.hash === config.hash) {
             setHash('');
-          }
-          if (!skipFocus && lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
           }
         };
 
@@ -1054,7 +1057,8 @@
               src="3dprint-modules/3dmodels/undead_creature_preview.glb"
               data-preview="3dprint-modules/3dmodels/undead_creature_preview.glb"
               data-refined="3dprint-modules/3dmodels/undead_creature_refined.glb"
-              alt="3D Model Preview - Click to toggle refined"
+              alt="Undead Creature 3D Model"
+              loading="lazy"
               auto-rotate
               rotation-per-second="30deg"
               camera-controls
@@ -1118,7 +1122,8 @@
           <div class="tutorials-split-model tutorials-split-model--tall">
             <model-viewer
               src="3dprint-modules/3dmodels/dog3d.glb"
-              alt="3D Model from Image"
+              alt="Dog 3D Model from Image"
+              loading="lazy"
               auto-rotate
               rotation-per-second="30deg"
               camera-controls
@@ -1192,7 +1197,8 @@
               src="3dprint-modules/3dmodels/character_preview.glb"
               data-preview="3dprint-modules/3dmodels/character_preview.glb"
               data-refined="3dprint-modules/3dmodels/character_remeshed.glb"
-              alt="3D Model Preview - Click to toggle remeshed"
+              alt="Character 3D Model - Remesh Demo"
+              loading="lazy"
               auto-rotate
               rotation-per-second="30deg"
               camera-controls
@@ -1250,8 +1256,9 @@
           </div>
           <div class="tutorials-split-model">
             <model-viewer
-              src="3dprint-modules/3dmodels/lamp.glb"
-              alt="3D Model Preview"
+              src="3dprint-modules/3dmodels/astro.glb"
+              alt="Astro 3D Model"
+              loading="lazy"
               auto-rotate
               rotation-per-second="30deg"
               camera-controls
@@ -2193,58 +2200,40 @@
     </div>
   </section>
 
-  <!-- Model Viewer for 3D model display -->
+  <!-- Model Viewer component for inline tutorial 3D previews -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/OBJLoader.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/STLLoader.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/FBXLoader.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/GLTFExporter.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/OBJExporter.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/exporters/STLExporter.js"></script>
-  <!-- Signal our workspace JS that Three is ready -->
-  <script>window.THREE && window.dispatchEvent(new Event('three-ready'));</script>
+  <!-- UMD Three.js removed - using ESM importmap only (three@0.160.0) -->
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
   <script type="module" src="./js/main.js"></script>
 
-  <!-- Model viewer toggle script -->
+  <!-- Model viewer toggle script (click to swap between preview/refined) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Setup toggle for any model-viewer with data-preview and data-refined
-      function setupModelToggle(viewerId, previewText, refinedText) {
-        const modelViewer = document.getElementById(viewerId);
-        if (modelViewer) {
-          const hint = modelViewer.parentElement.querySelector('.model-toggle-hint');
-          let isRefined = false;
+      // Setup toggle for model-viewers with data-preview and data-refined
+      function setupModelToggle(viewerId, previewHint, refinedHint) {
+        const viewer = document.getElementById(viewerId);
+        if (!viewer) return;
 
-          modelViewer.addEventListener('click', () => {
-            isRefined = !isRefined;
-            if (isRefined) {
-              modelViewer.src = modelViewer.dataset.refined;
-              if (hint) {
-                hint.textContent = previewText;
-                hint.classList.add('refined');
-              }
-            } else {
-              modelViewer.src = modelViewer.dataset.preview;
-              if (hint) {
-                hint.textContent = refinedText;
-                hint.classList.remove('refined');
-              }
-            }
-          });
-        }
+        const hint = viewer.parentElement?.querySelector('.model-toggle-hint');
+        let isRefined = false;
+
+        viewer.addEventListener('click', () => {
+          isRefined = !isRefined;
+          viewer.src = isRefined ? viewer.dataset.refined : viewer.dataset.preview;
+          if (hint) {
+            hint.textContent = isRefined ? previewHint : refinedHint;
+            hint.classList.toggle('refined', isRefined);
+          }
+        });
       }
 
-      // Text to 3D section - undead creature
+      // Undead creature - preview vs refined
       setupModelToggle('undead-model-viewer', 'Click model to view preview version', 'Click model to view refined version');
 
-      // Remesh section - character
+      // Character - preview vs remeshed
       setupModelToggle('remesh-model-viewer', 'Click model to view original version', 'Click model to view remeshed version');
 
       // Nav hide on scroll for expanded views
