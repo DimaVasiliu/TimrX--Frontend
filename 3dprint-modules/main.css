@@ -46,3 +46,6 @@
 
 /* 10. About Styles (separate file for about page) */
 @import url('css/about.css');
+
+/* 11. Inspire Section (discovery overlay) */
+@import url('css/inspire.css');
