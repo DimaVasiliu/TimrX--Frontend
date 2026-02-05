@@ -678,13 +678,18 @@ export function watchJob(job_id) {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
 
-        // Update wallet - use returned data or refresh from API (once per job)
+        // Update wallet - backend is authoritative (once per job)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          if (st.wallet && window.WorkspaceCredits?.updateWallet) {
-            window.WorkspaceCredits.updateWallet(st.wallet);
+          // Prefer new_balance from response, then wallet object, then force sync
+          if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+            window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'text_to_3d_done');
+          } else if (st.wallet?.available !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+            window.WorkspaceCredits.applyBackendBalance(st.wallet.available, 'text_to_3d_done_wallet');
+          } else if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend(); // Force sync - backend is truth
           } else {
-            refreshCreditsInBackground(); // Fallback: refresh from API
+            refreshCreditsInBackground();
           }
         }
 
@@ -749,10 +754,14 @@ export function watchJob(job_id) {
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        // Refresh credits (once per job) to show released credits
+        // Force sync with backend to show released credits (backend is truth)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          refreshCreditsInBackground();
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          } else {
+            refreshCreditsInBackground();
+          }
         }
         prog.fail(st.message || 'Job failed');
         handleJobFailure(st.message || 'Job failed', 'refine');
@@ -827,13 +836,18 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
 
-        // Update wallet - use returned data or refresh from API (once per job)
+        // Update wallet - backend is authoritative (once per job)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          if (st.wallet && window.WorkspaceCredits?.updateWallet) {
-            window.WorkspaceCredits.updateWallet(st.wallet);
+          // Prefer new_balance from response, then wallet object, then force sync
+          if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+            window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'meshy_done');
+          } else if (st.wallet?.available !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+            window.WorkspaceCredits.applyBackendBalance(st.wallet.available, 'meshy_done_wallet');
+          } else if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend(); // Force sync - backend is truth
           } else {
-            refreshCreditsInBackground(); // Fallback: refresh from API
+            refreshCreditsInBackground();
           }
         }
 
@@ -909,10 +923,14 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        // Refresh credits (once per job) to show released credits
+        // Sync credits from backend (once per job) to show released credits
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          refreshCreditsInBackground();
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          } else {
+            refreshCreditsInBackground();
+          }
         }
         prog.fail(st.message || `${stageLabel} failed`);
         handleJobFailure(st.message || `${stageLabel} failed`, kind);
@@ -994,7 +1012,16 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
         prog.done('Image ready.');
 
         confirmCreditsReservation(reservationId, jobId);
-        refreshCreditsInBackground();
+
+        // Apply new_balance immediately if returned in status, then sync with backend
+        if (st.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'openai_image_done');
+        } else if (window.WorkspaceCredits?.syncWithBackend) {
+          // Force sync with backend to ensure UI matches DB (backend is truth)
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
 
         // Unlock UI after job completes
         if (window.ImageJobControl?.unlock) {
@@ -1005,6 +1032,12 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
 
       if (st.status === 'failed') {
         releaseCreditsReservation(reservationId);
+        // Force sync with backend after failure to ensure UI matches DB (backend is truth)
+        if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
         prog.fail(st.error || 'Image generation failed');
         alert(st.error || 'Image generation failed');
         State.deleteHistoryItem(jobId, { skipRemote: true });
@@ -1360,8 +1393,9 @@ export async function startOpenAIImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
+  // Canonical action key: image_generate -> OPENAI_IMAGE (10 credits)
   prog.label('Reserving credits...');
-  const reservation = reserveExactAmount('text-to-image', IMAGE_CREDITS);
+  const reservation = reserveExactAmount('image_generate', IMAGE_CREDITS);
   if (reservation.insufficient) {
     startLock = false;
     showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
@@ -1419,14 +1453,14 @@ export async function startOpenAIImageGeneration() {
 
     if (!result.ok) {
       // Handle timeout gracefully - DON'T release reservation (backend handles it)
-      if (handleGenerationTimeout(result, 'text-to-image')) {
+      if (handleGenerationTimeout(result, 'image_generate')) {
         // Update placeholder to show "still generating" state
         State.updateHistoryItem(tempId, { status_label: 'Still generating...' });
         renderHistory();
         prog.label('Still generating...');
         return; // Don't throw, don't release - job may still be processing
       }
-      if (handleApiError(result, 'text-to-image', reservation.reservationId)) {
+      if (handleApiError(result, 'image_generate', reservation.reservationId)) {
         // Clean up placeholder on credits error
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
@@ -1568,8 +1602,9 @@ export async function startGeminiImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
+  // Canonical action key: image_generate -> OPENAI_IMAGE (10 credits)
   prog.label('Reserving credits...');
-  const reservation = reserveExactAmount('text-to-image', IMAGE_CREDITS);
+  const reservation = reserveExactAmount('image_generate', IMAGE_CREDITS);
   if (reservation.insufficient) {
     startLock = false;
     showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
@@ -1627,13 +1662,13 @@ export async function startGeminiImageGeneration() {
 
     if (!result.ok) {
       // Handle timeout gracefully
-      if (handleGenerationTimeout(result, 'text-to-image')) {
+      if (handleGenerationTimeout(result, 'image_generate')) {
         State.updateHistoryItem(tempId, { status_label: 'Still generating...' });
         renderHistory();
         prog.label('Still generating...');
         return;
       }
-      if (handleApiError(result, 'text-to-image', reservation.reservationId)) {
+      if (handleApiError(result, 'image_generate', reservation.reservationId)) {
         const arr = State.getHistory().filter((x) => x.id !== tempId);
         State.saveHistory(arr);
         renderHistory();
@@ -1681,8 +1716,10 @@ export async function startGeminiImageGeneration() {
     renderHistory();
     prog.done('Image generated!');
 
-    // Update balance from response
-    if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
+    // Update balance from response - backend is authoritative
+    if (data.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+      window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'gemini_image_response');
+    } else if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
       window.WorkspaceCredits.setCredits(data.new_balance);
     }
 
@@ -2049,9 +2086,13 @@ async function watchVideoJob(jobId, reservationId, meta) {
           });
         }
 
-        // Update balance
-        if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
-          window.WorkspaceCredits.setCredits(data.new_balance);
+        // Update balance - backend is authoritative
+        if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+          window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'video_generation_complete');
+        } else if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend(); // Force sync - backend is truth
+        } else {
+          refreshCreditsInBackground();
         }
 
         UI.makeProgressDriver().done('Video generated!');
@@ -2060,6 +2101,10 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
       if (status === 'failed') {
         releaseCreditsReservation(reservationId);
+        // Force sync with backend after failure to ensure UI matches DB
+        if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        }
         const errorMsg = data.message || data.error || 'Video generation failed';
         const errorCode = data.error || '';
 
@@ -2225,8 +2270,10 @@ async function startImageTo3DFromUpload() {
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
     watchMeshyTask(job_id, 'image3d');
 
-    // Update balance if returned
-    if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
+    // Update balance if returned - backend is authoritative
+    if (data.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+      window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'image_to_3d_response');
+    } else if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
       window.WorkspaceCredits.setCredits(data.new_balance);
     }
 
