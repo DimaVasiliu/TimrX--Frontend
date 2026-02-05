@@ -130,12 +130,6 @@ body.print3d-page > .nav {
   z-index: 1;
 }
 
-/* Floating particles - DISABLED for clean black background */
-.ws-particles,
-.ws-particle {
-  display: none;
-}
-
 /* Utilities */
 .hidden,
 [hidden] {
