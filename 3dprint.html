@@ -158,6 +158,12 @@
       </div>
     </nav>
 
+    <!-- Email Beacon - shown when user has no email attached -->
+    <button type="button" id="emailBeacon" class="email-beacon hidden" aria-label="Secure your credits - add email" title="Secure credits on any device">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span class="email-beacon-pulse"></span>
+    </button>
+
     <!-- Credits (top-right) -->
     <div class="ws-credits" id="workspaceCreditsGroup">
       <span class="ws-credits-pill" id="workspaceCredits" title="Available credits">
@@ -176,17 +182,6 @@
     </button>
     -->
   </header>
-
-  <!-- Email Banner - shown when user has no email attached -->
-  <div id="emailBanner" class="email-banner hidden" role="banner" aria-live="polite">
-    <div class="email-banner-content">
-      <i class="fa-solid fa-shield-halved email-banner-icon"></i>
-      <span class="email-banner-text">Secure credits on any device — <a href="hub.html#secure-credits" id="emailBannerCta" class="email-banner-link">add email</a></span>
-      <button type="button" id="emailBannerDismiss" class="email-banner-dismiss" aria-label="Dismiss">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-  </div>
 
   <!-- COMMENTED OUT: Burger overlay and menu - not needed with minimal header
   <div id="burgerOverlay"></div>
