@@ -916,16 +916,16 @@ body.history-expanded .timrx-3dprint .history-pager {
 
 /* Individual expanded thumbnail */
 .expanded-thumb {
-  --expanded-thumb-size: 140px;
+  --expanded-thumb-size: 100px;
   width: var(--expanded-thumb-size);
   min-width: var(--expanded-thumb-size);
   max-width: var(--expanded-thumb-size);
   aspect-ratio: 1;
   position: relative;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #0c1018;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -2113,8 +2113,8 @@ body.has-modal {
     --history-highlight: #38bdf8;
     --history-thumb-bg: #0c1018;
     --history-thumb-border: rgba(255, 255, 255, 0.06);
-    --history-thumb-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --history-thumb-size: 90px;
+    --history-thumb-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --history-thumb-size: 75px;
   }
 
   
@@ -2264,11 +2264,11 @@ body.has-modal {
   letter-spacing: 0.05em;
 }
 
-/* Thumbnails container - 2-column grid */
+/* Thumbnails container - 3-column grid (matches images) */
 .timrx-3dprint .history-row__thumbs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -2773,8 +2773,8 @@ body.has-modal {
 
 .history-video-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   padding: 8px 0;
   width: 100%;
 }
@@ -2784,7 +2784,7 @@ body.has-modal {
   max-width: none;
   min-width: 0;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
   animation: videoGridFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
