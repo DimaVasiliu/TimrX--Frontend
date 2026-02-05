@@ -4336,3 +4336,106 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
     padding-left: 0;
   }
 }
+
+/* ==========================================================================
+   EMAIL BANNER - Non-blocking prompt to add email
+   ========================================================================== */
+.email-banner {
+  position: fixed;
+  top: var(--navH, 70px);
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(125, 211, 252, 0.1) 100%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(14, 165, 233, 0.25);
+  padding: 10px 20px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.email-banner.hidden {
+  display: none;
+}
+
+.email-banner.dismissing {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.email-banner-content {
+  max-width: var(--maxw, 1280px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.email-banner-icon {
+  color: #0ea5e9;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.email-banner-text {
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.email-banner-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7dd3fc;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.email-banner-link:hover {
+  color: #0ea5e9;
+}
+
+.email-banner-dismiss {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin-left: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.email-banner-dismiss:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .email-banner {
+    padding: 8px 12px;
+  }
+
+  .email-banner-content {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .email-banner-icon {
+    display: none;
+  }
+}
