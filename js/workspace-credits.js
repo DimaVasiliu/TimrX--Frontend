@@ -34,6 +34,8 @@ const creditsState = {
     available: 0,
   },
   identityId: null,
+  email: null,  // User's email (null if not attached)
+  emailVerified: false,
   actionCosts: {},
   loaded: false,
   loading: false,
@@ -236,6 +238,11 @@ export async function fetchWallet() {
 
         creditsState.wallet = { balance, reserved, available };
         creditsState.identityId = serverIdentityId;
+        creditsState.email = data.email || null;
+        creditsState.emailVerified = data.email_verified || false;
+
+        // Update email banner visibility
+        updateEmailBannerUI();
 
         // Cache balance for next page load (perceived performance)
         cacheCreditsBalance(available);
@@ -946,6 +953,79 @@ export function updateWallet(wallet) {
     updateCreditsUI();
     log('[Credits] Wallet updated:', creditsState.wallet);
   }
+}
+
+// ============================================================================
+// EMAIL BANNER - Non-blocking prompt to add email
+// ============================================================================
+
+const EMAIL_BANNER_DISMISSED_KEY = 'timrx_email_banner_dismissed';
+
+/**
+ * Check if banner was dismissed this session
+ */
+function isBannerDismissed() {
+  return sessionStorage.getItem(EMAIL_BANNER_DISMISSED_KEY) === '1';
+}
+
+/**
+ * Mark banner as dismissed for this session
+ */
+function dismissBanner() {
+  sessionStorage.setItem(EMAIL_BANNER_DISMISSED_KEY, '1');
+}
+
+/**
+ * Update email banner visibility based on email state
+ * Shows banner if: no email attached AND not dismissed this session
+ */
+function updateEmailBannerUI() {
+  const emailBanner = document.getElementById('emailBanner');
+  if (!emailBanner) return;
+
+  const shouldShow = !creditsState.email && !isBannerDismissed();
+
+  if (shouldShow) {
+    emailBanner.classList.remove('hidden');
+    log('[Credits] Email banner shown - no email attached');
+  } else {
+    emailBanner.classList.add('hidden');
+    if (creditsState.email) {
+      log('[Credits] Email banner hidden - email attached');
+    }
+  }
+}
+
+/**
+ * Handle banner dismiss click - hide with animation
+ */
+function handleBannerDismiss() {
+  const emailBanner = document.getElementById('emailBanner');
+  if (!emailBanner) return;
+
+  // Animate out
+  emailBanner.classList.add('dismissing');
+
+  // After animation, hide and mark dismissed
+  setTimeout(() => {
+    emailBanner.classList.add('hidden');
+    emailBanner.classList.remove('dismissing');
+    dismissBanner();
+    log('[Credits] Email banner dismissed for session');
+  }, 300);
+}
+
+// Setup email banner event listeners on DOM ready
+function setupEmailBannerListeners() {
+  const emailBannerDismiss = document.getElementById('emailBannerDismiss');
+  emailBannerDismiss?.addEventListener('click', handleBannerDismiss);
+}
+
+// Run setup when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupEmailBannerListeners);
+} else {
+  setupEmailBannerListeners();
 }
 
 // ============================================================================
