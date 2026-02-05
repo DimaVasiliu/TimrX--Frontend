@@ -1578,6 +1578,9 @@
       // State 1: No email
       showSecureState(1);
     }
+
+    // Also update email banner visibility
+    updateEmailBannerUI();
   }
 
   /**
@@ -2136,6 +2139,94 @@
       verifyCodeInput.value = verifyCodeInput.value.replace(/\D/g, '').slice(0, 6);
     }
   });
+
+  // ─────────────────────────────────────────────────────────────
+  // EMAIL BANNER - Non-blocking prompt to add email
+  // ─────────────────────────────────────────────────────────────
+
+  const EMAIL_BANNER_DISMISSED_KEY = 'timrx_email_banner_dismissed';
+  const emailBanner = document.getElementById('emailBanner');
+  const emailBannerCta = document.getElementById('emailBannerCta');
+  const emailBannerDismiss = document.getElementById('emailBannerDismiss');
+
+  /**
+   * Check if banner was dismissed this session
+   */
+  function isBannerDismissed() {
+    return sessionStorage.getItem(EMAIL_BANNER_DISMISSED_KEY) === '1';
+  }
+
+  /**
+   * Mark banner as dismissed for this session
+   */
+  function dismissBanner() {
+    sessionStorage.setItem(EMAIL_BANNER_DISMISSED_KEY, '1');
+  }
+
+  /**
+   * Update email banner visibility based on email state
+   * Shows banner if: no email attached AND not dismissed this session
+   */
+  function updateEmailBannerUI() {
+    if (!emailBanner) return;
+
+    const shouldShow = !userEmail && !isBannerDismissed();
+
+    if (shouldShow) {
+      emailBanner.classList.remove('hidden');
+      console.log('[Credits] Email banner shown - no email attached');
+    } else {
+      emailBanner.classList.add('hidden');
+      if (userEmail) {
+        console.log('[Credits] Email banner hidden - email attached');
+      }
+    }
+  }
+
+  /**
+   * Handle banner CTA click - scroll to secure credits section
+   */
+  function handleBannerCtaClick() {
+    // Expand the secure credits card
+    if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
+      toggleSecureCredits();
+    }
+
+    // Scroll to secure credits section
+    const secureSection = document.getElementById('secure-credits');
+    if (secureSection) {
+      secureSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Focus the email input
+    setTimeout(() => {
+      if (secureEmailInput) {
+        secureEmailInput.focus();
+      }
+    }, 500);
+  }
+
+  /**
+   * Handle banner dismiss click - hide with animation
+   */
+  function handleBannerDismiss() {
+    if (!emailBanner) return;
+
+    // Animate out
+    emailBanner.classList.add('dismissing');
+
+    // After animation, hide and mark dismissed
+    setTimeout(() => {
+      emailBanner.classList.add('hidden');
+      emailBanner.classList.remove('dismissing');
+      dismissBanner();
+      console.log('[Credits] Email banner dismissed for session');
+    }, 300);
+  }
+
+  // Banner event listeners
+  emailBannerCta?.addEventListener('click', handleBannerCtaClick);
+  emailBannerDismiss?.addEventListener('click', handleBannerDismiss);
 
   // ─────────────────────────────────────────────────────────────
   // UPDATED INIT: Also update secure credits UI
