@@ -1273,104 +1273,87 @@ body.print3d-page > .ws-header {
 }
 
 /* ==========================================================================
-   EMAIL BANNER - Non-blocking prompt to add email
+   EMAIL BEACON - Navbar beacon prompt to add email
    ========================================================================== */
-.email-banner {
-  position: fixed;
-  top: 52px; /* Below workspace header */
-  left: 0;
-  right: 0;
-  z-index: 99;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(125, 211, 252, 0.1) 100%);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(14, 165, 233, 0.25);
-  padding: 10px 20px;
-  transform: translateY(0);
-  opacity: 1;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+.email-beacon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(125, 211, 252, 0.15) 100%);
+  color: #7dd3fc;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin: 0 12px;
+  animation: beaconGlow 2s ease-in-out infinite;
 }
 
-.email-banner.hidden {
+.email-beacon:hover {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.35) 0%, rgba(125, 211, 252, 0.25) 100%);
+  color: #0ea5e9;
+  transform: scale(1.08);
+}
+
+.email-beacon:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
+}
+
+.email-beacon.hidden {
   display: none;
 }
 
-.email-banner.dismissing {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
-.email-banner-content {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 0.9rem;
-}
-
-.email-banner-icon {
-  color: #0ea5e9;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.email-banner-text {
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-}
-
-.email-banner-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #7dd3fc;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.2s ease;
-  font-size: inherit;
-  font-family: inherit;
-}
-
-.email-banner-link:hover {
-  color: #0ea5e9;
-}
-
-.email-banner-dismiss {
-  background: none;
-  border: none;
-  padding: 6px;
-  margin-left: 8px;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
+/* Pulse ring effect */
+.email-beacon-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease, background 0.2s ease;
-  flex-shrink: 0;
+  border: 2px solid rgba(14, 165, 233, 0.6);
+  animation: beaconPulse 2s ease-out infinite;
+  pointer-events: none;
 }
 
-.email-banner-dismiss:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+/* Pulse animation */
+@keyframes beaconPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Glow animation */
+@keyframes beaconGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
+  }
 }
 
 /* Mobile responsive */
 @media (max-width: 600px) {
-  .email-banner {
-    padding: 8px 12px;
-  }
-
-  .email-banner-content {
-    font-size: 0.8rem;
-    gap: 8px;
-  }
-
-  .email-banner-icon {
-    display: none;
+  .email-beacon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    margin: 0 8px;
   }
 }
