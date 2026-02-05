@@ -241,8 +241,8 @@ export async function fetchWallet() {
         creditsState.email = data.email || null;
         creditsState.emailVerified = data.email_verified || false;
 
-        // Update email banner visibility
-        updateEmailBannerUI();
+        // Update email beacon visibility
+        updateEmailBeaconUI();
 
         // Cache balance for next page load (perceived performance)
         cacheCreditsBalance(available);
@@ -956,76 +956,46 @@ export function updateWallet(wallet) {
 }
 
 // ============================================================================
-// EMAIL BANNER - Non-blocking prompt to add email
+// EMAIL BEACON - Navbar beacon prompt to add email
 // ============================================================================
 
-const EMAIL_BANNER_DISMISSED_KEY = 'timrx_email_banner_dismissed';
-
 /**
- * Check if banner was dismissed this session
+ * Update email beacon visibility based on email state
+ * Shows beacon if: no email attached
  */
-function isBannerDismissed() {
-  return sessionStorage.getItem(EMAIL_BANNER_DISMISSED_KEY) === '1';
-}
+function updateEmailBeaconUI() {
+  const emailBeacon = document.getElementById('emailBeacon');
+  if (!emailBeacon) return;
 
-/**
- * Mark banner as dismissed for this session
- */
-function dismissBanner() {
-  sessionStorage.setItem(EMAIL_BANNER_DISMISSED_KEY, '1');
-}
-
-/**
- * Update email banner visibility based on email state
- * Shows banner if: no email attached AND not dismissed this session
- */
-function updateEmailBannerUI() {
-  const emailBanner = document.getElementById('emailBanner');
-  if (!emailBanner) return;
-
-  const shouldShow = !creditsState.email && !isBannerDismissed();
+  const shouldShow = !creditsState.email;
 
   if (shouldShow) {
-    emailBanner.classList.remove('hidden');
-    log('[Credits] Email banner shown - no email attached');
+    emailBeacon.classList.remove('hidden');
+    log('[Credits] Email beacon shown - no email attached');
   } else {
-    emailBanner.classList.add('hidden');
-    if (creditsState.email) {
-      log('[Credits] Email banner hidden - email attached');
-    }
+    emailBeacon.classList.add('hidden');
+    log('[Credits] Email beacon hidden - email attached');
   }
 }
 
 /**
- * Handle banner dismiss click - hide with animation
+ * Handle beacon click - navigate to hub secure credits section
  */
-function handleBannerDismiss() {
-  const emailBanner = document.getElementById('emailBanner');
-  if (!emailBanner) return;
-
-  // Animate out
-  emailBanner.classList.add('dismissing');
-
-  // After animation, hide and mark dismissed
-  setTimeout(() => {
-    emailBanner.classList.add('hidden');
-    emailBanner.classList.remove('dismissing');
-    dismissBanner();
-    log('[Credits] Email banner dismissed for session');
-  }, 300);
+function handleBeaconClick() {
+  window.location.href = 'hub.html#secure-credits';
 }
 
-// Setup email banner event listeners on DOM ready
-function setupEmailBannerListeners() {
-  const emailBannerDismiss = document.getElementById('emailBannerDismiss');
-  emailBannerDismiss?.addEventListener('click', handleBannerDismiss);
+// Setup email beacon event listeners on DOM ready
+function setupEmailBeaconListeners() {
+  const emailBeacon = document.getElementById('emailBeacon');
+  emailBeacon?.addEventListener('click', handleBeaconClick);
 }
 
 // Run setup when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupEmailBannerListeners);
+  document.addEventListener('DOMContentLoaded', setupEmailBeaconListeners);
 } else {
-  setupEmailBannerListeners();
+  setupEmailBeaconListeners();
 }
 
 // ============================================================================
