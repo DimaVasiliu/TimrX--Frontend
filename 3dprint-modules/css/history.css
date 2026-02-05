@@ -57,14 +57,11 @@
    ========================================================================== */
 
 /* === Shell / Layout ======================================================= */
+/* Note: width/height controlled by .ws-grid in workspace.css */
 .timrx-3dprint .ws-right {
-  width: 100%;
-  max-width: 480px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  align-self: flex-start;
-  height: calc(100vh - var(--ws-navH) - calc(var(--ws-gap) * 2));
   min-height: 0;
   padding-left: 4px;
 }
@@ -314,10 +311,11 @@
 
 /* History grid scroll */
 .timrx-3dprint .history-collections {
+  flex: 1;
+  min-height: 0;
   margin-top: 4px;
   padding-right: 4px;
   overflow-y: auto;
-  max-height: calc(100vh - var(--ws-navH) - 240px);
 }
 
 /* Slim scrollbar inside history */
@@ -338,25 +336,13 @@
 
 /* === Responsive Behaviour ================================================== */
 
-/* ≥ 1440px — slightly wider history column */
-@media (min-width: 1440px) {
-  .timrx-3dprint .ws-right {
-    max-width: 520px;
-  }
-}
+/* ≥ 1440px — handled by clamp() in ws-grid */
 
 /* ≤ 1200px — right panel becomes bottom strip, full width */
 @media (max-width: 1200px) {
   .timrx-3dprint .ws-right {
-    max-width: 100%;
     grid-column: 1 / -1;
-    height: auto;
-    min-height: 0;
     margin-top: 10px;
-  }
-
-  .timrx-3dprint .history-collections {
-    max-height: min(420px, 55vh);
   }
 }
 
@@ -1721,43 +1707,66 @@ body.history-expanded .timrx-3dprint .history-pager {
   /* Medium screens – hide right panel, keep sidebar + left + viewer */
   @media (max-width: 1280px) {
     .timrx-3dprint .ws-grid {
-      grid-template-columns: 56px 300px 1fr;
+      grid-template-columns: 40px clamp(240px, 28vw, 300px) 1fr;
     }
-  
-    .timrx-3dprint .ws-left {
-      width: 300px;
-    }
-  
+
     /* Right panel collapses on medium screens – history moves into main flow */
     .timrx-3dprint .ws-right {
       display: none;
     }
+
+    .timrx-3dprint .ws-rail {
+      gap: 2px;
+    }
+
+    .timrx-3dprint .rail-btn {
+      padding: 6px 4px;
+    }
+
+    .timrx-3dprint .rail-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .timrx-3dprint .rail-btn span {
+      font-size: 7px;
+    }
   }
-  
+
   /* Small screens – single column, tools rail becomes a horizontal bar */
   @media (max-width: 980px) {
     .timrx-3dprint .ws-grid {
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 12px;
+      padding: 8px;
     }
-  
+
     /* Icon rail turns into centered horizontal toolbar */
     .timrx-3dprint .ws-rail {
       flex-direction: row;
       position: static;
       justify-content: center;
-      padding: 12px 0;
-      padding-top: 12px;
-      gap: 12px;
+      padding: 8px 0;
+      gap: 8px;
     }
-  
+
+    .timrx-3dprint .rail-btn {
+      flex-direction: row;
+      padding: 6px 10px;
+    }
+
+    .timrx-3dprint .rail-btn span {
+      font-size: 9px;
+    }
+
     .timrx-3dprint .ws-left,
     .timrx-3dprint .ws-viewer,
     .timrx-3dprint .ws-right {
       width: 100%;
       position: static;
+      border-radius: 12px;
     }
-  
+
     .timrx-3dprint .ws-viewer,
     .timrx-3dprint .ws-right {
       height: auto;
@@ -2255,20 +2264,21 @@ body.has-modal {
   letter-spacing: 0.05em;
 }
 
-/* Thumbnails container - horizontal, max 3 visible */
+/* Thumbnails container - 2-column grid */
 .timrx-3dprint .history-row__thumbs {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
   align-items: stretch;
 }
 
-/* Hide thumbnails after the 3rd one */
-.timrx-3dprint .history-row__thumbs .history-thumb:nth-child(n+4) {
+/* Hide thumbnails after the 4th one */
+.timrx-3dprint .history-row__thumbs .history-thumb:nth-child(n+5) {
   display: none;
 }
 
 /* When row is expanded, show all */
-.timrx-3dprint .history-row.expanded .history-row__thumbs .history-thumb:nth-child(n+4) {
+.timrx-3dprint .history-row.expanded .history-row__thumbs .history-thumb:nth-child(n+5) {
   display: flex;
 }
 
@@ -2325,9 +2335,10 @@ body.has-modal {
   gap: 0;
   min-width: 0;
   flex: 1;
-  max-width: calc(33.333% - 6px);
+  max-width: calc(50% - 6px);
+  aspect-ratio: 1 / 1;
 
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
 
   background: rgba(255, 255, 255, 0.03);
@@ -2762,9 +2773,9 @@ body.has-modal {
 
 .history-video-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  padding: 12px 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 8px 0;
   width: 100%;
 }
 
@@ -2772,7 +2783,10 @@ body.has-modal {
   width: 100%;
   max-width: none;
   min-width: 0;
-  animation: videoGridFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  animation: videoGridFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @keyframes videoGridFadeIn {
@@ -2796,19 +2810,11 @@ body.has-modal {
 .history-video-grid .history-thumb--video:nth-child(8) { animation-delay: 0.4s; }
 .history-video-grid .history-thumb--video:nth-child(9) { animation-delay: 0.45s; }
 
-/* Responsive: 2 columns on medium screens */
-@media (max-width: 900px) {
-  .history-video-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-}
-
 /* Responsive: 1 column on small screens */
 @media (max-width: 480px) {
   .history-video-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 }
 
