@@ -3021,25 +3021,22 @@ body.has-modal {
   }
 
    .history-collection__thumbs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
   }
 
   /* Extra thumbnails - hidden by default, shown when collection is expanded */
   .history-collection__thumbs-extra {
     display: none;
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-    padding-top: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
   }
 
   /* Show extra thumbs when collection is expanded */
   .history-collection.is-expanded .history-collection__thumbs-extra {
-    display: flex;
+    display: grid;
     animation: expandDown 0.3s ease-out;
   }
 
