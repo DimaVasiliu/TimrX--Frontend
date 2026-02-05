@@ -2203,6 +2203,15 @@
   <!-- Model Viewer component for inline tutorial 3D previews -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
+  <!-- Meshopt decoder for compressed GLB models -->
+  <script type="module">
+    import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.module.js';
+    await MeshoptDecoder.ready;
+    document.querySelectorAll('model-viewer').forEach(mv => {
+      mv.meshoptDecoder = MeshoptDecoder;
+    });
+  </script>
+
   <!-- UMD Three.js removed - using ESM importmap only (three@0.160.0) -->
 
   <!-- Clean modular architecture - ACTIVE -->
