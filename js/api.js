@@ -311,7 +311,7 @@ function isTimeoutError(result) {
 
 /**
  * Handle timeout gracefully for generation requests
- * Shows "Still generating..." message instead of error
+ * Shows "Still generating..." inline status instead of alert
  * Does NOT release reservation (backend will handle it)
  *
  * @param {object} result - API response from apiFetch
@@ -323,10 +323,8 @@ function handleGenerationTimeout(result, action) {
 
   log(`[Timeout] ${action} request timed out - job may still be processing on server`);
 
-  // Show user-friendly message
-  const msg = 'Still generating... The server is still processing your request. ' +
-              'Check back in a moment - your credits will only be charged if generation succeeds.';
-  alert(msg);
+  // NO ALERT - caller handles inline UI update and potential polling
+  // Credits will only be charged if generation succeeds on backend
 
   return true;
 }
@@ -1038,20 +1036,209 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
         } else {
           refreshCreditsInBackground();
         }
-        prog.fail(st.error || 'Image generation failed');
-        alert(st.error || 'Image generation failed');
-        State.deleteHistoryItem(jobId, { skipRemote: true });
+
+        const errorMsg = st.error || 'Image generation failed';
+        prog.fail(errorMsg);
+
+        // Update history with failure status (no alert - inline status only)
+        State.updateHistoryItem(jobId, {
+          status: 'failed',
+          status_label: errorMsg
+        });
+        renderHistory();
 
         // Unlock UI after job fails
         if (window.ImageJobControl?.unlock) {
           window.ImageJobControl.unlock();
         }
+        State.watchers.delete(jobId);
         return;
       }
 
       setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
     } catch (err) {
       setTimeout(() => poll(1500), 1500);
+    }
+  };
+
+  poll();
+}
+
+/**
+ * Watch a Gemini image generation job until completion
+ * Polls /api/image/gemini/status/<job_id> until ready/failed (max 120s)
+ */
+export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
+  if (State.watchers.has(jobId)) return;
+  let aborted = false;
+  const ctl = { abort() { aborted = true; } };
+  State.watchers.set(jobId, ctl);
+
+  const prog = UI.makeProgressDriver();
+  const startTime = Date.now();
+  const estimatedDuration = 30000; // Gemini is typically faster
+  const maxPollingDuration = 120000; // Max 120 seconds of polling
+  let notFoundCount = 0;
+  const maxNotFoundRetries = meta.isTimeoutRecovery ? 10 : 5; // More retries for timeout recovery
+
+  const poll = async (delay = 2000) => {
+    if (aborted) return;
+
+    // Check if we've exceeded max polling time
+    const elapsed = Date.now() - startTime;
+    if (elapsed > maxPollingDuration) {
+      console.log('[Gemini Image] Max polling duration exceeded');
+      prog.fail('Generation timed out. Your credits will be refunded if generation failed.');
+      State.updateHistoryItem(jobId, {
+        status: 'failed',
+        status_label: 'Generation timed out'
+      });
+      renderHistory();
+      // Sync with backend to get actual credit status
+      if (window.WorkspaceCredits?.syncWithBackend) {
+        window.WorkspaceCredits.syncWithBackend();
+      }
+      if (window.ImageJobControl?.unlock) {
+        window.ImageJobControl.unlock();
+      }
+      State.watchers.delete(jobId);
+      return;
+    }
+
+    try {
+      const result = await apiFetch(`/api/_mod/image/gemini/status/${jobId}`);
+
+      if (result.status === 404) {
+        notFoundCount++;
+        console.log(`[Gemini Image] Job not found (attempt ${notFoundCount}/${maxNotFoundRetries})`);
+
+        // Update inline status
+        const pct = Math.min(90, Math.floor(90 * (elapsed / estimatedDuration)));
+        prog.jump(pct);
+        prog.label('Still generating...');
+        updateThumbnailProgress(jobId, pct);
+
+        if (notFoundCount >= maxNotFoundRetries) {
+          // Job likely wasn't created - clean up
+          console.log('[Gemini Image] Job not found after retries, cleaning up');
+          prog.fail('Generation failed - job not found on server');
+          State.updateHistoryItem(jobId, {
+            status: 'failed',
+            status_label: 'Job not found'
+          });
+          renderHistory();
+          releaseCreditsReservation(reservationId);
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          }
+          if (window.ImageJobControl?.unlock) {
+            window.ImageJobControl.unlock();
+          }
+          State.watchers.delete(jobId);
+          return;
+        }
+
+        setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+        return;
+      }
+
+      // Reset not found counter on successful response
+      notFoundCount = 0;
+
+      const st = result.data || {};
+      if (st.message) prog.label(st.message);
+
+      if (st.status !== 'done' && st.status !== 'failed') {
+        const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
+        prog.jump(pct);
+        prog.label('Generating image...');
+        updateThumbnailProgress(jobId, pct);
+      }
+
+      if (st.status === 'done') {
+        let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
+        if (!imageUrl && st.image_base64) {
+          imageUrl = `data:image/png;base64,${st.image_base64}`;
+        }
+        if (!imageUrl) {
+          throw new Error('Gemini did not return an image URL');
+        }
+
+        const historyData = {
+          id: jobId,
+          type: 'image',
+          status: 'finished',
+          status_label: '',
+          created_at: Date.now(),
+          prompt: meta.prompt || '',
+          title: shortTitle(meta.prompt || 'Generated image'),
+          image_url: imageUrl,
+          thumbnail_url: imageUrl,
+          stage: 'image',
+          provider: 'google',
+          provider_used: meta.provider_used || 'google',
+          model: st.model || 'imagen-4.0'
+        };
+
+        if (State.historyHasJobId(jobId)) {
+          State.updateHistoryItem(jobId, historyData);
+        } else {
+          State.addHistoryItem(historyData);
+        }
+
+        State.setHistoryActiveModelId(jobId);
+        renderHistory();
+        Viewer.showImageInViewer(imageUrl);
+        prog.done('Image ready.');
+
+        confirmCreditsReservation(reservationId, jobId);
+
+        // Apply new_balance immediately if returned in status, then sync with backend
+        if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'gemini_image_done');
+        } else if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
+
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
+        State.watchers.delete(jobId);
+        return;
+      }
+
+      if (st.status === 'failed') {
+        releaseCreditsReservation(reservationId);
+        if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
+
+        const errorMsg = st.error || 'Image generation failed';
+        prog.fail(errorMsg);
+
+        // Update history with failure status (no alert)
+        State.updateHistoryItem(jobId, {
+          status: 'failed',
+          status_label: errorMsg
+        });
+        renderHistory();
+
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
+        State.watchers.delete(jobId);
+        return;
+      }
+
+      // Still processing - continue polling
+      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+    } catch (err) {
+      console.error('[Gemini Image] Poll error:', err);
+      setTimeout(() => poll(2000), 2000);
     }
   };
 
@@ -1661,11 +1848,25 @@ export async function startGeminiImageGeneration() {
     });
 
     if (!result.ok) {
-      // Handle timeout gracefully
+      // Handle timeout gracefully - start polling with tempId
       if (handleGenerationTimeout(result, 'image_generate')) {
-        State.updateHistoryItem(tempId, { status_label: 'Still generating...' });
+        console.log('[Gemini Image] Timeout - showing inline status and starting poll');
+        State.updateHistoryItem(tempId, {
+          status: 'generating',
+          status_label: 'Still generating... (checking server)'
+        });
         renderHistory();
         prog.label('Still generating...');
+
+        // Try polling with tempId - backend may have created job with our client_id
+        // Use a longer polling interval since we're in timeout recovery mode
+        watchGeminiImageJob(tempId, reservation.reservationId, {
+          prompt: promptRaw,
+          provider_used: 'google',
+          isTimeoutRecovery: true
+        });
+
+        startLock = false;
         return;
       }
       if (handleApiError(result, 'image_generate', reservation.reservationId)) {
@@ -1681,13 +1882,60 @@ export async function startGeminiImageGeneration() {
     const data = result.data;
     const imageId = data.image_id || data.job_id;
     const imageUrl = data.image_url;
+    const jobStatus = data.status;
 
+    // Handle async response (status: "queued") - start polling
+    if (jobStatus === 'queued' && imageId) {
+      console.log('[Gemini Image] Job queued, starting watcher:', imageId);
+
+      // Update placeholder with real job ID
+      if (imageId !== tempId) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.addHistoryItem({
+          id: imageId,
+          type: 'image',
+          status: 'generating',
+          status_label: 'Generating image with Gemini...',
+          created_at: Date.now(),
+          prompt: promptRaw,
+          title: shortTitle(promptRaw),
+          image_url: '',
+          thumbnail_url: '',
+          stage: 'image',
+          provider: 'google',
+          provider_used: 'google',
+          model: 'imagen-4.0'
+        });
+        State.setHistoryActiveModelId(imageId);
+        renderHistory();
+      }
+
+      // Use backend reservation_id if provided, otherwise use local
+      const backendReservationId = data.reservation_id || reservation.reservationId;
+
+      // Update balance from response (now shows reduced available due to held credits)
+      if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+        window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'gemini_image_queued');
+      }
+
+      // Start polling - watchGeminiImageJob handles unlock on completion/failure
+      watchGeminiImageJob(imageId, backendReservationId, {
+        prompt: promptRaw,
+        provider_used: 'google'
+      });
+
+      // Don't unlock here - watcher will do it when job completes
+      startLock = false;
+      return;
+    }
+
+    // Handle sync response (status: "done") - backward compatibility
     if (!imageUrl) {
       releaseCreditsReservation(reservation.reservationId);
       throw new Error('No image returned from Gemini');
     }
 
-    // Gemini returns image synchronously - update history immediately
+    // Gemini returned image synchronously - update history immediately
     const finalItem = {
       id: imageId || tempId,
       type: 'image',
@@ -1717,10 +1965,10 @@ export async function startGeminiImageGeneration() {
     prog.done('Image generated!');
 
     // Update balance from response - backend is authoritative
-    if (data.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+    if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
       window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'gemini_image_response');
-    } else if (data.new_balance !== undefined && window.WorkspaceCredits?.setCredits) {
-      window.WorkspaceCredits.setCredits(data.new_balance);
+    } else if (window.WorkspaceCredits?.syncWithBackend) {
+      window.WorkspaceCredits.syncWithBackend();
     }
 
   } catch (err) {
@@ -1733,7 +1981,8 @@ export async function startGeminiImageGeneration() {
     renderHistory();
   } finally {
     startLock = false;
-    // Unlock UI after generation completes/fails
+    // Only unlock if we didn't start a watcher (watcher handles its own unlock)
+    // The watcher path returns early, so if we're here, unlock is needed
     if (window.ImageJobControl?.unlock) {
       window.ImageJobControl.unlock();
     }
