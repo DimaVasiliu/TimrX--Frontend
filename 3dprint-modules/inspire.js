@@ -59,6 +59,44 @@
   // API FUNCTIONS
   // =========================================================================
 
+  /**
+   * Fallback: fetch from community feed and transform to inspire card format
+   */
+  async function fetchFromCommunityFeed(limit = 30) {
+    const response = await fetch(`${CONFIG.API_BASE}/community/feed?limit=${limit}`, {
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Community API HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.ok && data.posts && data.posts.length > 0) {
+      // Transform community posts to inspire card format
+      const cards = data.posts.map((post, idx) => {
+        const sizes = ['lg', 'md', 'sm', 'md', 'sm', 'lg', 'md', 'sm'];
+        return {
+          id: `ins-c-${post.id}`,
+          type: post.asset_type || 'model',
+          prompt: post.prompt_public || post.asset?.title || 'Community creation',
+          thumbnail: post.asset?.thumbnail_url,
+          size: sizes[idx % sizes.length],
+          tags: ['community'],
+          created_at: post.created_at
+        };
+      }).filter(card => card.thumbnail); // Only include cards with thumbnails
+
+      if (cards.length > 0) {
+        INSPIRE_CONTENT.cards = cards;
+        state.cards = [...cards];
+        return true;
+      }
+    }
+    return false;
+  }
+
   async function fetchInspireContent(options = {}) {
     const { type = 'all', shuffle = true, limit = CONFIG.FETCH_LIMIT } = options;
 
@@ -100,10 +138,21 @@
         throw new Error(data.error?.message || 'API error');
       }
     } catch (err) {
-      console.warn('[Inspire] API fetch failed, using fallback:', err.message);
+      console.warn('[Inspire] API fetch failed, trying community fallback:', err.message);
       state.error = err.message;
 
-      // Use fallback content if available
+      // Try community feed as fallback
+      try {
+        const fallbackSuccess = await fetchFromCommunityFeed(limit);
+        if (fallbackSuccess) {
+          console.log('[Inspire] Loaded content from community fallback');
+          return true;
+        }
+      } catch (fallbackErr) {
+        console.warn('[Inspire] Community fallback also failed:', fallbackErr.message);
+      }
+
+      // Use static fallback content if available
       if (FALLBACK_CONTENT.cards.length > 0) {
         INSPIRE_CONTENT.cards = [...FALLBACK_CONTENT.cards];
         state.cards = [...FALLBACK_CONTENT.cards];
@@ -425,10 +474,13 @@
 
       <div class="inspire-content">
         <div class="inspire-potd">
-          <div class="inspire-potd__badge">${ICONS.star}<span>Prompt of the Day</span></div>
-          <p class="inspire-potd__prompt">"${potd.prompt}"</p>
+          <div class="inspire-potd__badge">${ICONS.star}</div>
+          <div class="inspire-potd__content">
+            <div class="inspire-potd__label">Prompt of the Day</div>
+            <p class="inspire-potd__prompt">${potd.prompt}</p>
+          </div>
           <button class="inspire-potd__cta" data-action="use-potd">
-            ${ICONS.use}<span>Try This Prompt</span>
+            ${ICONS.use}<span>Try it</span>
           </button>
         </div>
 
@@ -436,8 +488,7 @@
 
         <section class="inspire-section">
           <div class="inspire-section__header">
-            <h3 class="inspire-section__title">Explore Creations</h3>
-            <span class="inspire-section__badge trending">Updated Daily</span>
+            <h3 class="inspire-section__title">Explore</h3>
           </div>
           <div class="inspire-grid" id="inspireGrid"></div>
         </section>
@@ -521,7 +572,7 @@
 
     const potdPrompt = overlayEl.querySelector('.inspire-potd__prompt');
     if (potdPrompt && INSPIRE_CONTENT.promptOfTheDay?.prompt) {
-      potdPrompt.textContent = `"${INSPIRE_CONTENT.promptOfTheDay.prompt}"`;
+      potdPrompt.textContent = INSPIRE_CONTENT.promptOfTheDay.prompt;
     }
   }
 
