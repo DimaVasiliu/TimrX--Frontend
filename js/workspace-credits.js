@@ -1087,7 +1087,7 @@ export function updateCreditsUI() {
 const BUTTON_CONFIG = {
   // Core generation buttons
   'generateModelBtn': { action: 'text-to-3d', batchInput: 'modelBatchCount' },
-  'generateImageBtn': { action: 'text-to-image', batchInput: null },
+  'generateImageBtn': { action: 'image_generate', batchInput: null },  // Canonical key -> OPENAI_IMAGE
   'imageTo3dBtn': { action: 'image-to-3d', batchInput: null },
   // Post-processing buttons
   'generateTextureBtn': { action: 'texture', batchInput: null },
@@ -1476,6 +1476,63 @@ export async function refreshCredits() {
 }
 
 // ============================================================================
+// BACKEND SYNC HELPERS
+// ============================================================================
+
+/**
+ * Force sync with backend - ALWAYS trusts backend over local state.
+ * Use this after job completion (success or failure) to ensure UI matches DB.
+ *
+ * If backend returns a different balance than local, backend wins.
+ * This prevents "snap back" issues where optimistic updates diverge from reality.
+ *
+ * @returns {Promise<number>} The authoritative server balance
+ */
+export async function syncWithBackend() {
+  log('[Credits] syncWithBackend: Forcing reconciliation with backend (backend is truth)');
+
+  // Clear any pending deductions - we're about to get authoritative balance
+  creditsState.pendingDeductions = [];
+
+  // Refresh from server - refreshCredits already treats server as truth
+  const serverBalance = await refreshCredits();
+
+  log('[Credits] syncWithBackend: Authoritative balance from backend:', serverBalance);
+  return serverBalance;
+}
+
+/**
+ * Apply backend balance immediately if returned in API response.
+ * Call this whenever an API response includes new_balance.
+ *
+ * @param {number} newBalance - The new_balance from backend response
+ * @param {string} source - Where this balance came from (for logging)
+ */
+export function applyBackendBalance(newBalance, source = 'api_response') {
+  if (typeof newBalance !== 'number' || isNaN(newBalance)) {
+    log('[Credits] applyBackendBalance: Invalid balance, ignoring:', newBalance);
+    return;
+  }
+
+  const previousBalance = creditsState.wallet.available;
+  const balance = Math.max(0, Math.floor(newBalance));
+
+  // Clear pending deductions - backend balance is authoritative
+  creditsState.pendingDeductions = [];
+
+  // Apply backend balance
+  creditsState.wallet.available = balance;
+  creditsState.wallet.balance = balance;
+  creditsState.lastServerBalance = balance;
+
+  // Cache for next page load
+  cacheCreditsBalance(balance);
+
+  log(`[Credits] applyBackendBalance (${source}): ${previousBalance} → ${balance} (backend is truth)`);
+  updateCreditsUI();
+}
+
+// ============================================================================
 // IDEMPOTENCY HELPERS
 // ============================================================================
 
@@ -1543,6 +1600,9 @@ window.WorkspaceCredits = {
   setCredits,
   applyDelta,
   refreshCredits,
+  // Backend sync (force reconciliation - backend is truth)
+  syncWithBackend,
+  applyBackendBalance,
   // Idempotency helpers
   clearChargedJobs,
   isJobCharged,
