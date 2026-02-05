@@ -305,29 +305,37 @@ export async function fetchActionCosts() {
         }
       });
 
-      // Add all frontend aliases for backward compatibility
-      // These ensure BUTTON_CONFIG action keys are covered
+      // Add legacy aliases for backward compatibility
+      // Backend now returns canonical keys; we add aliases for any code still using old keys
+      // Canonical -> Legacy aliases
       if (costsMap['text_to_3d_generate']) {
         costsMap['text-to-3d'] = costsMap['text_to_3d_generate'];
-        costsMap['text_to_3d'] = costsMap['text_to_3d_generate'];
         costsMap['preview'] = costsMap['text_to_3d_generate'];
       }
       if (costsMap['image_to_3d_generate']) {
         costsMap['image-to-3d'] = costsMap['image_to_3d_generate'];
-        costsMap['image_to_3d'] = costsMap['image_to_3d_generate'];
       }
-      if (costsMap['image_studio_generate']) {
-        costsMap['text-to-image'] = costsMap['image_studio_generate'];
-        costsMap['image_generate'] = costsMap['image_studio_generate'];
+      if (costsMap['image_generate']) {
+        costsMap['text-to-image'] = costsMap['image_generate'];
+        costsMap['image_studio_generate'] = costsMap['image_generate'];
       }
       if (costsMap['refine']) {
         costsMap['upscale'] = costsMap['refine'];
       }
-      if (costsMap['texture']) {
-        costsMap['retexture'] = costsMap['texture'];
+      if (costsMap['retexture']) {
+        costsMap['texture'] = costsMap['retexture'];
       }
-      if (costsMap['video']) {
-        costsMap['video_generate'] = costsMap['video'];
+      if (costsMap['rigging']) {
+        costsMap['rig'] = costsMap['rigging'];
+      }
+      if (costsMap['video_generate']) {
+        costsMap['video'] = costsMap['video_generate'];
+      }
+      if (costsMap['video_text_generate']) {
+        costsMap['text2video'] = costsMap['video_text_generate'];
+      }
+      if (costsMap['video_image_animate']) {
+        costsMap['image2video'] = costsMap['video_image_animate'];
       }
 
       // If no costs were parsed, use defaults
@@ -336,7 +344,7 @@ export async function fetchActionCosts() {
         creditsState.actionCosts = getDefaultActionCosts();
       } else {
         creditsState.actionCosts = costsMap;
-        log('[Credits] Action costs loaded:', Object.keys(costsMap).length, 'keys:', Object.keys(costsMap).join(', '));
+        log('[Credits] Action costs loaded:', Object.keys(costsMap).length, 'keys');
       }
     } else if (data.costs && Object.keys(data.costs).length > 0) {
       // Handle old object format (backward compatibility)
@@ -360,45 +368,48 @@ export async function fetchActionCosts() {
 
 /**
  * Default action costs (fallback if API unavailable)
- * Keys match backend ACTION_KEY_MAP in credits.py
  *
- * Backend mapping:
- *   text_to_3d    → MESHY_TEXT_TO_3D (20c)
- *   image_to_3d   → MESHY_IMAGE_TO_3D (30c)
- *   texture       → MESHY_RETEXTURE (15c)
- *   remesh/refine → MESHY_REFINE (10c)
- *   rig           → MESHY_RIG (25c)
- *   image_generate→ OPENAI_IMAGE (10c)
- *   video         → VIDEO_GENERATE (60c)
- *   preview       → MESHY_TEXT_TO_3D (alias, 20c)
- *   upscale       → MESHY_REFINE (alias, 10c)
+ * CANONICAL ACTION KEYS (use these in new code):
+ * - image_generate       (10c) - All 2D image providers (OpenAI, Gemini, etc.)
+ * - text_to_3d_generate  (20c) - Text to 3D preview generation
+ * - image_to_3d_generate (30c) - Image to 3D conversion
+ * - refine               (10c) - Refine/upscale 3D model
+ * - remesh               (10c) - Remesh 3D model (same cost as refine)
+ * - retexture            (15c) - Apply new texture to 3D model
+ * - rigging              (25c) - Add skeleton/rig to 3D model
+ * - video_generate       (60c) - Generic video generation
+ * - video_text_generate  (60c) - Text-to-video generation
+ * - video_image_animate  (60c) - Image-to-video animation
  */
 function getDefaultActionCosts() {
   return {
-    // === Core 3D generation ===
-    'text_to_3d': 20,           // Text-to-3D preview (draft)
-    'text-to-3d': 20,           // Alias (hyphenated)
-    'preview': 20,              // Preview is same as text_to_3d
+    // === CANONICAL ACTION KEYS ===
+    'image_generate': 10,         // All 2D image providers
+    'text_to_3d_generate': 20,    // Text to 3D preview
+    'image_to_3d_generate': 30,   // Image to 3D
+    'refine': 10,                 // Refine 3D model
+    'remesh': 10,                 // Remesh 3D model
+    'retexture': 15,              // Retexture 3D model
+    'rigging': 25,                // Rig 3D model
+    'video_generate': 60,         // Video generation
+    'video_text_generate': 60,    // Text to video
+    'video_image_animate': 60,    // Image to video
 
-    'image_to_3d': 30,          // Image-to-3D generation
-    'image-to-3d': 30,          // Alias (hyphenated)
+    // === LEGACY ALIASES (backwards compatibility) ===
+    // Hyphenated variants
+    'text-to-3d': 20,
+    'image-to-3d': 30,
+    'text-to-image': 10,
 
-    // === Post-processing ===
-    'texture': 15,              // Retexture a model
-    'remesh': 10,               // Remesh/retopologize
-    'refine': 10,               // Refine preview to full model (same as remesh)
-    'rig': 25,                  // Auto-rig a humanoid
-    'upscale': 10,              // Upscale (alias for refine)
+    // Old naming
+    'preview': 20,                // -> text_to_3d_generate
+    'texture': 15,                // -> retexture
+    'rig': 25,                    // -> rigging
+    'upscale': 10,                // -> refine
+    'video': 60,                  // -> video_generate
+    'image_studio_generate': 10,  // -> image_generate
 
-    // === Image generation ===
-    'image_generate': 10,       // OpenAI image generation (2D)
-    'text-to-image': 10,        // Alias (hyphenated)
-
-    // === Video generation ===
-    'video': 60,                // Video generation
-    'video_generate': 60,       // Alias
-
-    // === Backend DB action codes (for direct lookups) ===
+    // Backend DB action codes (for direct lookups)
     'MESHY_TEXT_TO_3D': 20,
     'MESHY_IMAGE_TO_3D': 30,
     'MESHY_RETEXTURE': 15,
@@ -406,11 +417,8 @@ function getDefaultActionCosts() {
     'MESHY_RIG': 25,
     'OPENAI_IMAGE': 10,
     'VIDEO_GENERATE': 60,
-
-    // === Legacy keys (backward compatibility) ===
-    'text_to_3d_generate': 20,
-    'image_to_3d_generate': 30,
-    'image_studio_generate': 10,
+    'VIDEO_TEXT_GENERATE': 60,
+    'VIDEO_IMAGE_ANIMATE': 60,
   };
 }
 
@@ -1082,20 +1090,32 @@ export function updateCreditsUI() {
 }
 
 /**
- * Button to action mapping with associated batch count inputs
+ * Button to action mapping with associated batch count inputs.
+ *
+ * CANONICAL ACTION KEYS (use these):
+ * - image_generate       (10c) - All 2D image providers
+ * - text_to_3d_generate  (20c) - Text to 3D preview
+ * - image_to_3d_generate (30c) - Image to 3D
+ * - refine               (10c) - Refine 3D model
+ * - remesh               (10c) - Remesh 3D model
+ * - retexture            (15c) - Retexture 3D model
+ * - rigging              (25c) - Rig 3D model
+ * - video_generate       (60c) - Video generation
+ * - video_text_generate  (60c) - Text to video
+ * - video_image_animate  (60c) - Image to video
  */
 const BUTTON_CONFIG = {
-  // Core generation buttons
-  'generateModelBtn': { action: 'text-to-3d', batchInput: 'modelBatchCount' },
-  'generateImageBtn': { action: 'image_generate', batchInput: null },  // Canonical key -> OPENAI_IMAGE
-  'imageTo3dBtn': { action: 'image-to-3d', batchInput: null },
-  // Post-processing buttons
-  'generateTextureBtn': { action: 'texture', batchInput: null },
+  // Core generation buttons (canonical keys)
+  'generateModelBtn': { action: 'text_to_3d_generate', batchInput: 'modelBatchCount' },
+  'generateImageBtn': { action: 'image_generate', batchInput: null },
+  'imageTo3dBtn': { action: 'image_to_3d_generate', batchInput: null },
+  // Post-processing buttons (canonical keys)
+  'generateTextureBtn': { action: 'retexture', batchInput: null },
   'applyRemeshBtn': { action: 'remesh', batchInput: null },
   'applyRefineBtn': { action: 'refine', batchInput: null },
-  'applyRigBtn': { action: 'rig', batchInput: null },
-  'applyUpscaleBtn': { action: 'upscale', batchInput: null },
-  'generateVideoBtn': { action: 'video', batchInput: null },
+  'applyRigBtn': { action: 'rigging', batchInput: null },
+  'applyUpscaleBtn': { action: 'refine', batchInput: null },  // Upscale uses refine cost
+  'generateVideoBtn': { action: 'video_generate', batchInput: null },
 };
 
 /**
