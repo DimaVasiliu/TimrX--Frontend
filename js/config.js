@@ -179,13 +179,14 @@ export async function apiFetch(url, options = {}) {
     timeout = endpointTimeout,
     retry = true,
     maxRetries = 3,
+    headers: customHeaders,  // Extract headers separately so it's not in rest
     ...rest
   } = options;
 
-  // Build headers
+  // Build headers - merge custom headers but ensure Content-Type is set for JSON body
   const headers = {
     'Accept': 'application/json',
-    ...(rest.headers || {}),
+    ...(customHeaders || {}),
   };
 
   // Add Content-Type for POST/PUT/PATCH with body
@@ -194,12 +195,13 @@ export async function apiFetch(url, options = {}) {
   }
 
   // Build fetch options - ALWAYS include credentials for cross-origin cookies
+  // Note: headers is set AFTER ...rest to prevent any accidental override
   const fetchOptions = {
     method,
     credentials: 'include',
     mode: 'cors',
-    headers,
     ...rest,
+    headers,  // Set headers last to ensure our built headers aren't overwritten
   };
 
   // Add body if present
