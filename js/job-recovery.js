@@ -259,7 +259,7 @@ let indicatorElement = null;
 
 /**
  * Create or update the jobs-in-progress indicator
- * Shows a small badge/pill when there are active jobs
+ * Shows a clean button when there are active jobs
  */
 export function updateJobsIndicator(count = null) {
   // Count active jobs if not provided
@@ -273,69 +273,53 @@ export function updateJobsIndicator(count = null) {
 
     // Create if not exists
     if (!indicatorElement) {
-      indicatorElement = document.createElement('div');
+      // Create indicator styled like the upload button (icon-btn)
+      indicatorElement = document.createElement('button');
       indicatorElement.id = 'jobs-indicator';
-      indicatorElement.className = 'jobs-indicator';
+      indicatorElement.type = 'button';
+      indicatorElement.className = 'icon-btn';
+      indicatorElement.setAttribute('aria-label', 'Jobs in progress');
       indicatorElement.innerHTML = `
-        <div class="jobs-indicator__pulse"></div>
-        <span class="jobs-indicator__count">0</span>
-        <span class="jobs-indicator__label">in progress</span>
-      `;
-      indicatorElement.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        display: none;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        background: rgba(30, 30, 40, 0.95);
-        border: 1px solid rgba(139, 92, 246, 0.3);
-        border-radius: 20px;
-        font-size: 13px;
-        color: #e2e8f0;
-        cursor: pointer;
-        z-index: 9999;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        transition: all 0.2s ease;
+        <svg class="jobs-indicator__spinner" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
+          <path d="M12 2a10 10 0 0 1 10 10"/>
+        </svg>
+        <span><span class="jobs-indicator__count">0</span> generating</span>
       `;
 
-      // Add pulse animation style
-      const style = document.createElement('style');
-      style.textContent = `
-        .jobs-indicator__pulse {
-          width: 8px;
-          height: 8px;
-          background: #8b5cf6;
-          border-radius: 50%;
-          animation: jobs-pulse 1.5s ease-in-out infinite;
-        }
-        @keyframes jobs-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        .jobs-indicator:hover {
-          background: rgba(40, 40, 55, 0.98);
-          border-color: rgba(139, 92, 246, 0.5);
-          transform: translateY(2px);
-        }
-        .jobs-indicator__count {
-          font-weight: 600;
-          color: #8b5cf6;
-        }
-        .jobs-indicator__label {
-          color: #94a3b8;
-        }
-      `;
-      document.head.appendChild(style);
+      // Add styles if not already present
+      if (!document.getElementById('jobs-indicator-styles')) {
+        const style = document.createElement('style');
+        style.id = 'jobs-indicator-styles';
+        style.textContent = `
+          #jobs-indicator .jobs-indicator__spinner {
+            animation: jobs-spin 1s linear infinite;
+          }
+          @keyframes jobs-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          #jobs-indicator .jobs-indicator__count {
+            font-weight: 600;
+          }
+        `;
+        document.head.appendChild(style);
+      }
 
       // Add click handler to show jobs panel
       indicatorElement.addEventListener('click', () => {
         showJobsPanel();
       });
 
-      document.body.appendChild(indicatorElement);
+      // Insert into pane-head-actions before the upload button
+      const actionsContainer = document.querySelector('.pane-head-actions');
+      if (actionsContainer) {
+        actionsContainer.insertBefore(indicatorElement, actionsContainer.firstChild);
+      } else {
+        // Fallback to fixed position
+        indicatorElement.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #e0e0e0; cursor: pointer;';
+        document.body.appendChild(indicatorElement);
+      }
     }
   }
 
@@ -346,7 +330,7 @@ export function updateJobsIndicator(count = null) {
   }
 
   if (count > 0) {
-    indicatorElement.style.display = 'flex';
+    indicatorElement.style.display = '';
   } else {
     indicatorElement.style.display = 'none';
   }
