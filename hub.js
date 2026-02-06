@@ -105,22 +105,23 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
   
       // close others first
       qsa('.modal.open').forEach(x => x !== m && closeModal(x));
-  
+
       lastFocus = document.activeElement;
       m.classList.add('open');
-      m.setAttribute('aria-hidden','false');
+      m.inert = false;
       trapFocus(m);
-  
+
       const first = qs('input,button,[href],[tabindex]:not([tabindex="-1"])', m);
       if (first) first.focus();
     }
-  
+
     function closeModal(m){
       if (!m) return;
-      m.classList.remove('open');
-      m.setAttribute('aria-hidden','true');
+      // CRITICAL: Move focus OUT before making inert to avoid accessibility warning
       releaseFocus();
       if (lastFocus && lastFocus.focus) lastFocus.focus();
+      m.classList.remove('open');
+      m.inert = true;
     }
   
     // Backdrop click (ignore clicks inside the card)
@@ -498,23 +499,36 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
 
   if (!tabs.length) return;
 
+  // Track focus for resource modals
+  let lastResourceFocus = null;
+
   // Open modal when tab is clicked
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const modalId = tab.dataset.modal;
       const modal = document.getElementById(modalId);
       if (modal) {
+        lastResourceFocus = document.activeElement;
         modal.classList.add('open');
-        modal.setAttribute('aria-hidden', 'false');
+        modal.inert = false;
         document.body.style.overflow = 'hidden';
+        // Focus first focusable element
+        requestAnimationFrame(() => {
+          const first = modal.querySelector('button, [href], input, [tabindex]:not([tabindex="-1"])');
+          first?.focus();
+        });
       }
     });
   });
 
   // Close modal handlers
   function closeResourceModal(modal) {
+    // Move focus OUT before hiding
+    if (modal.contains(document.activeElement)) {
+      (lastResourceFocus || document.body).focus();
+    }
     modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
+    modal.inert = true;
     document.body.style.overflow = '';
   }
 
