@@ -3428,19 +3428,10 @@ export function showJobsPanel() {
   });
 }
 
-// Update indicator when jobs change
-const originalAddActiveJob = State.addActiveJob;
-const originalRemoveActiveJob = State.removeActiveJob;
-State.addActiveJob = function(jobId) {
-  const result = originalAddActiveJob(jobId);
+// Register callback to update indicator when jobs change
+State.onActiveJobsChange(() => {
   updateJobsIndicator();
-  return result;
-};
-State.removeActiveJob = function(jobId) {
-  const result = originalRemoveActiveJob(jobId);
-  updateJobsIndicator();
-  return result;
-};
+});
 
 // Initialize indicator on load
 if (typeof document !== 'undefined') {
