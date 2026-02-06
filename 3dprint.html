@@ -685,16 +685,29 @@
         const closeButton = config.closeSelector ? document.querySelector(config.closeSelector) : null;
         let lastFocused = triggers[0] || document.activeElement || document.body;
 
+        // Ensure section starts with inert if hidden
+        if (section.hidden) {
+          section.inert = true;
+        }
+
         const closeView = ({ skipHash = false, skipFocus = false } = {}) => {
           if (section.hidden) return;
 
-          // IMPORTANT: Move focus BEFORE hiding to avoid aria-hidden focus warning
-          if (!skipFocus && lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
+          // CRITICAL: Move focus OUT of the container BEFORE making it inert/hidden
+          // This prevents "Blocked aria-hidden on focused element" warnings
+          const focusDestination = (!skipFocus && lastFocused && typeof lastFocused.focus === 'function')
+            ? lastFocused
+            : document.body;
+
+          // Force blur any focused element inside the section first
+          const focusedInside = section.contains(document.activeElement);
+          if (focusedInside) {
+            focusDestination.focus();
           }
 
+          // Now safe to hide - focus is outside
+          section.inert = true;
           section.hidden = true;
-          section.setAttribute('aria-hidden', 'true');
           document.body.classList.remove(config.bodyClass);
           if (!skipHash && window.location.hash === config.hash) {
             setHash('');
@@ -710,8 +723,11 @@
 
           closeDropdowns();
           hideAllViews(handle);
+
+          // Make visible and interactive first
           section.hidden = false;
-          section.setAttribute('aria-hidden', 'false');
+          section.inert = false;
+
           document.body.classList.remove('history-expanded');
           clearBodyViewClasses();
           document.body.classList.add(config.bodyClass);
@@ -720,6 +736,7 @@
             setHash(config.hash);
           }
 
+          // Focus after element is visible and interactive
           requestAnimationFrame(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             (focusTarget || section)?.focus({ preventScroll: true });
@@ -839,7 +856,7 @@
   </script>
 
   <!-- Upload Model Modal (positioned at document root for proper z-index stacking) -->
-  <div id="uploadModal" class="modal">
+  <div id="uploadModal" class="modal" inert>
     <div class="modal-backdrop"></div>
     <div class="modal-content">
       <div class="modal-header">
@@ -888,12 +905,12 @@
   </div>
 
   <!-- Insufficient Credits Modal -->
-  <div id="insufficientCreditsModal" class="modal hidden" style="display:none">
-    <div class="modal-backdrop" onclick="document.getElementById('insufficientCreditsModal').classList.add('hidden');document.getElementById('insufficientCreditsModal').style.display='none'"></div>
+  <div id="insufficientCreditsModal" class="modal hidden" style="display:none" inert>
+    <div class="modal-backdrop" onclick="window.closeCreditsModal()"></div>
     <div class="modal-content" style="max-width:400px;text-align:center">
       <div class="modal-header" style="border-bottom:none;padding-bottom:0">
         <h2 style="margin:0;font-size:20px;color:#fff">Insufficient Credits</h2>
-        <button class="modal-close" onclick="document.getElementById('insufficientCreditsModal').classList.add('hidden');document.getElementById('insufficientCreditsModal').style.display='none'" aria-label="Close">
+        <button class="modal-close" onclick="window.closeCreditsModal()" aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -910,14 +927,14 @@
         </p>
       </div>
       <div class="modal-footer" style="display:flex;justify-content:center;gap:10px;padding:0 24px 24px;border-top:none">
-        <button onclick="document.getElementById('insufficientCreditsModal').classList.add('hidden');document.getElementById('insufficientCreditsModal').style.display='none'" class="btn-secondary" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:#e0e0e0">Cancel</button>
+        <button onclick="window.closeCreditsModal()" class="btn-secondary" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:#e0e0e0">Cancel</button>
         <a href="/pricing" class="btn-primary" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:0;color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.25);text-decoration:none">Buy Credits</a>
       </div>
     </div>
   </div>
 
   <!-- Tutorials Expanded View -->
-  <section id="tutorialsGallery" class="tutorials-expanded-view" aria-labelledby="tutorialsTitle" aria-hidden="true" hidden>
+  <section id="tutorialsGallery" class="tutorials-expanded-view" aria-labelledby="tutorialsTitle" hidden inert>
     <div class="tutorials-expanded-shell">
       <header class="tutorials-hero">
         <div class="tutorials-hero-text" id="tutorialsFocus" data-tutorials-focus tabindex="-1">
@@ -1485,7 +1502,7 @@
   </section>
 
   <!-- User Stories Expanded View -->
-  <section id="userStoriesGallery" class="stories-expanded-view" aria-labelledby="storiesTitle" aria-hidden="true" hidden>
+  <section id="userStoriesGallery" class="stories-expanded-view" aria-labelledby="storiesTitle" hidden inert>
     <div class="stories-expanded-shell">
       <header class="stories-hero">
         <div class="stories-hero-text" id="storiesFocus" data-stories-focus tabindex="-1">
@@ -1593,7 +1610,7 @@
   </section>
 
   <!-- 3D File Converter Expanded View -->
-  <section id="converterGallery" class="converter-expanded-view" aria-labelledby="converterTitle" aria-hidden="true" hidden>
+  <section id="converterGallery" class="converter-expanded-view" aria-labelledby="converterTitle" hidden inert>
     <div class="converter-expanded-shell">
       <header class="converter-hero">
         <div class="converter-hero-text" id="converterFocus" data-converter-focus tabindex="-1">
@@ -1919,7 +1936,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        ABOUT / OUR STORY & MISSION – Expanded View
        ═══════════════════════════════════════════════════════════════════════ -->
-  <section id="aboutGallery" class="about-expanded-view" aria-labelledby="aboutTitle" aria-hidden="true" hidden>
+  <section id="aboutGallery" class="about-expanded-view" aria-labelledby="aboutTitle" hidden inert>
     <div class="about-expanded-shell">
       <header class="about-hero">
         <div class="about-hero-text" id="aboutFocus" data-about-focus tabindex="-1">
@@ -2185,6 +2202,37 @@
 
   <!-- UI helper scripts -->
   <script>
+    // Credits modal helper with proper focus management
+    (function() {
+      let lastFocusBeforeCreditsModal = null;
+
+      window.openCreditsModal = function() {
+        const modal = document.getElementById('insufficientCreditsModal');
+        if (!modal) return;
+        lastFocusBeforeCreditsModal = document.activeElement;
+        modal.classList.remove('hidden');
+        modal.style.display = '';
+        modal.inert = false;
+        // Focus the cancel button
+        requestAnimationFrame(() => {
+          const cancelBtn = modal.querySelector('.btn-secondary');
+          cancelBtn?.focus();
+        });
+      };
+
+      window.closeCreditsModal = function() {
+        const modal = document.getElementById('insufficientCreditsModal');
+        if (!modal) return;
+        // Move focus OUT before hiding
+        if (modal.contains(document.activeElement)) {
+          (lastFocusBeforeCreditsModal || document.body).focus();
+        }
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        modal.inert = true;
+      };
+    })();
+
     document.addEventListener('DOMContentLoaded', () => {
       // Nav hide on scroll for expanded views
       const nav = document.querySelector('.ws-nav');
