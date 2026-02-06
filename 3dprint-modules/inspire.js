@@ -403,16 +403,29 @@
     ).join('');
 
     const typeIcon = ICONS[card.type] || ICONS.model;
-    const thumbnailUrl = card.thumbnail || card.thumb_url || '';
+    // Use normalized thumbnail fields (thumb_preview preferred, fallback to legacy)
+    const thumbPreview = card.thumb_preview || card.thumbnail || card.thumb_url || '';
+    const thumbRefined = card.thumb_refined || '';  // May be empty
+    const hasRefine = card.has_refine || (thumbRefined && thumbRefined !== thumbPreview);
     const prompt = card.prompt || card.title || 'Untitled creation';
     const aspect = card.aspect || 'square';
 
-    // No heavy 3D viewers - just thumbnail images
+    // Pure thumbnail-based cards - NO WebGL, NO Three.js
+    // Store both thumbnail URLs in data attributes for hover swap
     return `
-      <article class="inspire-card ${aspect}" data-id="${card.id}" data-type="${card.type}">
+      <article class="inspire-card ${aspect}${hasRefine ? ' has-refine' : ''}"
+               data-id="${card.id}"
+               data-type="${card.type}"
+               data-thumb-preview="${thumbPreview}"
+               data-thumb-refined="${thumbRefined}">
         <div class="inspire-card__media">
-          <img class="inspire-card__image" src="${thumbnailUrl}" alt="${prompt}" loading="lazy" decoding="async"/>
+          <img class="inspire-card__image"
+               src="${thumbPreview}"
+               alt="${prompt}"
+               loading="lazy"
+               decoding="async"/>
           ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
+          ${hasRefine ? '<div class="inspire-card__refine-badge" title="Refined version available">&#10024;</div>' : ''}
         </div>
         <div class="inspire-card__type-badge ${card.type}">${typeIcon}<span>${card.type}</span></div>
         <div class="inspire-card__actions">
@@ -746,6 +759,13 @@
       if (btn) applyFilter(btn.dataset.filter);
     });
 
+    // Hover thumbnail swap (desktop only - no hover on touch)
+    const grid = overlayEl.querySelector('#inspireGrid');
+    if (grid && !('ontouchstart' in window)) {
+      grid.addEventListener('mouseenter', handleCardHoverIn, true);
+      grid.addEventListener('mouseleave', handleCardHoverOut, true);
+    }
+
     // Keyboard
     document.addEventListener('keydown', handleKeydown);
 
@@ -758,6 +778,44 @@
         closeInspire();
       }
     });
+  }
+
+  // =========================================================================
+  // HOVER THUMBNAIL SWAP (desktop only)
+  // =========================================================================
+
+  function handleCardHoverIn(e) {
+    const card = e.target.closest('.inspire-card.has-refine');
+    if (!card) return;
+
+    const img = card.querySelector('.inspire-card__image');
+    const refined = card.dataset.thumbRefined;
+
+    if (img && refined) {
+      // Store current src for revert
+      if (!img.dataset.originalSrc) {
+        img.dataset.originalSrc = img.src;
+      }
+      // Swap to refined thumbnail with smooth transition
+      img.style.opacity = '0.7';
+      img.src = refined;
+      img.onload = () => { img.style.opacity = '1'; };
+    }
+  }
+
+  function handleCardHoverOut(e) {
+    const card = e.target.closest('.inspire-card.has-refine');
+    if (!card) return;
+
+    const img = card.querySelector('.inspire-card__image');
+    const preview = card.dataset.thumbPreview;
+
+    if (img && preview) {
+      // Revert to preview thumbnail
+      img.style.opacity = '0.7';
+      img.src = preview;
+      img.onload = () => { img.style.opacity = '1'; };
+    }
   }
 
   async function init() {
