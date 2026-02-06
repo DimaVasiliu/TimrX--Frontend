@@ -1367,6 +1367,9 @@ export async function onGenerateClick() {
 
   startLock = true;
 
+  // Dispatch generation:start event (e.g., to close Inspire panel)
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'text-to-3d' } }));
+
   const allGenBtns = document.querySelectorAll('button[id*="generate"]');
   allGenBtns.forEach(btn => btn.setAttribute('disabled', ''));
 
@@ -2002,6 +2005,9 @@ export async function startGeminiImageGeneration() {
  * NO AUTO-FALLBACK: If provider fails, show error - do not silently switch providers.
  */
 export async function startImageGenerationByProvider() {
+  // Dispatch generation:start event (e.g., to close Inspire panel)
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'image' } }));
+
   // SINGLE SOURCE OF TRUTH: GenerationState.getProvider()
   // No DOM fallback - if state is unavailable, something is wrong
   if (!window.GenerationState?.getProvider) {
@@ -2063,6 +2069,9 @@ function computeVideoCredits(settings) {
  */
 export async function startVideoGeneration() {
   if (startLock) return;
+
+  // Dispatch generation:start event (e.g., to close Inspire panel)
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'video' } }));
 
   // Get video settings from UI (use window.VideoJobControl if available, else read directly)
   const settings = window.VideoJobControl?.getSettings?.() || {
@@ -2774,6 +2783,10 @@ export async function onPostProcessFromHistory(item, type) {
  */
 export async function startRemeshFromPanel() {
   if (startLock) return;
+
+  // Dispatch generation:start event (e.g., to close Inspire panel)
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'remesh' } }));
+
   const choice = byId('remeshModelSelect')?.value || 'current';
   const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
 
@@ -2819,6 +2832,10 @@ export async function startRemeshFromPanel() {
  */
 export async function startTextureFromPanel() {
   if (startLock) return;
+
+  // Dispatch generation:start event (e.g., to close Inspire panel)
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'texture' } }));
+
   const choice = byId('textureModelSelect')?.value || 'current';
   const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
   if (choice === 'current' && !baseItem) {
