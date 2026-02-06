@@ -1398,6 +1398,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Initialize viewer
     try {
       Viewer.initViewer();
+      Viewer.initImageFitToggle();
     } catch (e) {
       console.error('Viewer init failed:', e);
     }
