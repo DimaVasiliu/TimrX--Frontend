@@ -728,35 +728,91 @@
   }
 
   /**
-   * Load a 3D model into the Three.js viewer
+   * Load a 3D model - show thumbnail preview and fill prompt
+   * Simple approach: display the model thumbnail and let user generate similar
    */
   function loadModelIntoViewer(cardData) {
-    // Switch to model panel
-    const modelRailBtn = document.querySelector('[data-panel="model"]');
-    if (modelRailBtn) modelRailBtn.click();
-
-    // Get the GLB URL - prefer glb_url, fall back to proxy or S3 URL
+    // Get the thumbnail URL for preview
+    const thumbnailUrl = cardData.thumb_preview || cardData.thumbnail || cardData.thumb_url;
     const glbUrl = cardData.glb_url || cardData.glb_proxy || cardData.model_url;
 
-    if (!glbUrl) {
-      console.warn('[Inspire] No GLB URL found for model:', cardData.id);
-      // Fall back to using the prompt
+    // Try to load 3D model if viewer is available
+    if (glbUrl && window.timrx3D) {
+      // Switch to model panel
+      const modelRailBtn = document.querySelector('[data-panel="model"]');
+      if (modelRailBtn) modelRailBtn.click();
+
+      // Try different loader methods
+      const tryLoadModel = async () => {
+        // Method 1: Check for exposed loadGlbFromUrl
+        if (typeof window.loadGlbFromUrl === 'function') {
+          return window.loadGlbFromUrl(glbUrl);
+        }
+        // Method 2: Check Viewer module
+        if (window.Viewer?.loadGlbFromUrl) {
+          return window.Viewer.loadGlbFromUrl(glbUrl);
+        }
+        // Method 3: Check for showModelInViewer
+        if (window.Viewer?.showModelInViewer) {
+          return window.Viewer.showModelInViewer(glbUrl, { title: cardData.title });
+        }
+        // Method 4: Try importing viewer module dynamically
+        try {
+          const viewerModule = await import('./viewer.js').catch(() => null) ||
+                               await import('../viewer.js').catch(() => null) ||
+                               await import('../js/viewer.js').catch(() => null);
+          if (viewerModule?.loadGlbFromUrl) {
+            return viewerModule.loadGlbFromUrl(glbUrl);
+          }
+        } catch (e) { /* ignore */ }
+        throw new Error('No viewer available');
+      };
+
+      tryLoadModel()
+        .then(() => {
+          console.log('[Inspire] Model loaded successfully');
+          // Also fill the prompt for reference
+          if (cardData.prompt) usePrompt(cardData.prompt);
+        })
+        .catch(err => {
+          console.warn('[Inspire] Model loading failed, showing thumbnail:', err.message);
+          // Fall back to showing thumbnail as image
+          showModelAsThumbnail(cardData, thumbnailUrl);
+        });
+    } else if (thumbnailUrl) {
+      // No 3D viewer available - show thumbnail as image preview
+      showModelAsThumbnail(cardData, thumbnailUrl);
+    } else {
+      // No thumbnail either - just use the prompt
+      console.warn('[Inspire] No GLB URL or thumbnail for model:', cardData.id);
       usePrompt(cardData.prompt);
-      return;
+    }
+  }
+
+  /**
+   * Show model thumbnail as an image (fallback when 3D viewer unavailable)
+   */
+  function showModelAsThumbnail(cardData, thumbnailUrl) {
+    // Switch to image panel to show the thumbnail
+    const imageRailBtn = document.querySelector('[data-panel="image"]');
+    if (imageRailBtn) imageRailBtn.click();
+
+    // Show thumbnail in image viewer
+    const imageEl = document.getElementById('generatedImage');
+    if (imageEl) {
+      imageEl.src = thumbnailUrl;
+      imageEl.classList.remove('hidden');
+      imageEl.alt = cardData.title || 'Model Preview';
     }
 
-    // Use the global viewer if available
-    if (window.timrx3D && typeof window.loadGlbFromUrl === 'function') {
-      window.loadGlbFromUrl(glbUrl).catch(err => {
-        console.warn('[Inspire] Failed to load model:', err);
-      });
-    } else if (window.Viewer?.loadGlbFromUrl) {
-      window.Viewer.loadGlbFromUrl(glbUrl).catch(err => {
-        console.warn('[Inspire] Failed to load model:', err);
-      });
-    } else {
-      console.warn('[Inspire] No viewer available for model loading');
-      // Fall back to using the prompt
+    // Update title if available
+    const viewerTitle = document.getElementById('viewerTitle');
+    if (viewerTitle) {
+      viewerTitle.textContent = cardData.title || '3D Model Preview';
+    }
+
+    // Fill the prompt so user can generate similar
+    if (cardData.prompt) {
       usePrompt(cardData.prompt);
     }
   }
@@ -990,12 +1046,12 @@
     document.addEventListener('click', (e) => {
       if (!state.isOpen) return;
 
-      // Check for burger menu, nav dropdown triggers, ws-nav links, and expanded view triggers
+      // Check for nav dropdown triggers, ws-nav links, and expanded view triggers
       const navTrigger = e.target.closest(
-        '#burgerBtn, .burger-btn, [data-nav-toggle], ' +
+        '[data-nav-toggle], ' +
         '.ws-nav__menu-btn, [data-menu-toggle], ' +
         '.ws-nav-link, .ws-nav a, .ws-nav button, ' +
-        '.ws-dropdown-item, .burger-menu__item, ' +
+        '.ws-dropdown-item, ' +
         '[data-open-tutorials], [data-open-user-stories], [data-open-converter], [data-open-about]'
       );
 
