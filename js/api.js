@@ -1031,6 +1031,7 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
         if (window.ImageJobControl?.unlock) {
           window.ImageJobControl.unlock();
         }
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -1058,6 +1059,7 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
           window.ImageJobControl.unlock();
         }
         State.watchers.delete(jobId);
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -1108,6 +1110,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
         window.ImageJobControl.unlock();
       }
       State.watchers.delete(jobId);
+      State.removeActiveJob(jobId);
       return;
     }
 
@@ -1141,6 +1144,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
             window.ImageJobControl.unlock();
           }
           State.watchers.delete(jobId);
+          State.removeActiveJob(jobId);
           return;
         }
 
@@ -1212,6 +1216,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
           window.ImageJobControl.unlock();
         }
         State.watchers.delete(jobId);
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -1237,6 +1242,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
           window.ImageJobControl.unlock();
         }
         State.watchers.delete(jobId);
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -1708,11 +1714,15 @@ export async function startOpenAIImageGeneration() {
     State.setHistoryActiveModelId(activeHistoryId);
     renderHistory();
 
+    // Track as active job for recovery and indicator
+    State.addActiveJob(activeHistoryId);
     State.savePendingMeta(activeHistoryId, {
       prompt: promptRaw,
       model,
       size: resolution,
-      stage: 'image'
+      stage: 'image',
+      type: 'image',
+      provider: 'openai'
     });
 
     // Pass provider info to watcher for proper unlock
@@ -1944,6 +1954,15 @@ export async function startGeminiImageGeneration() {
       if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
         window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'gemini_image_queued');
       }
+
+      // Track as active job for recovery and indicator
+      State.addActiveJob(imageId);
+      State.savePendingMeta(imageId, {
+        prompt: promptRaw,
+        stage: 'image',
+        type: 'image',
+        provider: 'google'
+      });
 
       // Start polling - watchGeminiImageJob handles unlock on completion/failure
       watchGeminiImageJob(imageId, backendReservationId, {
