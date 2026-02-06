@@ -935,6 +935,74 @@ export function setHistoryActiveModelId(id) {
 }
 
 // ============================================================================
+// IDEMPOTENCY KEY MANAGEMENT (for generation reliability)
+// ============================================================================
+const IDEMPOTENCY_KEYS_STORAGE = 'timrx_idempotency_keys';
+
+/**
+ * Generate a new idempotency key (UUID v4)
+ */
+export function generateIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+/**
+ * Store idempotency key -> job mapping
+ */
+export function saveIdempotencyMapping(idempotencyKey, jobId, meta = {}) {
+  try {
+    const mappings = JSON.parse(localStorage.getItem(IDEMPOTENCY_KEYS_STORAGE) || '{}');
+    mappings[idempotencyKey] = { jobId, createdAt: Date.now(), ...meta };
+    const entries = Object.entries(mappings);
+    if (entries.length > 100) {
+      const sorted = entries.sort((a, b) => b[1].createdAt - a[1].createdAt);
+      localStorage.setItem(IDEMPOTENCY_KEYS_STORAGE, JSON.stringify(Object.fromEntries(sorted.slice(0, 100))));
+    } else {
+      localStorage.setItem(IDEMPOTENCY_KEYS_STORAGE, JSON.stringify(mappings));
+    }
+  } catch (e) {
+    console.warn('[State] Failed to save idempotency mapping:', e);
+  }
+}
+
+/**
+ * Get job_id for an idempotency key
+ */
+export function getJobForIdempotencyKey(idempotencyKey) {
+  try {
+    const mappings = JSON.parse(localStorage.getItem(IDEMPOTENCY_KEYS_STORAGE) || '{}');
+    return mappings[idempotencyKey]?.jobId || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Clear idempotency mapping when job completes
+ */
+export function clearIdempotencyMapping(idempotencyKey) {
+  try {
+    const mappings = JSON.parse(localStorage.getItem(IDEMPOTENCY_KEYS_STORAGE) || '{}');
+    delete mappings[idempotencyKey];
+    localStorage.setItem(IDEMPOTENCY_KEYS_STORAGE, JSON.stringify(mappings));
+  } catch { /* ignore */ }
+}
+
+/**
+ * Check if there are any active jobs (for beforeunload warning)
+ */
+export function hasActiveJobs() {
+  return getActiveJobs().length > 0;
+}
+
+// ============================================================================
 // EXPOSE FUNCTIONS GLOBALLY (for backward compatibility)
 // ============================================================================
 window.getActiveJobs = getActiveJobs;
@@ -952,6 +1020,12 @@ window.deleteHistoryItem = deleteHistoryItem;
 window.loadHistoryFromDB = loadHistoryFromDB;
 window.forceRestoreFromDB = forceRestoreFromDB;
 window.clearLocalHistoryCache = clearLocalHistoryCache;
+// Idempotency key functions (generation reliability)
+window.generateIdempotencyKey = generateIdempotencyKey;
+window.saveIdempotencyMapping = saveIdempotencyMapping;
+window.getJobForIdempotencyKey = getJobForIdempotencyKey;
+window.clearIdempotencyMapping = clearIdempotencyMapping;
+window.hasActiveJobs = hasActiveJobs;
 
 // ============================================================================
 // EXPOSE GENERATION STATE GLOBALLY
