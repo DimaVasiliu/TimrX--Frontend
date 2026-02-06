@@ -111,9 +111,6 @@
   </script>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
-  <!-- COMMENTED OUT: burger.css - menu is disabled
-  <link rel="stylesheet" href="burger.css">
-  -->
   <link rel="stylesheet" href="3dprint-modules/main.css">
   <script defer src="3dprint-modules/3dprint-app.js"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
@@ -181,59 +178,7 @@
       <a href="hub.html#pricing" class="ws-credits-buy" id="workspaceBuyBtn">Buy</a>
     </div>
 
-    <!-- COMMENTED OUT: Burger button - menu is disabled
-    <button id="burgerBtn" class="ws-burger" aria-label="Open menu" aria-expanded="false">
-      <div class="burger-icon">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </div>
-    </button>
-    -->
   </header>
-
-  <!-- COMMENTED OUT: Burger overlay and menu - not needed with minimal header
-  <div id="burgerOverlay"></div>
-  <nav id="burgerMenu" aria-label="Mobile menu">
-    <div class="burger-menu__items">
-      <a href="index.html" class="burger-menu__item">
-        <span class="burger-menu__icon">🏠</span>
-        <span class="burger-menu__text">Home</span>
-      </a>
-      <a href="hub.html" class="burger-menu__item">
-        <span class="burger-menu__icon">🚀</span>
-        <span class="burger-menu__text">3D Hub</span>
-      </a>
-      <a href="index.html#services" class="burger-menu__item">
-        <span class="burger-menu__icon">⚙️</span>
-        <span class="burger-menu__text">Services</span>
-      </a>
-      <a href="#tutorials" class="burger-menu__item" data-open-tutorials>
-        <span class="burger-menu__icon">📚</span>
-        <span class="burger-menu__text">Tutorials</span>
-      </a>
-      <a href="#stories" class="burger-menu__item" data-open-user-stories>
-        <span class="burger-menu__icon">🧑‍🚀</span>
-        <span class="burger-menu__text">User Stories</span>
-      </a>
-      <a href="#converter" class="burger-menu__item" data-open-converter>
-        <span class="burger-menu__icon">🔄</span>
-        <span class="burger-menu__text">File Converter</span>
-      </a>
-      <a href="#about" class="burger-menu__item" data-open-about>
-        <span class="burger-menu__icon">💡</span>
-        <span class="burger-menu__text">About Us</span>
-      </a>
-      <a href="blogs.html" class="burger-menu__item">
-        <span class="burger-menu__icon">📝</span>
-        <span class="burger-menu__text">Blogs</span>
-      </a>
-      <a href="index.html#contact" class="burger-menu__item burger-menu__item--emphasis">
-        <span class="burger-menu__icon">✉️</span>
-        <span class="burger-menu__text">Contact Me</span>
-      </a>
-    </div>
-  </nav>
-  END COMMENTED OUT -->
 
   <!-- SEO: Hidden h1 for screen readers and search engines -->
   <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">AI 3D Model Generator Workspace – Create 3D Models from Text or Images | TimrX</h1>
@@ -436,6 +381,14 @@
           </div>
           <img id="generatedImage" class="generated-image hidden" alt="Generated artwork"/>
         </div>
+        <!-- Fit/Fill toggle button -->
+        <button type="button" class="image-fit-toggle hidden" id="imageFitToggle" aria-label="Toggle image fit mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+          </svg>
+          <span>Fit</span>
+        </button>
       </div>
 
       <!-- Video Viewer -->
@@ -585,9 +538,6 @@
     window.dispatchEvent(new Event('three-ready'));
   </script>
 
-  <!-- COMMENTED OUT: burger.js - menu is disabled
-  <script src="burger.js"></script>
-  -->
 
   <!-- Dropdown Navigation Script -->
   <script>
