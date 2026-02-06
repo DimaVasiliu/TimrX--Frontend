@@ -292,8 +292,26 @@ export function updateJobsIndicator(count = null) {
         const style = document.createElement('style');
         style.id = 'jobs-indicator-styles';
         style.textContent = `
+          #jobs-indicator {
+            animation: jobs-pulse 2s ease-in-out infinite;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            background: rgba(56, 189, 248, 0.08) !important;
+          }
+          #jobs-indicator:hover {
+            background: rgba(56, 189, 248, 0.15) !important;
+            border-color: rgba(56, 189, 248, 0.6) !important;
+          }
+          @keyframes jobs-pulse {
+            0%, 100% {
+              box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+            }
+            50% {
+              box-shadow: 0 0 8px 2px rgba(56, 189, 248, 0.3);
+            }
+          }
           #jobs-indicator .jobs-indicator__spinner {
             animation: jobs-spin 1s linear infinite;
+            stroke: #38bdf8;
           }
           @keyframes jobs-spin {
             from { transform: rotate(0deg); }
@@ -301,6 +319,7 @@ export function updateJobsIndicator(count = null) {
           }
           #jobs-indicator .jobs-indicator__count {
             font-weight: 600;
+            color: #38bdf8;
           }
         `;
         document.head.appendChild(style);
