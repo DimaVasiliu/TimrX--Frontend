@@ -491,8 +491,8 @@
   .timrx-3dprint .card {
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(18, 18, 20, 0.95) 100%);
     border: 1px solid var(--ws-card-border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 12px;
+    padding: 14px 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     position: relative;
@@ -518,24 +518,25 @@
 
   /* Card title */
   .timrx-3dprint .card h3 {
-    margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ws-text);
-    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
   /* General text + labels inside cards */
   .timrx-3dprint .card p,
   .timrx-3dprint .card label {
     font-size: 12px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
 
   .timrx-3dprint .card label {
     display: block;
-    font-weight: 600;
-    color: #cccccc;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
   }
 
   /* Inline label + select layout for compact forms */
@@ -714,7 +715,7 @@
 
   /* Vertical rhythm between stacked cards ----------------------------------- */
   .timrx-3dprint .card + .card {
-    margin-top: 6px;
+    margin-top: 8px;
   }
 
   /* ============================================================================
