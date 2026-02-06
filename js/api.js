@@ -3243,8 +3243,8 @@ export function updateJobsIndicator() {
       `;
       indicator.style.cssText = `
         position: fixed;
-        bottom: 20px;
-        left: 20px;
+        top: 80px;
+        right: 20px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -3280,7 +3280,7 @@ export function updateJobsIndicator() {
           #jobs-indicator:hover {
             background: rgba(40, 40, 55, 0.98);
             border-color: rgba(139, 92, 246, 0.5);
-            transform: translateY(-2px);
+            transform: translateY(2px);
           }
           .jobs-indicator__count {
             font-weight: 600;
