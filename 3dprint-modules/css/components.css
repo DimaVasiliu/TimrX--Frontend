@@ -138,10 +138,10 @@
 /* ===== LEFT PANEL (optional wrapper) ===== */
 /* Subtext / helper copy under panel titles */
 .muted {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.4;
-  margin: 0 0 12px 0; /* space before first card */
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 14px 0; /* space before first card */
 }
 
 /* ===== CARD HEADER ===== */
@@ -149,16 +149,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .card-header h3 {
-  font-size: 14px;
-  font-weight: 800;
-  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 /* ===== TABS ===== */
@@ -220,8 +220,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 /* When you want a vertical stack (e.g. big textarea),
@@ -233,10 +233,10 @@
 
 /* Label column (e.g. "Art Style") */
 .form-field label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #e0e0e0;
-  letter-spacing: 0.01em;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
   flex: 0 0 38%;      /* left column width */
   max-width: 160px;   /* keeps text neat */
 }
@@ -251,14 +251,14 @@
 textarea,
 input[type="text"] {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.25);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-family: Inter, system-ui, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   resize: vertical;
   transition: var(--transition);
 }
@@ -266,26 +266,28 @@ input[type="text"] {
 textarea:focus,
 input[type="text"]:focus {
   outline: none;
-  border-color: rgba(14, 165, 233, 0.4);
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.04);
 }
 
 textarea::placeholder,
 input[type="text"]::placeholder {
-  color: #666;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
 }
 
 textarea {
-  min-height: 140px;
+  min-height: 110px;
 }
 
 /* Hints under the control (use with form-field--stack or as separate row) */
 .field-hint,
 .hint-text {
-  font-size: 12px;
-  color: #777;
-  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 6px;
+  line-height: 1.5;
 }
 
 /* Provider lock hint - shown during generation */
@@ -1430,14 +1432,14 @@ textarea {
 /* ===== VIDEO TAB CARD IMPROVEMENTS ===== */
 .timrx-3dprint .card #videoTextPrompt,
 .timrx-3dprint .card #videoMotion {
-  font-size: 12px;
-  line-height: 1.5;
-  min-height: 65px;
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 85px;
   resize: vertical;
 }
 
 .timrx-3dprint .card #videoMotion {
-  min-height: 50px;
+  min-height: 65px;
 }
 
 /* Video tab labels - consistent sizing */
@@ -1515,4 +1517,78 @@ textarea {
 .video-error-message i {
   margin-right: 6px;
   color: #ef4444;
+}
+
+/* ===== PANE-STACK TEXTAREAS - Taller, better proportions ===== */
+/* Model prompt textarea */
+.timrx-3dprint .card #modelPrompt {
+  min-height: 120px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Image prompt textarea */
+.timrx-3dprint .card #imagePrompt {
+  min-height: 120px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Texture prompt textarea */
+.timrx-3dprint .card #texturePrompt {
+  min-height: 100px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Remesh/Rig textareas */
+.timrx-3dprint .card textarea[id*="remesh"],
+.timrx-3dprint .card textarea[id*="rig"] {
+  min-height: 90px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ===== PANE-STACK CARD SECTION TITLES ===== */
+.timrx-3dprint .pane-stack .card h3 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ===== FIELD ROW IMPROVEMENTS ===== */
+.timrx-3dprint .card .field-row {
+  padding: 10px 0;
+}
+
+.timrx-3dprint .card .field-row:first-of-type {
+  padding-top: 0;
+}
+
+/* ===== SELECT INPUTS - Cleaner styling ===== */
+.timrx-3dprint .card select {
+  padding: 10px 32px 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.2s ease;
+}
+
+.timrx-3dprint .card select:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.timrx-3dprint .card select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
 }
