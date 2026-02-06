@@ -1134,7 +1134,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 2px;
 }
 
 .card-header-row h3 {
@@ -1323,8 +1323,8 @@ textarea {
   font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
-  margin-top: 12px;
-  margin-bottom: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
 
 .video-section-label .label-hint {
@@ -1554,7 +1554,7 @@ textarea {
 
 /* Video Settings card - scrollable */
 .video-settings-card {
-  max-height: 320px;
+  max-height: 480px;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1633,8 +1633,8 @@ textarea {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  margin-bottom: 2px;
+  padding-bottom: 2px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
