@@ -46,6 +46,39 @@
   ];
 
   // =========================================================================
+  // MOCK FEED GENERATOR (fallback when API + cache both fail)
+  // =========================================================================
+
+  function generateMockFeed(count = 12) {
+    const types = ['model', 'model', 'image', 'image', 'video'];
+    const sizes = ['sm', 'sm', 'md', 'md', 'lg'];
+    const cards = [];
+
+    for (let i = 0; i < count; i++) {
+      const type = types[i % types.length];
+      const prompt = CREATIVE_PROMPTS[i % CREATIVE_PROMPTS.length];
+      cards.push({
+        id: `ins-mock-${i}`,
+        type: type,
+        prompt: prompt,
+        title: prompt.slice(0, 50),
+        thumbnail: '', // Will be filtered out, but shows empty state is intentional
+        size: sizes[i % sizes.length],
+        tags: ['community'],
+        created_at: new Date().toISOString()
+      });
+    }
+
+    return {
+      promptOfTheDay: {
+        prompt: CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)],
+        category: 'creative'
+      },
+      cards: cards
+    };
+  }
+
+  // =========================================================================
   // STATE & CACHE
   // =========================================================================
 
@@ -248,6 +281,13 @@
         return true;
       }
 
+      // Final fallback: use mock feed so UI doesn't break
+      console.log('[Inspire] Using mock feed as final fallback');
+      const mock = generateMockFeed(12);
+      memoryCache.promptOfTheDay = mock.promptOfTheDay;
+      // Note: mock cards have no thumbnails, so they'll show empty state
+      // but POTD will still work
+      state.cards = [];
       return false;
 
     } finally {
