@@ -7,6 +7,8 @@
  * - LocalStorage caching for instant load
  * - Balanced shuffle with server + local fallback
  * - Lazy loading images, no heavy 3D viewers in cards
+ * - Session-scoped auto-open (once per workspace session)
+ * - Thumbnail → Viewer integration (images, videos, 3D models)
  */
 
 (function() {
@@ -21,15 +23,15 @@
   const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 
   const CONFIG = {
-    STORAGE_KEY: 'timrx_inspire_shown',
+    SESSION_KEY: 'timrx_inspire_session_shown', // sessionStorage key for one-time auto-open
     CACHE_KEY: 'timrx_inspire_cache',
     CACHE_TTL: 5 * 60 * 1000, // 5 minutes
-    AUTO_SHOW_ON_LOAD: true,
     API_BASE: `${BACKEND}/api/_mod`,
     FETCH_LIMIT: 24,
     FETCH_TIMEOUT: 8000,
     FETCH_COOLDOWN: 10000, // 10 seconds between failed retries
-    MAX_CONSECUTIVE_FAILURES: 3
+    MAX_CONSECUTIVE_FAILURES: 3,
+    AUTO_OPEN_DELAY: 600 // ms delay before auto-open
   };
 
   console.log('[Inspire] Config initialized, API_BASE:', CONFIG.API_BASE);
@@ -103,10 +105,15 @@
     initialized: false,
     loading: false,
     error: null,
-    lastFetchTime: 0
+    lastFetchTime: 0,
+    // User intent tracking - prevents auto-behavior from overriding manual control
+    userManuallyClosed: false,  // Set when user explicitly closes
+    userManuallyOpened: false,  // Set when user explicitly opens
+    hasAutoOpenedThisSession: false  // In-memory guard for auto-open
   };
 
   let overlayEl = null;
+  let boundListeners = false; // Prevent duplicate event listeners
 
   // In-memory cache
   let memoryCache = {
@@ -386,9 +393,27 @@
     return CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)];
   }
 
-  function markAsShown() {
+  /**
+   * Check if auto-open has already happened this session
+   */
+  function hasShownThisSession() {
+    // Check in-memory guard first (fastest)
+    if (state.hasAutoOpenedThisSession) return true;
+    // Check sessionStorage as backup (survives page reloads within session)
     try {
-      localStorage.setItem(CONFIG.STORAGE_KEY, 'true');
+      return sessionStorage.getItem(CONFIG.SESSION_KEY) === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Mark that auto-open has occurred this session
+   */
+  function markAutoOpenDone() {
+    state.hasAutoOpenedThisSession = true;
+    try {
+      sessionStorage.setItem(CONFIG.SESSION_KEY, 'true');
     } catch (e) {}
   }
 
@@ -489,12 +514,30 @@
   // CORE FUNCTIONS
   // =========================================================================
 
-  function openInspire() {
+  /**
+   * Open Inspire panel
+   * @param {Object} options
+   * @param {boolean} options.isAuto - True if this is an auto-open (not user initiated)
+   */
+  function openInspire(options = {}) {
+    const { isAuto = false } = options;
+
     if (state.isOpen || !overlayEl) return;
 
+    // If user manually closed, don't auto-open again
+    if (isAuto && state.userManuallyClosed) {
+      console.log('[Inspire] Skipping auto-open: user manually closed');
+      return;
+    }
+
     state.isOpen = true;
+    if (!isAuto) {
+      state.userManuallyOpened = true;
+    }
+
     document.body.classList.add('inspire-open');
     overlayEl.style.display = 'flex';
+    overlayEl.inert = false;
 
     // Small delay for CSS transition
     requestAnimationFrame(() => {
@@ -505,16 +548,31 @@
     window.dispatchEvent(new CustomEvent('inspire:open'));
   }
 
-  function closeInspire() {
+  /**
+   * Close Inspire panel
+   * @param {Object} options
+   * @param {boolean} options.isManual - True if user explicitly closed (not programmatic)
+   */
+  function closeInspire(options = {}) {
+    const { isManual = false } = options;
+
     if (!state.isOpen || !overlayEl) return;
+
+    // Track user intent
+    if (isManual) {
+      state.userManuallyClosed = true;
+    }
 
     // Move focus before hiding for accessibility
     const triggerBtn = document.getElementById('inspireTriggerBtn');
-    if (triggerBtn) triggerBtn.focus();
+    if (overlayEl.contains(document.activeElement) && triggerBtn) {
+      triggerBtn.focus();
+    }
 
     state.isOpen = false;
     document.body.classList.remove('inspire-open');
     overlayEl.classList.remove('is-open');
+    overlayEl.inert = true;
 
     // Hide after transition
     setTimeout(() => {
@@ -523,12 +581,20 @@
       }
     }, 300);
 
-    markAsShown();
     window.dispatchEvent(new CustomEvent('inspire:close'));
   }
 
+  /**
+   * Toggle Inspire panel (user-initiated)
+   */
   function toggleInspire() {
-    state.isOpen ? closeInspire() : openInspire();
+    if (state.isOpen) {
+      closeInspire({ isManual: true });
+    } else {
+      // Reset manual close flag when user explicitly opens
+      state.userManuallyClosed = false;
+      openInspire({ isAuto: false });
+    }
   }
 
   /**
@@ -613,20 +679,6 @@
   // EVENT HANDLERS
   // =========================================================================
 
-  function handleKeydown(e) {
-    if (state.isOpen && e.key === 'Escape') {
-      e.preventDefault();
-      closeInspire();
-    }
-  }
-
-  function handleOverlayClick(e) {
-    // Close only if clicking the backdrop, not content
-    if (e.target === overlayEl) {
-      closeInspire();
-    }
-  }
-
   function handleCardClick(e) {
     const card = e.target.closest('.inspire-card');
     if (!card) return;
@@ -642,9 +694,138 @@
       return;
     }
 
-    // Click on card itself uses prompt
+    // Click on card itself: load content into viewer based on type
     if (cardData) {
+      loadContentIntoViewer(cardData);
+    }
+  }
+
+  /**
+   * Load content from Inspire card into the appropriate viewer
+   * @param {Object} cardData - The card data with type, thumbnail, glb_url, video_url, image_url
+   */
+  function loadContentIntoViewer(cardData) {
+    const type = cardData.type;
+    console.log('[Inspire] Loading content into viewer:', type, cardData.id);
+
+    // Close Inspire panel (not manual - programmatic close after selection)
+    closeInspire({ isManual: false });
+
+    // Small delay to let the panel close animation start
+    requestAnimationFrame(() => {
+      if (type === 'model') {
+        loadModelIntoViewer(cardData);
+      } else if (type === 'video') {
+        loadVideoIntoViewer(cardData);
+      } else if (type === 'image') {
+        loadImageIntoViewer(cardData);
+      }
+    });
+
+    window.dispatchEvent(new CustomEvent('inspire:content-loaded', {
+      detail: { type, id: cardData.id }
+    }));
+  }
+
+  /**
+   * Load a 3D model into the Three.js viewer
+   */
+  function loadModelIntoViewer(cardData) {
+    // Switch to model panel
+    const modelRailBtn = document.querySelector('[data-panel="model"]');
+    if (modelRailBtn) modelRailBtn.click();
+
+    // Get the GLB URL - prefer glb_url, fall back to proxy or S3 URL
+    const glbUrl = cardData.glb_url || cardData.glb_proxy || cardData.model_url;
+
+    if (!glbUrl) {
+      console.warn('[Inspire] No GLB URL found for model:', cardData.id);
+      // Fall back to using the prompt
       usePrompt(cardData.prompt);
+      return;
+    }
+
+    // Use the global viewer if available
+    if (window.timrx3D && typeof window.loadGlbFromUrl === 'function') {
+      window.loadGlbFromUrl(glbUrl).catch(err => {
+        console.warn('[Inspire] Failed to load model:', err);
+      });
+    } else if (window.Viewer?.loadGlbFromUrl) {
+      window.Viewer.loadGlbFromUrl(glbUrl).catch(err => {
+        console.warn('[Inspire] Failed to load model:', err);
+      });
+    } else {
+      console.warn('[Inspire] No viewer available for model loading');
+      // Fall back to using the prompt
+      usePrompt(cardData.prompt);
+    }
+  }
+
+  /**
+   * Load a video into the video viewer
+   */
+  function loadVideoIntoViewer(cardData) {
+    // Switch to video panel
+    const videoRailBtn = document.querySelector('[data-panel="video"]');
+    if (videoRailBtn) videoRailBtn.click();
+
+    const videoUrl = cardData.video_url || cardData.url;
+
+    if (!videoUrl) {
+      console.warn('[Inspire] No video URL found:', cardData.id);
+      usePrompt(cardData.prompt);
+      return;
+    }
+
+    // Use the Viewer module if available
+    if (window.Viewer?.showVideoInViewer) {
+      window.Viewer.showVideoInViewer(videoUrl, {
+        title: cardData.title || 'Inspire Video',
+        hint: cardData.prompt || 'From Inspire gallery',
+        autoplay: true
+      });
+    } else {
+      // Fallback: try to find video element directly
+      const videoEl = document.getElementById('generatedVideo');
+      if (videoEl) {
+        videoEl.src = videoUrl;
+        videoEl.classList.remove('hidden');
+        videoEl.load();
+        videoEl.play().catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * Load an image into the image viewer
+   */
+  function loadImageIntoViewer(cardData) {
+    // Switch to image panel
+    const imageRailBtn = document.querySelector('[data-panel="image"]');
+    if (imageRailBtn) imageRailBtn.click();
+
+    const imageUrl = cardData.image_url || cardData.thumbnail || cardData.thumb_url;
+
+    if (!imageUrl) {
+      console.warn('[Inspire] No image URL found:', cardData.id);
+      usePrompt(cardData.prompt);
+      return;
+    }
+
+    // Use the Viewer module if available
+    if (window.Viewer?.showImageInViewer) {
+      window.Viewer.showImageInViewer(imageUrl);
+    } else {
+      // Fallback: try to find image element directly
+      const imgEl = document.getElementById('generatedImage');
+      const placeholder = document.getElementById('imagePlaceholder');
+      if (imgEl) {
+        imgEl.src = imageUrl;
+        imgEl.classList.remove('hidden');
+      }
+      if (placeholder) {
+        placeholder.classList.add('hidden');
+      }
     }
   }
 
@@ -732,16 +913,23 @@
   }
 
   function bindEvents() {
-    if (!overlayEl) return;
+    if (!overlayEl || boundListeners) return;
+    boundListeners = true;
 
-    // Close button
-    overlayEl.querySelector('#inspireCloseBtn')?.addEventListener('click', closeInspire);
+    // Close button (manual close)
+    overlayEl.querySelector('#inspireCloseBtn')?.addEventListener('click', () => {
+      closeInspire({ isManual: true });
+    });
 
     // Shuffle button
     overlayEl.querySelector('#inspireShuffleBtn')?.addEventListener('click', shuffleCards);
 
-    // Backdrop click
-    overlayEl.addEventListener('click', handleOverlayClick);
+    // Backdrop click (manual close)
+    overlayEl.addEventListener('click', (e) => {
+      if (e.target === overlayEl) {
+        closeInspire({ isManual: true });
+      }
+    });
 
     // Card clicks (delegated)
     overlayEl.querySelector('#inspireGrid')?.addEventListener('click', handleCardClick);
@@ -766,16 +954,69 @@
       grid.addEventListener('mouseleave', handleCardHoverOut, true);
     }
 
-    // Keyboard
-    document.addEventListener('keydown', handleKeydown);
+    // Keyboard - ESC to close (manual)
+    document.addEventListener('keydown', (e) => {
+      if (state.isOpen && e.key === 'Escape') {
+        e.preventDefault();
+        closeInspire({ isManual: true });
+      }
+    });
 
-    // External trigger button
+    // External trigger button (toggle)
     document.getElementById('inspireTriggerBtn')?.addEventListener('click', toggleInspire);
 
-    // Auto-close on generate
+    // =========================================================================
+    // CLOSE TRIGGERS - Close Inspire when specific actions occur
+    // =========================================================================
+
+    // Close on ANY Generate button click
     document.addEventListener('click', (e) => {
-      if (e.target.closest('#generateBtn, [data-action="generate"]') && state.isOpen) {
-        closeInspire();
+      if (!state.isOpen) return;
+
+      const generateBtn = e.target.closest(
+        '#generateModelBtn, #generateImageBtn, #generateVideoBtn, ' +
+        '#applyRemeshBtn, #generateTextureBtn, #applyRigBtn, ' +
+        '[data-action="generate"], button[id*="generate"]'
+      );
+
+      if (generateBtn) {
+        console.log('[Inspire] Closing: Generate button clicked');
+        closeInspire({ isManual: false });
+      }
+    });
+
+    // Close when navbar menu is opened
+    document.addEventListener('click', (e) => {
+      if (!state.isOpen) return;
+
+      // Check for burger menu or nav dropdown triggers
+      const navTrigger = e.target.closest(
+        '#burgerBtn, .burger-btn, [data-nav-toggle], ' +
+        '.ws-nav__menu-btn, [data-menu-toggle]'
+      );
+
+      if (navTrigger) {
+        console.log('[Inspire] Closing: Navbar menu opened');
+        closeInspire({ isManual: false });
+      }
+    });
+
+    // Close when a generation process starts (listen for custom events)
+    window.addEventListener('generation:start', () => {
+      if (state.isOpen) {
+        console.log('[Inspire] Closing: Generation started');
+        closeInspire({ isManual: false });
+      }
+    });
+
+    // Close when user switches workspace panels (rail buttons)
+    document.addEventListener('click', (e) => {
+      if (!state.isOpen) return;
+
+      const railBtn = e.target.closest('.rail-btn');
+      if (railBtn) {
+        console.log('[Inspire] Closing: Workspace panel switched');
+        closeInspire({ isManual: false });
       }
     });
   }
@@ -827,6 +1068,12 @@
 
     // Create overlay
     overlayEl = createOverlay();
+
+    // Set initial inert state (hidden)
+    if (overlayEl) {
+      overlayEl.inert = true;
+    }
+
     bindEvents();
 
     // Render cached content immediately
@@ -845,9 +1092,22 @@
 
     console.log('[Inspire] Initialized');
 
-    // Auto-show
-    if (CONFIG.AUTO_SHOW_ON_LOAD) {
-      setTimeout(openInspire, 600);
+    // =========================================================================
+    // SESSION-SCOPED AUTO-OPEN
+    // =========================================================================
+    // Auto-open ONLY if:
+    // 1. Not already shown this session (sessionStorage check)
+    // 2. User hasn't manually closed previously
+    // 3. This is a fresh workspace load (not a reload or re-render)
+
+    if (!hasShownThisSession() && !state.userManuallyClosed) {
+      console.log('[Inspire] Auto-opening (first time this session)');
+      markAutoOpenDone();
+      setTimeout(() => {
+        openInspire({ isAuto: true });
+      }, CONFIG.AUTO_OPEN_DELAY);
+    } else {
+      console.log('[Inspire] Skipping auto-open (already shown this session or user closed)');
     }
   }
 
@@ -880,13 +1140,23 @@
 
   window.TimrXInspire = {
     init,
-    open: openInspire,
-    close: closeInspire,
+    open: () => openInspire({ isAuto: false }),
+    close: () => closeInspire({ isManual: true }),
     toggle: toggleInspire,
     shuffle: shuffleCards,
     isOpen: () => state.isOpen,
     usePrompt,
-    refresh: () => fetchInspireContent({ forceRefresh: true })
+    refresh: () => fetchInspireContent({ forceRefresh: true }),
+    // Additional methods for external control
+    loadContent: loadContentIntoViewer,
+    resetSession: () => {
+      // Reset session state (useful for testing)
+      state.userManuallyClosed = false;
+      state.hasAutoOpenedThisSession = false;
+      try {
+        sessionStorage.removeItem(CONFIG.SESSION_KEY);
+      } catch (e) {}
+    }
   };
 
   // Auto-initialize
