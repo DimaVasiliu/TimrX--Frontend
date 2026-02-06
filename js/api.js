@@ -2268,6 +2268,17 @@ export async function startVideoGeneration() {
     State.setHistoryActiveModelId(jobId);
     renderHistory();
 
+    // Track as active job for recovery and indicator
+    State.addActiveJob(jobId);
+    State.savePendingMeta(jobId, {
+      prompt: prompt || motion,
+      duration_sec: settings.durationSec,
+      quality: settings.quality,
+      aspect_ratio: settings.aspectRatio,
+      stage: 'video',
+      type: 'video'
+    });
+
     // Watch the video job
     watchVideoJob(jobId, reservation.reservationId, {
       prompt: prompt || motion,
@@ -2383,6 +2394,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
         }
 
         UI.makeProgressDriver().done('Video generated!');
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -2422,6 +2434,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
         } else {
           UI.makeProgressDriver().fail(errorMsg);
         }
+        State.removeActiveJob(jobId);
         return;
       }
 
@@ -2460,6 +2473,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
   });
   renderHistory();
   UI.makeProgressDriver().fail('Video generation timed out');
+  State.removeActiveJob(jobId);
 }
 
 /**
