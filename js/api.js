@@ -1279,8 +1279,10 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return; // Insufficient credits modal shown
   }
 
+  // Generate idempotency key for this operation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${kind}-${Date.now()}`);
-  const tempMeta = { ...meta, stage: kind };
+  const tempMeta = { ...meta, stage: kind, idempotency_key: idempotencyKey };
   const startingLabel = `Starting ${statusLabel.replace(/\.+$/, '').toLowerCase()}...`;
   addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: startingLabel, stage: kind });
   State.savePendingMeta(tempId, tempMeta);
@@ -1289,9 +1291,11 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 
   let result;
   try {
+    // Include idempotency key in header for duplicate prevention
     result = await apiFetch(endpoint, {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
   } catch (err) {
     // Network errors (not timeout) - release reservation
@@ -1412,6 +1416,8 @@ export async function onGenerateClick() {
         ? `Generating preview ${slot + 1}/${batchCount}...`
         : 'Generating...');
 
+      // Generate idempotency key for this specific generation
+      const idempotencyKey = State.generateIdempotencyKey();
       const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${Date.now()}-${slot}`);
       const tempMeta = {
         prompt,
@@ -1425,7 +1431,8 @@ export async function onGenerateClick() {
         batch_slot: slot + 1,
         batch_group_id: batchGroupId,
         stage: 'preview',
-        status_label: 'Starting...'
+        status_label: 'Starting...',
+        idempotency_key: idempotencyKey
       };
       addGeneratingPlaceholder(tempId, tempMeta);
       State.savePendingMeta(tempId, tempMeta);
@@ -1443,9 +1450,11 @@ export async function onGenerateClick() {
         refine: false
       };
 
+      // Include idempotency key in header for duplicate prevention
       const result = await apiFetch('/api/_mod/text-to-3d/start', {
         method: 'POST',
-        body: payload
+        body: payload,
+        headers: { 'Idempotency-Key': idempotencyKey }
       });
 
       if (!result.ok) {
@@ -1598,6 +1607,8 @@ export async function startOpenAIImageGeneration() {
     return;
   }
 
+  // Generate idempotency key for this image generation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `openai-temp-${Date.now()}`);
 
   // Lock UI with provider and settings snapshot
@@ -1614,6 +1625,7 @@ export async function startOpenAIImageGeneration() {
     type: 'image',
     status: 'generating',
     status_label: 'Generating image...',
+    idempotency_key: idempotencyKey,
     created_at: Date.now(),
     prompt: promptRaw,
     title: shortTitle(promptRaw),
@@ -1642,9 +1654,11 @@ export async function startOpenAIImageGeneration() {
     console.log('[GEN] mode=image provider=openai cost=' + IMAGE_CREDITS +
                 ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
+    // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image/openai', {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -1807,6 +1821,8 @@ export async function startGeminiImageGeneration() {
     return;
   }
 
+  // Generate idempotency key for this image generation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `gemini-temp-${Date.now()}`);
 
   // Lock UI with provider and settings snapshot
@@ -1830,7 +1846,8 @@ export async function startGeminiImageGeneration() {
     thumbnail_url: '',
     stage: 'image',
     provider: 'google',
-    provider_used: 'google'  // Locked provider for this job
+    provider_used: 'google',  // Locked provider for this job
+    idempotency_key: idempotencyKey
   };
   State.addHistoryItem(placeholder);
   State.setHistoryActiveModelId(tempId);
@@ -1850,10 +1867,11 @@ export async function startGeminiImageGeneration() {
     console.log('[GEN] mode=image provider=google cost=' + IMAGE_CREDITS +
                 ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
-    // Call unified endpoint with provider=google
+    // Call unified endpoint with provider=google and idempotency key
     const result = await apiFetch('/api/image/generate', {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -2127,6 +2145,8 @@ export async function startVideoGeneration() {
   State.historyState.page = 1;
   renderHistory();
 
+  // Generate idempotency key for this video generation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = crypto?.randomUUID ? crypto.randomUUID() : `video-temp-${Date.now()}`;
   const placeholder = {
     id: tempId,
@@ -2141,7 +2161,8 @@ export async function startVideoGeneration() {
     stage: 'video',
     provider: 'google',
     provider_used: 'google',
-    credits_used: totalCredits
+    credits_used: totalCredits,
+    idempotency_key: idempotencyKey
   };
   State.addHistoryItem(placeholder);
   State.setHistoryActiveModelId(tempId);
@@ -2199,9 +2220,11 @@ export async function startVideoGeneration() {
     console.log('[GEN] mode=' + settings.mode + ' endpoint=' + endpoint +
                 ' cost=' + totalCredits + ' available=' + creditCheck.available);
 
+    // Include idempotency key in header for duplicate prevention
     const result = await apiFetch(endpoint, {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -2485,16 +2508,20 @@ async function startImageTo3DFromUpload() {
     return;
   }
 
+  // Generate idempotency key for this generation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `image3d-temp-${Date.now()}`);
-  const tempMeta = { ...meta, type: 'model' };
+  const tempMeta = { ...meta, type: 'model', idempotency_key: idempotencyKey };
   addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: 'Starting image to 3D...', type: 'model' });
   State.savePendingMeta(tempId, tempMeta);
 
   prog.label('Starting image to 3D...');
   try {
+    // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: imageData, prompt, model }
+      body: { image_url: imageData, prompt, model },
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -2587,16 +2614,20 @@ export async function startImageTo3DFromHistory(item) {
     return; // Insufficient credits modal shown
   }
 
+  // Generate idempotency key for this generation
+  const idempotencyKey = State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `image3d-temp-${Date.now()}`);
-  const tempMeta = { ...meta, type: 'model' };
+  const tempMeta = { ...meta, type: 'model', idempotency_key: idempotencyKey };
   addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: 'Starting image to 3D...', type: 'model' });
   State.savePendingMeta(tempId, tempMeta);
 
   prog.label('Starting image to 3D...');
   try {
+    // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: item.image_url, prompt }
+      body: { image_url: item.image_url, prompt },
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -2711,20 +2742,25 @@ export async function onPostProcessFromHistory(item, type) {
       batch_group_id: item.lineage_root_id || item.id
     };
 
+    // Generate idempotency key for this refine operation
+    const idempotencyKey = State.generateIdempotencyKey();
     tempId = (crypto?.randomUUID ? crypto.randomUUID() : `refine-temp-${Date.now()}`);
     addGeneratingPlaceholder(tempId, {
       ...jobMeta,
-      status_label: 'Starting refine...'
+      status_label: 'Starting refine...',
+      idempotency_key: idempotencyKey
     });
-    State.savePendingMeta(tempId, jobMeta);
+    State.savePendingMeta(tempId, { ...jobMeta, idempotency_key: idempotencyKey });
 
+    // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/text-to-3d/refine', {
       method: 'POST',
       body: {
         preview_task_id: previewTaskId,
         model: item.model || 'meshy-6',
         enable_pbr: true
-      }
+      },
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
@@ -3162,6 +3198,260 @@ export async function resumePendingJobs(options = {}) {
 }
 
 // ============================================================================
+// BEFOREUNLOAD WARNING (Generation Reliability Layer)
+// ============================================================================
+
+/**
+ * Warn user before leaving if there are active jobs
+ * Jobs will continue on server, but user may lose live preview
+ */
+function handleBeforeUnload(e) {
+  const activeJobs = State.getActiveJobs();
+  if (activeJobs.length === 0) return;
+
+  const message = `You have ${activeJobs.length} generation${activeJobs.length > 1 ? 's' : ''} in progress. They will continue in the background, but you may lose the live preview.`;
+  e.preventDefault();
+  e.returnValue = message;
+  return message;
+}
+
+// Install beforeunload handler
+window.addEventListener('beforeunload', handleBeforeUnload);
+log('[API] beforeunload handler installed for active job warning');
+
+// ============================================================================
+// JOBS IN-PROGRESS INDICATOR
+// ============================================================================
+
+/**
+ * Update the jobs-in-progress indicator badge
+ * Shows a small pulse indicator when jobs are running
+ */
+export function updateJobsIndicator() {
+  const count = State.getActiveJobs().length;
+  let indicator = document.getElementById('jobs-indicator');
+
+  if (count > 0) {
+    if (!indicator) {
+      // Create indicator if it doesn't exist
+      indicator = document.createElement('div');
+      indicator.id = 'jobs-indicator';
+      indicator.innerHTML = `
+        <div class="jobs-indicator__pulse"></div>
+        <span class="jobs-indicator__count">0</span>
+        <span class="jobs-indicator__label">in progress</span>
+      `;
+      indicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: rgba(30, 30, 40, 0.95);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 20px;
+        font-size: 13px;
+        color: #e2e8f0;
+        cursor: pointer;
+        z-index: 9999;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+      `;
+
+      // Add styles
+      if (!document.getElementById('jobs-indicator-styles')) {
+        const style = document.createElement('style');
+        style.id = 'jobs-indicator-styles';
+        style.textContent = `
+          .jobs-indicator__pulse {
+            width: 8px;
+            height: 8px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            animation: jobs-pulse 1.5s ease-in-out infinite;
+          }
+          @keyframes jobs-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+          }
+          #jobs-indicator:hover {
+            background: rgba(40, 40, 55, 0.98);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+          }
+          .jobs-indicator__count {
+            font-weight: 600;
+            color: #8b5cf6;
+          }
+          .jobs-indicator__label {
+            color: #94a3b8;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Click handler to show jobs panel
+      indicator.addEventListener('click', showJobsPanel);
+      document.body.appendChild(indicator);
+    }
+
+    indicator.querySelector('.jobs-indicator__count').textContent = count;
+    indicator.style.display = 'flex';
+  } else if (indicator) {
+    indicator.style.display = 'none';
+  }
+}
+
+/**
+ * Show modal panel with list of active jobs
+ */
+export function showJobsPanel() {
+  const activeJobIds = State.getActiveJobs();
+  const meta = State.getPendingMeta();
+
+  if (activeJobIds.length === 0) return;
+
+  const existing = document.getElementById('jobs-panel-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'jobs-panel-modal';
+  modal.className = 'modal show';
+  modal.style.cssText = 'z-index: 10001;';
+
+  const jobsList = activeJobIds.map(jobId => {
+    const jobMeta = meta[jobId] || {};
+    const title = (jobMeta.prompt || jobMeta.title || 'Generation').slice(0, 40);
+    const progress = jobMeta.progress || 0;
+    const type = jobMeta.stage || jobMeta.type || 'unknown';
+
+    return `
+      <div class="jobs-panel__item" data-job-id="${jobId}">
+        <div class="jobs-panel__item-info">
+          <div class="jobs-panel__item-title">${title}${(jobMeta.prompt?.length || 0) > 40 ? '...' : ''}</div>
+          <div class="jobs-panel__item-type">${type}</div>
+        </div>
+        <div class="jobs-panel__item-progress">
+          <div class="jobs-panel__progress-bar">
+            <div class="jobs-panel__progress-fill" style="width: ${progress}%"></div>
+          </div>
+          <span class="jobs-panel__progress-text">${progress}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  modal.innerHTML = `
+    <div class="modal-panel" style="max-width: 480px;">
+      <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+        <div style="width: 10px; height: 10px; background: #8b5cf6; border-radius: 50%; animation: jobs-pulse 1.5s ease-in-out infinite;"></div>
+        Jobs in Progress
+      </h3>
+      <p class="modal-desc" style="margin-bottom: 16px; color: #94a3b8;">
+        These generations are running on our servers. You can safely navigate away and come back - they'll keep running.
+      </p>
+      <div class="jobs-panel__list" style="max-height: 300px; overflow-y: auto;">
+        ${jobsList || '<p style="color: #64748b; text-align: center; padding: 20px;">No active jobs</p>'}
+      </div>
+      <div class="modal-actions" style="margin-top: 20px; justify-content: center;">
+        <button class="btn-submit" id="jobs-panel-close">Got it</button>
+      </div>
+    </div>
+  `;
+
+  // Add job item styles
+  if (!document.getElementById('jobs-panel-styles')) {
+    const style = document.createElement('style');
+    style.id = 'jobs-panel-styles';
+    style.textContent = `
+      .jobs-panel__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .jobs-panel__item-title {
+        font-weight: 500;
+        color: #e2e8f0;
+        margin-bottom: 4px;
+      }
+      .jobs-panel__item-type {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: capitalize;
+      }
+      .jobs-panel__item-progress {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .jobs-panel__progress-bar {
+        width: 60px;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .jobs-panel__progress-fill {
+        height: 100%;
+        background: #8b5cf6;
+        transition: width 0.3s ease;
+      }
+      .jobs-panel__progress-text {
+        font-size: 12px;
+        color: #8b5cf6;
+        min-width: 35px;
+        text-align: right;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(modal);
+  document.body.classList.add('modal-open');
+
+  const closeModal = () => {
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    setTimeout(() => modal.remove(), 200);
+  };
+
+  modal.querySelector('#jobs-panel-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+// Update indicator when jobs change
+const originalAddActiveJob = State.addActiveJob;
+const originalRemoveActiveJob = State.removeActiveJob;
+State.addActiveJob = function(jobId) {
+  const result = originalAddActiveJob(jobId);
+  updateJobsIndicator();
+  return result;
+};
+State.removeActiveJob = function(jobId) {
+  const result = originalRemoveActiveJob(jobId);
+  updateJobsIndicator();
+  return result;
+};
+
+// Initialize indicator on load
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateJobsIndicator);
+  } else {
+    updateJobsIndicator();
+  }
+}
+
+// ============================================================================
 // EXPOSE GLOBALLY (for backward compatibility)
 // ============================================================================
 window.watchJob = watchJob;
@@ -3173,3 +3463,5 @@ window.startImageTo3DFromHistory = startImageTo3DFromHistory;
 window.onGenerateClick = onGenerateClick;
 window.startVideoGeneration = startVideoGeneration;
 window.getActiveHistoryItem = getActiveHistoryItem;
+window.updateJobsIndicator = updateJobsIndicator;
+window.showJobsPanel = showJobsPanel;
