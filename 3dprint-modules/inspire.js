@@ -2,6 +2,11 @@
  * ============================================================================
  * INSPIRE MODULE — Premium Discovery Overlay for TimrX 3D Workspace
  * ============================================================================
+ * Production-quality implementation with:
+ * - Robust fetch error handling (checks Content-Type before JSON parse)
+ * - LocalStorage caching for instant load
+ * - Balanced shuffle with server + local fallback
+ * - Lazy loading images, no heavy 3D viewers in cards
  */
 
 (function() {
@@ -13,34 +18,35 @@
 
   const CONFIG = {
     STORAGE_KEY: 'timrx_inspire_shown',
-    AUTO_SHOW_ON_LOAD: true,  // Show every time page loads
+    CACHE_KEY: 'timrx_inspire_cache',
+    CACHE_TTL: 5 * 60 * 1000, // 5 minutes
+    AUTO_SHOW_ON_LOAD: true,
     API_BASE: '/api/_mod',
-    FETCH_LIMIT: 30
+    FETCH_LIMIT: 24,
+    FETCH_TIMEOUT: 8000
   };
 
   // =========================================================================
-  // FALLBACK CONTENT (used when API is unavailable)
+  // CURATED FALLBACK PROMPTS
   // =========================================================================
 
-  const FALLBACK_CONTENT = {
-    promptOfTheDay: {
-      prompt: "A mystical forest guardian made of twisted ancient vines and glowing mushrooms, ethereal atmosphere",
-      category: "fantasy"
-    },
-    cards: []
-  };
+  const CREATIVE_PROMPTS = [
+    "A mystical forest guardian made of twisted ancient vines and glowing mushrooms, ethereal atmosphere",
+    "Crystal dragon with iridescent scales perched on a volcanic rock formation, magma glow",
+    "Cyberpunk street food vendor stall with holographic menu, neon signs, steam rising",
+    "Robot samurai in meditation pose, cherry blossoms, zen garden background",
+    "Underwater temple ruins with coral growing through marble columns",
+    "Floating sky island with waterfalls cascading into clouds, tiny village on top",
+    "Biomechanical heart with organic tubes and metallic chambers, pulsing energy",
+    "Space station observation deck overlooking Saturn's rings",
+    "Wizard's study filled with floating books, glowing potions, telescope",
+    "Steampunk owl messenger with brass wings and clockwork eyes",
+    "Ancient treasure chest overflowing with glowing magical artifacts",
+    "Japanese temple at sunset with cherry blossoms and lanterns, koi pond"
+  ];
 
   // =========================================================================
-  // DYNAMIC CONTENT (populated from API)
-  // =========================================================================
-
-  let INSPIRE_CONTENT = {
-    promptOfTheDay: { ...FALLBACK_CONTENT.promptOfTheDay },
-    cards: []
-  };
-
-  // =========================================================================
-  // STATE
+  // STATE & CACHE
   // =========================================================================
 
   let state = {
@@ -49,142 +55,56 @@
     cards: [],
     initialized: false,
     loading: false,
-    error: null
+    error: null,
+    lastFetchTime: 0
   };
 
-  // Direct element reference (not in object to avoid issues)
   let overlayEl = null;
 
+  // In-memory cache
+  let memoryCache = {
+    promptOfTheDay: null,
+    cards: [],
+    timestamp: 0
+  };
+
   // =========================================================================
-  // API FUNCTIONS
+  // CACHE UTILITIES
   // =========================================================================
 
-  /**
-   * Fallback: fetch from community feed and transform to inspire card format
-   */
-  async function fetchFromCommunityFeed(limit = 30) {
-    const response = await fetch(`${CONFIG.API_BASE}/community/feed?limit=${limit}`, {
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      throw new Error(`Community API HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.ok && data.posts && data.posts.length > 0) {
-      // Transform community posts to inspire card format
-      const cards = data.posts.map((post, idx) => {
-        const sizes = ['lg', 'md', 'sm', 'md', 'sm', 'lg', 'md', 'sm'];
-        return {
-          id: `ins-c-${post.id}`,
-          type: post.asset_type || 'model',
-          prompt: post.prompt_public || post.asset?.title || 'Community creation',
-          thumbnail: post.asset?.thumbnail_url,
-          size: sizes[idx % sizes.length],
-          tags: ['community'],
-          created_at: post.created_at
-        };
-      }).filter(card => card.thumbnail); // Only include cards with thumbnails
-
-      if (cards.length > 0) {
-        INSPIRE_CONTENT.cards = cards;
-        state.cards = [...cards];
-        return true;
-      }
-    }
-    return false;
-  }
-
-  async function fetchInspireContent(options = {}) {
-    const { type = 'all', shuffle = true, limit = CONFIG.FETCH_LIMIT } = options;
-
+  function loadCachedContent() {
     try {
-      state.loading = true;
-      state.error = null;
-      updateLoadingState();
+      const cached = localStorage.getItem(CONFIG.CACHE_KEY);
+      if (!cached) return null;
 
-      const params = new URLSearchParams({
-        type: type === 'all' ? 'all' : type === 'models' ? 'model' : type === 'images' ? 'image' : type === 'videos' ? 'video' : type,
-        shuffle: String(shuffle),
-        limit: String(limit)
-      });
+      const data = JSON.parse(cached);
+      const age = Date.now() - (data.timestamp || 0);
 
-      const response = await fetch(`${CONFIG.API_BASE}/inspire/feed?${params}`, {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.ok) {
-        // Update content from API
-        if (data.prompt_of_the_day) {
-          INSPIRE_CONTENT.promptOfTheDay = data.prompt_of_the_day;
-        }
-
-        if (data.cards && data.cards.length > 0) {
-          INSPIRE_CONTENT.cards = data.cards;
-          state.cards = [...data.cards];
-        }
-
-        console.log(`[Inspire] Loaded ${data.cards?.length || 0} cards from API`);
-        return true;
-      } else {
-        throw new Error(data.error?.message || 'API error');
-      }
-    } catch (err) {
-      console.warn('[Inspire] API fetch failed, trying community fallback:', err.message);
-      state.error = err.message;
-
-      // Try community feed as fallback
-      try {
-        const fallbackSuccess = await fetchFromCommunityFeed(limit);
-        if (fallbackSuccess) {
-          console.log('[Inspire] Loaded content from community fallback');
-          return true;
-        }
-      } catch (fallbackErr) {
-        console.warn('[Inspire] Community fallback also failed:', fallbackErr.message);
-      }
-
-      // Use static fallback content if available
-      if (FALLBACK_CONTENT.cards.length > 0) {
-        INSPIRE_CONTENT.cards = [...FALLBACK_CONTENT.cards];
-        state.cards = [...FALLBACK_CONTENT.cards];
-      }
-      return false;
-    } finally {
-      state.loading = false;
-      updateLoadingState();
+      // Return even stale cache for instant display
+      memoryCache = data;
+      return data;
+    } catch (e) {
+      console.warn('[Inspire] Cache read error:', e.message);
+      return null;
     }
   }
 
-  function updateLoadingState() {
-    if (!overlayEl) return;
-
-    const grid = overlayEl.querySelector('#inspireGrid');
-
-    if (state.loading) {
-      if (grid) grid.innerHTML = `
-        <div class="inspire-loading">
-          <div class="inspire-loading__spinner"></div>
-          <p>Loading inspiration...</p>
-        </div>
-      `;
-    } else if (state.cards.length === 0 && !state.loading) {
-      if (grid) grid.innerHTML = `
-        <div class="inspire-empty-state">
-          <div class="inspire-empty-state__icon">${ICONS.sparkle}</div>
-          <h3>No creations yet</h3>
-          <p>Be the first to share your amazing creations with the community!</p>
-        </div>
-      `;
+  function saveCacheContent(data) {
+    try {
+      const cacheData = {
+        ...data,
+        timestamp: Date.now()
+      };
+      memoryCache = cacheData;
+      localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      // localStorage might be full or unavailable
+      console.warn('[Inspire] Cache write error:', e.message);
     }
+  }
+
+  function isCacheFresh() {
+    return memoryCache.timestamp && (Date.now() - memoryCache.timestamp < CONFIG.CACHE_TTL);
   }
 
   // =========================================================================
@@ -205,24 +125,177 @@
   };
 
   // =========================================================================
+  // ROBUST FETCH WITH ERROR HANDLING
+  // =========================================================================
+
+  /**
+   * Safe fetch that checks Content-Type before parsing JSON.
+   * Returns { ok, data, error } object.
+   */
+  async function safeFetch(url, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        credentials: 'include'
+      });
+
+      clearTimeout(timeout);
+
+      // Check if response is OK
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        console.warn(`[Inspire] HTTP ${response.status}: ${text.slice(0, 120)}`);
+        return { ok: false, error: `HTTP ${response.status}`, status: response.status };
+      }
+
+      // Check Content-Type before parsing
+      const contentType = response.headers.get('Content-Type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await response.text().catch(() => '');
+        console.warn(`[Inspire] Non-JSON response (${contentType}): ${text.slice(0, 120)}`);
+        return { ok: false, error: 'Response is not JSON', contentType };
+      }
+
+      // Parse JSON
+      const data = await response.json();
+      return { ok: true, data };
+
+    } catch (err) {
+      clearTimeout(timeout);
+
+      if (err.name === 'AbortError') {
+        console.warn('[Inspire] Request timed out');
+        return { ok: false, error: 'Request timed out' };
+      }
+
+      console.warn('[Inspire] Fetch error:', err.message);
+      return { ok: false, error: err.message };
+    }
+  }
+
+  // =========================================================================
+  // API FUNCTIONS
+  // =========================================================================
+
+  async function fetchInspireContent(options = {}) {
+    const {
+      type = 'all',
+      shuffle = true,
+      limit = CONFIG.FETCH_LIMIT,
+      forceRefresh = false
+    } = options;
+
+    // Use cache if fresh and not forcing refresh
+    if (!forceRefresh && isCacheFresh() && memoryCache.cards?.length > 0) {
+      console.log('[Inspire] Using cached content');
+      state.cards = [...memoryCache.cards];
+      return true;
+    }
+
+    try {
+      state.loading = true;
+      state.error = null;
+      updateLoadingState();
+
+      const params = new URLSearchParams({
+        type: type === 'all' ? 'all' : type === 'models' ? 'model' : type === 'images' ? 'image' : type === 'videos' ? 'video' : type,
+        shuffle: String(shuffle),
+        limit: String(limit),
+        mix: 'balanced'
+      });
+
+      const result = await safeFetch(`${CONFIG.API_BASE}/inspire/feed?${params}`);
+
+      if (result.ok && result.data?.ok) {
+        const data = result.data;
+
+        // Normalize card format (backend uses thumb_url, we also support thumbnail)
+        const cards = (data.cards || []).map(card => ({
+          ...card,
+          thumbnail: card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+        })).filter(card => card.thumbnail); // Only cards with valid thumbnails
+
+        // Update state and cache
+        memoryCache.promptOfTheDay = data.prompt_of_the_day;
+        memoryCache.cards = cards;
+        state.cards = [...cards];
+
+        saveCacheContent({
+          promptOfTheDay: data.prompt_of_the_day,
+          cards: cards
+        });
+
+        state.lastFetchTime = Date.now();
+        console.log(`[Inspire] Loaded ${cards.length} cards from API`);
+        return true;
+
+      } else {
+        throw new Error(result.error || 'API error');
+      }
+
+    } catch (err) {
+      console.warn('[Inspire] API fetch failed:', err.message);
+      state.error = err.message;
+
+      // Fall back to cache if available
+      if (memoryCache.cards?.length > 0) {
+        console.log('[Inspire] Using stale cache as fallback');
+        state.cards = [...memoryCache.cards];
+        return true;
+      }
+
+      return false;
+
+    } finally {
+      state.loading = false;
+      updateLoadingState();
+    }
+  }
+
+  function updateLoadingState() {
+    if (!overlayEl) return;
+
+    const grid = overlayEl.querySelector('#inspireGrid');
+    if (!grid) return;
+
+    if (state.loading && state.cards.length === 0) {
+      grid.innerHTML = `
+        <div class="inspire-loading">
+          <div class="inspire-loading__spinner"></div>
+          <p>Loading inspiration...</p>
+        </div>
+      `;
+    } else if (state.cards.length === 0 && !state.loading) {
+      grid.innerHTML = `
+        <div class="inspire-empty-state">
+          <div class="inspire-empty-state__icon">${ICONS.sparkle}</div>
+          <h3>No creations yet</h3>
+          <p>Be the first to share your amazing creations!</p>
+        </div>
+      `;
+    }
+  }
+
+  // =========================================================================
   // UTILITY FUNCTIONS
   // =========================================================================
 
+  /** Fisher-Yates shuffle */
   function shuffleArray(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      [result[i], result[j]] = [result[j], result[i]];
     }
-    return newArray;
+    return result;
   }
 
-  function randomizeCardSizes(cards) {
-    const sizes = ['sm', 'md', 'md', 'lg', 'xl'];
-    return cards.map(card => ({
-      ...card,
-      size: sizes[Math.floor(Math.random() * sizes.length)]
-    }));
+  function getRandomPrompt() {
+    return CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)];
   }
 
   function markAsShown() {
@@ -240,28 +313,27 @@
     const tagsHTML = tags.map(tag =>
       `<span class="inspire-card__tag ${tag}">${tag.replace('-', ' ')}</span>`
     ).join('');
-    const typeIcon = ICONS[card.type] || ICONS.model;
-    const thumbnailUrl = card.thumbnail || card.thumbnail_url || '';
-    const prompt = card.prompt || 'Untitled creation';
-    const size = card.size || 'md';
-    const author = card.author ? `<span class="inspire-card__author">by ${card.author}</span>` : '';
 
+    const typeIcon = ICONS[card.type] || ICONS.model;
+    const thumbnailUrl = card.thumbnail || card.thumb_url || '';
+    const prompt = card.prompt || card.title || 'Untitled creation';
+    const aspect = card.aspect || 'square';
+
+    // No heavy 3D viewers - just thumbnail images
     return `
-      <article class="inspire-card size-${size}" data-id="${card.id}" data-type="${card.type}">
+      <article class="inspire-card ${aspect}" data-id="${card.id}" data-type="${card.type}">
         <div class="inspire-card__media">
-          <img class="inspire-card__image" src="${thumbnailUrl}" alt="${prompt}" loading="lazy"/>
-          ${card.type === 'video' ? '<div class="inspire-card__video-badge">▶</div>' : ''}
+          <img class="inspire-card__image" src="${thumbnailUrl}" alt="${prompt}" loading="lazy" decoding="async"/>
+          ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
         </div>
         <div class="inspire-card__type-badge ${card.type}">${typeIcon}<span>${card.type}</span></div>
         <div class="inspire-card__actions">
-          <button class="inspire-card__action-btn" data-action="view" title="Preview">${ICONS.view}</button>
-          <button class="inspire-card__action-btn" data-action="remix" title="Remix">${ICONS.remix}</button>
           <button class="inspire-card__action-btn" data-action="use" title="Use Prompt">${ICONS.use}</button>
         </div>
         <div class="inspire-card__overlay">
           <div class="inspire-card__info">
             <p class="inspire-card__prompt">${prompt}</p>
-            <div class="inspire-card__meta">${author}${tagsHTML}</div>
+            <div class="inspire-card__meta">${tagsHTML}</div>
           </div>
         </div>
       </article>
@@ -286,6 +358,8 @@
     if (!grid) return;
 
     let filteredCards = [...state.cards];
+
+    // Apply local filter
     if (state.activeFilter === 'models') {
       filteredCards = filteredCards.filter(c => c.type === 'model');
     } else if (state.activeFilter === 'images') {
@@ -293,7 +367,18 @@
     } else if (state.activeFilter === 'videos') {
       filteredCards = filteredCards.filter(c => c.type === 'video');
     } else if (state.activeFilter === 'trending') {
-      filteredCards = filteredCards.filter(c => c.tags.includes('trending'));
+      filteredCards = filteredCards.filter(c => c.tags?.includes('trending'));
+    }
+
+    if (filteredCards.length === 0) {
+      grid.innerHTML = `
+        <div class="inspire-empty-state">
+          <div class="inspire-empty-state__icon">${ICONS.sparkle}</div>
+          <h3>No ${state.activeFilter} found</h3>
+          <p>Try a different filter or shuffle for new content!</p>
+        </div>
+      `;
+      return;
     }
 
     grid.innerHTML = filteredCards.map(renderCard).join('');
@@ -305,20 +390,38 @@
 
   function openInspire() {
     if (state.isOpen || !overlayEl) return;
+
     state.isOpen = true;
     document.body.classList.add('inspire-open');
     overlayEl.style.display = 'flex';
-    overlayEl.classList.add('is-open');
-    overlayEl.querySelector('#inspireCloseBtn')?.focus();
+
+    // Small delay for CSS transition
+    requestAnimationFrame(() => {
+      overlayEl.classList.add('is-open');
+      overlayEl.querySelector('#inspireCloseBtn')?.focus();
+    });
+
     window.dispatchEvent(new CustomEvent('inspire:open'));
   }
 
   function closeInspire() {
     if (!state.isOpen || !overlayEl) return;
+
+    // Move focus before hiding for accessibility
+    const triggerBtn = document.getElementById('inspireTriggerBtn');
+    if (triggerBtn) triggerBtn.focus();
+
     state.isOpen = false;
     document.body.classList.remove('inspire-open');
-    overlayEl.style.display = 'none';
     overlayEl.classList.remove('is-open');
+
+    // Hide after transition
+    setTimeout(() => {
+      if (!state.isOpen) {
+        overlayEl.style.display = 'none';
+      }
+    }, 300);
+
     markAsShown();
     window.dispatchEvent(new CustomEvent('inspire:close'));
   }
@@ -327,56 +430,80 @@
     state.isOpen ? closeInspire() : openInspire();
   }
 
+  /**
+   * Shuffle - feels instant by doing local shuffle first,
+   * then fetching fresh content in background
+   */
   async function shuffleCards() {
-    // Fetch fresh shuffled content from API
-    const success = await fetchInspireContent({ shuffle: true });
-
-    if (!success && INSPIRE_CONTENT.cards.length > 0) {
-      // Fallback: shuffle existing cards locally
-      state.cards = randomizeCardSizes(shuffleArray(INSPIRE_CONTENT.cards));
+    // Instant feedback: local shuffle
+    if (state.cards.length > 0) {
+      state.cards = shuffleArray(state.cards);
+      renderGrid();
+      animateCards();
     }
 
-    renderGrid();
+    // Update POTD with random prompt
+    const potdEl = overlayEl?.querySelector('.inspire-potd__prompt');
+    if (potdEl) {
+      potdEl.textContent = getRandomPrompt();
+    }
 
-    // Animate cards entrance
+    // Background refresh from server (non-blocking)
+    fetchInspireContent({ shuffle: true, forceRefresh: true }).then(success => {
+      if (success) {
+        renderGrid();
+      }
+    });
+  }
+
+  function animateCards() {
     const cards = overlayEl?.querySelectorAll('.inspire-card');
     cards?.forEach((card, i) => {
-      card.style.animation = 'none';
-      card.offsetHeight;
-      card.style.animation = `cardEnter 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${i * 0.05}s forwards`;
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, i * 30);
     });
   }
 
   async function applyFilter(filterId) {
     state.activeFilter = filterId;
+
+    // Update filter button states
     overlayEl?.querySelectorAll('.inspire-filter-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === filterId);
     });
 
-    // For trending, filter locally; for types, fetch from API
-    if (filterId === 'trending') {
-      // Filter locally by trending tag
-      state.cards = INSPIRE_CONTENT.cards.filter(c => c.tags?.includes('trending'));
+    // For type filters on "all" data, just re-render locally
+    if (['all', 'trending'].includes(filterId) || state.cards.length > 0) {
       renderGrid();
-    } else if (filterId === 'all') {
-      state.cards = [...INSPIRE_CONTENT.cards];
-      renderGrid();
-    } else {
-      // Fetch filtered content from API
-      await fetchInspireContent({ type: filterId, shuffle: false });
-      renderGrid();
+      return;
     }
+
+    // Fetch specific type from API if we don't have mixed data
+    await fetchInspireContent({ type: filterId, shuffle: false });
+    renderGrid();
   }
 
   function usePrompt(prompt) {
-    const promptInput = document.querySelector('#modelPromptInput, #promptInput, textarea[name="prompt"]');
+    // Find active prompt input
+    const promptInput = document.querySelector(
+      '#modelPrompt, #imagePrompt, #texturePrompt, #videoTextPrompt, textarea[name="prompt"]'
+    );
+
     if (promptInput) {
       promptInput.value = prompt;
       promptInput.dispatchEvent(new Event('input', { bubbles: true }));
       promptInput.focus();
+
+      // Visual feedback
       promptInput.classList.add('inspire-filled');
       setTimeout(() => promptInput.classList.remove('inspire-filled'), 1000);
     }
+
     closeInspire();
     window.dispatchEvent(new CustomEvent('inspire:prompt-used', { detail: { prompt } }));
   }
@@ -393,6 +520,7 @@
   }
 
   function handleOverlayClick(e) {
+    // Close only if clicking the backdrop, not content
     if (e.target === overlayEl) {
       closeInspire();
     }
@@ -403,16 +531,17 @@
     if (!card) return;
 
     const actionBtn = e.target.closest('.inspire-card__action-btn');
-    if (actionBtn) {
+    const cardData = state.cards.find(c => c.id === card.dataset.id);
+
+    if (actionBtn && cardData) {
       e.stopPropagation();
-      const cardData = state.cards.find(c => c.id === card.dataset.id);
-      if (cardData && actionBtn.dataset.action === 'use') {
+      if (actionBtn.dataset.action === 'use') {
         usePrompt(cardData.prompt);
       }
       return;
     }
 
-    const cardData = state.cards.find(c => c.id === card.dataset.id);
+    // Click on card itself uses prompt
     if (cardData) {
       usePrompt(cardData.prompt);
     }
@@ -423,7 +552,6 @@
   // =========================================================================
 
   function createOverlay() {
-    // Remove existing if any
     document.getElementById('inspireOverlay')?.remove();
 
     const overlay = document.createElement('div');
@@ -433,8 +561,7 @@
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Inspiration gallery');
 
-    // Force fixed positioning with inline styles
-    // Left offset = padding(12) + rail(44) + gap(12) + left-panel(~300px) + gap(12) ≈ 380px
+    // Positioning
     Object.assign(overlay.style, {
       position: 'fixed',
       top: '60px',
@@ -448,10 +575,14 @@
       boxShadow: '0 25px 80px rgba(0, 0, 0, 0.6)',
       overflowY: 'auto',
       display: 'none',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      opacity: '0',
+      transform: 'translateY(10px)',
+      transition: 'opacity 0.25s ease, transform 0.25s ease'
     });
 
-    const potd = INSPIRE_CONTENT.promptOfTheDay;
+    // Get initial POTD from cache or fallback
+    const potd = memoryCache.promptOfTheDay || { prompt: getRandomPrompt(), category: 'creative' };
 
     overlay.innerHTML = `
       <header class="inspire-header">
@@ -459,7 +590,7 @@
           <div class="inspire-header__icon">${ICONS.sparkle}</div>
           <div class="inspire-header__title">
             <h2>Get Inspired</h2>
-            <p>Discover amazing creations and spark your creativity</p>
+            <p>Discover amazing creations</p>
           </div>
         </div>
         <div class="inspire-header__actions">
@@ -508,19 +639,20 @@
     // Shuffle button
     overlayEl.querySelector('#inspireShuffleBtn')?.addEventListener('click', shuffleCards);
 
-    // Overlay backdrop click
+    // Backdrop click
     overlayEl.addEventListener('click', handleOverlayClick);
 
-    // Card clicks
+    // Card clicks (delegated)
     overlayEl.querySelector('#inspireGrid')?.addEventListener('click', handleCardClick);
 
     // POTD button
     overlayEl.querySelector('[data-action="use-potd"]')?.addEventListener('click', () => {
-      const prompt = INSPIRE_CONTENT.promptOfTheDay?.prompt || FALLBACK_CONTENT.promptOfTheDay.prompt;
+      const potdEl = overlayEl.querySelector('.inspire-potd__prompt');
+      const prompt = potdEl?.textContent || getRandomPrompt();
       usePrompt(prompt);
     });
 
-    // Filter buttons
+    // Filter buttons (delegated)
     overlayEl.querySelector('#inspireFilters')?.addEventListener('click', (e) => {
       const btn = e.target.closest('.inspire-filter-btn');
       if (btn) applyFilter(btn.dataset.filter);
@@ -529,7 +661,7 @@
     // Keyboard
     document.addEventListener('keydown', handleKeydown);
 
-    // Trigger button (in the HTML)
+    // External trigger button
     document.getElementById('inspireTriggerBtn')?.addEventListener('click', toggleInspire);
 
     // Auto-close on generate
@@ -542,39 +674,59 @@
 
   async function init() {
     if (state.initialized) return;
+    state.initialized = true;
 
-    // Create the overlay
+    // Load cache first for instant display
+    loadCachedContent();
+
+    // Create overlay
     overlayEl = createOverlay();
-
-    // Bind events first
     bindEvents();
 
-    state.initialized = true;
-    console.log('[Inspire] Initialized successfully');
+    // Render cached content immediately
+    if (memoryCache.cards?.length > 0) {
+      state.cards = [...memoryCache.cards];
+      renderGrid();
+      console.log('[Inspire] Rendered cached content');
+    }
 
-    // Fetch content from API
+    // Fetch fresh content
     await fetchInspireContent({ shuffle: true });
 
-    // Update POTD display if we got data from API
+    // Update displays
     updatePOTDDisplay();
-
-    // Render grid with fetched or fallback content
     renderGrid();
 
-    // Auto-show on page load
+    console.log('[Inspire] Initialized');
+
+    // Auto-show
     if (CONFIG.AUTO_SHOW_ON_LOAD) {
-      setTimeout(openInspire, 800);
+      setTimeout(openInspire, 600);
     }
   }
 
   function updatePOTDDisplay() {
     if (!overlayEl) return;
 
-    const potdPrompt = overlayEl.querySelector('.inspire-potd__prompt');
-    if (potdPrompt && INSPIRE_CONTENT.promptOfTheDay?.prompt) {
-      potdPrompt.textContent = INSPIRE_CONTENT.promptOfTheDay.prompt;
+    const potdEl = overlayEl.querySelector('.inspire-potd__prompt');
+    if (potdEl && memoryCache.promptOfTheDay?.prompt) {
+      potdEl.textContent = memoryCache.promptOfTheDay.prompt;
     }
   }
+
+  // =========================================================================
+  // CSS FOR IS-OPEN STATE
+  // =========================================================================
+
+  // Add CSS for open state transition
+  const style = document.createElement('style');
+  style.textContent = `
+    .inspire-overlay.is-open {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+  `;
+  document.head.appendChild(style);
 
   // =========================================================================
   // PUBLIC API
@@ -587,7 +739,8 @@
     toggle: toggleInspire,
     shuffle: shuffleCards,
     isOpen: () => state.isOpen,
-    usePrompt
+    usePrompt,
+    refresh: () => fetchInspireContent({ forceRefresh: true })
   };
 
   // Auto-initialize
