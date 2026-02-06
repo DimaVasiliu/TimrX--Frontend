@@ -51,9 +51,33 @@ function switchHistoryFilter(filter = 'all') {
 // MODAL MANAGEMENT
 // ============================================================================
 
+// Track last focused element before modal opens
+let lastFocusedBeforeModal = null;
+
 function showModal(show) {
   const on = !!show;
-  uploadModal?.classList.toggle('show', on);
+
+  if (on) {
+    // Opening: store current focus, then show modal
+    lastFocusedBeforeModal = document.activeElement;
+    uploadModal?.classList.add('show');
+    if (uploadModal) {
+      uploadModal.inert = false;
+      // Focus the first focusable element in the modal
+      const firstFocusable = uploadModal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      requestAnimationFrame(() => firstFocusable?.focus());
+    }
+  } else {
+    // Closing: move focus OUT before hiding
+    if (uploadModal?.contains(document.activeElement)) {
+      (lastFocusedBeforeModal || document.body).focus();
+    }
+    uploadModal?.classList.remove('show');
+    if (uploadModal) {
+      uploadModal.inert = true;
+    }
+  }
+
   document.body.classList.toggle('modal-open', on);
   if (window.viewerControls) window.viewerControls.enabled = !on;
 }
