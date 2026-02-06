@@ -92,14 +92,14 @@ body.inspire-open .ws-right {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(139, 92, 246, 0.12));
-  border: 1px solid rgba(14, 165, 233, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .inspire-header__icon svg {
   width: 18px;
   height: 18px;
-  color: #0ea5e9;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .inspire-header__title {
@@ -151,9 +151,9 @@ body.inspire-open .ws-right {
 }
 
 .inspire-shuffle-btn:hover {
-  background: rgba(14, 165, 233, 0.08);
-  border-color: rgba(14, 165, 233, 0.2);
-  color: #0ea5e9;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .inspire-shuffle-btn:hover svg {
@@ -224,6 +224,12 @@ body.inspire-open .ws-right {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.inspire-potd:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .inspire-potd__badge {
@@ -234,13 +240,14 @@ body.inspire-open .ws-right {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .inspire-potd__badge svg {
   width: 16px;
   height: 16px;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .inspire-potd__badge span {
@@ -255,9 +262,9 @@ body.inspire-open .ws-right {
 .inspire-potd__label {
   font-size: 10px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
 
@@ -279,14 +286,14 @@ body.inspire-open .ws-right {
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   white-space: nowrap;
 }
 
@@ -296,8 +303,9 @@ body.inspire-open .ws-right {
 }
 
 .inspire-potd__cta:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
 }
 
 /* ===== FILTER PILLS ===== */
@@ -326,9 +334,9 @@ body.inspire-open .ws-right {
 }
 
 .inspire-filter-btn.active {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.2);
-  color: #0ea5e9;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 /* ===== SECTION HEADER ===== */
@@ -359,16 +367,17 @@ body.inspire-open .ws-right {
   width: 2px;
   height: 12px;
   border-radius: 1px;
-  background: linear-gradient(180deg, #0ea5e9, #8b5cf6);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .inspire-section__badge {
   padding: 3px 8px;
   border-radius: 4px;
-  background: rgba(14, 165, 233, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 9px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -376,9 +385,8 @@ body.inspire-open .ws-right {
 /* ===== MASONRY GRID ===== */
 .inspire-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  grid-auto-rows: 8px;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
 }
 
 /* ===== INSPIRE CARDS ===== */
@@ -388,16 +396,27 @@ body.inspire-open .ws-right {
   overflow: hidden;
   cursor: pointer;
   background: #0d0d0d;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --card-span: 18;
-  grid-row-end: span var(--card-span);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.inspire-card.size-sm { --card-span: 16; }
-.inspire-card.size-md { --card-span: 20; }
-.inspire-card.size-lg { --card-span: 26; }
-.inspire-card.size-xl { --card-span: 32; }
+/* Auto aspect ratio based on image */
+.inspire-card.landscape {
+  aspect-ratio: 16 / 10;
+}
+
+.inspire-card.portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.inspire-card.square {
+  aspect-ratio: 1 / 1;
+}
+
+/* Default aspect ratio when not determined */
+.inspire-card:not(.landscape):not(.portrait):not(.square) {
+  aspect-ratio: 4 / 3;
+}
 
 .inspire-card:hover {
   border-color: rgba(255, 255, 255, 0.1);
@@ -536,7 +555,7 @@ body.inspire-open .ws-right {
 }
 
 .inspire-card__action-btn:hover {
-  background: #0ea5e9;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ===== TYPE BADGE ===== */
@@ -610,7 +629,7 @@ body.inspire-open .ws-right {
   width: 32px;
   height: 32px;
   border: 2px solid rgba(255, 255, 255, 0.06);
-  border-top-color: #0ea5e9;
+  border-top-color: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -688,13 +707,13 @@ body.inspire-open .ws-right {
 .inspire-trigger-btn svg {
   width: 12px;
   height: 12px;
-  color: #0ea5e9;
+  color: rgba(255, 255, 255, 0.6);
   transition: transform 0.25s ease;
 }
 
 .inspire-trigger-btn:hover {
-  background: rgba(14, 165, 233, 0.08);
-  border-color: rgba(14, 165, 233, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
@@ -763,7 +782,7 @@ body.inspire-open .ws-right {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1100px) {
   .inspire-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
@@ -798,23 +817,14 @@ body.inspire-open .ws-right {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-
-  .inspire-card {
-    --card-span: 16;
-  }
-
-  .inspire-card.size-lg,
-  .inspire-card.size-xl {
-    --card-span: 20;
-  }
 }
 
 /* ===== VISUAL FEEDBACK FOR PROMPT FILL ===== */
 textarea.inspire-filled,
 input.inspire-filled {
   animation: promptFilled 0.5s ease;
-  border-color: rgba(14, 165, 233, 0.4) !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
 }
 
 @keyframes promptFilled {
