@@ -149,6 +149,7 @@ export function showImageInViewer(url) {
     const videoV = byId('videoViewer');
     const genImg = byId('generatedImage');
     const ph = byId('imagePlaceholder');
+    const fitToggle = byId('imageFitToggle');
 
     if (modelV) modelV.classList.add('hidden');
     if (videoV) videoV.classList.add('hidden');
@@ -157,8 +158,65 @@ export function showImageInViewer(url) {
     if (genImg) {
         genImg.src = url;
         genImg.classList.remove('hidden');
+        // Reset to Fit mode when showing new image
+        genImg.classList.remove('fill-mode');
     }
     if (ph) ph.classList.add('hidden');
+
+    // Show the Fit/Fill toggle and reset to Fit mode
+    if (fitToggle) {
+        fitToggle.classList.remove('hidden', 'is-fill');
+        const label = fitToggle.querySelector('span');
+        if (label) label.textContent = 'Fit';
+    }
+
+    log('[Viewer] Showing image:', url);
+}
+
+/**
+ * Initialize the image Fit/Fill toggle
+ */
+export function initImageFitToggle() {
+    const fitToggle = byId('imageFitToggle');
+    const genImg = byId('generatedImage');
+
+    if (!fitToggle || !genImg) return;
+
+    fitToggle.addEventListener('click', () => {
+        const isFillMode = genImg.classList.toggle('fill-mode');
+        fitToggle.classList.toggle('is-fill', isFillMode);
+
+        const label = fitToggle.querySelector('span');
+        if (label) {
+            label.textContent = isFillMode ? 'Fill' : 'Fit';
+        }
+
+        log('[Viewer] Image mode:', isFillMode ? 'Fill' : 'Fit');
+    });
+
+    log('[Viewer] Image Fit/Fill toggle initialized');
+}
+
+/**
+ * Clear the image viewer
+ */
+export function clearImageViewer() {
+    const genImg = byId('generatedImage');
+    const imageV = byId('imageViewer');
+    const ph = byId('imagePlaceholder');
+    const fitToggle = byId('imageFitToggle');
+
+    if (genImg) {
+        genImg.src = '';
+        genImg.classList.add('hidden');
+        genImg.classList.remove('fill-mode');
+    }
+    if (ph) ph.classList.remove('hidden');
+    if (imageV) imageV.classList.add('hidden');
+    if (fitToggle) {
+        fitToggle.classList.add('hidden');
+        fitToggle.classList.remove('is-fill');
+    }
 }
 
 /**
