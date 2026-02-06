@@ -533,9 +533,15 @@
   // Subscription Modal
   // ─────────────────────────────────────────────────────────────
 
+  // Track focus before subscription modal opens
+  let lastFocusBeforeSubModal = null;
+
   function openSubscriptionModal(tier, cadence) {
     const plan = SUB_PLANS[cadence]?.[tier];
     if (!plan || !subModal) return;
+
+    // Store current focus before opening
+    lastFocusBeforeSubModal = document.activeElement;
 
     selectedSubPlan = plan;
     const cadenceLabel = cadence === 'yearly' ? 'Yearly' : 'Monthly';
@@ -562,13 +568,22 @@
     }
 
     subModal.classList.add('open');
-    subModal.setAttribute('aria-hidden', 'false');
+    subModal.inert = false;
+    // Focus the email input or first focusable
+    requestAnimationFrame(() => {
+      const target = subCheckoutEmail || subModal.querySelector('button, input');
+      target?.focus();
+    });
   }
 
   function closeSubscriptionModal() {
     if (!subModal) return;
+    // Move focus OUT before hiding
+    if (subModal.contains(document.activeElement)) {
+      (lastFocusBeforeSubModal || document.body).focus();
+    }
     subModal.classList.remove('open');
-    subModal.setAttribute('aria-hidden', 'true');
+    subModal.inert = true;
     selectedSubPlan = null;
   }
 
@@ -744,15 +759,21 @@
   // Modal Management
   // ─────────────────────────────────────────────────────────────
 
+  // Track focus before buy credits modal opens
+  let lastFocusBeforeBuyModal = null;
+
   function openBuyCreditsModal(preselectedPlan = null) {
     if (!buyCreditsModal) return;
+
+    // Store current focus before opening
+    lastFocusBeforeBuyModal = document.activeElement;
 
     // Reset state
     clearPlanSelection();
     clearCheckoutError();
 
     buyCreditsModal.classList.add('open');
-    buyCreditsModal.setAttribute('aria-hidden', 'false');
+    buyCreditsModal.inert = false;
 
     // Preselect plan if specified
     if (preselectedPlan && PLANS[preselectedPlan]) {
@@ -766,23 +787,28 @@
     }
 
     // Focus first plan card if no preselection, otherwise focus email
-    if (!preselectedPlan) {
-      const firstPlan = buyCreditsModal.querySelector('.plan-card');
-      if (firstPlan) firstPlan.focus();
-    }
+    requestAnimationFrame(() => {
+      if (!preselectedPlan) {
+        const firstPlan = buyCreditsModal.querySelector('.plan-card');
+        if (firstPlan) firstPlan.focus();
+      }
+    });
   }
 
   function closeBuyCreditsModal() {
     if (!buyCreditsModal) return;
+
+    // Move focus OUT before hiding
+    if (buyCreditsModal.contains(document.activeElement)) {
+      (lastFocusBeforeBuyModal || buyCreditsBtn || document.body).focus();
+    }
+
     buyCreditsModal.classList.remove('open');
-    buyCreditsModal.setAttribute('aria-hidden', 'true');
+    buyCreditsModal.inert = true;
 
     // Reset state
     clearPlanSelection();
     clearCheckoutError();
-
-    // Return focus to buy button
-    if (buyCreditsBtn) buyCreditsBtn.focus();
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -796,6 +822,9 @@
     preCheckoutBalance: 0,
   };
 
+  // Track focus before success modal opens
+  let lastFocusBeforeSuccessModal = null;
+
   /**
    * Open success modal
    * @param {number|null} credits - Credits to display (null = show "Updating...")
@@ -803,6 +832,9 @@
    */
   function openSuccessModal(credits, isPending = false) {
     if (!successModal) return;
+
+    // Store current focus before opening
+    lastFocusBeforeSuccessModal = document.activeElement;
 
     successModalState.isOpen = true;
     successModalState.isPending = isPending;
@@ -838,7 +870,12 @@
     }
 
     successModal.classList.add('open');
-    successModal.setAttribute('aria-hidden', 'false');
+    successModal.inert = false;
+    // Focus the close button
+    requestAnimationFrame(() => {
+      const closeBtn = successModal.querySelector('button, [data-action="close"]');
+      closeBtn?.focus();
+    });
   }
 
   /**
@@ -866,8 +903,12 @@
 
   function closeSuccessModal() {
     if (!successModal) return;
+    // Move focus OUT before hiding
+    if (successModal.contains(document.activeElement)) {
+      (lastFocusBeforeSuccessModal || document.body).focus();
+    }
     successModal.classList.remove('open');
-    successModal.setAttribute('aria-hidden', 'true');
+    successModal.inert = true;
     successModalState.isOpen = false;
     successModalState.isPending = false;
   }
@@ -1165,9 +1206,14 @@
 
       successModal.classList.remove('pending', 'failed');
       successModal.classList.add('open');
-      successModal.setAttribute('aria-hidden', 'false');
+      successModal.inert = false;
       successModalState.isOpen = true;
       successModalState.isPending = false;
+      // Focus close button
+      requestAnimationFrame(() => {
+        const closeBtn = successModal.querySelector('button, [data-action="close"]');
+        closeBtn?.focus();
+      });
     }
 
     // Refresh wallet to pick up the granted credits
@@ -1376,12 +1422,18 @@
   const restoreCreditsValue = document.getElementById('restoreCreditsValue');
   const restoreSuccessCloseBtn = document.getElementById('restoreSuccessCloseBtn');
 
+  // Track focus before restore success modal opens
+  let lastFocusBeforeRestoreModal = null;
+
   /**
    * Open the restore success modal with animation
    * @param {number} credits - The restored credits balance to display
    */
   function openRestoreSuccessModal(credits) {
     if (!restoreSuccessModal) return;
+
+    // Store current focus before opening
+    lastFocusBeforeRestoreModal = document.activeElement;
 
     // Update credits display
     if (restoreCreditsValue) {
@@ -1394,7 +1446,12 @@
 
     // Open modal
     restoreSuccessModal.classList.add('open');
-    restoreSuccessModal.setAttribute('aria-hidden', 'false');
+    restoreSuccessModal.inert = false;
+
+    // Focus the close button
+    requestAnimationFrame(() => {
+      restoreSuccessCloseBtn?.focus();
+    });
 
     console.log('[Credits] Restore success modal opened with', credits, 'credits');
   }
@@ -1404,8 +1461,12 @@
    */
   function closeRestoreSuccessModal() {
     if (!restoreSuccessModal) return;
+    // Move focus OUT before hiding
+    if (restoreSuccessModal.contains(document.activeElement)) {
+      (lastFocusBeforeRestoreModal || document.body).focus();
+    }
     restoreSuccessModal.classList.remove('open');
-    restoreSuccessModal.setAttribute('aria-hidden', 'true');
+    restoreSuccessModal.inert = true;
   }
 
   // Restore success modal event listeners
@@ -1470,14 +1531,18 @@
   function openSecureInfo() {
     if (!secureInfoWrap || !secureInfoBtn || !secureInfoPopover) return;
     secureInfoWrap.classList.add('open');
-    secureInfoPopover.setAttribute('aria-hidden', 'false');
+    secureInfoPopover.inert = false;
     secureInfoBtn.setAttribute('aria-expanded', 'true');
   }
 
   function closeSecureInfo() {
     if (!secureInfoWrap || !secureInfoBtn || !secureInfoPopover) return;
+    // Move focus back to button if inside popover
+    if (secureInfoPopover.contains(document.activeElement)) {
+      secureInfoBtn.focus();
+    }
     secureInfoWrap.classList.remove('open');
-    secureInfoPopover.setAttribute('aria-hidden', 'true');
+    secureInfoPopover.inert = true;
     secureInfoBtn.setAttribute('aria-expanded', 'false');
   }
 
