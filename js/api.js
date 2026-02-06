@@ -154,9 +154,15 @@ function showInsufficientCreditsModal(cost, available, actionType = 'generation'
     if (availableEl) availableEl.textContent = numAvailable;
     if (neededEl) neededEl.textContent = missing;
 
-    // Show modal
-    modalEl.classList.remove('hidden');
-    modalEl.style.display = 'flex';
+    // Show modal with proper focus management
+    if (typeof window.openCreditsModal === 'function') {
+      window.openCreditsModal();
+    } else {
+      // Fallback if helper not loaded yet
+      modalEl.classList.remove('hidden');
+      modalEl.style.display = 'flex';
+      modalEl.inert = false;
+    }
     return;
   }
 
