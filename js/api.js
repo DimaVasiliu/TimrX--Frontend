@@ -1537,12 +1537,12 @@ export async function onGenerateClick() {
 // Flat credit cost for images
 const IMAGE_CREDITS = 10;
 
-// Map shape to OpenAI resolution
-// Shape controls aspect ratio, Quality is handled separately
+// Map shape to OpenAI gpt-image-1 resolution
+// gpt-image-1 only supports: 1024x1024, 1024x1536, 1536x1024
 const OPENAI_SHAPE_MAP = {
   square: '1024x1024',      // 1:1
-  portrait: '1024x1792',    // 9:16
-  landscape: '1792x1024',   // 16:9
+  portrait: '1024x1536',    // 2:3 (portrait)
+  landscape: '1536x1024',   // 3:2 (landscape)
 };
 
 /**
