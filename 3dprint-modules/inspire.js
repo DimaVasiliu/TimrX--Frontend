@@ -985,21 +985,25 @@
       }
     });
 
-    // Close when navbar menu is opened
+    // Close when navbar/menu is clicked
+    // Use capture phase to catch clicks before stopPropagation() in initExpandedView
     document.addEventListener('click', (e) => {
       if (!state.isOpen) return;
 
-      // Check for burger menu or nav dropdown triggers
+      // Check for burger menu, nav dropdown triggers, ws-nav links, and expanded view triggers
       const navTrigger = e.target.closest(
         '#burgerBtn, .burger-btn, [data-nav-toggle], ' +
-        '.ws-nav__menu-btn, [data-menu-toggle]'
+        '.ws-nav__menu-btn, [data-menu-toggle], ' +
+        '.ws-nav-link, .ws-nav a, .ws-nav button, ' +
+        '.ws-dropdown-item, .burger-menu__item, ' +
+        '[data-open-tutorials], [data-open-user-stories], [data-open-converter], [data-open-about]'
       );
 
       if (navTrigger) {
-        console.log('[Inspire] Closing: Navbar menu opened');
+        console.log('[Inspire] Closing: Nav element clicked');
         closeInspire({ isManual: false });
       }
-    });
+    }, { capture: true });
 
     // Close when a generation process starts (listen for custom events)
     window.addEventListener('generation:start', () => {
