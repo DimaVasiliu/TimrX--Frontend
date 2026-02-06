@@ -70,7 +70,7 @@
           <div class="inline-field">
             <label for="imageAIProvider">Provider</label>
             <select id="imageAIProvider">
-              <option value="openai" selected>OpenAI (DALL·E)</option>
+              <option value="openai" selected>OpenAI</option>
               <option value="google">Google (Imagen)</option>
             </select>
           </div>
