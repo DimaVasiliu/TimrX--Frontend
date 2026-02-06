@@ -16,17 +16,23 @@
   // CONFIGURATION
   // =========================================================================
 
+  // Use the global backend URL (set in 3dprint.html) to avoid cross-origin issues
+  // Frontend is on timrx.live, API is on 3d.timrx.live
+  const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+
   const CONFIG = {
     STORAGE_KEY: 'timrx_inspire_shown',
     CACHE_KEY: 'timrx_inspire_cache',
     CACHE_TTL: 5 * 60 * 1000, // 5 minutes
     AUTO_SHOW_ON_LOAD: true,
-    API_BASE: '/api/_mod',
+    API_BASE: `${BACKEND}/api/_mod`,
     FETCH_LIMIT: 24,
     FETCH_TIMEOUT: 8000,
     FETCH_COOLDOWN: 10000, // 10 seconds between failed retries
     MAX_CONSECUTIVE_FAILURES: 3
   };
+
+  console.log('[Inspire] Config initialized, API_BASE:', CONFIG.API_BASE);
 
   // Cooldown state to prevent fetch spam
   let fetchState = {
@@ -273,7 +279,10 @@
         mix: 'balanced'
       });
 
-      const result = await safeFetch(`${CONFIG.API_BASE}/inspire/feed?${params}`);
+      const url = `${CONFIG.API_BASE}/inspire/feed?${params}`;
+      console.log('[Inspire] Fetching:', url);
+
+      const result = await safeFetch(url);
 
       if (result.ok && result.data?.ok) {
         const data = result.data;
