@@ -30,6 +30,33 @@ if (!window.watchers) window.watchers = watchers;
 // ACTIVE JOBS MANAGEMENT
 // ============================================================================
 
+// Callbacks for when active jobs change (for UI updates like jobs indicator)
+const activeJobCallbacks = [];
+
+/**
+ * Register a callback to be called when active jobs change
+ * @param {Function} callback - (activeJobIds: string[]) => void
+ */
+export function onActiveJobsChange(callback) {
+  if (typeof callback === 'function') {
+    activeJobCallbacks.push(callback);
+  }
+}
+
+/**
+ * Notify all callbacks that active jobs changed
+ */
+function notifyActiveJobsChange() {
+  const jobs = getActiveJobs();
+  activeJobCallbacks.forEach(cb => {
+    try {
+      cb(jobs);
+    } catch (e) {
+      console.error('[State] Active job callback error:', e);
+    }
+  });
+}
+
 /**
  * Get the list of active job IDs from localStorage
  */
@@ -64,6 +91,7 @@ export function addActiveJob(id) {
   if (!ids.includes(id)) {
     ids.push(id);
     setActiveJobs(ids);
+    notifyActiveJobsChange();
   }
 }
 
@@ -76,6 +104,7 @@ export function removeActiveJob(id) {
   if (w && typeof w.abort === 'function') w.abort();
   watchers.delete(id);
   deletePendingMeta(id);
+  notifyActiveJobsChange();
 }
 
 // ============================================================================
@@ -1009,6 +1038,7 @@ window.getActiveJobs = getActiveJobs;
 window.setActiveJobs = setActiveJobs;
 window.addActiveJob = addActiveJob;
 window.removeActiveJob = removeActiveJob;
+window.onActiveJobsChange = onActiveJobsChange;
 window.getPendingMeta = getPendingMeta;
 window.savePendingMeta = savePendingMeta;
 window.deletePendingMeta = deletePendingMeta;
