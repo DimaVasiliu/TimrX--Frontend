@@ -590,7 +590,7 @@ export const historyState = {
 export const PROVIDER_CAPABILITIES = {
   image: {
     openai: {
-      name: 'OpenAI (DALL·E)',
+      name: 'OpenAI',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
       defaultShape: 'square',
@@ -598,7 +598,8 @@ export const PROVIDER_CAPABILITIES = {
       credits: 10,
       genTime: '30 sec',
       // Shape controls layout (aspect ratio), Quality controls detail level
-      shapeMap: { square: '1024x1024', portrait: '1024x1792', landscape: '1792x1024' },
+      // gpt-image-1 sizes: 1024x1024 (square), 1024x1536 (portrait), 1536x1024 (landscape)
+      shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
       qualityMap: { standard: 'standard', high: 'hd' }
     },
     google: {
