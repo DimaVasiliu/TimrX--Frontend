@@ -465,19 +465,29 @@
               Image to Video
             </button>
           </div>
-          <label for="videoSource" class="video-section-label">Upload Reference Image</label>
-          <div id="videoImageDrop" class="video-drop-zone">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <p>Click or Drag & Drop</p>
-            <span>PNG, JPG, WEBP up to 10MB</span>
-            <input type="file" id="videoSource" accept="image/*" hidden />
+          <label for="videoSource" class="video-section-label">Reference Image</label>
+          <div class="video-image-grid">
+            <div id="videoImageDrop" class="video-drop-zone">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Upload</span>
+              <input type="file" id="videoSource" accept="image/*" hidden />
+            </div>
+            <div class="video-preview-wrap">
+              <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
+              <div class="video-preview-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+              </div>
+            </div>
           </div>
-          <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
         </div>
 
-        <div class="card">
+        <div class="card video-settings-card">
           <div class="card-header-row">
             <h3>Video Settings</h3>
             <div class="info-tooltip">
