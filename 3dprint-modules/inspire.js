@@ -23,7 +23,15 @@
     AUTO_SHOW_ON_LOAD: true,
     API_BASE: '/api/_mod',
     FETCH_LIMIT: 24,
-    FETCH_TIMEOUT: 8000
+    FETCH_TIMEOUT: 8000,
+    FETCH_COOLDOWN: 10000, // 10 seconds between failed retries
+    MAX_CONSECUTIVE_FAILURES: 3
+  };
+
+  // Cooldown state to prevent fetch spam
+  let fetchState = {
+    lastFailedAt: 0,
+    consecutiveFailures: 0
   };
 
   // =========================================================================
@@ -189,8 +197,15 @@
       const contentType = response.headers.get('Content-Type') || '';
       if (!contentType.includes('application/json')) {
         const text = await response.text().catch(() => '');
-        console.warn(`[Inspire] Non-JSON response (${contentType}): ${text.slice(0, 120)}`);
-        return { ok: false, error: 'Response is not JSON', contentType };
+        // Check if we got HTML (common when route is not registered)
+        if (contentType.includes('text/html') || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+          console.error(`[Inspire] GOT HTML instead of JSON! Status: ${response.status}, Content-Type: ${contentType}`);
+          console.error(`[Inspire] HTML preview: ${text.slice(0, 120)}...`);
+          console.error('[Inspire] This usually means the /api/_mod/inspire/feed route is not registered on the backend.');
+        } else {
+          console.warn(`[Inspire] Non-JSON response (${contentType}): ${text.slice(0, 120)}`);
+        }
+        return { ok: false, error: 'Response is not JSON', contentType, isHtml: contentType.includes('text/html') };
       }
 
       // Parse JSON
@@ -229,6 +244,23 @@
       return true;
     }
 
+    // Cooldown check: prevent fetch spam after failures
+    const now = Date.now();
+    if (fetchState.consecutiveFailures >= CONFIG.MAX_CONSECUTIVE_FAILURES) {
+      const timeSinceLastFail = now - fetchState.lastFailedAt;
+      if (timeSinceLastFail < CONFIG.FETCH_COOLDOWN) {
+        console.log(`[Inspire] Cooldown active (${Math.ceil((CONFIG.FETCH_COOLDOWN - timeSinceLastFail) / 1000)}s remaining)`);
+        // Use cache if available during cooldown
+        if (memoryCache.cards?.length > 0) {
+          state.cards = [...memoryCache.cards];
+          return true;
+        }
+        return false;
+      }
+      // Reset after cooldown expires
+      fetchState.consecutiveFailures = 0;
+    }
+
     try {
       state.loading = true;
       state.error = null;
@@ -263,6 +295,8 @@
         });
 
         state.lastFetchTime = Date.now();
+        // Reset failure tracking on success
+        fetchState.consecutiveFailures = 0;
         console.log(`[Inspire] Loaded ${cards.length} cards from API`);
         return true;
 
@@ -273,6 +307,11 @@
     } catch (err) {
       console.warn('[Inspire] API fetch failed:', err.message);
       state.error = err.message;
+
+      // Track failure for cooldown
+      fetchState.consecutiveFailures++;
+      fetchState.lastFailedAt = Date.now();
+      console.log(`[Inspire] Consecutive failures: ${fetchState.consecutiveFailures}/${CONFIG.MAX_CONSECUTIVE_FAILURES}`);
 
       // Fall back to cache if available
       if (memoryCache.cards?.length > 0) {
