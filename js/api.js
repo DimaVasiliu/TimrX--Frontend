@@ -654,10 +654,66 @@ export function watchJob(job_id) {
   const prog = UI.makeProgressDriver();
   let notFoundAttempts = 0;
 
+  // Polling safety: max attempts and error tracking
+  const MAX_POLL_ATTEMPTS = 120;
+  const MAX_CONSECUTIVE_ERRORS = 5;
+  const MAX_DELAY = 8000;
+  let pollAttempts = 0;
+  let consecutiveErrors = 0;
+
   const poll = async (delay = 900) => {
-    if (aborted) return;
+    if (aborted) {
+      State.watchers.delete(job_id);
+      return;
+    }
+
+    pollAttempts++;
+
+    // Safety: stop after max attempts
+    if (pollAttempts > MAX_POLL_ATTEMPTS) {
+      console.error(`[Text-to-3D] Max poll attempts (${MAX_POLL_ATTEMPTS}) exceeded for job ${job_id}`);
+      State.removeActiveJob(job_id);
+      State.watchers.delete(job_id);
+      prog.fail('Generation timed out - please try again');
+      handleJobFailure('Generation timed out after max attempts', 'text-to-3d');
+      return;
+    }
+
     try {
       const result = await apiFetch(`/api/_mod/text-to-3d/status/${job_id}`);
+
+      // Fatal errors: stop polling immediately
+      if (result.status >= 500 || result.isHtml) {
+        consecutiveErrors++;
+        console.error(`[Text-to-3D] Server error (${result.status}) for job ${job_id}:`, result.error);
+
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error(`[Text-to-3D] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
+          State.removeActiveJob(job_id);
+          State.watchers.delete(job_id);
+          prog.fail('Generation failed - server error');
+          handleJobFailure(result.error || `Server error (${result.status})`, 'text-to-3d');
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          }
+          return;
+        }
+
+        // Retry with exponential backoff for server errors
+        const nextDelay = Math.min(MAX_DELAY, delay * 2);
+        setTimeout(() => poll(nextDelay), nextDelay);
+        return;
+      }
+
+      // 403 Forbidden: access denied, stop polling
+      if (result.status === 403) {
+        console.error(`[Text-to-3D] Access denied for job ${job_id}`);
+        State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
+        prog.fail('Generation failed - access denied');
+        return;
+      }
+
       if (result.status === 404) {
         notFoundAttempts += 1;
         if (notFoundAttempts <= 5) {
@@ -665,10 +721,15 @@ export function watchJob(job_id) {
           return;
         }
         State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
         prog.clear();
         return;
       }
+
+      // Reset error counters on successful response
       notFoundAttempts = 0;
+      consecutiveErrors = 0;
+
       const st = result.data;
 
       if (st.message) prog.label(st.message);
@@ -753,11 +814,13 @@ export function watchJob(job_id) {
         prog.jump(99, 'Downloading model...');
         await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
         prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
+        State.watchers.delete(job_id);
         return;
       }
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
         // Force sync with backend to show released credits (backend is truth)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
@@ -772,9 +835,26 @@ export function watchJob(job_id) {
         return;
       }
 
-      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-    } catch {
-      setTimeout(() => poll(1500), 1500);
+      // Continue polling with exponential backoff, capped at MAX_DELAY
+      const nextDelay = Math.min(MAX_DELAY, delay * 1.2);
+      setTimeout(() => poll(nextDelay), delay);
+    } catch (err) {
+      // Unexpected error - increment error counter and retry with backoff
+      consecutiveErrors++;
+      console.error(`[Text-to-3D] Unexpected error polling job ${job_id}:`, err);
+
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        console.error(`[Text-to-3D] Too many consecutive errors, stopping poll`);
+        State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
+        prog.fail('Generation failed - connection error');
+        handleJobFailure('Connection error while polling', 'text-to-3d');
+        return;
+      }
+
+      // Retry with exponential backoff
+      const retryDelay = Math.min(MAX_DELAY, delay * 2);
+      setTimeout(() => poll(retryDelay), retryDelay);
     }
   };
   poll();
@@ -812,15 +892,78 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
   const estimatedDuration = kind === 'image3d' ? 120000 : 60000; // 2 mins for image3d, 1 min for others
   let simulatedPct = 0;
 
+  // Polling safety: max attempts and error tracking
+  const MAX_POLL_ATTEMPTS = 120; // ~2-4 minutes depending on backoff
+  const MAX_CONSECUTIVE_ERRORS = 5;
+  const MAX_DELAY = 8000;
+  let pollAttempts = 0;
+  let consecutiveErrors = 0;
+
   const poll = async (delay = 900) => {
-    if (aborted) return;
+    if (aborted) {
+      State.watchers.delete(job_id);
+      return;
+    }
+
+    pollAttempts++;
+
+    // Safety: stop after max attempts
+    if (pollAttempts > MAX_POLL_ATTEMPTS) {
+      console.error(`[${stageLabel}] Max poll attempts (${MAX_POLL_ATTEMPTS}) exceeded for job ${job_id}`);
+      State.removeActiveJob(job_id);
+      State.watchers.delete(job_id);
+      prog.fail(`${stageLabel} timed out - please try again`);
+      handleJobFailure(`${stageLabel} timed out after max attempts`, kind);
+      return;
+    }
+
     try {
       const result = await apiFetch(`${endpoint}/${job_id}`);
+
+      // Fatal errors: stop polling immediately
+      if (result.status >= 500 || result.isHtml) {
+        consecutiveErrors++;
+        console.error(`[${stageLabel}] Server error (${result.status}) for job ${job_id}:`, result.error);
+
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error(`[${stageLabel}] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
+          State.removeActiveJob(job_id);
+          State.watchers.delete(job_id);
+          prog.fail(`${stageLabel} failed - server error`);
+          handleJobFailure(result.error || `Server error (${result.status})`, kind);
+          // Sync credits from backend
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          }
+          return;
+        }
+
+        // Retry with exponential backoff for server errors
+        const nextDelay = Math.min(MAX_DELAY, delay * 2);
+        setTimeout(() => poll(nextDelay), nextDelay);
+        return;
+      }
+
+      // 403 Forbidden: access denied, stop polling
+      if (result.status === 403) {
+        console.error(`[${stageLabel}] Access denied for job ${job_id}`);
+        State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
+        prog.fail(`${stageLabel} failed - access denied`);
+        return;
+      }
+
+      // 404 Not Found: job doesn't exist, stop polling
       if (result.status === 404) {
         State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
         prog.clear();
         return;
       }
+
+      // Reset error counter on successful response
+      consecutiveErrors = 0;
+
       const st = result.data;
 
       // Use real progress if available, otherwise simulate for image3d
@@ -922,11 +1065,13 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         } else {
           prog.done(`${stageLabel} complete.`);
         }
+        State.watchers.delete(job_id);
         return;
       }
 
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
         // Sync credits from backend (once per job) to show released credits
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
@@ -938,12 +1083,30 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         }
         prog.fail(st.message || `${stageLabel} failed`);
         handleJobFailure(st.message || `${stageLabel} failed`, kind);
+        State.watchers.delete(job_id);
         return;
       }
 
-      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-    } catch {
-      setTimeout(() => poll(1500), 1500);
+      // Continue polling with exponential backoff, capped at MAX_DELAY
+      const nextDelay = Math.min(MAX_DELAY, delay * 1.2);
+      setTimeout(() => poll(nextDelay), delay);
+    } catch (err) {
+      // Unexpected error - increment error counter and retry with backoff
+      consecutiveErrors++;
+      console.error(`[${stageLabel}] Unexpected error polling job ${job_id}:`, err);
+
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        console.error(`[${stageLabel}] Too many consecutive errors, stopping poll`);
+        State.removeActiveJob(job_id);
+        State.watchers.delete(job_id);
+        prog.fail(`${stageLabel} failed - connection error`);
+        handleJobFailure('Connection error while polling', kind);
+        return;
+      }
+
+      // Retry with exponential backoff
+      const retryDelay = Math.min(MAX_DELAY, delay * 2);
+      setTimeout(() => poll(retryDelay), retryDelay);
     }
   };
   poll();
