@@ -559,20 +559,22 @@
     window.TIMRX_3D_API_BASE = 'https://3d.timrx.live';
   </script>
 
-  <!-- Three.js Setup -->
+  <!-- Three.js Setup - Single instance via importmap (prevents "Multiple instances" warning) -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
     }
   }
   </script>
 
   <script type="module">
+    // Import Three.js core and addons via importmap specifiers to ensure single instance
     import * as THREE_NS from 'three';
-    import { GLTFLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
+    import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
     const THREE_MUT = Object.assign({}, THREE_NS);
     THREE_MUT.GLTFLoader      = GLTFLoader;
