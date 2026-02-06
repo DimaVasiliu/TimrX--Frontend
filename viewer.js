@@ -369,3 +369,20 @@ export async function showLocalModel(file, meta = {}) {
   if (viewerTitle) viewerTitle.textContent = meta.title || '3D Model Viewer';
   if (genHint && meta.hint) genHint.textContent = meta.hint;
 }
+
+// =========================================================================
+// Expose viewer functions globally for Inspire and other modules
+// =========================================================================
+window.Viewer = {
+  loadGlbFromUrl,
+  showModelInViewer,
+  showImageInViewer,
+  showVideoInViewer,
+  clearViewer,
+  clearVideoViewer,
+  setViewerControlsEnabled,
+  showLocalModel
+};
+
+// Also expose loadGlbFromUrl directly for backwards compatibility
+window.loadGlbFromUrl = loadGlbFromUrl;
