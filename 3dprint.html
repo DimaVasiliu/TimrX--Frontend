@@ -1052,22 +1052,16 @@
             </article>
           </div>
           <div class="tutorials-split-model">
-            <model-viewer
+            <div
+              class="tutorial-3d-viewer"
               id="undead-model-viewer"
-              src="3dprint-modules/3dmodels/undead_creature_preview.glb"
+              data-src="3dprint-modules/3dmodels/undead_creature_preview.glb"
               data-preview="3dprint-modules/3dmodels/undead_creature_preview.glb"
               data-refined="3dprint-modules/3dmodels/undead_creature_refined.glb"
-              alt="Undead Creature 3D Model"
-              loading="lazy"
-              auto-rotate
-              rotation-per-second="30deg"
-              camera-controls
-              disable-zoom
-              shadow-intensity="0"
-              environment-image="legacy"
-              exposure="0.35"
-              style="cursor: pointer;"
-            ></model-viewer>
+              data-preview-hint="Click model to view refined version"
+              data-refined-hint="Click model to view preview version"
+              aria-label="Undead Creature 3D Model - click to toggle versions"
+            ></div>
             <span class="model-toggle-hint">Click model to view refined version</span>
           </div>
         </div>
@@ -1120,18 +1114,12 @@
             </article>
           </div>
           <div class="tutorials-split-model tutorials-split-model--tall">
-            <model-viewer
-              src="3dprint-modules/3dmodels/dog3d.glb"
-              alt="Dog 3D Model from Image"
-              loading="lazy"
-              auto-rotate
-              rotation-per-second="30deg"
-              camera-controls
-              disable-zoom
-              shadow-intensity="0"
-              environment-image="legacy"
-              exposure="0.35"
-            ></model-viewer>
+            <div
+              class="tutorial-3d-viewer"
+              id="dog-model-viewer"
+              data-src="3dprint-modules/3dmodels/dog3d.glb"
+              aria-label="Dog 3D Model from Image"
+            ></div>
           </div>
         </div>
       </section>
@@ -1192,22 +1180,16 @@
             </article>
           </div>
           <div class="tutorials-split-model tutorials-split-model--tall">
-            <model-viewer
+            <div
+              class="tutorial-3d-viewer"
               id="remesh-model-viewer"
-              src="3dprint-modules/3dmodels/character_preview.glb"
+              data-src="3dprint-modules/3dmodels/character_preview.glb"
               data-preview="3dprint-modules/3dmodels/character_preview.glb"
               data-refined="3dprint-modules/3dmodels/character_remeshed.glb"
-              alt="Character 3D Model - Remesh Demo"
-              loading="lazy"
-              auto-rotate
-              rotation-per-second="30deg"
-              camera-controls
-              disable-zoom
-              shadow-intensity="0"
-              environment-image="legacy"
-              exposure="0.35"
-              style="cursor: pointer;"
-            ></model-viewer>
+              data-preview-hint="Click model to view remeshed version"
+              data-refined-hint="Click model to view original version"
+              aria-label="Character 3D Model - Remesh Demo - click to toggle versions"
+            ></div>
             <span class="model-toggle-hint">Click model to view remeshed version</span>
           </div>
         </div>
@@ -1255,18 +1237,12 @@
             </article>
           </div>
           <div class="tutorials-split-model">
-            <model-viewer
-              src="3dprint-modules/3dmodels/astro.glb"
-              alt="Astro 3D Model"
-              loading="lazy"
-              auto-rotate
-              rotation-per-second="30deg"
-              camera-controls
-              disable-zoom
-              shadow-intensity="0"
-              environment-image="legacy"
-              exposure="0.35"
-            ></model-viewer>
+            <div
+              class="tutorial-3d-viewer"
+              id="astro-model-viewer"
+              data-src="3dprint-modules/3dmodels/astro.glb"
+              aria-label="Astro 3D Model"
+            ></div>
           </div>
         </div>
       </section>
@@ -2200,51 +2176,16 @@
     </div>
   </section>
 
-  <!-- Model Viewer component for inline tutorial 3D previews -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-
-  <!-- Meshopt decoder for compressed GLB models -->
-  <script type="module">
-    import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.module.js';
-    await MeshoptDecoder.ready;
-    document.querySelectorAll('model-viewer').forEach(mv => {
-      mv.meshoptDecoder = MeshoptDecoder;
-    });
-  </script>
-
-  <!-- UMD Three.js removed - using ESM importmap only (three@0.160.0) -->
+  <!-- Tutorial 3D viewers - uses main Three.js instance (no duplicate) -->
+  <script type="module" src="./js/tutorial-viewer.js"></script>
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
   <script type="module" src="./js/main.js"></script>
 
-  <!-- Model viewer toggle script (click to swap between preview/refined) -->
+  <!-- UI helper scripts -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Setup toggle for model-viewers with data-preview and data-refined
-      function setupModelToggle(viewerId, previewHint, refinedHint) {
-        const viewer = document.getElementById(viewerId);
-        if (!viewer) return;
-
-        const hint = viewer.parentElement?.querySelector('.model-toggle-hint');
-        let isRefined = false;
-
-        viewer.addEventListener('click', () => {
-          isRefined = !isRefined;
-          viewer.src = isRefined ? viewer.dataset.refined : viewer.dataset.preview;
-          if (hint) {
-            hint.textContent = isRefined ? previewHint : refinedHint;
-            hint.classList.toggle('refined', isRefined);
-          }
-        });
-      }
-
-      // Undead creature - preview vs refined
-      setupModelToggle('undead-model-viewer', 'Click model to view preview version', 'Click model to view refined version');
-
-      // Character - preview vs remeshed
-      setupModelToggle('remesh-model-viewer', 'Click model to view original version', 'Click model to view remeshed version');
-
       // Nav hide on scroll for expanded views
       const nav = document.querySelector('.ws-nav');
       const blogsCta = document.querySelector('.ws-blog-cta');
