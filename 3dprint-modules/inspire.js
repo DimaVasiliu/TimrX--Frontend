@@ -1001,29 +1001,29 @@
   }
 
   /**
-   * Load model using the existing Three.js viewer.
-   * No model-viewer fallback to avoid Three.js conflicts.
+   * Load model using the existing Three.js scene directly.
+   * This works even if window.Viewer isn't exposed.
    */
   async function loadModelWithViewer(cardData, glbUrl, thumbnailUrl) {
-    // Method 1: Use existing Three.js viewer via window.Viewer
+    // Method 1: Use window.Viewer if available
     if (window.Viewer?.loadGlbFromUrl) {
       try {
-        console.log('[Inspire] Attempting Three.js viewer load:', glbUrl);
+        console.log('[Inspire] Loading via window.Viewer.loadGlbFromUrl');
         await window.Viewer.loadGlbFromUrl(glbUrl);
-        console.log('[Inspire] Model loaded via Three.js viewer');
+        console.log('[Inspire] Model loaded via Viewer');
         if (cardData.prompt) usePrompt(cardData.prompt);
         return;
       } catch (err) {
-        console.error('[Inspire] Three.js viewer failed:', err);
+        console.error('[Inspire] Viewer.loadGlbFromUrl failed:', err);
       }
     }
 
-    // Method 2: Use window.loadGlbFromUrl directly (legacy)
+    // Method 2: Use window.loadGlbFromUrl directly
     if (typeof window.loadGlbFromUrl === 'function') {
       try {
-        console.log('[Inspire] Attempting window.loadGlbFromUrl:', glbUrl);
+        console.log('[Inspire] Loading via window.loadGlbFromUrl');
         await window.loadGlbFromUrl(glbUrl);
-        console.log('[Inspire] Model loaded via window.loadGlbFromUrl');
+        console.log('[Inspire] Model loaded via loadGlbFromUrl');
         if (cardData.prompt) usePrompt(cardData.prompt);
         return;
       } catch (err) {
@@ -1031,31 +1031,112 @@
       }
     }
 
-    // Method 3: Try showModelInViewer if available
-    if (window.Viewer?.showModelInViewer) {
+    // Method 3: Load directly using Three.js and timrx3D scene
+    if (window.timrx3D?.scene && window.THREE?.GLTFLoader) {
       try {
-        console.log('[Inspire] Attempting showModelInViewer:', glbUrl);
-        await window.Viewer.showModelInViewer(glbUrl, {
-          title: cardData.title || 'Inspired Model',
-          thumbnail: thumbnailUrl
-        });
-        console.log('[Inspire] Model loaded via showModelInViewer');
+        console.log('[Inspire] Loading directly via THREE.GLTFLoader');
+        await loadGlbDirectly(glbUrl, cardData);
+        console.log('[Inspire] Model loaded directly into scene');
         if (cardData.prompt) usePrompt(cardData.prompt);
         return;
       } catch (err) {
-        console.error('[Inspire] showModelInViewer failed:', err);
+        console.error('[Inspire] Direct GLTFLoader failed:', err);
       }
     }
 
-    // No viewer available or all methods failed
-    console.warn('[Inspire] No working 3D viewer, showing thumbnail. Available:', {
+    // All methods failed - show thumbnail
+    console.warn('[Inspire] No viewer available, showing thumbnail. State:', {
       'window.Viewer': !!window.Viewer,
-      'window.Viewer.loadGlbFromUrl': !!window.Viewer?.loadGlbFromUrl,
       'window.loadGlbFromUrl': typeof window.loadGlbFromUrl,
-      'window.timrx3D': !!window.timrx3D
+      'window.timrx3D': !!window.timrx3D,
+      'THREE.GLTFLoader': !!window.THREE?.GLTFLoader
     });
-
     showModelAsThumbnail(cardData, thumbnailUrl);
+  }
+
+  /**
+   * Load GLB directly into the Three.js scene using timrx3D.
+   * Fallback when window.Viewer isn't exposed.
+   */
+  async function loadGlbDirectly(glbUrl, cardData) {
+    const { scene, camera } = window.timrx3D;
+    const THREE = window.THREE;
+
+    if (!scene || !THREE?.GLTFLoader) {
+      throw new Error('Three.js scene or GLTFLoader not available');
+    }
+
+    // Remove existing inspired model if any
+    const existingModel = scene.getObjectByName('inspireModel');
+    if (existingModel) {
+      scene.remove(existingModel);
+      existingModel.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+    }
+
+    // Hide placeholder cube if it exists
+    if (window.placeholderCube) {
+      window.placeholderCube.visible = false;
+    }
+
+    // Load the GLB
+    const loader = new THREE.GLTFLoader();
+    loader.setCrossOrigin('anonymous');
+
+    return new Promise((resolve, reject) => {
+      loader.load(
+        glbUrl,
+        (gltf) => {
+          const model = gltf.scene;
+          model.name = 'inspireModel';
+
+          // Center the model
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          const min = box.min;
+          model.position.x = -center.x;
+          model.position.z = -center.z;
+          model.position.y = -min.y;
+
+          scene.add(model);
+
+          // Fit camera to model
+          const size = box.getSize(new THREE.Vector3()).length();
+          const fov = camera.fov * (Math.PI / 180);
+          const distance = size / (2 * Math.tan(fov / 2)) * 1.5;
+
+          camera.position.set(distance * 0.7, distance * 0.5, distance * 0.7);
+          camera.lookAt(center);
+          camera.updateProjectionMatrix();
+
+          // Update controls if available
+          if (window.timrxControls) {
+            window.timrxControls.target.copy(center);
+            window.timrxControls.update();
+          }
+
+          // Show viewer toolbar if available
+          const toolbar = document.getElementById('viewerToolbar');
+          if (toolbar) toolbar.classList.add('visible');
+
+          // Hide placeholder
+          const placeholder = document.getElementById('viewerPlaceholder');
+          if (placeholder) placeholder.style.display = 'none';
+
+          resolve();
+        },
+        undefined,
+        (err) => {
+          console.error('[Inspire] GLTFLoader error:', err);
+          reject(err);
+        }
+      );
+    });
   }
 
   /**
