@@ -2,6 +2,8 @@
  * viewer.js
  * Interacts with Three.js. Assumes 3dprint-app.js has already created the scene,
  * and this module simply hooks into it to load models and move the camera.
+ *
+ * IMPORTANT: All functions guard against missing WebGL/scene/renderer to prevent crashes.
  */
 
 import { byId, log } from './config.js';
@@ -11,10 +13,48 @@ let viewerPlaceholder = null;
 let currentModel = null;
 let demoCube, grid;
 
+/**
+ * Check if the 3D viewer is available and ready.
+ * @returns {boolean} True if viewer can be used.
+ */
+function isViewerReady() {
+    // Check global availability flag (set by 3dprint-app.js WebGL detection)
+    if (window.timrxViewerAvailable === false) {
+        return false;
+    }
+    // Check if scene and renderer exist
+    return !!(scene && renderer);
+}
+
+/**
+ * Show a toast message when viewer is unavailable.
+ * @param {string} action - What the user tried to do.
+ */
+function showViewerUnavailableMessage(action) {
+    log(`[Viewer] Cannot ${action}: WebGL/3D viewer not available`);
+
+    // Try to show a toast if available
+    if (window.showToast) {
+        window.showToast('3D preview unavailable. You can still generate and download models.', 'info');
+    }
+}
+
 export function initViewer() {
+    // Check if WebGL is available first
+    if (window.timrxViewerAvailable === false) {
+        log('[Viewer] WebGL not available, skipping init');
+        return;
+    }
+
     // 3dprint-app.js creates window.timrx3D. We hook into it.
     if (!window.timrx3D) {
-        log('Waiting for main viewer...');
+        log('[Viewer] Waiting for main viewer...');
+        return;
+    }
+
+    // Check if scene exists (bootThreeViewer might have failed)
+    if (!window.timrx3D.scene) {
+        log('[Viewer] timrx3D.scene is missing, viewer may have failed to initialize');
         return;
     }
 
@@ -25,16 +65,19 @@ export function initViewer() {
     // window.timrxControls is created by 3dprint-app.js
     controls = window.timrxControls;
 
-    // Find existing helpers
-    scene?.traverse((obj) => {
-        if (obj.isGridHelper) grid = obj;
-        if (obj.userData?.isPlaceholder) demoCube = obj;
-    });
+    // Find existing helpers (guard against missing scene)
+    if (scene) {
+        scene.traverse((obj) => {
+            if (obj.isGridHelper) grid = obj;
+            if (obj.userData?.isPlaceholder) demoCube = obj;
+        });
+    }
 
     // Fallback if demoCube wasn't found in traverse
     if (!demoCube && window.placeholderCube) demoCube = window.placeholderCube;
 
     updatePlaceholder();
+    log('[Viewer] Initialized successfully');
 }
 
 function updatePlaceholder() {
@@ -44,6 +87,14 @@ function updatePlaceholder() {
 
 export function clearModel() {
     if (!currentModel) return;
+
+    // Guard: Check if scene is available
+    if (!scene) {
+        log('[Viewer] clearModel: scene not available');
+        currentModel = null;
+        return;
+    }
+
     scene.remove(currentModel);
 
     // Memory cleanup
@@ -62,6 +113,12 @@ export function clearModel() {
 }
 
 export async function loadModelWithFallback(primaryUrl, fallbackUrl) {
+    // Guard: Check if viewer is available
+    if (!isViewerReady()) {
+        showViewerUnavailableMessage('load model');
+        throw new Error('3D viewer not available (WebGL disabled)');
+    }
+
     try {
         await loadGlbFromUrl(primaryUrl);
     } catch (err) {
@@ -70,8 +127,22 @@ export async function loadModelWithFallback(primaryUrl, fallbackUrl) {
     }
 }
 
+/**
+ * Check if the 3D viewer is available (exported for external use).
+ * @returns {boolean}
+ */
+export function checkViewerAvailable() {
+    return isViewerReady();
+}
+
 export async function loadGlbFromUrl(url) {
     if (!(window.THREE && THREE.GLTFLoader)) throw new Error('GLTFLoader missing');
+
+    // Guard: Check if viewer is available
+    if (!isViewerReady()) {
+        showViewerUnavailableMessage('load model');
+        throw new Error('3D viewer not available (WebGL disabled)');
+    }
 
     // Defensive check: pre-validate URL returns binary/model data, not HTML
     try {
@@ -102,6 +173,13 @@ export async function loadGlbFromUrl(url) {
     return new Promise((resolve, reject) => {
         loader.load(url, (gltf) => {
             currentModel = gltf.scene;
+
+            // Double-check scene is still valid before adding
+            if (!scene) {
+                reject(new Error('Scene became unavailable'));
+                return;
+            }
+
             scene.add(currentModel);
 
             // Center model
