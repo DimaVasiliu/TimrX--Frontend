@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -813,6 +812,41 @@
             <span>or</span>
           </div>
           <button type="button" id="showRestoreBtn" class="btn ghost">Restore Existing Account</button>
+        </div>
+      </div>
+
+      <!-- Subscription Management Card (shown when user has active subscription) -->
+      <div id="subscriptionCard" class="subscription-card hidden">
+        <div class="subscription-icon">
+          <i class="fa-solid fa-credit-card"></i>
+        </div>
+        <div class="subscription-info">
+          <h3>Your Subscription</h3>
+          <p class="subscription-plan" id="subscriptionPlanName">--</p>
+          <div class="subscription-details">
+            <span class="subscription-credits">
+              <i class="fa-solid fa-coins"></i>
+              <span id="subscriptionCredits">--</span> credits/month
+            </span>
+            <span class="subscription-status" id="subscriptionStatus">Active</span>
+          </div>
+          <p class="subscription-next" id="subscriptionNext">Next credits: --</p>
+        </div>
+        <div class="subscription-actions">
+          <button type="button" id="cancelSubscriptionBtn" class="btn ghost small danger">Cancel Subscription</button>
+        </div>
+      </div>
+
+      <!-- Cancelled Subscription Card (shown when subscription is cancelled but still active) -->
+      <div id="subscriptionCancelledCard" class="subscription-card cancelled hidden">
+        <div class="subscription-icon">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="subscription-info">
+          <h3>Subscription Ending</h3>
+          <p class="subscription-plan" id="cancelledPlanName">--</p>
+          <p class="subscription-ending">Access until: <strong id="subscriptionEndDate">--</strong></p>
+          <p class="subscription-helper">You can still use your remaining credits until this date.</p>
         </div>
       </div>
     </div>
