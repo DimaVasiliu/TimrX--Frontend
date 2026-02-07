@@ -141,6 +141,13 @@
     studio_600: { name: 'Studio', credits: 600, price: 34.99 }
   };
 
+  // Video plan definitions (video credits)
+  const VIDEO_PLANS = {
+    video_starter_250: { name: 'Video Starter', credits: 250, price: 9.99 },
+    video_creator_750: { name: 'Video Creator', credits: 750, price: 24.99 },
+    video_studio_1600: { name: 'Video Studio', credits: 1600, price: 44.99 }
+  };
+
   // Subscription plan definitions (must match backend subscription_service.py)
   const SUB_PLANS = {
     monthly: {
@@ -149,7 +156,7 @@
       studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 700, price: 29.99,  cadence: 'monthly' },
     },
     yearly: {
-      starter:  null, // no yearly starter
+      starter:  { plan_code: 'starter_yearly',   name: 'Starter', credits_per_month: 100, price: 69.99,  cadence: 'yearly' },
       creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 300, price: 149.99, cadence: 'yearly' },
       studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 700, price: 299.99, cadence: 'yearly' },
     },
@@ -437,7 +444,10 @@
 
   const pricingModeToggle = document.getElementById('pricingModeToggle');
   const modePills = pricingModeToggle ? pricingModeToggle.querySelectorAll('.mode-pill') : [];
-  const pricingCards = document.querySelectorAll('.price-card');
+  const modelPricingGrid = document.getElementById('modelPricingGrid');
+  const videoPricingGrid = document.getElementById('videoPricingGrid');
+  const pricingFootNote = document.getElementById('pricingFootNote');
+  const pricingCards = modelPricingGrid ? modelPricingGrid.querySelectorAll('.price-card') : [];
 
   // Subscription modal elements
   const subModal = document.getElementById('subscriptionModal');
@@ -473,6 +483,18 @@
     modePills.forEach(pill => {
       pill.classList.toggle('active', pill.dataset.mode === mode);
     });
+
+    // Handle video mode - show/hide appropriate grids
+    if (mode === 'video') {
+      if (modelPricingGrid) modelPricingGrid.style.display = 'none';
+      if (videoPricingGrid) videoPricingGrid.style.display = '';
+      if (pricingFootNote) pricingFootNote.textContent = '1 video ≈ 70-160 credits depending on resolution & duration.';
+      return;
+    } else {
+      if (modelPricingGrid) modelPricingGrid.style.display = '';
+      if (videoPricingGrid) videoPricingGrid.style.display = 'none';
+      if (pricingFootNote) pricingFootNote.textContent = '1 model ≈ 30 credits (generation + refine).';
+    }
 
     // Update each pricing card
     pricingCards.forEach(card => {
@@ -812,6 +834,178 @@
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Video Buy Modal
+  // ─────────────────────────────────────────────────────────────
+
+  const videoBuyModal = document.getElementById('videoBuyModal');
+  const videoBuyClose = document.getElementById('videoBuyClose');
+  const videoBuyTitle = document.getElementById('videoBuyTitle');
+  const videoBuySubtitle = document.getElementById('videoBuySubtitle');
+  const videoBuyCredits = document.getElementById('videoBuyCredits');
+  const videoBuyPrice = document.getElementById('videoBuyPrice');
+  const videoBuyEmail = document.getElementById('videoBuyEmail');
+  const videoBuyError = document.getElementById('videoBuyError');
+  const videoBuyBtn = document.getElementById('videoBuyBtn');
+
+  let selectedVideoPlan = null;
+  let lastFocusBeforeVideoModal = null;
+
+  function openVideoBuyModal(planId) {
+    if (!videoBuyModal) return;
+
+    const plan = VIDEO_PLANS[planId];
+    if (!plan) {
+      console.warn('[Credits] Unknown video plan:', planId);
+      return;
+    }
+
+    selectedVideoPlan = planId;
+    lastFocusBeforeVideoModal = document.activeElement;
+
+    // Update modal content
+    if (videoBuyTitle) videoBuyTitle.textContent = `Buy ${plan.name}`;
+    if (videoBuySubtitle) videoBuySubtitle.textContent = 'One-time purchase. No subscription.';
+    if (videoBuyCredits) videoBuyCredits.textContent = plan.credits.toLocaleString();
+    if (videoBuyPrice) videoBuyPrice.textContent = `£${plan.price.toFixed(2)}`;
+
+    // Pre-fill email if we have it
+    if (videoBuyEmail && userEmail && !videoBuyEmail.value) {
+      videoBuyEmail.value = userEmail;
+    }
+
+    // Clear previous error
+    if (videoBuyError) {
+      videoBuyError.style.display = 'none';
+      videoBuyError.textContent = '';
+    }
+
+    // Validate form
+    validateVideoBuyForm();
+
+    videoBuyModal.classList.add('open');
+    videoBuyModal.inert = false;
+
+    requestAnimationFrame(() => {
+      if (videoBuyEmail) videoBuyEmail.focus();
+    });
+  }
+
+  function closeVideoBuyModal() {
+    if (!videoBuyModal) return;
+
+    if (videoBuyModal.contains(document.activeElement)) {
+      (lastFocusBeforeVideoModal || document.body).focus();
+    }
+
+    videoBuyModal.classList.remove('open');
+    videoBuyModal.inert = true;
+    selectedVideoPlan = null;
+  }
+
+  function validateVideoBuyForm() {
+    const email = videoBuyEmail?.value?.trim() || '';
+    const isValid = isValidEmail(email) && selectedVideoPlan;
+    if (videoBuyBtn) videoBuyBtn.disabled = !isValid;
+    return isValid;
+  }
+
+  function showVideoBuyError(msg) {
+    if (videoBuyError) {
+      videoBuyError.textContent = msg;
+      videoBuyError.style.display = 'block';
+    }
+  }
+
+  async function startVideoCheckout() {
+    if (!selectedVideoPlan || !validateVideoBuyForm()) return;
+
+    const plan = VIDEO_PLANS[selectedVideoPlan];
+    if (!plan) return;
+
+    const email = videoBuyEmail?.value?.trim();
+
+    // Show loading state
+    if (videoBuyBtn) {
+      videoBuyBtn.disabled = true;
+      const btnText = videoBuyBtn.querySelector('.btn-text');
+      const btnLoader = videoBuyBtn.querySelector('.btn-loader');
+      if (btnText) btnText.style.display = 'none';
+      if (btnLoader) btnLoader.style.display = '';
+    }
+
+    try {
+      const payload = {
+        plan_code: selectedVideoPlan,
+        email: email,
+        success_url: `${window.location.origin}${window.location.pathname}?checkout=success`,
+        cancel_url: `${window.location.origin}${window.location.pathname}?checkout=cancelled`,
+      };
+
+      const idToken = await getIdToken();
+      const response = await fetch(`${API_BASE}/checkout/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      // Store plan info for success handling
+      sessionStorage.setItem('timrx_pending_plan', selectedVideoPlan);
+      sessionStorage.setItem('timrx_pending_credits', plan.credits.toString());
+
+      // Redirect to Stripe
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      }
+
+    } catch (err) {
+      console.error('[Credits] Video checkout error:', err);
+      showVideoBuyError(err.message || 'Checkout failed. Please try again.');
+
+      // Reset button
+      if (videoBuyBtn) {
+        videoBuyBtn.disabled = false;
+        const btnText = videoBuyBtn.querySelector('.btn-text');
+        const btnLoader = videoBuyBtn.querySelector('.btn-loader');
+        if (btnText) btnText.style.display = '';
+        if (btnLoader) btnLoader.style.display = 'none';
+      }
+    }
+  }
+
+  // Video modal event listeners
+  videoBuyClose?.addEventListener('click', closeVideoBuyModal);
+
+  videoBuyModal?.addEventListener('click', (e) => {
+    if (e.target === videoBuyModal) closeVideoBuyModal();
+  });
+
+  videoBuyEmail?.addEventListener('input', () => {
+    if (videoBuyError) videoBuyError.style.display = 'none';
+    validateVideoBuyForm();
+  });
+
+  videoBuyBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    startVideoCheckout();
+  });
+
+  videoBuyEmail?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !videoBuyBtn?.disabled) {
+      e.preventDefault();
+      startVideoCheckout();
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // Success Modal - Driven by WalletStore as single source of truth
   // ─────────────────────────────────────────────────────────────
 
@@ -1111,6 +1305,9 @@
 
       if (pricingMode === 'one_time') {
         openBuyCreditsModal(planId);
+      } else if (pricingMode === 'video') {
+        // Video mode — open video buy modal
+        openVideoBuyModal(planId);
       } else {
         // Subscription mode — open subscription modal
         const tier = CARD_TO_TIER[planId];
@@ -1118,6 +1315,16 @@
           openSubscriptionModal(tier, pricingMode);
         }
       }
+    });
+  });
+
+  // Also attach listeners to video pricing buttons (they're in a separate grid)
+  const videoPricingButtons = videoPricingGrid ? videoPricingGrid.querySelectorAll('.pricing-cta') : [];
+  videoPricingButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const planId = btn.dataset.plan;
+      openVideoBuyModal(planId);
     });
   });
 
