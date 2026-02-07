@@ -398,6 +398,9 @@ body.inspire-open .ws-right {
   background: #0d0d0d;
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Smooth shuffle transitions - prevent flicker during in-place updates */
+  will-change: transform, opacity;
+  contain: layout style paint;
 }
 
 /* Auto aspect ratio based on image */
@@ -437,7 +440,14 @@ body.inspire-open .ws-right {
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease;
+              opacity 0.15s ease;
+  /* Prevent layout shift during shuffle - image always fills container */
+  min-width: 100%;
+  min-height: 100%;
+  /* GPU acceleration for smoother transitions */
+  will-change: transform, opacity;
+  /* Prevent flash of empty space during src swap */
+  background: #0d0d0d;
 }
 
 .inspire-card:hover .inspire-card__image {
