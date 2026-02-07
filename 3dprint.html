@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <!-- Primary Meta Tags -->
-  <title>AI 3D Model Generator Workspace | TimrX</title>
-  <meta name="title" content="AI 3D Model Generator Workspace | TimrX" />
-  <meta name="description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview, GLB/GLTF export, and professional-grade 3D assets for games, printing, and design." />
-  <meta name="keywords" content="3D workspace, AI 3D generator, text to 3D, image to 3D, 3D model creator, GLB export, GLTF, 3D printing, game assets, TimrX workspace, online 3D tool" />
+  <title>AI 3D Model Generator Workspace (Text to 3D + Image to 3D) | TimrX</title>
+  <meta name="title" content="AI 3D Model Generator Workspace (Text to 3D + Image to 3D) | TimrX" />
+  <meta name="description" content="Generate print-ready 3D models from text or images. Remesh, texture, preview in browser. Export GLB/GLTF. No Blender required. Fast AI 3D generation for creators and makers." />
+  <meta name="keywords" content="3D workspace, AI 3D generator, text to 3D, image to 3D, 3D model creator, GLB export, GLTF, 3D printing, game assets, TimrX workspace, online 3D tool, print-ready, remesh, texture, no Blender" />
   <meta name="author" content="Dima Vasiliu" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="googlebot" content="index, follow" />
   <link rel="canonical" href="https://timrx.live/3dprint" />
+
+  <!-- Hreflang Tags -->
+  <link rel="alternate" hreflang="en-gb" href="https://timrx.live/3dprint" />
+  <link rel="alternate" hreflang="x-default" href="https://timrx.live/3dprint" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -26,20 +30,20 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/3dprint" />
-  <meta property="og:title" content="AI 3D Model Generator Workspace | TimrX" />
-  <meta property="og:description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview and GLB/GLTF export." />
+  <meta property="og:title" content="AI 3D Model Generator Workspace (Text to 3D + Image to 3D) | TimrX" />
+  <meta property="og:description" content="Generate print-ready 3D models from text or images. Remesh, texture, preview in browser. Export GLB/GLTF. No Blender required." />
   <meta property="og:image" content="https://timrx.live/og-image-workspace.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="TimrX 3D Workspace - AI Model Generator" />
+  <meta property="og:image:alt" content="TimrX AI 3D Workspace - Text to 3D and Image to 3D Generator" />
   <meta property="og:site_name" content="TimrX" />
-  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale" content="en_GB" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/3dprint" />
-  <meta name="twitter:title" content="AI 3D Model Generator Workspace | TimrX" />
-  <meta name="twitter:description" content="Create 3D models from text prompts or images. AI-powered workspace with real-time preview." />
+  <meta name="twitter:title" content="AI 3D Model Generator Workspace (Text to 3D + Image to 3D) | TimrX" />
+  <meta name="twitter:description" content="Generate print-ready 3D models from text or images. Remesh, texture, export GLB/GLTF. No Blender required." />
   <meta name="twitter:image" content="https://timrx.live/og-image-workspace.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -54,8 +58,8 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "TimrX 3D Workspace",
-    "description": "AI-powered 3D model generator workspace. Create professional 3D models from text descriptions or images with real-time preview and export capabilities.",
+    "name": "TimrX AI 3D Model Generator Workspace",
+    "description": "AI-powered 3D model generator workspace. Create print-ready 3D models from text or images. Remesh, texture, preview, and export GLB/GLTF. No Blender required.",
     "url": "https://timrx.live/3dprint",
     "applicationCategory": "DesignApplication",
     "operatingSystem": "Web Browser",
@@ -68,15 +72,22 @@
     "featureList": [
       "Text to 3D generation",
       "Image to 3D conversion",
+      "Remesh for clean prints",
+      "AI texture generation",
       "Real-time 3D preview",
       "GLB/GLTF export",
-      "Multiple art styles",
-      "AI texture generation"
+      "Print-ready 3D models",
+      "No Blender required"
     ],
     "screenshot": "https://timrx.live/og-image-workspace.png",
     "author": {
       "@type": "Person",
       "name": "Dima Vasiliu",
+      "url": "https://timrx.live"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "TimrX",
       "url": "https://timrx.live"
     }
   }
@@ -114,6 +125,76 @@
   <link rel="stylesheet" href="3dprint-modules/main.css">
   <script defer src="3dprint-modules/3dprint-app.js"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
+
+  <!-- SEO Section Styles -->
+  <style>
+    .seo-workspace-intro {
+      background: linear-gradient(180deg, rgba(14,165,233,0.03) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+    .seo-workspace-intro .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .seo-workspace-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 0.5rem;
+    }
+    .seo-workspace-desc {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+      margin: 0 0 0.75rem;
+      line-height: 1.5;
+    }
+    .seo-workspace-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      justify-content: center;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 0.75rem;
+    }
+    .seo-workspace-features li {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      position: relative;
+      padding-left: 1rem;
+    }
+    .seo-workspace-features li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #0ea5e9;
+    }
+    .seo-workspace-link {
+      margin: 0;
+    }
+    .seo-workspace-link a {
+      font-size: 0.85rem;
+      color: #0ea5e9;
+      text-decoration: none;
+    }
+    .seo-workspace-link a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      .seo-workspace-intro {
+        padding: 0.75rem 1rem;
+      }
+      .seo-workspace-title {
+        font-size: 1.1rem;
+      }
+      .seo-workspace-features {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+    }
+  </style>
 </head>
 <body class="print3d-page">
 
@@ -180,8 +261,20 @@
 
   </header>
 
-  <!-- SEO: Hidden h1 for screen readers and search engines -->
-  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">AI 3D Model Generator Workspace – Create 3D Models from Text or Images | TimrX</h1>
+  <!-- SEO Content Section -->
+  <section class="seo-workspace-intro" aria-label="Workspace introduction">
+    <div class="container">
+      <h1 class="seo-workspace-title">AI 3D Model Generator Workspace</h1>
+      <p class="seo-workspace-desc">Create 3D models from text prompts or reference images. Generate, refine, remesh, texture, preview, and export — ready for 3D printing with no Blender required.</p>
+      <ul class="seo-workspace-features">
+        <li>Text to 3D generation</li>
+        <li>Image to 3D generation</li>
+        <li>Remesh + texture refinement</li>
+        <li>GLB/GLTF export for printing</li>
+      </ul>
+      <p class="seo-workspace-link"><a href="/hub">Back to TimrX AI Generation Hub</a></p>
+    </div>
+  </section>
 
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
