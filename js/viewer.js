@@ -86,8 +86,6 @@ function updatePlaceholder() {
 }
 
 export function clearModel() {
-    if (!currentModel) return;
-
     // Guard: Check if scene is available
     if (!scene) {
         log('[Viewer] clearModel: scene not available');
@@ -95,18 +93,33 @@ export function clearModel() {
         return;
     }
 
-    scene.remove(currentModel);
+    // Clear viewer.js's own model
+    if (currentModel) {
+        scene.remove(currentModel);
+        currentModel.traverse(o => {
+            if (o.geometry) o.geometry.dispose();
+            if (o.material) {
+                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
+                else o.material.dispose();
+            }
+        });
+        currentModel = null;
+    }
 
-    // Memory cleanup
-    currentModel.traverse(o => {
-        if (o.geometry) o.geometry.dispose();
-        if (o.material) {
-            if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
-            else o.material.dispose();
-        }
-    });
+    // Also clear any Inspire-loaded model to prevent stacking
+    if (window.inspireCurrentModel) {
+        scene.remove(window.inspireCurrentModel);
+        window.inspireCurrentModel.traverse(o => {
+            if (o.geometry) o.geometry.dispose();
+            if (o.material) {
+                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
+                else o.material.dispose();
+            }
+        });
+        window.inspireCurrentModel = null;
+        log('[Viewer] Cleared Inspire model');
+    }
 
-    currentModel = null;
     if (demoCube) demoCube.visible = true;
     updatePlaceholder();
     byId('viewerToolbar')?.classList.remove('visible');
