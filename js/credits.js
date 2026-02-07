@@ -2507,7 +2507,156 @@
       console.warn('[Credits] Failed to get email state:', err);
       updateSecureCreditsUI(); // Still update to show state 1
     }
+
+    // Also fetch subscription status
+    await fetchSubscription();
   }, 500);
+
+  // ─────────────────────────────────────────────────────────────
+  // Subscription Management
+  // ─────────────────────────────────────────────────────────────
+
+  // DOM elements for subscription
+  const subscriptionCard = document.getElementById('subscriptionCard');
+  const subscriptionCancelledCard = document.getElementById('subscriptionCancelledCard');
+  const subscriptionPlanName = document.getElementById('subscriptionPlanName');
+  const subscriptionCredits = document.getElementById('subscriptionCredits');
+  const subscriptionStatus = document.getElementById('subscriptionStatus');
+  const subscriptionNext = document.getElementById('subscriptionNext');
+  const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
+  const cancelledPlanName = document.getElementById('cancelledPlanName');
+  const subscriptionEndDate = document.getElementById('subscriptionEndDate');
+
+  let currentSubscription = null;
+
+  /**
+   * Fetch user's subscription status
+   */
+  async function fetchSubscription() {
+    try {
+      const result = await apiFetch('/api/billing/subscriptions/me');
+      if (result.ok && result.data?.ok) {
+        currentSubscription = result.data.subscription;
+        updateSubscriptionUI();
+      }
+    } catch (err) {
+      console.warn('[Credits] Failed to fetch subscription:', err);
+    }
+  }
+
+  /**
+   * Update subscription UI based on current state
+   */
+  function updateSubscriptionUI() {
+    if (!subscriptionCard || !subscriptionCancelledCard) return;
+
+    if (!currentSubscription) {
+      // No subscription
+      subscriptionCard.classList.add('hidden');
+      subscriptionCancelledCard.classList.add('hidden');
+      return;
+    }
+
+    const { plan_name, credits_per_month, status, current_period_end, cadence } = currentSubscription;
+
+    if (status === 'cancelled') {
+      // Show cancelled card
+      subscriptionCard.classList.add('hidden');
+      subscriptionCancelledCard.classList.remove('hidden');
+
+      if (cancelledPlanName) cancelledPlanName.textContent = plan_name;
+      if (subscriptionEndDate && current_period_end) {
+        subscriptionEndDate.textContent = formatDate(current_period_end);
+      }
+    } else if (status === 'active' || status === 'past_due') {
+      // Show active subscription card
+      subscriptionCard.classList.remove('hidden');
+      subscriptionCancelledCard.classList.add('hidden');
+
+      if (subscriptionPlanName) subscriptionPlanName.textContent = plan_name;
+      if (subscriptionCredits) subscriptionCredits.textContent = credits_per_month?.toLocaleString() || '--';
+
+      if (subscriptionStatus) {
+        subscriptionStatus.textContent = status === 'past_due' ? 'Past Due' : 'Active';
+        subscriptionStatus.classList.toggle('past-due', status === 'past_due');
+      }
+
+      // Show next billing/renewal date
+      if (subscriptionNext && current_period_end) {
+        subscriptionNext.textContent = `${cadence === 'yearly' ? 'Renews' : 'Next billing'}: ${formatDate(current_period_end)}`;
+      }
+    } else {
+      // Expired or other status - hide both
+      subscriptionCard.classList.add('hidden');
+      subscriptionCancelledCard.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Format date for display
+   */
+  function formatDate(dateStr) {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  }
+
+  /**
+   * Handle cancel subscription button click
+   */
+  async function handleCancelSubscription() {
+    if (!currentSubscription) return;
+
+    // Confirm cancellation
+    const confirmed = confirm(
+      `Are you sure you want to cancel your ${currentSubscription.plan_name} subscription?\n\n` +
+      `You'll keep access to your remaining credits until ${formatDate(currentSubscription.current_period_end)}.`
+    );
+
+    if (!confirmed) return;
+
+    if (cancelSubscriptionBtn) {
+      cancelSubscriptionBtn.disabled = true;
+      cancelSubscriptionBtn.textContent = 'Cancelling...';
+    }
+
+    try {
+      const result = await apiFetch('/api/billing/subscriptions/cancel', {
+        method: 'POST'
+      });
+
+      if (result.ok && result.data?.ok) {
+        // Update local state
+        currentSubscription.status = 'cancelled';
+        updateSubscriptionUI();
+
+        // Show confirmation
+        alert(`Your subscription has been cancelled.\n\nYou can continue using your credits until ${formatDate(result.data.period_end || currentSubscription.current_period_end)}.`);
+      } else {
+        alert(result.data?.message || 'Failed to cancel subscription. Please try again or contact support.');
+      }
+    } catch (err) {
+      console.error('[Credits] Cancel subscription error:', err);
+      alert('Failed to cancel subscription. Please try again or contact support.');
+    } finally {
+      if (cancelSubscriptionBtn) {
+        cancelSubscriptionBtn.disabled = false;
+        cancelSubscriptionBtn.textContent = 'Cancel Subscription';
+      }
+    }
+  }
+
+  // Attach cancel button handler
+  if (cancelSubscriptionBtn) {
+    cancelSubscriptionBtn.addEventListener('click', handleCancelSubscription);
+  }
 
   // Expose for external use
   window.TimrXCredits = {
@@ -2525,6 +2674,9 @@
     // New: Single source of truth snapshot
     getWalletSnapshot: getWalletSnapshot,
     WalletStore: WalletStore,
+    // Subscription management
+    fetchSubscription: fetchSubscription,
+    getSubscription: () => currentSubscription,
   };
 
   // Standardized ready flag for diagnostics (hub page)
