@@ -21,6 +21,8 @@
   const CONFIG = {
     CACHE_KEY: 'timrx_tutorials_cache',
     CACHE_TTL: 30 * 60 * 1000, // 30 minutes
+    API_MISSING_KEY: 'timrx_tutorials_api_missing_until', // 24h skip on 404
+    API_MISSING_TTL: 24 * 60 * 60 * 1000, // 24 hours
     API_BASE: `${BACKEND}/api/_mod`,
     FETCH_LIMIT: 12,
     FETCH_TIMEOUT: 8000
@@ -155,6 +157,41 @@
     return memoryCache.timestamp && (Date.now() - memoryCache.timestamp < CONFIG.CACHE_TTL);
   }
 
+  /**
+   * Check if API is known to be missing (404) and we should skip fetching.
+   * @returns {boolean} True if we should skip the API call.
+   */
+  function isApiKnownMissing() {
+    try {
+      const missingUntil = localStorage.getItem(CONFIG.API_MISSING_KEY);
+      if (!missingUntil) return false;
+      const until = parseInt(missingUntil, 10);
+      if (isNaN(until)) return false;
+      return Date.now() < until;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Mark API as missing for 24 hours (on 404 response).
+   */
+  function markApiMissing() {
+    try {
+      const until = Date.now() + CONFIG.API_MISSING_TTL;
+      localStorage.setItem(CONFIG.API_MISSING_KEY, String(until));
+    } catch (e) {}
+  }
+
+  /**
+   * Clear the API missing flag (if API becomes available).
+   */
+  function clearApiMissing() {
+    try {
+      localStorage.removeItem(CONFIG.API_MISSING_KEY);
+    } catch (e) {}
+  }
+
   // =========================================================================
   // API FETCH
   // =========================================================================
@@ -169,6 +206,13 @@
       return true;
     }
 
+    // Skip API if known to be missing (404 within last 24h)
+    if (!forceRefresh && isApiKnownMissing()) {
+      console.log('[Tutorials] API endpoint unavailable, using local fallback');
+      state.items = [...LOCAL_TUTORIALS];
+      return true;
+    }
+
     try {
       state.loading = true;
 
@@ -176,7 +220,6 @@
       const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
 
       const url = `${CONFIG.API_BASE}/tutorials/feed?limit=${CONFIG.FETCH_LIMIT}`;
-      console.log('[Tutorials] Fetching:', url);
 
       const response = await fetch(url, {
         signal: controller.signal,
@@ -186,6 +229,10 @@
       clearTimeout(timeout);
 
       if (!response.ok) {
+        // Mark as missing for 24h on 404/410
+        if (response.status === 404 || response.status === 410) {
+          markApiMissing();
+        }
         throw new Error(`HTTP ${response.status}`);
       }
 
@@ -197,6 +244,9 @@
       const data = await response.json();
 
       if (data.ok && data.items?.length > 0) {
+        // API is working, clear any missing flag
+        clearApiMissing();
+
         // Normalize items
         const items = data.items.map(item => ({
           ...item,
@@ -212,7 +262,10 @@
       }
 
     } catch (err) {
-      console.warn('[Tutorials] API fetch failed:', err.message, '- using local fallback');
+      // Only log if not already known missing (avoid spam)
+      if (!isApiKnownMissing()) {
+        console.log('[Tutorials] API unavailable, using local fallback');
+      }
 
       // Use local fallback
       state.items = [...LOCAL_TUTORIALS];
