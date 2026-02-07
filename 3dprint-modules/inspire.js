@@ -1066,18 +1066,8 @@
       throw new Error('Three.js scene or GLTFLoader not available');
     }
 
-    // Remove existing inspired model if any
-    const existingModel = scene.getObjectByName('inspireModel');
-    if (existingModel) {
-      scene.remove(existingModel);
-      existingModel.traverse(obj => {
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-          else obj.material.dispose();
-        }
-      });
-    }
+    // Clear ALL existing models (both from Inspire and from viewer.js/history)
+    clearAllModelsFromScene(scene, THREE);
 
     // Hide placeholder cube if it exists
     if (window.placeholderCube) {
@@ -1094,29 +1084,40 @@
         (gltf) => {
           const model = gltf.scene;
           model.name = 'inspireModel';
+          model.userData.isInspireModel = true; // Mark for identification
 
-          // Center the model
+          // Center the model on XZ plane, ground on Y
           const box = new THREE.Box3().setFromObject(model);
           const center = box.getCenter(new THREE.Vector3());
-          const min = box.min;
+          const size = box.getSize(new THREE.Vector3());
+
           model.position.x = -center.x;
           model.position.z = -center.z;
-          model.position.y = -min.y;
+          model.position.y = -box.min.y; // Ground the model
 
           scene.add(model);
 
-          // Fit camera to model
-          const size = box.getSize(new THREE.Vector3()).length();
-          const fov = camera.fov * (Math.PI / 180);
-          const distance = size / (2 * Math.tan(fov / 2)) * 1.5;
+          // Store reference globally so viewer.js can clear it
+          window.inspireCurrentModel = model;
 
-          camera.position.set(distance * 0.7, distance * 0.5, distance * 0.7);
-          camera.lookAt(center);
+          // Calculate camera position to frame the model nicely
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const fov = camera.fov * (Math.PI / 180);
+          const cameraDistance = (maxDim / 2) / Math.tan(fov / 2) * 1.8;
+
+          // Position camera at an angle looking at model center (now at origin after centering)
+          const modelCenter = new THREE.Vector3(0, size.y / 2, 0);
+          camera.position.set(
+            cameraDistance * 0.6,
+            cameraDistance * 0.4,
+            cameraDistance * 0.6
+          );
+          camera.lookAt(modelCenter);
           camera.updateProjectionMatrix();
 
-          // Update controls if available
+          // Update orbit controls
           if (window.timrxControls) {
-            window.timrxControls.target.copy(center);
+            window.timrxControls.target.copy(modelCenter);
             window.timrxControls.update();
           }
 
@@ -1137,6 +1138,49 @@
         }
       );
     });
+  }
+
+  /**
+   * Clear all loaded models from the scene (both Inspire and viewer.js models).
+   */
+  function clearAllModelsFromScene(scene, THREE) {
+    const modelsToRemove = [];
+
+    // Find all models to remove (skip lights, cameras, helpers, grid)
+    scene.traverse((obj) => {
+      // Check if it's a model we should remove
+      if (obj.name === 'inspireModel' ||
+          obj.userData?.isInspireModel ||
+          obj.userData?.isLoadedModel ||
+          (obj.type === 'Group' && obj.parent === scene && !obj.isLight && !obj.isCamera)) {
+        // Don't remove grid helpers, lights, or the placeholder cube
+        if (!obj.isGridHelper && !obj.isLight && !obj.userData?.isPlaceholder) {
+          modelsToRemove.push(obj);
+        }
+      }
+    });
+
+    // Remove and dispose each model
+    modelsToRemove.forEach(model => {
+      scene.remove(model);
+      model.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => m.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
+    });
+
+    // Also clear viewer.js's currentModel reference if it exists
+    if (window.inspireCurrentModel) {
+      window.inspireCurrentModel = null;
+    }
+
+    console.log(`[Inspire] Cleared ${modelsToRemove.length} model(s) from scene`);
   }
 
   /**
