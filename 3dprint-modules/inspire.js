@@ -123,6 +123,19 @@
   };
 
   // =========================================================================
+  // INSTANT SHUFFLE: In-memory pool for flicker-free "Surprise Me"
+  // =========================================================================
+
+  let INSPIRE_POOL = null;       // Large pool of cards fetched once
+  let INSPIRE_POOL_TS = 0;       // Timestamp of last pool fetch
+  const POOL_TTL = 10 * 60 * 1000; // 10 minutes TTL
+  const POOL_FETCH_LIMIT = 96;    // Fetch large pool once
+  const DISPLAY_LIMIT = 24;       // Show 24 cards at a time
+
+  let isShuffling = false;        // Debounce flag for rapid clicking
+  let cardElements = [];          // Persistent card DOM elements for in-place updates
+
+  // =========================================================================
   // CACHE UTILITIES
   // =========================================================================
 
@@ -159,6 +172,84 @@
 
   function isCacheFresh() {
     return memoryCache.timestamp && (Date.now() - memoryCache.timestamp < CONFIG.CACHE_TTL);
+  }
+
+  // =========================================================================
+  // INSPIRE POOL UTILITIES (for instant shuffle)
+  // =========================================================================
+
+  function isPoolValid() {
+    return INSPIRE_POOL && INSPIRE_POOL.length > 0 && (Date.now() - INSPIRE_POOL_TS < POOL_TTL);
+  }
+
+  /**
+   * Fetch a large pool of cards once for instant local shuffling.
+   * Returns true if pool is ready.
+   */
+  async function ensurePoolLoaded() {
+    if (isPoolValid()) {
+      return true;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        type: 'all',
+        shuffle: 'false', // Get consistent results, we shuffle locally
+        limit: String(POOL_FETCH_LIMIT),
+        mix: 'balanced'
+      });
+
+      const url = `${CONFIG.API_BASE}/inspire/feed?${params}`;
+      console.log('[Inspire] Fetching pool:', url);
+
+      const result = await safeFetch(url);
+
+      if (result.ok && result.data?.ok) {
+        const cards = (result.data.cards || []).map(card => ({
+          ...card,
+          thumbnail: card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+        })).filter(card => card.thumbnail);
+
+        INSPIRE_POOL = cards;
+        INSPIRE_POOL_TS = Date.now();
+
+        // Also update memoryCache for POTD
+        if (result.data.prompt_of_the_day) {
+          memoryCache.promptOfTheDay = result.data.prompt_of_the_day;
+        }
+
+        console.log(`[Inspire] Pool loaded: ${INSPIRE_POOL.length} cards`);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Inspire] Pool fetch failed:', err.message);
+    }
+
+    // Fallback: try to use existing memoryCache
+    if (memoryCache.cards?.length > 0) {
+      INSPIRE_POOL = [...memoryCache.cards];
+      INSPIRE_POOL_TS = Date.now();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Preload an image and wait for decode before returning.
+   * Prevents flash of broken/loading image.
+   */
+  async function preloadImage(url) {
+    if (!url) return false;
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      return true;
+    } catch (e) {
+      // Image failed to load/decode, but that's ok - browser will show placeholder
+      return false;
+    }
   }
 
   // =========================================================================
@@ -508,6 +599,126 @@
     }
 
     grid.innerHTML = filteredCards.map(renderCard).join('');
+
+    // Store references to card elements for in-place updates
+    cardElements = Array.from(grid.querySelectorAll('.inspire-card'));
+  }
+
+  /**
+   * Update existing card DOM elements in-place (no flicker).
+   * Preloads images before swapping src to prevent blank flash.
+   */
+  async function updateCardsInPlace(cards) {
+    const grid = overlayEl?.querySelector('#inspireGrid');
+    if (!grid) return;
+
+    // First render: create persistent card elements
+    if (cardElements.length === 0) {
+      renderGrid();
+      return;
+    }
+
+    // Ensure we have enough card elements (create with full structure)
+    while (cardElements.length < cards.length) {
+      const idx = cardElements.length;
+      const cardData = cards[idx] || cards[0]; // Use corresponding data or fallback
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = renderCard(cardData);
+      const newCard = tempDiv.firstElementChild;
+      grid.appendChild(newCard);
+      cardElements.push(newCard);
+    }
+
+    // Hide extra cards if we have fewer items
+    for (let i = cards.length; i < cardElements.length; i++) {
+      cardElements[i].style.display = 'none';
+    }
+
+    // Preload all images in parallel for instant swap
+    const preloadPromises = cards.map(card => {
+      const thumbUrl = card.thumb_preview || card.thumbnail || card.thumb_url || '';
+      return preloadImage(thumbUrl);
+    });
+
+    // Wait for all images to preload (with timeout fallback)
+    await Promise.race([
+      Promise.all(preloadPromises),
+      new Promise(resolve => setTimeout(resolve, 500)) // 500ms max wait
+    ]);
+
+    // Update each card element in-place
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const el = cardElements[i];
+
+      if (!el) continue;
+
+      // Show the card
+      el.style.display = '';
+
+      // Update data attributes
+      el.dataset.id = card.id;
+      el.dataset.type = card.type;
+      el.dataset.thumbPreview = card.thumb_preview || card.thumbnail || card.thumb_url || '';
+      el.dataset.thumbRefined = card.thumb_refined || '';
+
+      // Update class for aspect ratio and refine badge
+      const aspect = card.aspect || 'square';
+      const hasRefine = card.has_refine || (card.thumb_refined && card.thumb_refined !== el.dataset.thumbPreview);
+      el.className = `inspire-card ${aspect}${hasRefine ? ' has-refine' : ''}`;
+
+      // Update image (already preloaded, so instant)
+      const img = el.querySelector('.inspire-card__image');
+      const thumbUrl = card.thumb_preview || card.thumbnail || card.thumb_url || '';
+      if (img && img.src !== thumbUrl) {
+        img.src = thumbUrl;
+        img.alt = card.prompt || card.title || 'Untitled creation';
+      }
+
+      // Update prompt text
+      const promptEl = el.querySelector('.inspire-card__prompt');
+      if (promptEl) {
+        promptEl.textContent = card.prompt || card.title || 'Untitled creation';
+      }
+
+      // Update type badge
+      const typeBadge = el.querySelector('.inspire-card__type-badge');
+      if (typeBadge) {
+        const typeIcon = ICONS[card.type] || ICONS.model;
+        typeBadge.className = `inspire-card__type-badge ${card.type}`;
+        typeBadge.innerHTML = `${typeIcon}<span>${card.type}</span>`;
+      }
+
+      // Update tags
+      const metaEl = el.querySelector('.inspire-card__meta');
+      if (metaEl) {
+        const tags = card.tags || ['community'];
+        metaEl.innerHTML = tags.map(tag =>
+          `<span class="inspire-card__tag ${tag}">${tag.replace('-', ' ')}</span>`
+        ).join('');
+      }
+
+      // Update video badge visibility
+      const videoBadge = el.querySelector('.inspire-card__video-badge');
+      if (videoBadge) {
+        videoBadge.style.display = card.type === 'video' ? '' : 'none';
+      }
+
+      // Update refine badge visibility
+      const refineBadge = el.querySelector('.inspire-card__refine-badge');
+      if (refineBadge) {
+        refineBadge.style.display = hasRefine ? '' : 'none';
+      }
+
+      // Subtle animation for visual feedback
+      el.style.opacity = '0.7';
+      el.style.transform = 'scale(0.98)';
+      requestAnimationFrame(() => {
+        el.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+        el.style.opacity = '1';
+        el.style.transform = 'scale(1)';
+      });
+    }
   }
 
   // =========================================================================
@@ -598,29 +809,48 @@
   }
 
   /**
-   * Shuffle - feels instant by doing local shuffle first,
-   * then fetching fresh content in background
+   * Shuffle - INSTANT local shuffle from pool, no network call.
+   * Uses in-place DOM updates to prevent flicker.
    */
   async function shuffleCards() {
-    // Instant feedback: local shuffle
-    if (state.cards.length > 0) {
-      state.cards = shuffleArray(state.cards);
-      renderGrid();
-      animateCards();
+    // Debounce: ignore rapid clicks while shuffling
+    if (isShuffling) {
+      return;
     }
+    isShuffling = true;
 
-    // Update POTD with random prompt
-    const potdEl = overlayEl?.querySelector('.inspire-potd__prompt');
-    if (potdEl) {
-      potdEl.textContent = getRandomPrompt();
-    }
+    try {
+      // Ensure pool is loaded (fetches once, then cached for 10 min)
+      const poolReady = await ensurePoolLoaded();
 
-    // Background refresh from server (non-blocking)
-    fetchInspireContent({ shuffle: true, forceRefresh: true }).then(success => {
-      if (success) {
-        renderGrid();
+      if (poolReady && INSPIRE_POOL.length > 0) {
+        // Shuffle the entire pool locally (Fisher-Yates)
+        INSPIRE_POOL = shuffleArray(INSPIRE_POOL);
+
+        // Take first DISPLAY_LIMIT cards for display
+        state.cards = INSPIRE_POOL.slice(0, DISPLAY_LIMIT);
+
+        // Update cards in-place (no DOM rebuild = no flicker)
+        await updateCardsInPlace(state.cards);
+      } else {
+        // Fallback: shuffle existing cards locally
+        if (state.cards.length > 0) {
+          state.cards = shuffleArray(state.cards);
+          await updateCardsInPlace(state.cards);
+        }
       }
-    });
+
+      // Update POTD with random prompt
+      const potdEl = overlayEl?.querySelector('.inspire-potd__prompt');
+      if (potdEl) {
+        potdEl.textContent = getRandomPrompt();
+      }
+    } finally {
+      // Allow next shuffle after a small delay (prevents spam)
+      setTimeout(() => {
+        isShuffling = false;
+      }, 150);
+    }
   }
 
   function animateCards() {
@@ -644,14 +874,28 @@
       btn.classList.toggle('active', btn.dataset.filter === filterId);
     });
 
-    // For type filters on "all" data, just re-render locally
-    if (['all', 'trending'].includes(filterId) || state.cards.length > 0) {
-      renderGrid();
-      return;
+    // Ensure pool is loaded for filtering
+    await ensurePoolLoaded();
+
+    // Filter from the pool (no network call)
+    if (INSPIRE_POOL && INSPIRE_POOL.length > 0) {
+      let filtered = [...INSPIRE_POOL];
+
+      if (filterId === 'models') {
+        filtered = filtered.filter(c => c.type === 'model');
+      } else if (filterId === 'images') {
+        filtered = filtered.filter(c => c.type === 'image');
+      } else if (filterId === 'videos') {
+        filtered = filtered.filter(c => c.type === 'video');
+      } else if (filterId === 'trending') {
+        filtered = filtered.filter(c => c.tags?.includes('trending'));
+      }
+
+      // Update state.cards with filtered results
+      state.cards = filtered.slice(0, DISPLAY_LIMIT);
     }
 
-    // Fetch specific type from API if we don't have mixed data
-    await fetchInspireContent({ type: filterId, shuffle: false });
+    // Re-render (renderGrid also applies activeFilter)
     renderGrid();
   }
 
@@ -1085,7 +1329,7 @@
   // HOVER THUMBNAIL SWAP (desktop only)
   // =========================================================================
 
-  function handleCardHoverIn(e) {
+  async function handleCardHoverIn(e) {
     const card = e.target.closest('.inspire-card.has-refine');
     if (!card) return;
 
@@ -1097,14 +1341,16 @@
       if (!img.dataset.originalSrc) {
         img.dataset.originalSrc = img.src;
       }
-      // Swap to refined thumbnail with smooth transition
-      img.style.opacity = '0.7';
-      img.src = refined;
-      img.onload = () => { img.style.opacity = '1'; };
+      // Preload refined image before swapping to prevent flash
+      await preloadImage(refined);
+      // Only swap if still hovering (check card is still hovered)
+      if (card.matches(':hover')) {
+        img.src = refined;
+      }
     }
   }
 
-  function handleCardHoverOut(e) {
+  async function handleCardHoverOut(e) {
     const card = e.target.closest('.inspire-card.has-refine');
     if (!card) return;
 
@@ -1112,10 +1358,9 @@
     const preview = card.dataset.thumbPreview;
 
     if (img && preview) {
-      // Revert to preview thumbnail
-      img.style.opacity = '0.7';
+      // Preview should already be cached, but preload just in case
+      await preloadImage(preview);
       img.src = preview;
-      img.onload = () => { img.style.opacity = '1'; };
     }
   }
 
@@ -1123,7 +1368,7 @@
     if (state.initialized) return;
     state.initialized = true;
 
-    // Load cache first for instant display
+    // Load localStorage cache first for instant display
     loadCachedContent();
 
     // Create overlay
@@ -1136,19 +1381,34 @@
 
     bindEvents();
 
-    // Render cached content immediately
+    // Track if we have content ready for instant display
+    let hasContentReady = false;
+
+    // Render cached content immediately for instant display
     if (memoryCache.cards?.length > 0) {
-      state.cards = [...memoryCache.cards];
+      state.cards = memoryCache.cards.slice(0, DISPLAY_LIMIT);
+      // Also populate pool from cache for instant shuffles
+      INSPIRE_POOL = [...memoryCache.cards];
+      INSPIRE_POOL_TS = memoryCache.timestamp || 0;
       renderGrid();
+      hasContentReady = true;
       console.log('[Inspire] Rendered cached content');
     }
 
-    // Fetch fresh content
-    await fetchInspireContent({ shuffle: true });
-
-    // Update displays
-    updatePOTDDisplay();
-    renderGrid();
+    // Load the full pool (await if no cache, so auto-open has content)
+    const poolLoadPromise = ensurePoolLoaded().then(success => {
+      if (success && INSPIRE_POOL.length > 0) {
+        // If no cards were rendered yet, show from pool
+        if (state.cards.length === 0) {
+          state.cards = shuffleArray(INSPIRE_POOL).slice(0, DISPLAY_LIMIT);
+          renderGrid();
+        }
+        // Update POTD display
+        updatePOTDDisplay();
+        return true;
+      }
+      return false;
+    });
 
     console.log('[Inspire] Initialized');
 
@@ -1163,9 +1423,23 @@
     if (!hasShownThisSession() && !state.userManuallyClosed) {
       console.log('[Inspire] Auto-opening (first time this session)');
       markAutoOpenDone();
-      setTimeout(() => {
-        openInspire({ isAuto: true });
-      }, CONFIG.AUTO_OPEN_DELAY);
+
+      if (hasContentReady) {
+        // Cache exists - open after short delay for smooth UX
+        setTimeout(() => {
+          openInspire({ isAuto: true });
+        }, CONFIG.AUTO_OPEN_DELAY);
+      } else {
+        // No cache - wait for pool to load, then open
+        // This ensures content is ready when panel opens
+        poolLoadPromise.then(success => {
+          if (success) {
+            setTimeout(() => {
+              openInspire({ isAuto: true });
+            }, 100); // Shorter delay since we already waited for fetch
+          }
+        });
+      }
     } else {
       console.log('[Inspire] Skipping auto-open (already shown this session or user closed)');
     }
