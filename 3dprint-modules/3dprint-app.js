@@ -575,14 +575,15 @@
               </select>
             </div>
             <div class="video-grid-cell">
-              <label for="videoQuality">Quality</label>
+              <label for="videoQuality">Resolution</label>
               <select id="videoQuality">
-                <option value="standard" selected>Standard</option>
-                <option value="high">High</option>
+                <option value="720p" selected>720p</option>
+                <option value="1080p">1080p</option>
+                <option value="4k">4K</option>
               </select>
             </div>
           </div>
-          <span class="field-hint settings-hint">Higher quality uses more credits.</span>
+          <span class="field-hint settings-hint">Higher resolution uses more credits. 1080p/4K require 8s duration.</span>
 
           <label class="video-checkbox-label">
             <input type="checkbox" id="videoLoop" checked>
@@ -595,9 +596,9 @@
           <div class="gen-meta">
             <span class="gen-time" id="videoGenTime">~2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 30</span>
+            <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
           </div>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="30 credits" data-base-credits="30" data-video-mode="text2video" data-provider="google" disabled>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -1148,14 +1149,23 @@
       const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
-      // VIDEO: Pricing Constants (simplified)
+      // VIDEO: Pricing Constants (resolution + duration based)
       // ========================================
-      // Base credits per duration (seconds)
-      const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
-      // Quality multiplier: standard = 1x, high = 1.5x
-      const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
-      // Time estimates by quality
-      const VIDEO_TIME_ESTIMATE = { standard: '~2 min', high: '~3 min' };
+      // Credits by resolution and duration
+      // DB-driven via video_credit_rules, these are frontend fallbacks
+      const VIDEO_CREDIT_RULES = {
+        '720p':  { 4: 70, 6: 90, 8: 110 },
+        '1080p': { 8: 130 },  // 1080p requires 8s duration
+        '4k':    { 8: 160 }   // 4K requires 8s duration
+      };
+      // Valid durations per resolution (Gemini constraints)
+      const VIDEO_VALID_DURATIONS = {
+        '720p':  [4, 6, 8],
+        '1080p': [8],
+        '4k':    [8]
+      };
+      // Time estimates by resolution
+      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~4 min' };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
       const VIDEO_ASPECT_MAP = {
@@ -1169,12 +1179,14 @@
        */
       function getVideoSettingsFromUI() {
         const durationRaw = videoDuration?.value || '4';
-        const qualityRaw = videoQuality?.value || 'standard';
+        // videoQuality now contains resolution (720p/1080p/4k)
+        const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
         return {
           durationSec: parseInt(durationRaw, 10) || 4,
-          quality: qualityRaw,
+          resolution: resolutionRaw,
+          quality: resolutionRaw,  // Keep for backwards compatibility
           aspect: aspectRaw,
           aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || '16:9',
           fps: 24, // Fixed for Veo
@@ -1184,21 +1196,80 @@
       }
 
       /**
-       * Compute video credits based on settings
-       * Formula: base(duration) × quality_multiplier
+       * Compute video credits based on resolution + duration
+       * Uses VIDEO_CREDIT_RULES lookup table
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
-        const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
-        const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
-        return Math.round(base * mult);
+        const resolution = settings.resolution || '720p';
+        const duration = settings.durationSec || 4;
+
+        // Look up credits from rules table
+        const resRules = VIDEO_CREDIT_RULES[resolution];
+        if (resRules && resRules[duration] !== undefined) {
+          return resRules[duration];
+        }
+
+        // Fallback: if duration not valid for resolution, use 8s cost
+        if (resRules && resRules[8] !== undefined) {
+          return resRules[8];
+        }
+
+        // Ultimate fallback: minimum 720p 4s cost
+        return 70;
+      }
+
+      /**
+       * Check if a duration is valid for the selected resolution
+       * @param {string} resolution - '720p', '1080p', or '4k'
+       * @param {number} duration - Duration in seconds
+       * @returns {boolean}
+       */
+      function isValidDuration(resolution, duration) {
+        const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
+        return validDurations.includes(duration);
+      }
+
+      /**
+       * Update duration dropdown based on selected resolution
+       * Disables invalid durations for 1080p/4K
+       */
+      function updateDurationOptions() {
+        if (!videoDuration || !videoQuality) return;
+
+        const resolution = videoQuality.value || '720p';
+        const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
+        const currentDuration = parseInt(videoDuration.value, 10);
+
+        // Enable/disable options based on resolution
+        Array.from(videoDuration.options).forEach(opt => {
+          const dur = parseInt(opt.value, 10);
+          const isValid = validDurations.includes(dur);
+          opt.disabled = !isValid;
+
+          // Add visual hint for disabled options
+          if (!isValid) {
+            opt.textContent = `${dur} sec (720p only)`;
+          } else {
+            opt.textContent = `${dur} sec`;
+          }
+        });
+
+        // If current selection is invalid, switch to 8s
+        if (!validDurations.includes(currentDuration)) {
+          videoDuration.value = '8';
+        }
       }
 
       // Expose video settings and credits calculator globally
       window.VideoJobControl = {
         getSettings: getVideoSettingsFromUI,
-        computeCredits: computeVideoCredits
+        computeCredits: computeVideoCredits,
+        isValidDuration: isValidDuration,
+        updateDurationOptions: updateDurationOptions,
+        VIDEO_CREDIT_RULES: VIDEO_CREDIT_RULES,
+        VIDEO_VALID_DURATIONS: VIDEO_VALID_DURATIONS
       };
 
       /**
@@ -1213,9 +1284,9 @@
         // Update credits display
         videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
 
-        // Update time estimate
+        // Update time estimate based on resolution
         if (videoGenTime) {
-          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.quality] || '~2 min';
+          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
         }
 
         // Update button attributes
@@ -1303,6 +1374,17 @@
           el.addEventListener('change', updateVideoFooter);
         }
       });
+
+      // When resolution changes, update valid duration options
+      if (videoQuality) {
+        videoQuality.addEventListener('change', () => {
+          updateDurationOptions();
+          updateVideoFooter();
+        });
+      }
+
+      // Initialize duration options based on default resolution
+      updateDurationOptions();
 
       // Wire up form validation on input changes
       if (videoTextPrompt) {
