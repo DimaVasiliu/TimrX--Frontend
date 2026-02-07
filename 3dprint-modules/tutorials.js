@@ -1,0 +1,816 @@
+/**
+ * ============================================================================
+ * TUTORIALS MODULE — Thumbnail-Based Tutorial Gallery for TimrX 3D Workspace
+ * ============================================================================
+ * Lightweight implementation with:
+ * - NO WebGL/Three.js renderers in tutorial cards
+ * - Lazy loading images for performance
+ * - Click-to-load into main workspace viewer (reuses Inspire pattern)
+ * - Backend fetch with local fallback
+ */
+
+(function() {
+  'use strict';
+
+  // =========================================================================
+  // CONFIGURATION
+  // =========================================================================
+
+  const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+
+  const CONFIG = {
+    CACHE_KEY: 'timrx_tutorials_cache',
+    CACHE_TTL: 30 * 60 * 1000, // 30 minutes
+    API_BASE: `${BACKEND}/api/_mod`,
+    FETCH_LIMIT: 12,
+    FETCH_TIMEOUT: 8000
+  };
+
+  // =========================================================================
+  // LOCAL TUTORIAL ITEMS (fallback when API unavailable)
+  // =========================================================================
+
+  const LOCAL_TUTORIALS = [
+    {
+      id: 'tut-text-to-3d',
+      type: 'model',
+      title: 'Text to 3D Generation',
+      description: 'Create 3D models from text prompts using AI. Best practices for prompt crafting.',
+      thumbnail: '3dprint-modules/3dmodels/undead_creature_preview.png',
+      glb_url: '3dprint-modules/3dmodels/undead_creature_preview.glb',
+      glb_refined: '3dprint-modules/3dmodels/undead_creature_refined.glb',
+      prompt: 'Undead creature with dark fantasy style, detailed bones and torn cloth',
+      category: 'generation',
+      tags: ['text-to-3d', 'beginner']
+    },
+    {
+      id: 'tut-image-to-3d',
+      type: 'model',
+      title: 'Image to 3D Conversion',
+      description: 'Convert reference images and artwork into 3D models.',
+      thumbnail: '3dprint-modules/3dmodels/dog3d.png',
+      glb_url: '3dprint-modules/3dmodels/dog3d.glb',
+      prompt: 'Friendly cartoon dog, stylized 3D character',
+      category: 'generation',
+      tags: ['image-to-3d', 'beginner']
+    },
+    {
+      id: 'tut-remesh',
+      type: 'model',
+      title: 'Remesh for 3D Printing',
+      description: 'Fix topology issues and prepare models for successful prints.',
+      thumbnail: '3dprint-modules/3dmodels/remesh_demo.png',
+      glb_url: '3dprint-modules/3dmodels/remesh_demo.glb',
+      glb_refined: '3dprint-modules/3dmodels/remesh_demo_fixed.glb',
+      prompt: 'Clean topology mesh ready for 3D printing',
+      category: 'post-processing',
+      tags: ['remesh', 'printing', 'intermediate']
+    },
+    {
+      id: 'tut-texture',
+      type: 'model',
+      title: 'AI Texture Generation',
+      description: 'Apply realistic PBR textures to your models using text or image prompts.',
+      thumbnail: '3dprint-modules/3dmodels/textured_model.png',
+      glb_url: '3dprint-modules/3dmodels/textured_model.glb',
+      prompt: 'Weathered stone texture with moss, ancient ruins style',
+      category: 'post-processing',
+      tags: ['texture', 'pbr', 'intermediate']
+    },
+    {
+      id: 'tut-prompt-tips',
+      type: 'image',
+      title: 'Prompt Crafting Tips',
+      description: 'Learn to write better prompts for higher quality 3D generation results.',
+      thumbnail: '3dprint-modules/tutorials/prompt-tips.png',
+      image_url: '3dprint-modules/tutorials/prompt-tips.png',
+      prompt: 'Detailed fantasy creature, armored dragon with crystalline scales',
+      category: 'tips',
+      tags: ['prompts', 'beginner']
+    },
+    {
+      id: 'tut-export-formats',
+      type: 'image',
+      title: 'Export Formats Guide',
+      description: 'GLB, GLTF, FBX, OBJ - which format to use for your project.',
+      thumbnail: '3dprint-modules/tutorials/export-guide.png',
+      image_url: '3dprint-modules/tutorials/export-guide.png',
+      category: 'tips',
+      tags: ['export', 'formats', 'beginner']
+    }
+  ];
+
+  // =========================================================================
+  // STATE
+  // =========================================================================
+
+  let state = {
+    items: [],
+    initialized: false,
+    loading: false
+  };
+
+  let memoryCache = {
+    items: [],
+    timestamp: 0
+  };
+
+  // =========================================================================
+  // ICONS
+  // =========================================================================
+
+  const ICONS = {
+    model: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`,
+    image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`,
+    video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M10 8l6 4-6 4V8z"/></svg>`,
+    play: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`,
+    eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+  };
+
+  // =========================================================================
+  // CACHE UTILITIES
+  // =========================================================================
+
+  function loadCachedContent() {
+    try {
+      const cached = localStorage.getItem(CONFIG.CACHE_KEY);
+      if (!cached) return null;
+      const data = JSON.parse(cached);
+      memoryCache = data;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveCacheContent(data) {
+    try {
+      const cacheData = { ...data, timestamp: Date.now() };
+      memoryCache = cacheData;
+      localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify(cacheData));
+    } catch (e) {}
+  }
+
+  function isCacheFresh() {
+    return memoryCache.timestamp && (Date.now() - memoryCache.timestamp < CONFIG.CACHE_TTL);
+  }
+
+  // =========================================================================
+  // API FETCH
+  // =========================================================================
+
+  async function fetchTutorials(options = {}) {
+    const { forceRefresh = false } = options;
+
+    // Use cache if fresh
+    if (!forceRefresh && isCacheFresh() && memoryCache.items?.length > 0) {
+      console.log('[Tutorials] Using cached content');
+      state.items = [...memoryCache.items];
+      return true;
+    }
+
+    try {
+      state.loading = true;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
+
+      const url = `${CONFIG.API_BASE}/tutorials/feed?limit=${CONFIG.FETCH_LIMIT}`;
+      console.log('[Tutorials] Fetching:', url);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        credentials: 'include'
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const contentType = response.headers.get('Content-Type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Response is not JSON');
+      }
+
+      const data = await response.json();
+
+      if (data.ok && data.items?.length > 0) {
+        // Normalize items
+        const items = data.items.map(item => ({
+          ...item,
+          thumbnail: item.thumb_url || item.thumbnail || item.image_url || ''
+        })).filter(item => item.thumbnail);
+
+        state.items = items;
+        saveCacheContent({ items });
+        console.log(`[Tutorials] Loaded ${items.length} items from API`);
+        return true;
+      } else {
+        throw new Error('No items in response');
+      }
+
+    } catch (err) {
+      console.warn('[Tutorials] API fetch failed:', err.message, '- using local fallback');
+
+      // Use local fallback
+      state.items = [...LOCAL_TUTORIALS];
+      return true;
+
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  // =========================================================================
+  // RENDER FUNCTIONS
+  // =========================================================================
+
+  /**
+   * Render a single tutorial card (thumbnail-based, NO WebGL)
+   */
+  function renderTutorialCard(item) {
+    const typeIcon = ICONS[item.type] || ICONS.model;
+    const categoryLabel = item.category || 'tutorial';
+
+    return `
+      <article class="tutorial-card"
+               data-id="${item.id}"
+               data-type="${item.type}"
+               tabindex="0"
+               role="button"
+               aria-label="View ${item.title}">
+        <div class="tutorial-card__media">
+          <img class="tutorial-card__thumb"
+               src="${item.thumbnail}"
+               alt="${item.title}"
+               loading="lazy"
+               decoding="async"
+               onerror="this.style.display='none'"/>
+          <div class="tutorial-card__play-overlay">
+            ${ICONS.eye}
+            <span>View</span>
+          </div>
+          ${item.type === 'video' ? '<div class="tutorial-card__video-badge">' + ICONS.play + '</div>' : ''}
+        </div>
+        <div class="tutorial-card__content">
+          <div class="tutorial-card__type">${typeIcon}<span>${item.type}</span></div>
+          <h4 class="tutorial-card__title">${item.title}</h4>
+          ${item.description ? `<p class="tutorial-card__desc">${item.description}</p>` : ''}
+          <div class="tutorial-card__category">${categoryLabel}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  /**
+   * Render tutorial cards into a container
+   */
+  function renderTutorialGrid(containerId, filterFn = null) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    let items = [...state.items];
+    if (filterFn) {
+      items = items.filter(filterFn);
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="tutorial-empty">
+          <p>No tutorials available yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = items.map(renderTutorialCard).join('');
+
+    // Bind click handlers
+    container.querySelectorAll('.tutorial-card').forEach(card => {
+      card.addEventListener('click', handleCardClick);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick(e);
+        }
+      });
+    });
+  }
+
+  // =========================================================================
+  // VIEWER INTEGRATION (reuses Inspire's pattern)
+  // =========================================================================
+
+  /**
+   * Handle card click - load content into main workspace viewer
+   */
+  function handleCardClick(e) {
+    const card = e.target.closest('.tutorial-card');
+    if (!card) return;
+
+    const itemData = state.items.find(item => item.id === card.dataset.id);
+    if (!itemData) return;
+
+    loadContentIntoViewer(itemData);
+  }
+
+  /**
+   * Load tutorial content into the main workspace viewer
+   * Reuses the same pattern as Inspire module
+   */
+  function loadContentIntoViewer(itemData) {
+    const type = itemData.type;
+    console.log('[Tutorials] Loading content into viewer:', type, itemData.id);
+
+    // Close tutorials expanded view if open
+    closeTutorialsView();
+
+    // Small delay to let close animation start
+    requestAnimationFrame(() => {
+      if (type === 'model') {
+        loadModelIntoViewer(itemData);
+      } else if (type === 'video') {
+        loadVideoIntoViewer(itemData);
+      } else if (type === 'image') {
+        loadImageIntoViewer(itemData);
+      }
+    });
+
+    window.dispatchEvent(new CustomEvent('tutorials:content-loaded', {
+      detail: { type, id: itemData.id }
+    }));
+  }
+
+  /**
+   * Load a 3D model into the main viewer
+   */
+  function loadModelIntoViewer(itemData) {
+    const glbUrl = itemData.glb_url || itemData.model_url;
+    const thumbnailUrl = itemData.thumbnail;
+
+    // Switch to model panel
+    const modelRailBtn = document.querySelector('[data-panel="model"]');
+    if (modelRailBtn) modelRailBtn.click();
+
+    // Try to load 3D model using available methods
+    if (glbUrl) {
+      const tryLoadModel = async () => {
+        if (typeof window.loadGlbFromUrl === 'function') {
+          return window.loadGlbFromUrl(glbUrl);
+        }
+        if (window.Viewer?.loadGlbFromUrl) {
+          return window.Viewer.loadGlbFromUrl(glbUrl);
+        }
+        if (window.Viewer?.showModelInViewer) {
+          return window.Viewer.showModelInViewer(glbUrl, { title: itemData.title });
+        }
+        throw new Error('No viewer available');
+      };
+
+      tryLoadModel()
+        .then(() => {
+          console.log('[Tutorials] Model loaded successfully');
+          if (itemData.prompt) fillPrompt(itemData.prompt);
+        })
+        .catch(err => {
+          console.warn('[Tutorials] Model loading failed, showing thumbnail:', err.message);
+          showAsThumbnail(itemData, thumbnailUrl);
+        });
+    } else if (thumbnailUrl) {
+      showAsThumbnail(itemData, thumbnailUrl);
+    }
+  }
+
+  /**
+   * Show content as thumbnail image (fallback)
+   */
+  function showAsThumbnail(itemData, thumbnailUrl) {
+    const imageRailBtn = document.querySelector('[data-panel="image"]');
+    if (imageRailBtn) imageRailBtn.click();
+
+    const imageEl = document.getElementById('generatedImage');
+    if (imageEl) {
+      imageEl.src = thumbnailUrl;
+      imageEl.classList.remove('hidden');
+      imageEl.alt = itemData.title || 'Tutorial Preview';
+    }
+
+    const viewerTitle = document.getElementById('viewerTitle');
+    if (viewerTitle) {
+      viewerTitle.textContent = itemData.title || 'Tutorial Preview';
+    }
+
+    if (itemData.prompt) fillPrompt(itemData.prompt);
+  }
+
+  /**
+   * Load video into viewer
+   */
+  function loadVideoIntoViewer(itemData) {
+    const videoRailBtn = document.querySelector('[data-panel="video"]');
+    if (videoRailBtn) videoRailBtn.click();
+
+    const videoUrl = itemData.video_url || itemData.url;
+    if (!videoUrl) {
+      console.warn('[Tutorials] No video URL found');
+      return;
+    }
+
+    if (window.Viewer?.showVideoInViewer) {
+      window.Viewer.showVideoInViewer(videoUrl, {
+        title: itemData.title || 'Tutorial Video',
+        autoplay: true
+      });
+    } else {
+      const videoEl = document.getElementById('generatedVideo');
+      if (videoEl) {
+        videoEl.src = videoUrl;
+        videoEl.classList.remove('hidden');
+        videoEl.load();
+        videoEl.play().catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * Load image into viewer
+   */
+  function loadImageIntoViewer(itemData) {
+    const imageRailBtn = document.querySelector('[data-panel="image"]');
+    if (imageRailBtn) imageRailBtn.click();
+
+    const imageUrl = itemData.image_url || itemData.thumbnail;
+    if (!imageUrl) {
+      console.warn('[Tutorials] No image URL found');
+      return;
+    }
+
+    if (window.Viewer?.showImageInViewer) {
+      window.Viewer.showImageInViewer(imageUrl);
+    } else {
+      const imgEl = document.getElementById('generatedImage');
+      const placeholder = document.getElementById('imagePlaceholder');
+      if (imgEl) {
+        imgEl.src = imageUrl;
+        imgEl.classList.remove('hidden');
+      }
+      if (placeholder) {
+        placeholder.classList.add('hidden');
+      }
+    }
+  }
+
+  /**
+   * Fill prompt input with tutorial prompt
+   */
+  function fillPrompt(prompt) {
+    const promptInput = document.querySelector(
+      '#modelPrompt, #imagePrompt, #texturePrompt, #videoTextPrompt, textarea[name="prompt"]'
+    );
+    if (promptInput) {
+      promptInput.value = prompt;
+      promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+      promptInput.focus();
+    }
+  }
+
+  /**
+   * Close tutorials expanded view
+   */
+  function closeTutorialsView() {
+    const tutorialsGallery = document.getElementById('tutorialsGallery');
+    if (tutorialsGallery && !tutorialsGallery.hidden) {
+      // Use the expanded view close mechanism
+      const closeBtn = document.getElementById('tutorialsExit');
+      if (closeBtn) closeBtn.click();
+    }
+  }
+
+  // =========================================================================
+  // REPLACE 3D VIEWERS WITH THUMBNAIL CARDS
+  // =========================================================================
+
+  /**
+   * Replace tutorial-3d-viewer elements with thumbnail cards
+   * Called on init to convert existing viewers
+   */
+  function convertViewersToThumbnails() {
+    const viewers = document.querySelectorAll('.tutorial-3d-viewer');
+
+    viewers.forEach(viewer => {
+      const container = viewer.parentElement;
+      if (!container) return;
+
+      // Extract data from viewer element
+      const id = viewer.id || `tutorial-${Math.random().toString(36).substr(2, 9)}`;
+      const previewSrc = viewer.dataset.preview || viewer.dataset.src;
+      const refinedSrc = viewer.dataset.refined;
+      const label = viewer.getAttribute('aria-label') || 'Tutorial Model';
+
+      // Generate thumbnail URL from GLB path (assume .png version exists)
+      const thumbnailUrl = previewSrc ? previewSrc.replace('.glb', '.png') : '';
+
+      // Create thumbnail card HTML
+      const cardHTML = `
+        <div class="tutorial-model-card"
+             data-id="${id}"
+             data-preview="${previewSrc || ''}"
+             data-refined="${refinedSrc || ''}"
+             tabindex="0"
+             role="button"
+             aria-label="${label}">
+          <div class="tutorial-model-card__thumb">
+            <img src="${thumbnailUrl}"
+                 alt="${label}"
+                 loading="lazy"
+                 decoding="async"
+                 onerror="this.parentElement.innerHTML='<div class=\\'tutorial-model-card__placeholder\\'>3D Model</div>'"/>
+            <div class="tutorial-model-card__overlay">
+              ${ICONS.eye}
+              <span>View in Workspace</span>
+            </div>
+          </div>
+          ${refinedSrc ? '<span class="tutorial-model-card__hint">Click to view in workspace</span>' : ''}
+        </div>
+      `;
+
+      // Replace viewer with card
+      viewer.outerHTML = cardHTML;
+
+      // Remove the old hint if it exists
+      const oldHint = container.querySelector('.model-toggle-hint');
+      if (oldHint) oldHint.remove();
+    });
+
+    // Bind click handlers for the new cards
+    document.querySelectorAll('.tutorial-model-card').forEach(card => {
+      card.addEventListener('click', handleModelCardClick);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleModelCardClick(e);
+        }
+      });
+    });
+  }
+
+  /**
+   * Handle click on converted model cards
+   */
+  function handleModelCardClick(e) {
+    const card = e.target.closest('.tutorial-model-card');
+    if (!card) return;
+
+    const previewSrc = card.dataset.preview;
+    const refinedSrc = card.dataset.refined;
+    const label = card.getAttribute('aria-label') || 'Tutorial Model';
+
+    // Create item data for viewer
+    const itemData = {
+      id: card.dataset.id,
+      type: 'model',
+      title: label,
+      glb_url: previewSrc,
+      glb_refined: refinedSrc,
+      thumbnail: previewSrc ? previewSrc.replace('.glb', '.png') : ''
+    };
+
+    loadContentIntoViewer(itemData);
+  }
+
+  // =========================================================================
+  // CSS INJECTION (minimal styles for thumbnail cards)
+  // =========================================================================
+
+  function injectStyles() {
+    if (document.getElementById('tutorials-module-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'tutorials-module-styles';
+    style.textContent = `
+      /* Tutorial Card Styles */
+      .tutorial-card,
+      .tutorial-model-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+      .tutorial-card:hover,
+      .tutorial-card:focus,
+      .tutorial-model-card:hover,
+      .tutorial-model-card:focus {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.15);
+        outline: none;
+      }
+      .tutorial-card:focus-visible,
+      .tutorial-model-card:focus-visible {
+        box-shadow: 0 0 0 2px var(--accent-blue, #0ea5e9);
+      }
+
+      .tutorial-card__media,
+      .tutorial-model-card__thumb {
+        position: relative;
+        aspect-ratio: 16 / 10;
+        background: rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+      .tutorial-card__thumb,
+      .tutorial-model-card__thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+      .tutorial-card:hover .tutorial-card__thumb,
+      .tutorial-model-card:hover .tutorial-model-card__thumb img {
+        transform: scale(1.05);
+      }
+
+      .tutorial-card__play-overlay,
+      .tutorial-model-card__overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .tutorial-card:hover .tutorial-card__play-overlay,
+      .tutorial-model-card:hover .tutorial-model-card__overlay {
+        opacity: 1;
+      }
+      .tutorial-card__play-overlay svg,
+      .tutorial-model-card__overlay svg {
+        width: 32px;
+        height: 32px;
+        color: white;
+      }
+      .tutorial-card__play-overlay span,
+      .tutorial-model-card__overlay span {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: white;
+      }
+
+      .tutorial-card__content {
+        padding: 12px;
+      }
+      .tutorial-card__type {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 6px;
+      }
+      .tutorial-card__type svg {
+        width: 12px;
+        height: 12px;
+      }
+      .tutorial-card__title {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        margin: 0 0 4px;
+        line-height: 1.3;
+      }
+      .tutorial-card__desc {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 8px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .tutorial-card__category {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--accent-blue, #0ea5e9);
+      }
+
+      .tutorial-card__video-badge {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .tutorial-card__video-badge svg {
+        width: 14px;
+        height: 14px;
+        color: white;
+        margin-left: 2px;
+      }
+
+      .tutorial-model-card__hint {
+        display: block;
+        padding: 8px 12px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+        text-align: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .tutorial-model-card__placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .tutorial-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* Tutorial grid for dynamic content */
+      .tutorial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // =========================================================================
+  // INITIALIZATION
+  // =========================================================================
+
+  async function init() {
+    if (state.initialized) return;
+    state.initialized = true;
+
+    console.log('[Tutorials] Initializing...');
+
+    // Inject styles
+    injectStyles();
+
+    // Load cached content first
+    loadCachedContent();
+    if (memoryCache.items?.length > 0) {
+      state.items = [...memoryCache.items];
+    } else {
+      state.items = [...LOCAL_TUTORIALS];
+    }
+
+    // Convert existing 3D viewers to thumbnail cards
+    convertViewersToThumbnails();
+
+    // Fetch fresh content in background
+    fetchTutorials({ forceRefresh: false });
+
+    console.log('[Tutorials] Initialized');
+  }
+
+  // =========================================================================
+  // PUBLIC API
+  // =========================================================================
+
+  window.TimrXTutorials = {
+    init,
+    refresh: () => fetchTutorials({ forceRefresh: true }),
+    renderGrid: renderTutorialGrid,
+    loadContent: loadContentIntoViewer,
+    getItems: () => [...state.items]
+  };
+
+  // Auto-initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    setTimeout(init, 150);
+  }
+
+})();
