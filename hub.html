@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -268,13 +269,13 @@
           </li>
         </ul>
       </div>
-      <!-- Email Beacon - shown when user has no email attached -->
-      <button type="button" id="emailBeacon" class="email-beacon hidden" aria-label="Secure your credits - add email" title="Secure credits on any device">
-        <i class="fa-solid fa-shield-halved"></i>
-        <span class="email-beacon-pulse"></span>
-      </button>
 
       <div class="nav-right">
+        <!-- Email Beacon - shown when user has no email attached -->
+        <button type="button" id="emailBeacon" class="email-beacon hidden" aria-label="Secure your credits - add email" title="Secure credits on any device">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span class="email-beacon-pulse"></span>
+        </button>
         <!-- Credits Pill + Buy Button -->
         <div class="credits-group" id="creditsGroup">
           <span class="credits-pill" id="creditsPill">
@@ -293,7 +294,8 @@
     <div class="hero" id="hero">
       <div class="kicker">TIMRX • 3D PRINT HUB</div>
       <h1>The Easiest Way to Create 3D Models</h1>
-      <p>Clean, minimal pipeline for makers: prompt to 3D, image to 3D, and text to image. Powered by your APIs (Meshy, OpenAI/Gemini) when you're ready.</p>
+      <p class="hero-subheadline">AI Image, Video & 3D Model Generator – Ready for 3D Printing</p>
+      <p class="hero-powered">Powered by your favorite AI models and LLMs.</p>
       <!-- Visually hidden SEO content for search engines and screen readers -->
       <div class="visually-hidden">
         <p>TimrX is an all-in-one AI generation hub for text to image, image to video, text to 3D, and image to 3D models. Create high-quality, remeshed, textured, print-ready 3D models with no Blender, no setup, and no manual modeling.</p>
@@ -313,7 +315,7 @@
         <button class="pill active" data-to="#features">Text → 3D</button>
         <button class="pill" data-to="#features">Image → 3D</button>
         <button class="pill" data-to="#features">Text → Image</button>
-        <button class="pill" data-to="#features">3D → Video (Veo 3)</button>
+        <button class="pill" data-to="#features">Image → Video</button>
       </div>
 
       <div class="cta-row">
@@ -539,10 +541,11 @@
           <button type="button" class="mode-pill active" data-mode="one_time">One-time</button>
           <button type="button" class="mode-pill" data-mode="monthly">Monthly</button>
           <button type="button" class="mode-pill" data-mode="yearly">Yearly</button>
+          <button type="button" class="mode-pill" data-mode="video">Video</button>
         </div>
       </div>
 
-      <div class="pricing-grid">
+      <div class="pricing-grid" id="modelPricingGrid">
         <!-- Card 1 -->
         <div class="price-card">
           <div class="pc-top">
@@ -561,7 +564,6 @@
             <li>Includes hosting + processing</li>
             <li>Downloads</li>
           </ul>
-          <p class="pc-video-info"><i class="fa-solid fa-video"></i> Video generator: from ~60 credits / 6s</p>
           <button class="btn block pricing-cta" type="button" data-plan="starter_80">Get Starter</button>
         </div>
 
@@ -583,7 +585,6 @@
             <li>Includes hosting + processing</li>
             <li>Downloads</li>
           </ul>
-          <p class="pc-video-info"><i class="fa-solid fa-video"></i> Video generator: from ~60 credits / 6s</p>
           <button class="btn block pricing-cta" type="button" data-plan="creator_300">Get Creator</button>
         </div>
 
@@ -606,12 +607,80 @@
             <li>Downloads</li>
             <li>Priority queue access</li>
           </ul>
-          <p class="pc-video-info"><i class="fa-solid fa-video"></i> Video generator: from ~60 credits / 6s</p>
-          <button class="btn block ghost pricing-cta" type="button" data-plan="studio_600">Get Studio</button>
+          <button class="btn block pricing-cta" type="button" data-plan="studio_600">Get Studio</button>
         </div>
       </div>
-  
-      <p class="foot-note">1 model ≈ 30 credits (generation + refine).</p>
+
+      <!-- Video Pricing Grid (hidden by default) -->
+      <div class="pricing-grid" id="videoPricingGrid" style="display: none;">
+        <!-- Video Card 1 -->
+        <div class="price-card">
+          <div class="pc-top">
+            <span class="badge">Video</span>
+            <h3>Starter</h3>
+            <p class="sub">Best for testing & casual users</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£9.99</span>
+            <small>250 Video Credits</small>
+          </div>
+          <ul class="pc-list">
+            <li>3 × 6s 720p videos</li>
+            <li>OR 2 × 8s 720p + 1 × 4s</li>
+            <li>Text → Video generation</li>
+            <li>Image → Video animation</li>
+            <li>No subscription required</li>
+          </ul>
+          <button class="btn block pricing-cta" type="button" data-plan="video_starter_250">Get Video Starter</button>
+        </div>
+
+        <!-- Video Card 2 (highlight) -->
+        <div class="price-card featured">
+          <div class="pc-top">
+            <span class="badge hot">Popular</span>
+            <h3>Creator</h3>
+            <p class="sub">For regular short-form creators</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£24.99</span>
+            <small>750 Video Credits</small>
+          </div>
+          <ul class="pc-list">
+            <li>6 × 8s 720p videos</li>
+            <li>OR 5 × 8s 1080p videos</li>
+            <li>OR 10 × 6s 720p videos</li>
+            <li>Text → Video generation</li>
+            <li>Image → Video animation</li>
+            <li>Standard queue</li>
+          </ul>
+          <button class="btn block pricing-cta" type="button" data-plan="video_creator_750">Get Video Creator</button>
+        </div>
+
+        <!-- Video Card 3 -->
+        <div class="price-card">
+          <div class="pc-top">
+            <span class="badge">Studio</span>
+            <h3>Studio</h3>
+            <p class="sub">Heavy use / content batches</p>
+          </div>
+          <div class="pc-price">
+            <span class="big">£44.99</span>
+            <small>1,600 Video Credits</small>
+          </div>
+          <ul class="pc-list">
+            <li>14 × 8s 720p videos</li>
+            <li>OR 12 × 8s 1080p videos</li>
+            <li>OR 10 × 4K videos</li>
+            <li>Text → Video generation</li>
+            <li>Image → Video animation</li>
+            <li>Priority queue access</li>
+            <li>Best value per credit</li>
+          </ul>
+          <button class="btn block pricing-cta" type="button" data-plan="video_studio_1600">Get Video Studio</button>
+        </div>
+      </div>
+
+      <p class="foot-note" id="pricingFootNote">1 model ≈ 30 credits (generation + refine).</p>
     </div>
   </section>
 
@@ -645,6 +714,42 @@
       <div class="cta-row">
         <button type="button" class="btn" id="subCheckoutBtn" disabled>
           <span class="btn-text">Subscribe</span>
+          <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== VIDEO BUY MODAL ====================== -->
+  <div class="modal" id="videoBuyModal" aria-hidden="true">
+    <div class="card sub-modal-card" style="position:relative">
+      <button type="button" class="close-x" id="videoBuyClose" aria-label="Close">&times;</button>
+      <h4 id="videoBuyTitle">Buy Video Credits</h4>
+      <p class="modal-subtitle" id="videoBuySubtitle">One-time purchase. No subscription.</p>
+
+      <div class="sub-modal-details">
+        <div class="sub-detail-row">
+          <span class="sub-detail-label">Video Credits</span>
+          <span class="sub-detail-value" id="videoBuyCredits">250</span>
+        </div>
+        <div class="sub-detail-row">
+          <span class="sub-detail-label">Type</span>
+          <span class="sub-detail-value">One-time</span>
+        </div>
+        <div class="sub-detail-row sub-detail-total">
+          <span class="sub-detail-label">Price</span>
+          <span class="sub-detail-value" id="videoBuyPrice">£9.99</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <input type="email" id="videoBuyEmail" placeholder="Email for receipt" autocomplete="email" />
+      </div>
+      <p class="sub-modal-error" id="videoBuyError" style="display:none"></p>
+
+      <div class="cta-row">
+        <button type="button" class="btn" id="videoBuyBtn" disabled>
+          <span class="btn-text">Buy</span>
           <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
         </button>
       </div>
@@ -927,17 +1032,19 @@
           </div>
 
           <div class="field">
-            <input type="email" id="checkoutEmail" placeholder="Enter your email for receipt" autocomplete="email" />
+            <input type="email" id="checkoutEmail" placeholder="Email for receipt" autocomplete="email" />
           </div>
 
           <div class="checkout-error" id="checkoutError"></div>
 
-          <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
-            <span class="btn-text">Continue to Payment</span>
-            <span class="btn-loader" style="display:none;">
-              <i class="fa-solid fa-spinner fa-spin"></i> Processing...
-            </span>
-          </button>
+          <div class="cta-row">
+            <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
+              <span class="btn-text">Buy</span>
+              <span class="btn-loader" style="display:none;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Processing...
+              </span>
+            </button>
+          </div>
         </div>
 
         <p class="credits-footer">1 model = ~30 credits (generation + refine)</p>
