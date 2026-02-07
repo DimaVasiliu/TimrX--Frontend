@@ -41,8 +41,12 @@
       thumbnail: '3dprint-modules/3dmodels/undead_creature_preview.png',
       glb_url: '3dprint-modules/3dmodels/undead_creature_preview.glb',
       glb_refined: '3dprint-modules/3dmodels/undead_creature_refined.glb',
+      // Meshy-style hover animation assets (generated via SpriteGenerator.generate())
+      sprite_url: '3dprint-modules/3dmodels/undead_creature_preview_sprite_24f.png',
+      turntable_video: '3dprint-modules/3dmodels/undead_creature_preview_turntable.mp4',
       prompt: 'Undead creature with dark fantasy style, detailed bones and torn cloth',
       category: 'generation',
+      badge: 'refined',
       tags: ['text-to-3d', 'beginner']
     },
     {
@@ -52,8 +56,11 @@
       description: 'Convert reference images and artwork into 3D models.',
       thumbnail: '3dprint-modules/3dmodels/dog3d.png',
       glb_url: '3dprint-modules/3dmodels/dog3d.glb',
+      sprite_url: '3dprint-modules/3dmodels/dog3d_sprite_24f.png',
+      turntable_video: '3dprint-modules/3dmodels/dog3d_turntable.mp4',
       prompt: 'Friendly cartoon dog, stylized 3D character',
       category: 'generation',
+      badge: 'textured',
       tags: ['image-to-3d', 'beginner']
     },
     {
@@ -64,8 +71,10 @@
       thumbnail: '3dprint-modules/3dmodels/remesh_demo.png',
       glb_url: '3dprint-modules/3dmodels/remesh_demo.glb',
       glb_refined: '3dprint-modules/3dmodels/remesh_demo_fixed.glb',
+      sprite_url: '3dprint-modules/3dmodels/remesh_demo_sprite_24f.png',
       prompt: 'Clean topology mesh ready for 3D printing',
       category: 'post-processing',
+      badge: 'refined',
       tags: ['remesh', 'printing', 'intermediate']
     },
     {
@@ -75,8 +84,10 @@
       description: 'Apply realistic PBR textures to your models using text or image prompts.',
       thumbnail: '3dprint-modules/3dmodels/textured_model.png',
       glb_url: '3dprint-modules/3dmodels/textured_model.glb',
+      sprite_url: '3dprint-modules/3dmodels/textured_model_sprite_24f.png',
       prompt: 'Weathered stone texture with moss, ancient ruins style',
       category: 'post-processing',
+      badge: 'textured',
       tags: ['texture', 'pbr', 'intermediate']
     },
     {
@@ -318,6 +329,91 @@
   }
 
   /**
+   * Render a Meshy-style model showcase card with hover animation
+   * Supports: sprite sheets, turntable videos, or static images
+   */
+  function renderModelShowcaseCard(item) {
+    const badgeType = item.badge || 'preview';
+    const badgeText = badgeType.charAt(0).toUpperCase() + badgeType.slice(1);
+    const spriteUrl = item.sprite_url || '';
+    const videoUrl = item.turntable_video || '';
+
+    return `
+      <article class="tutorials-model-card"
+               data-id="${item.id}"
+               data-glb="${item.glb_url || ''}"
+               data-refined="${item.glb_refined || ''}"
+               data-sprite="${spriteUrl}"
+               data-video="${videoUrl}"
+               tabindex="0"
+               role="button"
+               aria-label="View ${item.title}">
+        <div class="tutorials-model-card__thumb">
+          <!-- Static poster image -->
+          <img class="tutorials-model-card__poster"
+               src="${item.thumbnail}"
+               alt="${item.title}"
+               loading="lazy"
+               decoding="async"
+               onerror="this.style.display='none'"/>
+          ${spriteUrl ? `
+          <!-- Sprite animation (CSS-based, plays on hover) -->
+          <div class="tutorials-model-card__sprite"
+               style="background-image: url('${spriteUrl}')"></div>
+          ` : ''}
+          ${videoUrl ? `
+          <!-- Video fallback (plays on hover) -->
+          <video class="tutorials-model-card__video"
+                 src="${videoUrl}"
+                 muted
+                 loop
+                 playsinline
+                 preload="none"></video>
+          ` : ''}
+          <!-- Badge -->
+          <span class="tutorials-model-card__badge tutorials-model-card__badge--${badgeType}">${badgeText}</span>
+          <!-- Hover overlay -->
+          <div class="tutorials-model-card__overlay">
+            ${ICONS.eye}
+            <span>View in Workspace</span>
+          </div>
+        </div>
+        <div class="tutorials-model-card__content">
+          <h4 class="tutorials-model-card__title">${item.title}</h4>
+          ${item.description ? `<div class="tutorials-model-card__meta"><span>${item.category || 'Model'}</span></div>` : ''}
+        </div>
+      </article>
+    `;
+  }
+
+  /**
+   * Render a grid of Meshy-style model showcase cards
+   */
+  function renderModelShowcaseGrid(containerId, filterFn = null) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    let items = [...state.items].filter(item => item.type === 'model');
+    if (filterFn) {
+      items = items.filter(filterFn);
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="tutorial-empty">
+          <p>No models available yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `<div class="tutorials-model-showcase">${items.map(renderModelShowcaseCard).join('')}</div>`;
+
+    // Bind hover and click events
+    bindModelCardEvents();
+  }
+
+  /**
    * Render tutorial cards into a container
    */
   function renderTutorialGrid(containerId, filterFn = null) {
@@ -542,11 +638,12 @@
   }
 
   // =========================================================================
-  // REPLACE 3D VIEWERS WITH THUMBNAIL CARDS
+  // REPLACE 3D VIEWERS WITH MESHY-STYLE MODEL CARDS
   // =========================================================================
 
   /**
-   * Replace tutorial-3d-viewer elements with thumbnail cards
+   * Replace tutorial-3d-viewer elements with Meshy-style animated cards
+   * Supports: sprite sheets, turntable videos, or static images
    * Called on init to convert existing viewers
    */
   function convertViewersToThumbnails() {
@@ -562,30 +659,58 @@
       const refinedSrc = viewer.dataset.refined;
       const label = viewer.getAttribute('aria-label') || 'Tutorial Model';
 
-      // Generate thumbnail URL from GLB path (assume .png version exists)
-      const thumbnailUrl = previewSrc ? previewSrc.replace('.glb', '.png') : '';
+      // Generate asset URLs from GLB path
+      const basePath = previewSrc ? previewSrc.replace('.glb', '') : '';
+      const thumbnailUrl = basePath + '.png';
+      const spriteUrl = basePath + '_sprite_24f.png';  // Sprite sheet (24 frames)
+      const videoUrl = basePath + '_turntable.mp4';    // Turntable video
 
-      // Create thumbnail card HTML
+      // Determine badge type
+      const badgeType = refinedSrc ? 'refined' : 'preview';
+      const badgeText = refinedSrc ? 'Refined' : 'Preview';
+
+      // Create Meshy-style card HTML
       const cardHTML = `
-        <div class="tutorial-model-card"
+        <div class="tutorials-model-card"
              data-id="${id}"
              data-preview="${previewSrc || ''}"
              data-refined="${refinedSrc || ''}"
+             data-sprite="${spriteUrl}"
+             data-video="${videoUrl}"
              tabindex="0"
              role="button"
              aria-label="${label}">
-          <div class="tutorial-model-card__thumb">
-            <img src="${thumbnailUrl}"
+          <div class="tutorials-model-card__thumb">
+            <!-- Static poster image -->
+            <img class="tutorials-model-card__poster"
+                 src="${thumbnailUrl}"
                  alt="${label}"
                  loading="lazy"
                  decoding="async"
-                 onerror="this.parentElement.innerHTML='<div class=\\'tutorial-model-card__placeholder\\'>3D Model</div>'"/>
-            <div class="tutorial-model-card__overlay">
+                 onerror="this.style.display='none'"/>
+            <!-- Sprite animation (CSS-based, no JS needed) -->
+            <div class="tutorials-model-card__sprite"
+                 style="background-image: url('${spriteUrl}')"
+                 data-fallback="video"></div>
+            <!-- Video fallback (plays on hover) -->
+            <video class="tutorials-model-card__video"
+                   src="${videoUrl}"
+                   muted
+                   loop
+                   playsinline
+                   preload="none"
+                   onerror="this.style.display='none'"></video>
+            <!-- Badge -->
+            <span class="tutorials-model-card__badge tutorials-model-card__badge--${badgeType}">${badgeText}</span>
+            <!-- Hover overlay -->
+            <div class="tutorials-model-card__overlay">
               ${ICONS.eye}
               <span>View in Workspace</span>
             </div>
           </div>
-          ${refinedSrc ? '<span class="tutorial-model-card__hint">Click to view in workspace</span>' : ''}
+          <div class="tutorials-model-card__content">
+            <h4 class="tutorials-model-card__title">${label.replace(' - click to toggle versions', '').replace('3D Model', '').trim() || 'Model Preview'}</h4>
+          </div>
         </div>
       `;
 
@@ -597,8 +722,46 @@
       if (oldHint) oldHint.remove();
     });
 
-    // Bind click handlers for the new cards
-    document.querySelectorAll('.tutorial-model-card').forEach(card => {
+    // Bind event handlers for all model cards
+    bindModelCardEvents();
+  }
+
+  /**
+   * Bind hover and click events to model cards
+   */
+  function bindModelCardEvents() {
+    document.querySelectorAll('.tutorials-model-card').forEach(card => {
+      const video = card.querySelector('.tutorials-model-card__video');
+      const sprite = card.querySelector('.tutorials-model-card__sprite');
+
+      // Video hover play/pause
+      if (video) {
+        card.addEventListener('mouseenter', () => {
+          // Try to play video on hover
+          video.play().catch(() => {
+            // Video failed (not found or not supported)
+            // Hide video, let sprite/poster show
+            video.style.display = 'none';
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          video.pause();
+          video.currentTime = 0;
+        });
+      }
+
+      // Handle sprite fallback on error
+      if (sprite) {
+        const spriteImg = new Image();
+        spriteImg.onerror = () => {
+          // Sprite not found, hide it
+          sprite.style.display = 'none';
+        };
+        spriteImg.src = card.dataset.sprite || '';
+      }
+
+      // Click handler
       card.addEventListener('click', handleModelCardClick);
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -613,18 +776,19 @@
    * Handle click on converted model cards
    */
   function handleModelCardClick(e) {
-    const card = e.target.closest('.tutorial-model-card');
+    const card = e.target.closest('.tutorials-model-card');
     if (!card) return;
 
     const previewSrc = card.dataset.preview;
     const refinedSrc = card.dataset.refined;
     const label = card.getAttribute('aria-label') || 'Tutorial Model';
+    const title = card.querySelector('.tutorials-model-card__title')?.textContent || label;
 
     // Create item data for viewer
     const itemData = {
       id: card.dataset.id,
       type: 'model',
-      title: label,
+      title: title,
       glb_url: previewSrc,
       glb_refined: refinedSrc,
       thumbnail: previewSrc ? previewSrc.replace('.glb', '.png') : ''
@@ -855,6 +1019,7 @@
     init,
     refresh: () => fetchTutorials({ forceRefresh: true }),
     renderGrid: renderTutorialGrid,
+    renderModelShowcase: renderModelShowcaseGrid,
     loadContent: loadContentIntoViewer,
     getItems: () => [...state.items]
   };
