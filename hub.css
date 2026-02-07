@@ -1,3 +1,4 @@
+
 /* ==========================================================================
    TimrX 3D Hub — Full Landing Styles (drop-in replacement for hub.css)
    ========================================================================== */
@@ -73,7 +74,7 @@
     }
   }
 
-  .nav-inner{height:100%; display:flex; align-items:center; justify-content:space-between; gap:18px}
+  .nav-inner{height:100%; display:flex; align-items:center; justify-content:space-between; padding:0 20px; max-width:none}
 
   /* Brand */
   .brand{
@@ -110,7 +111,7 @@
     margin-left:4px;
   }
   .nav-left{display:flex; align-items:center; gap:18px}
-  .nav-right{display:flex; align-items:center; gap:12px}
+  .nav-right{display:flex; align-items:center; gap:8px}
   .login{font-weight:800; opacity:.9}
   .signup{padding:10px 16px; border-radius:999px; border:1px solid var(--ink); font-weight:800}
 
@@ -313,43 +314,41 @@ button.insufficient-credits::after {
 /* BUY CREDITS MODAL                                                          */
 /* ========================================================================== */
 .buy-credits-card {
-  width: min(560px, 94vw);
+  width: min(440px, 92vw) !important;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  padding: 28px 24px;
+  padding: 24px;
 }
 
 .buy-credits-card .modal-sub {
-  color: #a8a8a8;
+  color: #bdbdbd;
   font-size: 14px;
-  margin: 0 0 20px;
+  margin: 0 0 18px;
 }
 
 .credits-plans {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 8px;
-  margin-bottom: 16px;
-}
-
-@media (max-width: 560px) {
-  .credits-plans {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
 }
 
 .plan-card {
   appearance: none;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  padding: 16px 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), #0c0c0c;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: transparent;
   color: #eaeaea;
   cursor: pointer;
   transition: all .2s ease;
@@ -357,10 +356,12 @@ button.insufficient-credits::after {
   overflow: visible;
 }
 
+.plan-card:last-child {
+  border-bottom: none;
+}
+
 .plan-card:hover {
-  border-color: rgba(255,255,255,.28);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+  background: rgba(255,255,255,.03);
 }
 
 .plan-card:focus-visible {
@@ -369,26 +370,23 @@ button.insufficient-credits::after {
 }
 
 .plan-card.featured {
-  border-color: rgba(125,211,252,.5);
-  background: linear-gradient(180deg, rgba(125,211,252,.08), transparent), #0c0c0c;
-  box-shadow: 0 8px 24px rgba(125,211,252,.12);
+  background: transparent;
 }
 
 .plan-card.featured:hover {
-  border-color: rgba(125,211,252,.7);
-  box-shadow: 0 14px 36px rgba(125,211,252,.2);
+  background: rgba(255,255,255,.03);
 }
 
 .plan-popular {
   position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: 90px;
+  transform: translateY(-50%);
   padding: 3px 8px;
   border-radius: 999px;
   background: #7dd3fc;
   color: #0b0b0b;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -396,11 +394,10 @@ button.insufficient-credits::after {
 }
 
 .plan-badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: #888;
+  color: #eaeaea;
+  min-width: 60px;
 }
 
 .plan-card.featured .plan-badge {
@@ -408,20 +405,22 @@ button.insufficient-credits::after {
 }
 
 .plan-credits {
-  font-size: 16px;
-  font-weight: 900;
-  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+  flex: 1;
 }
 
 .plan-price {
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 800;
   color: #fff;
 }
 
 .plan-note {
-  font-size: 11px;
-  color: #888;
+  font-size: 12px;
+  color: #666;
+  display: none;
 }
 
 /* Loading state */
@@ -449,9 +448,7 @@ button.insufficient-credits::after {
 
 /* Selected plan card */
 .plan-card.selected {
-  border-color: #7dd3fc;
-  background: linear-gradient(180deg, rgba(125,211,252,.12), transparent), #0c0c0c;
-  box-shadow: 0 0 0 2px rgba(125,211,252,.3), 0 12px 32px rgba(125,211,252,.15);
+  background: rgba(125,211,252,.08);
 }
 
 /* Checkout section (hidden until plan selected) */
@@ -459,65 +456,59 @@ button.insufficient-credits::after {
   display: none;
   flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,.1);
+  margin-top: 14px;
 }
 
 .checkout-section.visible {
   display: flex;
 }
 
-/* Selected plan display */
-.selected-plan-display {
+/* Button row in checkout */
+.buy-credits-card .cta-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(125,211,252,.08);
-  border: 1px solid rgba(125,211,252,.25);
-  border-radius: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Selected plan display - hidden since selection is shown inline */
+.selected-plan-display {
+  display: none;
 }
 
 .selected-label {
-  font-size: 12px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: .05em;
+  display: none;
 }
 
 .selected-plan-name {
-  font-weight: 700;
-  color: #fff;
-  flex: 1;
+  display: none;
 }
 
 .selected-plan-price {
-  font-weight: 800;
-  color: #7dd3fc;
+  display: none;
 }
 
 /* Checkout error */
 .checkout-error {
   display: none;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(220,53,69,.12);
+  border: 1px solid rgba(220,53,69,.3);
   color: #ff6b7a;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   font-size: 13px;
-  text-align: center;
 }
 
 /* Checkout button */
 .checkout-btn {
-  width: 100%;
+  width: auto;
   justify-content: center;
-  padding: 14px 20px;
+  padding: 12px 18px;
   background: #fff;
   color: #0b0b0b;
   border-color: #fff;
   font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .04em;
 }
 
 .checkout-btn:hover:not([disabled]) {
@@ -528,7 +519,9 @@ button.insufficient-credits::after {
 }
 
 .checkout-btn[disabled] {
-  opacity: 0.5;
+  background: rgba(255,255,255,.3);
+  border-color: transparent;
+  color: rgba(0,0,0,.5);
   cursor: not-allowed;
 }
 
@@ -1008,7 +1001,7 @@ button.insufficient-credits::after {
   animation: ringExpand 1.5s ease-out forwards;
 }
 
-  .menu{display:flex; gap:18px}
+  .menu{display:flex; gap:18px;}
   .menu > li{position:relative; list-style:none}
   .menu > li > button{
     appearance:none; background:transparent; border:none; color:var(--ink);
@@ -1027,21 +1020,9 @@ button.insufficient-credits::after {
   .drop a:last-child{border-bottom:none}
   .drop a:hover{background:#121212}
   
-  .burger{display:none; background:transparent; border:none; color:#eaeaea; font-size:26px}
-  
   @media (max-width: 940px){
-    .menu{display:none}
-    .burger{display:block}
     .nav-credits{display:none}
   }
-  .mnav{
-    position:fixed; inset:var(--navH) 0 auto 0; display:none;
-    background:rgba(12,12,12,.98); border-bottom:1px solid var(--line); z-index:99
-  }
-  .mnav.open{display:block}
-  .mnav .col{padding:16px; border-top:1px solid var(--line)}
-  .mnav .col strong{display:block; margin-bottom:8px}
-  .mnav a{display:block; padding:8px 0; color:#e1e1e1}
   
 /* ========================================================================== */
 /* HERO — *true* full screen under fixed nav, bigger headline, hero-only FX   */
@@ -1092,6 +1073,12 @@ header{
   max-width: min(980px, 92vw);
   text-align: center; color: #cfcfcf;
   margin: clamp(8px, 1.5vh, 14px) 0 clamp(6px, 1.2vh, 10px);
+}
+.hero-subheadline{
+  font-size: 1.5rem; font-weight: 500;
+}
+.hero-powered{
+  font-size: 1.2rem; color: #999; margin-top: 0 !important;
 }
 
 /* Text layers above FX */
@@ -2031,6 +2018,7 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
   .pc-list li::before{ content:"• "; color:#9f9f9f }
   
   .btn.block{ width:100%; justify-content:center; text-align:center }
+  .price-card .btn.block{ margin-top:auto }
   .price-card.featured .btn{
     background:#f7fbff; color:#0b0b0b; border-color:#f7fbff;
     box-shadow:0 10px 26px rgba(125,211,252,.25);
@@ -2043,20 +2031,6 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
     text-align:center; color:#bdbdbd; margin-top:24px;
   }
   .pricing-wrap .foot-note a{ text-decoration:underline }
-  
-  /* Video info line on pricing cards */
-  .pc-video-info{
-    margin:0;
-    font-size:12.5px;
-    color:#a0a0a0;
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .pc-video-info i{
-    font-size:11px;
-    color:rgba(125,211,252,.65);
-  }
 
   /* Pricing mode toggle */
   .pricing-mode-toggle{
