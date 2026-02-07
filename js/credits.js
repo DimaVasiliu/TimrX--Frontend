@@ -934,36 +934,39 @@
     }
 
     try {
-      const payload = {
-        plan_code: selectedVideoPlan,
-        email: email,
-        success_url: `${window.location.origin}${window.location.pathname}?checkout=success`,
-        cancel_url: `${window.location.origin}${window.location.pathname}?checkout=cancelled`,
-      };
-
-      const idToken = await getIdToken();
-      const response = await fetch(`${API_BASE}/checkout/session`, {
+      // Call POST /api/billing/checkout (Mollie) using centralized API client
+      const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: JSON.stringify(payload),
+        body: {
+          plan_code: selectedVideoPlan,
+          email: email
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+      if (!result.ok) {
+        throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
-      // Store plan info for success handling
-      sessionStorage.setItem('timrx_pending_plan', selectedVideoPlan);
-      sessionStorage.setItem('timrx_pending_credits', plan.credits.toString());
-
-      // Redirect to Stripe
+      const data = result.data;
       if (data.checkout_url) {
+        // Store payment_id for post-redirect confirmation
+        if (data.payment_id) {
+          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+          console.log('[Credits] Video: Stored payment_id for confirmation:', data.payment_id);
+        }
+
+        // Store current balance BEFORE redirect
+        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+        console.log('[Credits] Video: Stored pre-checkout balance:', walletAvailable || 0);
+
+        // Store the plan's credit grant for optimistic balance display
+        sessionStorage.setItem('timrx_pending_plan_credits', String(plan.credits));
+        console.log('[Credits] Video: Stored plan credits:', plan.credits);
+
+        // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
+      } else {
+        throw new Error('No checkout URL returned');
       }
 
     } catch (err) {
