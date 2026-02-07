@@ -1001,107 +1001,61 @@
   }
 
   /**
-   * Load model using available viewer (Three.js or model-viewer fallback).
+   * Load model using the existing Three.js viewer.
+   * No model-viewer fallback to avoid Three.js conflicts.
    */
   async function loadModelWithViewer(cardData, glbUrl, thumbnailUrl) {
-    // Method 1: Use existing Three.js viewer if available
-    if (window.timrx3D && window.Viewer?.loadGlbFromUrl) {
+    // Method 1: Use existing Three.js viewer via window.Viewer
+    if (window.Viewer?.loadGlbFromUrl) {
       try {
+        console.log('[Inspire] Attempting Three.js viewer load:', glbUrl);
         await window.Viewer.loadGlbFromUrl(glbUrl);
         console.log('[Inspire] Model loaded via Three.js viewer');
         if (cardData.prompt) usePrompt(cardData.prompt);
         return;
       } catch (err) {
-        console.warn('[Inspire] Three.js viewer failed:', err.message);
+        console.error('[Inspire] Three.js viewer failed:', err);
       }
     }
 
-    // Method 2: Use window.loadGlbFromUrl directly
+    // Method 2: Use window.loadGlbFromUrl directly (legacy)
     if (typeof window.loadGlbFromUrl === 'function') {
       try {
+        console.log('[Inspire] Attempting window.loadGlbFromUrl:', glbUrl);
         await window.loadGlbFromUrl(glbUrl);
         console.log('[Inspire] Model loaded via window.loadGlbFromUrl');
         if (cardData.prompt) usePrompt(cardData.prompt);
         return;
       } catch (err) {
-        console.warn('[Inspire] loadGlbFromUrl failed:', err.message);
+        console.error('[Inspire] loadGlbFromUrl failed:', err);
       }
     }
 
-    // Method 3: Fallback to <model-viewer> web component (lazy-loaded, lightweight)
-    try {
-      await showModelWithModelViewer(glbUrl, thumbnailUrl, cardData);
-      console.log('[Inspire] Model loaded via <model-viewer>');
-      if (cardData.prompt) usePrompt(cardData.prompt);
-      return;
-    } catch (err) {
-      console.warn('[Inspire] model-viewer failed:', err.message);
+    // Method 3: Try showModelInViewer if available
+    if (window.Viewer?.showModelInViewer) {
+      try {
+        console.log('[Inspire] Attempting showModelInViewer:', glbUrl);
+        await window.Viewer.showModelInViewer(glbUrl, {
+          title: cardData.title || 'Inspired Model',
+          thumbnail: thumbnailUrl
+        });
+        console.log('[Inspire] Model loaded via showModelInViewer');
+        if (cardData.prompt) usePrompt(cardData.prompt);
+        return;
+      } catch (err) {
+        console.error('[Inspire] showModelInViewer failed:', err);
+      }
     }
 
-    // Final fallback: show thumbnail
-    console.log('[Inspire] All model viewers failed, showing thumbnail');
-    showModelAsThumbnail(cardData, thumbnailUrl);
-  }
-
-  /**
-   * Lazy-load and use <model-viewer> web component for 3D preview.
-   * This is lightweight and doesn't require Three.js to be set up.
-   */
-  async function showModelWithModelViewer(glbUrl, posterUrl, cardData) {
-    // Lazy-load <model-viewer> script if not already loaded
-    if (!customElements.get('model-viewer')) {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
-      document.head.appendChild(script);
-      // Wait for it to load
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('Failed to load model-viewer'));
-        setTimeout(reject, 5000); // 5s timeout
-      });
-    }
-
-    // Find or create the model viewer container in the viewer area
-    const viewerContainer = document.getElementById('model3dViewer') ||
-                            document.querySelector('.ws-viewer__content') ||
-                            document.querySelector('.viewer-content');
-
-    if (!viewerContainer) {
-      throw new Error('No viewer container found');
-    }
-
-    // Hide other viewers
-    document.getElementById('imageViewer')?.classList.add('hidden');
-    document.getElementById('videoViewer')?.classList.add('hidden');
-    viewerContainer.classList.remove('hidden');
-
-    // Create model-viewer element
-    let mv = viewerContainer.querySelector('model-viewer.inspire-model');
-    if (!mv) {
-      mv = document.createElement('model-viewer');
-      mv.className = 'inspire-model';
-      mv.style.cssText = 'width:100%;height:100%;background:#0a0a0a;';
-      mv.setAttribute('camera-controls', '');
-      mv.setAttribute('auto-rotate', '');
-      mv.setAttribute('shadow-intensity', '1');
-      mv.setAttribute('environment-image', 'neutral');
-      viewerContainer.appendChild(mv);
-    }
-
-    // Set the model source
-    mv.setAttribute('src', glbUrl);
-    if (posterUrl) {
-      mv.setAttribute('poster', posterUrl);
-    }
-    mv.setAttribute('alt', cardData.title || 'Inspired 3D Model');
-
-    // Wait for model to load
-    return new Promise((resolve, reject) => {
-      mv.addEventListener('load', resolve, { once: true });
-      mv.addEventListener('error', reject, { once: true });
-      setTimeout(() => reject(new Error('Model load timeout')), 15000);
+    // No viewer available or all methods failed
+    console.warn('[Inspire] No working 3D viewer, showing thumbnail. Available:', {
+      'window.Viewer': !!window.Viewer,
+      'window.Viewer.loadGlbFromUrl': !!window.Viewer?.loadGlbFromUrl,
+      'window.loadGlbFromUrl': typeof window.loadGlbFromUrl,
+      'window.timrx3D': !!window.timrx3D
     });
+
+    showModelAsThumbnail(cardData, thumbnailUrl);
   }
 
   /**
