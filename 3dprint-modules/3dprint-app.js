@@ -52,6 +52,42 @@
     let threeBooted = false;
     let placeholderCube = null;
     let selectedFile = null;
+
+    /* -------------------------------------------------------------------------
+     * WEBGL DETECTION
+     * ---------------------------------------------------------------------- */
+    /**
+     * Detects if WebGL is available in the browser.
+     * @returns {boolean} True if WebGL is supported.
+     */
+    function detectWebGL() {
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl2') ||
+                   canvas.getContext('webgl') ||
+                   canvas.getContext('experimental-webgl');
+        if (gl) {
+          // Check for context loss (some devices report WebGL but can't create contexts)
+          if (gl.isContextLost && gl.isContextLost()) {
+            console.warn('[Viewer] WebGL context is lost');
+            return false;
+          }
+          return true;
+        }
+        return false;
+      } catch (e) {
+        console.warn('[Viewer] WebGL detection failed:', e.message);
+        return false;
+      }
+    }
+
+    // Detect WebGL on init and expose globally
+    const webglAvailable = detectWebGL();
+    window.timrxViewerAvailable = webglAvailable;
+
+    if (!webglAvailable) {
+      console.warn('[Viewer] WebGL is not available. 3D preview will be disabled.');
+    }
   
     /* -------------------------------------------------------------------------
      * PANEL CONTENT TEMPLATES (left control column)
@@ -590,38 +626,109 @@
      */
     function ensureThreeViewer() {
       if (!model3dWrap || !viewerCanvas) return;
-  
+
+      // Skip if WebGL is not available (fallback UI already shown)
+      if (!webglAvailable && threeBooted) return;
+
       if (window.timrx3D && typeof window.timrx3D.resize === 'function') {
         window.timrx3D.resize();
         return;
       }
-  
+
       if (threeBooted) {
-        const rect = model3dWrap.getBoundingClientRect();
-        window.timrx3D?.renderer?.setSize(rect.width, rect.height, false);
+        // Only resize if renderer exists
+        if (window.timrx3D?.renderer) {
+          const rect = model3dWrap.getBoundingClientRect();
+          window.timrx3D.renderer.setSize(rect.width, rect.height, false);
+        }
         return;
       }
-  
+
       if (window.THREE) bootThreeViewer();
       else window.addEventListener('three-ready', bootThreeViewer, { once: true });
     }
   
+    /**
+     * Shows fallback UI when WebGL is unavailable.
+     */
+    function showWebGLFallback() {
+      if (!model3dWrap) return;
+
+      // Check if fallback already exists
+      if (model3dWrap.querySelector('.viewer-fallback')) return;
+
+      // Hide the canvas
+      if (viewerCanvas) viewerCanvas.style.display = 'none';
+      if (viewerEmpty) viewerEmpty.style.display = 'none';
+
+      // Create fallback message
+      const fallback = document.createElement('div');
+      fallback.className = 'viewer-fallback';
+      fallback.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;padding:20px;text-align:center;">
+          <svg style="width:48px;height:48px;opacity:0.3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          <p style="margin:0;color:rgba(255,255,255,0.6);font-size:14px;max-width:280px;">
+            3D preview unavailable (WebGL disabled).<br>
+            <span style="font-size:12px;opacity:0.7;">You can still generate and download models.</span>
+          </p>
+        </div>
+      `;
+      model3dWrap.appendChild(fallback);
+
+      console.log('[Viewer] Showing WebGL fallback UI');
+    }
+
     /**
      * Boots the Three.js scene, renderer, controls, and animation loop.
      */
     function bootThreeViewer() {
       const THREE = window.THREE;
       if (!THREE || !viewerCanvas) return;
-  
+
+      // Prevent double initialization
+      if (threeBooted && window.timrx3D?.renderer) {
+        console.log('[Viewer] Already booted, skipping re-init');
+        return;
+      }
+
+      // Check WebGL availability
+      if (!webglAvailable) {
+        showWebGLFallback();
+        threeBooted = true; // Mark as "booted" so we don't retry
+        return;
+      }
+
       const rect = model3dWrap.getBoundingClientRect();
-  
+
       const scene  = new THREE.Scene();
       scene.background = new THREE.Color(0x2a2a2e);
 
       const camera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
       camera.position.set(2.5, 2.2, 3.5);
 
-      const renderer = new THREE.WebGLRenderer({ canvas: viewerCanvas, antialias: true });
+      // Try to create renderer with error handling
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: viewerCanvas, antialias: true });
+      } catch (err) {
+        console.error('[Viewer] Failed to create WebGLRenderer:', err.message);
+        window.timrxViewerAvailable = false;
+        showWebGLFallback();
+        threeBooted = true;
+        return;
+      }
+
+      // Check if context was actually created
+      if (!renderer.getContext()) {
+        console.error('[Viewer] WebGL context not available');
+        window.timrxViewerAvailable = false;
+        showWebGLFallback();
+        threeBooted = true;
+        return;
+      }
+
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(rect.width, rect.height, false);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -822,15 +929,21 @@
      * @param {string} modelName - Friendly name shown in logs.
      */
     function load3DModel(file, modelName) {
-      if (!window.THREE || !window.THREE.GLTFLoader) {
-        console.error('Three.js or GLTFLoader not available');
+      // Guard: Check WebGL availability first
+      if (!webglAvailable) {
+        console.warn('[Viewer] Cannot load model: WebGL not available');
         return;
       }
-  
+
+      if (!window.THREE || !window.THREE.GLTFLoader) {
+        console.error('[Viewer] Three.js or GLTFLoader not available');
+        return;
+      }
+
       ensureThreeViewer();
       const viewer = window.timrx3D;
       if (!viewer || !viewer.scene) {
-        console.error('3D viewer not initialized');
+        console.error('[Viewer] 3D viewer not initialized');
         return;
       }
   
