@@ -377,9 +377,14 @@ export async function fetchActionCosts() {
  * - remesh               (10c) - Remesh 3D model (same cost as refine)
  * - retexture            (15c) - Apply new texture to 3D model
  * - rigging              (25c) - Add skeleton/rig to 3D model
- * - video_generate       (60c) - Generic video generation
- * - video_text_generate  (60c) - Text-to-video generation
- * - video_image_animate  (60c) - Image-to-video animation
+ * - video_generate       (70c) - Generic video generation (minimum, varies by duration/resolution)
+ * - video_text_generate  (70c) - Text-to-video generation (minimum)
+ * - video_image_animate  (70c) - Image-to-video animation (minimum)
+ *
+ * VIDEO PRICING (DB-driven via video_credit_rules):
+ * - 720p:  4s=70, 6s=90, 8s=110
+ * - 1080p: 8s=130 (requires 8s duration)
+ * - 4K:    8s=160 (requires 8s duration)
  */
 function getDefaultActionCosts() {
   return {
@@ -391,9 +396,9 @@ function getDefaultActionCosts() {
     'remesh': 10,                 // Remesh 3D model
     'retexture': 15,              // Retexture 3D model
     'rigging': 25,                // Rig 3D model
-    'video_generate': 60,         // Video generation
-    'video_text_generate': 60,    // Text to video
-    'video_image_animate': 60,    // Image to video
+    'video_generate': 70,         // Video generation (minimum - actual cost from video_credit_rules)
+    'video_text_generate': 70,    // Text to video (minimum)
+    'video_image_animate': 70,    // Image to video (minimum)
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
@@ -406,7 +411,7 @@ function getDefaultActionCosts() {
     'texture': 15,                // -> retexture
     'rig': 25,                    // -> rigging
     'upscale': 10,                // -> refine
-    'video': 60,                  // -> video_generate
+    'video': 70,                  // -> video_generate (minimum)
     'image_studio_generate': 10,  // -> image_generate
 
     // Backend DB action codes (for direct lookups)
@@ -416,9 +421,9 @@ function getDefaultActionCosts() {
     'MESHY_REFINE': 10,
     'MESHY_RIG': 25,
     'OPENAI_IMAGE': 10,
-    'VIDEO_GENERATE': 60,
-    'VIDEO_TEXT_GENERATE': 60,
-    'VIDEO_IMAGE_ANIMATE': 60,
+    'VIDEO_GENERATE': 70,         // Minimum video cost
+    'VIDEO_TEXT_GENERATE': 70,
+    'VIDEO_IMAGE_ANIMATE': 70,
   };
 }
 
@@ -1100,9 +1105,9 @@ export function updateCreditsUI() {
  * - remesh               (10c) - Remesh 3D model
  * - retexture            (15c) - Retexture 3D model
  * - rigging              (25c) - Rig 3D model
- * - video_generate       (60c) - Video generation
- * - video_text_generate  (60c) - Text to video
- * - video_image_animate  (60c) - Image to video
+ * - video_generate       (70-160c) - Video generation (varies by duration/resolution)
+ * - video_text_generate  (70-160c) - Text to video
+ * - video_image_animate  (70-160c) - Image to video
  */
 const BUTTON_CONFIG = {
   // Core generation buttons (canonical keys)
