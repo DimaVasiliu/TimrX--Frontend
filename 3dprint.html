@@ -126,73 +126,18 @@
   <script defer src="3dprint-modules/3dprint-app.js"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
 
-  <!-- SEO Section Styles -->
+  <!-- Visually Hidden Utility -->
   <style>
-    .seo-workspace-intro {
-      background: linear-gradient(180deg, rgba(14,165,233,0.03) 0%, transparent 100%);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding: 1rem 1.5rem;
-      text-align: center;
-    }
-    .seo-workspace-intro .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .seo-workspace-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
-      margin: 0 0 0.5rem;
-    }
-    .seo-workspace-desc {
-      font-size: 0.9rem;
-      color: rgba(255,255,255,0.7);
-      margin: 0 0 0.75rem;
-      line-height: 1.5;
-    }
-    .seo-workspace-features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1.5rem;
-      justify-content: center;
-      list-style: none;
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
       padding: 0;
-      margin: 0 0 0.75rem;
-    }
-    .seo-workspace-features li {
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.6);
-      position: relative;
-      padding-left: 1rem;
-    }
-    .seo-workspace-features li::before {
-      content: "•";
-      position: absolute;
-      left: 0;
-      color: #0ea5e9;
-    }
-    .seo-workspace-link {
-      margin: 0;
-    }
-    .seo-workspace-link a {
-      font-size: 0.85rem;
-      color: #0ea5e9;
-      text-decoration: none;
-    }
-    .seo-workspace-link a:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 768px) {
-      .seo-workspace-intro {
-        padding: 0.75rem 1rem;
-      }
-      .seo-workspace-title {
-        font-size: 1.1rem;
-      }
-      .seo-workspace-features {
-        flex-direction: column;
-        gap: 0.25rem;
-      }
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
   </style>
 </head>
@@ -261,20 +206,20 @@
 
   </header>
 
-  <!-- SEO Content Section -->
-  <section class="seo-workspace-intro" aria-label="Workspace introduction">
-    <div class="container">
-      <h1 class="seo-workspace-title">AI 3D Model Generator Workspace</h1>
-      <p class="seo-workspace-desc">Create 3D models from text prompts or reference images. Generate, refine, remesh, texture, preview, and export — ready for 3D printing with no Blender required.</p>
-      <ul class="seo-workspace-features">
-        <li>Text to 3D generation</li>
-        <li>Image to 3D generation</li>
-        <li>Remesh + texture refinement</li>
-        <li>GLB/GLTF export for printing</li>
-      </ul>
-      <p class="seo-workspace-link"><a href="/hub">Back to TimrX AI Generation Hub</a></p>
-    </div>
-  </section>
+  <!-- Visually hidden SEO content for search engines and screen readers -->
+  <div class="visually-hidden">
+    <h1>AI 3D Model Generator Workspace – Create 3D Models from Text or Images | TimrX</h1>
+    <p>Create 3D models from text prompts or reference images. Generate, refine, remesh, texture, preview, and export — ready for 3D printing with no Blender required.</p>
+    <ul>
+      <li>Text to 3D generation</li>
+      <li>Image to 3D generation</li>
+      <li>Remesh and texture refinement</li>
+      <li>GLB/GLTF export for 3D printing</li>
+      <li>No Blender required</li>
+      <li>Print-ready 3D models</li>
+    </ul>
+    <a href="/hub">Back to TimrX AI Generation Hub</a>
+  </div>
 
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
