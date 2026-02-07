@@ -1,1 +1,4 @@
-https://www.timrx.live/* https://timrx.live/:splat 301
+/hub.html    /hub      301
+/3dprint.html /3dprint 301
+/hub.html?*  /hub      301
+/3dprint.html?* /3dprint 301
