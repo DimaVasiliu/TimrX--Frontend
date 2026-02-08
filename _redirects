@@ -1,0 +1,13 @@
+# Legacy HTML redirects
+
+/blog/*              https://blog.timrx.live/blog/:splat        200
+/sitemap-blogs.xml   https://blog.timrx.live/sitemap.xml        200
+/rss.xml             https://blog.timrx.live/rss.xml            200
+
+
+/hub.html       /hub      301
+/3dprint.html   /3dprint  301
+/blogs.html     /blogs    301
+/hub.html?*     /hub      301
+/3dprint.html?* /3dprint  301
+/blogs.html?*   /blogs    301
