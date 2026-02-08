@@ -122,15 +122,30 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Images</label>
+              <label class="form-label">Images Mode</label>
+              <select class="form-select" id="ai_images_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+                <option value="none">No images</option>
+              </select>
+              <span class="form-hint">Royalty-free adds attribution automatically</span>
+            </div>
+            <div class="form-group" id="image_count_group">
+              <label class="form-label">Images Count</label>
               <select class="form-select" id="ai_image_count">
-                <option value="0">No images</option>
                 <option value="1">1 image</option>
                 <option value="2" selected>2 images</option>
                 <option value="3">3 images</option>
                 <option value="4">4 images</option>
                 <option value="5">5 images</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_strict_factcheck" class="form-checkbox"/>
+                <span>Strict fact-check + sources</span>
+              </label>
+              <span class="form-hint">Uses web search to find and cite sources</span>
             </div>
             <div class="form-group affiliate-section">
               <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
@@ -430,6 +445,21 @@
       };
     });
 
+    // Dynamic UI: Hide/show image count based on images mode
+    $('#ai_images_mode').onchange = function() {
+      const imageCountGroup = $('#image_count_group');
+      if (imageCountGroup) {
+        imageCountGroup.style.display = this.value === 'none' ? 'none' : 'block';
+      }
+    };
+
+    // Auto-enable fact-check for news style
+    $('#ai_style').onchange = function() {
+      if (this.value === 'news') {
+        $('#ai_strict_factcheck').checked = true;
+      }
+    };
+
     // Generate blog post
     $('#generateForm').onsubmit = async (e) => {
       e.preventDefault();
@@ -443,6 +473,7 @@
       try {
         const affiliateUrl = $('#ai_affiliate_url').value.trim();
         const productName = $('#ai_product_name').value.trim();
+        const imagesMode = $('#ai_images_mode').value;
 
         const r = await fetch(API + '/admin/ai/generate', {
           method: 'POST',
@@ -452,7 +483,9 @@
             style: $('#ai_style').value,
             length: $('#ai_length').value,
             tone: $('#ai_tone').value,
-            image_count: parseInt($('#ai_image_count').value, 10),
+            image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
+            images_mode: imagesMode,
+            strict_factcheck: $('#ai_strict_factcheck').checked,
             affiliate_url: affiliateUrl || undefined,
             product_name: productName || undefined,
             affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
