@@ -1,1374 +1,1027 @@
-/* ===== Read Page (TimrX) ===== */
-
-:root {
-  --bg: #0b0b0b;
-  --text: #f5f5f5;
-  --muted: #ccc;
-  --line: rgba(255,255,255,0.06);
-  --surface: #0d0d0d;
-  --maxw: 1280px;
-  --gutter: 28px;
-}
-
-html.read-page {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
-}
-
-body.read-page {
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, sans-serif;
-  overflow-x: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-.container {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-/* ===== MINIMAL HEADER ===== */
-.read-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px clamp(24px, 4vw, 60px);
-  pointer-events: none;
-}
-
-.read-header > * {
-  pointer-events: auto;
-}
-
-.read-brand {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(28px, 3.5vw, 38px);
-  text-decoration: none;
-  color: #fff;
-  letter-spacing: -0.01em;
-  display: flex;
-  align-items: baseline;
-  transition: opacity 0.3s ease;
-}
-
-.read-brand:hover {
-  opacity: 0.8;
-}
-
-.read-brand .b-tim {
-  color: #fff;
-}
-
-.read-brand .b-x {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.read-nav-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #fff;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.read-nav-link:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.35);
-  transform: translateY(-1px);
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  transform-origin: 0 50%;
-  transform: scaleX(0);
-  z-index: 9999;
-  background: linear-gradient(90deg, #666, #999, #666);
-  transition: transform 0.1s ease-out;
-}
-
-/* ===== MAIN ===== */
-.read-main {
-  min-height: 100vh;
-}
-
-/* ===== HERO SECTION ===== */
-.post-hero {
-  position: relative;
-  padding: clamp(120px, 15vh, 180px) 0 clamp(60px, 8vh, 100px);
-  background: #0a0a0a;
-  overflow: hidden;
-}
-
-/* Noise texture overlay */
-.hero-noise {
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-
-/* Subtle gradient */
-.hero-gradient {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(60, 60, 60, 0.15), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(40, 40, 40, 0.1), transparent 50%);
-  pointer-events: none;
-}
-
-.post-hero-inner {
-  position: relative;
-  z-index: 2;
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-.post-category {
-  margin-bottom: 20px;
-  text-align: center;
-  opacity: 0;
-  animation: fadeInUp 0.6s ease forwards;
-  animation-delay: 0.1s;
-}
-
-.category-pill {
-  display: inline-block;
-  padding: 8px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #ccc;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-}
-
-.post-title {
-  margin: 0 0 20px 0;
-  font-size: clamp(36px, 6vw, 56px);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: #fff;
-  text-align: center;
-  opacity: 0;
-  animation: fadeInUp 0.7s ease forwards;
-  animation-delay: 0.2s;
-}
-
-.post-excerpt {
-  margin: 0 auto 32px;
-  font-size: clamp(17px, 1.2rem, 20px);
-  line-height: 1.6;
-  color: #ccc;
-  max-width: calc(100% - 80px);
-  text-align: center;
-  opacity: 0;
-  animation: fadeInUp 0.7s ease forwards;
-  animation-delay: 0.3s;
-}
-
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-  padding: 20px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  opacity: 0;
-  animation: fadeInUp 0.7s ease forwards;
-  animation-delay: 0.6s;
-}
-
-.post-meta .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  transition: border-color 0.3s ease;
-}
-
-.post-meta .avatar:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.meta-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.byline {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.meta-details {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #bbb;
-}
-
-.meta-sep {
-  color: #999;
-}
-
-.share-btn {
-  margin-left: auto;
-  appearance: none;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  color: #ccc;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.share-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== COVER IMAGE ===== */
-.post-cover {
-  margin-top: -40px;
-  margin-bottom: 48px;
-  position: relative;
-  z-index: 3;
-}
-
-.cover-figure {
-  margin: 0;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  animation: fadeInUp 0.8s ease forwards;
-  animation-delay: 0.5s;
-}
-
-.cover-figure img {
-  width: 100%;
-  height: clamp(300px, 45vw, 550px);
-  object-fit: cover;
-  display: block;
-  filter: brightness(0.92);
-  transition: filter 0.4s ease;
-}
-
-.cover-figure:hover img {
-  filter: brightness(1);
-}
-
-/* ===== CONTENT LAYOUT ===== */
-.post-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 48px;
-  padding-bottom: 80px;
-}
-
-@media (max-width: 1060px) {
-  .post-layout {
-    grid-template-columns: 1fr;
-    max-width: 800px;
-  }
-}
-
-/* ===== TABLE OF CONTENTS ===== */
-.post-toc {
-  order: 1;
-}
-
-@media (min-width: 1061px) {
-  .post-toc {
-    position: sticky;
-    top: 100px;
-    align-self: start;
-  }
-}
-
-.toc-card {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
-  background: var(--surface);
-}
-
-.toc-card h3 {
-  margin: 0 0 16px 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-#tocList {
-  display: grid;
-  gap: 6px;
-}
-
-#tocList a {
-  color: #bbb;
-  text-decoration: none;
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border-left: 2px solid transparent;
-  transition: all 0.25s ease;
-}
-
-#tocList a:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
-  border-left-color: #999;
-}
-
-#tocList .toc-l2 {
-  padding-left: 24px;
-  font-size: 13px;
-  color: #aaa;
-}
-
-#tocList a.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
-  border-left-color: #fff;
-}
-
-/* ===== ARTICLE ===== */
-.post-article {
-  order: 2;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: clamp(28px, 5vw, 48px);
-  background: var(--surface);
-  line-height: 1.8;
-}
-
-@media (max-width: 1060px) {
-  .post-article {
-    order: 1;
-  }
-  .post-toc {
-    order: 2;
-  }
-}
-
-.post-article p {
-  margin: 20px 0;
-  font-size: 17px;
-  line-height: 1.85;
-  color: #c8c8c8;
-}
-
-.post-article h2,
-.post-article h3,
-.post-article h4 {
-  margin-top: 40px;
-  margin-bottom: 16px;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
-}
-
-.post-article h2 {
-  font-size: clamp(26px, 3vw, 32px);
-}
-
-.post-article h3 {
-  font-size: clamp(22px, 2.5vw, 26px);
-}
-
-.post-article h4 {
-  font-size: clamp(18px, 2vw, 22px);
-}
-
-.post-article a {
-  color: #ccc;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.post-article a:hover {
-  color: #fff;
-  text-decoration-color: #fff;
-}
-
-.post-article ul,
-.post-article ol {
-  margin: 20px 0;
-  padding-left: 24px;
-  color: #c8c8c8;
-}
-
-.post-article li {
-  margin: 10px 0;
-  line-height: 1.7;
-}
-
-.post-article strong {
-  color: #fff;
-  font-weight: 600;
-}
-
-.post-article em {
-  color: #d8d8d8;
-}
-
-/* Code blocks */
-pre {
-  background: #080808;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px;
-  overflow: auto;
-  margin: 24px 0;
-}
-
-code {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
-  font-size: 14px;
-}
-
-pre code {
-  display: block;
-  white-space: pre;
-  line-height: 1.6;
-  color: #d8d8d8;
-}
-
-/* Inline code */
-.post-article :not(pre) > code {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 14px;
-  color: #e8e8e8;
-}
-
-/* Blockquote */
-blockquote {
-  border-left: 3px solid #888;
-  padding: 16px 24px;
-  margin: 28px 0;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 0 12px 12px 0;
-  font-style: italic;
-  color: #d0d0d0;
-}
-
-blockquote p {
-  margin: 0;
-  color: #d0d0d0;
-}
-
-blockquote cite {
-  display: block;
-  margin-top: 12px;
-  font-size: 14px;
-  color: #bbb;
-  font-style: normal;
-  font-weight: 600;
-}
-
-/* Post images */
-.post-article .post-image {
-  margin: 32px 0;
-}
-
-.post-article .post-image img {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  transition: all 0.3s ease;
-}
-
-.post-article .post-image:hover img {
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.post-article .post-image figcaption {
-  text-align: center;
-  font-size: 14px;
-  color: #bbb;
-  margin-top: 12px;
-  font-style: italic;
-}
-
-/* Delimiter */
-.post-article hr.delimiter {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #444, transparent);
-  margin: 48px auto;
-  max-width: 120px;
-}
-
-/* Inline Citations */
-.post-article .citation {
-  font-size: 0.75em;
-  font-weight: 600;
-  vertical-align: super;
-  line-height: 0;
-}
-
-.post-article .citation a {
-  color: #888;
-  text-decoration: none;
-  padding: 2px 4px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease;
-}
-
-.post-article .citation a:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* Sources Section */
-.post-article h2#sources {
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid var(--line);
-  font-size: clamp(22px, 2.5vw, 26px);
-  color: #ccc;
-}
-
-.post-article h2#sources + ul {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0;
-}
-
-.post-article h2#sources + ul li {
-  padding: 12px 16px;
-  margin: 8px 0;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  font-size: 15px;
-  line-height: 1.6;
-  transition: all 0.2s ease;
-}
-
-.post-article h2#sources + ul li:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.post-article h2#sources + ul li span[id^="source-"] {
-  display: inline-block;
-  min-width: 28px;
-  font-weight: 700;
-  color: #888;
-  margin-right: 8px;
-}
-
-.post-article h2#sources + ul li a {
-  color: #ccc;
-  text-decoration: none;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
-  transition: all 0.2s ease;
-}
-
-.post-article h2#sources + ul li a:hover {
-  color: #fff;
-  border-bottom-color: #fff;
-}
-
-/* Checklist */
-.post-article .checklist {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0;
-}
-
-.post-article .checklist-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 16px;
-  color: #c8c8c8;
-}
-
-.post-article .checklist-item:last-child {
-  border-bottom: none;
-}
-
-.post-article .checklist-item .checkbox {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  margin-top: 2px;
-  position: relative;
-}
-
-.post-article .checklist-item.checked .checkbox {
-  background: #666;
-  border-color: #666;
-}
-
-.post-article .checklist-item.checked .checkbox::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 6px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.post-article .checklist-item.checked {
-  color: #777;
-  text-decoration: line-through;
-}
-
-/* Warning block */
-.post-article .warning-block {
-  margin: 28px 0;
-  padding: 20px 24px;
-  background: rgba(200, 160, 80, 0.08);
-  border-left: 3px solid #c8a050;
-  border-radius: 0 12px 12px 0;
-}
-
-.post-article .warning-block strong {
-  display: block;
-  color: #d4b070;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.post-article .warning-block p {
-  margin: 0;
-  color: #c8c8c8;
-  font-size: 15px;
-}
-
-/* ===== ENGAGEMENT SECTION ===== */
-.engagement-section {
-  margin-top: 60px;
-  padding-bottom: 60px;
-}
-
-.engagement-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  margin-bottom: 40px;
-}
-
-.engagement-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-}
-
-.engage-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #aaa;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.engage-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #fff;
-}
-
-.like-btn.liked {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-.like-btn.liked .heart-icon {
-  fill: #ef4444;
-  stroke: #ef4444;
-}
-
-.like-btn.liked:hover {
-  background: rgba(239, 68, 68, 0.2);
-}
-
-/* Share dropdown */
-.share-options {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 0;
-  background: rgba(13, 13, 13, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 8px;
-  min-width: 180px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  z-index: 50;
-  opacity: 1;
-  transform: translateY(0);
-  transition: all 0.2s ease;
-}
-
-.share-options.hidden {
-  opacity: 0;
-  transform: translateY(-8px);
-  pointer-events: none;
-}
-
-.share-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  background: transparent;
-  border: none;
-  border-radius: 10px;
-  color: #aaa;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.share-option:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.engagement-info {
-  color: #666;
-  font-size: 13px;
-}
-
-/* Comments Section */
-.comments-section {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 28px;
-}
-
-.comments-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-
-.comments-header h3 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.comment-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #aaa;
-}
-
-/* Comment Form */
-.comment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 32px;
-}
-
-.comment-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.comment-form input,
-.comment-form textarea {
-  width: 100%;
-  padding: 14px 18px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  color: #f0f0f0;
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: all 0.2s ease;
-  resize: vertical;
-}
-
-.comment-form input:focus,
-.comment-form textarea:focus {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.comment-form input::placeholder,
-.comment-form textarea::placeholder {
-  color: #666;
-}
-
-.comment-submit-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  align-self: flex-end;
-  padding: 12px 24px;
-  background: #fff;
-  border: none;
-  border-radius: 10px;
-  color: #0a0a0a;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.comment-submit-btn:hover {
-  background: #e5e5e5;
-  transform: translateY(-1px);
-}
-
-.comment-submit-btn:active {
-  transform: translateY(0);
-}
-
-/* Comments List */
-.comments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.comment-item {
-  display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  transition: all 0.2s ease;
-}
-
-.comment-item:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.comment-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #444, #333);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #aaa;
-  flex-shrink: 0;
-}
-
-.comment-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.comment-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.comment-author {
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.comment-date {
-  font-size: 12px;
-  color: #666;
-}
-
-.comment-text {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #bbb;
-  margin: 0;
-}
-
-.no-comments {
-  text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 14px;
-  margin: 0;
-}
-
-.no-comments.hidden {
-  display: none;
-}
-
-/* Toast Notification */
-.toast-notification {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(255, 255, 255, 0.95);
-  color: #0a0a0a;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  transition: all 0.3s ease;
-  z-index: 1000;
-}
-
-.toast-notification.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* Engagement responsive */
-@media (max-width: 640px) {
-  .engagement-bar {
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .engagement-actions {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .engage-btn {
-    flex: 1;
-    justify-content: center;
-    min-width: 120px;
-  }
-
-  .share-options {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .share-options.hidden {
-    transform: translateX(-50%) translateY(-8px);
-  }
-
-  .engagement-info {
-    width: 100%;
-    text-align: center;
-  }
-
-  .comments-section {
-    padding: 20px;
-  }
-
-  .comment-input-group {
-    gap: 10px;
-  }
-
-  .comment-submit-btn {
-    width: 100%;
-  }
-
-  .comment-item {
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .comment-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-}
-
-/* ===== FOOTER ===== */
-.read-footer {
-  border-top: 1px solid var(--line);
-  padding: 24px 0 32px;
-  background: rgba(10, 10, 10, 0.5);
-}
-
-.foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.foot > span {
-  color: #bbb;
-  font-size: 14px;
-}
-
-.foot-nav,
-.foot-legal {
-  display: flex;
-  gap: 4px;
-}
-
-.foot-nav a,
-.foot-legal a {
-  margin-right: 12px;
-  color: #ccc;
-  text-decoration: none;
-  transition: color 0.3s ease;
-  font-size: 14px;
-}
-
-.foot-nav a:hover,
-.foot-legal a:hover {
-  color: #fff;
-}
-
-.foot-social {
-  display: flex;
-  gap: 4px;
-}
-
-.foot-social a {
-  margin-left: 12px;
-  color: #ccc;
-  text-decoration: none;
-  transition: color 0.3s ease;
-  font-size: 14px;
-}
-
-.foot-social a:hover {
-  color: #fff;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .read-header {
-    padding: 16px 20px;
-  }
-
-  .read-brand {
-    font-size: 26px;
-  }
-
-  .read-nav-link {
-    padding: 8px 14px;
-    font-size: 12px;
-  }
-
-  .post-meta {
-    flex-wrap: wrap;
-  }
-
-  .share-btn {
-    margin-left: 0;
-    margin-top: 12px;
-    width: 100%;
-    height: 44px;
-    border-radius: 10px;
-  }
-
-  .foot {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
-  }
-
-  .foot-nav,
-  .foot-legal,
-  .foot-social {
-    justify-content: center;
-  }
-
-  .foot-nav a,
-  .foot-legal a {
-    margin: 0 8px;
-  }
-
-  .foot-social a {
-    margin: 0 8px;
-  }
-}
-
-/* ===== REDUCED MOTION ===== */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .post-category,
-  .post-title,
-  .post-excerpt,
-  .post-meta,
-  .cover-figure {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
-}
-
-/* ===== SKELETON LOADING ===== */
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.skeleton-text {
-  color: transparent !important;
-  background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 4px;
-}
-
-.skeleton-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px 0;
-}
-
-.skeleton-line {
-  background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 4px;
-}
-
-.skeleton-heading {
-  height: 28px;
-  width: 60%;
-  margin-bottom: 8px;
-}
-
-.skeleton-paragraph {
-  height: 18px;
-  width: 100%;
-}
-
-.skeleton-paragraph.short {
-  width: 75%;
-  margin-bottom: 24px;
-}
-
-/* ===== PRODUCT/AFFILIATE BLOCK ===== */
-.product-block {
-  margin: 32px 0;
-  padding: 24px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.product-block::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #44260a, #2e1a06);
-  opacity: 0.8;
-}
-
-.product-block:hover {
-  border-color: rgba(68, 38, 10, 0.4);
-  box-shadow: 0 8px 32px rgba(68, 38, 10, 0.15);
-  transform: translateY(-2px);
-}
-
-.product-content {
-  position: relative;
-  z-index: 1;
-}
-
-.product-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #7c5a3a;
-  background: rgba(68, 38, 10, 0.2);
-  border: 1px solid rgba(68, 38, 10, 0.4);
-  border-radius: 4px;
-  margin-bottom: 12px;
-}
-
-.product-name {
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 10px;
-  line-height: 1.3;
-}
-
-.product-desc {
-  font-size: 15px;
-  color: #999;
-  line-height: 1.6;
-  margin: 0 0 18px;
-}
-
-.product-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #d4d4d4;
-  background: linear-gradient(135deg, #44260a, #2e1a06);
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 16px rgba(46, 26, 6, 0.5);
-}
-
-.product-cta:hover {
-  color: #e5e5e5;
-  background: linear-gradient(135deg, #5a3310, #44260a);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(46, 26, 6, 0.6);
-}
-
-.product-cta .arrow {
-  transition: transform 0.25s ease;
-}
-
-.product-cta:hover .arrow {
-  transform: translateX(4px);
-}
-
-/* Amazon-style disclaimer */
-.product-block::after {
-  content: 'Affiliate link - we may earn a commission';
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
-  font-size: 10px;
-  color: #555;
-  font-style: italic;
-}
-
-@media (max-width: 640px) {
-  .product-block {
-    padding: 20px;
-    margin: 24px 0;
-  }
-
-  .product-name {
-    font-size: 18px;
-  }
-
-  .product-cta {
-    width: 100%;
-    justify-content: center;
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Admin — TimrX Blogs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css"/>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html">TimrX<span>.</span></a>
+    <nav class="nav">
+      <a href="blogs.html">Blogs</a>
+      <a href="write.html">Write</a>
+      <button id="logout" class="logout">Log out</button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-noise"></div>
+    <div class="hero-gradient"></div>
+    <div class="hero-watermark">ADMIN</div>
+    <div class="hero-arc"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">Dashboard</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-word">Manage.</span>
+        <span class="hero-word">Create.</span>
+        <span class="hero-word hero-word--outline">Control.</span>
+      </h1>
+      <p class="hero-description">Manage posts and generate content with AI-powered tools.</p>
+    </div>
+  </section>
+
+  <div class="main">
+    <!-- Content -->
+    <div class="content">
+      <div class="toolbar">
+        <input id="search" placeholder="Search posts…" autocomplete="off"/>
+        <select id="flt">
+          <option value="draft">Drafts</option>
+          <option value="published">Published</option>
+          <option value="all">All</option>
+        </select>
+        <button class="btn" id="reload">Reload</button>
+        <button class="btn primary" id="newPost">+ New</button>
+      </div>
+      <div id="list" class="posts"></div>
+    </div>
+
+    <!-- AI Panel -->
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>AI Assistant</h3>
+          <span class="status" id="aiStatus">...</span>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="generate">Generate</button>
+          <button class="tab" data-tab="assist">Assist</button>
+          <button class="tab" data-tab="cover">Cover</button>
+          <button class="tab" data-tab="subscribers">Subs</button>
+        </div>
+
+        <!-- Generate Tab -->
+        <div class="tab-content active" id="tab-generate">
+          <form id="generateForm">
+            <div class="form-group">
+              <label class="form-label">Topic / Idea</label>
+              <textarea class="form-textarea" id="ai_topic" placeholder="e.g., How to optimize 3D print settings..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Style</label>
+              <select class="form-select" id="ai_style">
+                <option value="tutorial">Tutorial</option>
+                <option value="guide">Guide</option>
+                <option value="listicle">Listicle (Top 10...)</option>
+                <option value="review">Product Review</option>
+                <option value="comparison">Comparison (A vs B)</option>
+                <option value="how-to">How-To / Step-by-Step</option>
+                <option value="case-study">Case Study</option>
+                <option value="story">Story / Narrative</option>
+                <option value="opinion">Opinion / Editorial</option>
+                <option value="news">News / Update</option>
+                <option value="roundup">Roundup / Best Of</option>
+                <option value="faq">FAQ / Q&A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Length</label>
+              <select class="form-select" id="ai_length">
+                <option value="micro">Micro (200-400 words)</option>
+                <option value="short">Short (500-800 words)</option>
+                <option value="medium" selected>Medium (1000-1500 words)</option>
+                <option value="long">Long (2000-3000 words)</option>
+                <option value="deep-dive">Deep Dive (3000-5000 words)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tone</label>
+              <select class="form-select" id="ai_tone">
+                <option value="professional and engaging">Professional</option>
+                <option value="casual and friendly">Casual</option>
+                <option value="technical and detailed">Technical</option>
+                <option value="inspiring and motivational">Inspiring</option>
+                <option value="witty and humorous">Witty / Humorous</option>
+                <option value="conversational and relatable">Conversational</option>
+                <option value="authoritative and expert">Authoritative</option>
+                <option value="beginner-friendly and simple">Beginner-Friendly</option>
+                <option value="bold and provocative">Bold / Provocative</option>
+                <option value="educational and structured">Educational</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Images Mode</label>
+              <select class="form-select" id="ai_images_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+                <option value="none">No images</option>
+              </select>
+              <span class="form-hint">Royalty-free adds attribution automatically</span>
+            </div>
+            <div class="form-group" id="image_count_group">
+              <label class="form-label">Images Count</label>
+              <select class="form-select" id="ai_image_count">
+                <option value="0">0 images</option>
+                <option value="1">1 image</option>
+                <option value="2" selected>2 images</option>
+                <option value="3">3 images</option>
+                <option value="4">4 images</option>
+                <option value="5">5 images</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_strict_factcheck" class="form-checkbox"/>
+                <span>Strict fact-check + sources</span>
+              </label>
+              <span class="form-hint">Uses web search to find and cite sources</span>
+            </div>
+            <div class="form-group affiliate-section">
+              <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
+              <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
+              <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+              <select class="form-select" id="ai_affiliate_cta" style="margin-top:8px;">
+                <option value="Check Price on Amazon">Check Price on Amazon</option>
+                <option value="Buy Now on Amazon">Buy Now on Amazon</option>
+                <option value="View on Amazon">View on Amazon</option>
+                <option value="Shop Now">Shop Now</option>
+                <option value="Get It Here">Get It Here</option>
+                <option value="See Latest Price">See Latest Price</option>
+              </select>
+              <select class="form-select" id="ai_affiliate_placement" style="margin-top:8px;">
+                <option value="natural">Natural — AI decides placement</option>
+                <option value="early">Early — near the top</option>
+                <option value="middle">Middle — after key points</option>
+                <option value="end">End — as a recommendation</option>
+              </select>
+            </div>
+            <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
+          </form>
+
+          <div class="preview" id="generatePreview" style="display:none;">
+            <div class="preview-label">Generated Post</div>
+            <div class="preview-title" id="previewTitle"></div>
+            <div class="preview-text" id="previewExcerpt"></div>
+            <div class="preview-tags">
+              <span class="preview-tag" id="previewType"></span>
+              <span class="preview-tag" id="previewTags"></span>
+            </div>
+            <div class="preview-actions">
+              <button class="btn" id="previewEdit">Edit</button>
+              <button class="btn primary" id="previewPublish">Save Draft</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assist Tab -->
+        <div class="tab-content" id="tab-assist">
+          <div class="assist-grid">
+            <button class="assist-btn" data-action="expand"><span class="icon">+</span>Expand</button>
+            <button class="assist-btn" data-action="improve"><span class="icon">*</span>Improve</button>
+            <button class="assist-btn" data-action="simplify"><span class="icon">-</span>Simplify</button>
+            <button class="assist-btn" data-action="proofread"><span class="icon">?</span>Proofread</button>
+            <button class="assist-btn" data-action="headline"><span class="icon">#</span>Headlines</button>
+            <button class="assist-btn" data-action="seo"><span class="icon">@</span>SEO</button>
+            <button class="assist-btn" data-action="conclusion"><span class="icon">.</span>Conclusion</button>
+            <button class="assist-btn" data-action="outline"><span class="icon">=</span>Outline</button>
+          </div>
+          <form id="assistForm">
+            <div class="form-group">
+              <label class="form-label">Text to Process</label>
+              <textarea class="form-textarea" id="assist_text" placeholder="Paste text to process..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Context (optional)</label>
+              <input class="form-input" id="assist_context" placeholder="Brief description"/>
+            </div>
+          </form>
+          <div class="result" id="assistResult" style="display:none;">
+            <pre id="assistResultText"></pre>
+            <div class="preview-actions">
+              <button class="btn" id="copyAssist">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cover Tab -->
+        <div class="tab-content" id="tab-cover">
+          <form id="coverForm">
+            <div class="form-group">
+              <label class="form-label">Image Description / Search</label>
+              <textarea class="form-textarea" id="cover_prompt" placeholder="e.g., A futuristic 3D printer, cinematic lighting..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Image Source</label>
+              <select class="form-select" id="cover_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+              </select>
+              <span class="form-hint">Royalty-free is faster and includes attribution</span>
+            </div>
+            <div class="form-group" id="cover_size_group">
+              <label class="form-label">Size</label>
+              <select class="form-select" id="cover_size">
+                <option value="1536x1024" selected>Landscape (1536x1024)</option>
+                <option value="1024x1024">Square (1024x1024)</option>
+                <option value="1024x1536">Portrait (1024x1536)</option>
+              </select>
+            </div>
+            <button type="submit" class="action-btn" id="coverBtn">Generate Cover</button>
+          </form>
+          <div class="cover-preview" id="coverPreview" style="display:none;">
+            <img id="coverImage" alt="Generated cover"/>
+            <div class="cover-actions">
+              <button class="btn" id="copyCoverUrl">Copy URL</button>
+              <button class="btn primary" id="useCover">Use Cover</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscribers Tab -->
+        <div class="tab-content" id="tab-subscribers">
+          <div class="subs-tab-info">
+            <p class="muted">View and manage your newsletter subscribers.</p>
+            <button class="action-btn" id="openSubsModal">View Subscribers</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Subscribers Modal -->
+  <div class="modal" id="subsModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Newsletter Subscribers</h3>
+        <button class="modal-close" id="closeSubsModal">&times;</button>
+      </div>
+      <div class="subs-modal-content">
+        <div class="subs-header">
+          <div class="subs-stats">
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsActiveCount">-</span>
+              <span class="subs-stat-label">Active</span>
+            </div>
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsTotalCount">-</span>
+              <span class="subs-stat-label">Total</span>
+            </div>
+          </div>
+          <div class="subs-controls">
+            <select class="form-select" id="subsFilter" title="Filter subscribers">
+              <option value="active">Active only</option>
+              <option value="all">All subscribers</option>
+            </select>
+            <button class="btn" id="refreshSubs">Refresh</button>
+            <button class="btn" id="checkEmailStatus" title="Check email configuration">Email Status</button>
+          </div>
+        </div>
+        <div class="email-status-panel" id="emailStatusPanel">
+          <div class="email-status-content" id="emailStatusContent">
+            Checking email configuration...
+          </div>
+        </div>
+        <div class="subs-list" id="subsList">
+          <div class="muted">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal" id="login">
+    <div class="modal-box">
+      <h3>Admin Login</h3>
+      <label>
+        <span>Token</span>
+        <input id="token" type="password" placeholder="Enter admin token" autocomplete="off"/>
+      </label>
+      <div class="modal-actions">
+        <span id="lmsg" class="muted"></span>
+        <button id="enter" class="btn primary ml-auto">Enter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="edit">
+    <div class="modal-box wide">
+      <h3>Edit Post</h3>
+      <label><span>Title</span><input id="e_title"/></label>
+      <label><span>Slug</span><input id="e_slug" disabled/></label>
+      <label><span>Cover URL</span><input id="e_cover"/></label>
+      <label><span>Type</span><input id="e_type"/></label>
+      <label><span>Tags</span><input id="e_tags"/></label>
+      <label><span>Minutes</span><input id="e_minutes" type="number" min="1"/></label>
+      <label><span>Excerpt</span><textarea id="e_excerpt"></textarea></label>
+      <label><span>Content</span><textarea id="e_content"></textarea></label>
+      <div class="row">
+        <select id="e_status">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+        <input id="e_author" placeholder="Author"/>
+        <span id="e_msg" class="muted"></span>
+      </div>
+      <div class="modal-actions">
+        <button id="save" class="btn primary">Save</button>
+        <button id="pub" class="btn">Publish</button>
+        <button id="unpub" class="btn">Unpublish</button>
+        <button id="del" class="btn btn-delete">Delete</button>
+        <button id="close" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover Image Result Modal -->
+  <div class="modal" id="coverModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Cover Image Ready</h3>
+        <button class="modal-close" id="closeCoverModal">&times;</button>
+      </div>
+      <div class="cover-modal-content">
+        <img id="modalCoverImage" alt="Generated cover"/>
+        <p id="modalCoverAttribution" class="cover-attribution hidden"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalCopyCoverUrl">Copy URL</button>
+        <button class="btn primary" id="modalUseCover">Use as Cover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generated Blog Post Modal -->
+  <div class="modal" id="blogModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Blog Post Generated</h3>
+        <button class="modal-close" id="closeBlogModal">&times;</button>
+      </div>
+      <div class="blog-modal-content">
+        <div class="blog-preview-title" id="modalPreviewTitle"></div>
+        <div class="blog-preview-excerpt" id="modalPreviewExcerpt"></div>
+        <div class="blog-preview-meta">
+          <span class="blog-preview-tag type" id="modalPreviewType"></span>
+          <span class="blog-preview-tag tags" id="modalPreviewTags"></span>
+        </div>
+        <div class="blog-preview-cover-prompt">
+          <span class="label">Cover Prompt:</span>
+          <span id="modalPreviewCoverPrompt"></span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalPreviewEdit">Edit in Editor</button>
+        <button class="btn" id="modalGenerateCover">Generate Cover</button>
+        <button class="btn primary" id="modalPreviewPublish">Save as Draft</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+    const API = API_BASE + '/api';
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const $ = s => document.querySelector(s);
+    const tokenKey = 'TX_ADMIN_TOKEN';
+
+    let generatedBlog = null;
+    let generatedCoverUrl = null;
+    let generatedCoverData = null;  // Full response including attribution
+
+    function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
+    function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
+    function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+
+    async function ensureAuth(){
+      if(!getToken()){ $('#login').classList.add('show'); return false; }
+      const r = await fetch(API+'/admin/auth', {headers: headers()});
+      if(!r.ok){ $('#login').classList.add('show'); return false; }
+      return true;
+    }
+
+    $('#enter').onclick = async ()=>{
+      const t = $('#token').value.trim(); if(!t) return;
+      setToken(t);
+      if(await ensureAuth()){
+        $('#login').classList.remove('show');
+        $('#search').value = '';
+        load();
+        checkAI();
+      }
+      else { $('#lmsg').textContent = 'Invalid token'; setToken(''); }
+    };
+    $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
+
+    // Check AI status
+    async function checkAI() {
+      try {
+        const r = await fetch(API + '/admin/ai/status', { headers: headers() });
+        const j = await r.json();
+        const status = $('#aiStatus');
+        if (j.configured) {
+          status.textContent = 'Online';
+          status.classList.add('online');
+          status.classList.remove('offline');
+        } else {
+          status.textContent = 'Offline';
+          status.classList.add('offline');
+          status.classList.remove('online');
+        }
+      } catch (e) {
+        $('#aiStatus').textContent = 'Offline';
+        $('#aiStatus').classList.add('offline');
+      }
+    }
+
+    // Tab switching
+    $$('.tab').forEach(tab => {
+      tab.onclick = () => {
+        $$('.tab').forEach(t => t.classList.remove('active'));
+        $$('.tab-content').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        $(`#tab-${tab.dataset.tab}`).classList.add('active');
+      };
+    });
+
+    // Dynamic UI: Hide/show image count based on images mode
+    $('#ai_images_mode').onchange = function() {
+      const imageCountGroup = $('#image_count_group');
+      if (imageCountGroup) {
+        imageCountGroup.style.display = this.value === 'none' ? 'none' : 'block';
+      }
+    };
+
+    // Auto-enable fact-check for news style
+    $('#ai_style').onchange = function() {
+      if (this.value === 'news') {
+        $('#ai_strict_factcheck').checked = true;
+      }
+    };
+
+    // Generate blog post
+    $('#generateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const topic = $('#ai_topic').value.trim();
+      if (!topic) return alert('Please enter a topic');
+
+      const btn = $('#generateBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+      try {
+        const affiliateUrl = $('#ai_affiliate_url').value.trim();
+        const productName = $('#ai_product_name').value.trim();
+        const imagesMode = $('#ai_images_mode').value;
+
+        const r = await fetch(API + '/admin/ai/generate', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            topic,
+            style: $('#ai_style').value,
+            length: $('#ai_length').value,
+            tone: $('#ai_tone').value,
+            image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
+            images_mode: imagesMode,
+            strict_factcheck: $('#ai_strict_factcheck').checked,
+            affiliate_url: affiliateUrl || undefined,
+            product_name: productName || undefined,
+            affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
+            affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok) {
+          generatedBlog = j;
+          // Show warnings for graceful degradation and quality gates
+          const warnings = [];
+          if (j.images_mode_warning) warnings.push(j.images_mode_warning);
+          if (j.factcheck_warning) warnings.push(j.factcheck_warning);
+          if (j.quality_warning) warnings.push('⚠️ ' + j.quality_warning);
+          if (warnings.length > 0) {
+            alert('Note:\n' + warnings.join('\n\n'));
+          }
+          // Show in modal instead of inline
+          $('#modalPreviewTitle').textContent = j.title;
+          $('#modalPreviewExcerpt').textContent = j.excerpt;
+          $('#modalPreviewType').textContent = j.type;
+          $('#modalPreviewTags').textContent = j.tags;
+          $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
+          if (j.cover_prompt) {
+            $('#cover_prompt').value = j.cover_prompt;
+          }
+          // Update button text based on recommended status
+          const publishBtn = $('#modalPreviewPublish');
+          if (j.recommended_status === 'draft') {
+            publishBtn.textContent = 'Save as Draft (Recommended)';
+            publishBtn.style.background = '#f59e0b';  // Amber for caution
+          } else {
+            publishBtn.textContent = 'Save as Draft';
+            publishBtn.style.background = '';  // Reset to default
+          }
+          // Show image source info
+          if (j.content_images_source && j.content_images_source !== 'none') {
+            console.log('[AI] Image sources:', j.content_images_source, j.content_images_sources_detail);
+          }
+          $('#blogModal').classList.add('show');
+        } else {
+          alert('Generation failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Blog Post';
+      }
+    };
+
+    // Close blog modal
+    $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
+
+    // Save generated blog as draft (modal version)
+    $('#modalPreviewPublish').onclick = async () => {
+      if (!generatedBlog) return;
+      const btn = $('#modalPreviewPublish');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        // Build cover attribution from generatedCoverData if available
+        let coverAttribution = '';
+        if (generatedCoverData && generatedCoverData.attribution) {
+          coverAttribution = generatedCoverData.attribution;
+        }
+        const r = await fetch(API + '/post', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            title: generatedBlog.title,
+            excerpt: generatedBlog.excerpt,
+            tags: generatedBlog.tags,
+            type: generatedBlog.type,
+            cover_url: generatedCoverUrl || '',
+            cover_attribution: coverAttribution,
+            content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
+            status: 'draft',
+            author: 'Dima V',
+            author_avatar: 'img/dima.jpg'
+          })
+        });
+        const j = await r.json();
+        if (j.ok || j.slug) {
+          alert('Draft saved! Slug: ' + j.slug);
+          load();
+          $('#blogModal').classList.remove('show');
+          $('#ai_topic').value = '';
+          generatedBlog = null;
+          generatedCoverData = null;
+        } else {
+          alert('Save failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save as Draft';
+      }
+    };
+
+    // Edit in full editor (modal version)
+    $('#modalPreviewEdit').onclick = () => {
+      if (!generatedBlog) return;
+      sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
+      window.location.href = 'write.html?ai=1';
+    };
+
+    // Generate cover from blog modal
+    $('#modalGenerateCover').onclick = () => {
+      if (generatedBlog && generatedBlog.cover_prompt) {
+        $('#cover_prompt').value = generatedBlog.cover_prompt;
+        $('#blogModal').classList.remove('show');
+        // Switch to cover tab
+        $$('.tab').forEach(t => t.classList.remove('active'));
+        $$('.tab-content').forEach(s => s.classList.remove('active'));
+        $('[data-tab="cover"]').classList.add('active');
+        $('#tab-cover').classList.add('active');
+        // Auto-generate
+        $('#coverForm').dispatchEvent(new Event('submit'));
+      }
+    };
+
+    // AI Assist functions
+    $$('.assist-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.action;
+        const text = $('#assist_text').value.trim();
+        if (!text) return alert('Please enter text to process');
+
+        $$('.assist-btn').forEach(b => b.disabled = true);
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        try {
+          const r = await fetch(API + '/admin/ai/assist', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              action,
+              text,
+              context: $('#assist_context').value.trim()
+            })
+          });
+          const j = await r.json();
+
+          if (j.ok) {
+            let result = j.result;
+            if (typeof result === 'object') {
+              result = JSON.stringify(result, null, 2);
+            }
+            $('#assistResultText').textContent = result;
+            $('#assistResult').style.display = 'block';
+          } else {
+            alert('Assist failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          $$('.assist-btn').forEach(b => {
+            b.disabled = false;
+          });
+          const icons = {expand:'+',improve:'*',simplify:'-',proofread:'?',headline:'#',seo:'@',conclusion:'.',outline:'='};
+          const labels = {expand:'Expand',improve:'Improve',simplify:'Simplify',proofread:'Proofread',headline:'Headlines',seo:'SEO',conclusion:'Conclusion',outline:'Outline'};
+          $$('.assist-btn').forEach(b => {
+            const a = b.dataset.action;
+            b.innerHTML = `<span class="icon">${icons[a]}</span>${labels[a]}`;
+          });
+        }
+      };
+    });
+
+    // Copy assist result
+    $('#copyAssist').onclick = () => {
+      const text = $('#assistResultText').textContent;
+      navigator.clipboard.writeText(text);
+      $('#copyAssist').textContent = 'Copied!';
+      setTimeout(() => $('#copyAssist').textContent = 'Copy', 1500);
+    };
+
+    // Generate cover image
+    $('#coverForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const prompt = $('#cover_prompt').value.trim();
+      const mode = $('#cover_mode').value;
+      if (!prompt) return alert('Please enter an image description');
+
+      const btn = $('#coverBtn');
+      btn.disabled = true;
+      const actionText = mode === 'royalty_free' ? 'Searching...' : 'Generating...';
+      btn.innerHTML = '<span class="spinner"></span>' + actionText;
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            size: $('#cover_size').value,
+            mode: mode
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;  // Store full response for attribution
+          // Show in modal
+          $('#modalCoverImage').src = j.url;
+          // Show attribution info if royalty-free
+          const attrEl = $('#modalCoverAttribution');
+          if (attrEl) {
+            if (j.attribution) {
+              attrEl.innerHTML = j.attribution;
+              attrEl.classList.remove('hidden');
+            } else {
+              attrEl.classList.add('hidden');
+            }
+          }
+          $('#coverModal').classList.add('show');
+        } else {
+          alert('Image failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = mode === 'royalty_free' ? 'Search Cover' : 'Generate Cover';
+      }
+    };
+
+    // Update button text based on cover mode
+    $('#cover_mode').onchange = function() {
+      const btn = $('#coverBtn');
+      const sizeGroup = $('#cover_size_group');
+      if (this.value === 'royalty_free') {
+        btn.textContent = 'Search Cover';
+        if (sizeGroup) sizeGroup.style.display = 'none';  // Size not applicable for stock
+      } else {
+        btn.textContent = 'Generate Cover';
+        if (sizeGroup) sizeGroup.style.display = 'block';
+      }
+    };
+
+    // Close cover modal
+    $('#closeCoverModal').onclick = () => $('#coverModal').classList.remove('show');
+
+    // Copy cover URL (modal version)
+    $('#modalCopyCoverUrl').onclick = () => {
+      if (generatedCoverUrl) {
+        navigator.clipboard.writeText(generatedCoverUrl);
+        $('#modalCopyCoverUrl').textContent = 'Copied!';
+        setTimeout(() => $('#modalCopyCoverUrl').textContent = 'Copy URL', 1500);
+      }
+    };
+
+    // Use cover (modal version)
+    $('#modalUseCover').onclick = () => {
+      if (generatedCoverUrl) {
+        // If editing a post, set the cover URL
+        if ($('#edit').classList.contains('show')) {
+          $('#e_cover').value = generatedCoverUrl;
+        }
+        $('#coverModal').classList.remove('show');
+        alert('Cover URL ready! Use it when creating/editing a post.');
+      }
+    };
+
+    async function load(){
+      const q = $('#search').value.trim();
+      const status = $('#flt').value;
+      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`);
+      const j = await r.json();
+      render(j.items || []);
+    }
+
+    function render(items){
+      const list = $('#list');
+      list.innerHTML = '';
+      if(!items.length){
+        list.innerHTML = '<div class="muted">No posts found.</div>';
+        return;
+      }
+      for(const p of items){
+        const el = document.createElement('div');
+        el.className = 'post';
+        el.innerHTML = `
+          <div class="post-info">
+            <div class="post-title">${esc(p.title||'(no title)')}</div>
+            <div class="post-meta">
+              <span class="post-status">${p.status}</span>
+              <span>${p.slug}</span>
+            </div>
+          </div>
+          <div class="post-actions">
+            <button class="btn" data-edit="${p.slug}">Edit</button>
+            ${p.status==='draft'?`<button class="btn" data-pub="${p.slug}">Publish</button>`:`<button class="btn" data-unpub="${p.slug}">Unpublish</button>`}
+            <button class="btn btn-delete" data-del="${p.slug}">Delete</button>
+          </div>`;
+        list.appendChild(el);
+      }
+    }
+
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    $('#list').addEventListener('click', async e=>{
+      const b = e.target.closest('button');
+      if(!b) return;
+      const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
+      if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
+      if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.del){
+        if(confirm('Delete this post permanently? This cannot be undone.')){
+          try {
+            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+            const j = await r.json();
+            if(j.ok){
+              alert('Post deleted successfully');
+              await load();
+            } else {
+              alert('Delete failed: ' + (j.error || 'Unknown error'));
+            }
+          } catch(err){
+            alert('Delete failed: ' + err.message);
+          }
+        }
+      }
+    });
+
+    // Edit modal
+    $('#close').onclick = ()=> $('#edit').classList.remove('show');
+
+    async function openEdit(slug){
+      $('#e_msg').textContent = 'Loading…';
+      $('#edit').classList.add('show');
+      const p = await (await fetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
+      $('#e_title').value = p.title||'';
+      $('#e_slug').value = p.slug||'';
+      $('#e_cover').value = p.cover_url||'';
+      $('#e_type').value = p.type||'';
+      $('#e_tags').value = p.tags||'';
+      $('#e_minutes').value = p.minutes||'';
+      $('#e_excerpt').value = p.excerpt||'';
+      $('#e_content').value = p.content_md||'';
+      $('#e_status').value = p.status||'draft';
+      $('#e_author').value = p.author||'Dima V';
+      $('#e_msg').textContent = '';
+    }
+
+    $('#save').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      const body = {
+        title: $('#e_title').value.trim(),
+        cover_url: $('#e_cover').value.trim(),
+        type: $('#e_type').value.trim(),
+        tags: $('#e_tags').value.trim(),
+        minutes: parseInt($('#e_minutes').value)||undefined,
+        excerpt: $('#e_excerpt').value.trim(),
+        content_md: $('#e_content').value,
+        status: $('#e_status').value,
+        author: $('#e_author').value.trim()||'Dima V',
+        author_avatar: 'img/dima.jpg'
+      };
+      $('#e_msg').textContent = 'Saving…';
+      const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
+      $('#e_msg').textContent = r.ok ? 'Saved' : 'Error';
+      if(r.ok) load();
+    };
+
+    $('#pub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#unpub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#del').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      if(confirm('Delete this post permanently? This cannot be undone.')){
+        try {
+          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+          const j = await r.json();
+          if(j.ok){
+            alert('Post deleted successfully');
+            $('#edit').classList.remove('show');
+            await load();
+          } else {
+            alert('Delete failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch(err){
+          alert('Delete failed: ' + err.message);
+        }
+      }
+    };
+
+    // New post
+    $('#newPost').onclick = async ()=>{
+      await fetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'draft', author:'Dima V', author_avatar:'img/dima.jpg'})});
+      load();
+    };
+
+    // Filters
+    $('#reload').onclick = load;
+    $('#flt').onchange = load;
+    $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    // Close modals on backdrop click or Escape key
+    ['coverModal', 'blogModal'].forEach(id => {
+      const modal = $('#' + id);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        $('#coverModal').classList.remove('show');
+        $('#blogModal').classList.remove('show');
+        $('#subsModal').classList.remove('show');
+      }
+    });
+
+    // Subscribers management
+    async function loadSubscribers() {
+      const filter = $('#subsFilter').value;
+      const list = $('#subsList');
+      list.innerHTML = '<div class="muted">Loading...</div>';
+
+      try {
+        const r = await fetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          list.innerHTML = '<div class="muted">Failed to load subscribers</div>';
+          return;
+        }
+
+        const items = j.items || [];
+        $('#subsActiveCount').textContent = items.filter(s => s.status === 'active').length;
+
+        // Get total count
+        const totalR = await fetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
+        const totalJ = await totalR.json();
+        $('#subsTotalCount').textContent = (totalJ.items || []).length;
+
+        if (!items.length) {
+          list.innerHTML = '<div class="muted">No subscribers found</div>';
+          return;
+        }
+
+        list.innerHTML = items.map(s => `
+          <div class="sub-item ${s.status}">
+            <div class="sub-email">${esc(s.email)}</div>
+            <div class="sub-meta">
+              <span class="sub-status">${s.status}</span>
+              <span class="sub-date">${s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        list.innerHTML = '<div class="muted">Error: ' + err.message + '</div>';
+      }
+    }
+
+    // Open subscribers modal
+    function openSubsModal() {
+      $('#subsModal').classList.add('show');
+      loadSubscribers();
+    }
+
+    $('#openSubsModal').onclick = openSubsModal;
+    $('#closeSubsModal').onclick = () => $('#subsModal').classList.remove('show');
+    $('#refreshSubs').onclick = loadSubscribers;
+    $('#subsFilter').onchange = loadSubscribers;
+
+    // Email status check
+    $('#checkEmailStatus').onclick = async () => {
+      const panel = $('#emailStatusPanel');
+      const content = $('#emailStatusContent');
+
+      panel.classList.toggle('visible');
+      if (!panel.classList.contains('visible')) return;
+
+      content.innerHTML = '<span class="muted">Checking email configuration...</span>';
+
+      try {
+        const r = await fetch(`${API}/admin/email-status`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          content.innerHTML = '<span class="error">Failed to check email status</span>';
+          return;
+        }
+
+        const statusIcon = (ok) => ok ? '<span class="status-ok">✓</span>' : '<span class="status-err">✗</span>';
+        const hints = (j.hints || []).filter(h => h);
+
+        content.innerHTML = `
+          <div class="status-grid">
+            <div class="status-item">${statusIcon(j.email_enabled)} EMAIL_ENABLED</div>
+            <div class="status-item">${statusIcon(j.ses_from_email)} SES_FROM_EMAIL: ${j.ses_from_email || 'not set'}</div>
+            <div class="status-item">${statusIcon(j.aws_credentials_set)} AWS Credentials</div>
+            <div class="status-item">${statusIcon(j.ses_client_available)} SES Client</div>
+            <div class="status-item">${statusIcon(j.ses_identity_verified)} Sender Verified</div>
+            <div class="status-item">${statusIcon(!j.ses_sandbox_mode)} Production Mode ${j.ses_sandbox_mode ? '(Sandbox)' : ''}</div>
+          </div>
+          ${hints.length ? `<div class="status-hints"><strong>Issues:</strong><ul>${hints.map(h => `<li>${h}</li>`).join('')}</ul></div>` : '<div class="status-ok-msg">Email configuration looks good!</div>'}
+        `;
+      } catch (err) {
+        content.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
+      }
+    };
+
+    // Close modal on backdrop click
+    $('#subsModal').addEventListener('click', e => {
+      if (e.target === $('#subsModal')) $('#subsModal').classList.remove('show');
+    });
+
+    (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
+  </script>
+</body>
+</html>
