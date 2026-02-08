@@ -275,7 +275,9 @@
         case 'image':
           const url = d.file?.url || d.url || '';
           const cap = d.caption || '';
-          return `<figure class="post-image"><img src="${url}" alt="${cap}"/>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+          // Strip HTML tags for alt attribute to prevent broken markup
+          const altText = cap.replace(/<[^>]+>/g, '').replace(/"/g, '&quot;') || 'Image';
+          return `<figure class="post-image"><img src="${url}" alt="${altText}"/>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
         case 'code':
           const code = (d.code || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           return `<pre><code>${code}</code></pre>`;
