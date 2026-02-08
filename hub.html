@@ -814,19 +814,19 @@
       </div>
       <button type="button" id="showRestoreBtn" class="btn ghost">Restore Existing Account</button>
     </div>
-  </div>
 
-  <!-- ====================== SUBSCRIPTION MANAGEMENT ====================== -->
-  <section id="secure-credits" class="secure-credits-wrap">
-    <div class="container">
-      <!-- Subscription Management Card (shown when user has active subscription) -->
-      <div id="subscriptionCard" class="subscription-card hidden">
-        <div class="secure-icon">
+    <!-- Subscription Section (shown when user has subscription) -->
+    <div id="subscriptionSection" class="subscription-section hidden">
+      <div class="modal-divider"></div>
+
+      <!-- Active Subscription -->
+      <div id="subscriptionCard" class="subscription-inline hidden">
+        <div class="subscription-header">
           <i class="fa-solid fa-credit-card"></i>
+          <h4>Your Subscription</h4>
         </div>
-        <div class="subscription-state">
-          <h3>Your Subscription</h3>
-          <p class="secure-subtitle"><i class="fa-solid fa-circle-check"></i> <span id="subscriptionPlanName">--</span></p>
+        <div class="subscription-info">
+          <p class="subscription-plan"><i class="fa-solid fa-circle-check"></i> <span id="subscriptionPlanName">--</span></p>
           <div class="subscription-details">
             <span class="subscription-credits">
               <i class="fa-solid fa-coins"></i>
@@ -834,25 +834,25 @@
             </span>
             <span class="subscription-status" id="subscriptionStatus">Active</span>
           </div>
-          <p class="secure-helper" id="subscriptionNext">Next credits: --</p>
-          <button type="button" id="cancelSubscriptionBtn" class="btn ghost small">Cancel Subscription</button>
+          <p class="subscription-next" id="subscriptionNext">Next credits: --</p>
         </div>
+        <button type="button" id="cancelSubscriptionBtn" class="btn ghost small">Cancel Subscription</button>
       </div>
 
-      <!-- Cancelled Subscription Card (shown when subscription is cancelled but still active) -->
-      <div id="subscriptionCancelledCard" class="subscription-card cancelled hidden">
-        <div class="secure-icon warning">
+      <!-- Cancelled Subscription -->
+      <div id="subscriptionCancelledCard" class="subscription-inline cancelled hidden">
+        <div class="subscription-header warning">
           <i class="fa-solid fa-clock"></i>
+          <h4>Subscription Ending</h4>
         </div>
-        <div class="subscription-state">
-          <h3>Subscription Ending</h3>
-          <p class="secure-subtitle warning"><span id="cancelledPlanName">--</span></p>
+        <div class="subscription-info">
+          <p class="subscription-plan warning"><span id="cancelledPlanName">--</span></p>
           <p class="subscription-ending">Access until: <strong id="subscriptionEndDate">--</strong></p>
-          <p class="secure-helper">You can still use your remaining credits until this date.</p>
+          <p class="subscription-helper">You can still use your remaining credits until this date.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- ====================== COMMUNITY ====================== -->
   <section id="community" class="community-wrap">
