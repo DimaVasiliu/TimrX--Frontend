@@ -2569,6 +2569,7 @@
   // ─────────────────────────────────────────────────────────────
 
   // DOM elements for subscription
+  const subscriptionSection = document.getElementById('subscriptionSection');
   const subscriptionCard = document.getElementById('subscriptionCard');
   const subscriptionCancelledCard = document.getElementById('subscriptionCancelledCard');
   const subscriptionPlanName = document.getElementById('subscriptionPlanName');
@@ -2603,7 +2604,8 @@
     if (!subscriptionCard || !subscriptionCancelledCard) return;
 
     if (!currentSubscription) {
-      // No subscription
+      // No subscription - hide the entire section
+      subscriptionSection?.classList.add('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
       return;
@@ -2613,6 +2615,7 @@
 
     if (status === 'cancelled') {
       // Show cancelled card
+      subscriptionSection?.classList.remove('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.remove('hidden');
 
@@ -2622,6 +2625,7 @@
       }
     } else if (status === 'active' || status === 'past_due') {
       // Show active subscription card
+      subscriptionSection?.classList.remove('hidden');
       subscriptionCard.classList.remove('hidden');
       subscriptionCancelledCard.classList.add('hidden');
 
@@ -2638,7 +2642,8 @@
         subscriptionNext.textContent = `${cadence === 'yearly' ? 'Renews' : 'Next billing'}: ${formatDate(current_period_end)}`;
       }
     } else {
-      // Expired or other status - hide both
+      // Expired or other status - hide entire section
+      subscriptionSection?.classList.add('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
     }
