@@ -219,10 +219,18 @@
         <div class="tab-content" id="tab-cover">
           <form id="coverForm">
             <div class="form-group">
-              <label class="form-label">Image Description</label>
+              <label class="form-label">Image Description / Search</label>
               <textarea class="form-textarea" id="cover_prompt" placeholder="e.g., A futuristic 3D printer, cinematic lighting..." rows="4"></textarea>
             </div>
             <div class="form-group">
+              <label class="form-label">Image Source</label>
+              <select class="form-select" id="cover_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+              </select>
+              <span class="form-hint">Royalty-free is faster and includes attribution</span>
+            </div>
+            <div class="form-group" id="cover_size_group">
               <label class="form-label">Size</label>
               <select class="form-select" id="cover_size">
                 <option value="1536x1024" selected>Landscape (1536x1024)</option>
@@ -346,6 +354,7 @@
       </div>
       <div class="cover-modal-content">
         <img id="modalCoverImage" alt="Generated cover"/>
+        <p id="modalCoverAttribution" class="cover-attribution hidden"></p>
       </div>
       <div class="modal-actions">
         <button class="btn" id="modalCopyCoverUrl">Copy URL</button>
@@ -390,6 +399,7 @@
 
     let generatedBlog = null;
     let generatedCoverUrl = null;
+    let generatedCoverData = null;  // Full response including attribution
 
     function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
     function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
@@ -664,11 +674,13 @@
     $('#coverForm').onsubmit = async (e) => {
       e.preventDefault();
       const prompt = $('#cover_prompt').value.trim();
+      const mode = $('#cover_mode').value;
       if (!prompt) return alert('Please enter an image description');
 
       const btn = $('#coverBtn');
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Generating...';
+      const actionText = mode === 'royalty_free' ? 'Searching...' : 'Generating...';
+      btn.innerHTML = '<span class="spinner"></span>' + actionText;
 
       try {
         const r = await fetch(API + '/admin/ai/cover', {
@@ -676,24 +688,49 @@
           headers: headers(),
           body: JSON.stringify({
             prompt,
-            size: $('#cover_size').value
+            size: $('#cover_size').value,
+            mode: mode
           })
         });
         const j = await r.json();
 
         if (j.ok && j.url) {
           generatedCoverUrl = j.url;
-          // Show in modal instead of inline
+          generatedCoverData = j;  // Store full response for attribution
+          // Show in modal
           $('#modalCoverImage').src = j.url;
+          // Show attribution info if royalty-free
+          const attrEl = $('#modalCoverAttribution');
+          if (attrEl) {
+            if (j.attribution) {
+              attrEl.innerHTML = j.attribution;
+              attrEl.classList.remove('hidden');
+            } else {
+              attrEl.classList.add('hidden');
+            }
+          }
           $('#coverModal').classList.add('show');
         } else {
-          alert('Image generation failed: ' + (j.error || 'Unknown error'));
+          alert('Image failed: ' + (j.error || 'Unknown error'));
         }
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Generate Cover';
+        btn.innerHTML = mode === 'royalty_free' ? 'Search Cover' : 'Generate Cover';
+      }
+    };
+
+    // Update button text based on cover mode
+    $('#cover_mode').onchange = function() {
+      const btn = $('#coverBtn');
+      const sizeGroup = $('#cover_size_group');
+      if (this.value === 'royalty_free') {
+        btn.textContent = 'Search Cover';
+        if (sizeGroup) sizeGroup.style.display = 'none';  // Size not applicable for stock
+      } else {
+        btn.textContent = 'Generate Cover';
+        if (sizeGroup) sizeGroup.style.display = 'block';
       }
     };
 
