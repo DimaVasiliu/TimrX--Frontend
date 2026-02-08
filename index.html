@@ -15,10 +15,8 @@
 <link rel="canonical" href="https://timrx.live/" />
 
 <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="/img/logo.png" />
+<link rel="apple-touch-icon" href="/img/logo.png" />
 <link rel="manifest" href="/site.webmanifest" />
 <meta name="theme-color" content="#0b0b0b" />
 <meta name="msapplication-TileColor" content="#0b0b0b" />
@@ -49,7 +47,7 @@
 <!-- Additional SEO -->
 <meta name="application-name" content="TimrX" />
 <meta name="apple-mobile-web-app-title" content="TimrX" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
 <!-- Structured Data - Person (Portfolio) -->
@@ -171,7 +169,6 @@
 
 <!-- Stylesheets -->
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="burger.css" />
 <link rel="stylesheet" href="media/index.css" />
 </head>
 <body>
@@ -200,42 +197,6 @@
 
       <a class="nav-cta" href="#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
 
-      <!-- Burger button (2-line Apple style - mobile only) -->
-      <button id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-        <div class="burger-icon">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </div>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Burger overlay (mobile) -->
-  <div id="burgerOverlay"></div>
-
-  <!-- Burger menu (mobile) -->
-  <nav id="burgerMenu" aria-label="Mobile menu">
-    <div class="burger-menu__items">
-      <a href="#app3d" class="burger-menu__item">
-        <span class="burger-menu__icon">🖨</span>
-        <span class="burger-menu__text">3D Print Hub</span>
-      </a>
-      <a href="#works" class="burger-menu__item">
-        <span class="burger-menu__icon">💼</span>
-        <span class="burger-menu__text">Works</span>
-      </a>
-      <a href="#services" class="burger-menu__item">
-        <span class="burger-menu__icon">⚙️</span>
-        <span class="burger-menu__text">Services</span>
-      </a>
-      <a href="#blogs" class="burger-menu__item">
-        <span class="burger-menu__icon">📝</span>
-        <span class="burger-menu__text">Blogs</span>
-      </a>
-      <a href="#contact" class="burger-menu__item burger-menu__item--emphasis">
-        <span class="burger-menu__icon">✉️</span>
-        <span class="burger-menu__text">Contact Me</span>
-      </a>
     </div>
   </nav>
 
@@ -244,8 +205,8 @@
     <!-- HERO -->
     <header class="container hero" id="hero" role="banner">
         <!-- Subtle decorative elements -->
-        <div class="hero-watermark" aria-hidden="true">BUILD</div>
-        <div class="hero-arc" aria-hidden="true"></div>
+        <div class="hero-watermark hide-mobile" aria-hidden="true">BUILD</div>
+        <div class="hero-arc hide-mobile" aria-hidden="true"></div>
         <div class="hero-eyebrow">
             <span class="eyebrow-line"></span>
             <span class="eyebrow-text">Portfolio 2025</span>
@@ -256,8 +217,8 @@
         <!-- stage holds the image + left list like the reference -->
         <div class="hero-stage">
               <!-- decor -->
-            <div class="hero-plate" aria-hidden="true"></div>
-            <div class="hero-left-note" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
+            <div class="hero-plate hide-mobile" aria-hidden="true"></div>
+            <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
             <ul class="hero-list" aria-label="Capabilities">
                 <li><a href="#works">WEB DEVELOPMENT</a></li>
                 <li><a href="#services">UX/UI DESIGN</a></li>
@@ -281,17 +242,17 @@
   
         <section id="about" class="about-hero">
             <!-- Outside vertical label -->
-            <div class="about-left-note" aria-hidden="true">ABOUT • PROFILE</div>
+            <div class="about-left-note hide-tablet" aria-hidden="true">ABOUT • PROFILE</div>
 
             <!-- Geometric background -->
-            <div class="about-geometric-bg" aria-hidden="true">
+            <div class="about-geometric-bg hide-mobile" aria-hidden="true">
                 <div class="geo-circle geo-circle-1"></div>
                 <div class="geo-circle geo-circle-2"></div>
                 <div class="geo-grid"></div>
             </div>
 
             <!-- Floating particles -->
-            <div class="about-particles" id="aboutParticles" aria-hidden="true"></div>
+            <div class="about-particles hide-mobile" id="aboutParticles" aria-hidden="true"></div>
 
             <!-- Main centered dark box - bigger shell -->
             <div class="about-shell">
@@ -501,7 +462,7 @@
     <div class="container" style="position:relative;z-index:1;">
     <div class="title-xl" style="color:#0b0b0b;">SERVICES</div>
     <p class="services-sub" style="color:#5a5a5a;">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
-    <div class="services-fx" aria-hidden="true">
+    <div class="services-fx hide-mobile" aria-hidden="true">
       <div class="services-orbit" style="opacity:0.25;">
         <span class="svc-ring ring-a" style="border-color:#3b82f6;"></span>
         <span class="svc-ring ring-b" style="border-color:#8b5cf6;"></span>
@@ -591,7 +552,7 @@
         <span class="meta-pill" role="listitem">In progress</span>
       </div>
     </div>
-    <div class="works-orbit" aria-hidden="true">
+    <div class="works-orbit hide-mobile" aria-hidden="true">
       <div class="orbit-ring ring-a"></div>
       <div class="orbit-ring ring-b"></div>
       <div class="orbit-ring ring-c"></div>
@@ -764,7 +725,7 @@
 <!-- CONTACT -->
 <section id="contact" class="section contact" style="background:linear-gradient(180deg,var(--warm-white) 0%,var(--warm-white-2) 100%);position:relative;overflow:hidden;border-top:1px solid #ececec;">
   <!-- Decorative floating element - prismatic beacon -->
-  <div class="contact-deco" aria-hidden="true">
+  <div class="contact-deco hide-tablet" aria-hidden="true">
     <div class="contact-figurine">
       <span class="cf-ring ring-a"></span>
       <span class="cf-ring ring-b"></span>
@@ -825,7 +786,7 @@
           <label class="contact-chip" style="background:var(--warm-white-3);color:#0b0b0b;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;border:2px solid transparent;"><input type="radio" name="budget" value="£7,000+" style="display:none;" />£7,000+</label>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="contact-row" style="display:grid;gap:10px;margin-bottom:10px;">
           <div class="contact-field" style="position:relative;">
             <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;opacity:0.5;">👤</span>
             <input name="name" type="text" placeholder="Your name *" required style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e8e8e8;border-radius:10px;font-size:0.9rem;color:#0b0b0b;background:var(--warm-white-3);transition:all 0.2s ease;outline:none;" />
@@ -1492,7 +1453,6 @@
 
     <script src="script.js" defer></script>
     <script src="app.js"></script>
-    <script src="burger.js"></script>
 
     <!-- About TimrX Modal -->
     <div class="modal about-modal" id="aboutTimrxModal" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;">
@@ -1818,10 +1778,6 @@
       transform: translateY(-4px);
       box-shadow: 0 12px 35px rgba(0,0,0,0.08) !important;
       border-color: #d0d0d0 !important;
-    }
-    /* Responsive decorative element */
-    @media (max-width: 900px) {
-      .contact-deco { display: none; }
     }
     </style>
 
