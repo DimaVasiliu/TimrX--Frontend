@@ -9,6 +9,8 @@ Allow: /
 Allow: /blogs
 Allow: /blogs/
 Allow: /blogs/*
+Allow: /blog/
+Allow: /blog/*
 
 # Crawl-delay for polite crawling
 Crawl-delay: 1
@@ -28,8 +30,9 @@ Allow: /index.html
 Allow: /3dprint
 Allow: /3dprint.html
 
-# Sitemap location
+# Sitemap locations
 Sitemap: https://timrx.live/sitemap.xml
+Sitemap: https://timrx.live/sitemap-blogs.xml
 
 # Google specific
 User-agent: Googlebot
@@ -37,6 +40,8 @@ Allow: /
 Allow: /blogs
 Allow: /blogs/
 Allow: /blogs/*
+Allow: /blog/
+Allow: /blog/*
 Crawl-delay: 0
 
 # Bing specific
