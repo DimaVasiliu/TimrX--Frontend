@@ -559,6 +559,11 @@
       btn.disabled = true;
       btn.textContent = 'Saving...';
       try {
+        // Build cover attribution from generatedCoverData if available
+        let coverAttribution = '';
+        if (generatedCoverData && generatedCoverData.attribution) {
+          coverAttribution = generatedCoverData.attribution;
+        }
         const r = await fetch(API + '/post', {
           method: 'POST',
           headers: headers(),
@@ -568,6 +573,7 @@
             tags: generatedBlog.tags,
             type: generatedBlog.type,
             cover_url: generatedCoverUrl || '',
+            cover_attribution: coverAttribution,
             content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
             status: 'draft',
             author: 'Dima V',
@@ -581,6 +587,7 @@
           $('#blogModal').classList.remove('show');
           $('#ai_topic').value = '';
           generatedBlog = null;
+          generatedCoverData = null;
         } else {
           alert('Save failed: ' + (j.error || 'Unknown error'));
         }
