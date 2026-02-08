@@ -243,12 +243,50 @@ function refreshCreditsInBackground() {
  * @returns {boolean} true if error was handled (should stop), false to continue with normal error
  */
 function handleApiError(response, action, reservationId = null) {
+  // Extract error message from various possible locations in the response
+  // Priority: data.error (backend message) > data.error.message > error (apiFetch fallback)
+  // Skip generic "HTTP XXX" errors from apiFetch fallback when we have data.error
+  const dataError = response.data?.error;
+  const dataErrorMsg = typeof dataError === 'string' ? dataError : dataError?.message;
+  const apiFetchError = response.error;
+  const isGenericHttpError = typeof apiFetchError === 'string' && /^HTTP \d+$/.test(apiFetchError);
+
+  // Prefer data error over generic HTTP error
+  const errorMsg = dataErrorMsg || (isGenericHttpError ? '' : apiFetchError) || '';
+
+  // Log for debugging
+  console.log('[handleApiError] status:', response.status, 'dataError:', dataError, 'errorMsg:', errorMsg, 'action:', action);
+
+  // Handle 402 Insufficient Credits - check for video credits FIRST
   if (response.status === 402) {
     log('[Credits] 402 Insufficient credits for:', action);
+
     // Release any reservation on 402
     if (reservationId) {
       releaseCreditsReservation(reservationId);
     }
+
+    // Check if this is specifically a VIDEO credits error
+    const insufficientCreditsMatch = parseInsufficientCreditsError(errorMsg);
+    if (insufficientCreditsMatch) {
+      log('[Credits] Parsed credits error:', insufficientCreditsMatch);
+      if (insufficientCreditsMatch.creditType === 'video') {
+        showInsufficientVideoCreditsModal(
+          insufficientCreditsMatch.required,
+          insufficientCreditsMatch.available
+        );
+        return true;
+      }
+      // General credits error with parsed values
+      showInsufficientCreditsModal(
+        insufficientCreditsMatch.required,
+        insufficientCreditsMatch.available,
+        action
+      );
+      return true;
+    }
+
+    // Fallback: generic insufficient credits handling
     if (window.WorkspaceCredits) {
       window.WorkspaceCredits.showInsufficientCreditsMessage(action);
     } else {
@@ -272,7 +310,6 @@ function handleApiError(response, action, reservationId = null) {
   }
 
   // Also check for quota errors in error message (some APIs return 400/500 with quota message)
-  const errorMsg = response.error?.message || response.error || response.data?.error?.message || response.data?.error || '';
   const isQuotaError = typeof errorMsg === 'string' && (
     errorMsg.toLowerCase().includes('quota') ||
     errorMsg.toLowerCase().includes('resource_exhausted') ||
@@ -291,7 +328,7 @@ function handleApiError(response, action, reservationId = null) {
     return true;
   }
 
-  // Handle 400 errors for expired/unavailable models
+  // Handle 400 errors for expired/unavailable models and credit errors
   if (response.status === 400) {
     if (isExpiredModelError(errorMsg)) {
       log('[Model] 400 Expired/unavailable model for:', action);
@@ -302,7 +339,7 @@ function handleApiError(response, action, reservationId = null) {
       return true;
     }
 
-    // Check for insufficient credits errors (video or general)
+    // Check for insufficient credits errors (video or general) - some backends return 400 instead of 402
     const insufficientCreditsMatch = parseInsufficientCreditsError(errorMsg);
     if (insufficientCreditsMatch) {
       log('[Credits] 400 Insufficient credits for:', action, insufficientCreditsMatch);
