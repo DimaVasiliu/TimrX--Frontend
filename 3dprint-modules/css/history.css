@@ -1926,6 +1926,127 @@ body.history-expanded .timrx-3dprint .history-pager {
   }
 
   /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  CREDITS MODAL – muted, hub-style frosted card                      ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+
+  .credits-modal {
+    background:
+      radial-gradient(
+        1200px 700px at 50% 10%,
+        rgba(255, 255, 255, 0.06),
+        transparent 60%
+      ),
+      rgba(0, 0, 0, 0.65);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+
+  .credits-modal .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    z-index: 0;
+  }
+
+  .credits-modal .modal-content {
+    max-width: 420px;
+    text-align: center;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0)),
+      #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 1;
+  }
+
+  .credits-modal .modal-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .credits-modal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
+  }
+
+  .credits-modal .modal-body {
+    margin-bottom: 16px;
+  }
+
+  .credits-modal .credits-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .credits-modal .credits-icon i {
+    font-size: 26px;
+    color: #d0d0d0;
+  }
+
+  .credits-modal .credits-copy {
+    margin: 0 0 14px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .credits-modal .credits-copy strong {
+    color: #f0f0f0;
+  }
+
+  .credits-modal .credits-needed-note {
+    margin: 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .credits-modal .credits-needed-note strong {
+    color: #e6e6e6;
+  }
+
+  .credits-modal .modal-footer {
+    justify-content: center;
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .credits-modal .btn-primary {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+      #121212;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #f5f5f5;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+  }
+
+  .credits-modal .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
+  }
+
+  .credits-modal .credits-note {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════════╗
    ║  UPLOAD MODAL – TimrX Custom Overlay                              ║
    ╚════════════════════════════════════════════════════════════════════╝ */
 
