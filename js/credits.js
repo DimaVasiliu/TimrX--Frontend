@@ -648,6 +648,11 @@
       });
 
       if (!result.ok) {
+        // Check for billing-specific errors (401/403)
+        if (handleBillingError(result, 'subscription-checkout')) {
+          closeSubscriptionModal();
+          return;
+        }
         throw new Error(result.data?.error || result.error || 'Checkout failed');
       }
 
@@ -944,6 +949,11 @@
       });
 
       if (!result.ok) {
+        // Check for billing-specific errors (401/403)
+        if (handleBillingError(result, 'video-checkout')) {
+          closeVideoBuyModal();
+          return;
+        }
         throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
@@ -1172,6 +1182,301 @@
   });
 
   // ─────────────────────────────────────────────────────────────
+  // BILLING ERROR HANDLER - Handle 401/403 from checkout endpoints
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Handle billing API errors (401/403) with appropriate UI feedback.
+   * Returns true if error was handled, false if caller should handle it.
+   *
+   * @param {object} result - API response from apiFetch
+   * @param {string} context - Which checkout flow triggered this (for logging)
+   * @returns {boolean} - Whether the error was handled
+   */
+  function handleBillingError(result, context = 'checkout') {
+    if (!result) return false;
+
+    const status = result.status;
+    const errorCode = result.data?.error?.code;
+
+    console.log(`[Credits] handleBillingError: status=${status}, code=${errorCode}, context=${context}`);
+
+    // 401 - Session expired
+    if (status === 401) {
+      showSessionExpiredModal();
+      return true;
+    }
+
+    // 403 - Email required or not verified
+    if (status === 403) {
+      if (errorCode === 'EMAIL_REQUIRED') {
+        showEmailRequiredModal();
+        return true;
+      }
+      if (errorCode === 'EMAIL_NOT_VERIFIED') {
+        showEmailNotVerifiedModal();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Show session expired modal with refresh button
+   */
+  function showSessionExpiredModal() {
+    // Check if modal already exists
+    let modal = document.getElementById('sessionExpiredModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'sessionExpiredModal';
+      modal.className = 'modal blocking-modal';
+      modal.setAttribute('role', 'alertdialog');
+      modal.setAttribute('aria-labelledby', 'sessionExpiredTitle');
+      modal.innerHTML = `
+        <div class="modal-content modal-sm">
+          <h2 id="sessionExpiredTitle">Session Expired</h2>
+          <p class="modal-subtitle">Your session has expired. Please refresh the page to continue.</p>
+          <button class="btn btn-primary" id="sessionRefreshBtn">
+            <span class="btn-text">Refresh Page</span>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Refresh button handler
+      document.getElementById('sessionRefreshBtn')?.addEventListener('click', () => {
+        window.location.reload();
+      });
+    }
+
+    modal.classList.add('open');
+    modal.inert = false;
+    document.getElementById('sessionRefreshBtn')?.focus();
+  }
+
+  /**
+   * Show email required modal - prompts to add email
+   */
+  function showEmailRequiredModal() {
+    // Check if modal already exists
+    let modal = document.getElementById('emailRequiredModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'emailRequiredModal';
+      modal.className = 'modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'emailRequiredTitle');
+      modal.innerHTML = `
+        <div class="modal-content modal-sm">
+          <button class="modal-close" id="emailRequiredClose" aria-label="Close">&times;</button>
+          <h2 id="emailRequiredTitle">Add Your Email</h2>
+          <p class="modal-subtitle">Add an email to secure your credits and enable purchases.</p>
+          <button class="btn btn-primary" id="emailRequiredCta">
+            <span class="btn-text">Add Email</span>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close button
+      document.getElementById('emailRequiredClose')?.addEventListener('click', () => {
+        closeEmailRequiredModal();
+      });
+
+      // Backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeEmailRequiredModal();
+      });
+
+      // CTA opens secure credits modal
+      document.getElementById('emailRequiredCta')?.addEventListener('click', () => {
+        closeEmailRequiredModal();
+        openSecureCreditsModal();
+      });
+    }
+
+    modal.classList.add('open');
+    modal.inert = false;
+    document.getElementById('emailRequiredCta')?.focus();
+  }
+
+  function closeEmailRequiredModal() {
+    const modal = document.getElementById('emailRequiredModal');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.inert = true;
+    }
+  }
+
+  /**
+   * Show email not verified modal - prompts to verify
+   */
+  function showEmailNotVerifiedModal() {
+    // Check if modal already exists
+    let modal = document.getElementById('emailNotVerifiedModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'emailNotVerifiedModal';
+      modal.className = 'modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'emailNotVerifiedTitle');
+      modal.innerHTML = `
+        <div class="modal-content modal-sm">
+          <button class="modal-close" id="emailNotVerifiedClose" aria-label="Close">&times;</button>
+          <h2 id="emailNotVerifiedTitle">Verify Your Email</h2>
+          <p class="modal-subtitle">Please verify your email address before making purchases.</p>
+          <p class="modal-note" id="emailNotVerifiedNote"></p>
+          <button class="btn btn-primary" id="emailNotVerifiedCta">
+            <span class="btn-text">Verify Now</span>
+          </button>
+          <button class="btn btn-link" id="emailNotVerifiedResend">
+            <span class="btn-text">Resend Code</span>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close button
+      document.getElementById('emailNotVerifiedClose')?.addEventListener('click', () => {
+        closeEmailNotVerifiedModal();
+      });
+
+      // Backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeEmailNotVerifiedModal();
+      });
+
+      // CTA opens secure credits modal in verify state
+      document.getElementById('emailNotVerifiedCta')?.addEventListener('click', () => {
+        closeEmailNotVerifiedModal();
+        // Open secure modal and transition to verify state (state 2)
+        openSecureCreditsModal();
+        if (userEmail && sentToEmail) {
+          pendingEmail = userEmail;
+          sentToEmail.textContent = userEmail;
+          showSecureState(2);
+          verifyCodeInput?.focus();
+        }
+      });
+
+      // Resend code button
+      document.getElementById('emailNotVerifiedResend')?.addEventListener('click', async () => {
+        const resendBtn = document.getElementById('emailNotVerifiedResend');
+        if (resendBtn) {
+          resendBtn.disabled = true;
+          resendBtn.querySelector('.btn-text').textContent = 'Sending...';
+        }
+
+        try {
+          await apiFetch('/api/auth/email/attach', {
+            method: 'POST',
+            body: { email: userEmail }
+          });
+
+          // Show success and transition to verify
+          closeEmailNotVerifiedModal();
+          openSecureCreditsModal();
+          if (userEmail && sentToEmail) {
+            pendingEmail = userEmail;
+            sentToEmail.textContent = userEmail;
+            showSecureState(2);
+            setVerifyMessage('New code sent! Check your email.');
+            startResendCooldown();
+            verifyCodeInput?.focus();
+          }
+        } catch (err) {
+          console.error('[Credits] Resend code error:', err);
+        } finally {
+          if (resendBtn) {
+            resendBtn.disabled = false;
+            resendBtn.querySelector('.btn-text').textContent = 'Resend Code';
+          }
+        }
+      });
+    }
+
+    // Update note with current email
+    const note = document.getElementById('emailNotVerifiedNote');
+    if (note && userEmail) {
+      note.textContent = `We sent a code to ${userEmail}`;
+    }
+
+    modal.classList.add('open');
+    modal.inert = false;
+    document.getElementById('emailNotVerifiedCta')?.focus();
+  }
+
+  function closeEmailNotVerifiedModal() {
+    const modal = document.getElementById('emailNotVerifiedModal');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.inert = true;
+    }
+  }
+
+  // ESC key closes billing error modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeEmailRequiredModal();
+      closeEmailNotVerifiedModal();
+      // Don't close session expired - it requires refresh
+    }
+  });
+
+  /**
+   * Show a toast notification
+   * @param {string} message - Message to display
+   * @param {string} type - 'success', 'error', or 'info'
+   * @param {number} duration - Auto-dismiss duration in ms (default 4000)
+   */
+  function showToast(message, type = 'info', duration = 4000) {
+    // Get or create toast container
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+      <span class="toast-message">${message}</span>
+      <button class="toast-close" aria-label="Dismiss">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    // Close button handler
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn?.addEventListener('click', () => dismissToast(toast));
+
+    // Trigger entrance animation
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
+    // Auto-dismiss
+    if (duration > 0) {
+      setTimeout(() => dismissToast(toast), duration);
+    }
+
+    return toast;
+  }
+
+  function dismissToast(toast) {
+    if (!toast || toast.classList.contains('dismissing')) return;
+    toast.classList.add('dismissing');
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Checkout Flow
   // ─────────────────────────────────────────────────────────────
 
@@ -1198,6 +1503,12 @@
       });
 
       if (!result.ok) {
+        // Check for billing-specific errors (401/403)
+        if (handleBillingError(result, 'one-time-checkout')) {
+          setCheckoutLoading(false);
+          closeBuyCreditsModal();
+          return;
+        }
         throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
@@ -2241,11 +2552,18 @@
     emailVerified = true;
     isRestoreMode = false;
 
+    // Check if subscriptions were resumed
+    const subscriptionsResumed = result?.data?.subscriptions_resumed || 0;
+    console.log('[Credits] Subscriptions resumed:', subscriptionsResumed);
+
     // Clear any messages and show success briefly
     clearSecureMessages();
 
     // Refresh wallet to get updated state (especially for restore)
     const wallet = await fetchWallet();
+
+    // Refresh subscription status
+    await fetchSubscription();
 
     // Show verified state
     if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
@@ -2256,6 +2574,9 @@
     if (wasRestoreMode) {
       const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
       openRestoreSuccessModal(restoredCredits);
+    } else if (subscriptionsResumed > 0) {
+      // Show subscription resumed toast
+      showToast('Email verified. Subscription resumed.', 'success');
     }
   }
 
@@ -2502,6 +2823,39 @@
       emailBeacon.classList.add('hidden');
       console.log('[Credits] Email beacon hidden - email attached');
     }
+
+    // Also update checkout button states
+    updateCheckoutButtonStates();
+  }
+
+  /**
+   * Update checkout button states based on email verification status.
+   * When email is not verified, buttons are disabled with a hint.
+   */
+  function updateCheckoutButtonStates() {
+    const needsVerification = userEmail && !emailVerified;
+    const needsEmail = !userEmail;
+
+    // Get all checkout-related CTA buttons
+    const checkoutCtaButtons = document.querySelectorAll('.pricing-cta');
+
+    checkoutCtaButtons.forEach(btn => {
+      if (needsEmail || needsVerification) {
+        btn.setAttribute('data-requires-verified-email', 'true');
+        // Don't disable, but add hint - let the server-side check handle it
+        // This provides UX feedback while allowing users to click and see the proper modal
+        if (needsEmail) {
+          btn.setAttribute('data-hint', 'Add email first');
+        } else if (needsVerification) {
+          btn.setAttribute('data-hint', 'Verify email first');
+        }
+      } else {
+        btn.removeAttribute('data-requires-verified-email');
+        btn.removeAttribute('data-hint');
+      }
+    });
+
+    console.log('[Credits] Checkout buttons updated: needsEmail=' + needsEmail + ', needsVerification=' + needsVerification);
   }
 
   /**
@@ -2608,16 +2962,21 @@
       subscriptionSection?.classList.add('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
+      hideSubscriptionPausedBanner();
       return;
     }
 
-    const { plan_name, credits_per_month, status, current_period_end, cadence } = currentSubscription;
+    const { plan_name, credits_per_month, status, current_period_end, cadence, pause_reason } = currentSubscription;
+
+    // Check if subscription is paused due to email verification
+    const isPausedForEmail = pause_reason === 'email_unverified';
 
     if (status === 'cancelled') {
       // Show cancelled card
       subscriptionSection?.classList.remove('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.remove('hidden');
+      hideSubscriptionPausedBanner();
 
       if (cancelledPlanName) cancelledPlanName.textContent = plan_name;
       if (subscriptionEndDate && current_period_end) {
@@ -2633,19 +2992,93 @@
       if (subscriptionCredits) subscriptionCredits.textContent = credits_per_month?.toLocaleString() || '--';
 
       if (subscriptionStatus) {
-        subscriptionStatus.textContent = status === 'past_due' ? 'Past Due' : 'Active';
-        subscriptionStatus.classList.toggle('past-due', status === 'past_due');
+        if (isPausedForEmail) {
+          subscriptionStatus.textContent = 'Paused';
+          subscriptionStatus.classList.add('paused');
+          subscriptionStatus.classList.remove('past-due');
+        } else if (status === 'past_due') {
+          subscriptionStatus.textContent = 'Past Due';
+          subscriptionStatus.classList.add('past-due');
+          subscriptionStatus.classList.remove('paused');
+        } else {
+          subscriptionStatus.textContent = 'Active';
+          subscriptionStatus.classList.remove('past-due', 'paused');
+        }
       }
 
       // Show next billing/renewal date
       if (subscriptionNext && current_period_end) {
         subscriptionNext.textContent = `${cadence === 'yearly' ? 'Renews' : 'Next billing'}: ${formatDate(current_period_end)}`;
       }
+
+      // Show paused banner if applicable
+      if (isPausedForEmail) {
+        showSubscriptionPausedBanner();
+      } else {
+        hideSubscriptionPausedBanner();
+      }
     } else {
       // Expired or other status - hide entire section
       subscriptionSection?.classList.add('hidden');
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
+      hideSubscriptionPausedBanner();
+    }
+  }
+
+  /**
+   * Show the subscription paused banner (email verification required)
+   */
+  function showSubscriptionPausedBanner() {
+    let banner = document.getElementById('subscriptionPausedBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'subscriptionPausedBanner';
+      banner.className = 'subscription-paused-banner';
+      banner.innerHTML = `
+        <div class="paused-banner-content">
+          <svg class="paused-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="paused-text">
+            <strong>Credits Paused</strong>
+            <span>Verify your email to continue receiving monthly credits.</span>
+          </div>
+          <button class="btn btn-sm btn-primary" id="pausedVerifyBtn">Verify Email</button>
+        </div>
+      `;
+
+      // Insert after subscription card
+      if (subscriptionCard && subscriptionCard.parentNode) {
+        subscriptionCard.parentNode.insertBefore(banner, subscriptionCard.nextSibling);
+      } else {
+        subscriptionSection?.appendChild(banner);
+      }
+
+      // Add verify button handler
+      document.getElementById('pausedVerifyBtn')?.addEventListener('click', () => {
+        openSecureCreditsModal();
+        if (userEmail && sentToEmail) {
+          pendingEmail = userEmail;
+          sentToEmail.textContent = userEmail;
+          showSecureState(2);
+          verifyCodeInput?.focus();
+        }
+      });
+    }
+
+    banner.classList.remove('hidden');
+  }
+
+  /**
+   * Hide the subscription paused banner
+   */
+  function hideSubscriptionPausedBanner() {
+    const banner = document.getElementById('subscriptionPausedBanner');
+    if (banner) {
+      banner.classList.add('hidden');
     }
   }
 
