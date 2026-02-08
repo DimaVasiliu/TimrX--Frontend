@@ -405,7 +405,7 @@ function parseInsufficientCreditsError(errorMsg) {
 /**
  * Show insufficient VIDEO credits modal
  * Video credits are separate from general credits - this modal explains that
- * Styled to match the existing insufficientCreditsModal in 3dprint.html
+ * Styled to match hub.html modals with dark theme
  *
  * @param {number} required - Video credits required for this action
  * @param {number} available - Video credits currently available
@@ -419,11 +419,7 @@ function showInsufficientVideoCreditsModal(required, available) {
   const closeVideoCreditsModal = () => {
     const modal = document.getElementById('insufficientVideoCreditsModal');
     if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('show');
       modal.style.display = 'none';
-      modal.style.opacity = '0';
-      modal.style.visibility = 'hidden';
       modal.inert = true;
     }
   };
@@ -436,43 +432,63 @@ function showInsufficientVideoCreditsModal(required, available) {
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'insufficientVideoCreditsModal';
-    modal.className = 'modal credits-modal hidden';
-    modal.style.display = 'none';
+    modal.className = 'modal';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-labelledby', 'insuffVideoCreditsTitle');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('inert', '');
+    // Inline styles ensure proper centering and z-index above workspace
+    // Using !important to override any inherited .modal styles
+    modal.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 999999 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      background: radial-gradient(1200px 700px at 50% 10%, rgba(255,255,255,0.06), transparent 60%), rgba(0,0,0,0.75) !important;
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
+      margin: 0 !important;
+      padding: 0 !important;
+      transform: none !important;
+    `;
     modal.innerHTML = `
-      <div class="modal-backdrop" onclick="window.closeVideoCreditsModal()"></div>
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="insuffVideoCreditsTitle">Video Credits Needed</h2>
-          <button class="modal-close" onclick="window.closeVideoCreditsModal()" aria-label="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
+      <div class="card" style="max-width: 420px; text-align: center; padding: 32px; position: relative; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0)) , #0f0f0f; border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; box-shadow: 0 24px 80px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.10);">
+        <button class="close-x" onclick="window.closeVideoCreditsModal()" aria-label="Close">&times;</button>
+        <div style="width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);">
+          <i class="fa-solid fa-video" style="font-size: 28px; color: #f0f0f0;" aria-hidden="true"></i>
         </div>
-        <div class="modal-body">
-          <div class="credits-icon">
-            <i class="fa-solid fa-video" aria-hidden="true"></i>
-          </div>
-          <p class="credits-copy">
-            Video generation requires <strong class="video-credits-required">0</strong> video credits.<br>
-            You currently have <strong class="video-credits-available">0</strong> video credits.
-          </p>
-          <p class="credits-needed-note">
-            You need <strong class="video-credits-needed">0</strong> more video credits to continue.
-          </p>
+        <h4 id="insuffVideoCreditsTitle" style="margin: 0 0 16px; font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 28px; letter-spacing: 0.5px; color: #f5f5f5;">Video Credits Needed</h4>
+        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.72); font-size: 15px; line-height: 1.6;">
+          Video generation requires <strong class="video-credits-required" style="color: #f0f0f0;">0</strong> video credits.<br>
+          You currently have <strong class="video-credits-available" style="color: #f0f0f0;">0</strong> video credits.
+        </p>
+        <div style="margin: 0 0 24px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
+          <span style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">You need </span>
+          <strong class="video-credits-needed" style="color: #f0f0f0; font-size: 15px;">0</strong>
+          <span style="font-size: 14px; color: rgba(255, 255, 255, 0.6);"> more video credits to continue.</span>
         </div>
-        <div class="modal-footer">
-          <button onclick="window.closeVideoCreditsModal()" class="btn-secondary">Cancel</button>
-          <a href="hub.html#video-pricing" class="btn-primary" id="insuffVideoCreditsCtaBtn">Buy Video Credits</a>
+        <div class="cta-row" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button onclick="window.closeVideoCreditsModal()" class="btn" style="padding: 14px 24px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.72); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.18s ease;">Cancel</button>
+          <a href="hub.html#video-pricing" class="btn" id="insuffVideoCreditsCtaBtn" style="padding: 14px 24px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)), #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.18); color: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); transition: all 0.18s ease;">Buy Video Credits</a>
         </div>
-        <p class="credits-note">
+        <p style="margin: 20px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.45);">
           Video credits are separate from general credits.
         </p>
       </div>
     `;
     document.body.appendChild(modal);
+
+    // Backdrop click closes modal
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeVideoCreditsModal();
+    });
   }
 
   // Update modal content with actual values
@@ -483,12 +499,8 @@ function showInsufficientVideoCreditsModal(required, available) {
   if (availableEl) availableEl.textContent = numAvailable;
   if (neededEl) neededEl.textContent = numNeeded;
 
-  // Show modal - must add 'show' class because .modal CSS has opacity:0 and visibility:hidden
-  modal.classList.remove('hidden');
-  modal.classList.add('show');
+  // Show modal - use display: flex for centering
   modal.style.display = 'flex';
-  modal.style.opacity = '1';
-  modal.style.visibility = 'visible';
   modal.inert = false;
   modal.removeAttribute('inert');
   document.getElementById('insuffVideoCreditsCtaBtn')?.focus();
