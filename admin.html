@@ -743,7 +743,22 @@
       if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
       if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
-      if(b.dataset.del){ if(confirm('Delete this post?')){ await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()}); load(); } }
+      if(b.dataset.del){
+        if(confirm('Delete this post permanently? This cannot be undone.')){
+          try {
+            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+            const j = await r.json();
+            if(j.ok){
+              alert('Post deleted successfully');
+              await load();
+            } else {
+              alert('Delete failed: ' + (j.error || 'Unknown error'));
+            }
+          } catch(err){
+            alert('Delete failed: ' + err.message);
+          }
+        }
+      }
     });
 
     // Edit modal
@@ -800,10 +815,20 @@
 
     $('#del').onclick = async ()=>{
       const slug = $('#e_slug').value;
-      if(confirm('Delete this post?')){
-        await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
-        $('#edit').classList.remove('show');
-        load();
+      if(confirm('Delete this post permanently? This cannot be undone.')){
+        try {
+          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+          const j = await r.json();
+          if(j.ok){
+            alert('Post deleted successfully');
+            $('#edit').classList.remove('show');
+            await load();
+          } else {
+            alert('Delete failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch(err){
+          alert('Delete failed: ' + err.message);
+        }
       }
     };
 
