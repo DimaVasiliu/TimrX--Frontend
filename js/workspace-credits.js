@@ -32,6 +32,10 @@ const creditsState = {
     balance: 0,
     reserved: 0,
     available: 0,
+    // Video credits (separate pool)
+    videoBalance: 0,
+    videoReserved: 0,
+    videoAvailable: 0,
   },
   identityId: null,
   email: null,  // User's email (null if not attached)
@@ -206,7 +210,7 @@ export async function fetchWallet() {
       if (!result.ok) {
         // Not authenticated or error - log details
         log('[Credits] Wallet fetch failed:', result.status, result.error);
-        creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
+        creditsState.wallet = { balance: 0, reserved: 0, available: 0, videoBalance: 0, videoReserved: 0, videoAvailable: 0 };
         pendingRetry = true; // Schedule retry on window.focus
         return creditsState.wallet;
       }
@@ -227,6 +231,11 @@ export async function fetchWallet() {
         const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
         const serverIdentityId = data.identity_id || null;
 
+        // Video credits (separate pool)
+        const videoBalance = data.video_credits_balance ?? data.video_balance_credits ?? 0;
+        const videoReserved = data.video_reserved_credits ?? 0;
+        const videoAvailable = data.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+
         // Check if identity differs from cross-page cache - if so, discard cache
         const walletCache = readWalletCache();
         if (walletCache && walletCache.identity_id && serverIdentityId && walletCache.identity_id !== serverIdentityId) {
@@ -236,7 +245,15 @@ export async function fetchWallet() {
           clearWalletCache();
         }
 
-        creditsState.wallet = { balance, reserved, available };
+        creditsState.wallet = {
+          balance,
+          reserved,
+          available,
+          // Video credits
+          videoBalance,
+          videoReserved,
+          videoAvailable,
+        };
         creditsState.identityId = serverIdentityId;
         creditsState.email = data.email || null;
         creditsState.emailVerified = data.email_verified || false;
@@ -261,7 +278,7 @@ export async function fetchWallet() {
         updateSessionInfo(data, 'workspace');
       } else {
         log('[Credits] /api/me returned ok:false');
-        creditsState.wallet = { balance: 0, reserved: 0, available: 0 };
+        creditsState.wallet = { balance: 0, reserved: 0, available: 0, videoBalance: 0, videoReserved: 0, videoAvailable: 0 };
         pendingRetry = true;
       }
 
@@ -547,10 +564,21 @@ export function getAvailableCredits() {
 }
 
 /**
- * Get wallet state
+ * Get wallet state (includes both general and video credits)
  */
 export function getWallet() {
   return { ...creditsState.wallet };
+}
+
+/**
+ * Get general credits wallet only (without video credits)
+ */
+export function getGeneralWallet() {
+  return {
+    balance: creditsState.wallet.balance,
+    reserved: creditsState.wallet.reserved,
+    available: creditsState.wallet.available,
+  };
 }
 
 /**
@@ -565,6 +593,139 @@ export function getActionCosts() {
  */
 export function isLoaded() {
   return creditsState.loaded;
+}
+
+// ============================================================================
+// VIDEO CREDITS - Separate pool for video generation
+// ============================================================================
+
+/**
+ * Get available video credits
+ */
+export function getVideoCredits() {
+  return creditsState.wallet.videoAvailable;
+}
+
+/**
+ * Get video wallet state
+ */
+export function getVideoWallet() {
+  return {
+    balance: creditsState.wallet.videoBalance,
+    reserved: creditsState.wallet.videoReserved,
+    available: creditsState.wallet.videoAvailable,
+  };
+}
+
+/**
+ * Check if user has enough video credits for a specific cost
+ * @param {number} cost - Required video credits
+ * @returns {boolean}
+ */
+export function hasVideoCredits(cost) {
+  return creditsState.wallet.videoAvailable >= cost;
+}
+
+/**
+ * Check if an action is a video action (uses video credits pool)
+ * @param {string} action - Action key
+ * @returns {boolean}
+ */
+export function isVideoAction(action) {
+  if (!action) return false;
+  const normalizedAction = action.toLowerCase().replace(/-/g, '_');
+  return normalizedAction.includes('video') ||
+         normalizedAction === 'text2video' ||
+         normalizedAction === 'image2video';
+}
+
+/**
+ * Show insufficient video credits modal
+ * @param {number} required - Credits required
+ * @param {number} available - Credits available (optional, uses current state if not provided)
+ */
+export function showInsufficientVideoCreditsMessage(required, available = null) {
+  const actualAvailable = available !== null ? available : creditsState.wallet.videoAvailable;
+  const needed = Math.max(0, required - actualAvailable);
+
+  log('[Credits] Insufficient video credits:', { required, available: actualAvailable, needed });
+
+  // Create modal HTML
+  const modalId = 'insufficient-video-credits-modal';
+
+  // Remove existing modal if any
+  const existingModal = document.getElementById(modalId);
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'modal show';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);opacity:1;visibility:visible;';
+
+  modal.innerHTML = `
+    <div class="modal-backdrop" style="position:absolute;inset:0;cursor:pointer;"></div>
+    <div class="modal-dialog" style="position:relative;z-index:1;background:var(--surface-elevated, #1e1e2e);border-radius:12px;padding:24px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+      <div class="modal-header" style="margin-bottom:16px;">
+        <h3 style="margin:0;color:var(--text-primary, #fff);font-size:1.25rem;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-video" style="color:var(--accent-warning, #f59e0b);"></i>
+          Video Credits Required
+        </h3>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary, #a0a0b0);margin-bottom:20px;">
+        <p style="margin:0 0 12px 0;">
+          Video generation uses <strong style="color:var(--accent-warning, #f59e0b);">video credits</strong>,
+          which are separate from your general credits.
+        </p>
+        <div style="background:var(--surface-base, #14141f);border-radius:8px;padding:12px;margin:12px 0;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span>Required:</span>
+            <span style="color:var(--text-primary, #fff);font-weight:600;">${required} video credits</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span>Available:</span>
+            <span style="color:var(--text-primary, #fff);">${actualAvailable} video credits</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border-subtle, #2a2a3a);padding-top:8px;margin-top:8px;">
+            <span>Need:</span>
+            <span style="color:var(--accent-error, #ef4444);font-weight:600;">${needed} more</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:12px;justify-content:flex-end;">
+        <button class="btn btn-secondary" id="video-credits-modal-cancel" style="padding:10px 20px;border-radius:8px;border:1px solid var(--border-default, #3a3a4a);background:transparent;color:var(--text-primary, #fff);cursor:pointer;">
+          Cancel
+        </button>
+        <button class="btn btn-primary" id="video-credits-modal-buy" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:#fff;cursor:pointer;font-weight:600;">
+          <i class="fa-solid fa-coins" style="margin-right:6px;"></i>
+          Buy Video Credits
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Event handlers
+  const closeModal = () => modal.remove();
+
+  modal.querySelector('.modal-backdrop').addEventListener('click', closeModal);
+  modal.querySelector('#video-credits-modal-cancel').addEventListener('click', closeModal);
+  modal.querySelector('#video-credits-modal-buy').addEventListener('click', () => {
+    closeModal();
+    // Navigate to hub pricing section for video credits
+    window.location.href = 'hub.html#pricing';
+  });
+
+  // Close on Escape key
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
 }
 
 // ============================================================================
@@ -1445,11 +1606,21 @@ export async function refreshCredits() {
           ? data.available_credits
           : Math.max(0, serverBalance - serverReserved);
 
+        // Video credits (separate pool)
+        const videoBalance = data.video_credits_balance ?? 0;
+        const videoReserved = data.video_reserved_credits ?? 0;
+        const videoAvailable = typeof data.video_available_credits === 'number'
+          ? data.video_available_credits
+          : Math.max(0, videoBalance - videoReserved);
+
         // Server is truth - use server's available (accounts for backend reservations)
         creditsState.pendingDeductions = [];
         creditsState.wallet.balance = serverBalance;
         creditsState.wallet.reserved = serverReserved;
         creditsState.wallet.available = serverAvailable;
+        creditsState.wallet.videoBalance = videoBalance;
+        creditsState.wallet.videoReserved = videoReserved;
+        creditsState.wallet.videoAvailable = videoAvailable;
         creditsState.lastServerBalance = serverBalance;
 
         // Clear local reservations if server has none (reconciliation)
@@ -1461,6 +1632,9 @@ export async function refreshCredits() {
         if (data.identity_id) {
           creditsState.identityId = data.identity_id;
         }
+
+        log('[Credits] Video credits: balance=%d, reserved=%d, available=%d',
+            videoBalance, videoReserved, videoAvailable);
 
         // Cache available for next page load (not raw balance)
         cacheCreditsBalance(serverAvailable);
@@ -1605,6 +1779,12 @@ window.WorkspaceCredits = {
   showInsufficientCreditsMessage,
   isLoaded,
   getIdentityId,
+  // Video credits API (separate pool)
+  getVideoCredits,
+  getVideoWallet,
+  hasVideoCredits,
+  isVideoAction,
+  showInsufficientVideoCreditsMessage,
   // Optimistic update functions
   deductOptimistic,
   reconcile,
