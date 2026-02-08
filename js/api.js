@@ -301,9 +301,152 @@ function handleApiError(response, action, reservationId = null) {
       showExpiredModelError(action);
       return true;
     }
+
+    // Check for insufficient credits errors (video or general)
+    const insufficientCreditsMatch = parseInsufficientCreditsError(errorMsg);
+    if (insufficientCreditsMatch) {
+      log('[Credits] 400 Insufficient credits for:', action, insufficientCreditsMatch);
+      if (reservationId) {
+        releaseCreditsReservation(reservationId);
+      }
+      if (insufficientCreditsMatch.creditType === 'video') {
+        showInsufficientVideoCreditsModal(
+          insufficientCreditsMatch.required,
+          insufficientCreditsMatch.available
+        );
+      } else {
+        showInsufficientCreditsModal(
+          insufficientCreditsMatch.required,
+          insufficientCreditsMatch.available,
+          action
+        );
+      }
+      return true;
+    }
   }
 
   return false;
+}
+
+/**
+ * Parse insufficient credits error from backend error message
+ * Format: INSUFFICIENT_VIDEO_CREDITS:required=60:balance=0:reserved=0:available=0
+ * or: INSUFFICIENT_GENERAL_CREDITS:required=N:balance=N:reserved=N:available=N
+ *
+ * @param {string} errorMsg - The error message from backend
+ * @returns {object|null} - { creditType, required, balance, reserved, available } or null
+ */
+function parseInsufficientCreditsError(errorMsg) {
+  if (!errorMsg || typeof errorMsg !== 'string') return null;
+
+  // Check for video credits error
+  const videoMatch = errorMsg.match(/INSUFFICIENT_VIDEO_CREDITS:required=(\d+):balance=(\d+):reserved=(\d+):available=(\d+)/);
+  if (videoMatch) {
+    return {
+      creditType: 'video',
+      required: parseInt(videoMatch[1], 10),
+      balance: parseInt(videoMatch[2], 10),
+      reserved: parseInt(videoMatch[3], 10),
+      available: parseInt(videoMatch[4], 10),
+    };
+  }
+
+  // Check for general credits error
+  const generalMatch = errorMsg.match(/INSUFFICIENT_GENERAL_CREDITS:required=(\d+):balance=(\d+):reserved=(\d+):available=(\d+)/);
+  if (generalMatch) {
+    return {
+      creditType: 'general',
+      required: parseInt(generalMatch[1], 10),
+      balance: parseInt(generalMatch[2], 10),
+      reserved: parseInt(generalMatch[3], 10),
+      available: parseInt(generalMatch[4], 10),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Show insufficient VIDEO credits modal
+ * Video credits are separate from general credits - this modal explains that
+ *
+ * @param {number} required - Video credits required for this action
+ * @param {number} available - Video credits currently available
+ */
+function showInsufficientVideoCreditsModal(required, available) {
+  const numRequired = Number(required) || 0;
+  const numAvailable = Number(available) || 0;
+
+  // Check if modal already exists
+  let modal = document.getElementById('insufficientVideoCreditsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'insufficientVideoCreditsModal';
+    modal.className = 'modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-labelledby', 'insuffVideoCreditsTitle');
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:420px;text-align:center">
+        <div class="modal-header" style="border-bottom:none;padding-bottom:0;justify-content:flex-end">
+          <button class="modal-close" id="insuffVideoCreditsClose" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding:0 24px 24px">
+          <div style="width:64px;height:64px;margin:0 auto 16px;background:rgba(139,92,246,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <span style="font-size:28px;">🎬</span>
+          </div>
+          <h2 style="margin:0 0 12px;font-size:20px;color:#fff">Video Credits Needed</h2>
+          <p style="margin:0 0 16px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5">
+            Video generation requires <strong class="video-credits-required" style="color:#fff">0</strong> video credits.<br>
+            You currently have <strong class="video-credits-available" style="color:#fff">0</strong> video credits.
+          </p>
+          <p style="margin:0 0 20px;padding:12px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);border-radius:8px;font-size:13px;color:rgba(255,255,255,0.6)">
+            Video credits are separate from general credits and are used exclusively for video generation.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button id="insuffVideoCreditsCtaBtn" class="btn-primary" style="padding:12px 20px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#6366f1);border:0;color:#fff;box-shadow:0 4px 12px rgba(139,92,246,.25)">
+              Buy Video Credits
+            </button>
+            <button id="insuffVideoCreditsCloseBtn" style="padding:8px 16px;background:transparent;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer">
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Close handlers
+    const closeModal = () => {
+      modal.classList.remove('show');
+      modal.inert = true;
+    };
+
+    document.getElementById('insuffVideoCreditsClose')?.addEventListener('click', closeModal);
+    document.getElementById('insuffVideoCreditsCloseBtn')?.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Buy button - redirect to hub pricing for video credits
+    document.getElementById('insuffVideoCreditsCtaBtn')?.addEventListener('click', () => {
+      closeModal();
+      window.location.href = 'hub.html#video-pricing';
+    });
+  }
+
+  // Update modal content with actual values
+  const requiredEl = modal.querySelector('.video-credits-required');
+  const availableEl = modal.querySelector('.video-credits-available');
+  if (requiredEl) requiredEl.textContent = numRequired;
+  if (availableEl) availableEl.textContent = numAvailable;
+
+  // Show modal
+  modal.classList.add('show');
+  modal.inert = false;
+  document.getElementById('insuffVideoCreditsCtaBtn')?.focus();
 }
 
 /**
