@@ -1,3 +1,4 @@
+
 # TimrX Robots.txt
 # https://timrx.live
 
@@ -22,6 +23,10 @@ Disallow: /write
 Disallow: /api/
 Disallow: /api/admin
 Disallow: /*.json$
+
+# Legacy reader (noindex, use /blog/<slug> instead)
+Disallow: /read.html
+Disallow: /read
 
 # Allow important resources
 Allow: /hub
