@@ -2021,6 +2021,9 @@ body.history-expanded .timrx-3dprint .history-pager {
   }
 
   .credits-modal .modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
     justify-content: center;
     border-top: none;
     padding-top: 0;
@@ -2038,6 +2041,20 @@ body.history-expanded .timrx-3dprint .history-pager {
   .credits-modal .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
+  }
+
+  .credits-modal .btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.72);
+    box-shadow: none;
+  }
+
+  .credits-modal .btn-secondary:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #f5f5f5;
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
   }
 
   .credits-modal .credits-note {
