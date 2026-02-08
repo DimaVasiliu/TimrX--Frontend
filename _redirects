@@ -1,7 +1,16 @@
-
+# Legacy HTML redirects
 /hub.html       /hub      301
 /3dprint.html   /3dprint  301
 /blogs.html     /blogs    301
 /hub.html?*     /hub      301
 /3dprint.html?* /3dprint  301
 /blogs.html?*   /blogs    301
+
+# Blog SSR proxy - serves individual blog posts from backend
+/blog/*         https://blog.timrx.live/blog/:splat  200
+
+# Blog sitemap proxy - dynamic sitemap with all posts
+/sitemap-blogs.xml  https://blog.timrx.live/sitemap.xml  200
+
+# Blog RSS feed proxy
+/rss.xml        https://blog.timrx.live/rss.xml  200
