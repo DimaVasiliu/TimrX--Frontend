@@ -1619,13 +1619,17 @@
   const changeVerifiedEmailBtn = document.getElementById('changeVerifiedEmailBtn');
   const showRestoreBtn = document.getElementById('showRestoreBtn');
 
-  // Toggle button and collapsible card
+  // Toggle button and modal elements
   const secureToggleBtn = document.getElementById('secureToggleBtn');
   const secureCreditsCard = document.getElementById('secureCreditsCard');
-  const secureCreditsWrap = document.getElementById('secure-credits');
+  const secureModalBackdrop = document.getElementById('secureModalBackdrop');
+  const secureModalClose = document.getElementById('secureModalClose');
   const secureInfoWrap = document.getElementById('secureInfoWrap');
   const secureInfoBtn = document.getElementById('secureInfoBtn');
   const secureInfoPopover = document.getElementById('secureInfoPopover');
+
+  // Track focus before modal opens
+  let lastFocusBeforeSecureModal = null;
 
   // Restore success modal elements
   const restoreSuccessModal = document.getElementById('restoreSuccessModal');
@@ -1700,42 +1704,103 @@
   });
 
   /**
-   * Toggle the secure credits card visibility
+   * Open the secure credits modal
+   */
+  function openSecureCreditsModal() {
+    if (!secureCreditsCard) return;
+
+    // Store current focus before opening
+    lastFocusBeforeSecureModal = document.activeElement;
+
+    // Show backdrop and modal
+    secureModalBackdrop?.classList.add('visible');
+    secureCreditsCard.classList.remove('collapsed');
+    secureCreditsCard.classList.add('expanded');
+    secureToggleBtn?.classList.add('expanded');
+    secureToggleBtn?.setAttribute('aria-expanded', 'true');
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+
+    // Focus the first input or close button
+    requestAnimationFrame(() => {
+      const firstInput = secureCreditsCard.querySelector('input:not([style*="display: none"])');
+      if (firstInput) {
+        firstInput.focus();
+      } else {
+        secureModalClose?.focus();
+      }
+    });
+  }
+
+  /**
+   * Close the secure credits modal
+   */
+  function closeSecureCreditsModal() {
+    if (!secureCreditsCard) return;
+
+    // Hide backdrop and modal
+    secureModalBackdrop?.classList.remove('visible');
+    secureCreditsCard.classList.remove('expanded');
+    secureCreditsCard.classList.add('collapsed');
+    secureToggleBtn?.classList.remove('expanded');
+    secureToggleBtn?.setAttribute('aria-expanded', 'false');
+
+    // Restore body scroll
+    document.body.style.overflow = '';
+
+    // Restore focus
+    if (lastFocusBeforeSecureModal) {
+      lastFocusBeforeSecureModal.focus();
+      lastFocusBeforeSecureModal = null;
+    }
+  }
+
+  /**
+   * Toggle the secure credits modal visibility
    */
   function toggleSecureCredits() {
-    if (!secureToggleBtn || !secureCreditsCard) return;
+    if (!secureCreditsCard) return;
 
     const isExpanded = secureCreditsCard.classList.contains('expanded');
-    const willExpand = !isExpanded;
 
     if (isExpanded) {
-      // Collapse
-      secureCreditsCard.classList.remove('expanded');
-      secureCreditsCard.classList.add('collapsed');
-      secureToggleBtn.classList.remove('expanded');
-      secureCreditsWrap?.classList.remove('is-open');
+      closeSecureCreditsModal();
     } else {
-      // Expand
-      secureCreditsCard.classList.remove('collapsed');
-      secureCreditsCard.classList.add('expanded');
-      secureToggleBtn.classList.add('expanded');
-      secureCreditsWrap?.classList.add('is-open');
-    }
-
-    secureToggleBtn.setAttribute('aria-expanded', String(willExpand));
-
-    if (willExpand && typeof secureCreditsCard.scrollIntoView === 'function') {
-      secureCreditsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      openSecureCreditsModal();
     }
   }
 
   // Toggle button event listener
   secureToggleBtn?.addEventListener('click', toggleSecureCredits);
 
+  // Close button event listener
+  secureModalClose?.addEventListener('click', closeSecureCreditsModal);
+
+  // Backdrop click closes modal
+  secureModalBackdrop?.addEventListener('click', closeSecureCreditsModal);
+
+  // ESC key closes secure credits modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && secureCreditsCard?.classList.contains('expanded')) {
+      closeSecureCreditsModal();
+    }
+  });
+
+  // Initialize aria-expanded state
   if (secureToggleBtn && secureCreditsCard) {
     const isExpanded = secureCreditsCard.classList.contains('expanded');
     secureToggleBtn.setAttribute('aria-expanded', String(isExpanded));
-    secureCreditsWrap?.classList.toggle('is-open', isExpanded);
+  }
+
+  // Open modal if navigated with #secure-credits hash (from 3dprint beacon)
+  if (window.location.hash === '#secure-credits') {
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      openSecureCreditsModal();
+      // Clear the hash without triggering a scroll
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }, 100);
   }
 
   function openSecureInfo() {
@@ -2440,26 +2505,13 @@
   }
 
   /**
-   * Handle beacon click - scroll to secure credits section
+   * Handle beacon click - open secure credits modal
    */
   function handleBeaconClick() {
-    // Expand the secure credits card
+    // Open the modal if not already open
     if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
-      toggleSecureCredits();
+      openSecureCreditsModal();
     }
-
-    // Scroll to secure credits section
-    const secureSection = document.getElementById('secure-credits');
-    if (secureSection) {
-      secureSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // Focus the email input
-    setTimeout(() => {
-      if (secureEmailInput) {
-        secureEmailInput.focus();
-      }
-    }, 500);
   }
 
   // Beacon event listener
