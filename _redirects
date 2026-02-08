@@ -1,10 +1,7 @@
-# Legacy HTML redirects
+# TimrX Redirects
+# Note: Blog routes (/blog/*, /rss.xml, /sitemap-blogs.xml) are handled by Cloudflare Worker
 
-/blog/*              https://blog.timrx.live/blog/:splat        200
-/sitemap-blogs.xml   https://blog.timrx.live/sitemap.xml        200
-/rss.xml             https://blog.timrx.live/rss.xml            200
-
-
+# Legacy HTML redirects (301 permanent)
 /hub.html       /hub      301
 /3dprint.html   /3dprint  301
 /blogs.html     /blogs    301
