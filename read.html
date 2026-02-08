@@ -5,7 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Read — TimrX</title>
   <meta name="description" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
-  <link rel="canonical" href="https://timrx.live/read" />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" id="canonicalLink" href="https://timrx.live/blogs" />
+
+  <!-- Open Graph (updated dynamically per post) -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" id="ogUrl" content="https://timrx.live/blogs" />
+  <meta property="og:title" id="ogTitle" content="TimrX Blog" />
+  <meta property="og:description" id="ogDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
+  <meta property="og:image" id="ogImage" content="https://timrx.live/img/blogs.png" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" id="twTitle" content="TimrX Blog" />
+  <meta name="twitter:description" id="twDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
+  <meta name="twitter:image" id="twImage" content="https://timrx.live/img/blogs.png" />
+
+  <!-- Favicon (Blog section uses blogs.png) -->
+  <link rel="icon" type="image/png" href="/img/blogs.png" />
+  <link rel="apple-touch-icon" href="/img/blogs.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -305,6 +324,27 @@
     if (p.author_avatar) {
       qs('#authorAvatar').src = p.author_avatar;
     }
+
+    // SEO: Update canonical URL to /blog/<slug>
+    const canonicalUrl = `https://timrx.live/blog/${p.slug}`;
+    qs('#canonicalLink').href = canonicalUrl;
+
+    // SEO: Update page title and meta description
+    document.title = `${p.title} — TimrX`;
+    const metaDesc = qs('meta[name="description"]');
+    if (metaDesc && p.excerpt) {
+      metaDesc.content = p.excerpt;
+    }
+
+    // SEO: Update Open Graph and Twitter meta tags
+    const ogImage = p.cover_url || 'https://timrx.live/img/blogs.png';
+    qs('#ogUrl').content = canonicalUrl;
+    qs('#ogTitle').content = p.title;
+    qs('#ogDesc').content = p.excerpt || '';
+    qs('#ogImage').content = ogImage;
+    qs('#twTitle').content = p.title;
+    qs('#twDesc').content = p.excerpt || '';
+    qs('#twImage').content = ogImage;
 
     // Dual-format rendering: blocks or markdown
     const format = p.content_format || 'markdown';
