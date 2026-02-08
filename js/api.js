@@ -254,9 +254,6 @@ function handleApiError(response, action, reservationId = null) {
   // Prefer data error over generic HTTP error
   const errorMsg = dataErrorMsg || (isGenericHttpError ? '' : apiFetchError) || '';
 
-  // Log for debugging
-  console.log('[handleApiError] status:', response.status, 'dataError:', dataError, 'errorMsg:', errorMsg, 'action:', action);
-
   // Handle 402 Insufficient Credits - check for video credits FIRST
   if (response.status === 402) {
     log('[Credits] 402 Insufficient credits for:', action);
@@ -267,13 +264,10 @@ function handleApiError(response, action, reservationId = null) {
     }
 
     // Check if this is specifically a VIDEO credits error
-    console.log('[handleApiError] About to parse insufficient credits error from:', errorMsg);
     const insufficientCreditsMatch = parseInsufficientCreditsError(errorMsg);
-    console.log('[handleApiError] Parse result:', insufficientCreditsMatch);
     if (insufficientCreditsMatch) {
       log('[Credits] Parsed credits error:', insufficientCreditsMatch);
       if (insufficientCreditsMatch.creditType === 'video') {
-        console.log('[handleApiError] Detected VIDEO credits error, calling showInsufficientVideoCreditsModal');
         showInsufficientVideoCreditsModal(
           insufficientCreditsMatch.required,
           insufficientCreditsMatch.available
@@ -377,26 +371,20 @@ function handleApiError(response, action, reservationId = null) {
  * @returns {object|null} - { creditType, required, balance, reserved, available } or null
  */
 function parseInsufficientCreditsError(errorMsg) {
-  console.log('[PARSE CREDITS] parseInsufficientCreditsError called with:', errorMsg);
-
   if (!errorMsg || typeof errorMsg !== 'string') {
-    console.log('[PARSE CREDITS] Invalid errorMsg, returning null');
     return null;
   }
 
   // Check for video credits error
   const videoMatch = errorMsg.match(/INSUFFICIENT_VIDEO_CREDITS:required=(\d+):balance=(\d+):reserved=(\d+):available=(\d+)/);
-  console.log('[PARSE CREDITS] Video match result:', videoMatch);
   if (videoMatch) {
-    const result = {
+    return {
       creditType: 'video',
       required: parseInt(videoMatch[1], 10),
       balance: parseInt(videoMatch[2], 10),
       reserved: parseInt(videoMatch[3], 10),
       available: parseInt(videoMatch[4], 10),
     };
-    console.log('[PARSE CREDITS] Returning video credits match:', result);
-    return result;
   }
 
   // Check for general credits error
@@ -423,13 +411,9 @@ function parseInsufficientCreditsError(errorMsg) {
  * @param {number} available - Video credits currently available
  */
 function showInsufficientVideoCreditsModal(required, available) {
-  console.log('[VIDEO CREDITS MODAL] showInsufficientVideoCreditsModal called with:', { required, available });
-
   const numRequired = Number(required) || 0;
   const numAvailable = Number(available) || 0;
   const numNeeded = Math.max(0, numRequired - numAvailable);
-
-  console.log('[VIDEO CREDITS MODAL] Parsed values:', { numRequired, numAvailable, numNeeded });
 
   // Close modal helper
   const closeVideoCreditsModal = () => {
@@ -499,7 +483,6 @@ function showInsufficientVideoCreditsModal(required, available) {
   if (neededEl) neededEl.textContent = numNeeded;
 
   // Show modal - must add 'show' class because .modal CSS has opacity:0 and visibility:hidden
-  console.log('[VIDEO CREDITS MODAL] Showing modal now...');
   modal.classList.remove('hidden');
   modal.classList.add('show');
   modal.style.display = 'flex';
@@ -507,9 +490,6 @@ function showInsufficientVideoCreditsModal(required, available) {
   modal.style.visibility = 'visible';
   modal.inert = false;
   modal.removeAttribute('inert');
-  console.log('[VIDEO CREDITS MODAL] Modal should be visible. Element:', modal);
-  console.log('[VIDEO CREDITS MODAL] Modal computed style visibility:', window.getComputedStyle(modal).visibility);
-  console.log('[VIDEO CREDITS MODAL] Modal computed style opacity:', window.getComputedStyle(modal).opacity);
   document.getElementById('insuffVideoCreditsCtaBtn')?.focus();
 }
 
