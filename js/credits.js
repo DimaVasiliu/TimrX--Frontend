@@ -578,8 +578,18 @@
     if (subModalPrice) subModalPrice.innerHTML = priceLabel;
 
     // Pre-fill email
-    if (subCheckoutEmail && userEmail && !subCheckoutEmail.value) {
+    if (subCheckoutEmail && userEmail) {
       subCheckoutEmail.value = userEmail;
+      // If email is verified, make field read-only (security: backend enforces this)
+      if (emailVerified) {
+        subCheckoutEmail.readOnly = true;
+        subCheckoutEmail.classList.add('verified-email');
+        subCheckoutEmail.title = 'Using your verified email address';
+      } else {
+        subCheckoutEmail.readOnly = false;
+        subCheckoutEmail.classList.remove('verified-email');
+        subCheckoutEmail.title = '';
+      }
     }
     validateSubCheckout();
 
@@ -808,8 +818,18 @@
     }
 
     // Pre-fill email if we have it
-    if (checkoutEmail && userEmail && !checkoutEmail.value) {
+    if (checkoutEmail && userEmail) {
       checkoutEmail.value = userEmail;
+      // If email is verified, make field read-only (security: backend enforces this)
+      if (emailVerified) {
+        checkoutEmail.readOnly = true;
+        checkoutEmail.classList.add('verified-email');
+        checkoutEmail.title = 'Using your verified email address';
+      } else {
+        checkoutEmail.readOnly = false;
+        checkoutEmail.classList.remove('verified-email');
+        checkoutEmail.title = '';
+      }
       validateCheckoutForm();
     }
 
@@ -874,8 +894,18 @@
     if (videoBuyPrice) videoBuyPrice.textContent = `£${plan.price.toFixed(2)}`;
 
     // Pre-fill email if we have it
-    if (videoBuyEmail && userEmail && !videoBuyEmail.value) {
+    if (videoBuyEmail && userEmail) {
       videoBuyEmail.value = userEmail;
+      // If email is verified, make field read-only (security: backend enforces this)
+      if (emailVerified) {
+        videoBuyEmail.readOnly = true;
+        videoBuyEmail.classList.add('verified-email');
+        videoBuyEmail.title = 'Using your verified email address';
+      } else {
+        videoBuyEmail.readOnly = false;
+        videoBuyEmail.classList.remove('verified-email');
+        videoBuyEmail.title = '';
+      }
     }
 
     // Clear previous error
@@ -1197,7 +1227,9 @@
     if (!result) return false;
 
     const status = result.status;
-    const errorCode = result.data?.error?.code;
+    // Check both error formats: nested (error.code) and flat (error_code)
+    const errorCode = result.data?.error?.code || result.data?.error_code;
+    const identityEmail = result.data?.identity_email || result.data?.error?.identity_email;
 
     console.log(`[Credits] handleBillingError: status=${status}, code=${errorCode}, context=${context}`);
 
@@ -1207,7 +1239,7 @@
       return true;
     }
 
-    // 403 - Email required or not verified
+    // 403 - Email required, not verified, or mismatch
     if (status === 403) {
       if (errorCode === 'EMAIL_REQUIRED') {
         showEmailRequiredModal();
@@ -1215,6 +1247,10 @@
       }
       if (errorCode === 'EMAIL_NOT_VERIFIED') {
         showEmailNotVerifiedModal();
+        return true;
+      }
+      if (errorCode === 'EMAIL_MISMATCH') {
+        showEmailMismatchModal(identityEmail, context);
         return true;
       }
     }
@@ -1416,11 +1452,107 @@
     }
   }
 
+  /**
+   * Show email mismatch modal - when user tries to checkout with different email
+   * @param {string} identityEmail - The verified email on the account
+   * @param {string} context - Which checkout flow triggered this
+   */
+  function showEmailMismatchModal(identityEmail, context = 'checkout') {
+    // Check if modal already exists
+    let modal = document.getElementById('emailMismatchModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'emailMismatchModal';
+      modal.className = 'modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'emailMismatchTitle');
+      modal.innerHTML = `
+        <div class="modal-content modal-sm">
+          <button class="modal-close" id="emailMismatchClose" aria-label="Close">&times;</button>
+          <h2 id="emailMismatchTitle">Wrong Email for This Account</h2>
+          <p class="modal-subtitle">
+            You're logged in as <strong id="emailMismatchIdentity"></strong>.
+            <br><br>
+            To buy credits, use this email address. If you want to use a different email, switch to that account.
+          </p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="emailMismatchUse">
+              <span class="btn-text">Use This Email</span>
+            </button>
+            <button class="btn btn-secondary" id="emailMismatchSwitch">
+              <span class="btn-text">Switch Account</span>
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close button
+      document.getElementById('emailMismatchClose')?.addEventListener('click', () => {
+        closeEmailMismatchModal();
+      });
+
+      // Backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeEmailMismatchModal();
+      });
+
+      // "Use This Email" button - autofill the correct email and close modal
+      document.getElementById('emailMismatchUse')?.addEventListener('click', () => {
+        const correctEmail = document.getElementById('emailMismatchIdentity')?.textContent || '';
+        if (correctEmail) {
+          // Autofill checkout email field if it exists
+          if (checkoutEmail) {
+            checkoutEmail.value = correctEmail;
+            validateCheckoutForm();
+          }
+          // Store for video checkout flow
+          sessionStorage.setItem('timrx_checkout_email', correctEmail);
+        }
+        closeEmailMismatchModal();
+        showToast('Email updated. Try again.', 'success');
+      });
+
+      // "Switch Account" button - open restore flow
+      document.getElementById('emailMismatchSwitch')?.addEventListener('click', () => {
+        closeEmailMismatchModal();
+        // Open the secure credits modal in restore mode
+        openSecureCreditsModal();
+        // Navigate to the restore section if the modal supports it
+        const restoreLink = document.querySelector('[data-action="restore"]');
+        if (restoreLink) {
+          restoreLink.click();
+        }
+      });
+    }
+
+    // Update the email display
+    const emailDisplay = document.getElementById('emailMismatchIdentity');
+    if (emailDisplay && identityEmail) {
+      emailDisplay.textContent = identityEmail;
+    }
+
+    modal.classList.add('open');
+    modal.inert = false;
+    document.getElementById('emailMismatchUse')?.focus();
+
+    console.log(`[Credits] Email mismatch modal shown for ${context}, identity: ${identityEmail}`);
+  }
+
+  function closeEmailMismatchModal() {
+    const modal = document.getElementById('emailMismatchModal');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.inert = true;
+    }
+  }
+
   // ESC key closes billing error modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeEmailRequiredModal();
       closeEmailNotVerifiedModal();
+      closeEmailMismatchModal();
       // Don't close session expired - it requires refresh
     }
   });
