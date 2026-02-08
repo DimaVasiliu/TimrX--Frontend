@@ -4698,6 +4698,12 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
   opacity: 0.8;
 }
 
+.modal-content.modal-sm .modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
 .modal-content.modal-sm .btn {
   width: 100%;
   justify-content: center;
