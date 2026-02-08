@@ -436,7 +436,10 @@ function showInsufficientVideoCreditsModal(required, available) {
     const modal = document.getElementById('insufficientVideoCreditsModal');
     if (modal) {
       modal.classList.add('hidden');
+      modal.classList.remove('show');
       modal.style.display = 'none';
+      modal.style.opacity = '0';
+      modal.style.visibility = 'hidden';
       modal.inert = true;
     }
   };
@@ -450,12 +453,12 @@ function showInsufficientVideoCreditsModal(required, available) {
     modal = document.createElement('div');
     modal.id = 'insufficientVideoCreditsModal';
     modal.className = 'modal hidden';
-    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:100000;padding:20px;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:999999;padding:20px;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-labelledby', 'insuffVideoCreditsTitle');
     modal.setAttribute('inert', '');
     modal.innerHTML = `
-      <div class="modal-backdrop" onclick="window.closeVideoCreditsModal()"></div>
+      <div class="modal-backdrop" onclick="window.closeVideoCreditsModal()" style="position:absolute;inset:0;cursor:pointer;"></div>
       <div class="modal-content" style="max-width:400px;text-align:center;width:100%;padding:24px;border-radius:20px;background:linear-gradient(135deg,#1a1a1a 0%,#151515 100%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px rgba(0,0,0,0.6);position:relative;z-index:1;">
         <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;border-bottom:none;padding-bottom:0;margin-bottom:0">
           <h2 style="margin:0;font-size:20px;color:#fff">Video Credits Needed</h2>
@@ -495,15 +498,18 @@ function showInsufficientVideoCreditsModal(required, available) {
   if (availableEl) availableEl.textContent = numAvailable;
   if (neededEl) neededEl.textContent = numNeeded;
 
-  // Show modal
+  // Show modal - must add 'show' class because .modal CSS has opacity:0 and visibility:hidden
   console.log('[VIDEO CREDITS MODAL] Showing modal now...');
   modal.classList.remove('hidden');
+  modal.classList.add('show');
   modal.style.display = 'flex';
+  modal.style.opacity = '1';
+  modal.style.visibility = 'visible';
   modal.inert = false;
   modal.removeAttribute('inert');
   console.log('[VIDEO CREDITS MODAL] Modal should be visible. Element:', modal);
-  console.log('[VIDEO CREDITS MODAL] Modal computed style display:', window.getComputedStyle(modal).display);
-  console.log('[VIDEO CREDITS MODAL] Modal computed style zIndex:', window.getComputedStyle(modal).zIndex);
+  console.log('[VIDEO CREDITS MODAL] Modal computed style visibility:', window.getComputedStyle(modal).visibility);
+  console.log('[VIDEO CREDITS MODAL] Modal computed style opacity:', window.getComputedStyle(modal).opacity);
   document.getElementById('insuffVideoCreditsCtaBtn')?.focus();
 }
 
