@@ -560,6 +560,79 @@ blockquote cite {
   max-width: 120px;
 }
 
+/* Inline Citations */
+.post-article .citation {
+  font-size: 0.75em;
+  font-weight: 600;
+  vertical-align: super;
+  line-height: 0;
+}
+
+.post-article .citation a {
+  color: #888;
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.post-article .citation a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Sources Section */
+.post-article h2#sources {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  font-size: clamp(22px, 2.5vw, 26px);
+  color: #ccc;
+}
+
+.post-article h2#sources + ul {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+}
+
+.post-article h2#sources + ul li {
+  padding: 12px 16px;
+  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.post-article h2#sources + ul li:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.post-article h2#sources + ul li span[id^="source-"] {
+  display: inline-block;
+  min-width: 28px;
+  font-weight: 700;
+  color: #888;
+  margin-right: 8px;
+}
+
+.post-article h2#sources + ul li a {
+  color: #ccc;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.post-article h2#sources + ul li a:hover {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
 /* Checklist */
 .post-article .checklist {
   list-style: none;
