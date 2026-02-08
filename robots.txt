@@ -5,22 +5,28 @@
 User-agent: *
 Allow: /
 
+# Explicitly allow blog section
+Allow: /blogs
+Allow: /blogs/
+Allow: /blogs/*
+
 # Crawl-delay for polite crawling
 Crawl-delay: 1
 
 # Disallow admin/private paths
-Disallow: /api/
+Disallow: /admin
 Disallow: /admin/
+Disallow: /write
+Disallow: /api/
+Disallow: /api/admin
 Disallow: /*.json$
 
 # Allow important resources
 Allow: /hub
 Allow: /hub.html
 Allow: /index.html
-Allow: /blogs
-Allow: /blogs.html
+Allow: /3dprint
 Allow: /3dprint.html
-Allow: /blogs.html
 
 # Sitemap location
 Sitemap: https://timrx.live/sitemap.xml
@@ -28,6 +34,9 @@ Sitemap: https://timrx.live/sitemap.xml
 # Google specific
 User-agent: Googlebot
 Allow: /
+Allow: /blogs
+Allow: /blogs/
+Allow: /blogs/*
 Crawl-delay: 0
 
 # Bing specific
