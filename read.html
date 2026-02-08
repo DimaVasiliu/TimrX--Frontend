@@ -18,6 +18,7 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" id="twUrl" content="https://timrx.live/blogs" />
   <meta name="twitter:title" id="twTitle" content="TimrX Blog" />
   <meta name="twitter:description" id="twDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta name="twitter:image" id="twImage" content="https://timrx.live/img/blogs.png" />
@@ -343,6 +344,7 @@
     qs('#ogTitle').content = p.title;
     qs('#ogDesc').content = p.excerpt || '';
     qs('#ogImage').content = ogImage;
+    qs('#twUrl').content = canonicalUrl;
     qs('#twTitle').content = p.title;
     qs('#twDesc').content = p.excerpt || '';
     qs('#twImage').content = ogImage;
