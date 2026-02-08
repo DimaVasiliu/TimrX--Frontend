@@ -133,6 +133,7 @@
             <div class="form-group" id="image_count_group">
               <label class="form-label">Images Count</label>
               <select class="form-select" id="ai_image_count">
+                <option value="0">0 images</option>
                 <option value="1">1 image</option>
                 <option value="2" selected>2 images</option>
                 <option value="3">3 images</option>
@@ -496,6 +497,14 @@
 
         if (j.ok) {
           generatedBlog = j;
+          // Show warnings for graceful degradation and quality gates
+          const warnings = [];
+          if (j.images_mode_warning) warnings.push(j.images_mode_warning);
+          if (j.factcheck_warning) warnings.push(j.factcheck_warning);
+          if (j.quality_warning) warnings.push('⚠️ ' + j.quality_warning);
+          if (warnings.length > 0) {
+            alert('Note:\n' + warnings.join('\n\n'));
+          }
           // Show in modal instead of inline
           $('#modalPreviewTitle').textContent = j.title;
           $('#modalPreviewExcerpt').textContent = j.excerpt;
@@ -504,6 +513,19 @@
           $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
           if (j.cover_prompt) {
             $('#cover_prompt').value = j.cover_prompt;
+          }
+          // Update button text based on recommended status
+          const publishBtn = $('#modalPreviewPublish');
+          if (j.recommended_status === 'draft') {
+            publishBtn.textContent = 'Save as Draft (Recommended)';
+            publishBtn.style.background = '#f59e0b';  // Amber for caution
+          } else {
+            publishBtn.textContent = 'Save as Draft';
+            publishBtn.style.background = '';  // Reset to default
+          }
+          // Show image source info
+          if (j.content_images_source && j.content_images_source !== 'none') {
+            console.log('[AI] Image sources:', j.content_images_source, j.content_images_sources_detail);
           }
           $('#blogModal').classList.add('show');
         } else {
