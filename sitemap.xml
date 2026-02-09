@@ -48,7 +48,15 @@
       <image:caption>Expert guides on AI workflows, Three.js, GSAP, and 3D printing</image:caption>
     </image:image>
   </url>
-  
+
+  <!-- Blog Archive (all posts filterable) -->
+  <url>
+    <loc>https://timrx.live/archive</loc>
+    <lastmod>2026-02-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Legal Pages -->
   <url>
     <loc>https://timrx.live/terms.html</loc>
