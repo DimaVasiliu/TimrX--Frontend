@@ -15,8 +15,9 @@
   <link rel="canonical" href="https://timrx.live/blogs" />
 
   <!-- Favicon (Blog section) -->
-  <link rel="icon" type="image/png" href="/img/blogs.png"/>
-  <link rel="apple-touch-icon" href="/img/blogs.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-blogs-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-blogs-16.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-blogs-180.png"/>
   <link rel="manifest" href="/site.webmanifest"/>
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
@@ -70,32 +71,9 @@
       "url": "https://timrx.live",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://timrx.live/logo.png"
+        "url": "https://timrx.live/img/blogs.png"
       }
-    },
-    "blogPost": [
-      {
-        "@type": "BlogPosting",
-        "headline": "Scroll Choreography That Feels Native",
-        "description": "Scene planning and anchor triggers so scroll never fights the OS.",
-        "author": {"@type": "Person", "name": "Dima Vasiliu"},
-        "keywords": ["GSAP", "UX", "Performance", "Scroll Animation"]
-      },
-      {
-        "@type": "BlogPosting",
-        "headline": "Viewer Craft: Camera Fit, Orbit, Shadows",
-        "description": "Tiny choices that make 3D viewers feel premium.",
-        "author": {"@type": "Person", "name": "Dima Vasiliu"},
-        "keywords": ["Three.js", "3D", "WebGL", "UX"]
-      },
-      {
-        "@type": "BlogPosting",
-        "headline": "From Prompt to Print: A Practical Workflow",
-        "description": "A simple, reliable path from AI model to physical object.",
-        "author": {"@type": "Person", "name": "Dima Vasiliu"},
-        "keywords": ["3D Printing", "AI", "Workflow"]
-      }
-    ]
+    }
   }
   </script>
 
@@ -118,6 +96,17 @@
         "item": "https://timrx.live/blogs"
       }
     ]
+  }
+  </script>
+
+  <!-- Structured Data - Dynamic ItemList (populated by JS) -->
+  <script type="application/ld+json" id="itemListJsonLd">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListOrder": "https://schema.org/ItemListOrderDescending",
+    "numberOfItems": 0,
+    "itemListElement": []
   }
   </script>
 
@@ -229,6 +218,23 @@
       </div>
     </div>
   </section>
+
+  <!-- TOPIC LINKS (SEO internal linking) -->
+  <nav class="topic-links-bar" aria-label="Browse by topic">
+    <div class="container topic-links-inner">
+      <span class="topic-links-label">Explore:</span>
+      <div class="topic-links-list">
+        <a href="/blog/tag/three.js" class="topic-link">Three.js</a>
+        <a href="/blog/tag/gsap" class="topic-link">GSAP</a>
+        <a href="/blog/tag/ai" class="topic-link">AI</a>
+        <a href="/blog/tag/3d-printing" class="topic-link">3D Printing</a>
+        <a href="/blog/tag/performance" class="topic-link">Performance</a>
+        <a href="/blog/tag/tutorial" class="topic-link">Tutorials</a>
+        <a href="/blog/tag/workflow" class="topic-link">Workflow</a>
+      </div>
+    </div>
+  </nav>
+
     <!-- FEATURED -->
     <section class="featured" aria-label="Featured posts">
       <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Featured Articles</h2>
@@ -502,6 +508,27 @@
         b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
       }
 
+      // Update ItemList JSON-LD for SEO (limit to 20 items)
+      updateItemListJsonLd(data.slice(0, 20));
+    }
+
+    // Update ItemList structured data dynamically
+    function updateItemListJsonLd(items) {
+      const script = qs('#itemListJsonLd');
+      if (!script || !items.length) return;
+      const itemList = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListOrder": "https://schema.org/ItemListOrderDescending",
+        "numberOfItems": items.length,
+        "itemListElement": items.map((p, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "url": `https://timrx.live/blog/${encodeURIComponent(p.slug)}`,
+          "name": p.title || "Untitled"
+        }))
+      };
+      script.textContent = JSON.stringify(itemList);
     }
 
     // Load more posts
