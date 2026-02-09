@@ -1,771 +1,998 @@
 <!DOCTYPE html>
-<html lang="en" class="read-page">
+<html lang="en" class="blogs-page">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Read — TimrX</title>
-  <meta name="description" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
-  <meta name="robots" content="noindex, follow" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- SEO: Set canonical to /blog/<slug> immediately (before Google parses the page) -->
-  <script>
-  (function(){
-    var params = new URLSearchParams(window.location.search);
-    var slug = params.get('slug');
-    var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<link rel="canonical" id="canonicalLink" href="' + canonicalUrl + '" />');
-  })();
-  </script>
-  <noscript><link rel="canonical" id="canonicalLink" href="https://timrx.live/blogs" /></noscript>
+  <!-- Primary Meta Tags -->
+  <title>TimrX Blog | AI, 3D, Web Performance & Digital Experiments</title>
+  <meta name="title" content="TimrX Blog | AI, 3D, Web Performance & Digital Experiments" />
+  <meta name="description" content="Practical guides on AI workflows, 3D web development, Three.js, GSAP animations, and performance optimization. Real experiments, honest results." />
+  <meta name="keywords" content="Three.js tutorial, GSAP animation, 3D web development, WebGL guide, 3D printing workflow, web performance, UX design, JavaScript 3D, AI workflow, TimrX blog" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+  <link rel="canonical" href="https://timrx.live/blogs" />
 
-  <!-- Open Graph (updated dynamically per post) -->
-  <meta property="og:type" content="article" />
-  <script>
-  (function(){
-    var params = new URLSearchParams(window.location.search);
-    var slug = params.get('slug');
-    var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<meta property="og:url" id="ogUrl" content="' + canonicalUrl + '" />');
-  })();
-  </script>
-  <noscript><meta property="og:url" id="ogUrl" content="https://timrx.live/blogs" /></noscript>
-  <meta property="og:title" id="ogTitle" content="TimrX Blog" />
-  <meta property="og:description" id="ogDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
-  <meta property="og:image" id="ogImage" content="https://timrx.live/img/blogs.png" />
+  <!-- Favicon (Blog section) -->
+  <link rel="icon" type="image/png" href="/img/blogs.png"/>
+  <link rel="apple-touch-icon" href="/img/blogs.png"/>
+  <link rel="manifest" href="/site.webmanifest"/>
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="msapplication-TileColor" content="#0b0b0b" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="blog" />
+  <meta property="og:url" content="https://timrx.live/blogs" />
+  <meta property="og:title" content="TimrX Blog | AI, 3D, Web Performance & Digital Experiments" />
+  <meta property="og:description" content="Practical guides on AI workflows, 3D web development, Three.js, GSAP animations, and performance optimization. Real experiments, honest results." />
+  <meta property="og:image" content="https://timrx.live/og-image-blog.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="TimrX Blog - AI, 3D & Web Performance" />
   <meta property="og:site_name" content="TimrX" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <script>
-  (function(){
-    var params = new URLSearchParams(window.location.search);
-    var slug = params.get('slug');
-    var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<meta name="twitter:url" id="twUrl" content="' + canonicalUrl + '" />');
-  })();
-  </script>
-  <noscript><meta name="twitter:url" id="twUrl" content="https://timrx.live/blogs" /></noscript>
-  <meta name="twitter:title" id="twTitle" content="TimrX Blog" />
-  <meta name="twitter:description" id="twDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
-  <meta name="twitter:image" id="twImage" content="https://timrx.live/img/blogs.png" />
+  <meta name="twitter:url" content="https://timrx.live/blogs" />
+  <meta name="twitter:title" content="TimrX Blog | AI, 3D, Web Performance & Digital Experiments" />
+  <meta name="twitter:description" content="Practical guides on AI workflows, 3D web development, and performance optimization. Real experiments, honest results." />
+  <meta name="twitter:image" content="https://timrx.live/og-image-blog.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
 
-  <!-- Favicon (Blog section) -->
-  <link rel="icon" type="image/png" href="/img/blogs.png" />
-  <link rel="apple-touch-icon" href="/img/blogs.png" />
+  <!-- Additional SEO -->
+  <meta name="application-name" content="TimrX Blog" />
+  <meta name="apple-mobile-web-app-title" content="TimrX Blog" />
+
+  <!-- Structured Data - Blog -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "TimrX Blog",
+    "description": "Practical guides on AI workflows, 3D web development, Three.js, GSAP animations, and performance optimization. Real experiments, honest results.",
+    "url": "https://timrx.live/blogs",
+    "inLanguage": "en-US",
+    "author": {
+      "@type": "Person",
+      "name": "Dima Vasiliu",
+      "url": "https://timrx.live",
+      "jobTitle": "Full-Stack Developer & 3D Specialist",
+      "sameAs": [
+        "https://github.com/DimaVasiliu",
+        "https://www.linkedin.com/in/dumitru-vasiliu"
+      ]
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "TimrX",
+      "url": "https://timrx.live",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://timrx.live/logo.png"
+      }
+    },
+    "blogPost": [
+      {
+        "@type": "BlogPosting",
+        "headline": "Scroll Choreography That Feels Native",
+        "description": "Scene planning and anchor triggers so scroll never fights the OS.",
+        "author": {"@type": "Person", "name": "Dima Vasiliu"},
+        "keywords": ["GSAP", "UX", "Performance", "Scroll Animation"]
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Viewer Craft: Camera Fit, Orbit, Shadows",
+        "description": "Tiny choices that make 3D viewers feel premium.",
+        "author": {"@type": "Person", "name": "Dima Vasiliu"},
+        "keywords": ["Three.js", "3D", "WebGL", "UX"]
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "From Prompt to Print: A Practical Workflow",
+        "description": "A simple, reliable path from AI model to physical object.",
+        "author": {"@type": "Person", "name": "Dima Vasiliu"},
+        "keywords": ["3D Printing", "AI", "Workflow"]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data - BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "TimrX",
+        "item": "https://timrx.live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://timrx.live/blogs"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts (same vibe as site) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
-  <link rel="stylesheet" href="read.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <!-- Site base CSS (absolute paths for /blogs route) -->
+  <link rel="stylesheet" href="/styles.css">
+  <!-- Page CSS -->
+  <link rel="stylesheet" href="/blogs.css">
+  <link rel="stylesheet" href="/media/blogs.css">
 </head>
-<body class="read-page">
-  <div id="progressBar" class="progress-bar" aria-hidden="true"></div>
-
+<body>
   <!-- MINIMAL HEADER -->
-  <header class="read-header" aria-label="Site header">
-    <a class="read-brand" href="index.html" aria-label="Home">
+  <header class="blog-header" aria-label="Site header">
+    <a class="blog-brand" href="/" aria-label="Home">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
-    <a class="read-nav-link" href="blogs.html">← Back to Blogs</a>
+    <a class="blog-contact-btn" href="/#contact" aria-label="Contact">Contact ↗</a>
   </header>
 
-  <main class="read-main">
-    <!-- Hero Section -->
-    <header class="post-hero">
-      <div class="hero-noise" aria-hidden="true"></div>
-      <div class="hero-gradient" aria-hidden="true"></div>
-      <div class="post-hero-inner">
-        <div class="post-category">
-          <span id="heroCap" class="category-pill">—</span>
-        </div>
-        <h1 id="postTitle" class="post-title">Loading…</h1>
-        <p id="postExcerpt" class="post-excerpt"></p>
+  <!-- HERO -->
+  <header class="blogs-hero" id="hero" role="banner">
+    <!-- Hub Hint (stays within hero) -->
+    <a class="hub-hint" href="/hub.html" aria-label="Visit 3D Print Hub">
+      <span class="hub-hint-icon">◆</span>
+      <span class="hub-hint-text">Try the 3D Hub</span>
+    </a>
+    <div class="hero-noise" aria-hidden="true"></div>
+    <div class="hero-gradient" aria-hidden="true"></div>
+    <div class="hero-watermark" aria-hidden="true">BLOG</div>
+    <div class="hero-lines" aria-hidden="true">
+      <span class="h-line"></span>
+      <span class="h-line"></span>
+      <span class="h-line"></span>
+    </div>
+    <div class="hero-arc" aria-hidden="true"></div>
+    <div class="hero-brand" aria-hidden="true">TimrX</div>
+    <div class="hero-particles" aria-hidden="true">
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+      <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+    </div>
+    <div class="container hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">The Blog</span>
       </div>
-    </header>
-
-    <!-- Cover Image + Meta -->
-    <section class="post-cover container">
-      <figure class="cover-figure">
-        <img id="heroImg" alt="cover"/>
-        <figcaption id="coverCredit" class="cover-credit hidden"></figcaption>
-      </figure>
-      <div class="post-meta">
-        <img class="avatar" id="authorAvatar" src="img/dima.jpg" alt="Author"/>
-        <div class="meta-info">
-          <div class="byline"><strong id="postAuthor">—</strong></div>
-          <div class="meta-details">
-            <time id="postDate">—</time>
-            <span class="meta-sep">•</span>
-            <span id="readTime">— min read</span>
-          </div>
+      <h1 class="hero-title">
+        <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">TimrX Blog: AI, 3D, Web Performance and Monetisation Experiments</span>
+        <span class="hero-word" aria-hidden="true">Ideas.</span>
+        <span class="hero-word" aria-hidden="true">Code.</span>
+        <span class="hero-word hero-word--outline" aria-hidden="true">Craft.</span>
+      </h1>
+      <p class="hero-description">Deep dives into 3D web, motion design, and the craft of building digital products that feel right.</p>
+      <div class="hero-meta">
+        <div class="hero-topics">
+          <span class="topic">Three.js</span>
+          <span class="topic-dot"></span>
+          <span class="topic">GSAP</span>
+          <span class="topic-dot"></span>
+          <span class="topic">3D Printing</span>
+          <span class="topic-dot"></span>
+          <span class="topic">Performance</span>
         </div>
-        <button type="button" id="shareBtn" class="share-btn" aria-label="Share this post">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-            <polyline points="16 6 12 2 8 6"/>
-            <line x1="12" y1="2" x2="12" y2="15"/>
-          </svg>
+      </div>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <span class="scroll-text">Scroll</span>
+      <span class="scroll-line"></span>
+    </div>
+  </header>
+  <!-- FILTER STRIP -->
+  <section class="strip strip--light is-fx" id="filter-strip" aria-label="Filters">
+    <div class="strip-fx" aria-hidden="true">
+      <canvas class="strip-canvas"></canvas>
+    </div>
+    <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Filter Articles by Category</h2>
+    <div class="filter-bar">
+      <div class="chips" id="chipBar" role="tablist" aria-label="Tags">
+        <button class="chip active" data-tag="all" role="tab" aria-selected="true">All</button>
+        <button class="chip" data-tag="GSAP" role="tab">GSAP</button>
+        <button class="chip" data-tag="Three.js" role="tab">Three.js</button>
+        <button class="chip" data-tag="3D" role="tab">3D</button>
+        <button class="chip" data-tag="3D Hub" role="tab">3D Hub</button>
+        <button class="chip" data-tag="UX" role="tab">UX</button>
+        <button class="chip" data-tag="Performance" role="tab">Performance</button>
+        <button class="chip" data-tag="Workflow" role="tab">Workflow</button>
+        <button class="chip" data-tag="Commercials" role="tab">Commercials</button>
+        <button class="chip" data-tag="Affiliate" role="tab">Affiliate</button>
+        <button class="chip" data-tag="IT" role="tab">IT</button>
+        <button class="chip" data-tag="AI" role="tab">AI</button>
+      </div>
+      <div class="tools">
+        <div class="search">
+          <input id="blogSearch" type="search" placeholder="Search… ( / )" aria-label="Search posts" />
+        </div>
+        <label class="label" for="sortSelect">Sort</label>
+        <div class="select-wrap">
+          <select id="sortSelect" aria-label="Sort posts">
+            <option value="new">Newest</option>
+            <option value="old">Oldest</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+    <!-- FEATURED -->
+    <section class="featured" aria-label="Featured posts">
+      <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Featured Articles</h2>
+      <div class="container featured-inner">
+        <a class="feat-card large" id="feat-0" href="#">
+          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop')"></div>
+          <div class="body">
+            <span class="pill">Featured</span>
+            <h3 class="t">Loading…</h3>
+            <p class="e muted">—</p>
+          </div>
+        </a>
+        <a class="feat-card small" id="feat-1" href="#">
+          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop')"></div>
+          <div class="body">
+            <span class="pill">Featured</span>
+            <h4 class="t">Loading…</h4>
+          </div>
+        </a>
+      </div>
+    </section>
+  <!-- GRID -->
+  <main class="container" id="main">
+    <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">All Articles</h2>
+    <div class="grid" id="blogsGrid" role="list"></div>
+    <div class="loadbar">
+      <a href="/archive.html" class="btn" id="browseAll">Browse All Posts →</a>
+    </div>
+  </main>
+  <!-- CTA: WRITE -->
+  <section class="submit" id="submit">
+    <div class="container submit-inner">
+      <div class="submit-head">
+        <h3>Submit a Post</h3>
+        <p class="muted">Share a walkthrough or story. Reviewed before publishing.</p>
+      </div>
+      <a class="btn" href="/write.html">Open Writer →</a>
+    </div>
+  </section>
+
+  <!-- Info Section -->
+  <section id="info" class="blog-info-wrap">
+    <div class="container">
+      <div class="info-header">
+        <h2>Learn More</h2>
+        <p class="muted">Discover what TimrX Blog covers and find answers to common questions.</p>
+      </div>
+
+      <div class="info-tabs">
+        <button class="info-tab" data-modal="blogAboutModal" type="button">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About</span>
+        </button>
+        <button class="info-tab" data-modal="blogFaqModal" type="button">
+          <i class="fa-solid fa-circle-question"></i>
+          <span>FAQ</span>
         </button>
       </div>
-    </section>
-
-    <!-- Content Layout -->
-    <div class="container post-layout">
-      <aside class="post-toc">
-        <div class="toc-card">
-          <h3>Contents</h3>
-          <nav id="tocList"></nav>
-        </div>
-      </aside>
-      <article id="article" class="post-article"></article>
     </div>
-
-    <!-- Engagement Section -->
-    <section class="engagement-section container">
-      <div class="engagement-bar">
-        <div class="engagement-actions">
-          <button type="button" id="likeBtn" class="engage-btn like-btn" aria-label="Like this post">
-            <svg class="heart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            <span id="likeCount">0</span>
-          </button>
-          <button type="button" id="shareDropdownBtn" class="engage-btn share-dropdown-btn" aria-label="Share options">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="18" cy="5" r="3"/>
-              <circle cx="6" cy="12" r="3"/>
-              <circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-            </svg>
-            <span>Share</span>
-          </button>
-          <div id="shareOptions" class="share-options hidden">
-            <button type="button" data-share="twitter" class="share-option">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              <span>Twitter</span>
-            </button>
-            <button type="button" data-share="linkedin" class="share-option">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              <span>LinkedIn</span>
-            </button>
-            <button type="button" data-share="facebook" class="share-option">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              <span>Facebook</span>
-            </button>
-            <button type="button" data-share="copy" class="share-option">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span>Copy Link</span>
-            </button>
-          </div>
-        </div>
-        <div class="engagement-info">
-          <span id="viewCount" class="view-count">— views</span>
-        </div>
-      </div>
-
-      <!-- Comments Section -->
-      <div class="comments-section">
-        <div class="comments-header">
-          <h3>Comments <span id="commentCount" class="comment-badge">0</span></h3>
-        </div>
-
-        <form id="commentForm" class="comment-form">
-          <div class="comment-input-group">
-            <input type="text" id="commenterName" placeholder="Your name" required />
-            <textarea id="commentText" placeholder="Write a comment..." rows="3" required></textarea>
-          </div>
-          <button type="submit" class="comment-submit-btn">
-            <span>Post Comment</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
-        </form>
-
-        <div id="commentsList" class="comments-list">
-          <!-- Comments will be loaded here -->
-        </div>
-
-        <p id="noComments" class="no-comments">Be the first to comment on this post.</p>
-      </div>
-    </section>
-  </main>
+  </section>
 
   <!-- FOOTER -->
-  <footer class="read-footer">
+  <footer>
     <div class="container foot">
       <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
       <nav class="foot-nav">
-        <a href="blogs.html">Blog</a>
-        <a href="archive.html">All Posts</a>
-        <a href="index.html#works">Works</a>
-        <a href="index.html#contact">Contact</a>
+        <a href="/archive.html">All Posts</a>
+        <a href="/#works">Works</a>
+        <a href="/#services">Services</a>
+        <a href="/#contact">Contact</a>
       </nav>
       <nav class="foot-legal">
-        <a href="terms.html">Terms</a>
-        <a href="privacy.html">Privacy</a>
-        <a href="cookies.html">Cookies</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/cookies.html">Cookies</a>
       </nav>
-      <div class="foot-social">
-        <a href="mailto:admin@timrx.live">Email</a>
-        <a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a>
-        <a href="https://github.com/DimaVasiliu">GitHub</a>
-      </div>
+      <div class="foot-social"><a href="mailto:admin@timrx.live">Email</a><a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a><a href="https://github.com/DimaVasiliu">GitHub</a></div>
     </div>
   </footer>
+  <!-- Minimal page logic (inline to keep page self-contained) -->
+  <script>
+    const qs = s => document.querySelector(s);
+    const qsa = s => Array.from(document.querySelectorAll(s));
 
-<!-- Frontend/read.html - Dual format support (blocks + markdown) -->
-<script>
-  const qs = s => document.querySelector(s);
-  const qsa = s => Array.from(document.querySelectorAll(s));
-  const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-  const API = API_BASE + '/api';
-  function getParam(name){ return new URLSearchParams(location.search).get(name); }
-  function md(s){ return marked.parse(s || ''); }
+    // API base resolution: localStorage first, then same-origin (Worker proxies /api/* to backend)
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
+    const API = API_BASE + '/api';
 
-  // API warmup - wake up server early with lightweight request (fire and forget)
-  (function warmupAPI() {
-    fetch(`${API}/posts?page=1&size=1`, { method: 'GET', cache: 'no-store' }).catch(() => {});
-  })();
+    // API warmup - wake up server early (fire and forget)
+    (function warmupAPI() {
+      fetch(`${API}/posts?page=1&size=1`, { method: 'GET', cache: 'no-store' }).catch(() => {});
+    })();
 
-  // Cache configuration
-  const CACHE_EXPIRY = 10 * 60 * 1000; // 10 minutes for individual posts
+    // Year in footer
+    (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
 
-  function getPostCache(slug) {
-    try {
-      const cached = sessionStorage.getItem(`timrx_post_${slug}`);
-      if (!cached) return null;
-      const { data, timestamp } = JSON.parse(cached);
-      return { data, isStale: Date.now() - timestamp > CACHE_EXPIRY };
-    } catch { return null; }
-  }
+    // Keyboard navigation for brand
+    qs('#brand')?.addEventListener('keydown', e=>{ if(e.key==='Enter') location.href='index.html'; });
 
-  function setPostCache(slug, data) {
-    try {
-      sessionStorage.setItem(`timrx_post_${slug}`, JSON.stringify({ data, timestamp: Date.now() }));
-    } catch {}
-  }
+    // To top button (if exists)
+    (function(){
+      const btn = qs('#toTop');
+      if(!btn) return;
+      btn.addEventListener('click', ()=> scrollTo({top:0,behavior:'smooth'}));
+      window.addEventListener('scroll', ()=> btn.classList.toggle('show', scrollY>600), {passive:true});
+    })();
 
-  // Show loading skeleton
-  function showPostSkeleton() {
-    qs('#postTitle').classList.add('skeleton-text');
-    qs('#postExcerpt').classList.add('skeleton-text');
-    qs('#article').innerHTML = `
-      <div class="skeleton-content">
-        <div class="skeleton-line skeleton-heading"></div>
-        <div class="skeleton-line skeleton-paragraph"></div>
-        <div class="skeleton-line skeleton-paragraph"></div>
-        <div class="skeleton-line skeleton-paragraph short"></div>
-        <div class="skeleton-line skeleton-heading"></div>
-        <div class="skeleton-line skeleton-paragraph"></div>
-        <div class="skeleton-line skeleton-paragraph"></div>
-      </div>
-    `;
-  }
+    // State
+    let posts=[], page=1, size=9, done=false;
+    let currentTag='all', searchQ='', sorter='new';
 
-  function hidePostSkeleton() {
-    qs('#postTitle').classList.remove('skeleton-text');
-    qs('#postExcerpt').classList.remove('skeleton-text');
-  }
+    // Cache configuration
+    const CACHE_KEY = 'timrx_blogs_cache';
+    const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
-  // Year in footer
-  (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
-
-  // Render Editor.js blocks to HTML
-  function renderBlocks(blocksData) {
-    let data;
-    try {
-      data = typeof blocksData === 'string' ? JSON.parse(blocksData) : blocksData;
-    } catch {
-      return '<p>Error parsing content</p>';
-    }
-    if (!data || !data.blocks) return '';
-
-    return data.blocks.map(block => {
-      const d = block.data || {};
-      switch (block.type) {
-        case 'paragraph':
-          return `<p>${d.text || ''}</p>`;
-        case 'header':
-          const lvl = d.level || 2;
-          return `<h${lvl}>${d.text || ''}</h${lvl}>`;
-        case 'list':
-          const tag = d.style === 'ordered' ? 'ol' : 'ul';
-          const items = (d.items || []).map(item => {
-            const text = typeof item === 'string' ? item : (item.content || '');
-            return `<li>${text}</li>`;
-          }).join('');
-          return `<${tag}>${items}</${tag}>`;
-        case 'image':
-          const url = d.file?.url || d.url || '';
-          const cap = d.caption || '';
-          // Strip HTML tags for alt attribute to prevent broken markup
-          const altText = cap.replace(/<[^>]+>/g, '').replace(/"/g, '&quot;') || 'Image';
-          return `<figure class="post-image"><img src="${url}" alt="${altText}"/>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
-        case 'code':
-          const code = (d.code || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return `<pre><code>${code}</code></pre>`;
-        case 'quote':
-          const quote = d.text || '';
-          const author = d.caption || '';
-          return `<blockquote><p>${quote}</p>${author ? `<cite>— ${author}</cite>` : ''}</blockquote>`;
-        case 'delimiter':
-          return '<hr class="delimiter"/>';
-        case 'checklist':
-          const checks = (d.items || []).map(item => {
-            const checked = item.checked ? 'checked' : '';
-            return `<li class="checklist-item ${checked}"><span class="checkbox"></span>${item.text || ''}</li>`;
-          }).join('');
-          return `<ul class="checklist">${checks}</ul>`;
-        case 'warning':
-          return `<div class="warning-block"><strong>${d.title || 'Warning'}</strong><p>${d.message || ''}</p></div>`;
-        case 'product':
-          const pName = d.name || 'Product';
-          const pDesc = d.description || '';
-          const pUrl = d.url || '#';
-          const pCta = d.cta || 'View on Amazon';
-          return `<div class="product-block">
-            <div class="product-content">
-              <div class="product-badge">Recommended</div>
-              <h4 class="product-name">${pName}</h4>
-              <p class="product-desc">${pDesc}</p>
-              <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-cta">${pCta} <span class="arrow">→</span></a>
-            </div>
-          </div>`;
-        default:
-          return '';
-      }
-    }).join('\n');
-  }
-
-  function renderPost(p) {
-    qs('#postTitle').textContent = p.title;
-    qs('#postExcerpt').textContent = p.excerpt || '';
-    qs('#postAuthor').textContent = p.author || 'TimrX';
-    qs('#postDate').textContent = new Date(p.created_at || Date.now()).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
-    const img = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
-    qs('#heroImg').src = img;
-    qs('#heroCap').textContent = (p.tags || '').split(',')[0] || p.type || 'Post';
-
-    // Show cover attribution if available (for Unsplash/Pexels images)
-    const coverCredit = qs('#coverCredit');
-    if (p.cover_attribution && coverCredit) {
-      coverCredit.innerHTML = p.cover_attribution;
-      coverCredit.classList.remove('hidden');
-    } else if (coverCredit) {
-      coverCredit.classList.add('hidden');
-    }
-
-    // Set author avatar
-    if (p.author_avatar) {
-      qs('#authorAvatar').src = p.author_avatar;
-    }
-
-    // SEO: Update canonical URL to /blog/<slug>
-    const canonicalUrl = `https://timrx.live/blog/${p.slug}`;
-    qs('#canonicalLink').href = canonicalUrl;
-
-    // SEO: Update page title and meta description
-    document.title = `${p.title} — TimrX`;
-    const metaDesc = qs('meta[name="description"]');
-    if (metaDesc && p.excerpt) {
-      metaDesc.content = p.excerpt;
-    }
-
-    // SEO: Update Open Graph and Twitter meta tags
-    const ogImage = p.cover_url || 'https://timrx.live/img/blogs.png';
-    qs('#ogUrl').content = canonicalUrl;
-    qs('#ogTitle').content = p.title;
-    qs('#ogDesc').content = p.excerpt || '';
-    qs('#ogImage').content = ogImage;
-    qs('#twUrl').content = canonicalUrl;
-    qs('#twTitle').content = p.title;
-    qs('#twDesc').content = p.excerpt || '';
-    qs('#twImage').content = ogImage;
-
-    // Dual-format rendering: blocks or markdown
-    const format = p.content_format || 'markdown';
-    if (format === 'blocks' && p.content_blocks) {
-      qs('#article').innerHTML = renderBlocks(p.content_blocks);
-    } else {
-      qs('#article').innerHTML = md(p.content_md);
-    }
-
-    // Build table of contents
-    const toc = qs('#tocList');
-    toc.innerHTML = '';
-    const heads = qsa('.post-article h2, .post-article h3');
-    const frag = document.createDocumentFragment();
-    heads.forEach(h => {
-      if (!h.id) h.id = h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-');
-      const a = document.createElement('a');
-      a.href = '#' + h.id;
-      a.textContent = h.textContent;
-      a.className = h.tagName === 'H3' ? 'toc-l2' : 'toc-l1';
-      frag.appendChild(a);
-    });
-    toc.appendChild(frag);
-
-    const words = qs('#article').innerText.trim().split(/\s+/).length;
-    qs('#readTime').textContent = Math.max(1, Math.round(words/200)) + ' min read';
-    hidePostSkeleton();
-  }
-
-  async function fetchPost(slug) {
-    const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`);
-    if (!r.ok) return null;
-    return r.json();
-  }
-
-  async function load(){
-    const slugParam = getParam('slug');
-    if (!slugParam) {
-      qs('#postTitle').textContent = 'Post not found';
-      return;
-    }
-
-    // Check cache first
-    const cached = getPostCache(slugParam);
-
-    if (cached && cached.data) {
-      // Render cached content immediately
-      renderPost(cached.data);
-
-      // If stale, refresh in background
-      if (cached.isStale) {
-        fetchPost(slugParam).then(freshData => {
-          if (freshData) {
-            setPostCache(slugParam, freshData);
-            renderPost(freshData);
-          }
-        }).catch(() => {});
-      }
-    } else {
-      // No cache - show skeleton and fetch
-      showPostSkeleton();
-      const p = await fetchPost(slugParam);
-      if (!p) {
-        qs('#postTitle').textContent = 'Post not found';
-        hidePostSkeleton();
-        return;
-      }
-      setPostCache(slugParam, p);
-      renderPost(p);
-    }
-  }
-
-  function progress(){
-    const bar = qs('#progressBar'); const a=qs('#article'); if(!a) return;
-    const total = a.scrollHeight - innerHeight; const y = Math.min(total, Math.max(0, scrollY - (a.offsetTop - 80)));
-    const p = total>0 ? y/total : 0; bar.style.transform = 'scaleX('+p+')';
-  }
-
-  // Share functionality (header button)
-  qs('#shareBtn').addEventListener('click', async () => {
-    const title = qs('#postTitle').textContent;
-    const url = window.location.href;
-    if (navigator.share) {
+    // Get cached posts
+    function getCachedPosts() {
       try {
-        await navigator.share({ title, url });
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+        const { data, timestamp } = JSON.parse(cached);
+        // Return data even if expired (stale-while-revalidate)
+        return { data, isStale: Date.now() - timestamp > CACHE_EXPIRY };
+      } catch { return null; }
+    }
+
+    // Save posts to cache
+    function setCachedPosts(data) {
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
       } catch {}
-    } else {
-      navigator.clipboard.writeText(url);
-      showToast('Link copied to clipboard!');
-    }
-  });
-
-  // Toast notification
-  function showToast(message) {
-    const existing = qs('.toast-notification');
-    if (existing) existing.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 2500);
-  }
-
-  // ===== REAL ENGAGEMENT TRACKING =====
-  const postSlug = getParam('slug');
-  const likeBtn = qs('#likeBtn');
-  const likeCount = qs('#likeCount');
-  const viewCount = qs('#viewCount');
-
-  // Generate a fingerprint for tracking unique users
-  function getUserFingerprint() {
-    let fp = localStorage.getItem('timrx_fingerprint');
-    if (!fp) {
-      fp = 'fp_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-      localStorage.setItem('timrx_fingerprint', fp);
-    }
-    return fp;
-  }
-
-  // Track page view
-  async function trackView() {
-    if (!postSlug) return;
-    try {
-      await fetch(`${API}/post/${encodeURIComponent(postSlug)}/view`, { method: 'POST' });
-    } catch (e) {
-      console.log('[Engagement] View tracking failed:', e);
-    }
-  }
-
-  // Load engagement stats
-  async function loadEngagement() {
-    if (!postSlug) return;
-    try {
-      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/engagement`);
-      const data = await r.json();
-      if (data.ok) {
-        likeCount.textContent = data.likes || 0;
-        viewCount.textContent = `${data.views || 0} views`;
-      }
-    } catch (e) {
-      console.log('[Engagement] Failed to load stats:', e);
-    }
-  }
-
-  // Check if user has liked
-  async function checkIfLiked() {
-    if (!postSlug) return;
-    const fp = getUserFingerprint();
-    try {
-      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/liked?fingerprint=${encodeURIComponent(fp)}`);
-      const data = await r.json();
-      if (data.liked) {
-        likeBtn.classList.add('liked');
-      }
-    } catch (e) {
-      console.log('[Engagement] Like check failed:', e);
-    }
-  }
-
-  // Toggle like
-  likeBtn.addEventListener('click', async () => {
-    if (!postSlug) return;
-    const fp = getUserFingerprint();
-
-    // Optimistic UI update
-    const wasLiked = likeBtn.classList.contains('liked');
-    likeBtn.classList.toggle('liked');
-    const currentCount = parseInt(likeCount.textContent) || 0;
-    likeCount.textContent = wasLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
-
-    // Animate heart
-    if (!wasLiked) {
-      likeBtn.style.transform = 'scale(1.2)';
-      setTimeout(() => likeBtn.style.transform = '', 150);
     }
 
-    try {
-      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/like`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fingerprint: fp })
-      });
-      const data = await r.json();
-      if (data.ok) {
-        likeCount.textContent = data.likes;
-        if (data.liked) {
-          likeBtn.classList.add('liked');
-        } else {
-          likeBtn.classList.remove('liked');
-        }
-      }
-    } catch (e) {
-      // Revert on error
-      likeBtn.classList.toggle('liked');
-      likeCount.textContent = currentCount;
-      console.log('[Engagement] Like toggle failed:', e);
-    }
-  });
-
-  // Engagement: Share dropdown
-  const shareDropdownBtn = qs('#shareDropdownBtn');
-  const shareOptions = qs('#shareOptions');
-
-  shareDropdownBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    shareOptions.classList.toggle('hidden');
-  });
-
-  document.addEventListener('click', () => {
-    shareOptions.classList.add('hidden');
-  });
-
-  shareOptions.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-
-  // Track share action
-  async function trackShare() {
-    if (!postSlug) return;
-    try {
-      await fetch(`${API}/post/${encodeURIComponent(postSlug)}/share`, { method: 'POST' });
-    } catch (e) {
-      console.log('[Engagement] Share tracking failed:', e);
-    }
-  }
-
-  qsa('.share-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.share;
-      const title = encodeURIComponent(qs('#postTitle').textContent);
-      const url = encodeURIComponent(window.location.href);
-
-      // Track the share
-      trackShare();
-
-      switch(type) {
-        case 'twitter':
-          window.open(`https://twitter.com/intent/tweet?text=${title}&url=${url}`, '_blank');
-          break;
-        case 'linkedin':
-          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
-          break;
-        case 'facebook':
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-          break;
-        case 'copy':
-          navigator.clipboard.writeText(window.location.href);
-          showToast('Link copied to clipboard!');
-          break;
-      }
-      shareOptions.classList.add('hidden');
-    });
-  });
-
-  // ===== REAL COMMENTS SYSTEM =====
-  const commentForm = qs('#commentForm');
-  const commentsList = qs('#commentsList');
-  const noComments = qs('#noComments');
-  const commentCount = qs('#commentCount');
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-  }
-
-  function renderCommentsUI(comments) {
-    commentCount.textContent = comments.length;
-
-    if (comments.length === 0) {
-      commentsList.innerHTML = '';
-      noComments.classList.remove('hidden');
-      return;
-    }
-
-    noComments.classList.add('hidden');
-    commentsList.innerHTML = comments.map(c => `
-      <div class="comment-item">
-        <div class="comment-avatar">${(c.author_name || 'A').charAt(0).toUpperCase()}</div>
-        <div class="comment-body">
-          <div class="comment-header">
-            <span class="comment-author">${escapeHtml(c.author_name)}</span>
-            <span class="comment-date">${formatDate(c.created_at)}</span>
+    // Show skeleton loading
+    function showSkeletons() {
+      const grid = qs('#blogsGrid');
+      const skeletonHTML = Array(6).fill(`
+        <div class="card card--skeleton" role="listitem">
+          <div class="thumb skeleton-thumb"></div>
+          <div class="info">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-text"></div>
+            <div class="skeleton-line skeleton-text short"></div>
+            <div class="skeleton-line skeleton-meta"></div>
           </div>
-          <p class="comment-text">${escapeHtml(c.content)}</p>
+        </div>
+      `).join('');
+      grid.innerHTML = skeletonHTML;
+
+      // Also show skeleton for featured
+      qs('#feat-0 .body .t').textContent = '';
+      qs('#feat-0 .body .e').textContent = '';
+      qs('#feat-1 .body .t').textContent = '';
+      qs('#feat-0').classList.add('feat--loading');
+      qs('#feat-1').classList.add('feat--loading');
+    }
+
+    function hideSkeletons() {
+      qs('#feat-0')?.classList.remove('feat--loading');
+      qs('#feat-1')?.classList.remove('feat--loading');
+    }
+
+    // Fetch posts from API with graceful fallback
+    async function fetchPosts(p=1){
+      try{
+        const r = await fetch(`${API}/posts?page=${p}&size=${size}`);
+        if(!r.ok) throw 0;
+        const j = await r.json();
+        return j.items || j.posts || [];
+      }catch{
+        // Fallback seed data for offline/dev mode
+        return [
+          { slug:'scroll-choreography', title:'Scroll Choreography That Feels Native', excerpt:'Scene planning and anchor triggers so scroll never fights the OS.', cover_url:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop', tags:'GSAP,UX,Performance', minutes:6, created_at: Date.now()-864e5*14, author:'Dima' },
+          { slug:'viewer-craft', title:'Viewer Craft: Camera Fit, Orbit, Shadows', excerpt:'Tiny choices that make 3D viewers feel premium.', cover_url:'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop', tags:'Three.js,3D,UX', minutes:7, created_at: Date.now()-864e5*28, author:'Dima' },
+          { slug:'print-workflow', title:'From Prompt to Print: A Practical Workflow', excerpt:'A simple, reliable path from AI model to physical object.', cover_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop', tags:'3D,Workflow', minutes:8, created_at: Date.now()-864e5*45, author:'Dima' },
+        ];
+      }
+    }
+
+    // Generate card HTML (use /read?slug= for Worker redirect to /blog/<slug>)
+    function cardHTML(p){
+      const url = `/read?slug=${encodeURIComponent(p.slug)}`;
+      const tag = (p.tags||'').split(',')[0] || 'Post';
+      const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
+      return `
+        <a class="card" href="${url}" role="listitem">
+          <div class="thumb">
+            <img src="${p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop'}" alt="" loading="lazy" decoding="async"/>
+            <span class="pill">${tag}</span>
+          </div>
+          <div class="info">
+            <h3 class="title">${p.title}</h3>
+            <p class="muted">${p.excerpt || ''}</p>
+            <div class="meta muted"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
+          </div>
+        </a>`;
+    }
+
+    // Apply sorting
+    function applySort(list){
+      if (sorter==='title') return list.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
+      if (sorter==='old')   return list.sort((a,b)=> (a.created_at||0) - (b.created_at||0));
+      return list.sort((a,b)=> (b.created_at||0) - (a.created_at||0));
+    }
+
+    // Apply filtering and search
+    function applyFilterSearch(list){
+      const byTag = currentTag==='all' ? list : list.filter(p => (p.tags||'').toLowerCase().includes(currentTag.toLowerCase()));
+      if (!searchQ) return byTag;
+      const q = searchQ.toLowerCase();
+      return byTag.filter(p => (p.title||'').toLowerCase().includes(q) || (p.excerpt||'').toLowerCase().includes(q) || (p.tags||'').toLowerCase().includes(q));
+    }
+
+    // Render grid and featured posts
+    function render(){
+      const grid = qs('#blogsGrid');
+      const data = applySort(applyFilterSearch(posts));
+      grid.innerHTML = data.map(cardHTML).join('');
+
+      // Update featured posts (use /read?slug= for Worker redirect)
+      const top = data.slice(0,2);
+      if (top[0]) {
+        const a = qs('#feat-0');
+        a.href = `/read?slug=${encodeURIComponent(top[0].slug)}`;
+        a.querySelector('.body .t').textContent = top[0].title;
+        a.querySelector('.body .e').textContent = top[0].excerpt || '';
+        a.querySelector('.cover').style.backgroundImage = `url('${top[0].cover_url || ''}')`;
+      }
+      if (top[1]) {
+        const b = qs('#feat-1');
+        b.href = `/read?slug=${encodeURIComponent(top[1].slug)}`;
+        b.querySelector('.body .t').textContent = top[1].title;
+        b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
+      }
+
+    }
+
+    // Load more posts
+    async function loadMore(){
+      if (done) return;
+      const items = await fetchPosts(page++);
+      if (!items.length) { done = true; render(); return; }
+      posts = posts.concat(items);
+      if (items.length < size) done = true;
+      render();
+    }
+
+    // Event listeners for controls
+    qs('#chipBar').addEventListener('click', e=>{
+      const b = e.target.closest('.chip'); if (!b) return;
+      qsa('.chip').forEach(c=> c.classList.remove('active'));
+      b.classList.add('active');
+      currentTag = b.dataset.tag || 'all';
+      render();
+    });
+    qs('#blogSearch').addEventListener('input', e=>{ searchQ = e.target.value.trim(); render(); });
+    qs('#sortSelect').addEventListener('change', e=>{ sorter = e.target.value; render(); });
+
+    // Quick "/" keyboard shortcut to focus search
+    window.addEventListener('keydown', e=>{
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+        e.preventDefault();
+        qs('#blogSearch').focus();
+      }
+    });
+
+    // Initialize with cache-first strategy
+    (async function init(){
+      const cached = getCachedPosts();
+
+      if (cached && cached.data.length > 0) {
+        // Show cached data immediately
+        posts = cached.data;
+        render();
+        done = false; // Always allow loading more - let the API determine when done
+        page = Math.ceil(posts.length / size) + 1;
+
+        // If cache is stale, refresh in background
+        if (cached.isStale) {
+          refreshInBackground();
+        }
+      } else {
+        // No cache - show skeletons and fetch
+        showSkeletons();
+        await loadMore();
+        if (posts.length < 6 && !done) await loadMore();
+        setCachedPosts(posts);
+        hideSkeletons();
+      }
+    })();
+
+    // Background refresh (stale-while-revalidate)
+    async function refreshInBackground() {
+      try {
+        const freshPosts = [];
+        let p = 1;
+        while (p <= 2) {
+          const items = await fetchPosts(p++);
+          if (!items.length) break;
+          freshPosts.push(...items);
+          if (items.length < size) break;
+        }
+        if (freshPosts.length > 0) {
+          posts = freshPosts;
+          done = false; // Always allow loading more - let the API determine when done
+          page = Math.ceil(posts.length / size) + 1;
+          setCachedPosts(posts);
+          render();
+        }
+      } catch {}
+    }
+
+    // Magnetized particles + click ripple for filter strip
+    (function initFilterStripParticles() {
+      function start() {
+        const strip = document.getElementById('filter-strip');
+        if (!strip) return;
+        const canvas = strip.querySelector('.strip-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d', { alpha: true });
+
+        // Sizing
+        let dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+        let lastW = 0, lastH = 0;
+        let firstSized = false;
+        const parts = [];
+        const palette = [
+          'rgba(40,40,40,0.40)','rgba(72,66,58,0.38)','rgba(90,82,72,0.35)','rgba(26,26,26,0.42)'
+        ];
+        const rnd = (a,b)=> a + Math.random()*(b-a);
+
+        function targetCount(){
+          const area = canvas.width * canvas.height;
+          return Math.max(120, Math.min(800, Math.floor(area / 500)));
+        }
+        function spawnOne(x, y){
+          if (x == null) x = Math.random()*canvas.width;
+          if (y == null) y = Math.random()*canvas.height;
+          return {
+            x, y, hx:x, hy:y,
+            vx:rnd(-0.25,0.25), vy:rnd(-0.25,0.25),
+            r: rnd(0.9, 2.3) * (dpr*0.9),
+            c: palette[(Math.random()*palette.length)|0]
+          };
+        }
+        function scatterHomes() {
+          for (const p of parts) {
+            p.x = p.hx = Math.random()*canvas.width;
+            p.y = p.hy = Math.random()*canvas.height;
+            p.vx = p.vy = 0;
+          }
+        }
+        function rebalance(){
+          const want = targetCount();
+          if (want > parts.length) { for (let i=parts.length;i<want;i++) parts.push(spawnOne()); }
+          else if (want < parts.length) { parts.length = want; }
+          for (const p of parts) {
+            p.hx = Math.min(Math.max(p.hx,0), canvas.width);
+            p.hy = Math.min(Math.max(p.hy,0), canvas.height);
+            p.r  = Math.min(Math.max(p.r, 0.8*dpr), 2.6*dpr);
+          }
+        }
+
+        function ensureSize() {
+          dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+          const w = Math.max(1, Math.floor(strip.clientWidth));
+          const h = Math.max(1, Math.floor(strip.clientHeight));
+          const sizeChanged = (w !== lastW || h !== lastH);
+          if (sizeChanged || canvas.width === 0 || canvas.height === 0) {
+            const prevW = lastW, prevH = lastH;
+            lastW = w; lastH = h;
+            canvas.width  = Math.max(1, Math.floor(w * dpr));
+            canvas.height = Math.max(1, Math.floor(h * dpr));
+            canvas.style.width  = w + 'px';
+            canvas.style.height = h + 'px';
+
+            if (!firstSized) {
+              firstSized = true;
+              const N = targetCount();
+              parts.length = 0;
+              for (let i=0;i<N;i++) parts.push(spawnOne());
+            } else {
+              const big =
+                prevW === 0 || prevH === 0 ||
+                Math.abs(w - prevW)/Math.max(1,prevW) > 0.2 ||
+                Math.abs(h - prevH)/Math.max(1,prevH) > 0.2;
+              rebalance();
+              if (big) scatterHomes();
+            }
+          }
+          return canvas.width > 0 && canvas.height > 0;
+        }
+
+        // Interaction / ripple
+        const pointer = { x:0, y:0, active:false };
+        const INFLUENCE = ()=> 160*dpr;
+        const STRENGTH  = 0.09, FRICTION = 0.90, HOME_PULL = 0.008, NOISE = 0.25;
+        const inBg = (e)=> !e.target.closest('.filter-bar') && strip.contains(e.target);
+
+        strip.addEventListener('mousemove', (e)=>{
+          if (!inBg(e)) { pointer.active=false; return; }
+          const r = strip.getBoundingClientRect();
+          pointer.x = (e.clientX - r.left) * dpr;
+          pointer.y = (e.clientY - r.top)  * dpr;
+          pointer.active = true;
+        }, {passive:true});
+        strip.addEventListener('mouseleave', ()=>{ pointer.active=false; }, {passive:true});
+
+        const ripples = [];
+        const easeOutCubic = t=> 1 - Math.pow(1-t,3);
+        strip.addEventListener('pointerdown', (e)=>{
+          if (!inBg(e)) return;
+          const r = strip.getBoundingClientRect();
+          ripples.push({
+            x: (e.clientX - r.left) * dpr,
+            y: (e.clientY - r.top)  * dpr,
+            t: 0, life: 900,
+            maxR: Math.hypot(canvas.width, canvas.height) * 0.65,
+            band: 44*dpr, power: 0.95,
+            mode: e.altKey ? 'repel' : 'attract'
+          });
+        });
+
+        // Animation loop
+        function frame(){
+          if (!ensureSize()) { requestAnimationFrame(frame); return; }
+
+          // Fade toward white
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(255,255,255,0.10)';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+
+          // Ripples
+          for (let i=ripples.length-1;i>=0;i--){
+            const rp = ripples[i];
+            rp.t += 16;
+            const k = Math.min(1, rp.t / rp.life);
+            rp.radius = easeOutCubic(k) * rp.maxR;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(60,60,70,0.24)';
+            ctx.lineWidth = Math.max(1, Math.min(6, rp.radius*0.006));
+            ctx.arc(rp.x, rp.y, rp.radius, 0, Math.PI*2);
+            ctx.stroke();
+            if (k>=1) ripples.splice(i,1);
+          }
+
+          // Particles
+          for (const p of parts){
+            p.vx += (Math.random()-0.5)*NOISE;
+            p.vy += (Math.random()-0.5)*NOISE;
+
+            if (pointer.active){
+              const dx = pointer.x - p.x, dy = pointer.y - p.y;
+              const inf = INFLUENCE(); const d2 = dx*dx + dy*dy;
+              if (d2 < inf*inf){
+                const d = Math.sqrt(d2)||1, m = (1 - d/inf) * STRENGTH;
+                p.vx += (dx/d)*m; p.vy += (dy/d)*m;
+              }
+            } else {
+              p.vx += (p.hx - p.x) * HOME_PULL;
+              p.vy += (p.hy - p.y) * HOME_PULL;
+            }
+
+            for (const rp of ripples){
+              const dx = p.x - rp.x, dy = p.y - rp.y;
+              const dist = Math.hypot(dx,dy)||1;
+              const dr = Math.abs(dist - rp.radius);
+              if (dr < rp.band){
+                const fall = 1 - (dr / rp.band);
+                let dirX = dx/dist, dirY = dy/dist;
+                if (rp.mode === 'attract'){
+                  const sign = dist < rp.radius ? -1 : 1;
+                  dirX *= sign; dirY *= sign;
+                }
+                const imp = rp.power * fall * 0.18;
+                p.vx += dirX * imp; p.vy += dirY * imp;
+              }
+            }
+
+            p.vx *= FRICTION; p.vy *= FRICTION;
+            p.x += p.vx;       p.y += p.vy;
+
+            ctx.beginPath(); ctx.fillStyle = p.c;
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+
+            ctx.beginPath(); ctx.globalAlpha = 0.32;
+            ctx.arc(p.x - p.vx*2.2, p.y - p.vy*2.2, Math.max(0.6, p.r*0.9), 0, Math.PI*2);
+            ctx.fill(); ctx.globalAlpha = 1;
+          }
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once:true });
+      } else {
+        start();
+      }
+    })();
+  </script>
+
+  <!-- About Modal -->
+  <div class="modal blog-modal" id="blogAboutModal" aria-hidden="true">
+    <div class="card blog-modal-card">
+      <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+      <div class="blog-modal-header">
+        <i class="fa-solid fa-circle-info"></i>
+        <h4>About TimrX Blog</h4>
+      </div>
+      <div class="blog-modal-body">
+        <div class="about-content">
+          <p>TimrX Blog covers practical topics at the intersection of AI, 3D graphics, web performance, and digital product building. Articles focus on real workflows rather than abstract theory.</p>
+          <p>Expect step-by-step guides on Three.js viewer implementation, GSAP scroll animations, AI-assisted 3D generation, and lessons learned from shipping actual projects.</p>
+
+          <div class="about-features">
+            <div class="about-feature">
+              <i class="fa-solid fa-users"></i>
+              <div>
+                <strong>Who It's For</strong>
+                <span>Developers, creators, and founders who want to build better digital experiences.</span>
+              </div>
+            </div>
+            <div class="about-feature">
+              <i class="fa-solid fa-book-open"></i>
+              <div>
+                <strong>What You'll Find</strong>
+                <span>Experience-based insights—not recycled documentation. Real experiments, honest results.</span>
+              </div>
+            </div>
+            <div class="about-feature">
+              <i class="fa-solid fa-handshake"></i>
+              <div>
+                <strong>Recommendations</strong>
+                <span>Tools and services that have genuinely helped in real projects. Sponsored content is always disclosed.</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    `).join('');
-  }
+    </div>
+  </div>
 
-  async function loadComments() {
-    if (!postSlug) return;
-    try {
-      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/comments`);
-      const data = await r.json();
-      if (data.ok) {
-        renderCommentsUI(data.comments || []);
-      }
-    } catch (e) {
-      console.log('[Comments] Failed to load:', e);
-      commentsList.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">Failed to load comments</p>';
-    }
-  }
+  <!-- FAQ Modal -->
+  <div class="modal blog-modal" id="blogFaqModal" aria-hidden="true">
+    <div class="card blog-modal-card">
+      <button class="close-x" data-close-modal aria-label="Close">&times;</button>
+      <div class="blog-modal-header">
+        <i class="fa-solid fa-circle-question"></i>
+        <h4>Blog FAQ</h4>
+      </div>
+      <div class="blog-modal-body">
+        <div class="faq-list">
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-layer-group"></i> What topics does TimrX Blog cover?</h5>
+            <p>AI workflows, 3D web development (Three.js, WebGL), animation (GSAP), performance optimization, UX experiments, and monetisation strategies for digital products.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-graduation-cap"></i> Is this blog beginner friendly?</h5>
+            <p>Most articles assume basic JavaScript knowledge, but each post explains concepts as needed. Start with workflow guides if you're newer to 3D or animation.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-star"></i> Do you recommend tools or services?</h5>
+            <p>Yes, when they've genuinely helped in real projects. Recommendations are based on hands-on experience, and sponsored content is always disclosed.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-code"></i> Can I use ideas from this blog in my own projects?</h5>
+            <p>Absolutely. Code snippets and techniques shared here are meant to be adapted and built upon.</p>
+          </div>
+          <div class="faq-item">
+            <h5><i class="fa-solid fa-calendar"></i> How often is new content published?</h5>
+            <p>New articles appear when there's something genuinely useful to share—typically 2-4 times per month.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  commentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = qs('#commenterName').value.trim();
-    const content = qs('#commentText').value.trim();
+  <!-- Newsletter Popup -->
+  <div class="newsletter-popup" id="newsletterPopup" aria-hidden="true">
+    <div class="newsletter-popup-card">
+      <button class="newsletter-close" id="closeNewsletter" aria-label="Close">&times;</button>
+      <div class="newsletter-icon">
+        <i class="fa-solid fa-envelope-open-text"></i>
+      </div>
+      <h3 class="newsletter-title">Stay in the Loop</h3>
+      <p class="newsletter-desc">Get notified about new articles on AI, 3D development, and web performance. No spam, just quality content.</p>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" id="newsletterEmail" placeholder="your@email.com" required autocomplete="email" />
+        <button type="submit" class="newsletter-btn">
+          <span class="btn-text">Subscribe</span>
+          <span class="btn-loading" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i></span>
+        </button>
+      </form>
+      <p class="newsletter-note">Unsubscribe anytime. We respect your privacy.</p>
+      <button class="newsletter-dismiss" id="dismissNewsletter">No thanks, maybe later</button>
+    </div>
+  </div>
 
-    if (!name || !content) return;
-
-    const submitBtn = commentForm.querySelector('.comment-submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>Posting...</span>';
-
-    try {
-      const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/comment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, content })
+  <!-- Modal Script -->
+  <script>
+    (function() {
+      // Open modal
+      document.querySelectorAll('[data-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modalId = btn.dataset.modal;
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+          }
+        });
       });
-      const data = await r.json();
 
-      if (data.ok) {
-        qs('#commenterName').value = '';
-        qs('#commentText').value = '';
-        showToast('Comment posted!');
-        // Reload comments to show the new one
-        loadComments();
-      } else {
-        showToast(data.error || 'Failed to post comment');
+      // Close modal
+      function closeModal(modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
       }
-    } catch (e) {
-      console.log('[Comments] Post error:', e);
-      showToast('Failed to post comment');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>Post Comment</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
-    }
-  });
 
-  // Initialize engagement
-  async function initEngagement() {
-    // Track the view
-    trackView();
-    // Load engagement stats
-    await loadEngagement();
-    // Check if user has liked
-    await checkIfLiked();
-    // Load comments
-    await loadComments();
-  }
+      document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modal = btn.closest('.modal');
+          if (modal) closeModal(modal);
+        });
+      });
 
-  window.addEventListener('scroll', progress, {passive:true});
-  window.addEventListener('resize', progress);
-  load().then(() => {
-    initEngagement();
-  });
-</script>
+      // Close on backdrop click
+      document.querySelectorAll('.blog-modal').forEach(modal => {
+        modal.addEventListener('mousedown', (e) => {
+          const card = modal.querySelector('.blog-modal-card');
+          if (card && !card.contains(e.target)) closeModal(modal);
+        });
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.blog-modal.open').forEach(closeModal);
+        }
+      });
+    })();
+  </script>
+
+  <!-- Newsletter Popup Script -->
+  <script>
+    (function() {
+      const popup = document.getElementById('newsletterPopup');
+      const closeBtn = document.getElementById('closeNewsletter');
+      const dismissBtn = document.getElementById('dismissNewsletter');
+      const form = document.getElementById('newsletterForm');
+      const emailInput = document.getElementById('newsletterEmail');
+
+      const STORAGE_KEY = 'timrx_newsletter_dismissed';
+      const SUBSCRIBED_KEY = 'timrx_newsletter_subscribed';
+      const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+      const SHOW_DELAY = 8000; // 8 seconds
+
+      function isDismissed() {
+        const dismissed = localStorage.getItem(STORAGE_KEY);
+        if (!dismissed) return false;
+        const data = JSON.parse(dismissed);
+        return Date.now() < data.until;
+      }
+
+      function isSubscribed() {
+        return localStorage.getItem(SUBSCRIBED_KEY) === 'true';
+      }
+
+      function showPopup() {
+        popup.classList.add('open');
+        popup.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function hidePopup() {
+        popup.classList.remove('open');
+        popup.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function dismissPopup(permanent = false) {
+        hidePopup();
+        if (permanent) {
+          localStorage.setItem(SUBSCRIBED_KEY, 'true');
+        } else {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            until: Date.now() + DISMISS_DURATION
+          }));
+        }
+      }
+
+      // Show popup after delay if not dismissed
+      if (!isDismissed() && !isSubscribed()) {
+        setTimeout(showPopup, SHOW_DELAY);
+      }
+
+      // Close button
+      closeBtn.addEventListener('click', () => dismissPopup(false));
+      dismissBtn.addEventListener('click', () => dismissPopup(false));
+
+      // Click outside to close
+      popup.addEventListener('mousedown', (e) => {
+        const card = popup.querySelector('.newsletter-popup-card');
+        if (card && !card.contains(e.target)) {
+          dismissPopup(false);
+        }
+      });
+
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && popup.classList.contains('open')) {
+          dismissPopup(false);
+        }
+      });
+
+      // Form submission
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        if (!email) return;
+
+        const btnText = form.querySelector('.btn-text');
+        const btnLoading = form.querySelector('.btn-loading');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+        submitBtn.disabled = true;
+
+        try {
+          const res = await fetch(`${API}/subscribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+
+          if (res.ok) {
+            // Success
+            form.innerHTML = '<p class="newsletter-success"><i class="fa-solid fa-check-circle"></i> You\'re subscribed! Check your inbox.</p>';
+            setTimeout(() => dismissPopup(true), 2500);
+          } else {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.detail || 'Subscription failed');
+          }
+        } catch (err) {
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+          submitBtn.disabled = false;
+
+          // Show error
+          let errEl = form.querySelector('.newsletter-error');
+          if (!errEl) {
+            errEl = document.createElement('p');
+            errEl.className = 'newsletter-error';
+            form.appendChild(errEl);
+          }
+          errEl.textContent = err.message || 'Something went wrong. Try again.';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
