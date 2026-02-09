@@ -784,6 +784,7 @@ main.page p {
   /* Show hero-eyebrow on desktop with line */
   .hero-eyebrow {
     display: flex;
+    margin-bottom: 12px;
   }
 
   /* Hero watermark - move more to the right */
@@ -793,6 +794,7 @@ main.page p {
 
   /* Hero plate - add margins */
   .hero-plate {
+    display: block;
     left: 2%;
     right: 2%;
   }
@@ -805,10 +807,6 @@ main.page p {
     justify-items: stretch;
     gap: clamp(22px, 3vw, 36px);
     min-height: clamp(520px, 60vh, 750px);
-  }
-
-  .hero-plate {
-    display: block;
   }
 
   .hero-left-note {
