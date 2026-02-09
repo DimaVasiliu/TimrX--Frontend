@@ -756,6 +756,86 @@ body {
   color: #fff;
 }
 
+/* Cover Image Picker */
+.cover-picker-content {
+  margin-bottom: 16px;
+}
+.cover-picker-content.hidden,
+.cover-modal-content.hidden,
+.modal-actions.hidden,
+.hidden {
+  display: none;
+}
+.picker-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 16px;
+}
+.cover-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.cover-picker-item {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background: rgba(0,0,0,0.3);
+}
+.cover-picker-item:hover {
+  border-color: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+.cover-picker-item.selected {
+  border-color: #4ade80;
+}
+.cover-picker-item img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  display: block;
+}
+.cover-picker-item .picker-credit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 8px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  font-style: italic;
+  text-align: center;
+}
+.cover-picker-item .picker-credit strong {
+  font-style: normal;
+  color: #fff;
+}
+.cover-picker-item .selecting-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+}
+.cover-picker-item .selecting-spinner::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Blog Preview Modal Content */
 .blog-modal-content {
   padding: 20px;
@@ -813,6 +893,221 @@ body {
   font-weight: 600;
   color: #888;
   margin-right: 6px;
+}
+
+/* Draft Status Banner */
+.blog-draft-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #4ade80;
+}
+.blog-draft-status .status-icon {
+  font-size: 14px;
+  font-weight: bold;
+}
+.blog-draft-status .draft-slug {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: #888;
+  background: rgba(0,0,0,0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.blog-draft-status.saving {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+.blog-draft-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* Cover Section in Blog Modal */
+.blog-cover-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cover-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.cover-section-header .label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+}
+.cover-status {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+}
+.cover-status.ready {
+  color: #4ade80;
+  font-style: normal;
+}
+.cover-prompt-row {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 12px;
+}
+.cover-prompt-text {
+  font-style: italic;
+}
+
+/* Modal Cover Picker */
+.modal-cover-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.modal-cover-picker.hidden {
+  display: none;
+}
+.modal-cover-picker .picker-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+.modal-cover-picker .picker-item:hover {
+  border-color: rgba(255,255,255,0.3);
+}
+.modal-cover-picker .picker-item.selected {
+  border-color: #4ade80;
+}
+.modal-cover-picker .picker-item img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  display: block;
+}
+.modal-cover-picker .picker-item .credit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 6px 6px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  font-size: 9px;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+}
+.modal-cover-picker .picker-item .selecting {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+}
+
+/* Modal Cover Preview */
+.modal-cover-preview {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.modal-cover-preview.hidden {
+  display: none;
+}
+.modal-cover-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+.modal-cover-preview .cover-attribution {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #888;
+  background: rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+/* Inline Modal Picker Grid (inside blog modal) */
+.modal-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.modal-picker-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+.modal-picker-item:hover {
+  border-color: rgba(255,255,255,0.3);
+  transform: scale(1.02);
+}
+.modal-picker-item.selecting {
+  pointer-events: none;
+  opacity: 0.7;
+}
+.modal-picker-item img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  display: block;
+}
+.modal-picker-item .picker-credit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 6px 6px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+}
+.modal-picker-item .selecting-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+}
+.modal-picker-item .selecting-spinner::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Cover status badges */
+.cover-status {
+  font-size: 12px;
+  color: #888;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+}
+.cover-status.ready {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
 }
 
 /* Modal with backdrop blur */
