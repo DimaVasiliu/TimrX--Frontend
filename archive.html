@@ -6,7 +6,7 @@
   <title>All Posts | TimrX Blog Archive</title>
   <meta name="description" content="Browse all TimrX blog posts. Filter by category, search by keyword, and discover guides on AI, 3D printing, web development, and more." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://timrx.live/archive.html" />
+  <link rel="canonical" href="https://timrx.live/archive" />
 
   <!-- Favicon (Blog section) -->
   <link rel="icon" type="image/png" href="/img/blogs.png" />
@@ -15,7 +15,7 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://timrx.live/archive.html" />
+  <meta property="og:url" content="https://timrx.live/archive" />
   <meta property="og:title" content="All Posts | TimrX Blog Archive" />
   <meta property="og:description" content="Browse all TimrX blog posts by category." />
   <meta property="og:image" content="https://timrx.live/og-image-blog.png" />
@@ -609,10 +609,10 @@
 <body>
   <!-- HEADER -->
   <header class="archive-header">
-    <a class="archive-brand" href="index.html">
+    <a class="archive-brand" href="/">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
-    <a class="back-btn" href="blogs.html">
+    <a class="back-btn" href="/blogs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Blog
     </a>
@@ -684,17 +684,17 @@
   <!-- FOOTER -->
   <footer>
     <nav class="foot-links">
-      <a href="blogs.html">Blog</a>
-      <a href="index.html#works">Works</a>
-      <a href="index.html#contact">Contact</a>
-      <a href="terms.html">Terms</a>
-      <a href="privacy.html">Privacy</a>
+      <a href="/blogs">Blog</a>
+      <a href="/#works">Works</a>
+      <a href="/#contact">Contact</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
     </nav>
     <p class="foot-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</p>
   </footer>
 
   <script>
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
     const API = API_BASE + '/api';
     const PER_PAGE = 36;
 
@@ -822,7 +822,7 @@
 
       grid.innerHTML = pagePosts.map((p, i) => {
         const tag = (p.tags || '').split(',')[0] || 'Post';
-        const url = `read.html?slug=${encodeURIComponent(p.slug)}`;
+        const url = `/blog/${encodeURIComponent(p.slug)}`;
         const cover = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop';
         const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB', {month:'short', day:'numeric'}) : '';
         const mins = p.minutes || Math.max(3, Math.round((p.excerpt || p.title || '').length / 60));
