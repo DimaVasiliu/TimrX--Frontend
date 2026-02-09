@@ -15,9 +15,9 @@
   <link rel="canonical" href="https://timrx.live/blogs" />
 
   <!-- Favicon (Blog section) -->
-  <link rel="icon" type="image/png" href="/img/blogs.png" />
-  <link rel="apple-touch-icon" href="/img/blogs.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="/img/blogs.png"/>
+  <link rel="apple-touch-icon" href="/img/blogs.png"/>
+  <link rel="manifest" href="/site.webmanifest"/>
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -127,25 +127,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
-  <!-- Site base CSS -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- Site base CSS (absolute paths for /blogs route) -->
+  <link rel="stylesheet" href="/styles.css">
   <!-- Page CSS -->
-  <link rel="stylesheet" href="blogs.css">
-  <link rel="stylesheet" href="media/blogs.css">
+  <link rel="stylesheet" href="/blogs.css">
+  <link rel="stylesheet" href="/media/blogs.css">
 </head>
 <body>
   <!-- MINIMAL HEADER -->
   <header class="blog-header" aria-label="Site header">
-    <a class="blog-brand" href="index.html" aria-label="Home">
+    <a class="blog-brand" href="/" aria-label="Home">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
-    <a class="blog-contact-btn" href="index.html#contact" aria-label="Contact">Contact ↗</a>
+    <a class="blog-contact-btn" href="/#contact" aria-label="Contact">Contact ↗</a>
   </header>
 
   <!-- HERO -->
   <header class="blogs-hero" id="hero" role="banner">
     <!-- Hub Hint (stays within hero) -->
-    <a class="hub-hint" href="hub.html" aria-label="Visit 3D Print Hub">
+    <a class="hub-hint" href="/hub.html" aria-label="Visit 3D Print Hub">
       <span class="hub-hint-icon">◆</span>
       <span class="hub-hint-text">Try the 3D Hub</span>
     </a>
@@ -255,7 +255,7 @@
     <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">All Articles</h2>
     <div class="grid" id="blogsGrid" role="list"></div>
     <div class="loadbar">
-      <a href="archive.html" class="btn" id="browseAll">Browse All Posts →</a>
+      <a href="/archive" class="btn" id="browseAll">Browse All Posts →</a>
     </div>
   </main>
   <!-- CTA: WRITE -->
@@ -265,7 +265,7 @@
         <h3>Submit a Post</h3>
         <p class="muted">Share a walkthrough or story. Reviewed before publishing.</p>
       </div>
-      <a class="btn" href="write.html">Open Writer →</a>
+      <a class="btn" href="/write.html">Open Writer →</a>
     </div>
   </section>
 
@@ -295,15 +295,15 @@
     <div class="container foot">
       <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
       <nav class="foot-nav">
-        <a href="archive.html">All Posts</a>
-        <a href="index.html#works">Works</a>
-        <a href="index.html#services">Services</a>
-        <a href="index.html#contact">Contact</a>
+        <a href="/archive">All Posts</a>
+        <a href="/#works">Works</a>
+        <a href="/#services">Services</a>
+        <a href="/#contact">Contact</a>
       </nav>
       <nav class="foot-legal">
-        <a href="terms.html">Terms</a>
-        <a href="privacy.html">Privacy</a>
-        <a href="cookies.html">Cookies</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/cookies.html">Cookies</a>
       </nav>
       <div class="foot-social"><a href="mailto:admin@timrx.live">Email</a><a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a><a href="https://github.com/DimaVasiliu">GitHub</a></div>
     </div>
@@ -313,8 +313,8 @@
     const qs = s => document.querySelector(s);
     const qsa = s => Array.from(document.querySelectorAll(s));
 
-    // API base resolution: localStorage first, then custom domain
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+    // API base resolution: localStorage first, then same-origin (Worker proxies /api/* to backend)
+    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
     const API = API_BASE + '/api';
 
     // API warmup - wake up server early (fire and forget)
@@ -408,9 +408,9 @@
       }
     }
 
-    // Generate card HTML
+    // Generate card HTML (direct link to canonical /blog/<slug> - no redirect)
     function cardHTML(p){
-      const url = `read.html?slug=${encodeURIComponent(p.slug)}`;
+      const url = `/blog/${encodeURIComponent(p.slug)}`;
       const tag = (p.tags||'').split(',')[0] || 'Post';
       const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
       return `
@@ -448,18 +448,18 @@
       const data = applySort(applyFilterSearch(posts));
       grid.innerHTML = data.map(cardHTML).join('');
 
-      // Update featured posts
+      // Update featured posts (direct link to canonical /blog/<slug>)
       const top = data.slice(0,2);
       if (top[0]) {
         const a = qs('#feat-0');
-        a.href = `read.html?slug=${encodeURIComponent(top[0].slug)}`;
+        a.href = `/blog/${encodeURIComponent(top[0].slug)}`;
         a.querySelector('.body .t').textContent = top[0].title;
         a.querySelector('.body .e').textContent = top[0].excerpt || '';
         a.querySelector('.cover').style.backgroundImage = `url('${top[0].cover_url || ''}')`;
       }
       if (top[1]) {
         const b = qs('#feat-1');
-        b.href = `read.html?slug=${encodeURIComponent(top[1].slug)}`;
+        b.href = `/blog/${encodeURIComponent(top[1].slug)}`;
         b.querySelector('.body .t').textContent = top[1].title;
         b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
       }
