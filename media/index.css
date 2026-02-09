@@ -272,7 +272,7 @@ main.page p {
   min-height: 100vh;
   min-height: 100svh;
   padding-top: calc(var(--navH) + 18px);
-  padding-bottom: clamp(32px, 7vh, 64px);
+  padding-bottom: clamp(20px, 4vh, 40px);
 }
 
 .hero-title {
@@ -281,14 +281,14 @@ main.page p {
   letter-spacing: -0.03em;
   text-align: center;
   white-space: normal;
+  width: 100%;
+  max-width: 100vw;
+  padding: 0 var(--gutter);
 }
 
+/* Hide hero-eyebrow on mobile */
 .hero-eyebrow {
-  justify-content: center;
-}
-
-.hero-eyebrow .eyebrow-text {
-  font-size: clamp(10px, 2.6vw, 12px);
+  display: none;
 }
 
 .hero-stage {
@@ -574,6 +574,10 @@ main.page p {
   /* Hero: Better tablet layout with side-by-side list + photo */
   .hero-title {
     font-size: clamp(48px, 9vw, 96px);
+    white-space: normal;
+    padding: 0;
+    width: auto;
+    max-width: none;
   }
 
   .hero-stage {
@@ -590,7 +594,7 @@ main.page p {
     width: 100%;
     max-width: 320px;
     justify-self: end;
-    align-self: center;
+    align-self: flex-end; /* Align to bottom of photo */
   }
 
   .hero-photo {
@@ -755,27 +759,52 @@ main.page p {
   .hero {
     min-height: 100vh;
     padding-top: var(--hero-top-pad);
+    padding-bottom: clamp(24px, 4vh, 48px);
+  }
+
+  /* Hero: Full width, override container */
+  .hero.container {
+    max-width: 100%;
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+    margin: 0;
   }
 
   .hero-title {
-    font-size: clamp(56px, 10.5vw, 140px);
+    font-size: clamp(64px, 7.5vw, 130px);
     line-height: 0.9;
     letter-spacing: -0.04em;
     text-align: left;
     white-space: nowrap;
+    padding: 0;
+    width: auto;
+    max-width: 100%;
   }
 
+  /* Show hero-eyebrow on desktop with line */
   .hero-eyebrow {
-    justify-content: flex-start;
+    display: flex;
+  }
+
+  /* Hero watermark - move more to the right */
+  .hero-watermark {
+    left: 8%;
+  }
+
+  /* Hero plate - add margins */
+  .hero-plate {
+    left: 2%;
+    right: 2%;
   }
 
   .hero-stage {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
-    width: min(92%, 1200px);
+    width: min(94%, 1280px);
     margin-top: var(--stage-lift);
     justify-items: stretch;
     gap: clamp(22px, 3vw, 36px);
+    min-height: clamp(520px, 60vh, 750px);
   }
 
   .hero-plate {
@@ -784,6 +813,7 @@ main.page p {
 
   .hero-left-note {
     display: block;
+    left: 10px;
   }
 
   .hero-photo {
@@ -794,19 +824,28 @@ main.page p {
   }
 
   .portrait {
-    width: clamp(340px, 26vw, 440px);
+    width: clamp(300px, 26vw, 420px);
+    height: clamp(500px, 50vh, 720px);
+    object-fit: cover;
+    object-position: center 20%;
   }
 
   .hero-list {
     grid-column: auto;
     grid-row: auto;
     justify-self: flex-end;
-    width: clamp(180px, 18vw, 260px);
+    align-self: flex-end;
+    width: clamp(220px, 22vw, 320px);
     transform: translateY(calc(var(--lift) * -1));
   }
 
+  .hero-list li {
+    margin-bottom: 5px;
+  }
+
   .hero-list li a {
-    font-size: clamp(10px, 0.85vw, 12px);
+    font-size: clamp(11px, 0.95vw, 13px);
+    padding: 10px 14px;
   }
 
   .hero-cta {
@@ -932,8 +971,35 @@ main.page p {
     --gutter: 32px;
   }
 
+  .hero-title {
+    font-size: clamp(90px, 9vw, 170px);
+  }
+
   .hero-stage {
-    width: min(92%, 1240px);
+    width: min(94%, 1400px);
+    min-height: clamp(560px, 65vh, 800px);
+  }
+
+  .portrait {
+    width: clamp(340px, 28vw, 460px);
+    height: clamp(560px, 55vh, 780px);
+  }
+
+  .hero-list {
+    width: clamp(240px, 24vw, 340px);
+  }
+
+  .hero-list li {
+    margin-bottom: 5px;
+  }
+
+  .hero-list li a {
+    font-size: clamp(12px, 1vw, 14px);
+    padding: 12px 16px;
+  }
+
+  .hero-left-note {
+    left: 20px;
   }
 
   .app3d-grid {
@@ -943,6 +1009,130 @@ main.page p {
   .blogs-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+/* Responsive: Extra Large Desktop (1600px+) */
+@media (min-width: 1600px) {
+  :root {
+    --gutter: 40px;
+  }
+
+  .hero-title {
+    font-size: clamp(120px, 9.5vw, 190px);
+  }
+
+  .hero-stage {
+    width: min(92%, 1600px);
+    min-height: clamp(600px, 68vh, 850px);
+  }
+
+  .portrait {
+    width: clamp(380px, 30vw, 520px);
+    height: clamp(620px, 58vh, 850px);
+  }
+
+  .hero-list {
+    width: clamp(280px, 26vw, 380px);
+  }
+
+  .hero-list li {
+    margin-bottom: 5px;
+  }
+
+  .hero-list li a {
+    font-size: clamp(13px, 1.1vw, 15px);
+    padding: 14px 18px;
+  }
+
+  .hero-left-note {
+    left: 30px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Responsive: Ultra Wide (1920px+) */
+@media (min-width: 1920px) {
+  :root {
+    --gutter: 48px;
+  }
+
+  .hero-title {
+    font-size: clamp(140px, 10vw, 220px);
+  }
+
+  .hero-stage {
+    width: min(90%, 1800px);
+    min-height: clamp(650px, 70vh, 900px);
+  }
+
+  .portrait {
+    width: clamp(420px, 28vw, 560px);
+    height: clamp(680px, 62vh, 920px);
+  }
+
+  .hero-list {
+    width: clamp(320px, 24vw, 420px);
+  }
+
+  .hero-list li {
+    margin-bottom: 5px;
+  }
+
+  .hero-list li a {
+    font-size: clamp(14px, 1vw, 16px);
+    padding: 16px 20px;
+  }
+
+  .hero-left-note {
+    left: 40px;
+    font-size: 1rem;
+  }
+}
+
+/* Responsive: 2K+ Monitors (2560px+) */
+@media (min-width: 2400px) {
+  .hero-title {
+    font-size: clamp(180px, 11vw, 260px);
+  }
+
+  .hero-stage {
+    width: min(88%, 2000px);
+    min-height: clamp(720px, 72vh, 1000px);
+  }
+
+  .portrait {
+    width: clamp(480px, 26vw, 620px);
+    height: clamp(750px, 65vh, 1000px);
+  }
+
+  .hero-list {
+    width: clamp(380px, 22vw, 500px);
+  }
+
+  .hero-list li {
+    margin-bottom: 5px;
+  }
+
+  .hero-list li a {
+    font-size: clamp(15px, 0.9vw, 18px);
+    padding: 18px 22px;
+  }
+
+  .hero-left-note {
+    left: 50px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Safety: Prevent horizontal overflow */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.hero {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Responsive: Reduced Motion */
