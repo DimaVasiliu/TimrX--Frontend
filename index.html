@@ -157,19 +157,36 @@
 }
 </script>
 
-<!-- Fonts -->
+<!-- Fonts: Preconnect + combined request + preload critical -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"></noscript>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- Font Awesome: Async load to prevent render-blocking -->
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
-<!-- Stylesheets -->
+<!-- Stylesheets: Preload + Critical CSS -->
+<link rel="preload" href="styles.css" as="style">
+<link rel="preload" href="media/index.css" as="style">
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="media/index.css" />
+
+<!-- Critical CSS: Above-the-fold styles for faster FCP -->
+<style>
+  :root{--bg:#0d0d0d;--text:#f5f5f5;--navH:72px;--gutter:28px;--maxw:1320px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  .nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,8,8,.88);backdrop-filter:blur(12px)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding-top:calc(var(--navH)+18px)}
+  .hero-title{font-weight:900;font-size:clamp(36px,12vw,140px);line-height:.9;text-transform:uppercase;text-align:center}
+  @media(min-width:1024px){.hero-title{text-align:left}}
+</style>
 </head>
 <body>
 
@@ -195,10 +212,48 @@
         <a href="#contact">{ CONNECT }</a>
       </div>
 
-      <a class="nav-cta" href="#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
+      <a class="nav-cta nav-cta-desktop" href="#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
 
+      <!-- Mobile hamburger button -->
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile menu overlay -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="#app3d" class="mobile-nav-link">
+          <span class="mobile-nav-icon">→</span>
+          <span>3D Print Hub</span>
+        </a>
+        <a href="#works" class="mobile-nav-link">
+          <span class="mobile-nav-icon">◆</span>
+          <span>Works</span>
+        </a>
+        <a href="#services" class="mobile-nav-link">
+          <span class="mobile-nav-icon">◇</span>
+          <span>Services</span>
+        </a>
+        <a href="#blogs" class="mobile-nav-link">
+          <span class="mobile-nav-icon">▢</span>
+          <span>Blogs</span>
+        </a>
+        <a href="#contact" class="mobile-nav-link">
+          <span class="mobile-nav-icon">●</span>
+          <span>Connect</span>
+        </a>
+      </nav>
+      <a class="mobile-cta" href="#contact">CONTACT ME ↗</a>
+      <div class="mobile-menu-footer">
+        <span class="mobile-footer-text">TimrX / Dima Vasiliu</span>
+      </div>
+    </div>
+  </div>
 
 
   <main class="page" style="flex:1;">
@@ -228,7 +283,7 @@
     
             <figure class="hero-photo">
                 <!-- Using a placeholder image for demonstration -->
-                <img class="portrait" src="img/dima.jpg" alt="Portrait of Dima Vasiliu, creative developer and founder of TimrX" loading="lazy" />
+                <img class="portrait" src="img/dima.jpg" alt="Portrait of Dima Vasiliu, creative developer and founder of TimrX" width="440" height="550" fetchpriority="high" decoding="async" />
             </figure>
         </div>
     
@@ -473,7 +528,7 @@
 
     <div class="services-grid" role="list">
       <!-- Web Design -->
-      <article class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+      <div class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
         <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#e0e0e0,#d0d0d0);padding:16px;border-radius:12px;">🖥️</div>
         <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Web Design</h3>
         <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Wireframes to polished UI with motion. Accessible, scalable, fast.</p>
@@ -483,10 +538,10 @@
           <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Landing pages</li>
         </ul>
         <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:var(--warm-white-3);border-radius:8px;transition:all 0.2s ease;">Get a quote <span style="transition:transform 0.2s;">→</span></a>
-      </article>
+      </div>
 
       <!-- UX/UI -->
-      <article class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+      <div class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
         <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#e0e0e0,#d0d0d0);padding:16px;border-radius:12px;">🎛️</div>
         <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">UX / UI</h3>
         <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Clear flows, components, and micro-interactions that guide attention.</p>
@@ -496,10 +551,10 @@
           <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Motion guidelines</li>
         </ul>
         <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:var(--warm-white-3);border-radius:8px;transition:all 0.2s ease;">Let's map it <span style="transition:transform 0.2s;">→</span></a>
-      </article>
+      </div>
 
       <!-- Development -->
-      <article class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+      <div class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
         <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#e0e0e0,#d0d0d0);padding:16px;border-radius:12px;">⚙️</div>
         <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Development</h3>
         <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Clean, semantic code with performance and SEO in mind.</p>
@@ -509,10 +564,10 @@
           <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Flask backends</li>
         </ul>
         <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:var(--warm-white-3);border-radius:8px;transition:all 0.2s ease;">Ship it <span style="transition:transform 0.2s;">→</span></a>
-      </article>
+      </div>
 
       <!-- 3D -->
-      <article class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+      <div class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
         <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#e0e0e0,#d0d0d0);padding:16px;border-radius:12px;">🧊</div>
         <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">3D Modeling & Print</h3>
         <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Prompt-to-3D, remesh, viewer integration, print-ready exports.</p>
@@ -522,10 +577,10 @@
           <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> FDM/SLA prep</li>
         </ul>
         <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:var(--warm-white-3);border-radius:8px;transition:all 0.2s ease;">Make it 3D <span style="transition:transform 0.2s;">→</span></a>
-      </article>
+      </div>
 
       <!-- Video -->
-      <article class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
+      <div class="service-card svc-card-light" role="listitem" style="background:var(--warm-white);border:1px solid #e8e8e8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s ease;">
         <div class="svc-icon" aria-hidden="true" style="font-size:2.5rem;margin-bottom:16px;display:inline-block;background:linear-gradient(135deg,#e0e0e0,#d0d0d0);padding:16px;border-radius:12px;">🎬</div>
         <h3 class="svc-title" style="color:#0b0b0b;font-size:1.25rem;margin-bottom:12px;">Video / Shorts</h3>
         <p class="svc-copy" style="color:#5a5a5a;line-height:1.6;margin-bottom:16px;">Platform-native cuts, hooks, and pacing. Mythic vibes optional.</p>
@@ -535,7 +590,7 @@
           <li style="padding:6px 0;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#0b0b0b;font-weight:600;">→</span> Title/thumbnail</li>
         </ul>
         <a class="svc-cta-light" href="#contact" style="display:inline-flex;align-items:center;gap:6px;color:#0b0b0b;font-weight:600;text-decoration:none;padding:10px 20px;background:var(--warm-white-3);border-radius:8px;transition:all 0.2s ease;">Cut a teaser <span style="transition:transform 0.2s;">→</span></a>
-      </article>
+      </div>
     </div>
     </div>
   </section>
@@ -946,12 +1001,72 @@
   </div>
 </div>
     
-    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 
     <script>
       window.TIMRX_API_BASE = 'https://chat.timrx.live';
       document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+
+    <!-- Mobile Navigation Toggle -->
+    <script>
+      (function() {
+        const burger = document.getElementById('navBurger');
+        const menu = document.getElementById('mobileMenu');
+        const body = document.body;
+
+        if (!burger || !menu) return;
+
+        function openMenu() {
+          burger.classList.add('is-open');
+          burger.setAttribute('aria-expanded', 'true');
+          burger.setAttribute('aria-label', 'Close menu');
+          menu.classList.add('is-open');
+          menu.setAttribute('aria-hidden', 'false');
+          body.classList.add('menu-open');
+        }
+
+        function closeMenu() {
+          burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded', 'false');
+          burger.setAttribute('aria-label', 'Open menu');
+          menu.classList.remove('is-open');
+          menu.setAttribute('aria-hidden', 'true');
+          body.classList.remove('menu-open');
+        }
+
+        function toggleMenu() {
+          if (menu.classList.contains('is-open')) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        }
+
+        // Toggle on burger click
+        burger.addEventListener('click', toggleMenu);
+
+        // Close menu when clicking a nav link
+        menu.querySelectorAll('a').forEach(function(link) {
+          link.addEventListener('click', closeMenu);
+        });
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+            closeMenu();
+            burger.focus();
+          }
+        });
+
+        // Close menu when resizing to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth >= 1024 && menu.classList.contains('is-open')) {
+            closeMenu();
+          }
+        });
+      })();
     </script>
 
     <!-- Import map so "three" specifier resolves in the browser -->
