@@ -349,14 +349,22 @@
   <div class="modal" id="coverModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>Cover Image Ready</h3>
+        <h3 id="coverModalTitle">Cover Image Ready</h3>
         <button class="modal-close" id="closeCoverModal">&times;</button>
       </div>
-      <div class="cover-modal-content">
+      <!-- Picker View (for royalty-free options) -->
+      <div class="cover-picker-content hidden" id="coverPickerContent">
+        <p class="picker-hint">Click an image to select it as your cover</p>
+        <div class="cover-picker-grid" id="coverPickerGrid">
+          <!-- Images will be injected here -->
+        </div>
+      </div>
+      <!-- Single Image View (after selection or AI generated) -->
+      <div class="cover-modal-content" id="coverSingleContent">
         <img id="modalCoverImage" alt="Generated cover"/>
         <p id="modalCoverAttribution" class="cover-attribution hidden"></p>
       </div>
-      <div class="modal-actions">
+      <div class="modal-actions" id="coverModalActions">
         <button class="btn" id="modalCopyCoverUrl">Copy URL</button>
         <button class="btn primary" id="modalUseCover">Use as Cover</button>
       </div>
@@ -371,21 +379,39 @@
         <button class="modal-close" id="closeBlogModal">&times;</button>
       </div>
       <div class="blog-modal-content">
+        <div class="blog-draft-status" id="blogDraftStatus">
+          <span class="status-icon">&#10003;</span>
+          <span>Auto-saved as draft</span>
+          <span class="draft-slug" id="blogDraftSlug"></span>
+        </div>
         <div class="blog-preview-title" id="modalPreviewTitle"></div>
         <div class="blog-preview-excerpt" id="modalPreviewExcerpt"></div>
         <div class="blog-preview-meta">
           <span class="blog-preview-tag type" id="modalPreviewType"></span>
           <span class="blog-preview-tag tags" id="modalPreviewTags"></span>
         </div>
-        <div class="blog-preview-cover-prompt">
-          <span class="label">Cover Prompt:</span>
-          <span id="modalPreviewCoverPrompt"></span>
+        <!-- Cover Section -->
+        <div class="blog-cover-section" id="blogCoverSection">
+          <div class="cover-section-header">
+            <span class="label">Cover Image:</span>
+            <span id="coverStatus" class="cover-status">No cover yet</span>
+          </div>
+          <div class="cover-prompt-row">
+            <span class="cover-prompt-text" id="modalPreviewCoverPrompt"></span>
+          </div>
+          <!-- Cover picker will be injected here -->
+          <div id="modalCoverPicker" class="modal-cover-picker hidden"></div>
+          <!-- Current cover preview -->
+          <div id="modalCoverPreview" class="modal-cover-preview hidden">
+            <img id="modalDraftCoverImg" alt="Cover"/>
+            <p id="modalDraftCoverAttr" class="cover-attribution"></p>
+          </div>
         </div>
       </div>
       <div class="modal-actions">
         <button class="btn" id="modalPreviewEdit">Edit in Editor</button>
         <button class="btn" id="modalGenerateCover">Generate Cover</button>
-        <button class="btn primary" id="modalPreviewPublish">Save as Draft</button>
+        <button class="btn primary" id="modalViewPost">View Post</button>
       </div>
     </div>
   </div>
@@ -400,6 +426,70 @@
     let generatedBlog = null;
     let generatedCoverUrl = null;
     let generatedCoverData = null;  // Full response including attribution
+    let savedDraftSlug = null;  // Slug of auto-saved draft
+
+    // Auto-save blog as draft
+    async function autoSaveDraft(blogData) {
+      const statusEl = $('#blogDraftStatus');
+      const slugEl = $('#blogDraftSlug');
+
+      statusEl.className = 'blog-draft-status saving';
+      statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
+
+      try {
+        const r = await fetch(API + '/post', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            title: blogData.title,
+            excerpt: blogData.excerpt,
+            tags: blogData.tags,
+            type: blogData.type,
+            cover_url: '',
+            cover_attribution: '',
+            content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
+            status: 'draft',
+            author: 'Dima V',
+            author_avatar: 'img/dima.jpg'
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok || j.slug) {
+          savedDraftSlug = j.slug;
+          statusEl.className = 'blog-draft-status';
+          statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + j.slug + '</span>';
+          load();  // Refresh posts list
+        } else {
+          statusEl.className = 'blog-draft-status error';
+          statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Failed to save: ' + (j.error || 'Unknown error') + '</span>';
+        }
+      } catch (err) {
+        statusEl.className = 'blog-draft-status error';
+        statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Error: ' + err.message + '</span>';
+      }
+    }
+
+    // Update draft with cover image
+    async function updateDraftCover(coverUrl, coverAttribution) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        const r = await fetch(API + '/post/' + encodeURIComponent(savedDraftSlug), {
+          method: 'PUT',
+          headers: headers(),
+          body: JSON.stringify({
+            cover_url: coverUrl,
+            cover_attribution: coverAttribution
+          })
+        });
+        const j = await r.json();
+        return j.ok;
+      } catch (err) {
+        console.error('Failed to update draft cover:', err);
+        return false;
+      }
+    }
 
     function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
     function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
@@ -515,7 +605,7 @@
           if (warnings.length > 0) {
             alert('Note:\n' + warnings.join('\n\n'));
           }
-          // Show in modal instead of inline
+          // Show in modal
           $('#modalPreviewTitle').textContent = j.title;
           $('#modalPreviewExcerpt').textContent = j.excerpt;
           $('#modalPreviewType').textContent = j.type;
@@ -524,20 +614,20 @@
           if (j.cover_prompt) {
             $('#cover_prompt').value = j.cover_prompt;
           }
-          // Update button text based on recommended status
-          const publishBtn = $('#modalPreviewPublish');
-          if (j.recommended_status === 'draft') {
-            publishBtn.textContent = 'Save as Draft (Recommended)';
-            publishBtn.style.background = '#f59e0b';  // Amber for caution
-          } else {
-            publishBtn.textContent = 'Save as Draft';
-            publishBtn.style.background = '';  // Reset to default
-          }
-          // Show image source info
-          if (j.content_images_source && j.content_images_source !== 'none') {
-            console.log('[AI] Image sources:', j.content_images_source, j.content_images_sources_detail);
-          }
+          // Reset cover section
+          $('#modalCoverPicker').classList.add('hidden');
+          $('#modalCoverPreview').classList.add('hidden');
+          $('#coverStatus').textContent = 'No cover yet';
+          $('#coverStatus').classList.remove('ready');
+          generatedCoverUrl = '';
+          generatedCoverData = null;
+          savedDraftSlug = null;
+
+          // Show modal
           $('#blogModal').classList.add('show');
+
+          // Auto-save as draft
+          autoSaveDraft(j);
         } else {
           alert('Generation failed: ' + (j.error || 'Unknown error'));
         }
@@ -606,18 +696,155 @@
       window.location.href = 'write.html?ai=1';
     };
 
-    // Generate cover from blog modal
-    $('#modalGenerateCover').onclick = () => {
-      if (generatedBlog && generatedBlog.cover_prompt) {
-        $('#cover_prompt').value = generatedBlog.cover_prompt;
-        $('#blogModal').classList.remove('show');
-        // Switch to cover tab
-        $$('.tab').forEach(t => t.classList.remove('active'));
-        $$('.tab-content').forEach(s => s.classList.remove('active'));
-        $('[data-tab="cover"]').classList.add('active');
-        $('#tab-cover').classList.add('active');
-        // Auto-generate
-        $('#coverForm').dispatchEvent(new Event('submit'));
+    // Generate cover from blog modal (inline - stays in modal)
+    $('#modalGenerateCover').onclick = async () => {
+      if (!generatedBlog || !generatedBlog.cover_prompt) {
+        alert('No cover prompt available');
+        return;
+      }
+
+      const btn = $('#modalGenerateCover');
+      const mode = $('#cover_mode').value;  // Use the setting from Cover tab
+      const prompt = generatedBlog.cover_prompt;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>' + (mode === 'royalty_free' ? 'Searching...' : 'Generating...');
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            size: $('#cover_size').value,
+            mode: mode
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok) {
+          // Royalty-free preview mode: show picker inline
+          if (j.mode === 'preview' && j.options) {
+            coverSearchOptions = j.options;
+            coverSearchPrompt = prompt;
+            showModalCoverPicker(j.options);
+          }
+          // Direct mode (AI generated)
+          else if (j.url) {
+            generatedCoverUrl = j.url;
+            generatedCoverData = j;
+            showModalCoverPreview(j);
+            // Update the draft with the cover
+            if (savedDraftSlug) {
+              await updateDraftCover(j.url, j.attribution || '');
+            }
+          }
+        } else {
+          alert('Image failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Cover';
+      }
+    };
+
+    // Show cover picker inline in blog modal
+    function showModalCoverPicker(options) {
+      const picker = $('#modalCoverPicker');
+      const preview = $('#modalCoverPreview');
+      const status = $('#coverStatus');
+
+      preview.classList.add('hidden');
+      picker.classList.remove('hidden');
+      status.textContent = 'Choose an image:';
+      status.classList.remove('ready');
+
+      picker.innerHTML = `
+        <div class="modal-picker-grid">
+          ${options.map((opt, idx) => `
+            <div class="modal-picker-item" data-idx="${idx}">
+              <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
+              <div class="picker-credit">by <strong>${opt.photographer}</strong></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Add click handlers
+      picker.querySelectorAll('.modal-picker-item').forEach(item => {
+        item.onclick = () => selectModalCoverOption(parseInt(item.dataset.idx));
+      });
+    }
+
+    // Select cover option from inline picker and upload to S3
+    async function selectModalCoverOption(index) {
+      const item = $(`[data-idx="${index}"]`);
+      if (!item || item.classList.contains('selecting')) return;
+
+      item.classList.add('selecting');
+      item.insertAdjacentHTML('beforeend', '<div class="selecting-spinner"></div>');
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt: coverSearchPrompt,
+            mode: 'royalty_free',
+            selected_index: index
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;
+          showModalCoverPreview(j);
+          // Update the draft with the cover
+          if (savedDraftSlug) {
+            await updateDraftCover(j.url, j.attribution || '');
+          }
+        } else {
+          alert('Failed to select image: ' + (j.error || 'Unknown error'));
+          item.classList.remove('selecting');
+          item.querySelector('.selecting-spinner')?.remove();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        item.classList.remove('selecting');
+        item.querySelector('.selecting-spinner')?.remove();
+      }
+    }
+
+    // Show cover preview inline in blog modal
+    function showModalCoverPreview(j) {
+      const picker = $('#modalCoverPicker');
+      const preview = $('#modalCoverPreview');
+      const status = $('#coverStatus');
+
+      picker.classList.add('hidden');
+      preview.classList.remove('hidden');
+      status.textContent = 'Cover ready!';
+      status.classList.add('ready');
+
+      $('#modalDraftCoverImg').src = j.url;
+      const attr = $('#modalDraftCoverAttr');
+      if (j.attribution) {
+        attr.innerHTML = j.attribution;
+        attr.classList.remove('hidden');
+      } else {
+        attr.classList.add('hidden');
+      }
+    }
+
+    // View saved post
+    $('#modalViewPost').onclick = () => {
+      if (savedDraftSlug) {
+        window.open(`read.html?slug=${encodeURIComponent(savedDraftSlug)}`, '_blank');
+      } else {
+        alert('Post not saved yet. Please wait for auto-save to complete.');
       }
     };
 
@@ -677,6 +904,10 @@
       setTimeout(() => $('#copyAssist').textContent = 'Copy', 1500);
     };
 
+    // Store current cover search options for selection
+    let coverSearchOptions = [];
+    let coverSearchPrompt = '';
+
     // Generate cover image
     $('#coverForm').onsubmit = async (e) => {
       e.preventDefault();
@@ -701,22 +932,21 @@
         });
         const j = await r.json();
 
-        if (j.ok && j.url) {
-          generatedCoverUrl = j.url;
-          generatedCoverData = j;  // Store full response for attribution
-          // Show in modal
-          $('#modalCoverImage').src = j.url;
-          // Show attribution info if royalty-free
-          const attrEl = $('#modalCoverAttribution');
-          if (attrEl) {
-            if (j.attribution) {
-              attrEl.innerHTML = j.attribution;
-              attrEl.classList.remove('hidden');
-            } else {
-              attrEl.classList.add('hidden');
-            }
+        if (j.ok) {
+          // Royalty-free preview mode: show picker with 3 options
+          if (j.mode === 'preview' && j.options) {
+            coverSearchOptions = j.options;
+            coverSearchPrompt = prompt;
+            showCoverPicker(j.options);
+            $('#coverModal').classList.add('show');
           }
-          $('#coverModal').classList.add('show');
+          // Direct mode (AI generated or already selected)
+          else if (j.url) {
+            generatedCoverUrl = j.url;
+            generatedCoverData = j;
+            showCoverResult(j);
+            $('#coverModal').classList.add('show');
+          }
         } else {
           alert('Image failed: ' + (j.error || 'Unknown error'));
         }
@@ -727,6 +957,83 @@
         btn.innerHTML = mode === 'royalty_free' ? 'Search Cover' : 'Generate Cover';
       }
     };
+
+    // Show the cover picker with 3 options
+    function showCoverPicker(options) {
+      $('#coverModalTitle').textContent = 'Choose Cover Image';
+      $('#coverPickerContent').classList.remove('hidden');
+      $('#coverSingleContent').classList.add('hidden');
+      $('#coverModalActions').classList.add('hidden');
+
+      const grid = $('#coverPickerGrid');
+      grid.innerHTML = options.map((opt, idx) => `
+        <div class="cover-picker-item" data-index="${idx}">
+          <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
+          <div class="picker-credit">by <strong>${opt.photographer}</strong> on ${opt.source}</div>
+        </div>
+      `).join('');
+
+      // Add click handlers
+      grid.querySelectorAll('.cover-picker-item').forEach(item => {
+        item.onclick = () => selectCoverOption(parseInt(item.dataset.index));
+      });
+    }
+
+    // Select a cover option and upload to S3
+    async function selectCoverOption(index) {
+      const item = $(`[data-index="${index}"]`);
+      if (!item || item.classList.contains('selecting')) return;
+
+      // Show loading on selected item
+      item.classList.add('selecting');
+      item.innerHTML += '<div class="selecting-spinner"></div>';
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt: coverSearchPrompt,
+            mode: 'royalty_free',
+            selected_index: index
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;
+          showCoverResult(j);
+        } else {
+          alert('Failed to select image: ' + (j.error || 'Unknown error'));
+          item.classList.remove('selecting');
+          item.querySelector('.selecting-spinner')?.remove();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        item.classList.remove('selecting');
+        item.querySelector('.selecting-spinner')?.remove();
+      }
+    }
+
+    // Show the final cover result
+    function showCoverResult(j) {
+      $('#coverModalTitle').textContent = 'Cover Image Ready';
+      $('#coverPickerContent').classList.add('hidden');
+      $('#coverSingleContent').classList.remove('hidden');
+      $('#coverModalActions').classList.remove('hidden');
+
+      $('#modalCoverImage').src = j.url;
+      const attrEl = $('#modalCoverAttribution');
+      if (attrEl) {
+        if (j.attribution) {
+          attrEl.innerHTML = j.attribution;
+          attrEl.classList.remove('hidden');
+        } else {
+          attrEl.classList.add('hidden');
+        }
+      }
+    }
 
     // Update button text based on cover mode
     $('#cover_mode').onchange = function() {
