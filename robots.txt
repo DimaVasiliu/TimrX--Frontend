@@ -4,16 +4,11 @@
 User-agent: *
 Allow: /
 
-# Disallow admin and private paths
 Disallow: /admin
-Disallow: /admin/
 Disallow: /write
 Disallow: /api/
-
-# Disallow legacy reader (use /blog/<slug> instead)
 Disallow: /read
 Disallow: /read.html
 
-# Sitemaps
 Sitemap: https://timrx.live/sitemap.xml
 Sitemap: https://timrx.live/sitemap-blogs.xml
