@@ -1946,3 +1946,63 @@
     font-size: 20px;
   }
 }
+
+/* ===== TOPIC LINKS BAR (SEO Internal Linking) ===== */
+.topic-links-bar {
+  padding: 16px 0;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.topic-links-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topic-links-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.topic-links-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topic-link {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #999;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.topic-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-color: rgba(255,255,255,0.12);
+}
+
+@media (max-width: 640px) {
+  .topic-links-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .topic-link {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+}
