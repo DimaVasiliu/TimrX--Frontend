@@ -313,9 +313,23 @@
     const qs = s => document.querySelector(s);
     const qsa = s => Array.from(document.querySelectorAll(s));
 
-    // API base resolution: localStorage first, then same-origin (Worker proxies /api/* to backend)
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
+    // Dev mode detection
+    const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || new URLSearchParams(window.location.search).has('dev');
+
+    // API base resolution: localStorage override only allowed in dev mode
+    const API_BASE = (IS_DEV && localStorage.getItem('BLOGS_API_BASE'))
+      ? localStorage.getItem('BLOGS_API_BASE').replace(/\/$/, '')
+      : window.location.origin.replace(/\/$/, '');
     const API = API_BASE + '/api';
+
+    // Debug logging
+    console.info('API_BASE', API_BASE, 'API', API);
+
+    // Manual cache-bust: ?fresh=1 clears cache
+    if (new URLSearchParams(window.location.search).has('fresh')) {
+      sessionStorage.removeItem('timrx_blogs_cache');
+      console.info('[Blogs] Cache cleared via ?fresh=1');
+    }
 
     // API warmup - wake up server early (fire and forget)
     (function warmupAPI() {
@@ -391,20 +405,40 @@
       qs('#feat-1')?.classList.remove('feat--loading');
     }
 
-    // Fetch posts from API with graceful fallback
+    // Show error banner
+    function showErrorBanner(message) {
+      // Remove existing banner if any
+      const existing = qs('#api-error-banner');
+      if (existing) existing.remove();
+
+      const banner = document.createElement('div');
+      banner.id = 'api-error-banner';
+      banner.style.cssText = 'background:#dc2626;color:#fff;padding:12px 20px;text-align:center;font-size:14px;position:sticky;top:0;z-index:9999;';
+      banner.innerHTML = `<strong>Error:</strong> ${message} <button onclick="this.parentElement.remove()" style="margin-left:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;">Dismiss</button>`;
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+
+    // Fetch posts from API
     async function fetchPosts(p=1){
       try{
-        const r = await fetch(`${API}/posts?page=${p}&size=${size}`);
-        if(!r.ok) throw 0;
+        const r = await fetch(`${API}/posts?page=${p}&size=${size}`, { cache: 'no-store' });
+        if(!r.ok) throw new Error(`API returned ${r.status}`);
         const j = await r.json();
         return j.items || j.posts || [];
-      }catch{
-        // Fallback seed data for offline/dev mode
-        return [
-          { slug:'scroll-choreography', title:'Scroll Choreography That Feels Native', excerpt:'Scene planning and anchor triggers so scroll never fights the OS.', cover_url:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop', tags:'GSAP,UX,Performance', minutes:6, created_at: Date.now()-864e5*14, author:'Dima' },
-          { slug:'viewer-craft', title:'Viewer Craft: Camera Fit, Orbit, Shadows', excerpt:'Tiny choices that make 3D viewers feel premium.', cover_url:'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop', tags:'Three.js,3D,UX', minutes:7, created_at: Date.now()-864e5*28, author:'Dima' },
-          { slug:'print-workflow', title:'From Prompt to Print: A Practical Workflow', excerpt:'A simple, reliable path from AI model to physical object.', cover_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop', tags:'3D,Workflow', minutes:8, created_at: Date.now()-864e5*45, author:'Dima' },
-        ];
+      }catch(err){
+        console.error('[Blogs] API fetch failed:', err);
+        // Only show fallback seed data in dev mode
+        if (IS_DEV) {
+          console.warn('[Blogs] Using fallback seed data (dev mode)');
+          return [
+            { slug:'scroll-choreography', title:'Scroll Choreography That Feels Native', excerpt:'Scene planning and anchor triggers so scroll never fights the OS.', cover_url:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop', tags:'GSAP,UX,Performance', minutes:6, created_at: Date.now()-864e5*14, author:'Dima' },
+            { slug:'viewer-craft', title:'Viewer Craft: Camera Fit, Orbit, Shadows', excerpt:'Tiny choices that make 3D viewers feel premium.', cover_url:'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop', tags:'Three.js,3D,UX', minutes:7, created_at: Date.now()-864e5*28, author:'Dima' },
+            { slug:'print-workflow', title:'From Prompt to Print: A Practical Workflow', excerpt:'A simple, reliable path from AI model to physical object.', cover_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop', tags:'3D,Workflow', minutes:8, created_at: Date.now()-864e5*45, author:'Dima' },
+          ];
+        }
+        // Production: show error banner, return empty
+        showErrorBanner(`Failed to load posts from API. ${err.message || 'Please try again later.'}`);
+        return [];
       }
     }
 
