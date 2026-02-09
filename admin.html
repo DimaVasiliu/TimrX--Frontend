@@ -1075,8 +1075,14 @@
     async function load(){
       const q = $('#search').value.trim();
       const status = $('#flt').value;
-      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`);
+      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`, { headers: headers() });
+      if (!r.ok) {
+        console.error('[Admin] Failed to load posts:', r.status, r.statusText);
+        render([]);
+        return;
+      }
       const j = await r.json();
+      console.info('[Admin] Loaded posts:', j.items?.length || 0, 'status filter:', status);
       render(j.items || []);
     }
 
