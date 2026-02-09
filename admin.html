@@ -417,7 +417,7 @@
   </div>
 
   <script>
-    const API_BASE 
+    const API = `${location.origin}/api`;
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';
@@ -641,52 +641,55 @@
     // Close blog modal
     $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
 
-    // Save generated blog as draft (modal version)
-    $('#modalPreviewPublish').onclick = async () => {
-      if (!generatedBlog) return;
-      const btn = $('#modalPreviewPublish');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      try {
-        // Build cover attribution from generatedCoverData if available
-        let coverAttribution = '';
-        if (generatedCoverData && generatedCoverData.attribution) {
-          coverAttribution = generatedCoverData.attribution;
+    // Save generated blog as draft (modal version) - guarded for optional button
+    const modalPreviewPublish = $('#modalPreviewPublish');
+    if (modalPreviewPublish) {
+      modalPreviewPublish.onclick = async () => {
+        if (!generatedBlog) return;
+        const btn = modalPreviewPublish;
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        try {
+          // Build cover attribution from generatedCoverData if available
+          let coverAttribution = '';
+          if (generatedCoverData && generatedCoverData.attribution) {
+            coverAttribution = generatedCoverData.attribution;
+          }
+          const r = await fetch(API + '/post', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              title: generatedBlog.title,
+              excerpt: generatedBlog.excerpt,
+              tags: generatedBlog.tags,
+              type: generatedBlog.type,
+              cover_url: generatedCoverUrl || '',
+              cover_attribution: coverAttribution,
+              content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
+              status: 'draft',
+              author: 'Dima V',
+              author_avatar: 'img/dima.jpg'
+            })
+          });
+          const j = await r.json();
+          if (j.ok || j.slug) {
+            alert('Draft saved! Slug: ' + j.slug);
+            load();
+            $('#blogModal').classList.remove('show');
+            $('#ai_topic').value = '';
+            generatedBlog = null;
+            generatedCoverData = null;
+          } else {
+            alert('Save failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save as Draft';
         }
-        const r = await fetch(API + '/post', {
-          method: 'POST',
-          headers: headers(),
-          body: JSON.stringify({
-            title: generatedBlog.title,
-            excerpt: generatedBlog.excerpt,
-            tags: generatedBlog.tags,
-            type: generatedBlog.type,
-            cover_url: generatedCoverUrl || '',
-            cover_attribution: coverAttribution,
-            content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
-            status: 'draft',
-            author: 'Dima V',
-            author_avatar: 'img/dima.jpg'
-          })
-        });
-        const j = await r.json();
-        if (j.ok || j.slug) {
-          alert('Draft saved! Slug: ' + j.slug);
-          load();
-          $('#blogModal').classList.remove('show');
-          $('#ai_topic').value = '';
-          generatedBlog = null;
-          generatedCoverData = null;
-        } else {
-          alert('Save failed: ' + (j.error || 'Unknown error'));
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save as Draft';
-      }
-    };
+      };
+    }
 
     // Edit in full editor (modal version)
     $('#modalPreviewEdit').onclick = () => {
