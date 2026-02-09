@@ -1,59 +1,19 @@
-
 # TimrX Robots.txt
 # https://timrx.live
 
-# Allow all crawlers
 User-agent: *
 Allow: /
 
-# Explicitly allow blog section
-Allow: /blogs
-Allow: /blogs/
-Allow: /blogs/*
-Allow: /blog/
-Allow: /blog/*
-
-# Crawl-delay for polite crawling
-Crawl-delay: 1
-
-# Disallow admin/private paths
+# Disallow admin and private paths
 Disallow: /admin
 Disallow: /admin/
 Disallow: /write
 Disallow: /api/
-Disallow: /api/admin
-Disallow: /*.json$
 
-# Legacy reader (noindex, use /blog/<slug> instead)
-Disallow: /read.html
+# Disallow legacy reader (use /blog/<slug> instead)
 Disallow: /read
+Disallow: /read.html
 
-# Allow important resources
-Allow: /hub
-Allow: /hub.html
-Allow: /index.html
-Allow: /3dprint
-Allow: /3dprint.html
-
-# Sitemap locations
+# Sitemaps
 Sitemap: https://timrx.live/sitemap.xml
 Sitemap: https://timrx.live/sitemap-blogs.xml
-
-# Google specific
-User-agent: Googlebot
-Allow: /
-Allow: /blogs
-Allow: /blogs/
-Allow: /blogs/*
-Allow: /blog/
-Allow: /blog/*
-Crawl-delay: 0
-
-# Bing specific
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Google Images
-User-agent: Googlebot-Image
-Allow: /
