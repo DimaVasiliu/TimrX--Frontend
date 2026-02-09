@@ -57,6 +57,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- About -->
+  <url>
+    <loc>https://timrx.live/about</loc>
+    <lastmod>2026-02-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
   <!-- Legal Pages -->
   <url>
     <loc>https://timrx.live/terms</loc>
