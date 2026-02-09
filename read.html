@@ -344,6 +344,78 @@
     }).join('\n');
   }
 
+  function decodeHtmlEntities(value) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = value || '';
+    return textarea.value;
+  }
+
+  function safeExternalUrl(url) {
+    if (!url) return '';
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href;
+      }
+    } catch (err) {
+      return '';
+    }
+    return '';
+  }
+
+  function extractCoverAttribution(raw) {
+    if (!raw) return null;
+    const decoded = decodeHtmlEntities(String(raw));
+    const temp = document.createElement('div');
+    temp.innerHTML = decoded;
+    const links = Array.from(temp.querySelectorAll('a'));
+    const text = (temp.textContent || decoded || '').replace(/\s+/g, ' ').trim();
+
+    const cleanup = (value) => (value || '').replace(/\s+/g, ' ').trim().replace(/[.,]$/, '');
+
+    let photographer = links[0]?.textContent ? cleanup(links[0].textContent) : '';
+    let source = links[1]?.textContent ? cleanup(links[1].textContent) : '';
+
+    if (!photographer || !source) {
+      const match = text.match(/Photo by\s+(.+?)\s+on\s+(.+)/i);
+      if (match) {
+        if (!photographer) photographer = cleanup(match[1]);
+        if (!source) source = cleanup(match[2]);
+      }
+    }
+
+    if (!source) {
+      const sourceMatch = text.match(/on\s+([A-Za-z0-9\- ]+)/i);
+      if (sourceMatch) source = cleanup(sourceMatch[1]);
+    }
+
+    if (!photographer) photographer = 'Unknown';
+    if (!source) source = 'Unsplash';
+
+    const href = links.length > 1 ? links[1].getAttribute('href') : links[0]?.getAttribute('href');
+    return {
+      photographer,
+      source,
+      href: safeExternalUrl(href)
+    };
+  }
+
+  function renderCoverAttribution(node, info) {
+    node.textContent = '';
+    node.append('Photo by ');
+    if (info.href) {
+      const link = document.createElement('a');
+      link.href = info.href;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = info.photographer;
+      node.appendChild(link);
+    } else {
+      node.append(info.photographer);
+    }
+    node.append(` on ${info.source}`);
+  }
+
   function renderPost(p) {
     qs('#postTitle').textContent = p.title;
     qs('#postExcerpt').textContent = p.excerpt || '';
@@ -356,24 +428,13 @@
     // Show cover attribution if available (for Unsplash/Pexels images)
     const coverCredit = qs('#coverCredit');
     if (p.cover_attribution && coverCredit) {
-      // Parse attribution to extract clean data (handles both HTML and escaped HTML)
-      const attr = p.cover_attribution;
-      // Try to extract photographer name and URL from various formats
-      const nameMatch = attr.match(/Photo by (?:<a[^>]*>|&lt;a[^&]*&gt;)?([^<&]+)/i);
-      const urlMatch = attr.match(/href=["']?([^"'>\s&]+)/i);
-      const sourceMatch = attr.match(/on\s+(?:<a[^>]*>|&lt;a[^&]*&gt;)?(\w+)/i);
-
-      const photographer = nameMatch ? nameMatch[1].trim() : 'Unknown';
-      const url = urlMatch ? urlMatch[1].replace(/&amp;/g, '&') : null;
-      const source = sourceMatch ? sourceMatch[1] : 'Unsplash';
-
-      // Build clean attribution
-      if (url) {
-        coverCredit.innerHTML = `Photo by <a href="${url}" target="_blank" rel="noopener">${photographer}</a> on ${source}`;
+      const info = extractCoverAttribution(p.cover_attribution);
+      if (info) {
+        renderCoverAttribution(coverCredit, info);
+        coverCredit.classList.remove('hidden');
       } else {
-        coverCredit.textContent = `Photo by ${photographer} on ${source}`;
+        coverCredit.classList.add('hidden');
       }
-      coverCredit.classList.remove('hidden');
     } else if (coverCredit) {
       coverCredit.classList.add('hidden');
     }
