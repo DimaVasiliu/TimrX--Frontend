@@ -6,11 +6,31 @@
   <title>Read — TimrX</title>
   <meta name="description" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" id="canonicalLink" href="https://timrx.live/blogs" />
+
+  <!-- SEO: Set canonical to /blog/<slug> immediately (before Google parses the page) -->
+  <script>
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get('slug');
+    var baseUrl = 'https://timrx.live';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
+    document.write('<link rel="canonical" id="canonicalLink" href="' + canonicalUrl + '" />');
+  })();
+  </script>
+  <noscript><link rel="canonical" id="canonicalLink" href="https://timrx.live/blogs" /></noscript>
 
   <!-- Open Graph (updated dynamically per post) -->
   <meta property="og:type" content="article" />
-  <meta property="og:url" id="ogUrl" content="https://timrx.live/blogs" />
+  <script>
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get('slug');
+    var baseUrl = 'https://timrx.live';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
+    document.write('<meta property="og:url" id="ogUrl" content="' + canonicalUrl + '" />');
+  })();
+  </script>
+  <noscript><meta property="og:url" id="ogUrl" content="https://timrx.live/blogs" /></noscript>
   <meta property="og:title" id="ogTitle" content="TimrX Blog" />
   <meta property="og:description" id="ogDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta property="og:image" id="ogImage" content="https://timrx.live/img/blogs.png" />
@@ -18,7 +38,16 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" id="twUrl" content="https://timrx.live/blogs" />
+  <script>
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get('slug');
+    var baseUrl = 'https://timrx.live';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
+    document.write('<meta name="twitter:url" id="twUrl" content="' + canonicalUrl + '" />');
+  })();
+  </script>
+  <noscript><meta name="twitter:url" id="twUrl" content="https://timrx.live/blogs" /></noscript>
   <meta name="twitter:title" id="twTitle" content="TimrX Blog" />
   <meta name="twitter:description" id="twDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta name="twitter:image" id="twImage" content="https://timrx.live/img/blogs.png" />
@@ -62,6 +91,7 @@
     <section class="post-cover container">
       <figure class="cover-figure">
         <img id="heroImg" alt="cover"/>
+        <figcaption id="coverCredit" class="cover-credit hidden"></figcaption>
       </figure>
       <div class="post-meta">
         <img class="avatar" id="authorAvatar" src="img/dima.jpg" alt="Author"/>
@@ -322,6 +352,15 @@
     const img = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
     qs('#heroImg').src = img;
     qs('#heroCap').textContent = (p.tags || '').split(',')[0] || p.type || 'Post';
+
+    // Show cover attribution if available (for Unsplash/Pexels images)
+    const coverCredit = qs('#coverCredit');
+    if (p.cover_attribution && coverCredit) {
+      coverCredit.innerHTML = p.cover_attribution;
+      coverCredit.classList.remove('hidden');
+    } else if (coverCredit) {
+      coverCredit.classList.add('hidden');
+    }
 
     // Set author avatar
     if (p.author_avatar) {
