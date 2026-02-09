@@ -315,42 +315,51 @@ body.read-page {
 /* Cover Image Attribution */
 .cover-credit {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.65);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-radius: 8px;
-  font-size: 12px;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.75);
+  bottom: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  font-size: 11px;
+  font-style: normal;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
-  max-width: 55%;
+  max-width: 70%;
   text-align: right;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
+  line-height: 1.35;
+  letter-spacing: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .cover-credit:hover {
-  background: rgba(0, 0, 0, 0.8);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.65);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .cover-credit a {
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   font-style: normal;
   font-weight: 500;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.2s ease;
+  border-bottom: 0;
+  transition: color 0.2s ease;
 }
 
 .cover-credit a:hover {
   color: #fff;
-  border-bottom-color: #fff;
+  text-decoration-color: #fff;
+}
+
+@media (max-width: 640px) {
+  .cover-credit {
+    bottom: 10px;
+    right: 10px;
+    padding: 5px 8px;
+    font-size: 10px;
+    max-width: 85%;
+  }
 }
 
 .cover-credit.hidden {
