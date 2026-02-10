@@ -1,4 +1,3 @@
-
 :root{ --bg:#0d0d0d; --text:#f5f5f5;
   --muted:#9ca3af; --line:#1e1e1e; --accent:#0EA5E9;
   --accent2:#ff4d4d; --maxw:1320px;
@@ -3479,155 +3478,134 @@ footer{border-top:1px solid var(--line);padding:14px 0 2px;color:var(--muted); m
   }
 }
 
-/* ===== Validation References Section (vrefs) ===== */
+/* ===== Validation References Section (vrefs) - Compact List ===== */
 .vrefs {
-  margin: 48px 0 32px;
-  padding: 24px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
+  margin: 32px 0 24px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.015);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
 }
 
 /* Header */
 .vrefs-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 .vrefs-icon {
-  font-size: 18px;
+  font-size: 14px;
 }
 .vrefs-title {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-/* Grid */
+/* Stacked list (single column) */
 .vrefs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* Empty state */
 .vrefs-empty {
-  grid-column: 1 / -1;
   text-align: center;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.4);
   font-style: italic;
-  padding: 24px;
+  font-size: 12px;
+  padding: 12px;
 }
 
-/* Card base */
+/* Card - compact horizontal row */
 .vref {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  gap: 4px 10px;
-  padding: 14px 16px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 a.vref:hover,
 div.vref:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
 }
 a.vref:focus-visible {
   outline: 2px solid #38bdf8;
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
-/* Icon + Label row */
+/* Icon - small badge */
 .vref-icon {
-  grid-row: 1;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
-}
-.vref-label {
-  grid-row: 1;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.6);
-  align-self: center;
+  font-weight: 700;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
 }
 
-/* Title (truncated claim) */
+/* Label - hidden on compact view, shown via title tooltip */
+.vref-label {
+  display: none;
+}
+
+/* Title - full width, shows full text */
 .vref-title {
-  grid-column: 1 / -1;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: rgba(255,255,255,0.9);
-}
-
-/* Full claim (hidden, shown on hover) */
-.vref-claim {
-  grid-column: 1 / -1;
+  flex: 1;
   font-size: 12px;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.65);
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.2s ease;
-  margin-top: 0;
-}
-.vref:hover .vref-claim {
-  max-height: 120px;
-  opacity: 1;
-  margin-top: 6px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.8);
 }
 
-/* Verdict colors */
+/* Full claim - always visible inline */
+.vref-claim {
+  display: none;
+}
+
+/* Verdict colors - subtle left border + icon bg */
 .vref.vref-supported {
-  border-left: 3px solid #4ade80;
+  border-left: 2px solid rgba(74,222,128,0.5);
 }
 .vref.vref-supported .vref-icon {
   color: #4ade80;
+  background: rgba(74,222,128,0.12);
 }
 .vref.vref-partial {
-  border-left: 3px solid #fbbf24;
+  border-left: 2px solid rgba(251,191,36,0.5);
 }
 .vref.vref-partial .vref-icon {
   color: #fbbf24;
+  background: rgba(251,191,36,0.12);
 }
 .vref.vref-not-supported {
-  border-left: 3px solid #f87171;
+  border-left: 2px solid rgba(248,113,113,0.5);
 }
 .vref.vref-not-supported .vref-icon {
   color: #f87171;
+  background: rgba(248,113,113,0.12);
 }
 .vref.vref-unknown {
-  border-left: 3px solid #9ca3af;
+  border-left: 2px solid rgba(156,163,175,0.4);
 }
 .vref.vref-unknown .vref-icon {
   color: #9ca3af;
-}
-
-/* Mobile: stack vertically */
-@media (max-width: 560px) {
-  .vrefs-grid {
-    grid-template-columns: 1fr;
-  }
-  .vref-claim {
-    max-height: none;
-    opacity: 1;
-    margin-top: 6px;
-  }
+  background: rgba(156,163,175,0.1);
 }
 
 /* ===== Global Click Lock ===== */
