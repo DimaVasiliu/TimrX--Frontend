@@ -645,6 +645,9 @@ body {
 .modal-box.wide { max-width: 700px; }
 
 /* Cover picker modal - larger for image selection */
+#coverModal {
+  z-index: 1100; /* Higher than blogModal to appear on top */
+}
 #coverModal .modal-box {
   max-width: 900px;
   width: 90%;
@@ -975,10 +978,21 @@ body {
 .cover-prompt-row {
   font-size: 12px;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cover-prompt-label {
+  color: #555;
+  flex-shrink: 0;
 }
 .cover-prompt-text {
   font-style: italic;
+  color: #777;
+}
+.cover-custom-search {
+  margin-bottom: 12px;
 }
 
 /* Modal Cover Picker */
