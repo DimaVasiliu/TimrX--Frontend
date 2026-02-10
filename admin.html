@@ -1,1411 +1,3090 @@
-/* ==========================================================================
-   TimrX Admin — Clean Minimal Design
-   ========================================================================== */
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: #0a0a0a;
-  color: #e5e5e5;
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  min-height: 100vh;
-}
-
-/* Header */
-.header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 32px;
-}
-.logo {
-  font-size: 22px;
-  font-weight: 600;
-  color: #fff;
-  text-decoration: none;
-}
-.logo span { color: #666; }
-.nav {
-  display: flex;
-  gap: 8px;
-}
-.nav a, .nav button {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #999;
-  text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-.nav a:hover, .nav button:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,0.2);
-}
-.nav .logout {
-  color: #f87171;
-  border-color: rgba(248,113,113,0.2);
-}
-.nav .logout:hover {
-  border-color: rgba(248,113,113,0.4);
-}
-
-/* Hero Section */
-.hero {
-  position: relative;
-  min-height: clamp(280px, 35vh, 380px);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  padding-top: 80px;
-}
-
-/* Noise texture */
-.hero-noise {
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-
-/* Gradient */
-.hero-gradient {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(60, 60, 60, 0.12), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(40, 40, 40, 0.08), transparent 50%);
-  pointer-events: none;
-}
-
-/* Watermark */
-.hero-watermark {
-  position: absolute;
-  top: 50%;
-  right: 0%;
-  transform: translateY(-50%);
-  font-family: Inter, sans-serif;
-  font-size: clamp(120px, 18vw, 280px);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  color: rgba(255, 255, 255, 0.03);
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.04);
-  pointer-events: none;
-  -webkit-user-select: none;
-  user-select: none;
-  line-height: 0.8;
-  opacity: 0;
-  animation: fadeIn 1.5s ease forwards 0.5s;
-}
-
-/* Arc decoration */
-.hero-arc {
-  position: absolute;
-  top: 50%;
-  right: -60px;
-  width: 320px;
-  height: 320px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0;
-  animation: fadeIn 1.5s ease forwards 0.8s;
-}
-.hero-arc::before {
-  content: '';
-  position: absolute;
-  inset: 35px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 50%;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-/* Hero content */
-.hero-content {
-  position: relative;
-  z-index: 2;
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-  padding: clamp(32px, 5vh, 60px) 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Eyebrow */
-.hero-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  opacity: 0;
-  animation: slideIn 0.6s ease forwards 0.2s;
-}
-.eyebrow-line {
-  width: 36px;
-  height: 1px;
-  background: linear-gradient(90deg, #666, transparent);
-}
-.eyebrow-text {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #666;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* Title */
-.hero-title {
-  font-size: clamp(42px, 8vw, 72px);
-  font-weight: 600;
-  line-height: 0.95;
-  margin: 0;
-  letter-spacing: -0.03em;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 16px;
-}
-.hero-word {
-  display: inline-block;
-  color: #fff;
-  opacity: 0;
-  transform: translateY(40px);
-  animation: wordUp 0.8s ease forwards;
-}
-.hero-word:nth-child(2) { animation-delay: 0.15s; }
-.hero-word:nth-child(3) { animation-delay: 0.25s; }
-.hero-word--outline {
-  color: transparent;
-  -webkit-text-stroke: 1.5px #fff;
-}
-
-@keyframes wordUp {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Description */
-.hero-description {
-  font-size: 15px;
-  color: #666;
-  margin: 0;
-  max-width: 380px;
-  line-height: 1.5;
-  opacity: 0;
-  animation: fadeUp 0.8s ease forwards 0.6s;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Main Layout */
-.main {
-  display: flex;
-  gap: 32px;
-  padding: 0 32px 48px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.content { flex: 1; min-width: 0; }
-.sidebar { width: 440px; flex-shrink: 0; }
-
-/* Toolbar */
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-.toolbar input {
-  flex: 1;
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
-  color: #e5e5e5;
-  font-size: 14px;
-  font-family: inherit;
-}
-.toolbar input:focus {
-  outline: none;
-  border-color: rgba(255,255,255,0.15);
-}
-.toolbar input::placeholder { color: #555; }
-.toolbar select {
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
-  color: #999;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  outline: none;
-}
-.toolbar select:focus {
-  border-color: rgba(255,255,255,0.15);
-}
-
-/* Buttons */
-.btn {
-  padding: 10px 14px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  color: #999;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,0.2);
-}
-.btn.primary {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-}
-.btn-delete {
-  color: #f87171;
-  border-color: rgba(248,113,113,0.2);
-}
-.btn-delete:hover {
-  border-color: rgba(248,113,113,0.4);
-}
-
-/* Post Cards */
-.posts { display: flex; flex-direction: column; gap: 10px; }
-.post {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  transition: border-color 0.15s;
-}
-.post:hover { border-color: rgba(255,255,255,0.1); }
-.post-info { flex: 1; min-width: 0; }
-.post-title {
-  font-weight: 500;
-  color: #fff;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #666;
-}
-.post-status {
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  border-radius: 4px;
-  background: rgba(255,255,255,0.05);
-  color: #888;
-}
-.post-actions {
-  display: flex;
-  gap: 6px;
-}
-.post-actions .btn {
-  padding: 6px 10px;
-  font-size: 12px;
-}
-
-/* AI Panel */
-.panel {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  padding: 20px;
-  width: fit-content;
-}
-.panel-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.panel-header h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-}
-.status {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-.status.online {
-  background: rgba(34,197,94,0.1);
-  color: #4ade80;
-}
-.status.offline {
-  background: rgba(248,113,113,0.1);
-  color: #f87171;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-.tab {
-  flex: 1;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: #666;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.tab:hover { color: #999; }
-.tab.active {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-}
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Forms */
-.form-group { margin-bottom: 16px; }
-.form-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-.form-input,
-.form-textarea,
-.form-select {
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
-  color: #e5e5e5;
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.15s;
-}
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
-  outline: none;
-  border-color: rgba(255,255,255,0.2);
-}
-.form-input::placeholder,
-.form-textarea::placeholder { color: #555; }
-
-/* Affiliate section */
-.affiliate-section {
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  margin-top: 16px;
-}
-.form-label .optional {
-  font-weight: 400;
-  color: #555;
-  font-size: 10px;
-}
-.form-textarea { resize: vertical; min-height: 90px; }
-.form-select { cursor: pointer; }
-
-/* Checkbox toggle */
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-.form-checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: #4ade80;
-  cursor: pointer;
-}
-.form-hint {
-  display: block;
-  font-size: 11px;
-  color: #555;
-  margin-top: 4px;
-}
-
-/* Action Button */
-.action-btn {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.action-btn:hover {
-  background: rgba(255,255,255,0.1);
-}
-.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.2);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Preview */
-.preview {
-  margin-top: 16px;
-  padding: 16px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 8px;
-}
-.preview-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 12px;
-}
-.preview-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 6px;
-}
-.preview-text {
-  font-size: 13px;
-  color: #888;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-.preview-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.preview-tag {
-  padding: 4px 8px;
-  font-size: 11px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 4px;
-  color: #888;
-}
-.preview-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 14px;
-}
-.preview-actions .btn { flex: 1; }
-
-/* Assist Grid */
-.assist-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  margin-bottom: 16px;
-}
-.assist-btn {
-  padding: 10px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 6px;
-  color: #999;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.assist-btn:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,0.12);
-}
-.assist-btn .icon { margin-right: 6px; opacity: 0.6; }
-
-/* Result */
-.result {
-  margin-top: 16px;
-  padding: 12px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 6px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-.result pre {
-  margin: 0;
-  font-size: 13px;
-  color: #ccc;
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
-
-/* Cover Preview */
-.cover-preview {
-  margin-top: 16px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
-}
-.cover-preview img {
-  width: 100%;
-  display: block;
-}
-.cover-actions {
-  padding: 12px;
-  display: flex;
-  gap: 8px;
-}
-.cover-actions .btn { flex: 1; }
-
-/* Modals */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.8);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal.show { display: flex; }
-.modal-box {
-  background: #111;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-.modal-box.wide { max-width: 700px; }
-
-/* Cover picker modal - larger for image selection */
-#coverModal {
-  z-index: 1100; /* Higher than blogModal to appear on top */
-}
-#coverModal .modal-box {
-  max-width: 900px;
-  width: 90%;
-}
-#coverModal .cover-picker-grid {
-  gap: 16px;
-}
-#coverModal .cover-picker-item img {
-  aspect-ratio: 16/9;
-  min-height: 180px;
-}
-
-/* Cover type selection modal */
-#coverTypeModal {
-  z-index: 1050; /* Between blogModal and coverModal */
-}
-.cover-type-box {
-  max-width: 420px;
-}
-.cover-type-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.cover-type-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 16px 20px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-}
-.cover-type-btn:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.2);
-  transform: translateY(-1px);
-}
-.cover-type-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-.cover-type-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.cover-type-desc {
-  font-size: 13px;
-  color: #888;
-  line-height: 1.4;
-}
-
-.modal-box h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 20px;
-}
-.modal-box label {
-  display: block;
-  margin-bottom: 14px;
-}
-.modal-box label span {
-  display: block;
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 6px;
-}
-.modal-box input,
-.modal-box textarea,
-.modal-box select {
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
-  color: #e5e5e5;
-  font-size: 14px;
-  font-family: inherit;
-}
-.modal-box input:focus,
-.modal-box textarea:focus,
-.modal-box select:focus {
-  outline: none;
-  border-color: rgba(255,255,255,0.2);
-}
-.modal-box textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-.modal-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-.modal-actions .btn { flex: 1; min-width: 80px; }
-.muted { color: #666; font-size: 13px; }
-
-/* Utilities */
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.ml-auto { margin-left: auto; }
-
-/* Modal Header with Close Button */
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.modal-header h3 {
-  margin: 0;
-}
-.modal-close {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  color: #888;
-  font-size: 20px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.modal-close:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border-color: rgba(255,255,255,0.2);
-}
-
-/* Cover Modal Content */
-.cover-modal-content {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 16px;
-}
-.cover-modal-content img {
-  width: 100%;
-  display: block;
-  max-height: 400px;
-  object-fit: contain;
-  background: rgba(0,0,0,0.3);
-}
-.cover-attribution {
-  padding: 10px 14px;
-  font-size: 12px;
-  color: #888;
-  background: rgba(0,0,0,0.3);
-  margin: 0;
-  text-align: center;
-}
-.cover-attribution.hidden {
-  display: none;
-}
-.cover-attribution a {
-  color: #aaa;
-  text-decoration: underline;
-}
-.cover-attribution a:hover {
-  color: #fff;
-}
-
-/* Cover Image Picker */
-.cover-picker-content {
-  margin-bottom: 16px;
-}
-.cover-picker-content.hidden,
-.cover-modal-content.hidden,
-.modal-actions.hidden,
-.hidden {
-  display: none;
-}
-.picker-hint {
-  text-align: center;
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 16px;
-}
-.cover-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.cover-picker-item {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-  background: rgba(0,0,0,0.3);
-}
-.cover-picker-item:hover {
-  border-color: rgba(255,255,255,0.3);
-  transform: translateY(-2px);
-}
-.cover-picker-item.selected {
-  border-color: #4ade80;
-}
-.cover-picker-item img {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  display: block;
-}
-.cover-picker-item .picker-credit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24px 8px 8px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  font-size: 10px;
-  color: rgba(255,255,255,0.7);
-  font-style: italic;
-  text-align: center;
-}
-.cover-picker-item .picker-credit strong {
-  font-style: normal;
-  color: #fff;
-}
-.cover-picker-item .selecting-spinner {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.7);
-}
-.cover-picker-item .selecting-spinner::after {
-  content: '';
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Blog Preview Modal Content */
-.blog-modal-content {
-  padding: 20px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  margin-bottom: 16px;
-}
-.blog-preview-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-.blog-preview-excerpt {
-  font-size: 14px;
-  color: #999;
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-.blog-preview-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-.blog-preview-tag {
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 5px;
-  color: #888;
-}
-.blog-preview-tag.type {
-  background: rgba(59,130,246,0.1);
-  border-color: rgba(59,130,246,0.2);
-  color: #60a5fa;
-}
-.blog-preview-tag.tags {
-  background: rgba(168,85,247,0.1);
-  border-color: rgba(168,85,247,0.2);
-  color: #c084fc;
-}
-.blog-preview-cover-prompt {
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  font-size: 12px;
-  color: #666;
-  line-height: 1.5;
-}
-.blog-preview-cover-prompt .label {
-  font-weight: 600;
-  color: #888;
-  margin-right: 6px;
-}
-
-/* Draft Status Banner */
-.blog-draft-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: #4ade80;
-}
-.blog-draft-status .status-icon {
-  font-size: 14px;
-  font-weight: bold;
-}
-.blog-draft-status .draft-slug {
-  margin-left: auto;
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  color: #888;
-  background: rgba(0,0,0,0.3);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.blog-draft-status.saving {
-  background: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-}
-.blog-draft-status.error {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-/* Cover Section in Blog Modal */
-.blog-cover-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.cover-section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.cover-section-header .label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #888;
-}
-.cover-status {
-  font-size: 11px;
-  color: #666;
-  font-style: italic;
-}
-.cover-status.ready {
-  color: #4ade80;
-  font-style: normal;
-}
-.cover-prompt-row {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.cover-prompt-label {
-  color: #555;
-  flex-shrink: 0;
-}
-.cover-prompt-text {
-  font-style: italic;
-  color: #777;
-}
-.cover-custom-search {
-  margin-bottom: 12px;
-}
-
-/* Modal Cover Picker */
-.modal-cover-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.modal-cover-picker.hidden {
-  display: none;
-}
-.modal-cover-picker .picker-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-.modal-cover-picker .picker-item:hover {
-  border-color: rgba(255,255,255,0.3);
-}
-.modal-cover-picker .picker-item.selected {
-  border-color: #4ade80;
-}
-.modal-cover-picker .picker-item img {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  display: block;
-}
-.modal-cover-picker .picker-item .credit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px 6px 6px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  font-size: 9px;
-  color: rgba(255,255,255,0.7);
-  text-align: center;
-}
-.modal-cover-picker .picker-item .selecting {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.7);
-}
-
-/* Modal Cover Preview */
-.modal-cover-preview {
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.modal-cover-preview.hidden {
-  display: none;
-}
-.modal-cover-preview img {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  display: block;
-}
-.modal-cover-preview .cover-attribution {
-  padding: 8px 12px;
-  font-size: 11px;
-  color: #888;
-  background: rgba(0,0,0,0.3);
-  text-align: center;
-}
-
-/* Inline Modal Picker Grid (inside blog modal) */
-.modal-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.modal-picker-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-.modal-picker-item:hover {
-  border-color: rgba(255,255,255,0.3);
-  transform: scale(1.02);
-}
-.modal-picker-item.selecting {
-  pointer-events: none;
-  opacity: 0.7;
-}
-.modal-picker-item img {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  display: block;
-}
-.modal-picker-item .picker-credit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px 6px 6px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.85));
-  font-size: 10px;
-  color: rgba(255,255,255,0.8);
-  text-align: center;
-}
-.modal-picker-item .selecting-spinner {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.6);
-}
-.modal-picker-item .selecting-spinner::after {
-  content: '';
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #4ade80;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-/* Cover status badges */
-.cover-status {
-  font-size: 12px;
-  color: #888;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(255,255,255,0.05);
-}
-.cover-status.ready {
-  color: #4ade80;
-  background: rgba(74, 222, 128, 0.1);
-}
-
-/* Modal with backdrop blur */
-#coverModal.show,
-#blogModal.show {
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .main { flex-direction: column; }
-  .sidebar { width: 100%; }
-  .header { padding: 16px 20px; }
-  .page-title { padding: 32px 20px 24px; }
-  .main { padding: 0 20px 32px; }
-  .toolbar { flex-wrap: wrap; }
-  .post { flex-direction: column; align-items: flex-start; }
-  .post-actions { width: 100%; margin-top: 10px; }
-}
-
-@media (max-width: 600px) {
-  .nav a, .nav button { padding: 6px 12px; font-size: 12px; }
-  .page-title h1 { font-size: 26px; }
-  .modal-actions { flex-direction: column; }
-  .modal-actions .btn { width: 100%; }
-}
-
-/* Subscribers Tab */
-.subs-tab-info {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.subs-tab-info p {
-  margin-bottom: 16px;
-}
-
-.subs-modal-content {
-  padding: 20px 0;
-}
-
-.subs-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.subs-stats {
-  display: flex;
-  gap: 32px;
-}
-
-.subs-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.subs-stat-number {
-  font-size: 32px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1;
-}
-
-.subs-stat-label {
-  font-size: 11px;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 6px;
-}
-
-.subs-controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.subs-controls .form-select {
-  width: 140px;
-}
-
-.subs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.sub-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
-  transition: all 0.15s;
-}
-
-.sub-item:hover {
-  background: rgba(255,255,255,0.04);
-  border-color: rgba(255,255,255,0.1);
-}
-
-.sub-item.unsubscribed {
-  opacity: 0.5;
-}
-
-.sub-email {
-  font-size: 13px;
-  color: #e5e5e5;
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.sub-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  margin-left: 12px;
-}
-
-.sub-status {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.sub-item.unsubscribed .sub-status {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.sub-date {
-  font-size: 11px;
-  color: #555;
-}
-
-/* Email Status Panel */
-.email-status-panel {
-  display: none;
-  padding: 16px;
-  margin-bottom: 16px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-}
-
-.email-status-panel.visible {
-  display: block;
-}
-
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.status-item {
-  font-size: 12px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-ok {
-  color: #22c55e;
-  font-weight: bold;
-}
-
-.status-err {
-  color: #ef4444;
-  font-weight: bold;
-}
-
-.status-hints {
-  padding: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 8px;
-  font-size: 12px;
-  color: #f87171;
-}
-
-.status-hints ul {
-  margin: 8px 0 0 16px;
-  padding: 0;
-}
-
-.status-hints li {
-  margin: 4px 0;
-}
-
-.status-ok-msg {
-  padding: 12px;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  border-radius: 8px;
-  font-size: 12px;
-  color: #22c55e;
-  text-align: center;
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Admin — TimrX Blogs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css"/>
+  <style>
+    /* Validate Tab Styles */
+    .validate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .validate-mode-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .validate-mode-indicator .mode-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .validate-mode-indicator.off .mode-dot {
+      background: #6b7280;
+    }
+    .validate-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .validate-toggle input {
+      accent-color: #22c55e;
+    }
+    .validate-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .validate-depth-toggle {
+      display: flex;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 2px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .depth-btn {
+      padding: 5px 12px;
+      font-size: 11px;
+      border: none;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .depth-btn:hover {
+      color: #ccc;
+    }
+    .depth-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .depth-btn[data-depth="deep"].active {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .scan-hint, .deep-hint { font-size: 12px; }
+    .deep-hint.hidden, .scan-hint.hidden { display: none; }
+    /* Research mode toggle */
+    .research-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.15s;
+    }
+    .research-toggle:hover {
+      border-color: rgba(251,191,36,0.3);
+    }
+    .research-toggle:has(input:checked) {
+      background: rgba(251,191,36,0.15);
+      border-color: rgba(251,191,36,0.3);
+    }
+    .research-toggle input {
+      accent-color: #fbbf24;
+    }
+    .research-label {
+      color: #888;
+    }
+    .research-toggle:has(input:checked) .research-label {
+      color: #fbbf24;
+    }
+    .validate-chat {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      height: 380px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .chat-messages {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-welcome {
+      text-align: center;
+      padding: 20px;
+      color: #9ca3af;
+    }
+    .chat-welcome p { margin: 4px 0; }
+    .chat-msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      max-width: 95%;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .chat-msg.user {
+      background: #3b82f6;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-msg.assistant {
+      background: rgba(255,255,255,0.08);
+      color: #e5e7eb;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .chat-msg.assistant strong { color: #fff; }
+    .chat-msg.assistant .verdict-supported { color: #22c55e; }
+    .chat-msg.assistant .verdict-partial { color: #f59e0b; }
+    .chat-msg.assistant .verdict-not { color: #ef4444; }
+    /* Evidence quality badges */
+    .evidence-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-right: 4px;
+    }
+    .evidence-tag.peer-reviewed {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .evidence-tag.preprint {
+      background: rgba(59,130,246,0.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,0.3);
+    }
+    .evidence-tag.standard {
+      background: rgba(168,85,247,0.2);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .evidence-tag.vendor-docs {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    .evidence-tag.opinion {
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    /* Action checkboxes for NEXT ACTIONS */
+    .action-checkbox {
+      display: inline-block;
+      width: 16px;
+      color: #60a5fa;
+      font-size: 14px;
+      margin-right: 4px;
+    }
+    .action-checkbox.done {
+      color: #4ade80;
+    }
+    /* Cost impact tags */
+    .cost-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .cost-tag.saves {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .cost-tag.neutral {
+      background: rgba(156,163,175,0.2);
+      color: #9ca3af;
+      border: 1px solid rgba(156,163,175,0.3);
+    }
+    .cost-tag.costs {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    .validate-input {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .validate-input textarea {
+      flex: 1;
+      resize: none;
+      min-height: 80px;
+    }
+    .validate-input .validate-btn {
+      width: auto;
+      padding: 10px 18px;
+      font-size: 12px;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+    .validate-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    #validateStatus {
+      font-size: 12px;
+    }
+    /* Message action buttons */
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .msg-action-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .msg-action-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .msg-action-btn.primary {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.3);
+      color: #4ade80;
+    }
+    .msg-action-btn.primary:hover {
+      background: rgba(34,197,94,0.25);
+    }
+    .msg-action-btn.success {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    /* Blog validation panel */
+    .blog-validation-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .validation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .validation-header .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+    }
+    .validation-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .validation-status.pending {
+      background: rgba(251,191,36,0.15);
+      color: #fbbf24;
+    }
+    .validation-status.running {
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+    }
+    .validation-status.done {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+    }
+    .validation-results {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      display: none;
+    }
+    .validation-results.show {
+      display: block;
+    }
+    .validation-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border-left: 3px solid #666;
+    }
+    .validation-item.supported { border-left-color: #22c55e; }
+    .validation-item.partial { border-left-color: #f59e0b; }
+    .validation-item.not-supported { border-left-color: #ef4444; }
+    .validation-item .claim-text {
+      font-weight: 500;
+      color: #e5e5e5;
+      margin-bottom: 4px;
+    }
+    .validation-item .verdict-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .validation-item .verdict-badge.supported {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    .validation-item .verdict-badge.partial {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .validation-item .verdict-badge.not-supported {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+    .validation-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    /* Context snippets */
+    .context-snippets {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .context-snippets.hidden { display: none; }
+    .context-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .context-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #60a5fa;
+    }
+    .context-clear-btn {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
+      color: #888;
+      cursor: pointer;
+    }
+    .context-clear-btn:hover { color: #fff; }
+    .context-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .context-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      font-size: 11px;
+      color: #ccc;
+    }
+    .context-chip .chip-name { color: #fff; }
+    .context-chip .chip-lines { color: #888; }
+    .context-chip .chip-remove {
+      cursor: pointer;
+      color: #888;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .context-chip .chip-remove:hover { color: #f87171; }
+    /* Validate input layout */
+    .validate-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .validate-input-row textarea { flex: 1; }
+    .validate-input-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .context-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .context-btn:hover {
+      background: rgba(59,130,246,0.2);
+      border-color: rgba(59,130,246,0.4);
+    }
+    /* Repo modal */
+    .repo-modal-content { display: flex; flex-direction: column; gap: 12px; }
+    .repo-search input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .repo-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 12px;
+      height: 400px;
+    }
+    .repo-tree-panel {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .repo-tree { font-size: 12px; }
+    .repo-tree-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .repo-tree-item:hover { background: rgba(255,255,255,0.06); }
+    .repo-tree-item.selected { background: rgba(59,130,246,0.2); }
+    .repo-tree-item .icon { width: 14px; text-align: center; font-size: 10px; }
+    .repo-tree-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .repo-tree-children { margin-left: 16px; }
+    .repo-tree-children.collapsed { display: none; }
+    .repo-preview-panel {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .repo-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: #888;
+    }
+    .repo-preview-actions { display: flex; align-items: center; gap: 8px; }
+    .repo-preview-actions.hidden { display: none; }
+    .line-range-label { font-size: 11px; color: #888; }
+    .line-input {
+      width: 50px;
+      padding: 3px 6px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #fff;
+      font-size: 11px;
+      text-align: center;
+    }
+    .repo-preview-code {
+      flex: 1;
+      margin: 0;
+      padding: 12px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      background: transparent;
+      color: #a5b4c3;
+    }
+    .repo-preview-code code { font-family: 'SF Mono', Monaco, monospace; }
+    .btn.small { padding: 4px 10px; font-size: 11px; }
+    .loading-text { color: #666; font-size: 12px; padding: 8px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html">TimrX<span>.</span></a>
+    <nav class="nav">
+      <a href="blogs.html">Blogs</a>
+      <a href="write.html">Write</a>
+      <button id="logout" class="logout">Log out</button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-noise"></div>
+    <div class="hero-gradient"></div>
+    <div class="hero-watermark">ADMIN</div>
+    <div class="hero-arc"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">Dashboard</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-word">Manage.</span>
+        <span class="hero-word">Create.</span>
+        <span class="hero-word hero-word--outline">Control.</span>
+      </h1>
+      <p class="hero-description">Manage posts and generate content with AI-powered tools.</p>
+    </div>
+  </section>
+
+  <div class="main">
+    <!-- Content -->
+    <div class="content">
+      <div class="toolbar">
+        <input id="search" placeholder="Search posts…" autocomplete="off"/>
+        <select id="flt">
+          <option value="draft">Drafts</option>
+          <option value="published">Published</option>
+          <option value="all">All</option>
+        </select>
+        <button class="btn" id="reload">Reload</button>
+        <button class="btn primary" id="newPost">+ New</button>
+      </div>
+      <div id="list" class="posts"></div>
+    </div>
+
+    <!-- AI Panel -->
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>AI Assistant</h3>
+          <span class="status" id="aiStatus">...</span>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="generate">Generate</button>
+          <button class="tab" data-tab="assist">Assist</button>
+          <button class="tab" data-tab="cover">Cover</button>
+          <button class="tab" data-tab="validate">Validate</button>
+          <button class="tab" data-tab="subscribers">Subs</button>
+          <button class="tab" data-tab="usage">Usage</button>
+        </div>
+
+        <!-- Generate Tab -->
+        <div class="tab-content active" id="tab-generate">
+          <form id="generateForm">
+            <div class="form-group">
+              <label class="form-label">Topic / Idea</label>
+              <textarea class="form-textarea" id="ai_topic" placeholder="e.g., How to optimize 3D print settings..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Style</label>
+              <select class="form-select" id="ai_style">
+                <option value="tutorial">Tutorial</option>
+                <option value="guide">Guide</option>
+                <option value="listicle">Listicle (Top 10...)</option>
+                <option value="review">Product Review</option>
+                <option value="comparison">Comparison (A vs B)</option>
+                <option value="how-to">How-To / Step-by-Step</option>
+                <option value="case-study">Case Study</option>
+                <option value="story">Story / Narrative</option>
+                <option value="opinion">Opinion / Editorial</option>
+                <option value="news">News / Update</option>
+                <option value="roundup">Roundup / Best Of</option>
+                <option value="faq">FAQ / Q&A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Length</label>
+              <select class="form-select" id="ai_length">
+                <option value="micro">Micro (200-400 words)</option>
+                <option value="short">Short (500-800 words)</option>
+                <option value="medium" selected>Medium (1000-1500 words)</option>
+                <option value="long">Long (2000-3000 words)</option>
+                <option value="deep-dive">Deep Dive (3000-5000 words)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tone</label>
+              <select class="form-select" id="ai_tone">
+                <option value="professional and engaging">Professional</option>
+                <option value="casual and friendly">Casual</option>
+                <option value="technical and detailed">Technical</option>
+                <option value="inspiring and motivational">Inspiring</option>
+                <option value="witty and humorous">Witty / Humorous</option>
+                <option value="conversational and relatable">Conversational</option>
+                <option value="authoritative and expert">Authoritative</option>
+                <option value="beginner-friendly and simple">Beginner-Friendly</option>
+                <option value="bold and provocative">Bold / Provocative</option>
+                <option value="educational and structured">Educational</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Images Mode</label>
+              <select class="form-select" id="ai_images_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+                <option value="none">No images</option>
+              </select>
+              <span class="form-hint">Royalty-free adds attribution automatically</span>
+            </div>
+            <div class="form-group" id="image_count_group">
+              <label class="form-label">Images Count</label>
+              <select class="form-select" id="ai_image_count">
+                <option value="0">0 images</option>
+                <option value="1">1 image</option>
+                <option value="2" selected>2 images</option>
+                <option value="3">3 images</option>
+                <option value="4">4 images</option>
+                <option value="5">5 images</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_strict_factcheck" class="form-checkbox"/>
+                <span>Strict fact-check + sources</span>
+              </label>
+              <span class="form-hint">Uses web search to find and cite sources</span>
+            </div>
+            <div class="form-group affiliate-section">
+              <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
+              <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
+              <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+              <select class="form-select" id="ai_affiliate_cta" style="margin-top:8px;">
+                <option value="Check Price on Amazon">Check Price on Amazon</option>
+                <option value="Buy Now on Amazon">Buy Now on Amazon</option>
+                <option value="View on Amazon">View on Amazon</option>
+                <option value="Shop Now">Shop Now</option>
+                <option value="Get It Here">Get It Here</option>
+                <option value="See Latest Price">See Latest Price</option>
+              </select>
+              <select class="form-select" id="ai_affiliate_placement" style="margin-top:8px;">
+                <option value="natural">Natural — AI decides placement</option>
+                <option value="early">Early — near the top</option>
+                <option value="middle">Middle — after key points</option>
+                <option value="end">End — as a recommendation</option>
+              </select>
+            </div>
+            <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
+          </form>
+
+          <div class="preview" id="generatePreview" style="display:none;">
+            <div class="preview-label">Generated Post</div>
+            <div class="preview-title" id="previewTitle"></div>
+            <div class="preview-text" id="previewExcerpt"></div>
+            <div class="preview-tags">
+              <span class="preview-tag" id="previewType"></span>
+              <span class="preview-tag" id="previewTags"></span>
+            </div>
+            <div class="preview-actions">
+              <button class="btn" id="previewEdit">Edit</button>
+              <button class="btn primary" id="previewPublish">Save Draft</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assist Tab -->
+        <div class="tab-content" id="tab-assist">
+          <div class="assist-grid">
+            <button class="assist-btn" data-action="expand"><span class="icon">+</span>Expand</button>
+            <button class="assist-btn" data-action="improve"><span class="icon">*</span>Improve</button>
+            <button class="assist-btn" data-action="simplify"><span class="icon">-</span>Simplify</button>
+            <button class="assist-btn" data-action="proofread"><span class="icon">?</span>Proofread</button>
+            <button class="assist-btn" data-action="headline"><span class="icon">#</span>Headlines</button>
+            <button class="assist-btn" data-action="seo"><span class="icon">@</span>SEO</button>
+            <button class="assist-btn" data-action="conclusion"><span class="icon">.</span>Conclusion</button>
+            <button class="assist-btn" data-action="outline"><span class="icon">=</span>Outline</button>
+          </div>
+          <form id="assistForm">
+            <div class="form-group">
+              <label class="form-label">Text to Process</label>
+              <textarea class="form-textarea" id="assist_text" placeholder="Paste text to process..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Context (optional)</label>
+              <input class="form-input" id="assist_context" placeholder="Brief description"/>
+            </div>
+          </form>
+          <div class="result" id="assistResult" style="display:none;">
+            <pre id="assistResultText"></pre>
+            <div class="preview-actions">
+              <button class="btn" id="copyAssist">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cover Tab -->
+        <div class="tab-content" id="tab-cover">
+          <form id="coverForm">
+            <div class="form-group">
+              <label class="form-label">Image Description / Search</label>
+              <textarea class="form-textarea" id="cover_prompt" placeholder="e.g., A futuristic 3D printer, cinematic lighting..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Image Source</label>
+              <select class="form-select" id="cover_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+              </select>
+              <span class="form-hint">Royalty-free is faster and includes attribution</span>
+            </div>
+            <div class="form-group" id="cover_size_group">
+              <label class="form-label">Size</label>
+              <select class="form-select" id="cover_size">
+                <option value="1536x1024" selected>Landscape (1536x1024)</option>
+                <option value="1024x1024">Square (1024x1024)</option>
+                <option value="1024x1536">Portrait (1024x1536)</option>
+              </select>
+            </div>
+            <button type="submit" class="action-btn" id="coverBtn">Generate Cover</button>
+          </form>
+          <div class="cover-preview" id="coverPreview" style="display:none;">
+            <img id="coverImage" alt="Generated cover"/>
+            <div class="cover-actions">
+              <button class="btn" id="copyCoverUrl">Copy URL</button>
+              <button class="btn primary" id="useCover">Use Cover</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscribers Tab -->
+        <div class="tab-content" id="tab-subscribers">
+          <div class="subs-tab-info">
+            <p class="muted">View and manage your newsletter subscribers.</p>
+            <button class="action-btn" id="openSubsModal">View Subscribers</button>
+          </div>
+        </div>
+
+        <!-- Validate Tab (Claim Validation Chat) -->
+        <div class="tab-content" id="tab-validate">
+          <div class="validate-header">
+            <div class="validate-mode-indicator" id="validateModeIndicator">
+              <span class="mode-dot"></span>
+              <span class="mode-text">Validation Mode: ON</span>
+            </div>
+            <div class="validate-controls">
+              <label class="validate-toggle">
+                <input type="checkbox" id="validateModeToggle" checked/>
+                <span class="toggle-label">Strict Validation</span>
+              </label>
+              <div class="validate-depth-toggle">
+                <button type="button" class="depth-btn active" id="depthScan" data-depth="scan">Scan</button>
+                <button type="button" class="depth-btn" id="depthDeep" data-depth="deep">Deep Dive</button>
+              </div>
+              <label class="research-toggle" title="When ON: fetches sources (expensive). When OFF: proposes queries (cheap).">
+                <input type="checkbox" id="researchModeToggle"/>
+                <span class="toggle-label research-label">🔬 Research</span>
+              </label>
+            </div>
+          </div>
+          <div class="validate-chat" id="validateChat">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-welcome">
+                <p><strong>Claim Validation Assistant</strong></p>
+                <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+                <p class="muted scan-hint"><strong>Scan:</strong> Quick verdict + 3-5 sources (fast & cheap)</p>
+                <p class="muted deep-hint hidden"><strong>Deep Dive:</strong> Full analysis + detailed explanation</p>
+              </div>
+            </div>
+          </div>
+          <!-- Context snippets display -->
+          <div class="context-snippets hidden" id="contextSnippets">
+            <div class="context-header">
+              <span class="context-label">📎 Code Context:</span>
+              <button type="button" class="context-clear-btn" id="clearContext">Clear All</button>
+            </div>
+            <div class="context-list" id="contextList"></div>
+          </div>
+          <form id="validateForm" class="validate-input">
+            <div class="validate-input-row">
+              <textarea id="validateInput" class="form-textarea" placeholder="Enter a claim to validate, e.g., 'Rate limiting prevents DDoS attacks'" rows="4"></textarea>
+              <div class="validate-input-actions">
+                <button type="button" class="context-btn" id="addContextBtn" title="Add code context">📁</button>
+                <button type="submit" class="action-btn validate-btn" id="validateBtn">Validate</button>
+              </div>
+            </div>
+          </form>
+          <div class="validate-actions">
+            <button class="btn" id="clearChat">Clear Chat</button>
+            <span class="muted" id="validateStatus"></span>
+          </div>
+        </div>
+
+        <!-- Usage Dashboard Tab -->
+        <div class="tab-content" id="tab-usage">
+          <div class="usage-dashboard">
+            <div class="usage-header">
+              <h3>API Usage Dashboard</h3>
+              <button class="action-btn" id="refreshUsage">Refresh</button>
+            </div>
+
+            <!-- Today's Usage -->
+            <div class="usage-section">
+              <h4>Today</h4>
+              <div class="usage-grid" id="usageToday">
+                <div class="usage-card">
+                  <span class="usage-label">Chat Tokens</span>
+                  <span class="usage-value" id="todayChatTokens">--</span>
+                  <span class="usage-limit" id="todayChatLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayChatBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Embeddings</span>
+                  <span class="usage-value" id="todayEmbedTokens">--</span>
+                  <span class="usage-limit" id="todayEmbedLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayEmbedBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Images</span>
+                  <span class="usage-value" id="todayImages">--</span>
+                  <span class="usage-limit" id="todayImagesLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayImagesBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Video (sec)</span>
+                  <span class="usage-value" id="todayVideo">--</span>
+                  <span class="usage-limit" id="todayVideoLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayVideoBar"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weekly Summary -->
+            <div class="usage-section">
+              <h4>Last 7 Days</h4>
+              <div class="usage-week-summary" id="usageWeek">
+                <div class="week-stat">
+                  <span class="stat-label">Total Chat Tokens</span>
+                  <span class="stat-value" id="weekChatTokens">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Total Embeddings</span>
+                  <span class="stat-value" id="weekEmbedTokens">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Total Images</span>
+                  <span class="stat-value" id="weekImages">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Video (sec)</span>
+                  <span class="stat-value" id="weekVideo">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Endpoints -->
+            <div class="usage-section">
+              <h4>Top Endpoints (by tokens)</h4>
+              <div class="usage-endpoints" id="usageEndpoints">
+                <table class="endpoints-table">
+                  <thead>
+                    <tr><th>Endpoint</th><th>Calls</th><th>Tokens</th></tr>
+                  </thead>
+                  <tbody id="endpointsBody">
+                    <tr><td colspan="3" class="muted">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Repo File Picker Modal -->
+  <div class="modal" id="repoModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Add Code Context</h3>
+        <button class="modal-close" id="closeRepoModal">&times;</button>
+      </div>
+      <div class="repo-modal-content">
+        <div class="repo-search">
+          <input type="text" id="repoSearchInput" class="form-input" placeholder="Search files... (e.g., main.py, /api/chat)"/>
+        </div>
+        <div class="repo-layout">
+          <div class="repo-tree-panel">
+            <div class="repo-tree" id="repoTree">
+              <div class="loading-text">Loading files...</div>
+            </div>
+          </div>
+          <div class="repo-preview-panel">
+            <div class="repo-preview-header">
+              <span id="previewFileName">Select a file to preview</span>
+              <div class="repo-preview-actions hidden" id="previewActions">
+                <label class="line-range-label">
+                  Lines: <input type="number" id="lineStart" value="1" min="1" class="line-input"/> - <input type="number" id="lineEnd" value="100" min="1" class="line-input"/>
+                </label>
+                <button type="button" class="btn small" id="addSnippetBtn">Add Snippet</button>
+                <button type="button" class="btn small primary" id="addWholeFileBtn">Add Whole File</button>
+              </div>
+            </div>
+            <pre class="repo-preview-code" id="repoPreviewCode"><code>No file selected</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscribers Modal -->
+  <div class="modal" id="subsModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Newsletter Subscribers</h3>
+        <button class="modal-close" id="closeSubsModal">&times;</button>
+      </div>
+      <div class="subs-modal-content">
+        <div class="subs-header">
+          <div class="subs-stats">
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsActiveCount">-</span>
+              <span class="subs-stat-label">Active</span>
+            </div>
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsTotalCount">-</span>
+              <span class="subs-stat-label">Total</span>
+            </div>
+          </div>
+          <div class="subs-controls">
+            <select class="form-select" id="subsFilter" title="Filter subscribers">
+              <option value="active">Active only</option>
+              <option value="all">All subscribers</option>
+            </select>
+            <button class="btn" id="refreshSubs">Refresh</button>
+            <button class="btn" id="checkEmailStatus" title="Check email configuration">Email Status</button>
+          </div>
+        </div>
+        <div class="email-status-panel" id="emailStatusPanel">
+          <div class="email-status-content" id="emailStatusContent">
+            Checking email configuration...
+          </div>
+        </div>
+        <div class="subs-list" id="subsList">
+          <div class="muted">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal" id="login">
+    <div class="modal-box">
+      <h3>Admin Login</h3>
+      <label>
+        <span>Token</span>
+        <input id="token" type="password" placeholder="Enter admin token" autocomplete="off"/>
+      </label>
+      <div class="modal-actions">
+        <span id="lmsg" class="muted"></span>
+        <button id="enter" class="btn primary ml-auto">Enter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="edit">
+    <div class="modal-box wide">
+      <h3>Edit Post</h3>
+      <label><span>Title</span><input id="e_title"/></label>
+      <label><span>Slug</span><input id="e_slug" disabled/></label>
+      <label><span>Cover URL</span><input id="e_cover"/></label>
+      <label><span>Type</span><input id="e_type"/></label>
+      <label><span>Tags</span><input id="e_tags"/></label>
+      <label><span>Minutes</span><input id="e_minutes" type="number" min="1"/></label>
+      <label><span>Excerpt</span><textarea id="e_excerpt"></textarea></label>
+      <label><span>Content</span><textarea id="e_content"></textarea></label>
+      <div class="row">
+        <select id="e_status">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+        <input id="e_author" placeholder="Author"/>
+        <span id="e_msg" class="muted"></span>
+      </div>
+      <div class="modal-actions">
+        <button id="save" class="btn primary">Save</button>
+        <button id="pub" class="btn">Publish</button>
+        <button id="unpub" class="btn">Unpublish</button>
+        <button id="del" class="btn btn-delete">Delete</button>
+        <button id="close" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover Type Selection Modal -->
+  <div class="modal" id="coverTypeModal">
+    <div class="modal-box cover-type-box">
+      <div class="modal-header">
+        <h3>Choose Cover Source</h3>
+        <button class="modal-close" id="closeCoverTypeModal">&times;</button>
+      </div>
+      <div class="cover-type-options">
+        <button class="cover-type-btn" id="coverTypeRoyaltyFree">
+          <span class="cover-type-icon">📷</span>
+          <span class="cover-type-title">Royalty-Free Images</span>
+          <span class="cover-type-desc">Search Unsplash & Pexels for free stock photos</span>
+        </button>
+        <button class="cover-type-btn" id="coverTypeAI">
+          <span class="cover-type-icon">🎨</span>
+          <span class="cover-type-title">AI Generated</span>
+          <span class="cover-type-desc">Create unique images with DALL-E</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover Image Result Modal -->
+  <div class="modal" id="coverModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="coverModalTitle">Cover Image Ready</h3>
+        <button class="modal-close" id="closeCoverModal">&times;</button>
+      </div>
+      <!-- Picker View (for royalty-free options) -->
+      <div class="cover-picker-content hidden" id="coverPickerContent">
+        <p class="picker-hint">Click an image to select it as your cover</p>
+        <div class="cover-picker-grid" id="coverPickerGrid">
+          <!-- Images will be injected here -->
+        </div>
+      </div>
+      <!-- Single Image View (after selection or AI generated) -->
+      <div class="cover-modal-content" id="coverSingleContent">
+        <img id="modalCoverImage" alt="Generated cover"/>
+        <p id="modalCoverAttribution" class="cover-attribution hidden"></p>
+      </div>
+      <div class="modal-actions" id="coverModalActions">
+        <button class="btn" id="modalCopyCoverUrl">Copy URL</button>
+        <button class="btn primary" id="modalUseCover">Use as Cover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generated Blog Post Modal -->
+  <div class="modal" id="blogModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Blog Post Generated</h3>
+        <button class="modal-close" id="closeBlogModal">&times;</button>
+      </div>
+      <div class="blog-modal-content">
+        <div class="blog-draft-status" id="blogDraftStatus">
+          <span class="status-icon">&#10003;</span>
+          <span>Auto-saved as draft</span>
+          <span class="draft-slug" id="blogDraftSlug"></span>
+        </div>
+        <div class="blog-preview-title" id="modalPreviewTitle"></div>
+        <div class="blog-preview-excerpt" id="modalPreviewExcerpt"></div>
+        <div class="blog-preview-meta">
+          <span class="blog-preview-tag type" id="modalPreviewType"></span>
+          <span class="blog-preview-tag tags" id="modalPreviewTags"></span>
+        </div>
+        <!-- Cover Section -->
+        <div class="blog-cover-section" id="blogCoverSection">
+          <div class="cover-section-header">
+            <span class="label">Cover Image:</span>
+            <span id="coverStatus" class="cover-status">No cover yet</span>
+          </div>
+          <div class="cover-prompt-row">
+            <span class="cover-prompt-label">Auto prompt:</span>
+            <span class="cover-prompt-text" id="modalPreviewCoverPrompt"></span>
+          </div>
+          <div class="cover-custom-search">
+            <input type="text" id="customCoverPrompt" class="form-input" placeholder="Or enter your own search terms..."/>
+          </div>
+          <!-- Cover picker will be injected here -->
+          <div id="modalCoverPicker" class="modal-cover-picker hidden"></div>
+          <!-- Current cover preview -->
+          <div id="modalCoverPreview" class="modal-cover-preview hidden">
+            <img id="modalDraftCoverImg" alt="Cover"/>
+            <p id="modalDraftCoverAttr" class="cover-attribution"></p>
+          </div>
+        </div>
+        <!-- Claim Validation Section -->
+        <div class="blog-validation-section" id="blogValidationSection">
+          <div class="validation-header">
+            <span class="label">Claim Validation:</span>
+            <span class="validation-status pending" id="validationStatus">Not checked</span>
+          </div>
+          <div class="validation-results" id="validationResults"></div>
+          <div class="validation-actions">
+            <button type="button" class="btn" id="validateClaimsBtn">Validate Claims</button>
+            <button type="button" class="btn hidden" id="addAllRefsBtn">Add All References to Draft</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalPreviewEdit">Edit in Editor</button>
+        <button class="btn" id="modalGenerateCover">Generate Cover</button>
+        <button class="btn primary" id="modalViewPost">View Post</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = `${location.origin}/api`;
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const $ = s => document.querySelector(s);
+    const tokenKey = 'TX_ADMIN_TOKEN';
+
+    let generatedBlog = null;
+    let generatedCoverUrl = null;
+    let generatedCoverData = null;  // Full response including attribution
+    let savedDraftSlug = null;  // Slug of auto-saved draft
+
+    // Auto-save blog as draft
+    async function autoSaveDraft(blogData) {
+      const statusEl = $('#blogDraftStatus');
+      const slugEl = $('#blogDraftSlug');
+
+      statusEl.className = 'blog-draft-status saving';
+      statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
+
+      try {
+        const r = await fetch(API + '/post', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            title: blogData.title,
+            excerpt: blogData.excerpt,
+            tags: blogData.tags,
+            type: blogData.type,
+            cover_url: '',
+            cover_attribution: '',
+            content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
+            status: 'draft',
+            author: 'Dima V',
+            author_avatar: 'img/dima.jpg'
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok || j.slug) {
+          savedDraftSlug = j.slug;
+          statusEl.className = 'blog-draft-status';
+          statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + j.slug + '</span>';
+          load();  // Refresh posts list
+        } else {
+          statusEl.className = 'blog-draft-status error';
+          statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Failed to save: ' + (j.error || 'Unknown error') + '</span>';
+        }
+      } catch (err) {
+        statusEl.className = 'blog-draft-status error';
+        statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Error: ' + err.message + '</span>';
+      }
+    }
+
+    // Update draft with cover image
+    async function updateDraftCover(coverUrl, coverAttribution) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        const r = await fetch(API + '/post/' + encodeURIComponent(savedDraftSlug), {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            cover_url: coverUrl,
+            cover_attribution: coverAttribution
+          })
+        });
+        const j = await r.json();
+        return j.ok;
+      } catch (err) {
+        console.error('Failed to update draft cover:', err);
+        return false;
+      }
+    }
+
+    function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
+    function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
+    function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+
+    async function ensureAuth(){
+      if(!getToken()){ $('#login').classList.add('show'); return false; }
+      const r = await fetch(API+'/admin/auth', {headers: headers()});
+      if(!r.ok){ $('#login').classList.add('show'); return false; }
+      return true;
+    }
+
+    $('#enter').onclick = async ()=>{
+      const t = $('#token').value.trim(); if(!t) return;
+      setToken(t);
+      if(await ensureAuth()){
+        $('#login').classList.remove('show');
+        $('#search').value = '';
+        load();
+        checkAI();
+      }
+      else { $('#lmsg').textContent = 'Invalid token'; setToken(''); }
+    };
+    $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
+
+    // Check AI status
+    async function checkAI() {
+      try {
+        const r = await fetch(API + '/admin/ai/status', { headers: headers() });
+        const j = await r.json();
+        const status = $('#aiStatus');
+        if (j.configured) {
+          status.textContent = 'Online';
+          status.classList.add('online');
+          status.classList.remove('offline');
+        } else {
+          status.textContent = 'Offline';
+          status.classList.add('offline');
+          status.classList.remove('online');
+        }
+      } catch (e) {
+        $('#aiStatus').textContent = 'Offline';
+        $('#aiStatus').classList.add('offline');
+      }
+    }
+
+    // Tab switching
+    $$('.tab').forEach(tab => {
+      tab.onclick = () => {
+        $$('.tab').forEach(t => t.classList.remove('active'));
+        $$('.tab-content').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        $(`#tab-${tab.dataset.tab}`).classList.add('active');
+      };
+    });
+
+    // Dynamic UI: Hide/show image count based on images mode
+    $('#ai_images_mode').onchange = function() {
+      const imageCountGroup = $('#image_count_group');
+      if (imageCountGroup) {
+        imageCountGroup.style.display = this.value === 'none' ? 'none' : 'block';
+      }
+    };
+
+    // Auto-enable fact-check for news style
+    $('#ai_style').onchange = function() {
+      if (this.value === 'news') {
+        $('#ai_strict_factcheck').checked = true;
+      }
+    };
+
+    // Generate blog post
+    $('#generateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const topic = $('#ai_topic').value.trim();
+      if (!topic) return alert('Please enter a topic');
+
+      const btn = $('#generateBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+      try {
+        const affiliateUrl = $('#ai_affiliate_url').value.trim();
+        const productName = $('#ai_product_name').value.trim();
+        const imagesMode = $('#ai_images_mode').value;
+
+        const r = await fetch(API + '/admin/ai/generate', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            topic,
+            style: $('#ai_style').value,
+            length: $('#ai_length').value,
+            tone: $('#ai_tone').value,
+            image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
+            images_mode: imagesMode,
+            strict_factcheck: $('#ai_strict_factcheck').checked,
+            affiliate_url: affiliateUrl || undefined,
+            product_name: productName || undefined,
+            affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
+            affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok) {
+          generatedBlog = j;
+          // Show warnings for graceful degradation and quality gates
+          const warnings = [];
+          if (j.images_mode_warning) warnings.push(j.images_mode_warning);
+          if (j.factcheck_warning) warnings.push(j.factcheck_warning);
+          if (j.quality_warning) warnings.push('⚠️ ' + j.quality_warning);
+          if (warnings.length > 0) {
+            alert('Note:\n' + warnings.join('\n\n'));
+          }
+          // Show in modal
+          $('#modalPreviewTitle').textContent = j.title;
+          $('#modalPreviewExcerpt').textContent = j.excerpt;
+          $('#modalPreviewType').textContent = j.type;
+          $('#modalPreviewTags').textContent = j.tags;
+          $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
+          if (j.cover_prompt) {
+            $('#cover_prompt').value = j.cover_prompt;
+          }
+          // Reset cover section
+          $('#modalCoverPicker').classList.add('hidden');
+          $('#modalCoverPreview').classList.add('hidden');
+          $('#coverStatus').textContent = 'No cover yet';
+          $('#coverStatus').classList.remove('ready');
+          generatedCoverUrl = '';
+          generatedCoverData = null;
+          savedDraftSlug = null;
+
+          // Show modal
+          $('#blogModal').classList.add('show');
+
+          // Auto-save as draft
+          autoSaveDraft(j);
+        } else {
+          alert('Generation failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Blog Post';
+      }
+    };
+
+    // Close blog modal
+    $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
+
+    // Save generated blog as draft (modal version) - guarded for optional button
+    const modalPreviewPublish = $('#modalPreviewPublish');
+    if (modalPreviewPublish) {
+      modalPreviewPublish.onclick = async () => {
+        if (!generatedBlog) return;
+        const btn = modalPreviewPublish;
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        try {
+          // Build cover attribution from generatedCoverData if available
+          let coverAttribution = '';
+          if (generatedCoverData && generatedCoverData.attribution) {
+            coverAttribution = generatedCoverData.attribution;
+          }
+          const r = await fetch(API + '/post', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              title: generatedBlog.title,
+              excerpt: generatedBlog.excerpt,
+              tags: generatedBlog.tags,
+              type: generatedBlog.type,
+              cover_url: generatedCoverUrl || '',
+              cover_attribution: coverAttribution,
+              content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
+              status: 'draft',
+              author: 'Dima V',
+              author_avatar: 'img/dima.jpg'
+            })
+          });
+          const j = await r.json();
+          if (j.ok || j.slug) {
+            alert('Draft saved! Slug: ' + j.slug);
+            load();
+            $('#blogModal').classList.remove('show');
+            $('#ai_topic').value = '';
+            generatedBlog = null;
+            generatedCoverData = null;
+          } else {
+            alert('Save failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save as Draft';
+        }
+      };
+    }
+
+    // Edit in full editor (modal version)
+    $('#modalPreviewEdit').onclick = () => {
+      if (!generatedBlog) return;
+      sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
+      window.location.href = 'write.html?ai=1';
+    };
+
+    // Generate cover from blog modal - show cover type selection modal
+    $('#modalGenerateCover').onclick = () => {
+      // Use custom prompt if provided, otherwise use auto-generated
+      const customPrompt = $('#customCoverPrompt')?.value?.trim();
+      const autoPrompt = generatedBlog?.cover_prompt;
+      const prompt = customPrompt || autoPrompt;
+
+      if (!prompt) {
+        alert('No cover prompt available. Enter custom search terms or generate a blog first.');
+        return;
+      }
+
+      // Store prompt for use in selection handlers
+      window.pendingCoverPrompt = prompt;
+      $('#coverTypeModal').classList.add('show');
+    };
+
+    // Close cover type modal
+    $('#closeCoverTypeModal').onclick = () => {
+      $('#coverTypeModal').classList.remove('show');
+    };
+
+    // Handle royalty-free selection
+    $('#coverTypeRoyaltyFree').onclick = async () => {
+      $('#coverTypeModal').classList.remove('show');
+      const prompt = window.pendingCoverPrompt;
+      const btn = $('#modalGenerateCover');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Searching...';
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            mode: 'royalty_free'
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.mode === 'preview' && j.options) {
+          coverSearchOptions = j.options;
+          coverSearchPrompt = prompt;
+          coverSelectionSource = 'blogModal';
+          showCoverPicker(j.options);
+          $('#coverModal').classList.add('show');
+        } else {
+          alert('Search failed: ' + (j.error || 'No images found'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Cover';
+      }
+    };
+
+    // Handle AI generated selection
+    $('#coverTypeAI').onclick = async () => {
+      $('#coverTypeModal').classList.remove('show');
+      const prompt = window.pendingCoverPrompt;
+      const btn = $('#modalGenerateCover');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            size: $('#cover_size').value || '1536x1024',
+            mode: 'ai_photoreal'
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;
+          showModalCoverPreview(j);
+          // Update the draft with the cover
+          if (savedDraftSlug) {
+            await updateDraftCover(j.url, j.attribution || '');
+          }
+        } else {
+          alert('Generation failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Cover';
+      }
+    };
+
+    // Show cover picker inline in blog modal
+    function showModalCoverPicker(options) {
+      const picker = $('#modalCoverPicker');
+      const preview = $('#modalCoverPreview');
+      const status = $('#coverStatus');
+
+      preview.classList.add('hidden');
+      picker.classList.remove('hidden');
+      status.textContent = 'Choose an image:';
+      status.classList.remove('ready');
+
+      picker.innerHTML = `
+        <div class="modal-picker-grid">
+          ${options.map((opt, idx) => `
+            <div class="modal-picker-item" data-idx="${idx}">
+              <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
+              <div class="picker-credit">by <strong>${opt.photographer}</strong></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Add click handlers
+      picker.querySelectorAll('.modal-picker-item').forEach(item => {
+        item.onclick = () => selectModalCoverOption(parseInt(item.dataset.idx));
+      });
+    }
+
+    // Select cover option from inline picker and upload to S3
+    async function selectModalCoverOption(index) {
+      const item = $(`[data-idx="${index}"]`);
+      if (!item || item.classList.contains('selecting')) return;
+
+      item.classList.add('selecting');
+      item.insertAdjacentHTML('beforeend', '<div class="selecting-spinner"></div>');
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt: coverSearchPrompt,
+            mode: 'royalty_free',
+            selected_index: index
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;
+          showModalCoverPreview(j);
+          // Update the draft with the cover
+          if (savedDraftSlug) {
+            await updateDraftCover(j.url, j.attribution || '');
+          }
+        } else {
+          alert('Failed to select image: ' + (j.error || 'Unknown error'));
+          item.classList.remove('selecting');
+          item.querySelector('.selecting-spinner')?.remove();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        item.classList.remove('selecting');
+        item.querySelector('.selecting-spinner')?.remove();
+      }
+    }
+
+    // Show cover preview inline in blog modal
+    function showModalCoverPreview(j) {
+      const picker = $('#modalCoverPicker');
+      const preview = $('#modalCoverPreview');
+      const status = $('#coverStatus');
+
+      console.log('showModalCoverPreview called with URL:', j.url);
+
+      picker.classList.add('hidden');
+      preview.classList.remove('hidden');
+      status.textContent = 'Cover ready!';
+      status.classList.add('ready');
+
+      const img = $('#modalDraftCoverImg');
+      if (img && j.url) {
+        img.onerror = () => console.error('Failed to load cover image from:', j.url);
+        img.onload = () => console.log('Cover image loaded successfully');
+        img.src = j.url;
+        console.log('Cover image src set to:', j.url);
+      } else {
+        console.error('Could not set cover image:', { img: !!img, url: j.url });
+      }
+      const attr = $('#modalDraftCoverAttr');
+      if (j.attribution) {
+        attr.innerHTML = j.attribution;
+        attr.classList.remove('hidden');
+      } else {
+        attr.classList.add('hidden');
+      }
+    }
+
+    // View saved post
+    $('#modalViewPost').onclick = () => {
+      if (savedDraftSlug) {
+        window.open(`read.html?slug=${encodeURIComponent(savedDraftSlug)}`, '_blank');
+      } else {
+        alert('Post not saved yet. Please wait for auto-save to complete.');
+      }
+    };
+
+    // AI Assist functions
+    $$('.assist-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.action;
+        const text = $('#assist_text').value.trim();
+        if (!text) return alert('Please enter text to process');
+
+        $$('.assist-btn').forEach(b => b.disabled = true);
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        try {
+          const r = await fetch(API + '/admin/ai/assist', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              action,
+              text,
+              context: $('#assist_context').value.trim()
+            })
+          });
+          const j = await r.json();
+
+          if (j.ok) {
+            let result = j.result;
+            if (typeof result === 'object') {
+              result = JSON.stringify(result, null, 2);
+            }
+            $('#assistResultText').textContent = result;
+            $('#assistResult').style.display = 'block';
+          } else {
+            alert('Assist failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          $$('.assist-btn').forEach(b => {
+            b.disabled = false;
+          });
+          const icons = {expand:'+',improve:'*',simplify:'-',proofread:'?',headline:'#',seo:'@',conclusion:'.',outline:'='};
+          const labels = {expand:'Expand',improve:'Improve',simplify:'Simplify',proofread:'Proofread',headline:'Headlines',seo:'SEO',conclusion:'Conclusion',outline:'Outline'};
+          $$('.assist-btn').forEach(b => {
+            const a = b.dataset.action;
+            b.innerHTML = `<span class="icon">${icons[a]}</span>${labels[a]}`;
+          });
+        }
+      };
+    });
+
+    // Copy assist result
+    $('#copyAssist').onclick = () => {
+      const text = $('#assistResultText').textContent;
+      navigator.clipboard.writeText(text);
+      $('#copyAssist').textContent = 'Copied!';
+      setTimeout(() => $('#copyAssist').textContent = 'Copy', 1500);
+    };
+
+    // Store current cover search options for selection
+    let coverSearchOptions = [];
+    let coverSearchPrompt = '';
+    let coverSelectionSource = 'coverTab';  // Track where selection came from: 'coverTab' or 'blogModal'
+
+    // Generate cover image from Cover tab
+    $('#coverForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const prompt = $('#cover_prompt').value.trim();
+      const mode = $('#cover_mode').value;
+      if (!prompt) return alert('Please enter an image description');
+
+      const btn = $('#coverBtn');
+      btn.disabled = true;
+      const actionText = mode === 'royalty_free' ? 'Searching...' : 'Generating...';
+      btn.innerHTML = '<span class="spinner"></span>' + actionText;
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            size: $('#cover_size').value,
+            mode: mode
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok) {
+          // Royalty-free preview mode: show picker with 3 options
+          if (j.mode === 'preview' && j.options) {
+            coverSearchOptions = j.options;
+            coverSearchPrompt = prompt;
+            coverSelectionSource = 'coverTab';  // Track source
+            showCoverPicker(j.options);
+            $('#coverModal').classList.add('show');
+          }
+          // Direct mode (AI generated or already selected)
+          else if (j.url) {
+            generatedCoverUrl = j.url;
+            generatedCoverData = j;
+            applyCoverToPreview(j);  // Apply to Cover tab preview
+            // Also update blog modal if visible and has a draft
+            if (savedDraftSlug) {
+              showModalCoverPreview(j);
+              await updateDraftCover(j.url, j.attribution || '');
+              console.log('AI cover linked to draft:', savedDraftSlug);
+            }
+            showCoverResult(j);
+            $('#coverModal').classList.add('show');
+          }
+        } else {
+          alert('Image failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = mode === 'royalty_free' ? 'Search Cover' : 'Generate Cover';
+      }
+    };
+
+    // Show the cover picker with 3 options
+    function showCoverPicker(options) {
+      $('#coverModalTitle').textContent = 'Choose Cover Image';
+      $('#coverPickerContent').classList.remove('hidden');
+      $('#coverSingleContent').classList.add('hidden');
+      $('#coverModalActions').classList.add('hidden');
+
+      const grid = $('#coverPickerGrid');
+      grid.innerHTML = options.map((opt, idx) => `
+        <div class="cover-picker-item" data-index="${idx}">
+          <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
+          <div class="picker-credit">by <strong>${opt.photographer}</strong> on ${opt.source}</div>
+        </div>
+      `).join('');
+
+      // Add click handlers
+      grid.querySelectorAll('.cover-picker-item').forEach(item => {
+        item.onclick = () => selectCoverOption(parseInt(item.dataset.index));
+      });
+    }
+
+    // Select a cover option and upload to S3
+    async function selectCoverOption(index) {
+      const item = $(`[data-index="${index}"]`);
+      if (!item || item.classList.contains('selecting')) return;
+
+      // Show loading on selected item
+      item.classList.add('selecting');
+      item.innerHTML += '<div class="selecting-spinner"></div>';
+
+      try {
+        const r = await fetch(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt: coverSearchPrompt,
+            mode: 'royalty_free',
+            selected_index: index
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok && j.url) {
+          generatedCoverUrl = j.url;
+          generatedCoverData = j;
+
+          // Apply cover to the Cover tab preview
+          applyCoverToPreview(j);
+
+          // If selection came from blog modal, also update the blog modal preview
+          if (coverSelectionSource === 'blogModal') {
+            showModalCoverPreview(j);
+          }
+
+          // Update the draft with the cover if we have a saved draft
+          if (savedDraftSlug) {
+            await updateDraftCover(j.url, j.attribution || '');
+            console.log('Cover linked to draft:', savedDraftSlug);
+          }
+
+          $('#coverModal').classList.remove('show');
+        } else {
+          alert('Failed to select image: ' + (j.error || 'Unknown error'));
+          item.classList.remove('selecting');
+          item.querySelector('.selecting-spinner')?.remove();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        item.classList.remove('selecting');
+        item.querySelector('.selecting-spinner')?.remove();
+      }
+    }
+
+    // Show the final cover result
+    function showCoverResult(j) {
+      $('#coverModalTitle').textContent = 'Cover Image Ready';
+      $('#coverPickerContent').classList.add('hidden');
+      $('#coverSingleContent').classList.remove('hidden');
+      $('#coverModalActions').classList.remove('hidden');
+
+      $('#modalCoverImage').src = j.url;
+      const attrEl = $('#modalCoverAttribution');
+      if (attrEl) {
+        if (j.attribution) {
+          attrEl.innerHTML = j.attribution;
+          attrEl.classList.remove('hidden');
+        } else {
+          attrEl.classList.add('hidden');
+        }
+      }
+    }
+
+    // Apply cover to main preview area in Cover tab
+    function applyCoverToPreview(j) {
+      console.log('applyCoverToPreview called with URL:', j.url);
+      const preview = $('#coverPreview');
+      const img = $('#coverImage');
+
+      if (preview && img && j.url) {
+        img.src = j.url;
+        preview.style.display = 'block';
+        console.log('Cover preview set:', j.url);
+
+        // Add attribution if available
+        let attrEl = preview.querySelector('.cover-attribution');
+        if (!attrEl) {
+          attrEl = document.createElement('p');
+          attrEl.className = 'cover-attribution';
+          preview.insertBefore(attrEl, preview.querySelector('.cover-actions'));
+        }
+        if (j.attribution) {
+          attrEl.innerHTML = j.attribution;
+          attrEl.style.display = 'block';
+        } else {
+          attrEl.style.display = 'none';
+        }
+      }
+    }
+
+    // Update button text based on cover mode
+    $('#cover_mode').onchange = function() {
+      const btn = $('#coverBtn');
+      const sizeGroup = $('#cover_size_group');
+      if (this.value === 'royalty_free') {
+        btn.textContent = 'Search Cover';
+        if (sizeGroup) sizeGroup.style.display = 'none';  // Size not applicable for stock
+      } else {
+        btn.textContent = 'Generate Cover';
+        if (sizeGroup) sizeGroup.style.display = 'block';
+      }
+    };
+
+    // Close cover modal
+    $('#closeCoverModal').onclick = () => $('#coverModal').classList.remove('show');
+
+    // Copy cover URL (modal version)
+    $('#modalCopyCoverUrl').onclick = () => {
+      if (generatedCoverUrl) {
+        navigator.clipboard.writeText(generatedCoverUrl);
+        $('#modalCopyCoverUrl').textContent = 'Copied!';
+        setTimeout(() => $('#modalCopyCoverUrl').textContent = 'Copy URL', 1500);
+      }
+    };
+
+    // Use cover (modal version)
+    $('#modalUseCover').onclick = () => {
+      if (generatedCoverUrl) {
+        // If editing a post, set the cover URL
+        if ($('#edit').classList.contains('show')) {
+          $('#e_cover').value = generatedCoverUrl;
+        }
+        $('#coverModal').classList.remove('show');
+        alert('Cover URL ready! Use it when creating/editing a post.');
+      }
+    };
+
+    async function load(){
+      const q = $('#search').value.trim();
+      const status = $('#flt').value;
+      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`, { headers: headers() });
+      if (!r.ok) {
+        console.error('[Admin] Failed to load posts:', r.status, r.statusText);
+        render([]);
+        return;
+      }
+      const j = await r.json();
+      console.info('[Admin] Loaded posts:', j.items?.length || 0, 'status filter:', status);
+      render(j.items || []);
+    }
+
+    function render(items){
+      const list = $('#list');
+      list.innerHTML = '';
+      if(!items.length){
+        list.innerHTML = '<div class="muted">No posts found.</div>';
+        return;
+      }
+      for(const p of items){
+        const el = document.createElement('div');
+        el.className = 'post';
+        el.innerHTML = `
+          <div class="post-info">
+            <div class="post-title">${esc(p.title||'(no title)')}</div>
+            <div class="post-meta">
+              <span class="post-status">${p.status}</span>
+              <span>${p.slug}</span>
+            </div>
+          </div>
+          <div class="post-actions">
+            <button class="btn" data-edit="${p.slug}">Edit</button>
+            ${p.status==='draft'?`<button class="btn" data-pub="${p.slug}">Publish</button>`:`<button class="btn" data-unpub="${p.slug}">Unpublish</button>`}
+            <button class="btn btn-delete" data-del="${p.slug}">Delete</button>
+          </div>`;
+        list.appendChild(el);
+      }
+    }
+
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    $('#list').addEventListener('click', async e=>{
+      const b = e.target.closest('button');
+      if(!b) return;
+      const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
+      if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
+      if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.del){
+        if(confirm('Delete this post permanently? This cannot be undone.')){
+          try {
+            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+            const j = await r.json();
+            if(j.ok){
+              alert('Post deleted successfully');
+              await load();
+            } else {
+              alert('Delete failed: ' + (j.error || 'Unknown error'));
+            }
+          } catch(err){
+            alert('Delete failed: ' + err.message);
+          }
+        }
+      }
+    });
+
+    // Edit modal
+    $('#close').onclick = ()=> $('#edit').classList.remove('show');
+
+    async function openEdit(slug){
+      $('#e_msg').textContent = 'Loading…';
+      $('#edit').classList.add('show');
+      const p = await (await fetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
+      $('#e_title').value = p.title||'';
+      $('#e_slug').value = p.slug||'';
+      $('#e_cover').value = p.cover_url||'';
+      $('#e_type').value = p.type||'';
+      $('#e_tags').value = p.tags||'';
+      $('#e_minutes').value = p.minutes||'';
+      $('#e_excerpt').value = p.excerpt||'';
+      $('#e_content').value = p.content_md||'';
+      $('#e_status').value = p.status||'draft';
+      $('#e_author').value = p.author||'Dima V';
+      $('#e_msg').textContent = '';
+    }
+
+    $('#save').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      const body = {
+        title: $('#e_title').value.trim(),
+        cover_url: $('#e_cover').value.trim(),
+        type: $('#e_type').value.trim(),
+        tags: $('#e_tags').value.trim(),
+        minutes: parseInt($('#e_minutes').value)||undefined,
+        excerpt: $('#e_excerpt').value.trim(),
+        content_md: $('#e_content').value,
+        status: $('#e_status').value,
+        author: $('#e_author').value.trim()||'Dima V',
+        author_avatar: 'img/dima.jpg'
+      };
+      $('#e_msg').textContent = 'Saving…';
+      const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
+      $('#e_msg').textContent = r.ok ? 'Saved' : 'Error';
+      if(r.ok) load();
+    };
+
+    $('#pub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#unpub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#del').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      if(confirm('Delete this post permanently? This cannot be undone.')){
+        try {
+          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+          const j = await r.json();
+          if(j.ok){
+            alert('Post deleted successfully');
+            $('#edit').classList.remove('show');
+            await load();
+          } else {
+            alert('Delete failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch(err){
+          alert('Delete failed: ' + err.message);
+        }
+      }
+    };
+
+    // New post
+    $('#newPost').onclick = async ()=>{
+      await fetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'draft', author:'Dima V', author_avatar:'img/dima.jpg'})});
+      load();
+    };
+
+    // Filters
+    $('#reload').onclick = load;
+    $('#flt').onchange = load;
+    $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    // Close modals on backdrop click or Escape key
+    ['coverModal', 'blogModal'].forEach(id => {
+      const modal = $('#' + id);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        $('#coverModal').classList.remove('show');
+        $('#blogModal').classList.remove('show');
+        $('#subsModal').classList.remove('show');
+        $('#repoModal').classList.remove('show');
+      }
+    });
+
+    // Subscribers management
+    async function loadSubscribers() {
+      const filter = $('#subsFilter').value;
+      const list = $('#subsList');
+      list.innerHTML = '<div class="muted">Loading...</div>';
+
+      try {
+        const r = await fetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          list.innerHTML = '<div class="muted">Failed to load subscribers</div>';
+          return;
+        }
+
+        const items = j.items || [];
+        $('#subsActiveCount').textContent = items.filter(s => s.status === 'active').length;
+
+        // Get total count
+        const totalR = await fetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
+        const totalJ = await totalR.json();
+        $('#subsTotalCount').textContent = (totalJ.items || []).length;
+
+        if (!items.length) {
+          list.innerHTML = '<div class="muted">No subscribers found</div>';
+          return;
+        }
+
+        list.innerHTML = items.map(s => `
+          <div class="sub-item ${s.status}">
+            <div class="sub-email">${esc(s.email)}</div>
+            <div class="sub-meta">
+              <span class="sub-status">${s.status}</span>
+              <span class="sub-date">${s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        list.innerHTML = '<div class="muted">Error: ' + err.message + '</div>';
+      }
+    }
+
+    // Open subscribers modal
+    function openSubsModal() {
+      $('#subsModal').classList.add('show');
+      loadSubscribers();
+    }
+
+    $('#openSubsModal').onclick = openSubsModal;
+    $('#closeSubsModal').onclick = () => $('#subsModal').classList.remove('show');
+    $('#refreshSubs').onclick = loadSubscribers;
+    $('#subsFilter').onchange = loadSubscribers;
+
+    // Email status check
+    $('#checkEmailStatus').onclick = async () => {
+      const panel = $('#emailStatusPanel');
+      const content = $('#emailStatusContent');
+
+      panel.classList.toggle('visible');
+      if (!panel.classList.contains('visible')) return;
+
+      content.innerHTML = '<span class="muted">Checking email configuration...</span>';
+
+      try {
+        const r = await fetch(`${API}/admin/email-status`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          content.innerHTML = '<span class="error">Failed to check email status</span>';
+          return;
+        }
+
+        const statusIcon = (ok) => ok ? '<span class="status-ok">✓</span>' : '<span class="status-err">✗</span>';
+        const hints = (j.hints || []).filter(h => h);
+
+        content.innerHTML = `
+          <div class="status-grid">
+            <div class="status-item">${statusIcon(j.email_enabled)} EMAIL_ENABLED</div>
+            <div class="status-item">${statusIcon(j.ses_from_email)} SES_FROM_EMAIL: ${j.ses_from_email || 'not set'}</div>
+            <div class="status-item">${statusIcon(j.aws_credentials_set)} AWS Credentials</div>
+            <div class="status-item">${statusIcon(j.ses_client_available)} SES Client</div>
+            <div class="status-item">${statusIcon(j.ses_identity_verified)} Sender Verified</div>
+            <div class="status-item">${statusIcon(!j.ses_sandbox_mode)} Production Mode ${j.ses_sandbox_mode ? '(Sandbox)' : ''}</div>
+          </div>
+          ${hints.length ? `<div class="status-hints"><strong>Issues:</strong><ul>${hints.map(h => `<li>${h}</li>`).join('')}</ul></div>` : '<div class="status-ok-msg">Email configuration looks good!</div>'}
+        `;
+      } catch (err) {
+        content.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
+      }
+    };
+
+    // Close modal on backdrop click
+    $('#subsModal').addEventListener('click', e => {
+      if (e.target === $('#subsModal')) $('#subsModal').classList.remove('show');
+    });
+
+    // ========== CLAIM VALIDATION CHAT ==========
+    const CHAT_API = 'https://chat.timrx.live';  // FastAPI chat server
+    const VALIDATE_MODE_KEY = 'TX_VALIDATE_MODE';
+    let validateMessages = [];
+
+    // Load mode from localStorage
+    function loadValidateMode() {
+      const saved = localStorage.getItem(VALIDATE_MODE_KEY);
+      const isValidate = saved !== 'normal';  // Default to validate mode
+      $('#validateModeToggle').checked = isValidate;
+      updateModeIndicator(isValidate);
+      return isValidate;
+    }
+
+    // Save mode to localStorage
+    function saveValidateMode(isValidate) {
+      localStorage.setItem(VALIDATE_MODE_KEY, isValidate ? 'validate' : 'normal');
+      updateModeIndicator(isValidate);
+    }
+
+    // Update mode indicator UI
+    function updateModeIndicator(isValidate) {
+      const indicator = $('#validateModeIndicator');
+      const text = indicator.querySelector('.mode-text');
+      if (isValidate) {
+        indicator.classList.remove('off');
+        text.textContent = 'Validation Mode: ON';
+      } else {
+        indicator.classList.add('off');
+        text.textContent = 'Validation Mode: OFF';
+      }
+    }
+
+    // Toggle mode handler
+    $('#validateModeToggle').onchange = function() {
+      saveValidateMode(this.checked);
+    };
+
+    // Validation depth toggle (scan vs deep)
+    let validateDepth = 'scan';  // Default to scan (cheaper)
+
+    $('#depthScan').onclick = function() {
+      validateDepth = 'scan';
+      $('#depthScan').classList.add('active');
+      $('#depthDeep').classList.remove('active');
+      $('.scan-hint')?.classList.remove('hidden');
+      $('.deep-hint')?.classList.add('hidden');
+    };
+
+    $('#depthDeep').onclick = function() {
+      validateDepth = 'deep';
+      $('#depthDeep').classList.add('active');
+      $('#depthScan').classList.remove('active');
+      $('.deep-hint')?.classList.remove('hidden');
+      $('.scan-hint')?.classList.add('hidden');
+    };
+
+    // ---------- Repo Context Picker ----------
+    let repoTree = null;
+    let selectedContexts = [];  // Array of { path, name, start, end, content }
+    let currentPreviewFile = null;
+
+    // Open repo modal
+    $('#addContextBtn').onclick = async () => {
+      $('#repoModal').classList.add('show');
+      if (!repoTree) {
+        await loadRepoTree();
+      }
+    };
+
+    // Close repo modal
+    $('#closeRepoModal').onclick = () => {
+      $('#repoModal').classList.remove('show');
+    };
+    $('#repoModal').addEventListener('click', e => {
+      if (e.target.id === 'repoModal') $('#repoModal').classList.remove('show');
+    });
+
+    // Load repo file tree
+    async function loadRepoTree() {
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/files`);
+        const j = await r.json();
+        if (j.ok) {
+          repoTree = j.tree;
+          renderRepoTree(j.tree);
+        }
+      } catch (err) {
+        $('#repoTree').innerHTML = '<div class="loading-text">Failed to load files</div>';
+      }
+    }
+
+    // Render file tree
+    function renderRepoTree(items, container = null) {
+      const parent = container || $('#repoTree');
+      if (!container) parent.innerHTML = '';
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+
+        if (item.type === 'dir') {
+          div.innerHTML = `
+            <div class="repo-tree-item" data-path="${item.path}" data-type="dir">
+              <span class="icon">▶</span>
+              <span class="name">📁 ${item.name}</span>
+            </div>
+            <div class="repo-tree-children collapsed"></div>
+          `;
+          const header = div.querySelector('.repo-tree-item');
+          const children = div.querySelector('.repo-tree-children');
+
+          header.onclick = () => {
+            const icon = header.querySelector('.icon');
+            if (children.classList.contains('collapsed')) {
+              children.classList.remove('collapsed');
+              icon.textContent = '▼';
+              if (children.children.length === 0 && item.children) {
+                renderRepoTree(item.children, children);
+              }
+            } else {
+              children.classList.add('collapsed');
+              icon.textContent = '▶';
+            }
+          };
+        } else {
+          div.innerHTML = `
+            <div class="repo-tree-item" data-path="${item.path}" data-type="file">
+              <span class="icon"></span>
+              <span class="name">${getFileIcon(item.ext)} ${item.name}</span>
+            </div>
+          `;
+          div.querySelector('.repo-tree-item').onclick = () => previewFile(item.path);
+        }
+
+        parent.appendChild(div);
+      });
+    }
+
+    function getFileIcon(ext) {
+      const icons = { '.py': '🐍', '.js': '📜', '.ts': '📘', '.html': '🌐', '.css': '🎨', '.json': '📋', '.yaml': '⚙️', '.yml': '⚙️', '.md': '📝' };
+      return icons[ext] || '📄';
+    }
+
+    // Preview file content
+    async function previewFile(path) {
+      currentPreviewFile = path;
+      $('#previewFileName').textContent = path;
+      $('#previewActions').classList.remove('hidden');
+      $('#repoPreviewCode code').textContent = 'Loading...';
+
+      // Remove selected class from all items
+      $$('.repo-tree-item.selected').forEach(el => el.classList.remove('selected'));
+      $(`.repo-tree-item[data-path="${path}"]`)?.classList.add('selected');
+
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&limit=500`);
+        const j = await r.json();
+        if (j.ok) {
+          $('#repoPreviewCode code').textContent = j.content;
+          $('#lineStart').value = 1;
+          $('#lineEnd').value = Math.min(j.total_lines, 100);
+          $('#lineEnd').max = j.total_lines;
+        }
+      } catch (err) {
+        $('#repoPreviewCode code').textContent = 'Failed to load file';
+      }
+    }
+
+    // Search files
+    let searchTimeout = null;
+    $('#repoSearchInput').oninput = function() {
+      clearTimeout(searchTimeout);
+      const q = this.value.trim();
+      if (!q) {
+        if (repoTree) renderRepoTree(repoTree);
+        return;
+      }
+      searchTimeout = setTimeout(async () => {
+        try {
+          const r = await fetch(`${CHAT_API}/api/repo/search?q=${encodeURIComponent(q)}`);
+          const j = await r.json();
+          if (j.ok && j.results.length > 0) {
+            const tree = $('#repoTree');
+            tree.innerHTML = '';
+            j.results.forEach(item => {
+              const div = document.createElement('div');
+              div.innerHTML = `
+                <div class="repo-tree-item" data-path="${item.path}" data-type="file">
+                  <span class="icon"></span>
+                  <span class="name">${getFileIcon(item.ext)} ${item.path}</span>
+                </div>
+              `;
+              div.querySelector('.repo-tree-item').onclick = () => previewFile(item.path);
+              tree.appendChild(div);
+            });
+          }
+        } catch (err) {}
+      }, 300);
+    };
+
+    // Add snippet (selected lines)
+    $('#addSnippetBtn').onclick = async () => {
+      if (!currentPreviewFile) return;
+      const start = parseInt($('#lineStart').value) || 1;
+      const end = parseInt($('#lineEnd').value) || 100;
+      await addContextSnippet(currentPreviewFile, start, end);
+    };
+
+    // Add whole file
+    $('#addWholeFileBtn').onclick = async () => {
+      if (!currentPreviewFile) return;
+      await addContextSnippet(currentPreviewFile, 1, 99999);
+    };
+
+    // Add context snippet
+    async function addContextSnippet(path, start, end) {
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&start=${start}&limit=${end - start + 1}`);
+        const j = await r.json();
+        if (j.ok) {
+          const name = path.split('/').pop();
+          selectedContexts.push({
+            path,
+            name,
+            start: j.start,
+            end: j.end,
+            content: j.content
+          });
+          updateContextDisplay();
+          $('#repoModal').classList.remove('show');
+        }
+      } catch (err) {
+        alert('Failed to add snippet');
+      }
+    }
+
+    // Update context display
+    function updateContextDisplay() {
+      const container = $('#contextSnippets');
+      const list = $('#contextList');
+
+      if (selectedContexts.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      list.innerHTML = selectedContexts.map((ctx, idx) => `
+        <div class="context-chip" data-idx="${idx}">
+          <span class="chip-name">${ctx.name}</span>
+          <span class="chip-lines">(L${ctx.start}-${ctx.end})</span>
+          <span class="chip-remove" data-idx="${idx}">&times;</span>
+        </div>
+      `).join('');
+
+      // Remove handlers
+      list.querySelectorAll('.chip-remove').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.idx);
+          selectedContexts.splice(idx, 1);
+          updateContextDisplay();
+        };
+      });
+    }
+
+    // Clear all context
+    $('#clearContext').onclick = () => {
+      selectedContexts = [];
+      updateContextDisplay();
+    };
+
+    // Build context string for prompt
+    function buildContextString() {
+      if (selectedContexts.length === 0) return '';
+
+      let ctx = '\n\n--- CODE CONTEXT ---\n';
+      selectedContexts.forEach(snippet => {
+        ctx += `\n### ${snippet.path} (lines ${snippet.start}-${snippet.end}):\n\`\`\`\n${snippet.content}\n\`\`\`\n`;
+      });
+      ctx += '\n--- END CONTEXT ---\n\n';
+      return ctx;
+    }
+
+    // Store validation results for adding to draft
+    let validationResultsData = [];
+
+    // Add message to chat UI
+    function addChatMessage(role, content, options = {}) {
+      const container = $('#chatMessages');
+      const welcome = container.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${role}`;
+
+      // Format assistant messages with verdict highlighting
+      if (role === 'assistant') {
+        let formatted = content
+          // Verdict highlighting
+          .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+          .replace(/⚠\s*(Partial(ly Supported)?)/gi, '<span class="verdict-partial">⚠ $1</span>')
+          .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+          // Evidence quality tags
+          .replace(/\[PEER-REVIEWED\]/g, '<span class="evidence-tag peer-reviewed">Peer-Reviewed</span>')
+          .replace(/\[PREPRINT\]/g, '<span class="evidence-tag preprint">Preprint</span>')
+          .replace(/\[STANDARD\]/g, '<span class="evidence-tag standard">Standard</span>')
+          .replace(/\[VENDOR-DOCS\]/g, '<span class="evidence-tag vendor-docs">Vendor Docs</span>')
+          .replace(/\[OPINION\]/g, '<span class="evidence-tag opinion">Opinion</span>')
+          // Cost impact tags
+          .replace(/\[SAVES \$\]/g, '<span class="cost-tag saves">SAVES $</span>')
+          .replace(/\[NEUTRAL\]/g, '<span class="cost-tag neutral">NEUTRAL</span>')
+          .replace(/\[COSTS \$\]/g, '<span class="cost-tag costs">COSTS $</span>')
+          // Action items with checkboxes
+          .replace(/^- \[ \]/gm, '<span class="action-checkbox">☐</span>')
+          .replace(/^- \[x\]/gim, '<span class="action-checkbox done">☑</span>')
+          // Bold and headers
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/^(CLAIM:|VERDICT:|EVIDENCE.*:|SOURCES.*:|EXPLANATION:|WHY:|EVIDENCE QUALITY:|GAPS:|CONFIDENCE:|NEXT ACTIONS:|COST SUMMARY:)/gm, '<strong>$1</strong>');
+
+        // Create content wrapper
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'msg-content';
+        contentDiv.innerHTML = formatted;
+        msg.appendChild(contentDiv);
+
+        // Add action buttons for completed messages
+        if (content && !options.streaming) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          msg.appendChild(actions);
+
+          // Copy button handler
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(content);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          // Add to draft button handler
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const btn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            const success = await addValidationToDraft(content);
+            if (success) {
+              btn.textContent = 'Added!';
+              btn.classList.add('success');
+            } else {
+              btn.textContent = 'Failed';
+              btn.disabled = false;
+            }
+          };
+        }
+      } else {
+        msg.textContent = content;
+      }
+
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+      return msg;
+    }
+
+    // Add validation reference to draft
+    async function addValidationToDraft(validationContent) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        // Get current draft content
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+
+        // Parse existing blocks
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Create validation reference block
+        const refBlock = {
+          id: 'ref_' + Date.now(),
+          type: 'paragraph',
+          data: {
+            text: '<strong>📋 Validation Reference:</strong><br>' +
+                  validationContent.replace(/\n/g, '<br>').substring(0, 1000) +
+                  (validationContent.length > 1000 ? '...' : '')
+          }
+        };
+
+        // Check if we already have a references section
+        const refSectionIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('References')
+        );
+
+        if (refSectionIdx >= 0) {
+          // Insert after the references header
+          blocks.splice(refSectionIdx + 1, 0, refBlock);
+        } else {
+          // Add a references section at the end
+          blocks.push({
+            id: 'ref_header_' + Date.now(),
+            type: 'header',
+            data: { text: 'Validation References', level: 2 }
+          });
+          blocks.push(refBlock);
+        }
+
+        // Update the draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        return updateRes.ok;
+      } catch (err) {
+        console.error('Failed to add validation to draft:', err);
+        return false;
+      }
+    }
+
+    // Stream chat response
+    async function streamValidateChat(userMessage) {
+      const isValidate = $('#validateModeToggle').checked;
+      // Use depth setting for validate mode: validate_scan (default) or validate_deep
+      const mode = isValidate ? (validateDepth === 'deep' ? 'validate_deep' : 'validate_scan') : 'normal';
+
+      // Prepend code context if any
+      const contextStr = buildContextString();
+      const messageWithContext = contextStr ? userMessage + contextStr : userMessage;
+
+      // Show original message to user, but send with context
+      validateMessages.push({ role: 'user', content: messageWithContext });
+      addChatMessage('user', userMessage + (contextStr ? ' 📎' : ''));  // Show indicator if context attached
+
+      // Clear context after sending
+      if (contextStr) {
+        selectedContexts = [];
+        updateContextDisplay();
+      }
+
+      const btn = $('#validateBtn');
+      const status = $('#validateStatus');
+      btn.disabled = true;
+      btn.textContent = validateDepth === 'deep' ? 'Deep Analysis...' : 'Scanning...';
+      status.textContent = validateDepth === 'deep' ? 'Running deep analysis...' : 'Quick scan...';
+
+      // Create placeholder for assistant message (streaming mode)
+      const assistantMsg = addChatMessage('assistant', '', { streaming: true });
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'msg-content';
+      assistantMsg.appendChild(contentDiv);
+      let fullResponse = '';
+
+      try {
+        const researchMode = $('#researchModeToggle')?.checked || false;
+        const res = await fetch(`${CHAT_API}/api/chat/stream?mode=${mode}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: validateMessages,
+            temperature: 0.2,
+            mode: mode,
+            research: researchMode
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          for (const frame of chunk.split('\n\n')) {
+            const line = frame.trim();
+            if (!line.startsWith('data:')) continue;
+            const raw = line.slice(5).trim();
+            if (!raw) continue;
+
+            try {
+              const payload = JSON.parse(raw);
+              if (payload.token) {
+                fullResponse += payload.token;
+                // Update with formatting
+                let formatted = fullResponse
+                  // Verdict highlighting
+                  .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+                  .replace(/⚠\s*(Partial(ly Supported)?)/gi, '<span class="verdict-partial">⚠ $1</span>')
+                  .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+                  // Evidence quality tags
+                  .replace(/\[PEER-REVIEWED\]/g, '<span class="evidence-tag peer-reviewed">Peer-Reviewed</span>')
+                  .replace(/\[PREPRINT\]/g, '<span class="evidence-tag preprint">Preprint</span>')
+                  .replace(/\[STANDARD\]/g, '<span class="evidence-tag standard">Standard</span>')
+                  .replace(/\[VENDOR-DOCS\]/g, '<span class="evidence-tag vendor-docs">Vendor Docs</span>')
+                  .replace(/\[OPINION\]/g, '<span class="evidence-tag opinion">Opinion</span>')
+                  // Cost impact tags
+                  .replace(/\[SAVES \$\]/g, '<span class="cost-tag saves">SAVES $</span>')
+                  .replace(/\[NEUTRAL\]/g, '<span class="cost-tag neutral">NEUTRAL</span>')
+                  .replace(/\[COSTS \$\]/g, '<span class="cost-tag costs">COSTS $</span>')
+                  // Action items with checkboxes
+                  .replace(/^- \[ \]/gm, '<span class="action-checkbox">☐</span>')
+                  .replace(/^- \[x\]/gim, '<span class="action-checkbox done">☑</span>')
+                  // Bold and headers
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/^(CLAIM:|VERDICT:|EVIDENCE.*:|SOURCES.*:|EXPLANATION:|WHY:|EVIDENCE QUALITY:|GAPS:|CONFIDENCE:|NEXT ACTIONS:|COST SUMMARY:)/gm, '<strong>$1</strong>');
+                contentDiv.innerHTML = formatted;
+                $('#chatMessages').scrollTop = $('#chatMessages').scrollHeight;
+              }
+              if (payload.done) {
+                status.textContent = 'Done';
+              }
+              if (payload.error) {
+                status.textContent = 'Error: ' + payload.error;
+              }
+            } catch (e) { /* ignore parse errors */ }
+          }
+        }
+
+        validateMessages.push({ role: 'assistant', content: fullResponse });
+        status.textContent = '';
+
+        // Add action buttons after streaming completes
+        if (fullResponse) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          assistantMsg.appendChild(actions);
+
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(fullResponse);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const addBtn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding...';
+            const success = await addValidationToDraft(fullResponse);
+            if (success) {
+              addBtn.textContent = 'Added!';
+              addBtn.classList.add('success');
+            } else {
+              addBtn.textContent = 'Failed';
+              addBtn.disabled = false;
+            }
+          };
+        }
+
+      } catch (err) {
+        console.error('Validate chat error:', err);
+        contentDiv.textContent = 'Error: ' + err.message;
+        status.textContent = 'Failed';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Validate';
+      }
+    }
+
+    // Form submit handler
+    $('#validateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = $('#validateInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      await streamValidateChat(text);
+    };
+
+    // Clear chat
+    $('#clearChat').onclick = () => {
+      validateMessages = [];
+      $('#chatMessages').innerHTML = `
+        <div class="chat-welcome">
+          <p><strong>Claim Validation Assistant</strong></p>
+          <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+          <p class="muted">Output format: CLAIM → VERDICT → EVIDENCE → EXPLANATION → APPLICABILITY → CONFIDENCE</p>
+        </div>
+      `;
+      $('#validateStatus').textContent = '';
+    };
+
+    // Init validate mode on load
+    loadValidateMode();
+
+    // ========== BLOG CLAIM AUTO-VALIDATION ==========
+
+    // Extract claims from blog content (looks for assertive statements)
+    function extractClaimsFromBlog(blogData) {
+      const claims = [];
+      const blocks = blogData.blocks || [];
+
+      for (const block of blocks) {
+        if (block.type === 'paragraph' && block.data?.text) {
+          // Clean HTML and split into sentences
+          const text = block.data.text.replace(/<[^>]+>/g, '');
+          const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+
+          for (const sentence of sentences) {
+            const s = sentence.trim();
+            // Look for assertive/factual claims (skip questions, simple statements)
+            if (
+              s.length > 30 &&
+              !s.includes('?') &&
+              (
+                /\b(is|are|was|were|will|can|should|must|always|never|every|all|most|typically|usually|often|generally)\b/i.test(s) ||
+                /\b(increases?|decreases?|improves?|reduces?|prevents?|causes?|helps?|enables?)\b/i.test(s) ||
+                /\b(\d+%|\d+x|faster|slower|better|worse|more|less)\b/i.test(s)
+              )
+            ) {
+              claims.push(s.substring(0, 200));
+            }
+          }
+        }
+      }
+
+      // Return unique claims, max 5
+      return [...new Set(claims)].slice(0, 5);
+    }
+
+    // Validate a single claim (always uses scan mode for auto-validation - cheaper)
+    async function validateSingleClaim(claim) {
+      try {
+        const res = await fetch(`${CHAT_API}/api/chat?mode=validate_scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: claim }],
+            temperature: 0.2,
+            mode: 'validate_scan',
+            research: false  // Auto-validation always uses cheap mode
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data.reply || data.content || 'No response';
+      } catch (err) {
+        return `Error validating: ${err.message}`;
+      }
+    }
+
+    // Parse verdict from validation response
+    function parseVerdict(response) {
+      if (/✔\s*Supported/i.test(response)) return 'supported';
+      if (/⚠\s*Partial/i.test(response)) return 'partial';  // Matches both "Partial" and "Partially Supported"
+      if (/✖\s*Not Supported/i.test(response)) return 'not-supported';
+      return 'unknown';
+    }
+
+    // Run auto-validation on blog claims
+    async function runBlogValidation() {
+      if (!generatedBlog) return;
+
+      const statusEl = $('#validationStatus');
+      const resultsEl = $('#validationResults');
+      const validateBtn = $('#validateClaimsBtn');
+      const addAllBtn = $('#addAllRefsBtn');
+
+      // Extract claims
+      const claims = extractClaimsFromBlog(generatedBlog);
+
+      if (claims.length === 0) {
+        statusEl.textContent = 'No claims found';
+        statusEl.className = 'validation-status done';
+        resultsEl.innerHTML = '<div class="muted">No factual claims detected in the content.</div>';
+        resultsEl.classList.add('show');
+        return;
+      }
+
+      // Update UI
+      statusEl.textContent = `Validating ${claims.length} claims...`;
+      statusEl.className = 'validation-status running';
+      validateBtn.disabled = true;
+      validateBtn.textContent = 'Validating...';
+      resultsEl.innerHTML = '';
+      resultsEl.classList.add('show');
+      validationResultsData = [];
+
+      // Validate each claim
+      for (let i = 0; i < claims.length; i++) {
+        const claim = claims[i];
+        statusEl.textContent = `Validating ${i + 1}/${claims.length}...`;
+
+        // Add placeholder
+        const itemEl = document.createElement('div');
+        itemEl.className = 'validation-item';
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <div class="muted">Validating...</div>
+        `;
+        resultsEl.appendChild(itemEl);
+
+        // Get validation
+        const response = await validateSingleClaim(claim);
+        const verdict = parseVerdict(response);
+
+        // Store result
+        validationResultsData.push({ claim, response, verdict });
+
+        // Update item
+        itemEl.className = `validation-item ${verdict}`;
+        const verdictLabel = verdict === 'supported' ? '✔ Supported' :
+                            verdict === 'partial' ? '⚠ Partial' :
+                            verdict === 'not-supported' ? '✖ Not Supported' : '? Unknown';
+        const verdictClass = verdict === 'supported' ? 'supported' :
+                            verdict === 'partial' ? 'partial' :
+                            verdict === 'not-supported' ? 'not-supported' : '';
+
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <span class="verdict-badge ${verdictClass}">${verdictLabel}</span>
+          <div class="muted" style="margin-top:6px;font-size:11px;max-height:60px;overflow:hidden;">
+            ${esc(response.substring(0, 200))}${response.length > 200 ? '...' : ''}
+          </div>
+        `;
+      }
+
+      // Done
+      statusEl.textContent = `${claims.length} claims validated`;
+      statusEl.className = 'validation-status done';
+      validateBtn.disabled = false;
+      validateBtn.textContent = 'Re-validate';
+      addAllBtn.classList.remove('hidden');
+    }
+
+    // Add all validation results to draft
+    async function addAllValidationsToDraft() {
+      if (!savedDraftSlug || validationResultsData.length === 0) return;
+
+      const btn = $('#addAllRefsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      try {
+        // Get current draft
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Remove existing validation section if present
+        const existingRefIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('Validation References')
+        );
+        if (existingRefIdx >= 0) {
+          // Remove header and all following ref blocks
+          let endIdx = existingRefIdx + 1;
+          while (endIdx < blocks.length && blocks[endIdx].id?.startsWith('ref_')) {
+            endIdx++;
+          }
+          blocks.splice(existingRefIdx, endIdx - existingRefIdx);
+        }
+
+        // Add validation references section as a single compact block
+        // Extract sources from responses for linking
+        const validationCards = validationResultsData.map(result => {
+          const verdictEmoji = result.verdict === 'supported' ? '✔' :
+                              result.verdict === 'partial' ? '⚠' :
+                              result.verdict === 'not-supported' ? '✖' : '?';
+          const verdictClass = result.verdict === 'supported' ? 'supported' :
+                              result.verdict === 'partial' ? 'partial' : 'not-supported';
+
+          // Extract source URLs from response (look for common patterns)
+          const sourceMatch = result.response.match(/(?:Source \d+:|EVIDENCE:)[^]*?(?:https?:\/\/[^\s<>"]+|Google Scholar query:[^.]+)/gi);
+          const sources = sourceMatch ? sourceMatch.join(' | ') : '';
+
+          // Truncate claim for display
+          const shortClaim = result.claim.length > 60 ? result.claim.substring(0, 57) + '...' : result.claim;
+
+          return {
+            emoji: verdictEmoji,
+            verdict: verdictClass,
+            claim: result.claim,
+            shortClaim,
+            response: result.response,
+            sources
+          };
+        });
+
+        blocks.push({
+          id: 'ref_validation_' + Date.now(),
+          type: 'validationRefs',
+          data: {
+            cards: validationCards
+          }
+        });
+
+        // Update draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        if (updateRes.ok) {
+          btn.textContent = 'Added!';
+          btn.classList.add('primary');
+        } else {
+          throw new Error('Update failed');
+        }
+      } catch (err) {
+        console.error('Failed to add validations:', err);
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    }
+
+    // Wire up validation buttons
+    $('#validateClaimsBtn').onclick = runBlogValidation;
+    $('#addAllRefsBtn').onclick = addAllValidationsToDraft;
+
+    // ---------- Usage Dashboard ----------
+    function formatNumber(n) {
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return n.toString();
+    }
+
+    async function loadUsageDashboard() {
+      try {
+        // Fetch all usage data in parallel
+        const [todayRes, weekRes, endpointsRes] = await Promise.all([
+          fetch('/api/admin/usage/today'),
+          fetch('/api/admin/usage/week'),
+          fetch('/api/admin/usage/endpoints?days=7&limit=10')
+        ]);
+
+        if (!todayRes.ok || !weekRes.ok || !endpointsRes.ok) throw new Error('Failed to fetch usage');
+
+        const today = await todayRes.json();
+        const week = await weekRes.json();
+        const endpoints = await endpointsRes.json();
+
+        // Update Today's usage
+        $('#todayChatTokens').textContent = formatNumber(today.chat_tokens);
+        $('#todayChatLimit').textContent = '/ ' + formatNumber(today.limits.chat_tokens);
+        $('#todayChatBar').style.width = Math.min(100, (today.chat_tokens / today.limits.chat_tokens) * 100) + '%';
+
+        $('#todayEmbedTokens').textContent = formatNumber(today.embedding_tokens);
+        $('#todayEmbedLimit').textContent = '/ ' + formatNumber(today.limits.embedding_tokens);
+        $('#todayEmbedBar').style.width = Math.min(100, (today.embedding_tokens / today.limits.embedding_tokens) * 100) + '%';
+
+        $('#todayImages').textContent = today.images;
+        $('#todayImagesLimit').textContent = '/ ' + today.limits.images;
+        $('#todayImagesBar').style.width = Math.min(100, (today.images / today.limits.images) * 100) + '%';
+
+        $('#todayVideo').textContent = today.video_seconds;
+        $('#todayVideoLimit').textContent = '/ ' + today.limits.video_seconds;
+        $('#todayVideoBar').style.width = Math.min(100, (today.video_seconds / today.limits.video_seconds) * 100) + '%';
+
+        // Update week totals
+        $('#weekChatTokens').textContent = formatNumber(week.totals.chat_tokens);
+        $('#weekEmbedTokens').textContent = formatNumber(week.totals.embedding_tokens);
+        $('#weekImages').textContent = week.totals.images;
+        $('#weekVideo').textContent = week.totals.video_seconds + 's';
+
+        // Update endpoints table
+        const tbody = $('#endpointsBody');
+        if (endpoints.endpoints.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="muted">No endpoint data yet</td></tr>';
+        } else {
+          tbody.innerHTML = endpoints.endpoints.map(ep =>
+            `<tr><td>${ep.endpoint}</td><td>${ep.total_calls}</td><td>${formatNumber(ep.total_tokens)}</td></tr>`
+          ).join('');
+        }
+      } catch (err) {
+        console.error('Usage fetch error:', err);
+      }
+    }
+
+    // Load usage when usage tab is clicked
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'usage') {
+        tab.addEventListener('click', loadUsageDashboard);
+      }
+    });
+
+    // Refresh button
+    $('#refreshUsage').onclick = loadUsageDashboard;
+
+    (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
+  </script>
+</body>
+</html>
