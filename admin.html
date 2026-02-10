@@ -1316,19 +1316,24 @@
 
     // ========== UNIFIED COVER MANAGER ==========
     const CoverManager = {
-      currentMode: 'royalty_free',  // 'royalty_free' or 'ai'
-      currentPrompt: '',
-      currentOptions: [],
-      currentSize: '1536x1024',
-      isLoading: false,
-      pendingCoverData: null,  // For retry functionality
+      // Explicit state object - all UI derives from this
+      state: {
+        mode: 'royalty_free',     // 'royalty_free' or 'ai'
+        isLoading: false,
+        lastCover: null,          // { url, attribution } - for reliable retry
+        prompt: '',
+        options: [],
+        size: '1536x1024'
+      },
 
       // Initialize/reset state
       reset() {
-        this.currentOptions = [];
-        this.pendingCoverData = null;
-        this.isLoading = false;
+        this.state.options = [];
+        this.state.lastCover = null;
+        this.state.isLoading = false;
+        this.state.prompt = '';
         this.hideDraftStatus();
+        this.syncUI();
         $('#modalCoverPicker').classList.add('hidden');
         $('#modalCoverPreview').classList.add('hidden');
         $('#coverStatus').textContent = 'No cover yet';
@@ -1336,62 +1341,59 @@
         $('#coverActionSecondary').classList.add('hidden');
       },
 
-      // Set loading state
-      setLoading(loading) {
-        this.isLoading = loading;
+      // Sync UI to state - single source of truth
+      syncUI() {
+        const { mode, isLoading } = this.state;
         const primaryBtn = $('#coverActionPrimary');
         const secondaryBtn = $('#coverActionSecondary');
-        const sourceRF = $('#coverSourceRoyaltyFree');
-        const sourceAI = $('#coverSourceAI');
-
-        primaryBtn.disabled = loading;
-        secondaryBtn.disabled = loading;
-        sourceRF.disabled = loading;
-        sourceAI.disabled = loading;
-
-        if (loading) {
-          primaryBtn.dataset.originalText = primaryBtn.textContent;
-          primaryBtn.textContent = this.currentMode === 'ai' ? 'Generating...' : 'Searching...';
-        } else {
-          primaryBtn.textContent = primaryBtn.dataset.originalText || (this.currentMode === 'ai' ? 'Generate' : 'Search');
-        }
-      },
-
-      // Switch mode (royalty_free or ai)
-      setMode(mode) {
-        this.currentMode = mode;
         const sourceRF = $('#coverSourceRoyaltyFree');
         const sourceAI = $('#coverSourceAI');
         const sizeRow = $('#coverSizeRow');
-        const primaryBtn = $('#coverActionPrimary');
-        const secondaryBtn = $('#coverActionSecondary');
 
-        // Update selected states
+        // Disable all controls when loading
+        primaryBtn.disabled = isLoading;
+        secondaryBtn.disabled = isLoading;
+        sourceRF.disabled = isLoading;
+        sourceAI.disabled = isLoading;
+
+        // Button labels based on mode and loading
+        if (isLoading) {
+          primaryBtn.textContent = mode === 'ai' ? 'Generating...' : 'Searching...';
+        } else {
+          primaryBtn.textContent = mode === 'ai' ? 'Generate' : 'Search';
+        }
+        primaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Generate AI cover' : 'Search for stock photos');
+        secondaryBtn.textContent = mode === 'ai' ? 'Regenerate' : 'Try New';
+        secondaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Regenerate with same prompt' : 'Try 3 new options');
+
+        // Mode selection
         sourceRF.classList.toggle('selected', mode === 'royalty_free');
         sourceAI.classList.toggle('selected', mode === 'ai');
         sourceRF.setAttribute('aria-pressed', mode === 'royalty_free');
         sourceAI.setAttribute('aria-pressed', mode === 'ai');
-
-        // Show/hide size row
         sizeRow.classList.toggle('show', mode === 'ai');
+      },
 
-        // Update button labels
-        primaryBtn.textContent = mode === 'ai' ? 'Generate' : 'Search';
-        primaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Generate AI cover' : 'Search for stock photos');
+      // Set loading state
+      setLoading(loading) {
+        this.state.isLoading = loading;
+        this.syncUI();
+      },
 
-        // Update secondary button
-        secondaryBtn.textContent = mode === 'ai' ? 'Regenerate' : 'Try New';
-        secondaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Regenerate with same prompt' : 'Try 3 new options');
-
+      // Switch mode (royalty_free or ai)
+      setMode(mode) {
+        if (this.state.isLoading) return;  // Prevent mode switch while loading
+        this.state.mode = mode;
+        this.syncUI();
         // Hide picker when switching modes
         $('#modalCoverPicker').classList.add('hidden');
-        secondaryBtn.classList.add('hidden');
+        $('#coverActionSecondary').classList.add('hidden');
       },
 
       // Search royalty-free images (returns preview options)
       async searchRoyaltyFree(prompt) {
         if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
-        this.currentPrompt = prompt;
+        this.state.prompt = prompt;
         this.setLoading(true);
 
         try {
@@ -1402,7 +1404,7 @@
           });
           const j = await r.json();
           if (j.ok && j.mode === 'preview' && j.options) {
-            this.currentOptions = j.options;
+            this.state.options = j.options;
             return j.options;
           } else {
             Toast.error('Search failed: ' + (j.error || 'No images found'));
@@ -1440,8 +1442,8 @@
       // Generate AI cover image
       async generateAI(prompt, size = '1536x1024') {
         if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
-        this.currentPrompt = prompt;
-        this.currentSize = size;
+        this.state.prompt = prompt;
+        this.state.size = size;
         this.setLoading(true);
 
         try {
@@ -1509,7 +1511,7 @@
         item.classList.add('selecting');
         item.insertAdjacentHTML('beforeend', '<div class="selecting-spinner"></div>');
 
-        const result = await this.selectRoyaltyFree(this.currentPrompt, index);
+        const result = await this.selectRoyaltyFree(this.state.prompt, index);
         if (result) {
           generatedCoverUrl = result.url;
           generatedCoverData = result;
@@ -1547,7 +1549,7 @@
         }
 
         // Store for retry and update draft
-        this.pendingCoverData = { url: result.url, attribution: result.attribution || '' };
+        this.state.lastCover = { url: result.url, attribution: result.attribution || '' };
         this.updateDraftWithCover(result.url, result.attribution || '');
       },
 
@@ -1572,8 +1574,8 @@
 
       // Retry draft update
       async retryDraftUpdate() {
-        if (!this.pendingCoverData) return;
-        await this.updateDraftWithCover(this.pendingCoverData.url, this.pendingCoverData.attribution);
+        if (!this.state.lastCover) return;
+        await this.updateDraftWithCover(this.state.lastCover.url, this.state.lastCover.attribution);
       },
 
       // Update draft with cover image
@@ -1602,13 +1604,15 @@
 
       // Primary action (Search or Generate based on mode)
       async runPrimaryAction() {
+        if (this.state.isLoading) return;  // Prevent double-clicks
+
         const prompt = this.getPrompt();
         if (!prompt) {
           Toast.warning('Enter a cover prompt or generate a blog first');
           return;
         }
 
-        if (this.currentMode === 'ai') {
+        if (this.state.mode === 'ai') {
           const size = $('#modalCoverSize').value || '1536x1024';
           const result = await this.generateAI(prompt, size);
           if (result) {
@@ -1626,6 +1630,7 @@
 
       // Secondary action (Try New or Regenerate)
       async runSecondaryAction() {
+        if (this.state.isLoading) return;  // Prevent double-clicks
         await this.runPrimaryAction();
       }
     };
@@ -1900,13 +1905,13 @@
     // ========== COVER SOURCE & ACTION HANDLERS ==========
     // Source selector: Royalty-free
     $('#coverSourceRoyaltyFree').onclick = () => {
-      if (CoverManager.isLoading) return;
+      if (CoverManager.state.isLoading) return;
       CoverManager.setMode('royalty_free');
     };
 
     // Source selector: AI
     $('#coverSourceAI').onclick = () => {
-      if (CoverManager.isLoading) return;
+      if (CoverManager.state.isLoading) return;
       CoverManager.setMode('ai');
     };
 
