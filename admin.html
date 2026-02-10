@@ -47,7 +47,7 @@
     .validate-chat {
       background: rgba(0,0,0,0.2);
       border-radius: 8px;
-      height: 320px;
+      height: 380px;
       overflow-y: auto;
       margin-bottom: 12px;
     }
@@ -89,14 +89,20 @@
     .chat-msg.assistant .verdict-not { color: #ef4444; }
     .validate-input {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      align-items: flex-end;
     }
     .validate-input textarea {
       flex: 1;
       resize: none;
+      min-height: 80px;
     }
-    .validate-input button {
+    .validate-input .validate-btn {
+      width: auto;
+      padding: 10px 18px;
+      font-size: 12px;
       flex-shrink: 0;
+      align-self: flex-end;
     }
     .validate-actions {
       display: flex;
@@ -106,6 +112,126 @@
     }
     #validateStatus {
       font-size: 12px;
+    }
+    /* Message action buttons */
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .msg-action-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .msg-action-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .msg-action-btn.primary {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.3);
+      color: #4ade80;
+    }
+    .msg-action-btn.primary:hover {
+      background: rgba(34,197,94,0.25);
+    }
+    .msg-action-btn.success {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    /* Blog validation panel */
+    .blog-validation-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .validation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .validation-header .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+    }
+    .validation-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .validation-status.pending {
+      background: rgba(251,191,36,0.15);
+      color: #fbbf24;
+    }
+    .validation-status.running {
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+    }
+    .validation-status.done {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+    }
+    .validation-results {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      display: none;
+    }
+    .validation-results.show {
+      display: block;
+    }
+    .validation-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border-left: 3px solid #666;
+    }
+    .validation-item.supported { border-left-color: #22c55e; }
+    .validation-item.partial { border-left-color: #f59e0b; }
+    .validation-item.not-supported { border-left-color: #ef4444; }
+    .validation-item .claim-text {
+      font-weight: 500;
+      color: #e5e5e5;
+      margin-bottom: 4px;
+    }
+    .validation-item .verdict-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .validation-item .verdict-badge.supported {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    .validation-item .verdict-badge.partial {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .validation-item .verdict-badge.not-supported {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+    .validation-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -379,8 +505,8 @@
             </div>
           </div>
           <form id="validateForm" class="validate-input">
-            <textarea id="validateInput" class="form-textarea" placeholder="Enter a claim to validate, e.g., 'Rate limiting prevents DDoS attacks'" rows="2"></textarea>
-            <button type="submit" class="action-btn" id="validateBtn">Validate</button>
+            <textarea id="validateInput" class="form-textarea" placeholder="Enter a claim to validate, e.g., 'Rate limiting prevents DDoS attacks'" rows="4"></textarea>
+            <button type="submit" class="action-btn validate-btn" id="validateBtn">Validate</button>
           </form>
           <div class="validate-actions">
             <button class="btn" id="clearChat">Clear Chat</button>
@@ -536,6 +662,18 @@
           <div id="modalCoverPreview" class="modal-cover-preview hidden">
             <img id="modalDraftCoverImg" alt="Cover"/>
             <p id="modalDraftCoverAttr" class="cover-attribution"></p>
+          </div>
+        </div>
+        <!-- Claim Validation Section -->
+        <div class="blog-validation-section" id="blogValidationSection">
+          <div class="validation-header">
+            <span class="label">Claim Validation:</span>
+            <span class="validation-status pending" id="validationStatus">Not checked</span>
+          </div>
+          <div class="validation-results" id="validationResults"></div>
+          <div class="validation-actions">
+            <button type="button" class="btn" id="validateClaimsBtn">Validate Claims</button>
+            <button type="button" class="btn hidden" id="addAllRefsBtn">Add All References to Draft</button>
           </div>
         </div>
       </div>
@@ -1505,8 +1643,11 @@
       saveValidateMode(this.checked);
     };
 
+    // Store validation results for adding to draft
+    let validationResultsData = [];
+
     // Add message to chat UI
-    function addChatMessage(role, content) {
+    function addChatMessage(role, content, options = {}) {
       const container = $('#chatMessages');
       const welcome = container.querySelector('.chat-welcome');
       if (welcome) welcome.remove();
@@ -1522,7 +1663,53 @@
           .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/^(CLAIM:|VERDICT:|EVIDENCE:|EXPLANATION:|APPLICABILITY.*:|CONFIDENCE:)/gm, '<strong>$1</strong>');
-        msg.innerHTML = formatted;
+
+        // Create content wrapper
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'msg-content';
+        contentDiv.innerHTML = formatted;
+        msg.appendChild(contentDiv);
+
+        // Add action buttons for completed messages
+        if (content && !options.streaming) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          msg.appendChild(actions);
+
+          // Copy button handler
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(content);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          // Add to draft button handler
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const btn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            const success = await addValidationToDraft(content);
+            if (success) {
+              btn.textContent = 'Added!';
+              btn.classList.add('success');
+            } else {
+              btn.textContent = 'Failed';
+              btn.disabled = false;
+            }
+          };
+        }
       } else {
         msg.textContent = content;
       }
@@ -1530,6 +1717,63 @@
       container.appendChild(msg);
       container.scrollTop = container.scrollHeight;
       return msg;
+    }
+
+    // Add validation reference to draft
+    async function addValidationToDraft(validationContent) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        // Get current draft content
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+
+        // Parse existing blocks
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Create validation reference block
+        const refBlock = {
+          id: 'ref_' + Date.now(),
+          type: 'paragraph',
+          data: {
+            text: '<strong>📋 Validation Reference:</strong><br>' +
+                  validationContent.replace(/\n/g, '<br>').substring(0, 1000) +
+                  (validationContent.length > 1000 ? '...' : '')
+          }
+        };
+
+        // Check if we already have a references section
+        const refSectionIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('References')
+        );
+
+        if (refSectionIdx >= 0) {
+          // Insert after the references header
+          blocks.splice(refSectionIdx + 1, 0, refBlock);
+        } else {
+          // Add a references section at the end
+          blocks.push({
+            id: 'ref_header_' + Date.now(),
+            type: 'header',
+            data: { text: 'Validation References', level: 2 }
+          });
+          blocks.push(refBlock);
+        }
+
+        // Update the draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PUT',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        return updateRes.ok;
+      } catch (err) {
+        console.error('Failed to add validation to draft:', err);
+        return false;
+      }
     }
 
     // Stream chat response
@@ -1546,8 +1790,11 @@
       btn.textContent = 'Validating...';
       status.textContent = 'Streaming response...';
 
-      // Create placeholder for assistant message
-      const assistantMsg = addChatMessage('assistant', '');
+      // Create placeholder for assistant message (streaming mode)
+      const assistantMsg = addChatMessage('assistant', '', { streaming: true });
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'msg-content';
+      assistantMsg.appendChild(contentDiv);
       let fullResponse = '';
 
       try {
@@ -1590,7 +1837,7 @@
                   .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
                   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                   .replace(/^(CLAIM:|VERDICT:|EVIDENCE:|EXPLANATION:|APPLICABILITY.*:|CONFIDENCE:)/gm, '<strong>$1</strong>');
-                assistantMsg.innerHTML = formatted;
+                contentDiv.innerHTML = formatted;
                 $('#chatMessages').scrollTop = $('#chatMessages').scrollHeight;
               }
               if (payload.done) {
@@ -1606,9 +1853,48 @@
         validateMessages.push({ role: 'assistant', content: fullResponse });
         status.textContent = '';
 
+        // Add action buttons after streaming completes
+        if (fullResponse) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          assistantMsg.appendChild(actions);
+
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(fullResponse);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const addBtn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding...';
+            const success = await addValidationToDraft(fullResponse);
+            if (success) {
+              addBtn.textContent = 'Added!';
+              addBtn.classList.add('success');
+            } else {
+              addBtn.textContent = 'Failed';
+              addBtn.disabled = false;
+            }
+          };
+        }
+
       } catch (err) {
         console.error('Validate chat error:', err);
-        assistantMsg.textContent = 'Error: ' + err.message;
+        contentDiv.textContent = 'Error: ' + err.message;
         status.textContent = 'Failed';
       } finally {
         btn.disabled = false;
@@ -1642,6 +1928,220 @@
 
     // Init validate mode on load
     loadValidateMode();
+
+    // ========== BLOG CLAIM AUTO-VALIDATION ==========
+
+    // Extract claims from blog content (looks for assertive statements)
+    function extractClaimsFromBlog(blogData) {
+      const claims = [];
+      const blocks = blogData.blocks || [];
+
+      for (const block of blocks) {
+        if (block.type === 'paragraph' && block.data?.text) {
+          // Clean HTML and split into sentences
+          const text = block.data.text.replace(/<[^>]+>/g, '');
+          const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+
+          for (const sentence of sentences) {
+            const s = sentence.trim();
+            // Look for assertive/factual claims (skip questions, simple statements)
+            if (
+              s.length > 30 &&
+              !s.includes('?') &&
+              (
+                /\b(is|are|was|were|will|can|should|must|always|never|every|all|most|typically|usually|often|generally)\b/i.test(s) ||
+                /\b(increases?|decreases?|improves?|reduces?|prevents?|causes?|helps?|enables?)\b/i.test(s) ||
+                /\b(\d+%|\d+x|faster|slower|better|worse|more|less)\b/i.test(s)
+              )
+            ) {
+              claims.push(s.substring(0, 200));
+            }
+          }
+        }
+      }
+
+      // Return unique claims, max 5
+      return [...new Set(claims)].slice(0, 5);
+    }
+
+    // Validate a single claim
+    async function validateSingleClaim(claim) {
+      try {
+        const res = await fetch(`${CHAT_API}/api/chat?mode=validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: claim }],
+            temperature: 0.2,
+            mode: 'validate'
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data.reply || data.content || 'No response';
+      } catch (err) {
+        return `Error validating: ${err.message}`;
+      }
+    }
+
+    // Parse verdict from validation response
+    function parseVerdict(response) {
+      if (/✔\s*Supported/i.test(response)) return 'supported';
+      if (/⚠\s*Partially/i.test(response)) return 'partial';
+      if (/✖\s*Not Supported/i.test(response)) return 'not-supported';
+      return 'unknown';
+    }
+
+    // Run auto-validation on blog claims
+    async function runBlogValidation() {
+      if (!generatedBlog) return;
+
+      const statusEl = $('#validationStatus');
+      const resultsEl = $('#validationResults');
+      const validateBtn = $('#validateClaimsBtn');
+      const addAllBtn = $('#addAllRefsBtn');
+
+      // Extract claims
+      const claims = extractClaimsFromBlog(generatedBlog);
+
+      if (claims.length === 0) {
+        statusEl.textContent = 'No claims found';
+        statusEl.className = 'validation-status done';
+        resultsEl.innerHTML = '<div class="muted">No factual claims detected in the content.</div>';
+        resultsEl.classList.add('show');
+        return;
+      }
+
+      // Update UI
+      statusEl.textContent = `Validating ${claims.length} claims...`;
+      statusEl.className = 'validation-status running';
+      validateBtn.disabled = true;
+      validateBtn.textContent = 'Validating...';
+      resultsEl.innerHTML = '';
+      resultsEl.classList.add('show');
+      validationResultsData = [];
+
+      // Validate each claim
+      for (let i = 0; i < claims.length; i++) {
+        const claim = claims[i];
+        statusEl.textContent = `Validating ${i + 1}/${claims.length}...`;
+
+        // Add placeholder
+        const itemEl = document.createElement('div');
+        itemEl.className = 'validation-item';
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <div class="muted">Validating...</div>
+        `;
+        resultsEl.appendChild(itemEl);
+
+        // Get validation
+        const response = await validateSingleClaim(claim);
+        const verdict = parseVerdict(response);
+
+        // Store result
+        validationResultsData.push({ claim, response, verdict });
+
+        // Update item
+        itemEl.className = `validation-item ${verdict}`;
+        const verdictLabel = verdict === 'supported' ? '✔ Supported' :
+                            verdict === 'partial' ? '⚠ Partial' :
+                            verdict === 'not-supported' ? '✖ Not Supported' : '? Unknown';
+        const verdictClass = verdict === 'supported' ? 'supported' :
+                            verdict === 'partial' ? 'partial' :
+                            verdict === 'not-supported' ? 'not-supported' : '';
+
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <span class="verdict-badge ${verdictClass}">${verdictLabel}</span>
+          <div class="muted" style="margin-top:6px;font-size:11px;max-height:60px;overflow:hidden;">
+            ${esc(response.substring(0, 200))}${response.length > 200 ? '...' : ''}
+          </div>
+        `;
+      }
+
+      // Done
+      statusEl.textContent = `${claims.length} claims validated`;
+      statusEl.className = 'validation-status done';
+      validateBtn.disabled = false;
+      validateBtn.textContent = 'Re-validate';
+      addAllBtn.classList.remove('hidden');
+    }
+
+    // Add all validation results to draft
+    async function addAllValidationsToDraft() {
+      if (!savedDraftSlug || validationResultsData.length === 0) return;
+
+      const btn = $('#addAllRefsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      try {
+        // Get current draft
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Remove existing validation section if present
+        const existingRefIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('Validation References')
+        );
+        if (existingRefIdx >= 0) {
+          // Remove header and all following ref blocks
+          let endIdx = existingRefIdx + 1;
+          while (endIdx < blocks.length && blocks[endIdx].id?.startsWith('ref_')) {
+            endIdx++;
+          }
+          blocks.splice(existingRefIdx, endIdx - existingRefIdx);
+        }
+
+        // Add validation references section
+        blocks.push({
+          id: 'ref_header_' + Date.now(),
+          type: 'header',
+          data: { text: 'Validation References', level: 2 }
+        });
+
+        for (const result of validationResultsData) {
+          const verdictEmoji = result.verdict === 'supported' ? '✔' :
+                              result.verdict === 'partial' ? '⚠' :
+                              result.verdict === 'not-supported' ? '✖' : '?';
+
+          blocks.push({
+            id: 'ref_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            type: 'paragraph',
+            data: {
+              text: `<strong>${verdictEmoji} Claim:</strong> ${result.claim}<br><em>${result.response.substring(0, 500)}${result.response.length > 500 ? '...' : ''}</em>`
+            }
+          });
+        }
+
+        // Update draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PUT',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        if (updateRes.ok) {
+          btn.textContent = 'Added!';
+          btn.classList.add('primary');
+        } else {
+          throw new Error('Update failed');
+        }
+      } catch (err) {
+        console.error('Failed to add validations:', err);
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    }
+
+    // Wire up validation buttons
+    $('#validateClaimsBtn').onclick = runBlogValidation;
+    $('#addAllRefsBtn').onclick = addAllValidationsToDraft;
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
