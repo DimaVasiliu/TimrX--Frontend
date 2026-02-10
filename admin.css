@@ -230,7 +230,7 @@ body {
   margin: 0 auto;
 }
 .content { flex: 1; min-width: 0; }
-.sidebar { width: 360px; flex-shrink: 0; }
+.sidebar { width: 440px; flex-shrink: 0; }
 
 /* Toolbar */
 .toolbar {
