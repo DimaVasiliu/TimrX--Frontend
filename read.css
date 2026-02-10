@@ -1830,6 +1830,243 @@ blockquote cite {
   }
 }
 
+/* ===== VALIDATION REFERENCES (Compact Cards) ===== */
+.validation-refs-section {
+  margin: 32px 0;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.vref-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #737373;
+}
+
+.vref-icon {
+  opacity: 0.6;
+}
+
+.vref-count {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: #525252;
+}
+
+.vref-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vref-card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #a3a3a3;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vref-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.vref-card.vref-supported {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.vref-card.vref-supported:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.vref-card.vref-partial {
+  border-color: rgba(251, 191, 36, 0.2);
+}
+.vref-card.vref-partial:hover {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.vref-card.vref-not-supported {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.vref-card.vref-not-supported:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.vref-emoji {
+  font-size: 11px;
+}
+
+.vref-claim {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tooltip */
+.vref-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  width: 320px;
+  max-width: 90vw;
+  padding: 16px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.vref-card:hover .vref-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+  pointer-events: auto;
+}
+
+/* Arrow */
+.vref-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #1a1a1a;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vref-tooltip-header {
+  margin-bottom: 10px;
+}
+
+.vref-verdict-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vref-verdict-badge.vref-supported {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.vref-verdict-badge.vref-partial {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.vref-verdict-badge.vref-not-supported {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.vref-full-claim {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e5e5e5;
+  line-height: 1.5;
+}
+
+.vref-evidence {
+  font-size: 12px;
+  color: #737373;
+  line-height: 1.6;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.vref-evidence::-webkit-scrollbar {
+  width: 4px;
+}
+
+.vref-evidence::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vref-evidence::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.vref-source-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.1);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.vref-source-link:hover {
+  background: rgba(96, 165, 250, 0.2);
+  color: #93c5fd;
+}
+
+/* Mobile: tap to toggle tooltip */
+@media (max-width: 768px) {
+  .vref-claim {
+    max-width: 140px;
+  }
+
+  .vref-tooltip {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: calc(100vw - 40px);
+    max-width: 360px;
+  }
+
+  .vref-card:hover .vref-tooltip {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .vref-tooltip::after {
+    display: none;
+  }
+}
+
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
