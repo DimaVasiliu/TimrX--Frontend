@@ -1403,17 +1403,27 @@
         $('#coverActionSecondary').classList.add('hidden');
       },
 
+      // Build optimized query for cover image searches (landscape, minimal text)
+      buildCoverSearchQuery(basePrompt) {
+        const bias = 'wide landscape cover photo, banner, minimal text, editorial, clean background';
+        const avoid = 'no screenshot, no phone screen, no vertical portrait, no watermark, no logo, no text overlay';
+        return `${basePrompt}. ${bias}. ${avoid}`;
+      },
+
       // Search royalty-free images (returns preview options)
       async searchRoyaltyFree(prompt) {
         if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
-        this.state.prompt = prompt;
+        this.state.prompt = prompt;  // Store original prompt for display
         this.setLoading(true);
+
+        // Use optimized query for cover search
+        const searchQuery = this.buildCoverSearchQuery(prompt);
 
         try {
           const r = await fetch(API + '/admin/ai/cover', {
             method: 'POST',
             headers: headers(),
-            body: JSON.stringify({ prompt, mode: 'royalty_free' })
+            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free' })
           });
           const j = await r.json();
           if (j.ok && j.mode === 'preview' && j.options) {
@@ -1433,11 +1443,13 @@
 
       // Select a royalty-free image by index (uploads to S3)
       async selectRoyaltyFree(prompt, selectedIndex) {
+        // Use same optimized query as search to get consistent results
+        const searchQuery = this.buildCoverSearchQuery(prompt);
         try {
           const r = await fetch(API + '/admin/ai/cover', {
             method: 'POST',
             headers: headers(),
-            body: JSON.stringify({ prompt, mode: 'royalty_free', selected_index: selectedIndex })
+            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free', selected_index: selectedIndex })
           });
           const j = await r.json();
           if (j.ok && j.url) {
