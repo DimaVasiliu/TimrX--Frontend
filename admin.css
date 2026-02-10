@@ -643,6 +643,19 @@ body {
   overflow-y: auto;
 }
 .modal-box.wide { max-width: 700px; }
+
+/* Cover picker modal - larger for image selection */
+#coverModal .modal-box {
+  max-width: 900px;
+  width: 90%;
+}
+#coverModal .cover-picker-grid {
+  gap: 16px;
+}
+#coverModal .cover-picker-item img {
+  aspect-ratio: 16/9;
+  min-height: 180px;
+}
 .modal-box h3 {
   font-size: 18px;
   font-weight: 600;
