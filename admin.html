@@ -1274,7 +1274,9 @@
         if (j.ok && j.url) {
           generatedCoverUrl = j.url;
           generatedCoverData = j;
-          showCoverResult(j);
+          // Auto-apply cover to main preview and close modal
+          applyCoverToPreview(j);
+          $('#coverModal').classList.remove('show');
         } else {
           alert('Failed to select image: ' + (j.error || 'Unknown error'));
           item.classList.remove('selecting');
@@ -1302,6 +1304,31 @@
           attrEl.classList.remove('hidden');
         } else {
           attrEl.classList.add('hidden');
+        }
+      }
+    }
+
+    // Apply cover to main preview area in Cover tab
+    function applyCoverToPreview(j) {
+      const preview = $('#coverPreview');
+      const img = $('#coverImage');
+
+      if (preview && img) {
+        img.src = j.url;
+        preview.style.display = 'block';
+
+        // Add attribution if available
+        let attrEl = preview.querySelector('.cover-attribution');
+        if (!attrEl) {
+          attrEl = document.createElement('p');
+          attrEl.className = 'cover-attribution';
+          preview.insertBefore(attrEl, preview.querySelector('.cover-actions'));
+        }
+        if (j.attribution) {
+          attrEl.innerHTML = j.attribution;
+          attrEl.style.display = 'block';
+        } else {
+          attrEl.style.display = 'none';
         }
       }
     }
