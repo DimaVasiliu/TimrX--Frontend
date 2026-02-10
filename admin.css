@@ -885,56 +885,6 @@ body {
   margin-bottom: 12px;
 }
 
-/* Modal Cover Picker */
-.modal-cover-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.modal-cover-picker.hidden {
-  display: none;
-}
-.modal-cover-picker .picker-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-.modal-cover-picker .picker-item:hover {
-  border-color: rgba(255,255,255,0.3);
-}
-.modal-cover-picker .picker-item.selected {
-  border-color: #4ade80;
-}
-.modal-cover-picker .picker-item img {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  display: block;
-}
-.modal-cover-picker .picker-item .credit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px 6px 6px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  font-size: 9px;
-  color: rgba(255,255,255,0.7);
-  text-align: center;
-}
-.modal-cover-picker .picker-item .selecting {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.7);
-}
-
 /* Modal Cover Preview */
 .modal-cover-preview {
   border-radius: 8px;
@@ -958,73 +908,90 @@ body {
   text-align: center;
 }
 
-/* Inline Modal Picker Grid (inside blog modal) */
+/* ===== BlogModal cover picker (premium grid) ===== */
 .modal-picker-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  margin-top: 14px;
 }
-@media (max-width: 720px) {
+
+@media (max-width: 860px) {
   .modal-picker-grid { grid-template-columns: 1fr; }
 }
+
+/* Card */
 .modal-picker-item {
   position: relative;
-  border-radius: 10px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  min-height: 220px;
 }
-.modal-picker-item:hover {
-  border-color: rgba(255,255,255,0.35);
-}
-.modal-picker-item:focus-visible {
-  outline: 2px solid rgba(96,165,250,0.9);
-  outline-offset: 3px;
-}
-.modal-picker-item.selecting {
-  pointer-events: none;
-  opacity: 0.7;
-}
+
+/* Make the image fill the card consistently */
 .modal-picker-item img {
   width: 100%;
-  aspect-ratio: 16/9;
-  min-height: 200px;
+  height: 260px;
   object-fit: cover;
   display: block;
   transform: scale(1);
-  transition: transform 0.18s ease;
+  transition: transform .18s ease;
 }
-.modal-picker-item:hover img {
-  transform: scale(1.03);
+
+.modal-picker-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.38);
 }
+.modal-picker-item:hover img { transform: scale(1.03); }
+
+/* Selected state */
+.modal-picker-item.selected {
+  border-color: rgba(74,222,128,0.75);
+  box-shadow: 0 0 0 2px rgba(74,222,128,0.22), 0 16px 40px rgba(0,0,0,0.45);
+}
+
+/* Credit overlay: always readable */
 .modal-picker-item .picker-credit {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px 8px 8px;
+  inset: auto 0 0 0;
+  padding: 14px 12px 12px;
   background: linear-gradient(transparent, rgba(0,0,0,0.85));
-  font-size: 11px;
-  color: rgba(255,255,255,0.85);
-  text-align: center;
+  font-size: 12px;
+  line-height: 1.25;
+  color: rgba(255,255,255,0.88);
+  text-align: left;
 }
+
+/* Loading overlay when selecting */
 .modal-picker-item .selecting-spinner {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 .modal-picker-item .selecting-spinner::after {
   content: '';
   width: 28px;
   height: 28px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.25);
   border-top-color: #4ade80;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin .8s linear infinite;
+}
+
+/* Keyboard accessibility */
+.modal-picker-item:focus-visible {
+  outline: 2px solid rgba(96,165,250,.9);
+  outline-offset: 4px;
 }
 
 /* Cover status badges */
