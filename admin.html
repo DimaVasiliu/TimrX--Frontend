@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -869,6 +870,18 @@
                 <span>Strict fact-check + sources</span>
               </label>
               <span class="form-hint">Uses web search to find and cite sources</span>
+            </div>
+            <div class="form-group" id="smart_image_options" style="padding-left:12px;border-left:2px solid rgba(255,255,255,0.08);margin-left:4px;">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_smart_image_search" class="form-checkbox" checked/>
+                <span>Smart image search</span>
+              </label>
+              <span class="form-hint">LLM-planned queries, filters out junk (portraits, screenshots, logos)</span>
+              <label class="form-label checkbox-label" style="margin-top:10px;">
+                <input type="checkbox" id="ai_strict_image_relevance" class="form-checkbox"/>
+                <span>Strict image relevance</span>
+              </label>
+              <span class="form-hint">Embeddings scoring + Tavily/Serper enrichment (slower)</span>
             </div>
             <div class="form-group affiliate-section">
               <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
@@ -1778,13 +1791,22 @@
       };
     });
 
-    // Dynamic UI: Hide/show image count based on images mode
+    // Dynamic UI: Hide/show image count and smart image options based on images mode
     $('#ai_images_mode').onchange = function() {
       const imageCountGroup = $('#image_count_group');
+      const smartImageOptions = $('#smart_image_options');
+      const isRoyaltyFree = this.value === 'royalty_free';
+      const isNone = this.value === 'none';
       if (imageCountGroup) {
-        imageCountGroup.style.display = this.value === 'none' ? 'none' : 'block';
+        imageCountGroup.style.display = isNone ? 'none' : 'block';
+      }
+      if (smartImageOptions) {
+        // Only show smart image options for royalty-free mode
+        smartImageOptions.style.display = isRoyaltyFree ? 'block' : 'none';
       }
     };
+    // Trigger initial state
+    $('#ai_images_mode').dispatchEvent(new Event('change'));
 
     // Auto-enable fact-check for news style
     $('#ai_style').onchange = function() {
@@ -1819,6 +1841,8 @@
             image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
             images_mode: imagesMode,
             strict_factcheck: $('#ai_strict_factcheck').checked,
+            smart_image_search: $('#ai_smart_image_search').checked,
+            strict_image_relevance: $('#ai_strict_image_relevance').checked,
             affiliate_url: affiliateUrl || undefined,
             product_name: productName || undefined,
             affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
