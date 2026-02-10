@@ -381,6 +381,12 @@ body.read-page {
   }
 }
 
+@media (max-width: 640px) {
+  .post-layout {
+    max-width: none;
+  }
+}
+
 /* ===== TABLE OF CONTENTS ===== */
 .post-toc {
   order: 1;
@@ -2065,6 +2071,14 @@ blockquote cite {
   .vref-tooltip::after {
     display: none;
   }
+}
+
+.vref-empty {
+  color: #737373;
+  font-size: 13px;
+  font-style: italic;
+  margin: 0;
+  padding: 8px 0;
 }
 
 /* ===== REDUCED MOTION ===== */
