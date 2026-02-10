@@ -9,20 +9,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
-  <link rel="stylesheet" href="write.css"/>
-  <link rel="stylesheet" href="editor.css"/>
-  <link rel="stylesheet" href="media/write.css"/>
+  <link rel="stylesheet" href="/styles.css"/>
+  <link rel="stylesheet" href="/write.css"/>
+  <link rel="stylesheet" href="/editor.css"/>
+  <link rel="stylesheet" href="/media/write.css"/>
 </head>
 <body class="write-page">
   <!-- HEADER -->
   <header class="write-header" aria-label="Site header">
-    <a class="write-brand" href="index.html" aria-label="Home">
+    <a class="write-brand" href="/" aria-label="Home">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
     <nav class="write-nav-links">
-      <a href="blogs.html">Blogs</a>
-      <a href="admin.html">Admin</a>
+      <a href="/blogs">Blogs</a>
+      <a href="/admin">Admin</a>
       <button id="logout" class="nav-logout">Log out</button>
     </nav>
   </header>
@@ -55,7 +55,7 @@
     <div class="hero-content">
       <div class="hero-eyebrow">
         <span class="eyebrow-line"></span>
-        <a href="admin.html" class="eyebrow-text eyebrow-link">← Back to Admin</a>
+        <a href="/admin" class="eyebrow-text eyebrow-link">← Back to Admin</a>
       </div>
       <h1 class="hero-title">
         <span class="hero-word">Edit.</span>
@@ -253,7 +253,7 @@
     const slug = params.get('slug');
     if (!slug) {
       alert('No post slug provided');
-      location.href = 'admin.html';
+      location.href = '/admin';
     }
 
     let editor = null;
@@ -286,7 +286,7 @@
       if (e.key === 'Enter') $('#enter').click();
     });
 
-    $('#logout').onclick = () => { setToken(''); location.href = 'admin.html'; };
+    $('#logout').onclick = () => { setToken(''); location.href = '/admin'; };
 
     // Initialize Editor.js
     function initEditor(data) {
@@ -377,7 +377,7 @@
         }
       } catch (err) {
         alert('Error loading post: ' + err.message);
-        location.href = 'admin.html';
+        location.href = '/admin';
       }
     }
 
@@ -489,7 +489,7 @@
           headers: headers()
         });
         if (!r.ok) throw new Error('Delete failed');
-        location.href = 'admin.html';
+        location.href = '/admin';
       } catch (err) {
         setMsg('Error: ' + err.message, false);
       }
