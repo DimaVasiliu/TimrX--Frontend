@@ -908,34 +908,29 @@ body {
   text-align: center;
 }
 
-/* ===== BlogModal cover picker (premium grid) ===== */
+/* ===== BlogModal cover picker (single column) ===== */
 .modal-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-top: 14px;
-}
-
-@media (max-width: 860px) {
-  .modal-picker-grid { grid-template-columns: 1fr; }
 }
 
 /* Card */
 .modal-picker-item {
   position: relative;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0.10);
   background: rgba(255,255,255,0.03);
   transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-  min-height: 220px;
 }
 
-/* Make the image fill the card consistently */
+/* Image fits naturally within card */
 .modal-picker-item img {
   width: 100%;
-  height: 260px;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   display: block;
   transform: scale(1);
