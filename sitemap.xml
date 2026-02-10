@@ -1,14 +1,15 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Static pages (homepage, hub, legal, etc.) -->
   <sitemap>
     <loc>https://timrx.live/sitemap-pages.xml</loc>
-    <lastmod>2026-02-09</lastmod>
+    <lastmod>2026-02-10</lastmod>
   </sitemap>
 
   <!-- Dynamic blog posts (proxied from backend) -->
   <sitemap>
     <loc>https://timrx.live/sitemap-blogs.xml</loc>
-    <lastmod>2026-02-09</lastmod>
+    <lastmod>2026-02-10</lastmod>
   </sitemap>
 </sitemapindex>
