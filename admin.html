@@ -654,7 +654,11 @@
             <span id="coverStatus" class="cover-status">No cover yet</span>
           </div>
           <div class="cover-prompt-row">
+            <span class="cover-prompt-label">Auto prompt:</span>
             <span class="cover-prompt-text" id="modalPreviewCoverPrompt"></span>
+          </div>
+          <div class="cover-custom-search">
+            <input type="text" id="customCoverPrompt" class="form-input" placeholder="Or enter your own search terms..."/>
           </div>
           <!-- Cover picker will be injected here -->
           <div id="modalCoverPicker" class="modal-cover-picker hidden"></div>
@@ -969,14 +973,18 @@
 
     // Generate cover from blog modal - opens LARGE modal for better selection
     $('#modalGenerateCover').onclick = async () => {
-      if (!generatedBlog || !generatedBlog.cover_prompt) {
-        alert('No cover prompt available');
+      // Use custom prompt if provided, otherwise use auto-generated
+      const customPrompt = $('#customCoverPrompt')?.value?.trim();
+      const autoPrompt = generatedBlog?.cover_prompt;
+      const prompt = customPrompt || autoPrompt;
+
+      if (!prompt) {
+        alert('No cover prompt available. Enter custom search terms or generate a blog first.');
         return;
       }
 
       const btn = $('#modalGenerateCover');
       const mode = $('#cover_mode').value;  // Use the setting from Cover tab
-      const prompt = generatedBlog.cover_prompt;
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>' + (mode === 'royalty_free' ? 'Searching...' : 'Generating...');
@@ -2159,26 +2167,39 @@
           blocks.splice(existingRefIdx, endIdx - existingRefIdx);
         }
 
-        // Add validation references section
-        blocks.push({
-          id: 'ref_header_' + Date.now(),
-          type: 'header',
-          data: { text: 'Validation References', level: 2 }
-        });
-
-        for (const result of validationResultsData) {
+        // Add validation references section as a single compact block
+        // Extract sources from responses for linking
+        const validationCards = validationResultsData.map(result => {
           const verdictEmoji = result.verdict === 'supported' ? '✔' :
                               result.verdict === 'partial' ? '⚠' :
                               result.verdict === 'not-supported' ? '✖' : '?';
+          const verdictClass = result.verdict === 'supported' ? 'supported' :
+                              result.verdict === 'partial' ? 'partial' : 'not-supported';
 
-          blocks.push({
-            id: 'ref_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-            type: 'paragraph',
-            data: {
-              text: `<strong>${verdictEmoji} Claim:</strong> ${result.claim}<br><em>${result.response.substring(0, 500)}${result.response.length > 500 ? '...' : ''}</em>`
-            }
-          });
-        }
+          // Extract source URLs from response (look for common patterns)
+          const sourceMatch = result.response.match(/(?:Source \d+:|EVIDENCE:)[^]*?(?:https?:\/\/[^\s<>"]+|Google Scholar query:[^.]+)/gi);
+          const sources = sourceMatch ? sourceMatch.join(' | ') : '';
+
+          // Truncate claim for display
+          const shortClaim = result.claim.length > 60 ? result.claim.substring(0, 57) + '...' : result.claim;
+
+          return {
+            emoji: verdictEmoji,
+            verdict: verdictClass,
+            claim: result.claim,
+            shortClaim,
+            response: result.response,
+            sources
+          };
+        });
+
+        blocks.push({
+          id: 'ref_validation_' + Date.now(),
+          type: 'validationRefs',
+          data: {
+            cards: validationCards
+          }
+        });
 
         // Update draft
         const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
