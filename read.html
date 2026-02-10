@@ -364,6 +364,37 @@
               <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-link">${pCta} <span class="arrow">→</span></a>
             </div>
           </div>`;
+        case 'validationRefs':
+          const cards = d.cards || [];
+          if (!cards.length) return '';
+          const cardsHtml = cards.map((card, idx) => {
+            const escClaim = (card.claim || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const escResponse = (card.response || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+            const escShort = (card.shortClaim || '').replace(/</g, '&lt;');
+            // Extract first URL from response for linking
+            const urlMatch = (card.response || '').match(/https?:\/\/[^\s<>"]+/);
+            const sourceUrl = urlMatch ? urlMatch[0] : '';
+            return `<div class="vref-card vref-${card.verdict || 'unknown'}" data-idx="${idx}">
+              <span class="vref-emoji">${card.emoji || '?'}</span>
+              <span class="vref-claim">${escShort}</span>
+              <div class="vref-tooltip">
+                <div class="vref-tooltip-header">
+                  <span class="vref-verdict-badge vref-${card.verdict}">${card.emoji} ${card.verdict === 'supported' ? 'Supported' : card.verdict === 'partial' ? 'Partially Supported' : 'Not Supported'}</span>
+                </div>
+                <p class="vref-full-claim">${escClaim}</p>
+                <div class="vref-evidence">${escResponse.substring(0, 400)}${card.response.length > 400 ? '...' : ''}</div>
+                ${sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="vref-source-link">View Source →</a>` : ''}
+              </div>
+            </div>`;
+          }).join('');
+          return `<aside class="validation-refs-section">
+            <div class="vref-header">
+              <svg class="vref-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+              <span>Fact-checked claims</span>
+              <span class="vref-count">${cards.length}</span>
+            </div>
+            <div class="vref-cards">${cardsHtml}</div>
+          </aside>`;
         default:
           return '';
       }
