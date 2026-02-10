@@ -9,6 +9,105 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css"/>
+  <style>
+    /* Validate Tab Styles */
+    .validate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .validate-mode-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .validate-mode-indicator .mode-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .validate-mode-indicator.off .mode-dot {
+      background: #6b7280;
+    }
+    .validate-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .validate-toggle input {
+      accent-color: #22c55e;
+    }
+    .validate-chat {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      height: 320px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .chat-messages {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-welcome {
+      text-align: center;
+      padding: 20px;
+      color: #9ca3af;
+    }
+    .chat-welcome p { margin: 4px 0; }
+    .chat-msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      max-width: 95%;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .chat-msg.user {
+      background: #3b82f6;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-msg.assistant {
+      background: rgba(255,255,255,0.08);
+      color: #e5e7eb;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .chat-msg.assistant strong { color: #fff; }
+    .chat-msg.assistant .verdict-supported { color: #22c55e; }
+    .chat-msg.assistant .verdict-partial { color: #f59e0b; }
+    .chat-msg.assistant .verdict-not { color: #ef4444; }
+    .validate-input {
+      display: flex;
+      gap: 8px;
+    }
+    .validate-input textarea {
+      flex: 1;
+      resize: none;
+    }
+    .validate-input button {
+      flex-shrink: 0;
+    }
+    .validate-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    #validateStatus {
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -69,6 +168,7 @@
           <button class="tab active" data-tab="generate">Generate</button>
           <button class="tab" data-tab="assist">Assist</button>
           <button class="tab" data-tab="cover">Cover</button>
+          <button class="tab" data-tab="validate">Validate</button>
           <button class="tab" data-tab="subscribers">Subs</button>
         </div>
 
@@ -254,6 +354,37 @@
           <div class="subs-tab-info">
             <p class="muted">View and manage your newsletter subscribers.</p>
             <button class="action-btn" id="openSubsModal">View Subscribers</button>
+          </div>
+        </div>
+
+        <!-- Validate Tab (Claim Validation Chat) -->
+        <div class="tab-content" id="tab-validate">
+          <div class="validate-header">
+            <div class="validate-mode-indicator" id="validateModeIndicator">
+              <span class="mode-dot"></span>
+              <span class="mode-text">Validation Mode: ON</span>
+            </div>
+            <label class="validate-toggle">
+              <input type="checkbox" id="validateModeToggle" checked/>
+              <span class="toggle-label">Strict Validation</span>
+            </label>
+          </div>
+          <div class="validate-chat" id="validateChat">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-welcome">
+                <p><strong>Claim Validation Assistant</strong></p>
+                <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+                <p class="muted">Output format: CLAIM → VERDICT → EVIDENCE → EXPLANATION → APPLICABILITY → CONFIDENCE</p>
+              </div>
+            </div>
+          </div>
+          <form id="validateForm" class="validate-input">
+            <textarea id="validateInput" class="form-textarea" placeholder="Enter a claim to validate, e.g., 'Rate limiting prevents DDoS attacks'" rows="2"></textarea>
+            <button type="submit" class="action-btn" id="validateBtn">Validate</button>
+          </form>
+          <div class="validate-actions">
+            <button class="btn" id="clearChat">Clear Chat</button>
+            <span class="muted" id="validateStatus"></span>
           </div>
         </div>
       </div>
@@ -1335,6 +1466,182 @@
     $('#subsModal').addEventListener('click', e => {
       if (e.target === $('#subsModal')) $('#subsModal').classList.remove('show');
     });
+
+    // ========== CLAIM VALIDATION CHAT ==========
+    const CHAT_API = 'https://chat.timrx.live';  // FastAPI chat server
+    const VALIDATE_MODE_KEY = 'TX_VALIDATE_MODE';
+    let validateMessages = [];
+
+    // Load mode from localStorage
+    function loadValidateMode() {
+      const saved = localStorage.getItem(VALIDATE_MODE_KEY);
+      const isValidate = saved !== 'normal';  // Default to validate mode
+      $('#validateModeToggle').checked = isValidate;
+      updateModeIndicator(isValidate);
+      return isValidate;
+    }
+
+    // Save mode to localStorage
+    function saveValidateMode(isValidate) {
+      localStorage.setItem(VALIDATE_MODE_KEY, isValidate ? 'validate' : 'normal');
+      updateModeIndicator(isValidate);
+    }
+
+    // Update mode indicator UI
+    function updateModeIndicator(isValidate) {
+      const indicator = $('#validateModeIndicator');
+      const text = indicator.querySelector('.mode-text');
+      if (isValidate) {
+        indicator.classList.remove('off');
+        text.textContent = 'Validation Mode: ON';
+      } else {
+        indicator.classList.add('off');
+        text.textContent = 'Validation Mode: OFF';
+      }
+    }
+
+    // Toggle mode handler
+    $('#validateModeToggle').onchange = function() {
+      saveValidateMode(this.checked);
+    };
+
+    // Add message to chat UI
+    function addChatMessage(role, content) {
+      const container = $('#chatMessages');
+      const welcome = container.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${role}`;
+
+      // Format assistant messages with verdict highlighting
+      if (role === 'assistant') {
+        let formatted = content
+          .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+          .replace(/⚠\s*(Partially Supported)/gi, '<span class="verdict-partial">⚠ $1</span>')
+          .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/^(CLAIM:|VERDICT:|EVIDENCE:|EXPLANATION:|APPLICABILITY.*:|CONFIDENCE:)/gm, '<strong>$1</strong>');
+        msg.innerHTML = formatted;
+      } else {
+        msg.textContent = content;
+      }
+
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+      return msg;
+    }
+
+    // Stream chat response
+    async function streamValidateChat(userMessage) {
+      const isValidate = $('#validateModeToggle').checked;
+      const mode = isValidate ? 'validate' : 'normal';
+
+      validateMessages.push({ role: 'user', content: userMessage });
+      addChatMessage('user', userMessage);
+
+      const btn = $('#validateBtn');
+      const status = $('#validateStatus');
+      btn.disabled = true;
+      btn.textContent = 'Validating...';
+      status.textContent = 'Streaming response...';
+
+      // Create placeholder for assistant message
+      const assistantMsg = addChatMessage('assistant', '');
+      let fullResponse = '';
+
+      try {
+        const res = await fetch(`${CHAT_API}/api/chat/stream?mode=${mode}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: validateMessages,
+            temperature: 0.2,
+            mode: mode
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          for (const frame of chunk.split('\n\n')) {
+            const line = frame.trim();
+            if (!line.startsWith('data:')) continue;
+            const raw = line.slice(5).trim();
+            if (!raw) continue;
+
+            try {
+              const payload = JSON.parse(raw);
+              if (payload.token) {
+                fullResponse += payload.token;
+                // Update with formatting
+                let formatted = fullResponse
+                  .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+                  .replace(/⚠\s*(Partially Supported)/gi, '<span class="verdict-partial">⚠ $1</span>')
+                  .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/^(CLAIM:|VERDICT:|EVIDENCE:|EXPLANATION:|APPLICABILITY.*:|CONFIDENCE:)/gm, '<strong>$1</strong>');
+                assistantMsg.innerHTML = formatted;
+                $('#chatMessages').scrollTop = $('#chatMessages').scrollHeight;
+              }
+              if (payload.done) {
+                status.textContent = 'Done';
+              }
+              if (payload.error) {
+                status.textContent = 'Error: ' + payload.error;
+              }
+            } catch (e) { /* ignore parse errors */ }
+          }
+        }
+
+        validateMessages.push({ role: 'assistant', content: fullResponse });
+        status.textContent = '';
+
+      } catch (err) {
+        console.error('Validate chat error:', err);
+        assistantMsg.textContent = 'Error: ' + err.message;
+        status.textContent = 'Failed';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Validate';
+      }
+    }
+
+    // Form submit handler
+    $('#validateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = $('#validateInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      await streamValidateChat(text);
+    };
+
+    // Clear chat
+    $('#clearChat').onclick = () => {
+      validateMessages = [];
+      $('#chatMessages').innerHTML = `
+        <div class="chat-welcome">
+          <p><strong>Claim Validation Assistant</strong></p>
+          <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+          <p class="muted">Output format: CLAIM → VERDICT → EVIDENCE → EXPLANATION → APPLICABILITY → CONFIDENCE</p>
+        </div>
+      `;
+      $('#validateStatus').textContent = '';
+    };
+
+    // Init validate mode on load
+    loadValidateMode();
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
