@@ -116,13 +116,32 @@
 
     <!-- Content Layout -->
     <div class="container post-layout">
-      <aside class="post-toc">
+      <aside class="post-toc" aria-label="Table of contents">
         <div class="toc-card">
           <h3>Contents</h3>
           <nav id="tocList"></nav>
         </div>
       </aside>
       <article id="article" class="post-article"></article>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="container cta-section">
+      <aside class="product-cta-box" aria-label="Product promotion">
+        <p>If you want to try these workflows yourself, the TimrX 3D Print Hub lets you experiment with text-to-3D and image-to-3D models directly in the browser.</p>
+        <a href="https://timrx.live/hub" class="product-cta-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          Try 3D Print Hub
+        </a>
+      </aside>
+      <aside class="subscribe-cta-box" aria-label="Newsletter signup">
+        <p>If you want updates on new experiments and tools, you can subscribe here.</p>
+        <form class="subscribe-cta-form" action="https://timrx.live/api/subscribe" method="POST" id="ctaSubscribeForm">
+          <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
+          <button type="submit">Subscribe</button>
+        </form>
+        <div id="ctaSubscribeMsg" class="subscribe-msg" aria-live="polite"></div>
+      </aside>
     </div>
 
     <!-- Engagement Section -->
@@ -404,17 +423,34 @@
   function renderCoverAttribution(node, info) {
     node.textContent = '';
     node.append('Photo by ');
+
+    // Photographer name with link
     if (info.href) {
-      const link = document.createElement('a');
-      link.href = info.href;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      link.textContent = info.photographer;
-      node.appendChild(link);
+      const photographerLink = document.createElement('a');
+      photographerLink.href = info.href;
+      photographerLink.target = '_blank';
+      photographerLink.rel = 'noopener';
+      photographerLink.textContent = info.photographer;
+      node.appendChild(photographerLink);
     } else {
       node.append(info.photographer);
     }
-    node.append(` on ${info.source}`);
+
+    node.append(' on ');
+
+    // Source name with link (Unsplash/Pexels)
+    const sourceLink = document.createElement('a');
+    if (info.source.toLowerCase() === 'unsplash') {
+      sourceLink.href = 'https://unsplash.com/?utm_source=timrx&utm_medium=referral';
+    } else if (info.source.toLowerCase() === 'pexels') {
+      sourceLink.href = 'https://www.pexels.com/?utm_source=timrx';
+    } else {
+      sourceLink.href = '#';
+    }
+    sourceLink.target = '_blank';
+    sourceLink.rel = 'noopener';
+    sourceLink.textContent = info.source;
+    node.appendChild(sourceLink);
   }
 
   function renderPost(p) {
@@ -844,6 +880,45 @@
   load().then(() => {
     initEngagement();
   });
+
+  // CTA Subscribe Form Handler
+  const ctaSubscribeForm = qs('#ctaSubscribeForm');
+  const ctaSubscribeMsg = qs('#ctaSubscribeMsg');
+  if (ctaSubscribeForm) {
+    ctaSubscribeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = ctaSubscribeForm.querySelector('input[name="email"]').value.trim();
+      const btn = ctaSubscribeForm.querySelector('button');
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Subscribing...';
+
+      try {
+        const r = await fetch(ctaSubscribeForm.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await r.json();
+
+        if (data.ok || r.ok) {
+          ctaSubscribeMsg.textContent = 'Subscribed! Check your inbox.';
+          ctaSubscribeMsg.style.color = '#34d399';
+          ctaSubscribeForm.reset();
+        } else {
+          ctaSubscribeMsg.textContent = data.error || 'Something went wrong.';
+          ctaSubscribeMsg.style.color = '#f87171';
+        }
+      } catch (err) {
+        ctaSubscribeMsg.textContent = 'Network error. Please try again.';
+        ctaSubscribeMsg.style.color = '#f87171';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Subscribe';
+      }
+    });
+  }
 </script>
 </body>
 </html>
