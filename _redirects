@@ -1,6 +1,8 @@
-/index.html     /         301
-/hub.html       /hub      301
-/3dprint.html   /3dprint  301
-/blogs.html     /blogs    301
-/archive.html   /archive  301
-/admin.html   /admin   301
+/index.html       /              301
+/hub.html         /hub           301
+/3dprint.html     /3dprint       301
+/blogs.html       /blogs         301
+/archive.html     /archive       301
+
+/admin.html       /admin         301
+/admin-edit.html  /admin/admin-edit.html  301
