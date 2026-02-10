@@ -644,67 +644,6 @@ body {
 }
 .modal-box.wide { max-width: 700px; }
 
-/* Cover picker modal - larger for image selection */
-#coverModal {
-  z-index: 1100; /* Higher than blogModal to appear on top */
-}
-#coverModal .modal-box {
-  max-width: 900px;
-  width: 90%;
-}
-#coverModal .cover-picker-grid {
-  gap: 16px;
-}
-#coverModal .cover-picker-item img {
-  aspect-ratio: 16/9;
-  min-height: 180px;
-}
-
-/* Cover type selection modal */
-#coverTypeModal {
-  z-index: 1050; /* Between blogModal and coverModal */
-}
-.cover-type-box {
-  max-width: 420px;
-}
-.cover-type-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.cover-type-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 16px 20px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-}
-.cover-type-btn:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.2);
-  transform: translateY(-1px);
-}
-.cover-type-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-.cover-type-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.cover-type-desc {
-  font-size: 13px;
-  color: #888;
-  line-height: 1.4;
-}
-
 .modal-box h3 {
   font-size: 18px;
   font-weight: 600;
@@ -1012,15 +951,6 @@ body {
   font-weight: 600;
   color: #888;
 }
-.cover-status {
-  font-size: 11px;
-  color: #666;
-  font-style: italic;
-}
-.cover-status.ready {
-  color: #4ade80;
-  font-style: normal;
-}
 .cover-prompt-row {
   font-size: 12px;
   color: #666;
@@ -1185,7 +1115,6 @@ body {
 }
 
 /* Modal with backdrop blur */
-#coverModal.show,
 #blogModal.show {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -1193,11 +1122,10 @@ body {
 
 /* Responsive */
 @media (max-width: 900px) {
-  .main { flex-direction: column; }
+  .main { flex-direction: column; padding: 0 20px 32px; }
   .sidebar { width: 100%; }
   .header { padding: 16px 20px; }
   .page-title { padding: 32px 20px 24px; }
-  .main { padding: 0 20px 32px; }
   .toolbar { flex-wrap: wrap; }
   .post { flex-direction: column; align-items: flex-start; }
   .post-actions { width: 100%; margin-top: 10px; }
