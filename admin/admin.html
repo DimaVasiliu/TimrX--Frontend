@@ -1,0 +1,3213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Admin — TimrX Blogs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css"/>
+  <style>
+    /* Validate Tab Styles */
+    .validate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .validate-mode-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .validate-mode-indicator .mode-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .validate-mode-indicator.off .mode-dot {
+      background: #6b7280;
+    }
+    .validate-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .validate-toggle input {
+      accent-color: #22c55e;
+    }
+    .validate-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .validate-depth-toggle {
+      display: flex;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 2px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .depth-btn {
+      padding: 5px 12px;
+      font-size: 11px;
+      border: none;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .depth-btn:hover {
+      color: #ccc;
+    }
+    .depth-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .depth-btn[data-depth="deep"].active {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .scan-hint, .deep-hint { font-size: 12px; }
+    .deep-hint.hidden, .scan-hint.hidden { display: none; }
+    /* Research mode toggle */
+    .research-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.15s;
+    }
+    .research-toggle:hover {
+      border-color: rgba(251,191,36,0.3);
+    }
+    .research-toggle:has(input:checked) {
+      background: rgba(251,191,36,0.15);
+      border-color: rgba(251,191,36,0.3);
+    }
+    .research-toggle input {
+      accent-color: #fbbf24;
+    }
+    .research-label {
+      color: #888;
+    }
+    .research-toggle:has(input:checked) .research-label {
+      color: #fbbf24;
+    }
+    .validate-chat {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      height: 380px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .chat-messages {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-welcome {
+      text-align: center;
+      padding: 20px;
+      color: #9ca3af;
+    }
+    .chat-welcome p { margin: 4px 0; }
+    .chat-msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      max-width: 95%;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .chat-msg.user {
+      background: #3b82f6;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-msg.assistant {
+      background: rgba(255,255,255,0.08);
+      color: #e5e7eb;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .chat-msg.assistant strong { color: #fff; }
+    .chat-msg.assistant .verdict-supported { color: #22c55e; }
+    .chat-msg.assistant .verdict-partial { color: #f59e0b; }
+    .chat-msg.assistant .verdict-not { color: #ef4444; }
+    /* Evidence quality badges */
+    .evidence-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-right: 4px;
+    }
+    .evidence-tag.peer-reviewed {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .evidence-tag.preprint {
+      background: rgba(59,130,246,0.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,0.3);
+    }
+    .evidence-tag.standard {
+      background: rgba(168,85,247,0.2);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .evidence-tag.vendor-docs {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    .evidence-tag.opinion {
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    /* Action checkboxes for NEXT ACTIONS */
+    .action-checkbox {
+      display: inline-block;
+      width: 16px;
+      color: #60a5fa;
+      font-size: 14px;
+      margin-right: 4px;
+    }
+    .action-checkbox.done {
+      color: #4ade80;
+    }
+    /* Cost impact tags */
+    .cost-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .cost-tag.saves {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .cost-tag.neutral {
+      background: rgba(156,163,175,0.2);
+      color: #9ca3af;
+      border: 1px solid rgba(156,163,175,0.3);
+    }
+    .cost-tag.costs {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    .validate-input {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .validate-input textarea {
+      flex: 1;
+      resize: none;
+      min-height: 80px;
+    }
+    .validate-input .validate-btn {
+      width: auto;
+      padding: 10px 18px;
+      font-size: 12px;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+    .validate-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    #validateStatus {
+      font-size: 12px;
+    }
+    /* Message action buttons */
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .msg-action-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .msg-action-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .msg-action-btn.primary {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.3);
+      color: #4ade80;
+    }
+    .msg-action-btn.primary:hover {
+      background: rgba(34,197,94,0.25);
+    }
+    .msg-action-btn.success {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    /* Blog validation panel */
+    .blog-validation-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .validation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .validation-header .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+    }
+    .validation-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .validation-status.pending {
+      background: rgba(251,191,36,0.15);
+      color: #fbbf24;
+    }
+    .validation-status.running {
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+    }
+    .validation-status.done {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+    }
+    .validation-results {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      display: none;
+    }
+    .validation-results.show {
+      display: block;
+    }
+    .validation-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border-left: 3px solid #666;
+    }
+    .validation-item.supported { border-left-color: #22c55e; }
+    .validation-item.partial { border-left-color: #f59e0b; }
+    .validation-item.not-supported { border-left-color: #ef4444; }
+    .validation-item .claim-text {
+      font-weight: 500;
+      color: #e5e5e5;
+      margin-bottom: 4px;
+    }
+    .validation-item .verdict-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .validation-item .verdict-badge.supported {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    .validation-item .verdict-badge.partial {
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .validation-item .verdict-badge.not-supported {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+    .validation-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    /* Context snippets */
+    .context-snippets {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .context-snippets.hidden { display: none; }
+    .context-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .context-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #60a5fa;
+    }
+    .context-clear-btn {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
+      color: #888;
+      cursor: pointer;
+    }
+    .context-clear-btn:hover { color: #fff; }
+    .context-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .context-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      font-size: 11px;
+      color: #ccc;
+    }
+    .context-chip .chip-name { color: #fff; }
+    .context-chip .chip-lines { color: #888; }
+    .context-chip .chip-remove {
+      cursor: pointer;
+      color: #888;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .context-chip .chip-remove:hover { color: #f87171; }
+    /* Validate input layout */
+    .validate-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .validate-input-row textarea { flex: 1; }
+    .validate-input-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .context-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .context-btn:hover {
+      background: rgba(59,130,246,0.2);
+      border-color: rgba(59,130,246,0.4);
+    }
+    /* Repo modal */
+    .repo-modal-content { display: flex; flex-direction: column; gap: 12px; }
+    .repo-search input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .repo-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 12px;
+      height: 400px;
+    }
+    .repo-tree-panel {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .repo-tree { font-size: 12px; }
+    .repo-tree-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .repo-tree-item:hover { background: rgba(255,255,255,0.06); }
+    .repo-tree-item.selected { background: rgba(59,130,246,0.2); }
+    .repo-tree-item .icon { width: 14px; text-align: center; font-size: 10px; }
+    .repo-tree-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .repo-tree-children { margin-left: 16px; }
+    .repo-tree-children.collapsed { display: none; }
+    .repo-preview-panel {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .repo-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: #888;
+    }
+    .repo-preview-actions { display: flex; align-items: center; gap: 8px; }
+    .repo-preview-actions.hidden { display: none; }
+    .line-range-label { font-size: 11px; color: #888; }
+    .line-input {
+      width: 50px;
+      padding: 3px 6px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #fff;
+      font-size: 11px;
+      text-align: center;
+    }
+    .repo-preview-code {
+      flex: 1;
+      margin: 0;
+      padding: 12px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      background: transparent;
+      color: #a5b4c3;
+    }
+    .repo-preview-code code { font-family: 'SF Mono', Monaco, monospace; }
+    .btn.small { padding: 4px 10px; font-size: 11px; }
+    .loading-text { color: #666; font-size: 12px; padding: 8px; }
+    /* Toast notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #fff;
+      background: #1f2937;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: toastIn 0.2s ease-out;
+      max-width: 320px;
+    }
+    .toast.error { background: rgba(239,68,68,0.9); border-color: #ef4444; }
+    .toast.success { background: rgba(34,197,94,0.9); border-color: #22c55e; }
+    .toast.warning { background: rgba(251,191,36,0.9); border-color: #fbbf24; color: #000; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+    /* Inline cover source selector */
+    .cover-source-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .cover-source-btn {
+      flex: 1;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: #999;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .cover-source-btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      color: #ccc;
+    }
+    .cover-source-btn:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    .cover-source-btn.selected {
+      background: rgba(59,130,246,0.1);
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .cover-source-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .cover-source-btn .icon { font-size: 20px; }
+    .cover-source-btn .label { font-weight: 600; }
+    .cover-source-btn .desc { font-size: 10px; opacity: 0.7; }
+    /* Cover action buttons row */
+    .cover-actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .cover-actions-row .btn {
+      flex: 1;
+    }
+    .cover-actions-row .btn.secondary {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.1);
+      color: #999;
+    }
+    .cover-actions-row .btn.secondary:hover:not(:disabled) {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .cover-size-row {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(59,130,246,0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+    .cover-size-row.show { display: flex; gap: 10px; align-items: center; }
+    .cover-size-row label { font-size: 12px; color: #60a5fa; white-space: nowrap; }
+    .cover-size-row select { flex: 1; }
+    /* Draft save status */
+    .cover-draft-status {
+      margin-top: 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cover-draft-status.success { color: #4ade80; }
+    .cover-draft-status.error { color: #f87171; }
+    .cover-draft-status .retry-btn {
+      padding: 2px 8px;
+      font-size: 11px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 4px;
+      color: #f87171;
+      cursor: pointer;
+    }
+    .cover-draft-status .retry-btn:hover {
+      background: rgba(239,68,68,0.25);
+    }
+    /* Modal cover picker grid - large images for easy selection */
+    .modal-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 720px) {
+      .modal-picker-grid { grid-template-columns: 1fr; }
+    }
+    .modal-picker-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .modal-picker-item:hover:not(.selecting) {
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .modal-picker-item:focus-visible {
+      outline: 3px solid rgba(96,165,250,0.9);
+      outline-offset: 3px;
+    }
+    .modal-picker-item img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      min-height: 220px;
+      object-fit: cover;
+      display: block;
+      transform: scale(1);
+      transition: transform 0.2s ease;
+    }
+    .modal-picker-item:hover:not(.selecting) img {
+      transform: scale(1.04);
+    }
+    .modal-picker-item.selecting {
+      border-color: #3b82f6;
+      pointer-events: none;
+    }
+    .modal-picker-item.selecting::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1;
+    }
+    .modal-picker-item .picker-credit {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 10px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      font-size: 11px;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+    }
+    .modal-picker-item .selecting-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    /* Modal cover preview */
+    .modal-cover-preview img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .cover-status.ready { color: #4ade80; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html">TimrX<span>.</span></a>
+    <nav class="nav">
+      <a href="blogs.html">Blogs</a>
+      <a href="write.html">Write</a>
+      <button id="logout" class="logout">Log out</button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-noise"></div>
+    <div class="hero-gradient"></div>
+    <div class="hero-watermark">ADMIN</div>
+    <div class="hero-arc"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">Dashboard</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-word">Manage.</span>
+        <span class="hero-word">Create.</span>
+        <span class="hero-word hero-word--outline">Control.</span>
+      </h1>
+      <p class="hero-description">Manage posts and generate content with AI-powered tools.</p>
+    </div>
+  </section>
+
+  <div class="main">
+    <!-- Content -->
+    <div class="content">
+      <div class="toolbar">
+        <input id="search" placeholder="Search posts…" autocomplete="off"/>
+        <select id="flt">
+          <option value="draft">Drafts</option>
+          <option value="published">Published</option>
+          <option value="all">All</option>
+        </select>
+        <button class="btn" id="reload">Reload</button>
+        <button class="btn primary" id="newPost">+ New</button>
+      </div>
+      <div id="list" class="posts"></div>
+    </div>
+
+    <!-- AI Panel -->
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>AI Assistant</h3>
+          <span class="status" id="aiStatus">...</span>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="generate">Generate</button>
+          <button class="tab" data-tab="assist">Assist</button>
+          <button class="tab" data-tab="validate">Validate</button>
+          <button class="tab" data-tab="subscribers">Subs</button>
+          <button class="tab" data-tab="usage">Usage</button>
+        </div>
+
+        <!-- Generate Tab -->
+        <div class="tab-content active" id="tab-generate">
+          <form id="generateForm">
+            <div class="form-group">
+              <label class="form-label">Topic / Idea</label>
+              <textarea class="form-textarea" id="ai_topic" placeholder="e.g., How to optimize 3D print settings..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Style</label>
+              <select class="form-select" id="ai_style">
+                <option value="tutorial">Tutorial</option>
+                <option value="guide">Guide</option>
+                <option value="listicle">Listicle (Top 10...)</option>
+                <option value="review">Product Review</option>
+                <option value="comparison">Comparison (A vs B)</option>
+                <option value="how-to">How-To / Step-by-Step</option>
+                <option value="case-study">Case Study</option>
+                <option value="story">Story / Narrative</option>
+                <option value="opinion">Opinion / Editorial</option>
+                <option value="news">News / Update</option>
+                <option value="roundup">Roundup / Best Of</option>
+                <option value="faq">FAQ / Q&A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Length</label>
+              <select class="form-select" id="ai_length">
+                <option value="micro">Micro (200-400 words)</option>
+                <option value="short">Short (500-800 words)</option>
+                <option value="medium" selected>Medium (1000-1500 words)</option>
+                <option value="long">Long (2000-3000 words)</option>
+                <option value="deep-dive">Deep Dive (3000-5000 words)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tone</label>
+              <select class="form-select" id="ai_tone">
+                <option value="professional and engaging">Professional</option>
+                <option value="casual and friendly">Casual</option>
+                <option value="technical and detailed">Technical</option>
+                <option value="inspiring and motivational">Inspiring</option>
+                <option value="witty and humorous">Witty / Humorous</option>
+                <option value="conversational and relatable">Conversational</option>
+                <option value="authoritative and expert">Authoritative</option>
+                <option value="beginner-friendly and simple">Beginner-Friendly</option>
+                <option value="bold and provocative">Bold / Provocative</option>
+                <option value="educational and structured">Educational</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Images Mode</label>
+              <select class="form-select" id="ai_images_mode">
+                <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
+                <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+                <option value="none">No images</option>
+              </select>
+              <span class="form-hint">Royalty-free adds attribution automatically</span>
+            </div>
+            <div class="form-group" id="image_count_group">
+              <label class="form-label">Images Count</label>
+              <select class="form-select" id="ai_image_count">
+                <option value="0">0 images</option>
+                <option value="1">1 image</option>
+                <option value="2" selected>2 images</option>
+                <option value="3">3 images</option>
+                <option value="4">4 images</option>
+                <option value="5">5 images</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_strict_factcheck" class="form-checkbox"/>
+                <span>Strict fact-check + sources</span>
+              </label>
+              <span class="form-hint">Uses web search to find and cite sources</span>
+            </div>
+            <div class="form-group" id="smart_image_options" style="padding-left:12px;border-left:2px solid rgba(255,255,255,0.08);margin-left:4px;">
+              <label class="form-label checkbox-label">
+                <input type="checkbox" id="ai_smart_image_search" class="form-checkbox" checked/>
+                <span>Smart image search</span>
+              </label>
+              <span class="form-hint">LLM-planned queries, filters out junk (portraits, screenshots, logos)</span>
+              <label class="form-label checkbox-label" style="margin-top:10px;">
+                <input type="checkbox" id="ai_strict_image_relevance" class="form-checkbox"/>
+                <span>Strict image relevance</span>
+              </label>
+              <span class="form-hint">Embeddings scoring + Tavily/Serper enrichment (slower)</span>
+            </div>
+            <div class="form-group affiliate-section">
+              <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
+              <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
+              <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+              <select class="form-select" id="ai_affiliate_cta" style="margin-top:8px;">
+                <option value="Check Price on Amazon">Check Price on Amazon</option>
+                <option value="Buy Now on Amazon">Buy Now on Amazon</option>
+                <option value="View on Amazon">View on Amazon</option>
+                <option value="Shop Now">Shop Now</option>
+                <option value="Get It Here">Get It Here</option>
+                <option value="See Latest Price">See Latest Price</option>
+              </select>
+              <select class="form-select" id="ai_affiliate_placement" style="margin-top:8px;">
+                <option value="natural">Natural — AI decides placement</option>
+                <option value="early">Early — near the top</option>
+                <option value="middle">Middle — after key points</option>
+                <option value="end">End — as a recommendation</option>
+              </select>
+            </div>
+            <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
+          </form>
+
+          <div class="preview" id="generatePreview" style="display:none;">
+            <div class="preview-label">Generated Post</div>
+            <div class="preview-title" id="previewTitle"></div>
+            <div class="preview-text" id="previewExcerpt"></div>
+            <div class="preview-tags">
+              <span class="preview-tag" id="previewType"></span>
+              <span class="preview-tag" id="previewTags"></span>
+            </div>
+            <div class="preview-actions">
+              <button class="btn" id="previewEdit">Edit</button>
+              <button class="btn primary" id="previewPublish">Save Draft</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assist Tab -->
+        <div class="tab-content" id="tab-assist">
+          <div class="assist-grid">
+            <button class="assist-btn" data-action="expand"><span class="icon">+</span>Expand</button>
+            <button class="assist-btn" data-action="improve"><span class="icon">*</span>Improve</button>
+            <button class="assist-btn" data-action="simplify"><span class="icon">-</span>Simplify</button>
+            <button class="assist-btn" data-action="proofread"><span class="icon">?</span>Proofread</button>
+            <button class="assist-btn" data-action="headline"><span class="icon">#</span>Headlines</button>
+            <button class="assist-btn" data-action="seo"><span class="icon">@</span>SEO</button>
+            <button class="assist-btn" data-action="conclusion"><span class="icon">.</span>Conclusion</button>
+            <button class="assist-btn" data-action="outline"><span class="icon">=</span>Outline</button>
+          </div>
+          <form id="assistForm">
+            <div class="form-group">
+              <label class="form-label">Text to Process</label>
+              <textarea class="form-textarea" id="assist_text" placeholder="Paste text to process..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Context (optional)</label>
+              <input class="form-input" id="assist_context" placeholder="Brief description"/>
+            </div>
+          </form>
+          <div class="result" id="assistResult" style="display:none;">
+            <pre id="assistResultText"></pre>
+            <div class="preview-actions">
+              <button class="btn" id="copyAssist">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscribers Tab -->
+        <div class="tab-content" id="tab-subscribers">
+          <div class="subs-tab-info">
+            <p class="muted">View and manage your newsletter subscribers.</p>
+            <button class="action-btn" id="openSubsModal">View Subscribers</button>
+          </div>
+        </div>
+
+        <!-- Validate Tab (Claim Validation Chat) -->
+        <div class="tab-content" id="tab-validate">
+          <div class="validate-header">
+            <div class="validate-mode-indicator" id="validateModeIndicator">
+              <span class="mode-dot"></span>
+              <span class="mode-text">Validation Mode: ON</span>
+            </div>
+            <div class="validate-controls">
+              <label class="validate-toggle">
+                <input type="checkbox" id="validateModeToggle" checked/>
+                <span class="toggle-label">Strict Validation</span>
+              </label>
+              <div class="validate-depth-toggle">
+                <button type="button" class="depth-btn active" id="depthScan" data-depth="scan">Scan</button>
+                <button type="button" class="depth-btn" id="depthDeep" data-depth="deep">Deep Dive</button>
+              </div>
+              <label class="research-toggle" title="When ON: fetches sources (expensive). When OFF: proposes queries (cheap).">
+                <input type="checkbox" id="researchModeToggle"/>
+                <span class="toggle-label research-label">🔬 Research</span>
+              </label>
+            </div>
+          </div>
+          <div class="validate-chat" id="validateChat">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-welcome">
+                <p><strong>Claim Validation Assistant</strong></p>
+                <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+                <p class="muted scan-hint"><strong>Scan:</strong> Quick verdict + 3-5 sources (fast & cheap)</p>
+                <p class="muted deep-hint hidden"><strong>Deep Dive:</strong> Full analysis + detailed explanation</p>
+              </div>
+            </div>
+          </div>
+          <!-- Context snippets display -->
+          <div class="context-snippets hidden" id="contextSnippets">
+            <div class="context-header">
+              <span class="context-label">📎 Code Context:</span>
+              <button type="button" class="context-clear-btn" id="clearContext">Clear All</button>
+            </div>
+            <div class="context-list" id="contextList"></div>
+          </div>
+          <form id="validateForm" class="validate-input">
+            <div class="validate-input-row">
+              <textarea id="validateInput" class="form-textarea" placeholder="Enter a claim to validate, e.g., 'Rate limiting prevents DDoS attacks'" rows="4"></textarea>
+              <div class="validate-input-actions">
+                <button type="button" class="context-btn" id="addContextBtn" title="Add code context">📁</button>
+                <button type="submit" class="action-btn validate-btn" id="validateBtn">Validate</button>
+              </div>
+            </div>
+          </form>
+          <div class="validate-actions">
+            <button class="btn" id="clearChat">Clear Chat</button>
+            <span class="muted" id="validateStatus"></span>
+          </div>
+        </div>
+
+        <!-- Usage Dashboard Tab -->
+        <div class="tab-content" id="tab-usage">
+          <div class="usage-dashboard">
+            <div class="usage-header">
+              <h3>API Usage Dashboard</h3>
+              <button class="action-btn" id="refreshUsage">Refresh</button>
+            </div>
+
+            <!-- Today's Usage -->
+            <div class="usage-section">
+              <h4>Today</h4>
+              <div class="usage-grid" id="usageToday">
+                <div class="usage-card">
+                  <span class="usage-label">Chat Tokens</span>
+                  <span class="usage-value" id="todayChatTokens">--</span>
+                  <span class="usage-limit" id="todayChatLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayChatBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Embeddings</span>
+                  <span class="usage-value" id="todayEmbedTokens">--</span>
+                  <span class="usage-limit" id="todayEmbedLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayEmbedBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Images</span>
+                  <span class="usage-value" id="todayImages">--</span>
+                  <span class="usage-limit" id="todayImagesLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayImagesBar"></div></div>
+                </div>
+                <div class="usage-card">
+                  <span class="usage-label">Video (sec)</span>
+                  <span class="usage-value" id="todayVideo">--</span>
+                  <span class="usage-limit" id="todayVideoLimit">/ --</span>
+                  <div class="usage-bar"><div class="usage-fill" id="todayVideoBar"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weekly Summary -->
+            <div class="usage-section">
+              <h4>Last 7 Days</h4>
+              <div class="usage-week-summary" id="usageWeek">
+                <div class="week-stat">
+                  <span class="stat-label">Total Chat Tokens</span>
+                  <span class="stat-value" id="weekChatTokens">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Total Embeddings</span>
+                  <span class="stat-value" id="weekEmbedTokens">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Total Images</span>
+                  <span class="stat-value" id="weekImages">--</span>
+                </div>
+                <div class="week-stat">
+                  <span class="stat-label">Video (sec)</span>
+                  <span class="stat-value" id="weekVideo">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Endpoints -->
+            <div class="usage-section">
+              <h4>Top Endpoints (by tokens)</h4>
+              <div class="usage-endpoints" id="usageEndpoints">
+                <table class="endpoints-table">
+                  <thead>
+                    <tr><th>Endpoint</th><th>Calls</th><th>Tokens</th></tr>
+                  </thead>
+                  <tbody id="endpointsBody">
+                    <tr><td colspan="3" class="muted">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Repo File Picker Modal -->
+  <div class="modal" id="repoModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Add Code Context</h3>
+        <button class="modal-close" id="closeRepoModal">&times;</button>
+      </div>
+      <div class="repo-modal-content">
+        <div class="repo-search">
+          <input type="text" id="repoSearchInput" class="form-input" placeholder="Search files... (e.g., main.py, /api/chat)"/>
+        </div>
+        <div class="repo-layout">
+          <div class="repo-tree-panel">
+            <div class="repo-tree" id="repoTree">
+              <div class="loading-text">Loading files...</div>
+            </div>
+          </div>
+          <div class="repo-preview-panel">
+            <div class="repo-preview-header">
+              <span id="previewFileName">Select a file to preview</span>
+              <div class="repo-preview-actions hidden" id="previewActions">
+                <label class="line-range-label">
+                  Lines: <input type="number" id="lineStart" value="1" min="1" class="line-input"/> - <input type="number" id="lineEnd" value="100" min="1" class="line-input"/>
+                </label>
+                <button type="button" class="btn small" id="addSnippetBtn">Add Snippet</button>
+                <button type="button" class="btn small primary" id="addWholeFileBtn">Add Whole File</button>
+              </div>
+            </div>
+            <pre class="repo-preview-code" id="repoPreviewCode"><code>No file selected</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscribers Modal -->
+  <div class="modal" id="subsModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Newsletter Subscribers</h3>
+        <button class="modal-close" id="closeSubsModal">&times;</button>
+      </div>
+      <div class="subs-modal-content">
+        <div class="subs-header">
+          <div class="subs-stats">
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsActiveCount">-</span>
+              <span class="subs-stat-label">Active</span>
+            </div>
+            <div class="subs-stat">
+              <span class="subs-stat-number" id="subsTotalCount">-</span>
+              <span class="subs-stat-label">Total</span>
+            </div>
+          </div>
+          <div class="subs-controls">
+            <select class="form-select" id="subsFilter" title="Filter subscribers">
+              <option value="active">Active only</option>
+              <option value="all">All subscribers</option>
+            </select>
+            <button class="btn" id="refreshSubs">Refresh</button>
+            <button class="btn" id="checkEmailStatus" title="Check email configuration">Email Status</button>
+          </div>
+        </div>
+        <div class="email-status-panel" id="emailStatusPanel">
+          <div class="email-status-content" id="emailStatusContent">
+            Checking email configuration...
+          </div>
+        </div>
+        <div class="subs-list" id="subsList">
+          <div class="muted">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal" id="login">
+    <div class="modal-box">
+      <h3>Admin Login</h3>
+      <label>
+        <span>Token</span>
+        <input id="token" type="password" placeholder="Enter admin token" autocomplete="off"/>
+      </label>
+      <div class="modal-actions">
+        <span id="lmsg" class="muted"></span>
+        <button id="enter" class="btn primary ml-auto">Enter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="edit">
+    <div class="modal-box wide">
+      <h3>Edit Post</h3>
+      <label><span>Title</span><input id="e_title"/></label>
+      <label><span>Slug</span><input id="e_slug" disabled/></label>
+      <label><span>Cover URL</span><input id="e_cover"/></label>
+      <label><span>Type</span><input id="e_type"/></label>
+      <label><span>Tags</span><input id="e_tags"/></label>
+      <label><span>Minutes</span><input id="e_minutes" type="number" min="1"/></label>
+      <label><span>Excerpt</span><textarea id="e_excerpt"></textarea></label>
+      <label><span>Content</span><textarea id="e_content"></textarea></label>
+      <div class="row">
+        <select id="e_status">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+        <input id="e_author" placeholder="Author"/>
+        <span id="e_msg" class="muted"></span>
+      </div>
+      <div class="modal-actions">
+        <button id="save" class="btn primary">Save</button>
+        <button id="pub" class="btn">Publish</button>
+        <button id="unpub" class="btn">Unpublish</button>
+        <button id="del" class="btn btn-delete">Delete</button>
+        <button id="close" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generated Blog Post Modal -->
+  <div class="modal" id="blogModal">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>Blog Post Generated</h3>
+        <button class="modal-close" id="closeBlogModal">&times;</button>
+      </div>
+      <div class="blog-modal-content">
+        <div class="blog-draft-status" id="blogDraftStatus">
+          <span class="status-icon">&#10003;</span>
+          <span>Auto-saved as draft</span>
+          <span class="draft-slug" id="blogDraftSlug"></span>
+        </div>
+        <div class="blog-preview-title" id="modalPreviewTitle"></div>
+        <div class="blog-preview-excerpt" id="modalPreviewExcerpt"></div>
+        <div class="blog-preview-meta">
+          <span class="blog-preview-tag type" id="modalPreviewType"></span>
+          <span class="blog-preview-tag tags" id="modalPreviewTags"></span>
+        </div>
+        <!-- Cover Section -->
+        <div class="blog-cover-section" id="blogCoverSection">
+          <div class="cover-section-header">
+            <span class="label">Cover Image:</span>
+            <span id="coverStatus" class="cover-status">No cover yet</span>
+          </div>
+          <div class="cover-prompt-row">
+            <span class="cover-prompt-label">Auto prompt:</span>
+            <span class="cover-prompt-text" id="modalPreviewCoverPrompt"></span>
+          </div>
+          <div class="cover-custom-search">
+            <input type="text" id="customCoverPrompt" class="form-input" placeholder="Or enter your own search terms..." aria-label="Custom cover search prompt"/>
+          </div>
+          <!-- Inline source selector -->
+          <div class="cover-source-selector" id="coverSourceSelector">
+            <button type="button" class="cover-source-btn selected" id="coverSourceRoyaltyFree" aria-pressed="true" aria-label="Stock photos from Unsplash and Pexels">
+              <span class="icon" aria-hidden="true">📷</span>
+              <span class="label">Stock Photos</span>
+              <span class="desc">Unsplash & Pexels</span>
+            </button>
+            <button type="button" class="cover-source-btn" id="coverSourceAI" aria-pressed="false" aria-label="AI generated with DALL-E">
+              <span class="icon" aria-hidden="true">🎨</span>
+              <span class="label">AI Generate</span>
+              <span class="desc">DALL-E</span>
+            </button>
+          </div>
+          <!-- AI size selector (hidden by default) -->
+          <div class="cover-size-row" id="coverSizeRow">
+            <label for="modalCoverSize">Size:</label>
+            <select class="form-select" id="modalCoverSize">
+              <option value="1536x1024" selected>Landscape (1536×1024)</option>
+              <option value="1024x1024">Square (1024×1024)</option>
+              <option value="1024x1536">Portrait (1024×1536)</option>
+            </select>
+          </div>
+          <!-- Action buttons -->
+          <div class="cover-actions-row" id="coverActionsRow">
+            <button type="button" class="btn primary" id="coverActionPrimary" aria-label="Search for stock photos">Search</button>
+            <button type="button" class="btn secondary hidden" id="coverActionSecondary" aria-label="Try 3 new options">Try New</button>
+          </div>
+          <!-- Draft save status -->
+          <output class="cover-draft-status hidden" id="coverDraftStatus"></output>
+          <!-- Cover picker will be injected here -->
+          <div id="modalCoverPicker" class="modal-cover-picker hidden"></div>
+          <!-- Current cover preview -->
+          <div id="modalCoverPreview" class="modal-cover-preview hidden">
+            <img id="modalDraftCoverImg" alt="Cover preview"/>
+            <p id="modalDraftCoverAttr" class="cover-attribution"></p>
+          </div>
+        </div>
+        <!-- Claim Validation Section -->
+        <div class="blog-validation-section" id="blogValidationSection">
+          <div class="validation-header">
+            <span class="label">Claim Validation:</span>
+            <span class="validation-status pending" id="validationStatus">Not checked</span>
+          </div>
+          <div class="validation-results" id="validationResults"></div>
+          <div class="validation-actions">
+            <button type="button" class="btn" id="validateClaimsBtn">Validate Claims</button>
+            <button type="button" class="btn hidden" id="addAllRefsBtn">Add All References to Draft</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="modalPreviewEdit">Edit in Editor</button>
+        <button class="btn primary" id="modalViewPost">View Post</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = `${location.origin}/api`;
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const $ = s => document.querySelector(s);
+    const tokenKey = 'TX_ADMIN_TOKEN';
+
+    let generatedBlog = null;
+    let generatedCoverUrl = null;
+    let generatedCoverData = null;  // Full response including attribution
+    let savedDraftSlug = null;  // Slug of auto-saved draft
+
+    // ========== TOAST UTILITY ==========
+    const Toast = {
+      container: null,
+      init() {
+        if (this.container) return;
+        this.container = document.createElement('div');
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+      },
+      show(message, type = 'info', duration = 3000) {
+        this.init();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        this.container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = 'toastOut 0.2s ease-out forwards';
+          setTimeout(() => toast.remove(), 200);
+        }, duration);
+      },
+      error(msg) { this.show(msg, 'error', 4000); },
+      success(msg) { this.show(msg, 'success', 3000); },
+      warning(msg) { this.show(msg, 'warning', 3500); }
+    };
+
+    // ========== UNIFIED COVER MANAGER ==========
+    const CoverManager = {
+      // Explicit state object - all UI derives from this
+      state: {
+        mode: 'royalty_free',     // 'royalty_free' or 'ai'
+        isLoading: false,
+        lastCover: null,          // { url, attribution } - for reliable retry
+        prompt: '',
+        options: [],
+        size: '1536x1024'
+      },
+
+      // Initialize/reset state
+      reset() {
+        this.state.options = [];
+        this.state.lastCover = null;
+        this.state.isLoading = false;
+        this.state.prompt = '';
+        this.hideDraftStatus();
+        this.syncUI();
+        $('#modalCoverPicker').classList.add('hidden');
+        $('#modalCoverPreview').classList.add('hidden');
+        $('#coverStatus').textContent = 'No cover yet';
+        $('#coverStatus').classList.remove('ready');
+        $('#coverActionSecondary').classList.add('hidden');
+      },
+
+      // Sync UI to state - single source of truth
+      syncUI() {
+        const { mode, isLoading } = this.state;
+        const primaryBtn = $('#coverActionPrimary');
+        const secondaryBtn = $('#coverActionSecondary');
+        const sourceRF = $('#coverSourceRoyaltyFree');
+        const sourceAI = $('#coverSourceAI');
+        const sizeRow = $('#coverSizeRow');
+
+        // Disable all controls when loading
+        primaryBtn.disabled = isLoading;
+        secondaryBtn.disabled = isLoading;
+        sourceRF.disabled = isLoading;
+        sourceAI.disabled = isLoading;
+
+        // Button labels based on mode and loading
+        if (isLoading) {
+          primaryBtn.textContent = mode === 'ai' ? 'Generating...' : 'Searching...';
+        } else {
+          primaryBtn.textContent = mode === 'ai' ? 'Generate' : 'Search';
+        }
+        primaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Generate AI cover' : 'Search for stock photos');
+        secondaryBtn.textContent = mode === 'ai' ? 'Regenerate' : 'Try New';
+        secondaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Regenerate with same prompt' : 'Try 3 new options');
+
+        // Mode selection
+        sourceRF.classList.toggle('selected', mode === 'royalty_free');
+        sourceAI.classList.toggle('selected', mode === 'ai');
+        sourceRF.setAttribute('aria-pressed', mode === 'royalty_free');
+        sourceAI.setAttribute('aria-pressed', mode === 'ai');
+        sizeRow.classList.toggle('show', mode === 'ai');
+      },
+
+      // Set loading state
+      setLoading(loading) {
+        this.state.isLoading = loading;
+        this.syncUI();
+      },
+
+      // Switch mode (royalty_free or ai)
+      setMode(mode) {
+        if (this.state.isLoading) return;  // Prevent mode switch while loading
+        this.state.mode = mode;
+        this.syncUI();
+        // Hide picker when switching modes
+        $('#modalCoverPicker').classList.add('hidden');
+        $('#coverActionSecondary').classList.add('hidden');
+      },
+
+      // Build optimized query for cover image searches (landscape, minimal text)
+      buildCoverSearchQuery(basePrompt) {
+        const bias = 'wide landscape cover photo, banner, minimal text, editorial, clean background';
+        const avoid = 'no screenshot, no phone screen, no vertical portrait, no watermark, no logo, no text overlay';
+        return `${basePrompt}. ${bias}. ${avoid}`;
+      },
+
+      // Search royalty-free images (returns preview options)
+      async searchRoyaltyFree(prompt) {
+        if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
+        this.state.prompt = prompt;  // Store original prompt for display
+        this.setLoading(true);
+
+        // Use optimized query for cover search
+        const searchQuery = this.buildCoverSearchQuery(prompt);
+
+        try {
+          const r = await fetch(API + '/admin/ai/cover', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free' })
+          });
+          const j = await r.json();
+          if (j.ok && j.mode === 'preview' && j.options) {
+            this.state.options = j.options;
+            return j.options;
+          } else {
+            Toast.error('Search failed: ' + (j.error || 'No images found'));
+            return null;
+          }
+        } catch (err) {
+          Toast.error('Error: ' + err.message);
+          return null;
+        } finally {
+          this.setLoading(false);
+        }
+      },
+
+      // Select a royalty-free image by index (uploads to S3)
+      async selectRoyaltyFree(prompt, selectedIndex) {
+        // Use same optimized query as search to get consistent results
+        const searchQuery = this.buildCoverSearchQuery(prompt);
+        try {
+          const r = await fetch(API + '/admin/ai/cover', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free', selected_index: selectedIndex })
+          });
+          const j = await r.json();
+          if (j.ok && j.url) {
+            return j;
+          } else {
+            Toast.error('Selection failed: ' + (j.error || 'Unknown error'));
+            return null;
+          }
+        } catch (err) {
+          Toast.error('Error: ' + err.message);
+          return null;
+        }
+      },
+
+      // Generate AI cover image
+      async generateAI(prompt, size = '1536x1024') {
+        if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
+        this.state.prompt = prompt;
+        this.state.size = size;
+        this.setLoading(true);
+
+        try {
+          const r = await fetch(API + '/admin/ai/cover', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({ prompt, size, mode: 'ai_photoreal' })
+          });
+          const j = await r.json();
+          if (j.ok && j.url) {
+            return j;
+          } else {
+            Toast.error('Generation failed: ' + (j.error || 'Unknown error'));
+            return null;
+          }
+        } catch (err) {
+          Toast.error('Error: ' + err.message);
+          return null;
+        } finally {
+          this.setLoading(false);
+        }
+      },
+
+      // Render picker grid inline in blogModal
+      renderPicker(options) {
+        const picker = $('#modalCoverPicker');
+        const preview = $('#modalCoverPreview');
+        const status = $('#coverStatus');
+        const secondaryBtn = $('#coverActionSecondary');
+
+        preview.classList.add('hidden');
+        picker.classList.remove('hidden');
+        status.textContent = 'Choose an image:';
+        status.classList.remove('ready');
+        secondaryBtn.classList.remove('hidden');  // Show "Try New" button
+
+        picker.innerHTML = `
+          <div class="modal-picker-grid">
+            ${options.map((opt, idx) => `
+              <div class="modal-picker-item" data-idx="${idx}" tabindex="0" role="button" aria-label="Select cover by ${opt.photographer}">
+                <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
+                <div class="picker-credit">by <strong>${opt.photographer}</strong></div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        // Add click and keyboard handlers
+        picker.querySelectorAll('.modal-picker-item').forEach(item => {
+          item.onclick = () => this.handlePickerSelection(parseInt(item.dataset.idx));
+          item.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              this.handlePickerSelection(parseInt(item.dataset.idx));
+            }
+          };
+        });
+      },
+
+      // Handle picker selection
+      async handlePickerSelection(index) {
+        const item = $(`[data-idx="${index}"]`);
+        if (!item || item.classList.contains('selecting')) return;
+
+        item.classList.add('selecting');
+        item.insertAdjacentHTML('beforeend', '<div class="selecting-spinner"></div>');
+
+        const result = await this.selectRoyaltyFree(this.state.prompt, index);
+        if (result) {
+          generatedCoverUrl = result.url;
+          generatedCoverData = result;
+          this.renderPreview(result);
+        } else {
+          item.classList.remove('selecting');
+          item.querySelector('.selecting-spinner')?.remove();
+        }
+      },
+
+      // Render final preview inline in blogModal
+      renderPreview(result) {
+        const picker = $('#modalCoverPicker');
+        const preview = $('#modalCoverPreview');
+        const status = $('#coverStatus');
+        const secondaryBtn = $('#coverActionSecondary');
+
+        picker.classList.add('hidden');
+        preview.classList.remove('hidden');
+        status.textContent = 'Cover ready!';
+        status.classList.add('ready');
+        secondaryBtn.classList.remove('hidden');  // Show Regenerate/Try New
+
+        const img = $('#modalDraftCoverImg');
+        if (img && result.url) {
+          img.src = result.url;
+        }
+
+        const attr = $('#modalDraftCoverAttr');
+        if (result.attribution) {
+          attr.innerHTML = result.attribution;
+          attr.classList.remove('hidden');
+        } else {
+          attr.classList.add('hidden');
+        }
+
+        // Store for retry and update draft
+        this.state.lastCover = { url: result.url, attribution: result.attribution || '' };
+        this.updateDraftWithCover(result.url, result.attribution || '');
+      },
+
+      // Show draft status
+      showDraftStatus(success, message) {
+        const statusEl = $('#coverDraftStatus');
+        statusEl.classList.remove('hidden', 'success', 'error');
+        statusEl.classList.add(success ? 'success' : 'error');
+
+        if (success) {
+          statusEl.innerHTML = `<span>✓ ${message}</span>`;
+        } else {
+          statusEl.innerHTML = `<span>✗ ${message}</span> <button type="button" class="retry-btn" aria-label="Retry saving cover to draft">Retry</button>`;
+          statusEl.querySelector('.retry-btn').onclick = () => this.retryDraftUpdate();
+        }
+      },
+
+      // Hide draft status
+      hideDraftStatus() {
+        $('#coverDraftStatus').classList.add('hidden');
+      },
+
+      // Retry draft update
+      async retryDraftUpdate() {
+        if (!this.state.lastCover) return;
+        await this.updateDraftWithCover(this.state.lastCover.url, this.state.lastCover.attribution);
+      },
+
+      // Update draft with cover image
+      async updateDraftWithCover(url, attribution) {
+        if (!savedDraftSlug) {
+          this.showDraftStatus(false, 'No draft to save to');
+          return;
+        }
+
+        this.showDraftStatus(true, 'Saving to draft...');
+        const success = await updateDraftCover(url, attribution);
+
+        if (success) {
+          this.showDraftStatus(true, 'Saved to draft');
+        } else {
+          this.showDraftStatus(false, 'Failed to save to draft');
+        }
+      },
+
+      // Get the current prompt (custom or auto)
+      getPrompt() {
+        const customPrompt = $('#customCoverPrompt')?.value?.trim();
+        const autoPrompt = generatedBlog?.cover_prompt;
+        return customPrompt || autoPrompt || '';
+      },
+
+      // Primary action (Search or Generate based on mode)
+      async runPrimaryAction() {
+        if (this.state.isLoading) return;  // Prevent double-clicks
+
+        const prompt = this.getPrompt();
+        if (!prompt) {
+          Toast.warning('Enter a cover prompt or generate a blog first');
+          return;
+        }
+
+        if (this.state.mode === 'ai') {
+          const size = $('#modalCoverSize').value || '1536x1024';
+          const result = await this.generateAI(prompt, size);
+          if (result) {
+            generatedCoverUrl = result.url;
+            generatedCoverData = result;
+            this.renderPreview(result);
+          }
+        } else {
+          const options = await this.searchRoyaltyFree(prompt);
+          if (options) {
+            this.renderPicker(options);
+          }
+        }
+      },
+
+      // Secondary action (Try New or Regenerate)
+      async runSecondaryAction() {
+        if (this.state.isLoading) return;  // Prevent double-clicks
+        await this.runPrimaryAction();
+      }
+    };
+
+    // Auto-save blog as draft
+    async function autoSaveDraft(blogData) {
+      const statusEl = $('#blogDraftStatus');
+      const slugEl = $('#blogDraftSlug');
+
+      statusEl.className = 'blog-draft-status saving';
+      statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
+
+      try {
+        const r = await fetch(API + '/post', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            title: blogData.title,
+            excerpt: blogData.excerpt,
+            tags: blogData.tags,
+            type: blogData.type,
+            cover_url: '',
+            cover_attribution: '',
+            content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
+            status: 'draft',
+            author: 'Dima V',
+            author_avatar: 'img/dima.jpg'
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok || j.slug) {
+          savedDraftSlug = j.slug;
+          statusEl.className = 'blog-draft-status';
+          statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + j.slug + '</span>';
+          load();  // Refresh posts list
+        } else {
+          statusEl.className = 'blog-draft-status error';
+          statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Failed to save: ' + (j.error || 'Unknown error') + '</span>';
+        }
+      } catch (err) {
+        statusEl.className = 'blog-draft-status error';
+        statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Error: ' + err.message + '</span>';
+      }
+    }
+
+    // Update draft with cover image
+    async function updateDraftCover(coverUrl, coverAttribution) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        const r = await fetch(API + '/post/' + encodeURIComponent(savedDraftSlug), {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            cover_url: coverUrl,
+            cover_attribution: coverAttribution
+          })
+        });
+        const j = await r.json();
+        return j.ok;
+      } catch (err) {
+        console.error('Failed to update draft cover:', err);
+        return false;
+      }
+    }
+
+    function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
+    function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
+    function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+
+    async function ensureAuth(){
+      if(!getToken()){ $('#login').classList.add('show'); return false; }
+      const r = await fetch(API+'/admin/auth', {headers: headers()});
+      if(!r.ok){ $('#login').classList.add('show'); return false; }
+      return true;
+    }
+
+    $('#enter').onclick = async ()=>{
+      const t = $('#token').value.trim(); if(!t) return;
+      setToken(t);
+      if(await ensureAuth()){
+        $('#login').classList.remove('show');
+        $('#search').value = '';
+        load();
+        checkAI();
+      }
+      else { $('#lmsg').textContent = 'Invalid token'; setToken(''); }
+    };
+    $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
+
+    // Check AI status
+    async function checkAI() {
+      try {
+        const r = await fetch(API + '/admin/ai/status', { headers: headers() });
+        const j = await r.json();
+        const status = $('#aiStatus');
+        if (j.configured) {
+          status.textContent = 'Online';
+          status.classList.add('online');
+          status.classList.remove('offline');
+        } else {
+          status.textContent = 'Offline';
+          status.classList.add('offline');
+          status.classList.remove('online');
+        }
+      } catch (e) {
+        $('#aiStatus').textContent = 'Offline';
+        $('#aiStatus').classList.add('offline');
+      }
+    }
+
+    // Tab switching
+    $$('.tab').forEach(tab => {
+      tab.onclick = () => {
+        $$('.tab').forEach(t => t.classList.remove('active'));
+        $$('.tab-content').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        $(`#tab-${tab.dataset.tab}`).classList.add('active');
+      };
+    });
+
+    // Dynamic UI: Hide/show image count and smart image options based on images mode
+    $('#ai_images_mode').onchange = function() {
+      const imageCountGroup = $('#image_count_group');
+      const smartImageOptions = $('#smart_image_options');
+      const isRoyaltyFree = this.value === 'royalty_free';
+      const isNone = this.value === 'none';
+      if (imageCountGroup) {
+        imageCountGroup.style.display = isNone ? 'none' : 'block';
+      }
+      if (smartImageOptions) {
+        // Only show smart image options for royalty-free mode
+        smartImageOptions.style.display = isRoyaltyFree ? 'block' : 'none';
+      }
+    };
+    // Trigger initial state
+    $('#ai_images_mode').dispatchEvent(new Event('change'));
+
+    // Auto-enable fact-check for news style
+    $('#ai_style').onchange = function() {
+      if (this.value === 'news') {
+        $('#ai_strict_factcheck').checked = true;
+      }
+    };
+
+    // Generate blog post
+    $('#generateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const topic = $('#ai_topic').value.trim();
+      if (!topic) { Toast.warning('Please enter a topic'); return; }
+
+      const btn = $('#generateBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+      try {
+        const affiliateUrl = $('#ai_affiliate_url').value.trim();
+        const productName = $('#ai_product_name').value.trim();
+        const imagesMode = $('#ai_images_mode').value;
+
+        const r = await fetch(API + '/admin/ai/generate', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            topic,
+            style: $('#ai_style').value,
+            length: $('#ai_length').value,
+            tone: $('#ai_tone').value,
+            image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
+            images_mode: imagesMode,
+            strict_factcheck: $('#ai_strict_factcheck').checked,
+            smart_image_search: $('#ai_smart_image_search').checked,
+            strict_image_relevance: $('#ai_strict_image_relevance').checked,
+            affiliate_url: affiliateUrl || undefined,
+            product_name: productName || undefined,
+            affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
+            affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
+          })
+        });
+        const j = await r.json();
+
+        if (j.ok) {
+          generatedBlog = j;
+          // Show warnings for graceful degradation and quality gates
+          const warnings = [];
+          if (j.images_mode_warning) warnings.push(j.images_mode_warning);
+          if (j.factcheck_warning) warnings.push(j.factcheck_warning);
+          if (j.quality_warning) warnings.push('⚠️ ' + j.quality_warning);
+          if (warnings.length > 0) {
+            alert('Note:\n' + warnings.join('\n\n'));
+          }
+          // Show in modal
+          $('#modalPreviewTitle').textContent = j.title;
+          $('#modalPreviewExcerpt').textContent = j.excerpt;
+          $('#modalPreviewType').textContent = j.type;
+          $('#modalPreviewTags').textContent = j.tags;
+          $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
+
+          // Reset cover section and globals
+          CoverManager.reset();
+          CoverManager.setMode('royalty_free');  // Default to stock photos
+          generatedCoverUrl = '';
+          generatedCoverData = null;
+          savedDraftSlug = null;
+
+          // Show modal
+          $('#blogModal').classList.add('show');
+
+          // Auto-save as draft
+          autoSaveDraft(j);
+        } else {
+          Toast.error('Generation failed: ' + (j.error || 'Unknown error'));
+        }
+      } catch (err) {
+        Toast.error('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Blog Post';
+      }
+    };
+
+    // Close blog modal
+    $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
+
+    // Save generated blog as draft (modal version) - guarded for optional button
+    const modalPreviewPublish = $('#modalPreviewPublish');
+    if (modalPreviewPublish) {
+      modalPreviewPublish.onclick = async () => {
+        if (!generatedBlog) return;
+        const btn = modalPreviewPublish;
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        try {
+          // Build cover attribution from generatedCoverData if available
+          let coverAttribution = '';
+          if (generatedCoverData && generatedCoverData.attribution) {
+            coverAttribution = generatedCoverData.attribution;
+          }
+          const r = await fetch(API + '/post', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              title: generatedBlog.title,
+              excerpt: generatedBlog.excerpt,
+              tags: generatedBlog.tags,
+              type: generatedBlog.type,
+              cover_url: generatedCoverUrl || '',
+              cover_attribution: coverAttribution,
+              content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
+              status: 'draft',
+              author: 'Dima V',
+              author_avatar: 'img/dima.jpg'
+            })
+          });
+          const j = await r.json();
+          if (j.ok || j.slug) {
+            alert('Draft saved! Slug: ' + j.slug);
+            load();
+            $('#blogModal').classList.remove('show');
+            $('#ai_topic').value = '';
+            generatedBlog = null;
+            generatedCoverData = null;
+          } else {
+            alert('Save failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save as Draft';
+        }
+      };
+    }
+
+    // Edit in full editor (modal version)
+    $('#modalPreviewEdit').onclick = () => {
+      if (!generatedBlog) return;
+      sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
+      window.location.href = 'write.html?ai=1';
+    };
+
+    // ========== COVER SOURCE & ACTION HANDLERS ==========
+    // Source selector: Royalty-free
+    $('#coverSourceRoyaltyFree').onclick = () => {
+      if (CoverManager.state.isLoading) return;
+      CoverManager.setMode('royalty_free');
+    };
+
+    // Source selector: AI
+    $('#coverSourceAI').onclick = () => {
+      if (CoverManager.state.isLoading) return;
+      CoverManager.setMode('ai');
+    };
+
+    // Primary action button (Search / Generate)
+    $('#coverActionPrimary').onclick = () => CoverManager.runPrimaryAction();
+
+    // Secondary action button (Try New / Regenerate)
+    $('#coverActionSecondary').onclick = () => CoverManager.runSecondaryAction();
+
+    // View saved post
+    $('#modalViewPost').onclick = () => {
+      if (savedDraftSlug) {
+        window.open(`read.html?slug=${encodeURIComponent(savedDraftSlug)}`, '_blank');
+      } else {
+        Toast.warning('Post not saved yet. Please wait for auto-save to complete.');
+      }
+    };
+
+    // AI Assist functions
+    $$('.assist-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.action;
+        const text = $('#assist_text').value.trim();
+        if (!text) { Toast.warning('Please enter text to process'); return; }
+
+        $$('.assist-btn').forEach(b => b.disabled = true);
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        try {
+          const r = await fetch(API + '/admin/ai/assist', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({
+              action,
+              text,
+              context: $('#assist_context').value.trim()
+            })
+          });
+          const j = await r.json();
+
+          if (j.ok) {
+            let result = j.result;
+            if (typeof result === 'object') {
+              result = JSON.stringify(result, null, 2);
+            }
+            $('#assistResultText').textContent = result;
+            $('#assistResult').style.display = 'block';
+          } else {
+            Toast.error('Assist failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch (err) {
+          Toast.error('Error: ' + err.message);
+        } finally {
+          $$('.assist-btn').forEach(b => {
+            b.disabled = false;
+          });
+          const icons = {expand:'+',improve:'*',simplify:'-',proofread:'?',headline:'#',seo:'@',conclusion:'.',outline:'='};
+          const labels = {expand:'Expand',improve:'Improve',simplify:'Simplify',proofread:'Proofread',headline:'Headlines',seo:'SEO',conclusion:'Conclusion',outline:'Outline'};
+          $$('.assist-btn').forEach(b => {
+            const a = b.dataset.action;
+            b.innerHTML = `<span class="icon">${icons[a]}</span>${labels[a]}`;
+          });
+        }
+      };
+    });
+
+    // Copy assist result
+    $('#copyAssist').onclick = () => {
+      const text = $('#assistResultText').textContent;
+      navigator.clipboard.writeText(text);
+      $('#copyAssist').textContent = 'Copied!';
+      setTimeout(() => $('#copyAssist').textContent = 'Copy', 1500);
+    };
+
+    async function load(){
+      const q = $('#search').value.trim();
+      const status = $('#flt').value;
+      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`, { headers: headers() });
+      if (!r.ok) {
+        console.error('[Admin] Failed to load posts:', r.status, r.statusText);
+        render([]);
+        return;
+      }
+      const j = await r.json();
+      console.info('[Admin] Loaded posts:', j.items?.length || 0, 'status filter:', status);
+      render(j.items || []);
+    }
+
+    function render(items){
+      const list = $('#list');
+      list.innerHTML = '';
+      if(!items.length){
+        list.innerHTML = '<div class="muted">No posts found.</div>';
+        return;
+      }
+      for(const p of items){
+        const el = document.createElement('div');
+        el.className = 'post';
+        el.innerHTML = `
+          <div class="post-info">
+            <div class="post-title">${esc(p.title||'(no title)')}</div>
+            <div class="post-meta">
+              <span class="post-status">${p.status}</span>
+              <span>${p.slug}</span>
+            </div>
+          </div>
+          <div class="post-actions">
+            <button class="btn" data-edit="${p.slug}">Edit</button>
+            ${p.status==='draft'?`<button class="btn" data-pub="${p.slug}">Publish</button>`:`<button class="btn" data-unpub="${p.slug}">Unpublish</button>`}
+            <button class="btn btn-delete" data-del="${p.slug}">Delete</button>
+          </div>`;
+        list.appendChild(el);
+      }
+    }
+
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    $('#list').addEventListener('click', async e=>{
+      const b = e.target.closest('button');
+      if(!b) return;
+      const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
+      if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
+      if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.del){
+        if(confirm('Delete this post permanently? This cannot be undone.')){
+          try {
+            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+            const j = await r.json();
+            if(j.ok){
+              alert('Post deleted successfully');
+              await load();
+            } else {
+              alert('Delete failed: ' + (j.error || 'Unknown error'));
+            }
+          } catch(err){
+            alert('Delete failed: ' + err.message);
+          }
+        }
+      }
+    });
+
+    // Edit modal
+    $('#close').onclick = ()=> $('#edit').classList.remove('show');
+
+    async function openEdit(slug){
+      $('#e_msg').textContent = 'Loading…';
+      $('#edit').classList.add('show');
+      const p = await (await fetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
+      $('#e_title').value = p.title||'';
+      $('#e_slug').value = p.slug||'';
+      $('#e_cover').value = p.cover_url||'';
+      $('#e_type').value = p.type||'';
+      $('#e_tags').value = p.tags||'';
+      $('#e_minutes').value = p.minutes||'';
+      $('#e_excerpt').value = p.excerpt||'';
+      $('#e_content').value = p.content_md||'';
+      $('#e_status').value = p.status||'draft';
+      $('#e_author').value = p.author||'Dima V';
+      $('#e_msg').textContent = '';
+    }
+
+    $('#save').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      const body = {
+        title: $('#e_title').value.trim(),
+        cover_url: $('#e_cover').value.trim(),
+        type: $('#e_type').value.trim(),
+        tags: $('#e_tags').value.trim(),
+        minutes: parseInt($('#e_minutes').value)||undefined,
+        excerpt: $('#e_excerpt').value.trim(),
+        content_md: $('#e_content').value,
+        status: $('#e_status').value,
+        author: $('#e_author').value.trim()||'Dima V',
+        author_avatar: 'img/dima.jpg'
+      };
+      $('#e_msg').textContent = 'Saving…';
+      const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
+      $('#e_msg').textContent = r.ok ? 'Saved' : 'Error';
+      if(r.ok) load();
+    };
+
+    $('#pub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#unpub').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      load();
+    };
+
+    $('#del').onclick = async ()=>{
+      const slug = $('#e_slug').value;
+      if(confirm('Delete this post permanently? This cannot be undone.')){
+        try {
+          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
+          const j = await r.json();
+          if(j.ok){
+            alert('Post deleted successfully');
+            $('#edit').classList.remove('show');
+            await load();
+          } else {
+            alert('Delete failed: ' + (j.error || 'Unknown error'));
+          }
+        } catch(err){
+          alert('Delete failed: ' + err.message);
+        }
+      }
+    };
+
+    // New post
+    $('#newPost').onclick = async ()=>{
+      await fetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'draft', author:'Dima V', author_avatar:'img/dima.jpg'})});
+      load();
+    };
+
+    // Filters
+    $('#reload').onclick = load;
+    $('#flt').onchange = load;
+    $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    // Close modals on backdrop click or Escape key
+    ['blogModal'].forEach(id => {
+      const modal = $('#' + id);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        $('#blogModal').classList.remove('show');
+        $('#subsModal').classList.remove('show');
+        $('#repoModal').classList.remove('show');
+      }
+    });
+
+    // Subscribers management
+    async function loadSubscribers() {
+      const filter = $('#subsFilter').value;
+      const list = $('#subsList');
+      list.innerHTML = '<div class="muted">Loading...</div>';
+
+      try {
+        const r = await fetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          list.innerHTML = '<div class="muted">Failed to load subscribers</div>';
+          return;
+        }
+
+        const items = j.items || [];
+        $('#subsActiveCount').textContent = items.filter(s => s.status === 'active').length;
+
+        // Get total count
+        const totalR = await fetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
+        const totalJ = await totalR.json();
+        $('#subsTotalCount').textContent = (totalJ.items || []).length;
+
+        if (!items.length) {
+          list.innerHTML = '<div class="muted">No subscribers found</div>';
+          return;
+        }
+
+        list.innerHTML = items.map(s => `
+          <div class="sub-item ${s.status}">
+            <div class="sub-email">${esc(s.email)}</div>
+            <div class="sub-meta">
+              <span class="sub-status">${s.status}</span>
+              <span class="sub-date">${s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        list.innerHTML = '<div class="muted">Error: ' + err.message + '</div>';
+      }
+    }
+
+    // Open subscribers modal
+    function openSubsModal() {
+      $('#subsModal').classList.add('show');
+      loadSubscribers();
+    }
+
+    $('#openSubsModal').onclick = openSubsModal;
+    $('#closeSubsModal').onclick = () => $('#subsModal').classList.remove('show');
+    $('#refreshSubs').onclick = loadSubscribers;
+    $('#subsFilter').onchange = loadSubscribers;
+
+    // Email status check
+    $('#checkEmailStatus').onclick = async () => {
+      const panel = $('#emailStatusPanel');
+      const content = $('#emailStatusContent');
+
+      panel.classList.toggle('visible');
+      if (!panel.classList.contains('visible')) return;
+
+      content.innerHTML = '<span class="muted">Checking email configuration...</span>';
+
+      try {
+        const r = await fetch(`${API}/admin/email-status`, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          content.innerHTML = '<span class="error">Failed to check email status</span>';
+          return;
+        }
+
+        const statusIcon = (ok) => ok ? '<span class="status-ok">✓</span>' : '<span class="status-err">✗</span>';
+        const hints = (j.hints || []).filter(h => h);
+
+        content.innerHTML = `
+          <div class="status-grid">
+            <div class="status-item">${statusIcon(j.email_enabled)} EMAIL_ENABLED</div>
+            <div class="status-item">${statusIcon(j.ses_from_email)} SES_FROM_EMAIL: ${j.ses_from_email || 'not set'}</div>
+            <div class="status-item">${statusIcon(j.aws_credentials_set)} AWS Credentials</div>
+            <div class="status-item">${statusIcon(j.ses_client_available)} SES Client</div>
+            <div class="status-item">${statusIcon(j.ses_identity_verified)} Sender Verified</div>
+            <div class="status-item">${statusIcon(!j.ses_sandbox_mode)} Production Mode ${j.ses_sandbox_mode ? '(Sandbox)' : ''}</div>
+          </div>
+          ${hints.length ? `<div class="status-hints"><strong>Issues:</strong><ul>${hints.map(h => `<li>${h}</li>`).join('')}</ul></div>` : '<div class="status-ok-msg">Email configuration looks good!</div>'}
+        `;
+      } catch (err) {
+        content.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
+      }
+    };
+
+    // Close modal on backdrop click
+    $('#subsModal').addEventListener('click', e => {
+      if (e.target === $('#subsModal')) $('#subsModal').classList.remove('show');
+    });
+
+    // ========== CLAIM VALIDATION CHAT ==========
+    const CHAT_API = 'https://chat.timrx.live';  // FastAPI chat server
+    const VALIDATE_MODE_KEY = 'TX_VALIDATE_MODE';
+    let validateMessages = [];
+
+    // Load mode from localStorage
+    function loadValidateMode() {
+      const saved = localStorage.getItem(VALIDATE_MODE_KEY);
+      const isValidate = saved !== 'normal';  // Default to validate mode
+      $('#validateModeToggle').checked = isValidate;
+      updateModeIndicator(isValidate);
+      return isValidate;
+    }
+
+    // Save mode to localStorage
+    function saveValidateMode(isValidate) {
+      localStorage.setItem(VALIDATE_MODE_KEY, isValidate ? 'validate' : 'normal');
+      updateModeIndicator(isValidate);
+    }
+
+    // Update mode indicator UI
+    function updateModeIndicator(isValidate) {
+      const indicator = $('#validateModeIndicator');
+      const text = indicator.querySelector('.mode-text');
+      if (isValidate) {
+        indicator.classList.remove('off');
+        text.textContent = 'Validation Mode: ON';
+      } else {
+        indicator.classList.add('off');
+        text.textContent = 'Validation Mode: OFF';
+      }
+    }
+
+    // Toggle mode handler
+    $('#validateModeToggle').onchange = function() {
+      saveValidateMode(this.checked);
+    };
+
+    // Validation depth toggle (scan vs deep)
+    let validateDepth = 'scan';  // Default to scan (cheaper)
+
+    $('#depthScan').onclick = function() {
+      validateDepth = 'scan';
+      $('#depthScan').classList.add('active');
+      $('#depthDeep').classList.remove('active');
+      $('.scan-hint')?.classList.remove('hidden');
+      $('.deep-hint')?.classList.add('hidden');
+    };
+
+    $('#depthDeep').onclick = function() {
+      validateDepth = 'deep';
+      $('#depthDeep').classList.add('active');
+      $('#depthScan').classList.remove('active');
+      $('.deep-hint')?.classList.remove('hidden');
+      $('.scan-hint')?.classList.add('hidden');
+    };
+
+    // ---------- Repo Context Picker ----------
+    let repoTree = null;
+    let selectedContexts = [];  // Array of { path, name, start, end, content }
+    let currentPreviewFile = null;
+
+    // Open repo modal
+    $('#addContextBtn').onclick = async () => {
+      $('#repoModal').classList.add('show');
+      if (!repoTree) {
+        await loadRepoTree();
+      }
+    };
+
+    // Close repo modal
+    $('#closeRepoModal').onclick = () => {
+      $('#repoModal').classList.remove('show');
+    };
+    $('#repoModal').addEventListener('click', e => {
+      if (e.target.id === 'repoModal') $('#repoModal').classList.remove('show');
+    });
+
+    // Load repo file tree
+    async function loadRepoTree() {
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/files`);
+        const j = await r.json();
+        if (j.ok) {
+          repoTree = j.tree;
+          renderRepoTree(j.tree);
+        }
+      } catch (err) {
+        $('#repoTree').innerHTML = '<div class="loading-text">Failed to load files</div>';
+      }
+    }
+
+    // Render file tree
+    function renderRepoTree(items, container = null) {
+      const parent = container || $('#repoTree');
+      if (!container) parent.innerHTML = '';
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+
+        if (item.type === 'dir') {
+          div.innerHTML = `
+            <div class="repo-tree-item" data-path="${item.path}" data-type="dir">
+              <span class="icon">▶</span>
+              <span class="name">📁 ${item.name}</span>
+            </div>
+            <div class="repo-tree-children collapsed"></div>
+          `;
+          const header = div.querySelector('.repo-tree-item');
+          const children = div.querySelector('.repo-tree-children');
+
+          header.onclick = () => {
+            const icon = header.querySelector('.icon');
+            if (children.classList.contains('collapsed')) {
+              children.classList.remove('collapsed');
+              icon.textContent = '▼';
+              if (children.children.length === 0 && item.children) {
+                renderRepoTree(item.children, children);
+              }
+            } else {
+              children.classList.add('collapsed');
+              icon.textContent = '▶';
+            }
+          };
+        } else {
+          div.innerHTML = `
+            <div class="repo-tree-item" data-path="${item.path}" data-type="file">
+              <span class="icon"></span>
+              <span class="name">${getFileIcon(item.ext)} ${item.name}</span>
+            </div>
+          `;
+          div.querySelector('.repo-tree-item').onclick = () => previewFile(item.path);
+        }
+
+        parent.appendChild(div);
+      });
+    }
+
+    function getFileIcon(ext) {
+      const icons = { '.py': '🐍', '.js': '📜', '.ts': '📘', '.html': '🌐', '.css': '🎨', '.json': '📋', '.yaml': '⚙️', '.yml': '⚙️', '.md': '📝' };
+      return icons[ext] || '📄';
+    }
+
+    // Preview file content
+    async function previewFile(path) {
+      currentPreviewFile = path;
+      $('#previewFileName').textContent = path;
+      $('#previewActions').classList.remove('hidden');
+      $('#repoPreviewCode code').textContent = 'Loading...';
+
+      // Remove selected class from all items
+      $$('.repo-tree-item.selected').forEach(el => el.classList.remove('selected'));
+      $(`.repo-tree-item[data-path="${path}"]`)?.classList.add('selected');
+
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&limit=500`);
+        const j = await r.json();
+        if (j.ok) {
+          $('#repoPreviewCode code').textContent = j.content;
+          $('#lineStart').value = 1;
+          $('#lineEnd').value = Math.min(j.total_lines, 100);
+          $('#lineEnd').max = j.total_lines;
+        }
+      } catch (err) {
+        $('#repoPreviewCode code').textContent = 'Failed to load file';
+      }
+    }
+
+    // Search files
+    let searchTimeout = null;
+    $('#repoSearchInput').oninput = function() {
+      clearTimeout(searchTimeout);
+      const q = this.value.trim();
+      if (!q) {
+        if (repoTree) renderRepoTree(repoTree);
+        return;
+      }
+      searchTimeout = setTimeout(async () => {
+        try {
+          const r = await fetch(`${CHAT_API}/api/repo/search?q=${encodeURIComponent(q)}`);
+          const j = await r.json();
+          if (j.ok && j.results.length > 0) {
+            const tree = $('#repoTree');
+            tree.innerHTML = '';
+            j.results.forEach(item => {
+              const div = document.createElement('div');
+              div.innerHTML = `
+                <div class="repo-tree-item" data-path="${item.path}" data-type="file">
+                  <span class="icon"></span>
+                  <span class="name">${getFileIcon(item.ext)} ${item.path}</span>
+                </div>
+              `;
+              div.querySelector('.repo-tree-item').onclick = () => previewFile(item.path);
+              tree.appendChild(div);
+            });
+          }
+        } catch (err) {}
+      }, 300);
+    };
+
+    // Add snippet (selected lines)
+    $('#addSnippetBtn').onclick = async () => {
+      if (!currentPreviewFile) return;
+      const start = parseInt($('#lineStart').value) || 1;
+      const end = parseInt($('#lineEnd').value) || 100;
+      await addContextSnippet(currentPreviewFile, start, end);
+    };
+
+    // Add whole file
+    $('#addWholeFileBtn').onclick = async () => {
+      if (!currentPreviewFile) return;
+      await addContextSnippet(currentPreviewFile, 1, 99999);
+    };
+
+    // Add context snippet
+    async function addContextSnippet(path, start, end) {
+      try {
+        const r = await fetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&start=${start}&limit=${end - start + 1}`);
+        const j = await r.json();
+        if (j.ok) {
+          const name = path.split('/').pop();
+          selectedContexts.push({
+            path,
+            name,
+            start: j.start,
+            end: j.end,
+            content: j.content
+          });
+          updateContextDisplay();
+          $('#repoModal').classList.remove('show');
+        }
+      } catch (err) {
+        alert('Failed to add snippet');
+      }
+    }
+
+    // Update context display
+    function updateContextDisplay() {
+      const container = $('#contextSnippets');
+      const list = $('#contextList');
+
+      if (selectedContexts.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      list.innerHTML = selectedContexts.map((ctx, idx) => `
+        <div class="context-chip" data-idx="${idx}">
+          <span class="chip-name">${ctx.name}</span>
+          <span class="chip-lines">(L${ctx.start}-${ctx.end})</span>
+          <span class="chip-remove" data-idx="${idx}">&times;</span>
+        </div>
+      `).join('');
+
+      // Remove handlers
+      list.querySelectorAll('.chip-remove').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.idx);
+          selectedContexts.splice(idx, 1);
+          updateContextDisplay();
+        };
+      });
+    }
+
+    // Clear all context
+    $('#clearContext').onclick = () => {
+      selectedContexts = [];
+      updateContextDisplay();
+    };
+
+    // Build context string for prompt
+    function buildContextString() {
+      if (selectedContexts.length === 0) return '';
+
+      let ctx = '\n\n--- CODE CONTEXT ---\n';
+      selectedContexts.forEach(snippet => {
+        ctx += `\n### ${snippet.path} (lines ${snippet.start}-${snippet.end}):\n\`\`\`\n${snippet.content}\n\`\`\`\n`;
+      });
+      ctx += '\n--- END CONTEXT ---\n\n';
+      return ctx;
+    }
+
+    // Store validation results for adding to draft
+    let validationResultsData = [];
+
+    // Add message to chat UI
+    function addChatMessage(role, content, options = {}) {
+      const container = $('#chatMessages');
+      const welcome = container.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${role}`;
+
+      // Format assistant messages with verdict highlighting
+      if (role === 'assistant') {
+        let formatted = content
+          // Verdict highlighting
+          .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+          .replace(/⚠\s*(Partial(ly Supported)?)/gi, '<span class="verdict-partial">⚠ $1</span>')
+          .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+          // Evidence quality tags
+          .replace(/\[PEER-REVIEWED\]/g, '<span class="evidence-tag peer-reviewed">Peer-Reviewed</span>')
+          .replace(/\[PREPRINT\]/g, '<span class="evidence-tag preprint">Preprint</span>')
+          .replace(/\[STANDARD\]/g, '<span class="evidence-tag standard">Standard</span>')
+          .replace(/\[VENDOR-DOCS\]/g, '<span class="evidence-tag vendor-docs">Vendor Docs</span>')
+          .replace(/\[OPINION\]/g, '<span class="evidence-tag opinion">Opinion</span>')
+          // Cost impact tags
+          .replace(/\[SAVES \$\]/g, '<span class="cost-tag saves">SAVES $</span>')
+          .replace(/\[NEUTRAL\]/g, '<span class="cost-tag neutral">NEUTRAL</span>')
+          .replace(/\[COSTS \$\]/g, '<span class="cost-tag costs">COSTS $</span>')
+          // Action items with checkboxes
+          .replace(/^- \[ \]/gm, '<span class="action-checkbox">☐</span>')
+          .replace(/^- \[x\]/gim, '<span class="action-checkbox done">☑</span>')
+          // Bold and headers
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/^(CLAIM:|VERDICT:|EVIDENCE.*:|SOURCES.*:|EXPLANATION:|WHY:|EVIDENCE QUALITY:|GAPS:|CONFIDENCE:|NEXT ACTIONS:|COST SUMMARY:)/gm, '<strong>$1</strong>');
+
+        // Create content wrapper
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'msg-content';
+        contentDiv.innerHTML = formatted;
+        msg.appendChild(contentDiv);
+
+        // Add action buttons for completed messages
+        if (content && !options.streaming) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          msg.appendChild(actions);
+
+          // Copy button handler
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(content);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          // Add to draft button handler
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const btn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            const success = await addValidationToDraft(content);
+            if (success) {
+              btn.textContent = 'Added!';
+              btn.classList.add('success');
+            } else {
+              btn.textContent = 'Failed';
+              btn.disabled = false;
+            }
+          };
+        }
+      } else {
+        msg.textContent = content;
+      }
+
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+      return msg;
+    }
+
+    // Add validation reference to draft
+    async function addValidationToDraft(validationContent) {
+      if (!savedDraftSlug) return false;
+
+      try {
+        // Get current draft content
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+
+        // Parse existing blocks
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Create validation reference block
+        const refBlock = {
+          id: 'ref_' + Date.now(),
+          type: 'paragraph',
+          data: {
+            text: '<strong>📋 Validation Reference:</strong><br>' +
+                  validationContent.replace(/\n/g, '<br>').substring(0, 1000) +
+                  (validationContent.length > 1000 ? '...' : '')
+          }
+        };
+
+        // Check if we already have a references section
+        const refSectionIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('References')
+        );
+
+        if (refSectionIdx >= 0) {
+          // Insert after the references header
+          blocks.splice(refSectionIdx + 1, 0, refBlock);
+        } else {
+          // Add a references section at the end
+          blocks.push({
+            id: 'ref_header_' + Date.now(),
+            type: 'header',
+            data: { text: 'Validation References', level: 2 }
+          });
+          blocks.push(refBlock);
+        }
+
+        // Update the draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        return updateRes.ok;
+      } catch (err) {
+        console.error('Failed to add validation to draft:', err);
+        return false;
+      }
+    }
+
+    // Stream chat response
+    async function streamValidateChat(userMessage) {
+      const isValidate = $('#validateModeToggle').checked;
+      // Use depth setting for validate mode: validate_scan (default) or validate_deep
+      const mode = isValidate ? (validateDepth === 'deep' ? 'validate_deep' : 'validate_scan') : 'normal';
+
+      // Prepend code context if any
+      const contextStr = buildContextString();
+      const messageWithContext = contextStr ? userMessage + contextStr : userMessage;
+
+      // Show original message to user, but send with context
+      validateMessages.push({ role: 'user', content: messageWithContext });
+      addChatMessage('user', userMessage + (contextStr ? ' 📎' : ''));  // Show indicator if context attached
+
+      // Clear context after sending
+      if (contextStr) {
+        selectedContexts = [];
+        updateContextDisplay();
+      }
+
+      const btn = $('#validateBtn');
+      const status = $('#validateStatus');
+      btn.disabled = true;
+      btn.textContent = validateDepth === 'deep' ? 'Deep Analysis...' : 'Scanning...';
+      status.textContent = validateDepth === 'deep' ? 'Running deep analysis...' : 'Quick scan...';
+
+      // Create placeholder for assistant message (streaming mode)
+      const assistantMsg = addChatMessage('assistant', '', { streaming: true });
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'msg-content';
+      assistantMsg.appendChild(contentDiv);
+      let fullResponse = '';
+
+      try {
+        const researchMode = $('#researchModeToggle')?.checked || false;
+        const res = await fetch(`${CHAT_API}/api/chat/stream?mode=${mode}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: validateMessages,
+            temperature: 0.2,
+            mode: mode,
+            research: researchMode
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          for (const frame of chunk.split('\n\n')) {
+            const line = frame.trim();
+            if (!line.startsWith('data:')) continue;
+            const raw = line.slice(5).trim();
+            if (!raw) continue;
+
+            try {
+              const payload = JSON.parse(raw);
+              if (payload.token) {
+                fullResponse += payload.token;
+                // Update with formatting
+                let formatted = fullResponse
+                  // Verdict highlighting
+                  .replace(/✔\s*(Supported)/gi, '<span class="verdict-supported">✔ $1</span>')
+                  .replace(/⚠\s*(Partial(ly Supported)?)/gi, '<span class="verdict-partial">⚠ $1</span>')
+                  .replace(/✖\s*(Not Supported)/gi, '<span class="verdict-not">✖ $1</span>')
+                  // Evidence quality tags
+                  .replace(/\[PEER-REVIEWED\]/g, '<span class="evidence-tag peer-reviewed">Peer-Reviewed</span>')
+                  .replace(/\[PREPRINT\]/g, '<span class="evidence-tag preprint">Preprint</span>')
+                  .replace(/\[STANDARD\]/g, '<span class="evidence-tag standard">Standard</span>')
+                  .replace(/\[VENDOR-DOCS\]/g, '<span class="evidence-tag vendor-docs">Vendor Docs</span>')
+                  .replace(/\[OPINION\]/g, '<span class="evidence-tag opinion">Opinion</span>')
+                  // Cost impact tags
+                  .replace(/\[SAVES \$\]/g, '<span class="cost-tag saves">SAVES $</span>')
+                  .replace(/\[NEUTRAL\]/g, '<span class="cost-tag neutral">NEUTRAL</span>')
+                  .replace(/\[COSTS \$\]/g, '<span class="cost-tag costs">COSTS $</span>')
+                  // Action items with checkboxes
+                  .replace(/^- \[ \]/gm, '<span class="action-checkbox">☐</span>')
+                  .replace(/^- \[x\]/gim, '<span class="action-checkbox done">☑</span>')
+                  // Bold and headers
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/^(CLAIM:|VERDICT:|EVIDENCE.*:|SOURCES.*:|EXPLANATION:|WHY:|EVIDENCE QUALITY:|GAPS:|CONFIDENCE:|NEXT ACTIONS:|COST SUMMARY:)/gm, '<strong>$1</strong>');
+                contentDiv.innerHTML = formatted;
+                $('#chatMessages').scrollTop = $('#chatMessages').scrollHeight;
+              }
+              if (payload.done) {
+                status.textContent = 'Done';
+              }
+              if (payload.error) {
+                status.textContent = 'Error: ' + payload.error;
+              }
+            } catch (e) { /* ignore parse errors */ }
+          }
+        }
+
+        validateMessages.push({ role: 'assistant', content: fullResponse });
+        status.textContent = '';
+
+        // Add action buttons after streaming completes
+        if (fullResponse) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.innerHTML = `
+            <button type="button" class="msg-action-btn copy-btn">Copy</button>
+            <button type="button" class="msg-action-btn primary add-to-draft-btn">Add to Draft</button>
+          `;
+          assistantMsg.appendChild(actions);
+
+          actions.querySelector('.copy-btn').onclick = () => {
+            navigator.clipboard.writeText(fullResponse);
+            actions.querySelector('.copy-btn').textContent = 'Copied!';
+            actions.querySelector('.copy-btn').classList.add('success');
+            setTimeout(() => {
+              actions.querySelector('.copy-btn').textContent = 'Copy';
+              actions.querySelector('.copy-btn').classList.remove('success');
+            }, 1500);
+          };
+
+          actions.querySelector('.add-to-draft-btn').onclick = async () => {
+            const addBtn = actions.querySelector('.add-to-draft-btn');
+            if (!savedDraftSlug) {
+              alert('No draft available. Generate a blog post first.');
+              return;
+            }
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding...';
+            const success = await addValidationToDraft(fullResponse);
+            if (success) {
+              addBtn.textContent = 'Added!';
+              addBtn.classList.add('success');
+            } else {
+              addBtn.textContent = 'Failed';
+              addBtn.disabled = false;
+            }
+          };
+        }
+
+      } catch (err) {
+        console.error('Validate chat error:', err);
+        contentDiv.textContent = 'Error: ' + err.message;
+        status.textContent = 'Failed';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Validate';
+      }
+    }
+
+    // Form submit handler
+    $('#validateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = $('#validateInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      await streamValidateChat(text);
+    };
+
+    // Clear chat
+    $('#clearChat').onclick = () => {
+      validateMessages = [];
+      $('#chatMessages').innerHTML = `
+        <div class="chat-welcome">
+          <p><strong>Claim Validation Assistant</strong></p>
+          <p class="muted">Enter any technical, security, or architectural claim to validate.</p>
+          <p class="muted">Output format: CLAIM → VERDICT → EVIDENCE → EXPLANATION → APPLICABILITY → CONFIDENCE</p>
+        </div>
+      `;
+      $('#validateStatus').textContent = '';
+    };
+
+    // Init validate mode on load
+    loadValidateMode();
+
+    // ========== BLOG CLAIM AUTO-VALIDATION ==========
+
+    // Extract claims from blog content (looks for assertive statements)
+    function extractClaimsFromBlog(blogData) {
+      const claims = [];
+      const blocks = blogData.blocks || [];
+
+      for (const block of blocks) {
+        if (block.type === 'paragraph' && block.data?.text) {
+          // Clean HTML and split into sentences
+          const text = block.data.text.replace(/<[^>]+>/g, '');
+          const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+
+          for (const sentence of sentences) {
+            const s = sentence.trim();
+            // Look for assertive/factual claims (skip questions, simple statements)
+            if (
+              s.length > 30 &&
+              !s.includes('?') &&
+              (
+                /\b(is|are|was|were|will|can|should|must|always|never|every|all|most|typically|usually|often|generally)\b/i.test(s) ||
+                /\b(increases?|decreases?|improves?|reduces?|prevents?|causes?|helps?|enables?)\b/i.test(s) ||
+                /\b(\d+%|\d+x|faster|slower|better|worse|more|less)\b/i.test(s)
+              )
+            ) {
+              claims.push(s.substring(0, 200));
+            }
+          }
+        }
+      }
+
+      // Return unique claims, max 5
+      return [...new Set(claims)].slice(0, 5);
+    }
+
+    // Validate a single claim (always uses scan mode for auto-validation - cheaper)
+    async function validateSingleClaim(claim) {
+      try {
+        const res = await fetch(`${CHAT_API}/api/chat?mode=validate_scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: claim }],
+            temperature: 0.2,
+            mode: 'validate_scan',
+            research: false  // Auto-validation always uses cheap mode
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data.reply || data.content || 'No response';
+      } catch (err) {
+        return `Error validating: ${err.message}`;
+      }
+    }
+
+    // Parse verdict from validation response
+    function parseVerdict(response) {
+      if (/✔\s*Supported/i.test(response)) return 'supported';
+      if (/⚠\s*Partial/i.test(response)) return 'partial';  // Matches both "Partial" and "Partially Supported"
+      if (/✖\s*Not Supported/i.test(response)) return 'not-supported';
+      return 'unknown';
+    }
+
+    // Run auto-validation on blog claims
+    async function runBlogValidation() {
+      if (!generatedBlog) return;
+
+      const statusEl = $('#validationStatus');
+      const resultsEl = $('#validationResults');
+      const validateBtn = $('#validateClaimsBtn');
+      const addAllBtn = $('#addAllRefsBtn');
+
+      // Extract claims
+      const claims = extractClaimsFromBlog(generatedBlog);
+
+      if (claims.length === 0) {
+        statusEl.textContent = 'No claims found';
+        statusEl.className = 'validation-status done';
+        resultsEl.innerHTML = '<div class="muted">No factual claims detected in the content.</div>';
+        resultsEl.classList.add('show');
+        return;
+      }
+
+      // Update UI
+      statusEl.textContent = `Validating ${claims.length} claims...`;
+      statusEl.className = 'validation-status running';
+      validateBtn.disabled = true;
+      validateBtn.textContent = 'Validating...';
+      resultsEl.innerHTML = '';
+      resultsEl.classList.add('show');
+      validationResultsData = [];
+
+      // Validate each claim
+      for (let i = 0; i < claims.length; i++) {
+        const claim = claims[i];
+        statusEl.textContent = `Validating ${i + 1}/${claims.length}...`;
+
+        // Add placeholder
+        const itemEl = document.createElement('div');
+        itemEl.className = 'validation-item';
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <div class="muted">Validating...</div>
+        `;
+        resultsEl.appendChild(itemEl);
+
+        // Get validation
+        const response = await validateSingleClaim(claim);
+        const verdict = parseVerdict(response);
+
+        // Store result
+        validationResultsData.push({ claim, response, verdict });
+
+        // Update item
+        itemEl.className = `validation-item ${verdict}`;
+        const verdictLabel = verdict === 'supported' ? '✔ Supported' :
+                            verdict === 'partial' ? '⚠ Partial' :
+                            verdict === 'not-supported' ? '✖ Not Supported' : '? Unknown';
+        const verdictClass = verdict === 'supported' ? 'supported' :
+                            verdict === 'partial' ? 'partial' :
+                            verdict === 'not-supported' ? 'not-supported' : '';
+
+        itemEl.innerHTML = `
+          <div class="claim-text">${esc(claim)}</div>
+          <span class="verdict-badge ${verdictClass}">${verdictLabel}</span>
+          <div class="muted" style="margin-top:6px;font-size:11px;max-height:60px;overflow:hidden;">
+            ${esc(response.substring(0, 200))}${response.length > 200 ? '...' : ''}
+          </div>
+        `;
+      }
+
+      // Done
+      statusEl.textContent = `${claims.length} claims validated`;
+      statusEl.className = 'validation-status done';
+      validateBtn.disabled = false;
+      validateBtn.textContent = 'Re-validate';
+      addAllBtn.classList.remove('hidden');
+    }
+
+    // Add all validation results to draft
+    async function addAllValidationsToDraft() {
+      if (!savedDraftSlug || validationResultsData.length === 0) return;
+
+      const btn = $('#addAllRefsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      try {
+        // Get current draft
+        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const draft = await getRes.json();
+        let blocks = draft.content_blocks?.blocks || [];
+
+        // Remove existing validation section if present
+        const existingRefIdx = blocks.findIndex(b =>
+          b.type === 'header' && b.data?.text?.includes('Validation References')
+        );
+        if (existingRefIdx >= 0) {
+          // Remove header and all following ref blocks
+          let endIdx = existingRefIdx + 1;
+          while (endIdx < blocks.length && blocks[endIdx].id?.startsWith('ref_')) {
+            endIdx++;
+          }
+          blocks.splice(existingRefIdx, endIdx - existingRefIdx);
+        }
+
+        // Add validation references section as a single compact block
+        // Extract sources from responses for linking
+        const validationCards = validationResultsData.map(result => {
+          const verdictEmoji = result.verdict === 'supported' ? '✔' :
+                              result.verdict === 'partial' ? '⚠' :
+                              result.verdict === 'not-supported' ? '✖' : '?';
+          const verdictClass = result.verdict === 'supported' ? 'supported' :
+                              result.verdict === 'partial' ? 'partial' : 'not-supported';
+
+          // Extract source URLs from response (look for common patterns)
+          const sourceMatch = result.response.match(/(?:Source \d+:|EVIDENCE:)[^]*?(?:https?:\/\/[^\s<>"]+|Google Scholar query:[^.]+)/gi);
+          const sources = sourceMatch ? sourceMatch.join(' | ') : '';
+
+          // Truncate claim for display
+          const shortClaim = result.claim.length > 60 ? result.claim.substring(0, 57) + '...' : result.claim;
+
+          return {
+            emoji: verdictEmoji,
+            verdict: verdictClass,
+            claim: result.claim,
+            shortClaim,
+            response: result.response,
+            sources
+          };
+        });
+
+        blocks.push({
+          id: 'ref_validation_' + Date.now(),
+          type: 'validationRefs',
+          data: {
+            cards: validationCards
+          }
+        });
+
+        // Update draft
+        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({
+            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+          })
+        });
+
+        if (updateRes.ok) {
+          btn.textContent = 'Added!';
+          btn.classList.add('primary');
+        } else {
+          throw new Error('Update failed');
+        }
+      } catch (err) {
+        console.error('Failed to add validations:', err);
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    }
+
+    // Wire up validation buttons
+    $('#validateClaimsBtn').onclick = runBlogValidation;
+    $('#addAllRefsBtn').onclick = addAllValidationsToDraft;
+
+    // ---------- Usage Dashboard ----------
+    function formatNumber(n) {
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return n.toString();
+    }
+
+    async function loadUsageDashboard() {
+      try {
+        // Fetch all usage data in parallel
+        const [todayRes, weekRes, endpointsRes] = await Promise.all([
+          fetch('/api/admin/usage/today'),
+          fetch('/api/admin/usage/week'),
+          fetch('/api/admin/usage/endpoints?days=7&limit=10')
+        ]);
+
+        if (!todayRes.ok || !weekRes.ok || !endpointsRes.ok) throw new Error('Failed to fetch usage');
+
+        const today = await todayRes.json();
+        const week = await weekRes.json();
+        const endpoints = await endpointsRes.json();
+
+        // Update Today's usage
+        $('#todayChatTokens').textContent = formatNumber(today.chat_tokens);
+        $('#todayChatLimit').textContent = '/ ' + formatNumber(today.limits.chat_tokens);
+        $('#todayChatBar').style.width = Math.min(100, (today.chat_tokens / today.limits.chat_tokens) * 100) + '%';
+
+        $('#todayEmbedTokens').textContent = formatNumber(today.embedding_tokens);
+        $('#todayEmbedLimit').textContent = '/ ' + formatNumber(today.limits.embedding_tokens);
+        $('#todayEmbedBar').style.width = Math.min(100, (today.embedding_tokens / today.limits.embedding_tokens) * 100) + '%';
+
+        $('#todayImages').textContent = today.images;
+        $('#todayImagesLimit').textContent = '/ ' + today.limits.images;
+        $('#todayImagesBar').style.width = Math.min(100, (today.images / today.limits.images) * 100) + '%';
+
+        $('#todayVideo').textContent = today.video_seconds;
+        $('#todayVideoLimit').textContent = '/ ' + today.limits.video_seconds;
+        $('#todayVideoBar').style.width = Math.min(100, (today.video_seconds / today.limits.video_seconds) * 100) + '%';
+
+        // Update week totals
+        $('#weekChatTokens').textContent = formatNumber(week.totals.chat_tokens);
+        $('#weekEmbedTokens').textContent = formatNumber(week.totals.embedding_tokens);
+        $('#weekImages').textContent = week.totals.images;
+        $('#weekVideo').textContent = week.totals.video_seconds + 's';
+
+        // Update endpoints table
+        const tbody = $('#endpointsBody');
+        if (endpoints.endpoints.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="muted">No endpoint data yet</td></tr>';
+        } else {
+          tbody.innerHTML = endpoints.endpoints.map(ep =>
+            `<tr><td>${ep.endpoint}</td><td>${ep.total_calls}</td><td>${formatNumber(ep.total_tokens)}</td></tr>`
+          ).join('');
+        }
+      } catch (err) {
+        console.error('Usage fetch error:', err);
+      }
+    }
+
+    // Load usage when usage tab is clicked
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'usage') {
+        tab.addEventListener('click', loadUsageDashboard);
+      }
+    });
+
+    // Refresh button
+    $('#refreshUsage').onclick = loadUsageDashboard;
+
+    (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
+  </script>
+</body>
+</html>
