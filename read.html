@@ -548,6 +548,24 @@
       qs('#article').innerHTML = md(p.content_md);
     }
 
+    // Add validation refs section (always visible)
+    const existingVref = qs('.validation-refs-section');
+    if (!existingVref) {
+      const vrefSection = document.createElement('aside');
+      vrefSection.className = 'validation-refs-section';
+      vrefSection.innerHTML = `
+        <div class="vref-header">
+          <svg class="vref-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>Fact-checked claims</span>
+          <span class="vref-count">0</span>
+        </div>
+        <div class="vref-cards">
+          <p class="vref-empty">No claims have been validated yet.</p>
+        </div>
+      `;
+      qs('#article').appendChild(vrefSection);
+    }
+
     // Build table of contents
     const toc = qs('#tocList');
     toc.innerHTML = '';
