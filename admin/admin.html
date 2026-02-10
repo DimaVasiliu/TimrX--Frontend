@@ -734,10 +734,10 @@
 <body>
   <!-- Header -->
   <header class="header">
-    <a class="logo" href="index.html">TimrX<span>.</span></a>
+    <a class="logo" href="/">TimrX<span>.</span></a>
     <nav class="nav">
-      <a href="blogs.html">Blogs</a>
-      <a href="write.html">Write</a>
+      <a href="/blogs">Blogs</a>
+      <a href="/write">Write</a>
       <button id="logout" class="logout">Log out</button>
     </nav>
   </header>
@@ -1947,7 +1947,7 @@
     $('#modalPreviewEdit').onclick = () => {
       if (!generatedBlog) return;
       sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
-      window.location.href = 'write.html?ai=1';
+      window.location.href = '/write?ai=1';
     };
 
     // ========== COVER SOURCE & ACTION HANDLERS ==========
@@ -2081,7 +2081,7 @@
       const b = e.target.closest('button');
       if(!b) return;
       const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
-      if(b.dataset.edit){ location.href = `admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
+      if(b.dataset.edit){ location.href = `/admin/admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
       if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.del){
