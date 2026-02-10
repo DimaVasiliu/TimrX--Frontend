@@ -1,14 +1,91 @@
 # TimrX Robots.txt
 # https://timrx.live
 
+# ===========================================
+# Default rules for all crawlers
+# ===========================================
 User-agent: *
 Allow: /
+Allow: /hub
+Allow: /3dprint
+Allow: /blogs
+Allow: /blog/*
+Allow: /about
+Allow: /archive
 
+# Admin and private areas
 Disallow: /admin
+Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
+
+# Dynamic read page (individual blog posts have canonical /blog/ URLs)
 Disallow: /read
 Disallow: /read.html
 
+# Prevent crawling of file extensions
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+
+# ===========================================
+# Google-specific
+# ===========================================
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /img/
+Allow: /og-image*.png
+
+# ===========================================
+# Bing-specific
+# ===========================================
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+# ===========================================
+# AI crawlers (allow for visibility)
+# ===========================================
+User-agent: GPTBot
+Allow: /
+Allow: /blogs
+Allow: /blog/*
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+# ===========================================
+# Block bad bots
+# ===========================================
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# ===========================================
+# Sitemaps
+# ===========================================
 Sitemap: https://timrx.live/sitemap.xml
+Sitemap: https://timrx.live/sitemap-pages.xml
 Sitemap: https://timrx.live/sitemap-blogs.xml
+
+# ===========================================
+# Host directive (for Yandex)
+# ===========================================
+Host: https://timrx.live
