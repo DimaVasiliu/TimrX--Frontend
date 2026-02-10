@@ -659,6 +659,52 @@ body {
   aspect-ratio: 16/9;
   min-height: 180px;
 }
+
+/* Cover type selection modal */
+#coverTypeModal {
+  z-index: 1050; /* Between blogModal and coverModal */
+}
+.cover-type-box {
+  max-width: 420px;
+}
+.cover-type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cover-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.cover-type-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.cover-type-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.cover-type-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.cover-type-desc {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.4;
+}
+
 .modal-box h3 {
   font-size: 18px;
   font-weight: 600;
