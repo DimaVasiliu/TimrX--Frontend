@@ -125,32 +125,30 @@
       <article id="article" class="post-article"></article>
     </div>
 
-    <!-- CTA Section -->
-    <section class="cta-row container" aria-label="Call to action">
-      <div class="cta-card cta-subscribe">
-        <div class="cta-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    <!-- Subscribe CTA -->
+    <aside class="subscribe-cta" aria-label="Newsletter signup">
+      <h4>Stay in the loop</h4>
+      <p>Get notified about new experiments, tools, and tutorials.</p>
+      <form class="subscribe-form" id="ctaSubscribeForm" action="https://timrx.live/api/subscribe" method="POST">
+        <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
+        <button type="submit">Subscribe</button>
+      </form>
+      <div id="ctaSubscribeMsg" class="subscribe-msg" aria-live="polite"></div>
+    </aside>
+
+    <!-- Product CTA -->
+    <aside class="product-cta" aria-label="Product promotion">
+      <div class="product-cta-inner">
+        <div class="product-cta-text">
+          <span class="product-label">Try it yourself</span>
+          <p>The TimrX 3D Print Hub lets you experiment with text-to-3D and image-to-3D models directly in the browser.</p>
         </div>
-        <h4>Stay Updated</h4>
-        <p>Get notified about new experiments, tools, and tutorials.</p>
-        <form class="cta-subscribe-form" id="ctaSubscribeForm" action="https://timrx.live/api/subscribe" method="POST">
-          <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
-          <button type="submit" class="cta-btn cta-btn-subscribe">Subscribe</button>
-        </form>
-        <div id="ctaSubscribeMsg" class="cta-msg" aria-live="polite"></div>
-      </div>
-      <div class="cta-card cta-product">
-        <div class="cta-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        </div>
-        <h4>Try 3D Print Hub</h4>
-        <p>Experiment with text-to-3D and image-to-3D models directly in the browser.</p>
-        <a href="https://timrx.live/hub" class="cta-btn cta-btn-primary">
+        <a href="https://timrx.live/hub" class="product-cta-btn">
           Launch Hub
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </div>
-    </section>
+    </aside>
 
     <!-- Engagement Section -->
     <section class="engagement-section container">
@@ -363,7 +361,7 @@
               <div class="product-badge">Recommended</div>
               <h4 class="product-name">${pName}</h4>
               <p class="product-desc">${pDesc}</p>
-              <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-cta">${pCta} <span class="arrow">→</span></a>
+              <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-link">${pCta} <span class="arrow">→</span></a>
             </div>
           </div>`;
         default:
