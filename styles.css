@@ -1,3 +1,4 @@
+
 :root{ --bg:#0d0d0d; --text:#f5f5f5;
   --muted:#9ca3af; --line:#1e1e1e; --accent:#0EA5E9;
   --accent2:#ff4d4d; --maxw:1320px;
@@ -3478,84 +3479,155 @@ footer{border-top:1px solid var(--line);padding:14px 0 2px;color:var(--muted); m
   }
 }
 
-/* ===== Validation References Section ===== */
-.validation-refs {
+/* ===== Validation References Section (vrefs) ===== */
+.vrefs {
   margin: 48px 0 32px;
   padding: 24px;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 12px;
 }
-.validation-refs-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin: 0 0 16px;
+
+/* Header */
+.vrefs-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.validation-refs-grid {
+.vrefs-icon {
+  font-size: 18px;
+}
+.vrefs-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Grid */
+.vrefs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
 }
-.vref-card {
-  position: relative;
-  padding: 14px 16px 14px 44px;
+
+/* Empty state */
+.vrefs-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+  padding: 24px;
+}
+
+/* Card base */
+.vref {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 4px 10px;
+  padding: 14px 16px;
   background: rgba(0,0,0,0.25);
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.vref-card:hover {
+a.vref:hover,
+div.vref:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  border-color: rgba(255,255,255,0.12);
 }
-.vref-badge {
-  position: absolute;
-  left: 14px;
-  top: 14px;
-  font-size: 16px;
+a.vref:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Icon + Label row */
+.vref-icon {
+  grid-row: 1;
+  font-size: 18px;
+  font-weight: 700;
   line-height: 1;
 }
-.vref-claim {
-  font-size: 13px;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.85);
-  margin: 0 0 6px;
-}
-.vref-sources {
+.vref-label {
+  grid-row: 1;
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
-  margin: 0;
-  word-break: break-word;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.6);
+  align-self: center;
 }
-.vref-sources a {
-  color: rgba(56,189,248,0.8);
-  text-decoration: underline;
+
+/* Title (truncated claim) */
+.vref-title {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.9);
 }
-.vref-sources a:hover {
-  color: #38bdf8;
+
+/* Full claim (hidden, shown on hover) */
+.vref-claim {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.65);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.2s ease;
+  margin-top: 0;
 }
+.vref:hover .vref-claim {
+  max-height: 120px;
+  opacity: 1;
+  margin-top: 6px;
+}
+
 /* Verdict colors */
-.vref-card.vref-supported { border-left: 3px solid #4ade80; }
-.vref-card.vref-partial { border-left: 3px solid #fbbf24; }
-.vref-card.vref-not-supported { border-left: 3px solid #f87171; }
-.vref-card.vref-unknown { border-left: 3px solid #9ca3af; }
-.vref-card.vref-empty {
-  border-left: 3px solid rgba(255,255,255,0.15);
-  padding-left: 16px;
-  text-align: center;
+.vref.vref-supported {
+  border-left: 3px solid #4ade80;
 }
-.vref-card.vref-empty .vref-icon {
-  display: block;
-  font-size: 24px;
-  margin-bottom: 8px;
-  opacity: 0.5;
+.vref.vref-supported .vref-icon {
+  color: #4ade80;
 }
-.vref-card.vref-empty .vref-claim {
-  color: rgba(255,255,255,0.5);
-  font-style: italic;
+.vref.vref-partial {
+  border-left: 3px solid #fbbf24;
+}
+.vref.vref-partial .vref-icon {
+  color: #fbbf24;
+}
+.vref.vref-not-supported {
+  border-left: 3px solid #f87171;
+}
+.vref.vref-not-supported .vref-icon {
+  color: #f87171;
+}
+.vref.vref-unknown {
+  border-left: 3px solid #9ca3af;
+}
+.vref.vref-unknown .vref-icon {
+  color: #9ca3af;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 560px) {
+  .vrefs-grid {
+    grid-template-columns: 1fr;
+  }
+  .vref-claim {
+    max-height: none;
+    opacity: 1;
+    margin-top: 6px;
+  }
 }
 
 /* ===== Global Click Lock ===== */
