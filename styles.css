@@ -3478,6 +3478,86 @@ footer{border-top:1px solid var(--line);padding:14px 0 2px;color:var(--muted); m
   }
 }
 
+/* ===== Validation References Section ===== */
+.validation-refs {
+  margin: 48px 0 32px;
+  padding: 24px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+}
+.validation-refs-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.validation-refs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+.vref-card {
+  position: relative;
+  padding: 14px 16px 14px 44px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.vref-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.vref-badge {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  font-size: 16px;
+  line-height: 1;
+}
+.vref-claim {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.85);
+  margin: 0 0 6px;
+}
+.vref-sources {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+  word-break: break-word;
+}
+.vref-sources a {
+  color: rgba(56,189,248,0.8);
+  text-decoration: underline;
+}
+.vref-sources a:hover {
+  color: #38bdf8;
+}
+/* Verdict colors */
+.vref-card.vref-supported { border-left: 3px solid #4ade80; }
+.vref-card.vref-partial { border-left: 3px solid #fbbf24; }
+.vref-card.vref-not-supported { border-left: 3px solid #f87171; }
+.vref-card.vref-unknown { border-left: 3px solid #9ca3af; }
+.vref-card.vref-empty {
+  border-left: 3px solid rgba(255,255,255,0.15);
+  padding-left: 16px;
+  text-align: center;
+}
+.vref-card.vref-empty .vref-icon {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+.vref-card.vref-empty .vref-claim {
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+}
+
 /* ===== Global Click Lock ===== */
 html.locked * {
   pointer-events: none !important;         /* block everything */
