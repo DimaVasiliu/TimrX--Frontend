@@ -744,7 +744,7 @@
 
       try {
         const r = await fetch(API + '/post/' + encodeURIComponent(savedDraftSlug), {
-          method: 'PUT',
+          method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
             cover_url: coverUrl,
@@ -967,7 +967,7 @@
       window.location.href = 'write.html?ai=1';
     };
 
-    // Generate cover from blog modal (inline - stays in modal)
+    // Generate cover from blog modal - opens LARGE modal for better selection
     $('#modalGenerateCover').onclick = async () => {
       if (!generatedBlog || !generatedBlog.cover_prompt) {
         alert('No cover prompt available');
@@ -994,11 +994,13 @@
         const j = await r.json();
 
         if (j.ok) {
-          // Royalty-free preview mode: show picker inline
+          // Royalty-free preview mode: open LARGE modal with picker
           if (j.mode === 'preview' && j.options) {
             coverSearchOptions = j.options;
             coverSearchPrompt = prompt;
-            showModalCoverPicker(j.options);
+            coverSelectionSource = 'blogModal';  // Track where selection came from
+            showCoverPicker(j.options);  // Use the large modal picker
+            $('#coverModal').classList.add('show');
           }
           // Direct mode (AI generated)
           else if (j.url) {
@@ -1095,12 +1097,22 @@
       const preview = $('#modalCoverPreview');
       const status = $('#coverStatus');
 
+      console.log('showModalCoverPreview called with URL:', j.url);
+
       picker.classList.add('hidden');
       preview.classList.remove('hidden');
       status.textContent = 'Cover ready!';
       status.classList.add('ready');
 
-      $('#modalDraftCoverImg').src = j.url;
+      const img = $('#modalDraftCoverImg');
+      if (img && j.url) {
+        img.onerror = () => console.error('Failed to load cover image from:', j.url);
+        img.onload = () => console.log('Cover image loaded successfully');
+        img.src = j.url;
+        console.log('Cover image src set to:', j.url);
+      } else {
+        console.error('Could not set cover image:', { img: !!img, url: j.url });
+      }
       const attr = $('#modalDraftCoverAttr');
       if (j.attribution) {
         attr.innerHTML = j.attribution;
@@ -1178,8 +1190,9 @@
     // Store current cover search options for selection
     let coverSearchOptions = [];
     let coverSearchPrompt = '';
+    let coverSelectionSource = 'coverTab';  // Track where selection came from: 'coverTab' or 'blogModal'
 
-    // Generate cover image
+    // Generate cover image from Cover tab
     $('#coverForm').onsubmit = async (e) => {
       e.preventDefault();
       const prompt = $('#cover_prompt').value.trim();
@@ -1208,6 +1221,7 @@
           if (j.mode === 'preview' && j.options) {
             coverSearchOptions = j.options;
             coverSearchPrompt = prompt;
+            coverSelectionSource = 'coverTab';  // Track source
             showCoverPicker(j.options);
             $('#coverModal').classList.add('show');
           }
@@ -1215,6 +1229,13 @@
           else if (j.url) {
             generatedCoverUrl = j.url;
             generatedCoverData = j;
+            applyCoverToPreview(j);  // Apply to Cover tab preview
+            // Also update blog modal if visible and has a draft
+            if (savedDraftSlug) {
+              showModalCoverPreview(j);
+              await updateDraftCover(j.url, j.attribution || '');
+              console.log('AI cover linked to draft:', savedDraftSlug);
+            }
             showCoverResult(j);
             $('#coverModal').classList.add('show');
           }
@@ -1274,8 +1295,21 @@
         if (j.ok && j.url) {
           generatedCoverUrl = j.url;
           generatedCoverData = j;
-          // Auto-apply cover to main preview and close modal
+
+          // Apply cover to the Cover tab preview
           applyCoverToPreview(j);
+
+          // If selection came from blog modal, also update the blog modal preview
+          if (coverSelectionSource === 'blogModal') {
+            showModalCoverPreview(j);
+          }
+
+          // Update the draft with the cover if we have a saved draft
+          if (savedDraftSlug) {
+            await updateDraftCover(j.url, j.attribution || '');
+            console.log('Cover linked to draft:', savedDraftSlug);
+          }
+
           $('#coverModal').classList.remove('show');
         } else {
           alert('Failed to select image: ' + (j.error || 'Unknown error'));
@@ -1310,12 +1344,14 @@
 
     // Apply cover to main preview area in Cover tab
     function applyCoverToPreview(j) {
+      console.log('applyCoverToPreview called with URL:', j.url);
       const preview = $('#coverPreview');
       const img = $('#coverImage');
 
-      if (preview && img) {
+      if (preview && img && j.url) {
         img.src = j.url;
         preview.style.display = 'block';
+        console.log('Cover preview set:', j.url);
 
         // Add attribution if available
         let attrEl = preview.querySelector('.cover-attribution');
@@ -1789,7 +1825,7 @@
 
         // Update the draft
         const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
             content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
@@ -2146,7 +2182,7 @@
 
         // Update draft
         const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
             content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
