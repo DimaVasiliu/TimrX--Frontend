@@ -648,31 +648,43 @@
     .cover-draft-status .retry-btn:hover {
       background: rgba(239,68,68,0.25);
     }
-    /* Modal cover picker grid */
+    /* Modal cover picker grid - large images for easy selection */
     .modal-picker-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
       margin-top: 12px;
+    }
+    @media (max-width: 720px) {
+      .modal-picker-grid { grid-template-columns: 1fr; }
     }
     .modal-picker-item {
       position: relative;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
       border: 2px solid transparent;
-      transition: all 0.15s;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .modal-picker-item:hover:not(.selecting) { border-color: rgba(255,255,255,0.3); }
+    .modal-picker-item:hover:not(.selecting) {
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
     .modal-picker-item:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
+      outline: 3px solid rgba(96,165,250,0.9);
+      outline-offset: 3px;
     }
     .modal-picker-item img {
       width: 100%;
-      aspect-ratio: 16/10;
+      aspect-ratio: 16/9;
+      min-height: 220px;
       object-fit: cover;
       display: block;
+      transform: scale(1);
+      transition: transform 0.2s ease;
+    }
+    .modal-picker-item:hover:not(.selecting) img {
+      transform: scale(1.04);
     }
     .modal-picker-item.selecting {
       border-color: #3b82f6;
@@ -690,19 +702,20 @@
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 4px 6px;
-      background: rgba(0,0,0,0.7);
-      font-size: 10px;
-      color: #ccc;
+      padding: 20px 10px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      font-size: 11px;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
     }
     .modal-picker-item .selecting-spinner {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 24px;
-      height: 24px;
-      border: 2px solid rgba(255,255,255,0.3);
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(255,255,255,0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
