@@ -544,9 +544,22 @@
   const subModalPrice = document.getElementById('subModalPrice');
   const subCheckoutEmail = document.getElementById('subCheckoutEmail');
   const subCheckoutError = document.getElementById('subCheckoutError');
+  const subCheckoutMessage = document.getElementById('subCheckoutMessage');
   const subCheckoutBtn = document.getElementById('subCheckoutBtn');
+  // Verification state elements
+  const subEmailState = document.getElementById('subEmailState');
+  const subVerifyState = document.getElementById('subVerifyState');
+  const subSentToEmail = document.getElementById('subSentToEmail');
+  const subVerifyCode = document.getElementById('subVerifyCode');
+  const subVerifyError = document.getElementById('subVerifyError');
+  const subVerifyMessage = document.getElementById('subVerifyMessage');
+  const subVerifyBtn = document.getElementById('subVerifyBtn');
+  const subResendCode = document.getElementById('subResendCode');
+  const subBackToEmail = document.getElementById('subBackToEmail');
 
   let selectedSubPlan = null;
+  let subPendingEmail = null;  // Email pending verification for subscription
+  let subIsRestoreMode = false;  // Whether we're restoring another identity's email
 
   /**
    * One-time card content per tier (original values)
@@ -779,6 +792,11 @@
         subCheckoutEmail.title = '';
       }
     }
+
+    // Reset state machine to email input state
+    subPendingEmail = null;
+    subIsRestoreMode = false;
+    showSubEmailState();
     validateSubCheckout();
 
     // Clear errors
@@ -814,44 +832,273 @@
     return valid;
   }
 
-  function showSubError(msg) {
-    if (subCheckoutError) {
-      subCheckoutError.textContent = msg;
-      subCheckoutError.style.display = 'block';
+  // ─────────────────────────────────────────────────────────────
+  // Subscription Modal - Email Verification State Machine
+  // States: email_input -> sending_code -> code_input -> verifying -> checkout
+  // ─────────────────────────────────────────────────────────────
+
+  function showSubError(msg, isVerify = false) {
+    const el = isVerify ? subVerifyError : subCheckoutError;
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
     }
   }
 
-  async function startSubscriptionCheckout() {
+  function showSubMessage(msg, isVerify = false) {
+    const el = isVerify ? subVerifyMessage : subCheckoutMessage;
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  }
+
+  function clearSubMessages(isVerify = false) {
+    if (isVerify) {
+      if (subVerifyError) subVerifyError.style.display = 'none';
+      if (subVerifyMessage) subVerifyMessage.style.display = 'none';
+    } else {
+      if (subCheckoutError) subCheckoutError.style.display = 'none';
+      if (subCheckoutMessage) subCheckoutMessage.style.display = 'none';
+    }
+  }
+
+  function showSubEmailState() {
+    if (subEmailState) subEmailState.style.display = 'block';
+    if (subVerifyState) subVerifyState.style.display = 'none';
+    clearSubMessages(false);
+    clearSubMessages(true);
+  }
+
+  function showSubVerifyState() {
+    if (subEmailState) subEmailState.style.display = 'none';
+    if (subVerifyState) subVerifyState.style.display = 'block';
+    if (subSentToEmail) subSentToEmail.textContent = subPendingEmail;
+    if (subVerifyCode) {
+      subVerifyCode.value = '';
+      subVerifyCode.focus();
+    }
+    clearSubMessages(true);
+  }
+
+  function setSubBtnLoading(btn, loading) {
+    if (!btn) return;
+    const btnText = btn.querySelector('.btn-text');
+    const btnLoader = btn.querySelector('.btn-loader');
+    btn.disabled = loading;
+    if (btnText) btnText.style.display = loading ? 'none' : '';
+    if (btnLoader) btnLoader.style.display = loading ? 'inline-flex' : 'none';
+  }
+
+  /**
+   * Step 1: User clicks Continue - check if email verified, else start verification
+   */
+  async function handleSubEmailContinue() {
     if (!validateSubCheckout()) {
       showSubError('Please enter a valid email.');
       return;
     }
 
     const email = subCheckoutEmail.value.trim();
-    const btnText = subCheckoutBtn.querySelector('.btn-text');
-    const btnLoader = subCheckoutBtn.querySelector('.btn-loader');
+    clearSubMessages(false);
+    setSubBtnLoading(subCheckoutBtn, true);
 
-    subCheckoutBtn.disabled = true;
-    if (btnText) btnText.style.display = 'none';
-    if (btnLoader) btnLoader.style.display = 'inline-flex';
-    if (subCheckoutError) subCheckoutError.style.display = 'none';
+    // If user already has this email verified, go straight to checkout
+    if (emailVerified && userEmail && userEmail.toLowerCase() === email.toLowerCase()) {
+      console.log('[Credits] Email already verified, proceeding to checkout');
+      await executeSubCheckout();
+      return;
+    }
+
+    // Otherwise, need to verify email first - send code via attach
+    subPendingEmail = email;
+    subIsRestoreMode = false;
+    showSubMessage('Sending verification code...');
+
+    try {
+      const result = await apiFetch('/api/auth/email/attach', {
+        method: 'POST',
+        body: { email }
+      });
+
+      // Note: attach returns 200 even if email belongs to another identity (anti-enumeration)
+      // We'll find out during verify if it's EMAIL_IN_USE
+      if (result.ok || result.status === 200) {
+        console.log('[Credits] Verification code sent to:', email);
+        setSubBtnLoading(subCheckoutBtn, false);
+        showSubVerifyState();
+      } else {
+        throw new Error(result.error || 'Failed to send verification code');
+      }
+    } catch (err) {
+      console.error('[Credits] Failed to send code:', err);
+      showSubError(err.message || 'Failed to send code. Please try again.');
+      setSubBtnLoading(subCheckoutBtn, false);
+    }
+  }
+
+  /**
+   * Step 2: User enters code and clicks Verify & Subscribe
+   */
+  async function handleSubVerifyCode() {
+    const code = subVerifyCode?.value?.trim() || '';
+
+    if (code.length !== 6 || !/^\d+$/.test(code)) {
+      showSubError('Code must be 6 digits', true);
+      return;
+    }
+
+    clearSubMessages(true);
+    setSubBtnLoading(subVerifyBtn, true);
+    showSubMessage('Verifying...', true);
+
+    const endpoint = subIsRestoreMode
+      ? '/api/auth/restore/redeem'
+      : '/api/auth/email/verify';
+
+    try {
+      const result = await apiFetch(endpoint, {
+        method: 'POST',
+        body: { email: subPendingEmail, code }
+      });
+
+      if (result.ok) {
+        // Email verified/restored successfully
+        console.log('[Credits] Email verified, refreshing session...');
+        showSubMessage('Email verified! Starting checkout...', true);
+
+        // Refresh session to get updated identity
+        await refreshIdentityAndCheckout();
+        return;
+      }
+
+      // Handle specific error codes
+      const errorCode = result.data?.error?.code || result.data?.code;
+
+      if (errorCode === 'INVALID_CODE') {
+        showSubError('Invalid or expired code', true);
+      } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
+        showSubError('Too many attempts. Please request a new code.', true);
+      } else if (errorCode === 'CODE_EXPIRED') {
+        showSubError('Code has expired. Please request a new one.', true);
+      } else if (errorCode === 'EMAIL_IN_USE' && !subIsRestoreMode) {
+        // Email belongs to another identity - auto-switch to restore mode
+        console.log('[Credits] Email belongs to another identity, switching to restore mode');
+        clearSubMessages(true);
+        showSubMessage('This email is linked to another account. Restoring...', true);
+
+        // Warn if user has credits they might lose
+        const currentCredits = walletAvailable || 0;
+        if (currentCredits > 0 && !emailVerified) {
+          const shouldRestore = window.confirm(
+            `This email is linked to another account.\n\n` +
+            `You currently have ${currentCredits} credits on this device. ` +
+            `Restoring will switch you to the other account's credits.\n\n` +
+            `Do you want to restore the other account?`
+          );
+          if (!shouldRestore) {
+            showSubError('Restore cancelled.', true);
+            setSubBtnLoading(subVerifyBtn, false);
+            return;
+          }
+        }
+
+        // Retry with restore endpoint
+        subIsRestoreMode = true;
+        const restoreResult = await apiFetch('/api/auth/restore/redeem', {
+          method: 'POST',
+          body: { email: subPendingEmail, code }
+        });
+
+        if (restoreResult.ok) {
+          console.log('[Credits] Account restored, refreshing session...');
+          showSubMessage('Account restored! Starting checkout...', true);
+          await refreshIdentityAndCheckout();
+          return;
+        } else {
+          showSubError(restoreResult.error || 'Restore failed. Please try again.', true);
+        }
+      } else {
+        showSubError(result.error || 'Verification failed', true);
+      }
+
+      setSubBtnLoading(subVerifyBtn, false);
+    } catch (err) {
+      console.error('[Credits] Verification error:', err);
+      showSubError(err.message || 'Verification failed', true);
+      setSubBtnLoading(subVerifyBtn, false);
+    }
+  }
+
+  /**
+   * Refresh identity after verify/restore, then proceed to checkout
+   */
+  async function refreshIdentityAndCheckout() {
+    try {
+      // Refresh session to get updated identity
+      const meResult = await apiFetch('/api/me', { timeout: 15000 });
+      if (meResult.ok && meResult.data?.ok) {
+        userEmail = meResult.data.email;
+        emailVerified = meResult.data.email_verified || false;
+        identityId = meResult.data.identity_id;
+
+        WalletStore.update({
+          balance: meResult.data.balance_credits ?? 0,
+          reserved: meResult.data.reserved_credits ?? 0,
+          available: meResult.data.available_credits ?? 0,
+          identityId: meResult.data.identity_id,
+          email: meResult.data.email,
+          emailVerified: meResult.data.email_verified,
+        });
+      }
+
+      // Now execute the checkout
+      await executeSubCheckout();
+    } catch (err) {
+      console.error('[Credits] Failed to refresh identity:', err);
+      showSubError('Failed to refresh session. Please try again.', true);
+      setSubBtnLoading(subVerifyBtn, false);
+    }
+  }
+
+  /**
+   * Execute the actual checkout API call
+   */
+  async function executeSubCheckout() {
+    if (!selectedSubPlan) {
+      showSubError('No plan selected');
+      setSubBtnLoading(subCheckoutBtn, false);
+      setSubBtnLoading(subVerifyBtn, false);
+      return;
+    }
 
     try {
       const result = await apiFetch('/api/billing/subscriptions/checkout', {
         method: 'POST',
         body: {
           plan_code: selectedSubPlan.plan_code,
-          email: email,
         },
       });
 
       if (!result.ok) {
-        // Check for billing-specific errors (401/403)
+        const errorCode = result.data?.error?.code || result.data?.code;
+
+        // If still EMAIL_REQUIRED or EMAIL_NOT_VERIFIED, show message and stay in verify state
+        if (result.status === 403 && (errorCode === 'EMAIL_REQUIRED' || errorCode === 'EMAIL_NOT_VERIFIED')) {
+          console.log('[Credits] Checkout requires email verification:', errorCode);
+          showSubError('Email verification required. Please verify your email.', true);
+          setSubBtnLoading(subVerifyBtn, false);
+          setSubBtnLoading(subCheckoutBtn, false);
+          return;
+        }
+
+        // Handle other billing errors
         if (handleBillingError(result, 'subscription-checkout')) {
           closeSubscriptionModal();
           return;
         }
-        throw new Error(result.data?.error || result.error || 'Checkout failed');
+
+        throw new Error(result.data?.error?.message || result.data?.error || result.error || 'Checkout failed');
       }
 
       const data = result.data;
@@ -869,11 +1116,47 @@
       }
     } catch (err) {
       console.error('[Credits] Subscription checkout failed:', err);
-      showSubError(err.message || 'Failed to start checkout. Please try again.');
-      subCheckoutBtn.disabled = false;
-      if (btnText) btnText.style.display = '';
-      if (btnLoader) btnLoader.style.display = 'none';
+      const isVerifyVisible = subVerifyState && subVerifyState.style.display !== 'none';
+      showSubError(err.message || 'Failed to start checkout. Please try again.', isVerifyVisible);
+      setSubBtnLoading(subCheckoutBtn, false);
+      setSubBtnLoading(subVerifyBtn, false);
     }
+  }
+
+  /**
+   * Resend verification code
+   */
+  async function handleSubResendCode() {
+    if (!subPendingEmail) return;
+
+    clearSubMessages(true);
+    showSubMessage('Resending code...', true);
+
+    try {
+      const result = await apiFetch('/api/auth/email/attach', {
+        method: 'POST',
+        body: { email: subPendingEmail }
+      });
+
+      if (result.ok || result.status === 200) {
+        showSubMessage('New code sent!', true);
+        if (subVerifyCode) subVerifyCode.value = '';
+      } else {
+        showSubError(result.error || 'Failed to resend code', true);
+      }
+    } catch (err) {
+      showSubError('Failed to resend code', true);
+    }
+  }
+
+  /**
+   * Go back to email input state
+   */
+  function handleSubBackToEmail() {
+    subPendingEmail = null;
+    subIsRestoreMode = false;
+    showSubEmailState();
+    if (subCheckoutEmail) subCheckoutEmail.focus();
   }
 
   // Subscription modal event listeners
@@ -882,18 +1165,37 @@
     if (e.target === subModal) closeSubscriptionModal();
   });
   subCheckoutEmail?.addEventListener('input', () => {
-    if (subCheckoutError) subCheckoutError.style.display = 'none';
+    clearSubMessages(false);
     validateSubCheckout();
   });
   subCheckoutBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    startSubscriptionCheckout();
+    handleSubEmailContinue();
   });
   subCheckoutEmail?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !subCheckoutBtn?.disabled) {
       e.preventDefault();
-      startSubscriptionCheckout();
+      handleSubEmailContinue();
     }
+  });
+  // Verify state event listeners
+  subVerifyBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSubVerifyCode();
+  });
+  subVerifyCode?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubVerifyCode();
+    }
+  });
+  subResendCode?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSubResendCode();
+  });
+  subBackToEmail?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSubBackToEmail();
   });
 
   // ESC closes subscription modal
