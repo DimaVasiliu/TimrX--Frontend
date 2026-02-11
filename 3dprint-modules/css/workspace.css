@@ -595,7 +595,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 8px;
+    margin: 8px;
   }
 
   .timrx-3dprint .card .inline-field label {
