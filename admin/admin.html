@@ -729,6 +729,99 @@
       margin-top: 10px;
     }
     .cover-status.ready { color: #4ade80; }
+    /* Billing Health Dashboard */
+    .billing-dashboard { padding: 0; }
+    .billing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .billing-header h3 { margin: 0; font-size: 16px; }
+    .billing-controls { display: flex; gap: 8px; align-items: center; }
+    .billing-controls .form-select { width: 140px; padding: 6px 10px; font-size: 12px; }
+    .billing-stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .billing-stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 70px;
+    }
+    .billing-stat .stat-value {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .billing-stat .stat-value.green { color: #22c55e; }
+    .billing-stat .stat-value.amber { color: #fbbf24; }
+    .billing-stat .stat-value.red { color: #ef4444; }
+    .billing-stat .stat-label {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .billing-table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+    }
+    .billing-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .billing-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #888;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .billing-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #ccc;
+    }
+    .billing-table tr:last-child td { border-bottom: none; }
+    .billing-table tr.row-green { background: rgba(34, 197, 94, 0.08); }
+    .billing-table tr.row-amber { background: rgba(251, 191, 36, 0.08); }
+    .billing-table tr.row-red { background: rgba(239, 68, 68, 0.08); }
+    .billing-table tr:hover { background: rgba(255,255,255,0.04); }
+    .billing-table .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .billing-table .status-badge.active { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .billing-table .status-badge.cancelled { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .billing-table .status-badge.past_due,
+    .billing-table .status-badge.suspended,
+    .billing-table .status-badge.expired { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .billing-table .status-badge.pending_payment { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .billing-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .billing-pagination .pagination-info {
+      font-size: 12px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -792,6 +885,7 @@
           <button class="tab" data-tab="validate">Validate</button>
           <button class="tab" data-tab="subscribers">Subs</button>
           <button class="tab" data-tab="usage">Usage</button>
+          <button class="tab" data-tab="billing">Billing</button>
         </div>
 
         <!-- Generate Tab -->
@@ -1087,6 +1181,76 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing Health Tab -->
+        <div class="tab-content" id="tab-billing">
+          <div class="billing-dashboard">
+            <div class="billing-header">
+              <h3>Billing Health</h3>
+              <div class="billing-controls">
+                <select class="form-select" id="billingStatusFilter">
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="past_due">Past Due</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="expired">Expired</option>
+                </select>
+                <button class="action-btn" id="refreshBilling">Refresh</button>
+              </div>
+            </div>
+
+            <!-- Stats Summary -->
+            <div class="billing-stats" id="billingStats">
+              <div class="billing-stat">
+                <span class="stat-value green" id="statActive">--</span>
+                <span class="stat-label">Active</span>
+              </div>
+              <div class="billing-stat">
+                <span class="stat-value amber" id="statCancelled">--</span>
+                <span class="stat-label">Cancelled</span>
+              </div>
+              <div class="billing-stat">
+                <span class="stat-value red" id="statPastDue">--</span>
+                <span class="stat-label">Past Due</span>
+              </div>
+              <div class="billing-stat">
+                <span class="stat-value red" id="statSuspended">--</span>
+                <span class="stat-label">Suspended</span>
+              </div>
+              <div class="billing-stat">
+                <span class="stat-value" id="statTotal">--</span>
+                <span class="stat-label">Total</span>
+              </div>
+            </div>
+
+            <!-- Subscriptions Table -->
+            <div class="billing-table-wrap">
+              <table class="billing-table" id="billingTable">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Next Credit</th>
+                    <th>Period End</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody id="billingTableBody">
+                  <tr><td colspan="6" class="muted">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="billing-pagination" id="billingPagination">
+              <button class="btn small" id="billingPrev" disabled>← Prev</button>
+              <span class="pagination-info" id="billingPageInfo">Page 1</span>
+              <button class="btn small" id="billingNext">Next →</button>
             </div>
           </div>
         </div>
@@ -3206,6 +3370,125 @@
 
     // Refresh button
     $('#refreshUsage').onclick = loadUsageDashboard;
+
+    // ========== BILLING HEALTH DASHBOARD ==========
+    let billingPage = 0;
+    const billingLimit = 50;
+    let billingStatusFilter = '';
+
+    /**
+     * Format date in UK style: "1 Mar 2026"
+     */
+    function formatDateUK(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '—';
+      const day = d.getDate();
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
+
+    /**
+     * Load billing health data from API
+     */
+    async function loadBillingHealth() {
+      const tbody = $('#billingTableBody');
+      tbody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
+
+      try {
+        let url = `${API}/admin/billing/health?limit=${billingLimit}&offset=${billingPage * billingLimit}`;
+        if (billingStatusFilter) {
+          url += `&status=${billingStatusFilter}`;
+        }
+
+        const r = await fetch(url, { headers: headers() });
+        const j = await r.json();
+
+        if (!j.ok) {
+          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${j.error || 'Failed to load'}</td></tr>`;
+          return;
+        }
+
+        // Update stats
+        $('#statActive').textContent = j.stats?.active || 0;
+        $('#statCancelled').textContent = j.stats?.cancelled || 0;
+        $('#statPastDue').textContent = j.stats?.past_due || 0;
+        $('#statSuspended').textContent = j.stats?.suspended || 0;
+        $('#statTotal').textContent = j.total || 0;
+
+        // Render table
+        if (!j.subscriptions || j.subscriptions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="muted">No subscriptions found</td></tr>';
+        } else {
+          tbody.innerHTML = j.subscriptions.map(sub => {
+            const rowClass = sub.row_hint ? `row-${sub.row_hint}` : '';
+            const statusClass = sub.status || 'unknown';
+            return `
+              <tr class="${rowClass}">
+                <td title="${sub.identity_id}">${sub.email || sub.customer_email || '—'}</td>
+                <td>${sub.plan_code || '—'}</td>
+                <td><span class="status-badge ${statusClass}">${sub.status || '—'}</span></td>
+                <td>${formatDateUK(sub.next_credit_date)}</td>
+                <td>${formatDateUK(sub.current_period_end)}</td>
+                <td>${formatDateUK(sub.created_at)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        // Update pagination
+        const totalPages = Math.ceil(j.total / billingLimit);
+        $('#billingPageInfo').textContent = `Page ${billingPage + 1} of ${totalPages || 1}`;
+        $('#billingPrev').disabled = billingPage === 0;
+        $('#billingNext').disabled = billingPage >= totalPages - 1 || j.subscriptions.length < billingLimit;
+
+      } catch (err) {
+        console.error('Billing fetch error:', err);
+        tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Billing tab event listeners
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'billing') {
+        tab.addEventListener('click', () => {
+          billingPage = 0;
+          loadBillingHealth();
+        });
+      }
+    });
+
+    // Refresh button
+    if ($('#refreshBilling')) {
+      $('#refreshBilling').onclick = loadBillingHealth;
+    }
+
+    // Status filter
+    if ($('#billingStatusFilter')) {
+      $('#billingStatusFilter').onchange = (e) => {
+        billingStatusFilter = e.target.value;
+        billingPage = 0;
+        loadBillingHealth();
+      };
+    }
+
+    // Pagination
+    if ($('#billingPrev')) {
+      $('#billingPrev').onclick = () => {
+        if (billingPage > 0) {
+          billingPage--;
+          loadBillingHealth();
+        }
+      };
+    }
+    if ($('#billingNext')) {
+      $('#billingNext').onclick = () => {
+        billingPage++;
+        loadBillingHealth();
+      };
+    }
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
