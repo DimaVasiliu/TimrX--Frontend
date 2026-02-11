@@ -613,12 +613,28 @@
         <h2 class="grad">Simple Pricing</h2>
         <p class="muted">Built for serious creators. No watermarks. Full ownership.</p>
 
-        <!-- Pricing mode toggle -->
-        <div class="pricing-mode-toggle" id="pricingModeToggle">
-          <button type="button" class="mode-pill active" data-mode="one_time">One-time</button>
-          <button type="button" class="mode-pill" data-mode="monthly">Monthly</button>
-          <button type="button" class="mode-pill" data-mode="yearly">Yearly</button>
-          <button type="button" class="mode-pill" data-mode="video">Video</button>
+        <!-- Pricing mode toggle with info icon -->
+        <div class="pricing-toggle-row">
+          <div class="pricing-mode-toggle" id="pricingModeToggle">
+            <button type="button" class="mode-pill active" data-mode="one_time">One-time</button>
+            <button type="button" class="mode-pill" data-mode="monthly">Monthly</button>
+            <button type="button" class="mode-pill" data-mode="yearly">Yearly</button>
+            <button type="button" class="mode-pill" data-mode="video">Video</button>
+          </div>
+          <div class="credits-info-trigger" tabindex="0" aria-label="How credits work">
+            <i class="fa-solid fa-circle-info"></i>
+            <div class="credits-info-popover">
+              <div class="popover-arrow"></div>
+              <h4>How credits work</h4>
+              <ul>
+                <li><strong>Video credits</strong> are separate from general credits.</li>
+                <li>Each video costs <strong>70 credits</strong> (text or image input).</li>
+                <li>All outputs are <strong>1080p</strong>, 4K on Studio plans.</li>
+                <li><strong>Full ownership</strong> — no watermarks.</li>
+                <li>Credits never expire. No refunds after use.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
