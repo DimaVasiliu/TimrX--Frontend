@@ -387,13 +387,14 @@ export async function fetchActionCosts() {
  * Default action costs (fallback if API unavailable)
  *
  * CANONICAL ACTION KEYS (use these in new code):
- * - image_generate       (10c) - All 2D image providers (OpenAI, Gemini, etc.)
- * - text_to_3d_generate  (20c) - Text to 3D preview generation
- * - image_to_3d_generate (30c) - Image to 3D conversion
- * - refine               (10c) - Refine/upscale 3D model
- * - remesh               (10c) - Remesh 3D model (same cost as refine)
- * - retexture            (15c) - Apply new texture to 3D model
- * - rigging              (25c) - Add skeleton/rig to 3D model
+ * - image_generate       (5c)  - Standard AI image
+ * - image_generate_2k    (7c)  - 2K resolution AI image
+ * - image_generate_4k    (10c) - 4K resolution AI image
+ * - text_to_3d_generate  (18c) - Text to 3D preview generation
+ * - image_to_3d_generate (25c) - Image to 3D conversion
+ * - refine               (8c)  - Refine/upscale 3D model
+ * - remesh               (8c)  - Remesh 3D model (same cost as refine)
+ * - retexture            (12c) - Apply new texture to 3D model
  * - video_generate       (70c) - Generic video generation (minimum, varies by duration/resolution)
  * - video_text_generate  (70c) - Text-to-video generation (minimum)
  * - video_image_animate  (70c) - Image-to-video animation (minimum)
@@ -406,38 +407,39 @@ export async function fetchActionCosts() {
 function getDefaultActionCosts() {
   return {
     // === CANONICAL ACTION KEYS ===
-    'image_generate': 10,         // All 2D image providers
-    'text_to_3d_generate': 20,    // Text to 3D preview
-    'image_to_3d_generate': 30,   // Image to 3D
-    'refine': 10,                 // Refine 3D model
-    'remesh': 10,                 // Remesh 3D model
-    'retexture': 15,              // Retexture 3D model
-    'rigging': 25,                // Rig 3D model
+    'image_generate': 5,          // Standard AI image
+    'image_generate_2k': 7,       // 2K resolution
+    'image_generate_4k': 10,      // 4K resolution
+    'text_to_3d_generate': 18,    // Text to 3D preview
+    'image_to_3d_generate': 25,   // Image to 3D
+    'refine': 8,                  // Refine 3D model
+    'remesh': 8,                  // Remesh 3D model
+    'retexture': 12,              // Retexture 3D model
     'video_generate': 70,         // Video generation (minimum - actual cost from video_credit_rules)
     'video_text_generate': 70,    // Text to video (minimum)
     'video_image_animate': 70,    // Image to video (minimum)
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
-    'text-to-3d': 20,
-    'image-to-3d': 30,
-    'text-to-image': 10,
+    'text-to-3d': 18,
+    'image-to-3d': 25,
+    'text-to-image': 5,
 
     // Old naming
-    'preview': 20,                // -> text_to_3d_generate
-    'texture': 15,                // -> retexture
-    'rig': 25,                    // -> rigging
-    'upscale': 10,                // -> refine
+    'preview': 18,                // -> text_to_3d_generate
+    'texture': 12,                // -> retexture
+    'upscale': 8,                 // -> refine
     'video': 70,                  // -> video_generate (minimum)
-    'image_studio_generate': 10,  // -> image_generate
+    'image_studio_generate': 5,   // -> image_generate
 
     // Backend DB action codes (for direct lookups)
-    'MESHY_TEXT_TO_3D': 20,
-    'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 15,
-    'MESHY_REFINE': 10,
-    'MESHY_RIG': 25,
-    'OPENAI_IMAGE': 10,
+    'MESHY_TEXT_TO_3D': 18,
+    'MESHY_IMAGE_TO_3D': 25,
+    'MESHY_RETEXTURE': 12,
+    'MESHY_REFINE': 8,
+    'OPENAI_IMAGE': 5,
+    'OPENAI_IMAGE_2K': 7,
+    'OPENAI_IMAGE_4K': 10,
     'VIDEO_GENERATE': 70,         // Minimum video cost
     'VIDEO_TEXT_GENERATE': 70,
     'VIDEO_IMAGE_ANIMATE': 70,
