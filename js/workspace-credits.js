@@ -410,8 +410,8 @@ function getDefaultActionCosts() {
     'image_generate': 5,          // Standard AI image
     'image_generate_2k': 7,       // 2K resolution
     'image_generate_4k': 10,      // 4K resolution
-    'text_to_3d_generate': 18,    // Text to 3D preview
-    'image_to_3d_generate': 25,   // Image to 3D
+    'text_to_3d_generate': 20,    // Text to 3D preview
+    'image_to_3d_generate': 30,   // Image to 3D
     'refine': 8,                  // Refine 3D model
     'remesh': 8,                  // Remesh 3D model
     'retexture': 12,              // Retexture 3D model
@@ -421,20 +421,20 @@ function getDefaultActionCosts() {
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
-    'text-to-3d': 18,
-    'image-to-3d': 25,
+    'text-to-3d': 20,
+    'image-to-3d': 30,
     'text-to-image': 5,
 
     // Old naming
-    'preview': 18,                // -> text_to_3d_generate
+    'preview': 20,                // -> text_to_3d_generate
     'texture': 12,                // -> retexture
     'upscale': 8,                 // -> refine
     'video': 70,                  // -> video_generate (minimum)
     'image_studio_generate': 5,   // -> image_generate
 
     // Backend DB action codes (for direct lookups)
-    'MESHY_TEXT_TO_3D': 18,
-    'MESHY_IMAGE_TO_3D': 25,
+    'MESHY_TEXT_TO_3D': 20,
+    'MESHY_IMAGE_TO_3D': 30,
     'MESHY_RETEXTURE': 12,
     'MESHY_REFINE': 8,
     'OPENAI_IMAGE': 5,
