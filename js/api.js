@@ -2625,9 +2625,9 @@ export async function startVideoGeneration() {
       };
     }
 
-    // Log action code for debugging
+    // Log action code for debugging (lowercase canonical format)
     const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.quality) ||
-                       `VIDEO_${settings.mode === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE'}_${settings.durationSec}S_${settings.quality.toUpperCase()}`;
+                       `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.quality.toLowerCase()}`;
     console.log('[VIDEO] Action code:', actionCode, '| Expected cost:', totalCredits);
 
     // Debug log before API call
