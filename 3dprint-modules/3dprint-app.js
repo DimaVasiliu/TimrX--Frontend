@@ -131,10 +131,9 @@
             <select id="imageQuality">
               <option value="standard" selected>Standard (5c)</option>
               <option value="high">2K (7c)</option>
-              <option value="4k">4K (10c)</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Standard 5c • 2K 7c • 4K 10c</span>
+          <span class="field-hint" id="imageQualityHint">Standard 5c • 2K 7c</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
