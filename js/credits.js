@@ -634,7 +634,88 @@
         }
       }
     });
+
+    // Update converted prices after cards are rendered
+    updateConvertedPrices();
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // Multi-Currency Price Display (uses TimrXFx)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Update all pricing cards with converted prices.
+   * Called after setPricingMode and when FX data becomes available.
+   */
+  function updateConvertedPrices() {
+    // Check if TimrXFx is available
+    if (!window.TimrXFx) return;
+
+    const fxContext = window.__TIMRX_FX_CONTEXT__;
+    if (!fxContext || !fxContext.hasConversion) {
+      // Remove any existing converted price elements if no conversion
+      document.querySelectorAll('.price-converted').forEach(el => el.remove());
+      return;
+    }
+
+    const { targetCurrency, rates } = fxContext;
+
+    // Update each pricing card
+    pricingCards.forEach(card => {
+      const priceEl = card.querySelector('.pc-price');
+      if (!priceEl) return;
+
+      // Get the GBP price from the card's data or current mode
+      const ctaBtn = card.querySelector('.pricing-cta');
+      if (!ctaBtn) return;
+
+      const planId = ctaBtn.dataset.plan;
+      const tier = CARD_TO_TIER[planId];
+      if (!tier) return;
+
+      let gbpPrice = 0;
+      if (pricingMode === 'one_time') {
+        // One-time prices: parse from ONE_TIME_CARDS
+        const priceStr = ONE_TIME_CARDS[tier]?.price || '£0';
+        gbpPrice = parseFloat(priceStr.replace('£', ''));
+      } else {
+        // Subscription prices
+        const plan = SUB_PLANS[pricingMode]?.[tier];
+        if (plan) gbpPrice = plan.price;
+      }
+
+      if (!gbpPrice) return;
+
+      // Remove existing converted price if any
+      const existingConverted = priceEl.querySelector('.price-converted');
+      if (existingConverted) existingConverted.remove();
+
+      // Add converted price
+      const convertedHtml = window.TimrXFx.getConvertedPriceHtml(gbpPrice, targetCurrency, rates);
+      if (convertedHtml) {
+        priceEl.insertAdjacentHTML('beforeend', convertedHtml);
+      }
+    });
+  }
+
+  /**
+   * Initialize FX conversion display.
+   * Called when TimrXFx finishes loading rates.
+   */
+  function initFxDisplay() {
+    if (window.__TIMRX_FX_CONTEXT__) {
+      updateConvertedPrices();
+    } else if (window.TimrXFx) {
+      // Wait for FX context to be ready
+      window.TimrXFx.init().then(ctx => {
+        window.__TIMRX_FX_CONTEXT__ = ctx;
+        updateConvertedPrices();
+      });
+    }
+  }
+
+  // Initialize FX display after a short delay (allow fx.js to load)
+  setTimeout(initFxDisplay, 100);
 
   // Toggle event listeners
   modePills.forEach(pill => {
@@ -666,11 +747,23 @@
       ? `£${plan.price.toFixed(2)}<small>/yr</small>`
       : `£${plan.price.toFixed(2)}<small>/mo</small>`;
 
+    // Build converted price label if FX available
+    let convertedLabel = '';
+    const fxContext = window.__TIMRX_FX_CONTEXT__;
+    if (fxContext?.hasConversion && window.TimrXFx) {
+      const { targetCurrency, rates } = fxContext;
+      const converted = window.TimrXFx.convert(plan.price, targetCurrency, rates);
+      if (converted !== null) {
+        const formatted = window.TimrXFx.formatCurrency(converted, targetCurrency);
+        convertedLabel = `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in GBP)</span></span>`;
+      }
+    }
+
     if (subModalTitle) subModalTitle.textContent = `Subscribe — ${plan.name}`;
     if (subModalSubtitle) subModalSubtitle.textContent = `${plan.credits_per_month} credits every month. Cancel anytime.`;
     if (subModalCredits) subModalCredits.textContent = plan.credits_per_month.toLocaleString();
     if (subModalCadence) subModalCadence.textContent = cadenceLabel;
-    if (subModalPrice) subModalPrice.innerHTML = priceLabel;
+    if (subModalPrice) subModalPrice.innerHTML = priceLabel + convertedLabel;
 
     // Pre-fill email
     if (subCheckoutEmail && userEmail) {
@@ -828,7 +921,21 @@
 
     // Update selected plan display
     if (selectedPlanName) selectedPlanName.textContent = plan.name;
-    if (selectedPlanPrice) selectedPlanPrice.textContent = `£${plan.price.toFixed(2)}`;
+    if (selectedPlanPrice) {
+      let priceHtml = `£${plan.price.toFixed(2)}`;
+
+      // Add converted price if FX available
+      const fxContext = window.__TIMRX_FX_CONTEXT__;
+      if (fxContext?.hasConversion && window.TimrXFx) {
+        const { targetCurrency, rates } = fxContext;
+        const converted = window.TimrXFx.convert(plan.price, targetCurrency, rates);
+        if (converted !== null) {
+          const formatted = window.TimrXFx.formatCurrency(converted, targetCurrency);
+          priceHtml += `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in GBP)</span></span>`;
+        }
+      }
+      selectedPlanPrice.innerHTML = priceHtml;
+    }
 
     // Show checkout section
     if (checkoutSection) {
@@ -849,7 +956,7 @@
     planCards.forEach(card => card.classList.remove('selected'));
     if (checkoutSection) checkoutSection.classList.remove('visible');
     if (selectedPlanName) selectedPlanName.textContent = '-';
-    if (selectedPlanPrice) selectedPlanPrice.textContent = '-';
+    if (selectedPlanPrice) selectedPlanPrice.innerHTML = '-';
     if (checkoutBtn) checkoutBtn.disabled = true;
     clearCheckoutError();
   }
@@ -3375,6 +3482,121 @@
     cancelSubscriptionBtn.addEventListener('click', handleCancelSubscription);
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Subscription Status Pill (Nav Bar)
+  // ─────────────────────────────────────────────────────────────
+
+  const subscriptionStatusPill = document.getElementById('subscriptionStatusPill');
+  const subscriptionIcon = document.getElementById('subscriptionIcon');
+  const subscriptionText = document.getElementById('subscriptionText');
+
+  /**
+   * Format date in UK style: "1 Mar 2026"
+   */
+  function formatDateUK(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const day = d.getDate();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+  }
+
+  /**
+   * Load subscription summary and update nav pill
+   * Uses GET /api/billing/subscriptions/summary
+   * Includes retry logic for reliability
+   */
+  async function loadSubscriptionSummary(retryCount = 0) {
+    if (!subscriptionStatusPill) return;
+
+    try {
+      const result = await apiFetch('/api/billing/subscriptions/summary', { timeout: 15000 });
+
+      if (!result.ok || !result.data?.ok) {
+        // Retry up to 2 times on failure
+        if (retryCount < 2) {
+          console.log(`[Credits] Retrying subscription summary (attempt ${retryCount + 2})...`);
+          await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+          return loadSubscriptionSummary(retryCount + 1);
+        }
+        console.warn('[Credits] Failed to load subscription summary:', result.error);
+        subscriptionStatusPill.classList.add('hidden');
+        return;
+      }
+
+      const data = result.data;
+
+      // If no subscription, hide the pill
+      if (!data.has_subscription) {
+        subscriptionStatusPill.classList.add('hidden');
+        return;
+      }
+
+      // Map DB status to display status
+      // pending_payment -> "processing" in UI
+      let status = data.status;
+      if (status === 'pending_payment') status = 'processing';
+
+      // Update pill styling
+      subscriptionStatusPill.classList.remove('hidden', 'status-active', 'status-cancelled', 'status-processing', 'status-suspended');
+      subscriptionStatusPill.classList.add(`status-${status}`);
+
+      // Update icon
+      if (subscriptionIcon) {
+        subscriptionIcon.className = 'fa-solid subscription-icon';
+        if (status === 'active') {
+          subscriptionIcon.classList.add('fa-rotate');
+        } else if (status === 'cancelled') {
+          subscriptionIcon.classList.add('fa-clock');
+        } else if (status === 'processing') {
+          subscriptionIcon.classList.add('fa-hourglass-half');
+        } else if (status === 'suspended') {
+          subscriptionIcon.classList.add('fa-exclamation-triangle');
+        } else {
+          subscriptionIcon.classList.add('fa-rotate');
+        }
+      }
+
+      // Build status text
+      let statusText = '';
+      if (status === 'active') {
+        const nextDate = formatDateUK(data.next_credit_date);
+        statusText = nextDate ? `Active — Next refill: ${nextDate}` : 'Active';
+      } else if (status === 'cancelled') {
+        const endDate = formatDateUK(data.ends_at || data.current_period_end);
+        statusText = endDate ? `Cancelled — Ends on: ${endDate}` : 'Cancelled';
+      } else if (status === 'processing') {
+        statusText = 'Payment processing… (SEPA can take 1–2 business days)';
+      } else if (status === 'suspended') {
+        const reason = data.suspend_reason || 'payment issue/refund detected';
+        statusText = `Suspended: ${reason}`;
+      } else {
+        statusText = status.charAt(0).toUpperCase() + status.slice(1);
+      }
+
+      if (subscriptionText) {
+        subscriptionText.textContent = statusText;
+        subscriptionText.title = statusText; // Full text on hover
+      }
+
+      console.log('[Credits] Subscription status pill updated:', status);
+    } catch (err) {
+      console.error('[Credits] Error loading subscription summary:', err);
+      // Retry on error
+      if (retryCount < 2) {
+        await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+        return loadSubscriptionSummary(retryCount + 1);
+      }
+      subscriptionStatusPill.classList.add('hidden');
+    }
+  }
+
+  // Load subscription summary on page load (after wallet)
+  setTimeout(() => loadSubscriptionSummary(), 500);
+
   // Expose for external use
   window.TimrXCredits = {
     refresh: refreshCredits,
@@ -3394,6 +3616,7 @@
     // Subscription management
     fetchSubscription: fetchSubscription,
     getSubscription: () => currentSubscription,
+    loadSubscriptionSummary: loadSubscriptionSummary,
   };
 
   // Standardized ready flag for diagnostics (hub page)
