@@ -1152,9 +1152,9 @@
       // ========================================
       // VIDEO: Pricing Constants (resolution + duration based)
       // ========================================
-      // Credits by resolution and duration
-      // DB-driven via video_credit_rules, these are frontend fallbacks
-      const VIDEO_CREDIT_RULES = {
+      // Fallback credits by resolution and duration (used if backend unavailable)
+      // Actual costs are fetched from backend via WorkspaceCredits
+      const VIDEO_CREDIT_RULES_FALLBACK = {
         '720p':  { 4: 70, 6: 90, 8: 110 },
         '1080p': { 8: 130 },  // 1080p requires 8s duration
         '4k':    { 8: 160 }   // 4K requires 8s duration
@@ -1198,16 +1198,22 @@
 
       /**
        * Compute video credits based on resolution + duration
-       * Uses VIDEO_CREDIT_RULES lookup table
+       * Uses backend-driven costs via WorkspaceCredits, falls back to hardcoded values
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
         const resolution = settings.resolution || '720p';
         const duration = settings.durationSec || 4;
+        const mode = settings.mode || 'text2video';
 
-        // Look up credits from rules table
-        const resRules = VIDEO_CREDIT_RULES[resolution];
+        // Try to get cost from backend via WorkspaceCredits
+        if (window.WorkspaceCredits?.getVideoCreditCost) {
+          return window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
+        }
+
+        // Fallback to hardcoded rules if WorkspaceCredits not available
+        const resRules = VIDEO_CREDIT_RULES_FALLBACK[resolution];
         if (resRules && resRules[duration] !== undefined) {
           return resRules[duration];
         }
@@ -1219,6 +1225,25 @@
 
         // Ultimate fallback: minimum 720p 4s cost
         return 70;
+      }
+
+      /**
+       * Get the video action code for current settings (for API request)
+       * @param {Object} settings - Video settings from getVideoSettingsFromUI()
+       * @returns {string} Action code like VIDEO_TEXT_GENERATE_4S_720P
+       */
+      function getVideoActionCodeForSettings(settings) {
+        const resolution = settings.resolution || '720p';
+        const duration = settings.durationSec || 4;
+        const mode = settings.mode || 'text2video';
+
+        if (window.WorkspaceCredits?.getVideoActionCode) {
+          return window.WorkspaceCredits.getVideoActionCode(mode, duration, resolution);
+        }
+
+        // Fallback: build it manually
+        const taskPart = mode === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE';
+        return `VIDEO_${taskPart}_${duration}S_${resolution.toUpperCase()}`;
       }
 
       /**
