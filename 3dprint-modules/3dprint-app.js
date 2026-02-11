@@ -1230,7 +1230,7 @@
       /**
        * Get the video action code for current settings (for API request)
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
-       * @returns {string} Action code like VIDEO_TEXT_GENERATE_4S_720P
+       * @returns {string} Action code like video_text_generate_4s_720p (lowercase canonical)
        */
       function getVideoActionCodeForSettings(settings) {
         const resolution = settings.resolution || '720p';
@@ -1241,9 +1241,9 @@
           return window.WorkspaceCredits.getVideoActionCode(mode, duration, resolution);
         }
 
-        // Fallback: build it manually
-        const taskPart = mode === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE';
-        return `VIDEO_${taskPart}_${duration}S_${resolution.toUpperCase()}`;
+        // Fallback: build it manually (lowercase canonical format)
+        const taskPart = mode === 'text2video' ? 'text_generate' : 'image_animate';
+        return `video_${taskPart}_${duration}s_${resolution.toLowerCase()}`;
       }
 
       /**
