@@ -2466,12 +2466,6 @@ export async function startImageGenerationByProvider() {
   }
 }
 
-/**
- * Video credit calculation constants (must match 3dprint-app.js)
- */
-const VIDEO_BASE_CREDITS = { 4: 30, 6: 45, 8: 60 };
-const VIDEO_QUALITY_MULTIPLIER = { standard: 1.0, high: 1.5 };
-
 // Map simplified aspect to API format (no square/1:1 - not supported by Veo)
 const VIDEO_ASPECT_MAP = {
   landscape: '16:9',
@@ -2479,14 +2473,38 @@ const VIDEO_ASPECT_MAP = {
 };
 
 /**
- * Compute video credits based on settings (simplified)
- * @param {Object} settings - { durationSec, quality }
- * @returns {number} Total credits
+ * Canonical video credit costs (MUST match backend pricing_service.py)
+ * This is the SINGLE SOURCE OF TRUTH for frontend video pricing.
+ *
+ * Resolution constraints:
+ * - 720p: 4s, 6s, or 8s
+ * - 1080p: 8s only
+ * - 4k: 8s only
  */
-function computeVideoCredits(settings) {
-  const base = VIDEO_BASE_CREDITS[settings.durationSec] || 30;
-  const mult = VIDEO_QUALITY_MULTIPLIER[settings.quality] || 1.0;
-  return Math.round(base * mult);
+const VIDEO_CREDIT_COSTS = {
+  '720p':  { 4: 70, 6: 90, 8: 110 },
+  '1080p': { 8: 130 },
+  '4k':    { 8: 160 }
+};
+
+/**
+ * Get video credit cost based on resolution and duration.
+ * Uses VideoJobControl if available, falls back to local VIDEO_CREDIT_COSTS.
+ *
+ * @param {Object} settings - { durationSec, resolution }
+ * @returns {number} Total credits (70-160)
+ */
+function getVideoCredits(settings) {
+  // Prefer VideoJobControl.computeCredits() as single source of truth
+  if (window.VideoJobControl?.computeCredits) {
+    return window.VideoJobControl.computeCredits(settings);
+  }
+
+  // Fallback to local canonical costs
+  const resolution = settings.resolution || '720p';
+  const duration = settings.durationSec || 4;
+  const resolutionCosts = VIDEO_CREDIT_COSTS[resolution] || VIDEO_CREDIT_COSTS['720p'];
+  return resolutionCosts[duration] || 70;
 }
 
 /**
@@ -2499,9 +2517,10 @@ export async function startVideoGeneration() {
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'video' } }));
 
   // Get video settings from UI (use window.VideoJobControl if available, else read directly)
+  // Resolution values: "720p", "1080p", "4k" (NOT "standard" or "high")
   const settings = window.VideoJobControl?.getSettings?.() || {
     durationSec: parseInt(byId('videoDuration')?.value || '4', 10),
-    quality: byId('videoQuality')?.value || 'standard',
+    resolution: byId('videoQuality')?.value || '720p',  // Resolution: 720p, 1080p, 4k
     aspect: byId('videoAspectRatio')?.value || 'landscape',
     aspectRatio: VIDEO_ASPECT_MAP[byId('videoAspectRatio')?.value] || '16:9',
     loop: byId('videoLoop')?.checked ?? true,
@@ -2513,15 +2532,15 @@ export async function startVideoGeneration() {
   const stylePreset = byId('videoStylePreset')?.value || '';
   const motionPreset = byId('videoMotionPreset')?.value || '';
 
-  // Compute credits using the SAME formula as UI
-  const totalCredits = computeVideoCredits(settings);
+  // Compute credits using canonical VIDEO_CREDIT_COSTS (70-160 credits)
+  const totalCredits = getVideoCredits(settings);
 
   // Defensive logging for video credit flow
   console.log('[VIDEO] Credit check:', {
     durationSec: settings.durationSec,
-    quality: settings.quality,
+    resolution: settings.resolution,
     computedCredits: totalCredits,
-    formula: `base(${settings.durationSec}s) × quality(${settings.quality})`
+    formula: `VIDEO_CREDIT_COSTS[${settings.resolution}][${settings.durationSec}s] = ${totalCredits}`
   });
 
   // Unified credit check with proper numeric conversion
@@ -2602,8 +2621,7 @@ export async function startVideoGeneration() {
         motion_preset: motionPreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        resolution: settings.quality,  // Resolution: 720p, 1080p, 4k
-        quality: settings.quality,     // Keep for backwards compatibility
+        resolution: settings.resolution,  // Resolution: 720p, 1080p, 4k
         loop: settings.loop
       };
 
@@ -2618,16 +2636,15 @@ export async function startVideoGeneration() {
         style_preset: stylePreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        resolution: settings.quality,  // Resolution: 720p, 1080p, 4k
-        quality: settings.quality,     // Keep for backwards compatibility
+        resolution: settings.resolution,  // Resolution: 720p, 1080p, 4k
         motion: motion,
         loop: settings.loop
       };
     }
 
     // Log action code for debugging (lowercase canonical format)
-    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.quality) ||
-                       `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.quality.toLowerCase()}`;
+    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
+                       `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
     console.log('[VIDEO] Action code:', actionCode, '| Expected cost:', totalCredits);
 
     // Debug log before API call
@@ -2687,7 +2704,7 @@ export async function startVideoGeneration() {
     State.savePendingMeta(jobId, {
       prompt: prompt || motion,
       duration_sec: settings.durationSec,
-      quality: settings.quality,
+      resolution: settings.resolution,
       aspect_ratio: settings.aspectRatio,
       stage: 'video',
       type: 'video'
@@ -2697,7 +2714,7 @@ export async function startVideoGeneration() {
     watchVideoJob(jobId, reservation.reservationId, {
       prompt: prompt || motion,
       duration_sec: settings.durationSec,
-      quality: settings.quality,
+      resolution: settings.resolution,
       aspect_ratio: settings.aspectRatio,
       stage: 'video'
     });
