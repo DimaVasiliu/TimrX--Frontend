@@ -141,11 +141,11 @@
     studio_2200: { name: 'Studio', credits: 2200, price: 37.99 }
   };
 
-  // Video plan definitions (video credits)
+  // Video plan definitions (video credits) - Premium rebalance Feb 2026
   const VIDEO_PLANS = {
-    video_starter_250: { name: 'Video Starter', credits: 250, price: 9.99 },
-    video_creator_750: { name: 'Video Creator', credits: 750, price: 24.99 },
-    video_studio_1600: { name: 'Video Studio', credits: 1600, price: 44.99 }
+    video_starter_300: { name: 'Video Starter', credits: 300, price: 9.99 },
+    video_creator_900: { name: 'Video Creator', credits: 900, price: 29.99 },
+    video_studio_2000: { name: 'Video Studio', credits: 2000, price: 59.99 }
   };
 
   // Subscription plan definitions (must match backend subscription_service.py)
@@ -565,9 +565,9 @@
    * One-time card content per tier (original values)
    */
   const ONE_TIME_CARDS = {
-    starter: { price: '£7.99', sub: '250 Creator Credits', btn: 'Get Starter' },
-    creator: { price: '£19.99', sub: '900 Creator Credits', btn: 'Get Creator' },
-    studio:  { price: '£37.99', sub: '2,200 Creator Credits', btn: 'Get Studio' },
+    starter: { price: '£7.99', sub: '250 Credits', btn: 'Get Starter' },
+    creator: { price: '£19.99', sub: '900 Credits', btn: 'Get Creator' },
+    studio:  { price: '£37.99', sub: '2,200 Credits', btn: 'Get Studio' },
   };
 
   /**
