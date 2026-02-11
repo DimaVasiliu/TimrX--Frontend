@@ -582,28 +582,34 @@ textarea {
 /* ===== GENERATION FOOTER ===== */
 .gen-footer-card {
   text-align: center;
-  padding: 14px !important;
+  padding: 16px 18px !important;
+  margin-top: 8px;
 }
 
 .gen-meta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
   font-weight: 500;
 }
 
 .gen-divider {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.15);
 }
 
 .gen-credits {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  color: #7dd3fc;
+  font-weight: 600;
 }
 
 .gen-btn {
@@ -613,7 +619,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 22px;
+  padding: 13px 22px;
   background: linear-gradient(135deg, var(--accent-blue, #0ea5e9), var(--accent-purple, #8b5cf6));
   border: none;
   border-radius: 10px;
@@ -643,17 +649,25 @@ textarea {
 /* ===== CREDITS INDICATORS ===== */
 .gen-credits i {
   color: #7dd3fc;
-  font-size: 11px;
+  font-size: 12px;
   filter: drop-shadow(0 0 3px rgba(125,211,252,.4));
 }
 
+/* Insufficient credits - prominent red styling */
 .gen-credits.insufficient {
-  color: #f87171;
+  color: #fca5a5;
+  font-weight: 600;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  margin: -4px 0;
 }
 
 .gen-credits.insufficient i {
   color: #f87171;
-  filter: drop-shadow(0 0 3px rgba(248,113,113,.4));
+  font-size: 12px;
+  filter: drop-shadow(0 0 4px rgba(248,113,113,.5));
 }
 
 /* Button cost badge - always visible on hover */
@@ -1659,7 +1673,7 @@ textarea {
 
 /* ===== PANE-STACK CARD SECTION TITLES ===== */
 .timrx-3dprint .pane-stack .card h3 {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
