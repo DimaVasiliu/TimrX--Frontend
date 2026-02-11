@@ -168,18 +168,18 @@
   const TIER_BENEFITS = {
     starter: {
       images: 80,       // 400 credits ÷ 5 per image
-      models: 22,       // 400 credits ÷ 18 per model
-      perks: ['Up to 80 AI Images', 'Up to 22 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
+      models: 20,       // 400 credits ÷ 20 per model
+      perks: ['Up to 80 AI Images', 'Up to 20 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
     },
     creator: {
       images: 260,      // 1300 credits ÷ 5 per image
-      models: 72,       // 1300 credits ÷ 18 per model
-      perks: ['Up to 260 AI Images', 'Up to 72 3D Models', 'Priority queue', 'Faster processing'],
+      models: 65,       // 1300 credits ÷ 20 per model
+      perks: ['Up to 260 AI Images', 'Up to 65 3D Models', 'Priority queue', 'Faster processing'],
     },
     studio: {
       images: 640,      // 3200 credits ÷ 5 per image
-      models: 177,      // 3200 credits ÷ 18 per model
-      perks: ['Up to 640 AI Images', 'Up to 177 3D Models', 'Pro priority queue', 'Highest concurrency'],
+      models: 160,      // 3200 credits ÷ 20 per model
+      perks: ['Up to 640 AI Images', 'Up to 160 3D Models', 'Pro priority queue', 'Highest concurrency'],
     },
   };
 
@@ -195,19 +195,19 @@
     one_time: {
       starter: [
         'Up to 50 AI images',
-        'Up to 13 3D models',
+        'Up to 12 3D models',
         'Refinements included',
         'GLB/GLTF downloads',
       ],
       creator: [
         'Up to 180 AI images',
-        'Up to 50 3D models',
+        'Up to 45 3D models',
         'Refinements included',
         'GLB/GLTF downloads',
       ],
       studio: [
         'Up to 440 AI images',
-        'Up to 122 3D models',
+        'Up to 110 3D models',
         'Refinements included',
         'Priority queue access',
       ],
@@ -215,19 +215,19 @@
     monthly: {
       starter: [
         'Up to 80 AI images/mo',
-        'Up to 22 3D models/mo',
+        'Up to 20 3D models/mo',
         'Standard queue priority',
         'Cancel anytime',
       ],
       creator: [
         'Up to 260 AI images/mo',
-        'Up to 72 3D models/mo',
+        'Up to 65 3D models/mo',
         'Priority queue included',
         'Cancel anytime',
       ],
       studio: [
         'Up to 640 AI images/mo',
-        'Up to 177 3D models/mo',
+        'Up to 160 3D models/mo',
         'Pro priority queue',
         'Highest concurrency',
       ],
@@ -579,7 +579,7 @@
       if (modelPricingGrid) modelPricingGrid.style.display = '';
       if (videoPricingGrid) videoPricingGrid.style.display = 'none';
       // Simplified footer - no internal math explanations
-      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 5 credits · 3D Model = 18 credits · Video sold separately';
+      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 5 credits · 3D Model = 20 credits · Video sold separately';
     }
 
     // Update each pricing card
