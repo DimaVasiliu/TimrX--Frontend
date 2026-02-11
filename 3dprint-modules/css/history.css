@@ -2750,7 +2750,7 @@ body.has-modal {
   z-index: 4;
 }
 
-/* Processing overlay */
+/* Processing overlay - Professional minimal design */
 .history-thumb__video-processing {
   position: absolute;
   inset: 0;
@@ -2758,30 +2758,99 @@ body.has-modal {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: rgba(10, 10, 12, 0.95);
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(15, 15, 18, 0.97) 0%, rgba(20, 20, 25, 0.97) 100%);
   z-index: 10;
+  overflow: hidden;
 }
 
+/* Subtle shimmer effect across the overlay */
+.history-thumb__video-processing::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.015) 50%,
+    transparent 100%
+  );
+  animation: videoShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes videoShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Minimal pulsing ring indicator */
 .history-thumb__video-spinner {
-  width: 28px;
-  height: 28px;
-  border: 2px solid rgba(251, 146, 60, 0.2);
-  border-top-color: rgba(251, 146, 60, 0.8);
-  border-radius: 50%;
-  animation: videoSpin 0.8s linear infinite;
+  position: relative;
+  width: 36px;
+  height: 36px;
 }
 
-@keyframes videoSpin {
-  to { transform: rotate(360deg); }
+.history-thumb__video-spinner::before,
+.history-thumb__video-spinner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+}
+
+.history-thumb__video-spinner::before {
+  animation: videoPulseRing 2s ease-out infinite;
+}
+
+.history-thumb__video-spinner::after {
+  animation: videoPulseRing 2s ease-out infinite 1s;
+}
+
+@keyframes videoPulseRing {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Center dot */
+.history-thumb__video-spinner-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: videoDotPulse 2s ease-in-out infinite;
+}
+
+@keyframes videoDotPulse {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 .history-thumb__video-status {
   font-size: 10px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  animation: videoStatusFade 2s ease-in-out infinite;
+}
+
+@keyframes videoStatusFade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
 }
 
 /* Video menu - Top right position (matches model cards) */
