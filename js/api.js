@@ -2602,7 +2602,8 @@ export async function startVideoGeneration() {
         motion_preset: motionPreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        quality: settings.quality,
+        resolution: settings.quality,  // Resolution: 720p, 1080p, 4k
+        quality: settings.quality,     // Keep for backwards compatibility
         loop: settings.loop
       };
 
@@ -2617,11 +2618,17 @@ export async function startVideoGeneration() {
         style_preset: stylePreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        quality: settings.quality,
+        resolution: settings.quality,  // Resolution: 720p, 1080p, 4k
+        quality: settings.quality,     // Keep for backwards compatibility
         motion: motion,
         loop: settings.loop
       };
     }
+
+    // Log action code for debugging
+    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.quality) ||
+                       `VIDEO_${settings.mode === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE'}_${settings.durationSec}S_${settings.quality.toUpperCase()}`;
+    console.log('[VIDEO] Action code:', actionCode, '| Expected cost:', totalCredits);
 
     // Debug log before API call
     console.log('[GEN] mode=' + settings.mode + ' endpoint=' + endpoint +
