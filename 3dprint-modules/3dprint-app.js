@@ -129,11 +129,12 @@
           <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
-              <option value="standard" selected>Standard</option>
-              <option value="high">High</option>
+              <option value="standard" selected>Standard (5c)</option>
+              <option value="high">2K (7c)</option>
+              <option value="4k">4K (10c)</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Higher quality uses more credits and takes longer.</span>
+          <span class="field-hint" id="imageQualityHint">Standard 5c • 2K 7c • 4K 10c</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
@@ -142,9 +143,9 @@
           <div class="gen-meta">
             <span class="gen-time" id="imageGenTime">30 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits" data-provider="openai">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="5 credits" data-provider="openai">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -247,7 +248,7 @@
           <div class="gen-meta">
             <span class="gen-time">1 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 20</span>
+            <span class="gen-credits" id="modelCreditsDisplay"><i class="fa-solid fa-coins"></i> 20</span>
           </div>
           <button type="button" id="generateModelBtn" class="gen-btn" title="20 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>
@@ -1031,13 +1032,13 @@
           });
 
           // Update credits display based on selected tab
-          const creditsDisplay = leftStack.querySelector('.gen-credits');
+          const modelCredits = leftStack.querySelector('#modelCreditsDisplay');
           const generateBtn = leftStack.querySelector('#generateModelBtn');
           const isImage3d = (targetTab === 'image3d');
           const cost = isImage3d ? 30 : 20;
 
-          if (creditsDisplay) {
-            creditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+          if (modelCredits) {
+            modelCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
           }
 
           if (generateBtn) {
@@ -1612,6 +1613,7 @@
         if (generateImageBtn) {
           generateImageBtn.title = `${snapshot.credits} credits`;
           generateImageBtn.dataset.provider = snapshot.provider;
+          generateImageBtn.dataset.baseCredits = snapshot.credits;  // Enable dynamic credits like video
         }
 
         // Trigger workspace credits update if available
@@ -1735,6 +1737,10 @@
           window.GenerationState.setSetting('image', 'quality', quality);
           updateImageCreditsDisplay();
         });
+        // Initial setup - sync dropdown value to GenerationState
+        const initialQuality = imageQuality.value || 'standard';
+        window.GenerationState.setSetting('image', 'quality', initialQuality);
+        updateImageCreditsDisplay();
       }
 
       // Wire up form validation
@@ -1968,14 +1974,14 @@
 
       // AI Model change → update credits display
       const aiModelSelect = leftStack.querySelector('#modelAIModel');
-      const creditsDisplay = leftStack.querySelector('.gen-credits');
-      if (aiModelSelect && creditsDisplay) {
+      const modelCreditsDisplay = leftStack.querySelector('#modelCreditsDisplay');
+      if (aiModelSelect && modelCreditsDisplay) {
         aiModelSelect.addEventListener('change', function () {
           const value = this.value;
           if (value === 'meshy-5' || value === 'meshy-4') {
-            creditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 10';
+            modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 10';
           } else {
-            creditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
+            modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
           }
         });
       }
