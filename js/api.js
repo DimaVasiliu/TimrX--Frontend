@@ -1,3 +1,4 @@
+
 /**
  * api.js
  * Handles all fetch calls to the backend, job polling, and orchestrates the other modules
@@ -1892,13 +1893,13 @@ export async function onGenerateClick() {
   }
 }
 
-// Image credits by quality tier (Standard 5c, 2K 7c, 4K 10c)
-const IMAGE_CREDITS_BY_QUALITY = { standard: 5, high: 7, '4k': 10 };
-const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k', '4k': 'image_generate_4k' };
+// Image credits by quality tier (Standard 5c, 2K 7c)
+const IMAGE_CREDITS_BY_QUALITY = { standard: 5, high: 7 };
+const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k' };
 
 /**
  * Get image credits for the current quality setting
- * @param {string} quality - 'standard', 'high', or '4k'
+ * @param {string} quality - 'standard' or 'high'
  * @returns {number}
  */
 function getImageCredits(quality = 'standard') {
@@ -1907,7 +1908,7 @@ function getImageCredits(quality = 'standard') {
 
 /**
  * Get the action key for image generation based on quality
- * @param {string} quality - 'standard', 'high', or '4k'
+ * @param {string} quality - 'standard' or 'high'
  * @returns {string}
  */
 function getImageActionKey(quality = 'standard') {
@@ -1952,7 +1953,7 @@ export async function startOpenAIImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 5c, 2K 7c, 4K 10c)
+  // Get dynamic credits based on quality (Standard 5c, 2K 7c)
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -1986,7 +1987,7 @@ export async function startOpenAIImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c), image_generate_4k (10c)
+  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c)
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
@@ -2139,11 +2140,10 @@ const GOOGLE_SHAPE_MAP = {
   landscape: '16:9',
 };
 
-// Map quality to Google imageSize
+// Map quality to Google imageSize (Imagen 4.0 only supports 1K and 2K)
 const GOOGLE_QUALITY_MAP = {
   standard: '1K',
-  high: '2K',
-  '4k': '4K'
+  high: '2K'
 };
 
 /**
@@ -2176,7 +2176,7 @@ export async function startGeminiImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 5c, 2K 7c, 4K 10c)
+  // Get dynamic credits based on quality (Standard 5c, 2K 7c)
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -2210,7 +2210,7 @@ export async function startGeminiImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c), image_generate_4k (10c)
+  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c)
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
