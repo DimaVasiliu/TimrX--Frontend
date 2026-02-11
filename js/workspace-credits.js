@@ -650,10 +650,11 @@ export function isVideoAction(action) {
  * @returns {string} Action code
  */
 export function getVideoActionCode(task, durationSeconds, resolution) {
-  const taskPart = task === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE';
-  const durationPart = `${durationSeconds}S`;
-  const resPart = resolution.toUpperCase();
-  return `VIDEO_${taskPart}_${durationPart}_${resPart}`;
+  // Use lowercase snake_case as canonical format
+  const taskPart = task === 'text2video' ? 'text_generate' : 'image_animate';
+  const durationPart = `${durationSeconds}s`;
+  const resPart = resolution.toLowerCase();
+  return `video_${taskPart}_${durationPart}_${resPart}`;
 }
 
 /**
