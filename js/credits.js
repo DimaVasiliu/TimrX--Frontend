@@ -190,6 +190,70 @@
     studio_2200:  'studio',
   };
 
+  // Dynamic bullet copy per pricing mode and tier
+  const PLAN_BULLETS = {
+    one_time: {
+      starter: [
+        'Up to 50 AI images',
+        'Up to 13 3D models',
+        'Refinements included',
+        'GLB/GLTF downloads',
+      ],
+      creator: [
+        'Up to 180 AI images',
+        'Up to 50 3D models',
+        'Refinements included',
+        'GLB/GLTF downloads',
+      ],
+      studio: [
+        'Up to 440 AI images',
+        'Up to 122 3D models',
+        'Refinements included',
+        'Priority queue access',
+      ],
+    },
+    monthly: {
+      starter: [
+        'Up to 80 AI images/mo',
+        'Up to 22 3D models/mo',
+        'Standard queue priority',
+        'Cancel anytime',
+      ],
+      creator: [
+        'Up to 260 AI images/mo',
+        'Up to 72 3D models/mo',
+        'Priority queue included',
+        'Cancel anytime',
+      ],
+      studio: [
+        'Up to 640 AI images/mo',
+        'Up to 177 3D models/mo',
+        'Pro priority queue',
+        'Highest concurrency',
+      ],
+    },
+    yearly: {
+      starter: [
+        'Billed yearly (12 monthly refills)',
+        'Save ~2 months vs monthly',
+        'Standard queue priority',
+        'Cancel anytime',
+      ],
+      creator: [
+        'Billed yearly (12 monthly refills)',
+        'Save ~2 months vs monthly',
+        'Priority queue included',
+        'Cancel anytime',
+      ],
+      studio: [
+        'Billed yearly (12 monthly refills)',
+        'Save ~2 months vs monthly',
+        'Pro priority + highest concurrency',
+        'Cancel anytime',
+      ],
+    },
+  };
+
   // Current pricing mode
   let pricingMode = localStorage.getItem('timrx_pricing_mode') || 'one_time';
 
@@ -528,6 +592,13 @@
 
       const priceEl = card.querySelector('.pc-price .big');
       const subEl = card.querySelector('.pc-price small');
+      const listEl = card.querySelector('.pc-list');
+
+      // Update bullets based on mode
+      const bullets = PLAN_BULLETS[mode]?.[tier];
+      if (listEl && bullets) {
+        listEl.innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
+      }
 
       if (mode === 'one_time') {
         const info = ONE_TIME_CARDS[tier];
@@ -572,10 +643,8 @@
     });
   });
 
-  // Restore saved mode on load
-  if (pricingMode !== 'one_time') {
-    setPricingMode(pricingMode);
-  }
+  // Initialize pricing mode on load (always call to update bullets)
+  setPricingMode(pricingMode);
 
   // ─────────────────────────────────────────────────────────────
   // Subscription Modal
