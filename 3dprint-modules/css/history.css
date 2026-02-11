@@ -2637,11 +2637,12 @@ body.has-modal {
 .history-thumb--video {
   position: relative;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   background: #0a0a0c;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.3s ease;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  isolation: isolate;
 }
 
 .history-thumb--video:hover {
@@ -2667,7 +2668,7 @@ body.has-modal {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  border-radius: 11px;
+  border-radius: 12px;
   z-index: 1;
 }
 
@@ -2786,40 +2787,36 @@ body.has-modal {
 /* Video menu - Top right position (matches model cards) */
 .history-thumb__video-menu {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 50;
-  isolation: isolate;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  padding: 6px;
 }
 
 .history-thumb__video-menu-btn {
   width: 32px;
   height: 32px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.75);
   border: none;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
-  transition: all 0.15s ease;
-  position: relative;
-  pointer-events: auto !important;
+  color: rgba(255, 255, 255, 0.9);
+  transition: background 0.1s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
 .history-thumb__video-menu-btn:hover,
-.history-thumb__video-menu-btn:focus,
 .history-thumb__video-menu-btn.is-open {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.95);
   color: #fff;
-  transform: scale(1.05);
 }
 
 .history-thumb__video-menu-btn:active {
-  transform: scale(0.95);
+  background: rgba(80, 80, 80, 0.95);
 }
 
 .history-thumb__video-menu-btn svg {
@@ -2828,9 +2825,9 @@ body.has-modal {
   pointer-events: none;
 }
 
-/* Video card menu dropdown */
+/* Video card menu dropdown - faster animation */
 .card-menu--video {
-  /* Uses standard fixed positioning from JS */
+  transition: opacity 0.08s ease, transform 0.08s ease !important;
 }
 
 /* Failed video card styles */
