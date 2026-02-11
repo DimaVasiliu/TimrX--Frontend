@@ -134,11 +134,11 @@
     return result;
   }
 
-  // Plan definitions (must match DB: starter_80, creator_300, studio_600)
+  // Plan definitions (must match DB: starter_250, creator_900, studio_2200)
   const PLANS = {
-    starter_80: { name: 'Starter', credits: 80, price: 7.99 },
-    creator_300: { name: 'Creator', credits: 300, price: 19.99 },
-    studio_600: { name: 'Studio', credits: 600, price: 34.99 }
+    starter_250: { name: 'Starter', credits: 250, price: 7.99 },
+    creator_900: { name: 'Creator', credits: 900, price: 19.99 },
+    studio_2200: { name: 'Studio', credits: 2200, price: 37.99 }
   };
 
   // Video plan definitions (video credits)
@@ -149,24 +149,45 @@
   };
 
   // Subscription plan definitions (must match backend subscription_service.py)
+  // Updated Feb 2026 for premium Creator credit economy
   const SUB_PLANS = {
     monthly: {
-      starter:  { plan_code: 'starter_monthly',  name: 'Starter', credits_per_month: 120, price: 5.99,   cadence: 'monthly' },
-      creator:  { plan_code: 'creator_monthly',  name: 'Creator', credits_per_month: 300, price: 14.99,  cadence: 'monthly' },
-      studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 700, price: 29.99,  cadence: 'monthly' },
+      starter:  { plan_code: 'starter_monthly',  name: 'Starter', credits_per_month: 400,  price: 9.99,   cadence: 'monthly' },
+      creator:  { plan_code: 'creator_monthly',  name: 'Creator', credits_per_month: 1300, price: 24.99,  cadence: 'monthly' },
+      studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 3200, price: 49.99,  cadence: 'monthly' },
     },
     yearly: {
-      starter:  { plan_code: 'starter_yearly',   name: 'Starter', credits_per_month: 100, price: 69.99,  cadence: 'yearly' },
-      creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 300, price: 149.99, cadence: 'yearly' },
-      studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 700, price: 299.99, cadence: 'yearly' },
+      // Yearly = ~2 months free. Credits distributed monthly (400/1300/3200 per month)
+      starter:  { plan_code: 'starter_yearly',   name: 'Starter', credits_per_month: 400,  credits_total: 4800,  price: 99.00,  cadence: 'yearly' },
+      creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 1300, credits_total: 15600, price: 249.00, cadence: 'yearly' },
+      studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 3200, credits_total: 38400, price: 499.00, cadence: 'yearly' },
+    },
+  };
+
+  // Tier benefits for UI display (must match backend TIER_PERKS)
+  const TIER_BENEFITS = {
+    starter: {
+      images: 80,       // 400 credits ÷ 5 per image
+      models: 22,       // 400 credits ÷ 18 per model
+      perks: ['Up to 80 AI Images', 'Up to 22 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
+    },
+    creator: {
+      images: 260,      // 1300 credits ÷ 5 per image
+      models: 72,       // 1300 credits ÷ 18 per model
+      perks: ['Up to 260 AI Images', 'Up to 72 3D Models', 'Priority queue', 'Faster processing'],
+    },
+    studio: {
+      images: 640,      // 3200 credits ÷ 5 per image
+      models: 177,      // 3200 credits ÷ 18 per model
+      perks: ['Up to 640 AI Images', 'Up to 177 3D Models', 'Pro priority queue', 'Highest concurrency'],
     },
   };
 
   // Map pricing card data-plan to subscription tier
   const CARD_TO_TIER = {
-    starter_80:  'starter',
-    creator_300: 'creator',
-    studio_600:  'studio',
+    starter_250:  'starter',
+    creator_900:  'creator',
+    studio_2200:  'studio',
   };
 
   // Current pricing mode
@@ -467,9 +488,9 @@
    * One-time card content per tier (original values)
    */
   const ONE_TIME_CARDS = {
-    starter: { price: '£7.99', sub: '80 Credits · ~2-3 models', btn: 'Get Starter' },
-    creator: { price: '£19.99', sub: '300 Credits · ~10 models', btn: 'Get Creator' },
-    studio:  { price: '£34.99', sub: '600 Credits · ~20 models', btn: 'Get Studio' },
+    starter: { price: '£7.99', sub: '250 Creator Credits', btn: 'Get Starter' },
+    creator: { price: '£19.99', sub: '900 Creator Credits', btn: 'Get Creator' },
+    studio:  { price: '£37.99', sub: '2,200 Creator Credits', btn: 'Get Studio' },
   };
 
   /**
@@ -488,12 +509,13 @@
     if (mode === 'video') {
       if (modelPricingGrid) modelPricingGrid.style.display = 'none';
       if (videoPricingGrid) videoPricingGrid.style.display = '';
-      if (pricingFootNote) pricingFootNote.textContent = '1 video ≈ 70-160 credits depending on resolution & duration.';
+      if (pricingFootNote) pricingFootNote.textContent = 'Video sold separately · 1 video ≈ 70-160 credits';
       return;
     } else {
       if (modelPricingGrid) modelPricingGrid.style.display = '';
       if (videoPricingGrid) videoPricingGrid.style.display = 'none';
-      if (pricingFootNote) pricingFootNote.textContent = '1 model ≈ 30 credits (generation + refine).';
+      // Simplified footer - no internal math explanations
+      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 5 credits · 3D Model = 18 credits · Video sold separately';
     }
 
     // Update each pricing card
@@ -516,7 +538,7 @@
         const cadence = mode; // 'monthly' or 'yearly'
         const plan = SUB_PLANS[cadence]?.[tier];
         if (!plan) {
-          // No plan for this tier/cadence (e.g. yearly starter) — hide or grey out
+          // No plan for this tier/cadence — hide or grey out
           if (priceEl) priceEl.textContent = '—';
           if (subEl) subEl.textContent = 'Not available';
           if (ctaBtn) {
@@ -525,12 +547,16 @@
           }
           return;
         }
-        const priceStr = cadence === 'yearly'
-          ? `£${plan.price.toFixed(2)}`
-          : `£${plan.price.toFixed(2)}`;
-        const cadenceLabel = cadence === 'yearly' ? '/yr' : '/mo';
+        const priceStr = `£${plan.price.toFixed(2)}`;
         if (priceEl) priceEl.textContent = priceStr;
-        if (subEl) subEl.textContent = `${plan.credits_per_month} Credits/mo${cadenceLabel}`;
+        // Show credits appropriately for each cadence
+        if (cadence === 'yearly') {
+          // Yearly: show total credits for the year
+          if (subEl) subEl.textContent = `${plan.credits_total.toLocaleString()} Credits/year`;
+        } else {
+          // Monthly: show credits per month
+          if (subEl) subEl.textContent = `${plan.credits_per_month.toLocaleString()} Credits/month`;
+        }
         if (ctaBtn) {
           ctaBtn.textContent = `Subscribe ${plan.name}`;
           ctaBtn.disabled = false;
@@ -1629,7 +1655,7 @@
       const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
         body: {
-          plan_code: selectedPlan.id,  // plan_code matches DB: starter_80, creator_300, studio_600
+          plan_code: selectedPlan.id,  // plan_code matches DB: starter_250, creator_900, studio_2200
           email: email
         }
       });
