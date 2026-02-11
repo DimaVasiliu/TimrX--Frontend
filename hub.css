@@ -1,3 +1,4 @@
+
 /* ==========================================================================
    TimrX 3D Hub — Full Landing Styles (drop-in replacement for hub.css)
    ========================================================================== */
@@ -2119,6 +2120,44 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
     border:1px solid rgba(220,53,69,.3);
     border-radius:8px;
   }
+  .sub-modal-message{
+    color:#60a5fa;
+    font-size:13px;
+    margin:0 0 8px;
+    padding:8px 12px;
+    background:rgba(59,130,246,.12);
+    border:1px solid rgba(59,130,246,.3);
+    border-radius:8px;
+  }
+  .sub-state{ margin-top:16px; }
+  .sub-verify-info{
+    font-size:14px;
+    color:#aaa;
+    margin:0 0 12px;
+    text-align:center;
+  }
+  .sub-verify-info strong{ color:#fff; }
+  #subVerifyCode{
+    text-align:center;
+    font-size:24px;
+    font-weight:600;
+    letter-spacing:8px;
+    font-family:'SF Mono',Monaco,monospace;
+  }
+  .sub-resend-link,
+  .sub-back-link{
+    display:block;
+    background:none;
+    border:none;
+    color:#888;
+    font-size:12px;
+    cursor:pointer;
+    margin-top:8px;
+    text-align:center;
+    width:100%;
+  }
+  .sub-resend-link:hover,
+  .sub-back-link:hover{ color:#fff; text-decoration:underline; }
 
   /* responsive */
   @media (max-width:980px){
