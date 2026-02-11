@@ -645,8 +645,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
         ` : ''}
         ${!isExpanded ? `
-        <div class="${thumbPrefix}__video-menu">
-          <button class="${thumbPrefix}__video-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+        <div class="${thumbPrefix}__video-menu" onclick="event.stopPropagation()">
+          <button class="${thumbPrefix}__video-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu onclick="event.stopPropagation()">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <circle cx="5" cy="12" r="2"/>
               <circle cx="12" cy="12" r="2"/>
