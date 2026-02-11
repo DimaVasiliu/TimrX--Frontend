@@ -592,27 +592,32 @@ export const PROVIDER_CAPABILITIES = {
     openai: {
       name: 'OpenAI',
       shapes: ['square', 'portrait', 'landscape'],
-      qualities: ['standard', 'high'],
+      qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10,
-      genTime: '30 sec',
-      // Shape controls layout (aspect ratio), Quality controls detail level
+      credits: 5, // Default (standard), actual credits determined by creditsByQuality
+      creditsByQuality: { standard: 5, high: 7, '4k': 10 },
+      genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
+      genTime: '30 sec', // Default for standard
+      // Shape controls layout (aspect ratio), Quality controls detail level + resolution
       // gpt-image-1 sizes: 1024x1024 (square), 1024x1536 (portrait), 1536x1024 (landscape)
       shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
-      qualityMap: { standard: 'standard', high: 'hd' }
+      qualityMap: { standard: 'standard', high: 'hd', '4k': 'hd' }, // 4K uses HD quality
+      sizeMap: { standard: '1024x1024', high: '1792x1024', '4k': '2048x2048' }
     },
     google: {
       name: 'Google (Imagen)',
       shapes: ['square', 'portrait', 'landscape'],
-      qualities: ['standard', 'high'],
+      qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10,
-      genTime: '45 sec',
+      credits: 5, // Default (standard), actual credits determined by creditsByQuality
+      creditsByQuality: { standard: 5, high: 7, '4k': 10 },
+      genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
+      genTime: '30 sec', // Default for standard
       // Shape controls layout (aspect ratio), Quality controls imageSize
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
-      qualityMap: { standard: '1K', high: '2K' }
+      qualityMap: { standard: '1K', high: '2K', '4k': '4K' }
     }
   },
   video: {
@@ -872,9 +877,17 @@ export function getGenerationSnapshot(mode) {
   const caps = getProviderCapabilities(mode, provider);
   const settings = { ...generation[mode] };
 
-  // Calculate credits
-  let credits = caps?.credits || 10;
-  if (mode === 'video' && caps) {
+  // Calculate credits based on mode
+  let credits = caps?.credits || 5;
+  let genTime = caps?.genTime || '30 sec';
+
+  if (mode === 'image' && caps) {
+    // Image: tiered pricing by quality (Standard 5c, High/2K 7c, 4K 10c)
+    const quality = settings.quality || 'standard';
+    credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 5;
+    genTime = caps.genTimeByQuality?.[quality] ?? caps.genTime ?? '30 sec';
+  } else if (mode === 'video' && caps) {
+    // Video: pricing by duration and quality multiplier
     const base = caps.baseCreditsByDuration?.[settings.duration] || 30;
     const mult = caps.qualityMultiplier?.[settings.quality] || 1.0;
     credits = Math.round(base * mult);
@@ -884,7 +897,7 @@ export function getGenerationSnapshot(mode) {
     mode,
     provider,
     settings,
-    capabilities: caps,
+    capabilities: { ...caps, genTime }, // Include dynamic genTime
     credits
   };
 }
