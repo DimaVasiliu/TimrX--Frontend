@@ -1,3 +1,4 @@
+
 /**
  * history.js
  * Renders the history list. Contains HTML templates for history cards.
@@ -647,9 +648,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
         <div class="${thumbPrefix}__video-menu">
           <button class="${thumbPrefix}__video-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="5" r="2"/>
+              <circle cx="5" cy="12" r="2"/>
               <circle cx="12" cy="12" r="2"/>
-              <circle cx="12" cy="19" r="2"/>
+              <circle cx="19" cy="12" r="2"/>
             </svg>
           </button>
           <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
