@@ -227,6 +227,81 @@
       white-space: nowrap;
       border: 0;
     }
+    /* Subscription Status Pill */
+    .subscription-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+      transition: all 0.2s ease;
+      margin-right: 8px;
+    }
+    .subscription-status-pill.hidden { display: none; }
+    .subscription-status-pill.status-active {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .subscription-status-pill.status-cancelled {
+      background: rgba(251, 191, 36, 0.12);
+      border-color: rgba(251, 191, 36, 0.3);
+      color: #fbbf24;
+    }
+    .subscription-status-pill.status-processing {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+    }
+    .subscription-status-pill.status-suspended {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+    .subscription-status-pill .subscription-icon {
+      font-size: 11px;
+    }
+    .subscription-status-pill .subscription-text {
+      white-space: nowrap;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 768px) {
+      .subscription-status-pill {
+        display: none;
+      }
+    }
+    /* Multi-currency price display */
+    .price-converted {
+      display: block;
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+    .price-converted .price-disclaimer {
+      font-size: 10px;
+      color: #666;
+    }
+    .plan-card .price-converted {
+      font-size: 11px;
+    }
+    .checkout-converted {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .checkout-converted .price-disclaimer {
+      font-size: 11px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -273,6 +348,11 @@
           <i class="fa-solid fa-shield-halved"></i>
           <span class="email-beacon-pulse"></span>
         </button>
+        <!-- Subscription Status Pill - shown when user has subscription -->
+        <div class="subscription-status-pill hidden" id="subscriptionStatusPill">
+          <i class="fa-solid fa-rotate subscription-icon" id="subscriptionIcon"></i>
+          <span class="subscription-text" id="subscriptionText"></span>
+        </div>
         <!-- Credits Pill + Buy Button -->
         <div class="credits-group" id="creditsGroup">
           <span class="credits-pill" id="creditsPill">
@@ -1479,6 +1559,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     </div>
 
     <script src="hub.js"></script>
+    <script src="js/fx.js"></script>
     <script src="js/credits.js"></script>
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
