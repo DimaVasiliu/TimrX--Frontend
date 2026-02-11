@@ -1,4 +1,3 @@
-
 /* ==========================================================================
    TimrX 3D Hub — Full Landing Styles (drop-in replacement for hub.css)
    ========================================================================== */
@@ -2016,7 +2015,10 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
   
   .pc-list{ list-style:none; padding:0; margin:0; display:grid; gap:8px; color:#dcdcdc }
   .pc-list li::before{ content:"• "; color:#9f9f9f }
-  
+  /* Highlight list item for premium features like resolution */
+  .pc-list li.highlight{ color:#7dd3fc; font-weight:500 }
+  .pc-list li.highlight::before{ content:"✓ "; color:#7dd3fc }
+
   .btn.block{ width:100%; justify-content:center; text-align:center }
   .price-card .btn.block{ margin-top:auto }
   .price-card.featured .btn{
@@ -2026,6 +2028,14 @@ model-viewer{ --poster-color:transparent; --progress-bar-color:rgba(255,255,255,
   .price-card.featured .btn:hover{
     transform:translateY(-2px) scale(1.01);
     box-shadow:0 14px 32px rgba(125,211,252,.35);
+  }
+  /* Video Studio card - slightly larger for premium positioning */
+  .price-card.video-studio-card{
+    transform:scale(1.03);
+    z-index:1;
+  }
+  .price-card.video-studio-card:hover{
+    transform:scale(1.03) translateY(-6px);
   }
   .pricing-wrap .foot-note{
     text-align:center; color:#bdbdbd; margin-top:24px;
