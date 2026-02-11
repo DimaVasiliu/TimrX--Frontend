@@ -1,4 +1,3 @@
-
 /**
  * history.js
  * Renders the history list. Contains HTML templates for history cards.
@@ -640,7 +639,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
         </button>
         ${isProcessing ? `
           <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
-            <div class="${thumbPrefix}__video-spinner"></div>
+            <div class="${thumbPrefix}__video-spinner">
+              <span class="${thumbPrefix}__video-spinner-dot"></span>
+            </div>
             <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
           </div>
         ` : ''}
