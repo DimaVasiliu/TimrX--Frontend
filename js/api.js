@@ -1892,8 +1892,27 @@ export async function onGenerateClick() {
   }
 }
 
-// Flat credit cost for images
-const IMAGE_CREDITS = 10;
+// Image credits by quality tier (Standard 5c, 2K 7c, 4K 10c)
+const IMAGE_CREDITS_BY_QUALITY = { standard: 5, high: 7, '4k': 10 };
+const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k', '4k': 'image_generate_4k' };
+
+/**
+ * Get image credits for the current quality setting
+ * @param {string} quality - 'standard', 'high', or '4k'
+ * @returns {number}
+ */
+function getImageCredits(quality = 'standard') {
+  return IMAGE_CREDITS_BY_QUALITY[quality] || 5;
+}
+
+/**
+ * Get the action key for image generation based on quality
+ * @param {string} quality - 'standard', 'high', or '4k'
+ * @returns {string}
+ */
+function getImageActionKey(quality = 'standard') {
+  return IMAGE_ACTION_BY_QUALITY[quality] || 'image_generate';
+}
 
 // Map shape to OpenAI gpt-image-1 resolution
 // gpt-image-1 only supports: 1024x1024, 1024x1536, 1536x1024
@@ -1925,8 +1944,20 @@ export async function startOpenAIImageGeneration() {
     return;
   }
 
+  // Get settings from State first to determine credit cost
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const settings = {
+    provider: 'openai',
+    shape: stateSettings.shape || 'square',
+    quality: stateSettings.quality || 'standard'
+  };
+
+  // Get dynamic credits based on quality (Standard 5c, 2K 7c, 4K 10c)
+  const imageCredits = getImageCredits(settings.quality);
+  const imageActionKey = getImageActionKey(settings.quality);
+
   // Unified credit check with proper numeric conversion
-  const creditCheck = checkCreditsForGeneration(IMAGE_CREDITS, 'image');
+  const creditCheck = checkCreditsForGeneration(imageCredits, 'image');
   if (creditCheck.shouldBlock) {
     showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
     return;
@@ -1938,14 +1969,7 @@ export async function startOpenAIImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get settings from State (SINGLE SOURCE OF TRUTH - no DOM fallbacks)
-  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
-  const settings = {
-    provider: 'openai',
-    shape: stateSettings.shape || 'square',
-    quality: stateSettings.quality || 'standard'
-  };
-  console.log('[OpenAI Image] Using settings from State:', JSON.stringify(settings));
+  console.log('[OpenAI Image] Using settings from State:', JSON.stringify(settings), 'credits:', imageCredits);
 
   // Map shape to OpenAI resolution
   const resolution = OPENAI_SHAPE_MAP[settings.shape] || '1024x1024';
@@ -1958,16 +1982,16 @@ export async function startOpenAIImageGeneration() {
     quality: settings.quality,
     resolution,
     model,
-    credits: IMAGE_CREDITS
+    credits: imageCredits
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key: image_generate -> OPENAI_IMAGE (10 credits)
+  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c), image_generate_4k (10c)
   prog.label('Reserving credits...');
-  const reservation = reserveExactAmount('image_generate', IMAGE_CREDITS);
+  const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
     startLock = false;
-    showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
+    showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
     return;
   }
 
@@ -2015,7 +2039,7 @@ export async function startOpenAIImageGeneration() {
       model,
       client_id: tempId
     };
-    console.log('[GEN] mode=image provider=openai cost=' + IMAGE_CREDITS +
+    console.log('[GEN] mode=image provider=openai cost=' + imageCredits +
                 ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
     // Include idempotency key in header for duplicate prevention
@@ -2118,7 +2142,8 @@ const GOOGLE_SHAPE_MAP = {
 // Map quality to Google imageSize
 const GOOGLE_QUALITY_MAP = {
   standard: '1K',
-  high: '2K'
+  high: '2K',
+  '4k': '4K'
 };
 
 /**
@@ -2143,8 +2168,20 @@ export async function startGeminiImageGeneration() {
     return;
   }
 
+  // Get settings from State first to determine credit cost
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const settings = {
+    provider: 'google',
+    shape: stateSettings.shape || 'square',
+    quality: stateSettings.quality || 'standard'
+  };
+
+  // Get dynamic credits based on quality (Standard 5c, 2K 7c, 4K 10c)
+  const imageCredits = getImageCredits(settings.quality);
+  const imageActionKey = getImageActionKey(settings.quality);
+
   // Unified credit check with proper numeric conversion
-  const creditCheck = checkCreditsForGeneration(IMAGE_CREDITS, 'image');
+  const creditCheck = checkCreditsForGeneration(imageCredits, 'image');
   if (creditCheck.shouldBlock) {
     showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
     return;
@@ -2156,14 +2193,7 @@ export async function startGeminiImageGeneration() {
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
   if (!promptRaw) promptRaw = 'Generated image';
 
-  // Get settings from State (SINGLE SOURCE OF TRUTH - no DOM fallbacks)
-  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
-  const settings = {
-    provider: 'google',
-    shape: stateSettings.shape || 'square',
-    quality: stateSettings.quality || 'standard'
-  };
-  console.log('[Gemini Image] Using settings from State:', JSON.stringify(settings));
+  console.log('[Gemini Image] Using settings from State:', JSON.stringify(settings), 'credits:', imageCredits);
 
   // Map shape to Google aspect ratio, quality to imageSize
   const aspectRatio = GOOGLE_SHAPE_MAP[settings.shape] || '1:1';
@@ -2176,16 +2206,16 @@ export async function startGeminiImageGeneration() {
     quality: settings.quality,
     aspectRatio,
     imageSize,
-    credits: IMAGE_CREDITS
+    credits: imageCredits
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key: image_generate -> OPENAI_IMAGE (10 credits)
+  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c), image_generate_4k (10c)
   prog.label('Reserving credits...');
-  const reservation = reserveExactAmount('image_generate', IMAGE_CREDITS);
+  const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
     startLock = false;
-    showInsufficientCreditsModal(IMAGE_CREDITS, creditCheck.available, 'image');
+    showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
     return;
   }
 
@@ -2232,7 +2262,7 @@ export async function startGeminiImageGeneration() {
       image_size: imageSize,
       client_id: tempId
     };
-    console.log('[GEN] mode=image provider=google cost=' + IMAGE_CREDITS +
+    console.log('[GEN] mode=image provider=google cost=' + imageCredits +
                 ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
 
     // Call unified endpoint with provider=google and idempotency key
