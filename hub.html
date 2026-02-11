@@ -781,16 +781,37 @@
         </div>
       </div>
 
-      <div class="field">
-        <input type="email" id="subCheckoutEmail" placeholder="Email for receipt" autocomplete="email" />
+      <!-- State 1: Email Input -->
+      <div id="subEmailState" class="sub-state">
+        <div class="field">
+          <input type="email" id="subCheckoutEmail" placeholder="Email for receipt" autocomplete="email" />
+        </div>
+        <p class="sub-modal-message" id="subCheckoutMessage" style="display:none"></p>
+        <p class="sub-modal-error" id="subCheckoutError" style="display:none"></p>
+        <div class="cta-row">
+          <button type="button" class="btn" id="subCheckoutBtn" disabled>
+            <span class="btn-text">Continue</span>
+            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
+          </button>
+        </div>
       </div>
-      <p class="sub-modal-error" id="subCheckoutError" style="display:none"></p>
 
-      <div class="cta-row">
-        <button type="button" class="btn" id="subCheckoutBtn" disabled>
-          <span class="btn-text">Subscribe</span>
-          <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
-        </button>
+      <!-- State 2: Code Verification -->
+      <div id="subVerifyState" class="sub-state" style="display:none">
+        <p class="sub-verify-info">Enter the 6-digit code sent to <strong id="subSentToEmail"></strong></p>
+        <div class="field">
+          <input type="text" id="subVerifyCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
+        </div>
+        <p class="sub-modal-message" id="subVerifyMessage" style="display:none"></p>
+        <p class="sub-modal-error" id="subVerifyError" style="display:none"></p>
+        <div class="cta-row">
+          <button type="button" class="btn" id="subVerifyBtn">
+            <span class="btn-text">Verify & Subscribe</span>
+            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
+          </button>
+        </div>
+        <button type="button" class="btn-link sub-resend-link" id="subResendCode">Resend code</button>
+        <button type="button" class="btn-link sub-back-link" id="subBackToEmail">Use different email</button>
       </div>
     </div>
   </div>
