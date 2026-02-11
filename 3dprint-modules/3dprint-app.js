@@ -1294,7 +1294,8 @@
         computeCredits: computeVideoCredits,
         isValidDuration: isValidDuration,
         updateDurationOptions: updateDurationOptions,
-        VIDEO_CREDIT_RULES: VIDEO_CREDIT_RULES,
+        // Video credit costs - fetched from backend via WorkspaceCredits, fallback to local constants
+        VIDEO_CREDIT_RULES: VIDEO_CREDIT_RULES_FALLBACK,
         VIDEO_VALID_DURATIONS: VIDEO_VALID_DURATIONS
       };
 
