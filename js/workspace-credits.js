@@ -642,6 +642,60 @@ export function isVideoAction(action) {
 }
 
 /**
+ * Build video action code from task, duration, and resolution.
+ * Format: VIDEO_TEXT_GENERATE_4S_720P or VIDEO_IMAGE_ANIMATE_8S_4K
+ * @param {string} task - "text2video" or "image2video"
+ * @param {number} durationSeconds - 4, 6, or 8
+ * @param {string} resolution - "720p", "1080p", or "4k"
+ * @returns {string} Action code
+ */
+export function getVideoActionCode(task, durationSeconds, resolution) {
+  const taskPart = task === 'text2video' ? 'TEXT_GENERATE' : 'IMAGE_ANIMATE';
+  const durationPart = `${durationSeconds}S`;
+  const resPart = resolution.toUpperCase();
+  return `VIDEO_${taskPart}_${durationPart}_${resPart}`;
+}
+
+/**
+ * Get video credit cost by duration and resolution.
+ * Looks up from backend-fetched action costs, falls back to hardcoded defaults.
+ * @param {string} task - "text2video" or "image2video"
+ * @param {number} durationSeconds - 4, 6, or 8
+ * @param {string} resolution - "720p", "1080p", or "4k"
+ * @returns {number} Credit cost
+ */
+export function getVideoCreditCost(task, durationSeconds, resolution) {
+  // Build the action code
+  const actionCode = getVideoActionCode(task, durationSeconds, resolution);
+
+  // Try to find in action costs (both uppercase and lowercase)
+  const cost = resolveCost(actionCode) || resolveCost(actionCode.toLowerCase());
+
+  if (cost !== null && cost > 0) {
+    return cost;
+  }
+
+  // Fallback to hardcoded defaults (must match backend)
+  const FALLBACK_COSTS = {
+    '720p': { 4: 70, 6: 90, 8: 110 },
+    '1080p': { 8: 130 },
+    '4k': { 8: 160 },
+  };
+
+  const resLower = resolution.toLowerCase();
+  const dur = parseInt(durationSeconds, 10);
+
+  if (FALLBACK_COSTS[resLower] && FALLBACK_COSTS[resLower][dur] !== undefined) {
+    console.warn(`[Credits] Using fallback cost for ${actionCode}: ${FALLBACK_COSTS[resLower][dur]}`);
+    return FALLBACK_COSTS[resLower][dur];
+  }
+
+  // Ultimate fallback
+  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to 70`);
+  return 70;
+}
+
+/**
  * Show insufficient video credits modal
  * @param {number} required - Credits required
  * @param {number} available - Credits available (optional, uses current state if not provided)
@@ -1787,6 +1841,9 @@ window.WorkspaceCredits = {
   hasVideoCredits,
   isVideoAction,
   showInsufficientVideoCreditsMessage,
+  // Video variant costs (backend-driven)
+  getVideoActionCode,
+  getVideoCreditCost,
   // Optimistic update functions
   deductOptimistic,
   reconcile,
