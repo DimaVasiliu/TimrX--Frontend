@@ -2487,6 +2487,21 @@ const VIDEO_CREDIT_COSTS = {
 };
 
 /**
+ * Luma Dream Machine credit costs (MUST match backend pricing_service.py)
+ * Based on Luma's credit system with 2.5x margin + 5 buffer
+ *
+ * Quality tiers:
+ * - fast_preview:  Ray2 Flash 720p (cheapest, fastest)
+ * - studio_hd:     Ray2 720p (balanced)
+ * - pro_full_hd:   Ray2 1080p (highest quality)
+ */
+const LUMA_CREDIT_COSTS = {
+  'fast_preview':  { 4: 115, 6: 170, 8: 225 },
+  'studio_hd':     { 4: 325, 6: 485, 8: 645 },
+  'pro_full_hd':   { 4: 345, 6: 515, 8: 685 }
+};
+
+/**
  * Get video credit cost based on resolution and duration.
  * Uses VideoJobControl if available, falls back to local VIDEO_CREDIT_COSTS.
  *
@@ -2507,7 +2522,20 @@ function getVideoCredits(settings) {
 }
 
 /**
- * Start video generation (Google Veo or Runway)
+ * Get Luma credit cost based on quality tier and duration.
+ *
+ * @param {Object} settings - { durationSec, qualityTier }
+ * @returns {number} Total credits (115-685)
+ */
+function getLumaCredits(settings) {
+  const qualityTier = settings.qualityTier || 'studio_hd';
+  const duration = settings.durationSec || 4;
+  const tierCosts = LUMA_CREDIT_COSTS[qualityTier] || LUMA_CREDIT_COSTS['studio_hd'];
+  return tierCosts[duration] || 325;
+}
+
+/**
+ * Start video generation (Google Veo, Luma, or Runway)
  */
 export async function startVideoGeneration() {
   if (startLock) return;
@@ -2515,15 +2543,18 @@ export async function startVideoGeneration() {
   // Dispatch generation:start event (e.g., to close Inspire panel)
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'video' } }));
 
-  // Get selected provider (veo or runway)
+  // Get selected provider (veo, luma, or runway)
   const selectedProvider = byId('videoAIProvider')?.value || 'veo';
   const isRunway = selectedProvider === 'runway';
+  const isLuma = selectedProvider === 'luma';
 
   // Get video settings from UI (use window.VideoJobControl if available, else read directly)
   // Resolution values: "720p", "1080p", "4k" (NOT "standard" or "high")
   const settings = window.VideoJobControl?.getSettings?.() || {
+    provider: selectedProvider,
     durationSec: parseInt(byId('videoDuration')?.value || '4', 10),
     resolution: byId('videoQuality')?.value || '720p',  // Resolution: 720p, 1080p, 4k
+    qualityTier: byId('lumaQualityTier')?.value || 'studio_hd',  // Luma quality tier
     aspect: byId('videoAspectRatio')?.value || 'landscape',
     aspectRatio: VIDEO_ASPECT_MAP[byId('videoAspectRatio')?.value] || '16:9',
     loop: byId('videoLoop')?.checked ?? true,
@@ -2535,20 +2566,34 @@ export async function startVideoGeneration() {
     settings.resolution = '720p';
   }
 
+  // Add provider to settings for credit calculation
+  settings.provider = selectedProvider;
+
   const motion = (byId('videoMotion')?.value || '').trim();
   const prompt = (byId('videoTextPrompt')?.value || '').trim();
   const stylePreset = byId('videoStylePreset')?.value || '';
   const motionPreset = byId('videoMotionPreset')?.value || '';
 
-  // Compute credits using canonical VIDEO_CREDIT_COSTS (70-160 credits)
-  const totalCredits = getVideoCredits(settings);
+  // Compute credits based on provider
+  let totalCredits;
+  if (isLuma) {
+    // Luma uses quality tier based pricing
+    totalCredits = window.VideoJobControl?.computeCredits?.(settings) || getLumaCredits(settings);
+  } else {
+    // Veo/Runway use resolution-based pricing
+    totalCredits = getVideoCredits(settings);
+  }
 
   // Defensive logging for video credit flow
   console.log('[VIDEO] Credit check:', {
+    provider: selectedProvider,
     durationSec: settings.durationSec,
     resolution: settings.resolution,
+    qualityTier: settings.qualityTier,
     computedCredits: totalCredits,
-    formula: `VIDEO_CREDIT_COSTS[${settings.resolution}][${settings.durationSec}s] = ${totalCredits}`
+    formula: isLuma
+      ? `LUMA_CREDIT_COSTS[${settings.qualityTier}][${settings.durationSec}s] = ${totalCredits}`
+      : `VIDEO_CREDIT_COSTS[${settings.resolution}][${settings.durationSec}s] = ${totalCredits}`
   });
 
   // Unified credit check with proper numeric conversion
@@ -2582,6 +2627,8 @@ export async function startVideoGeneration() {
   // Generate idempotency key for this video generation
   const idempotencyKey = State.generateIdempotencyKey();
   const tempId = crypto?.randomUUID ? crypto.randomUUID() : `video-temp-${Date.now()}`;
+  // Determine provider name for display
+  const providerName = isLuma ? 'luma' : (isRunway ? 'runway' : 'google');
   const placeholder = {
     id: tempId,
     type: 'video',
@@ -2593,8 +2640,8 @@ export async function startVideoGeneration() {
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
-    provider: isRunway ? 'runway' : 'google',
-    provider_used: isRunway ? 'runway' : 'google',
+    provider: providerName,
+    provider_used: providerName,
     credits_used: totalCredits,
     idempotency_key: idempotencyKey
   };
@@ -2603,13 +2650,64 @@ export async function startVideoGeneration() {
   renderHistory();
 
   try {
-    prog.label(isRunway ? 'Generating video with Runway...' : 'Generating video with Veo...');
+    // Set progress label based on provider
+    const providerLabel = isLuma ? 'Luma' : (isRunway ? 'Runway' : 'Veo');
+    prog.label(`Generating video with ${providerLabel}...`);
 
     // Build payload based on mode and provider
     let endpoint;
     let payload;
 
-    if (isRunway) {
+    if (isLuma) {
+      // ── Luma Dream Machine - unified endpoint ──
+      endpoint = '/api/video/luma/generate';
+
+      if (settings.mode === 'image2video') {
+        const videoImagePreview = byId('videoImagePreview');
+        const imageData = videoImagePreview?.src;
+        const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
+
+        if (!isValidImage) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please upload a reference image for Image to Video mode', 'error');
+          return;
+        }
+
+        payload = {
+          task: 'image2video',
+          image_data: imageData,
+          prompt: motion || prompt,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          quality_tier: settings.qualityTier,
+          style_preset: stylePreset || undefined,
+          motion_preset: motionPreset || undefined,
+          custom_motion: motion || undefined,
+          loop: settings.loop
+        };
+      } else {
+        // Text-to-video
+        if (!prompt) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please enter a prompt for video generation', 'error');
+          return;
+        }
+
+        payload = {
+          task: 'text2video',
+          prompt: prompt,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          quality_tier: settings.qualityTier,
+          style_preset: stylePreset || undefined,
+          motion_preset: motionPreset || undefined,
+          custom_motion: motion || undefined,
+          loop: settings.loop
+        };
+      }
+    } else if (isRunway) {
       // ── Runway provider - single unified endpoint ──
       endpoint = '/api/video/runway/generate';
 
@@ -2684,12 +2782,19 @@ export async function startVideoGeneration() {
     }
 
     // Log action code for debugging (lowercase canonical format)
-    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
-                       `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
-    console.log('[VIDEO] Action code:', actionCode, '| Expected cost:', totalCredits);
+    let actionCode;
+    if (isLuma) {
+      // Luma action codes: luma_{tier}_{duration}s or luma_image_{tier}_{duration}s
+      const taskPart = settings.mode === 'image2video' ? 'image_' : '';
+      actionCode = `luma_${taskPart}${settings.qualityTier}_${settings.durationSec}s`;
+    } else {
+      actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
+                   `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
+    }
+    console.log('[VIDEO] Action code:', actionCode, '| Provider:', selectedProvider, '| Expected cost:', totalCredits);
 
     // Debug log before API call
-    console.log('[GEN] mode=' + settings.mode + ' endpoint=' + endpoint +
+    console.log('[GEN] provider=' + selectedProvider + ' mode=' + settings.mode + ' endpoint=' + endpoint +
                 ' cost=' + totalCredits + ' available=' + creditCheck.available);
 
     // Include idempotency key in header for duplicate prevention
