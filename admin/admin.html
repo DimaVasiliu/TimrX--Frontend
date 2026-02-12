@@ -1469,6 +1469,9 @@
 
   <script>
     const API = `${location.origin}/api`;
+    // Backend servers for different API endpoints
+    const BACKEND = 'https://3d.timrx.live';    // Meshy backend (Flask) - billing, 3D
+    const CHAT_API = 'https://chat.timrx.live'; // Chat server (FastAPI) - usage stats
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';
@@ -2461,7 +2464,7 @@
     });
 
     // ========== CLAIM VALIDATION CHAT ==========
-    const CHAT_API = 'https://chat.timrx.live';  // FastAPI chat server
+    // CHAT_API is defined at the top of the script
     const VALIDATE_MODE_KEY = 'TX_VALIDATE_MODE';
     let validateMessages = [];
 
@@ -3311,11 +3314,11 @@
 
     async function loadUsageDashboard() {
       try {
-        // Fetch all usage data in parallel
+        // Fetch all usage data in parallel from chat server (no auth required)
         const [todayRes, weekRes, endpointsRes] = await Promise.all([
-          fetch('/api/admin/usage/today'),
-          fetch('/api/admin/usage/week'),
-          fetch('/api/admin/usage/endpoints?days=7&limit=10')
+          fetch(`${CHAT_API}/api/admin/usage/today`),
+          fetch(`${CHAT_API}/api/admin/usage/week`),
+          fetch(`${CHAT_API}/api/admin/usage/endpoints?days=7&limit=10`)
         ]);
 
         if (!todayRes.ok || !weekRes.ok || !endpointsRes.ok) throw new Error('Failed to fetch usage');
@@ -3398,12 +3401,12 @@
       tbody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
 
       try {
-        let url = `${API}/admin/billing/health?limit=${billingLimit}&offset=${billingPage * billingLimit}`;
+        let url = `${BACKEND}/api/admin/billing/health?limit=${billingLimit}&offset=${billingPage * billingLimit}`;
         if (billingStatusFilter) {
           url += `&status=${billingStatusFilter}`;
         }
 
-        const r = await fetch(url, { headers: headers() });
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
         const j = await r.json();
 
         if (!j.ok) {
