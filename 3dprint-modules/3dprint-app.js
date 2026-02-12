@@ -519,58 +519,59 @@
           <span class="field-hint">Upload an image to animate. Use motion settings below.</span>
         </div>
 
-        <!-- Video Settings (compact) -->
+        <!-- Video Settings -->
         <div class="card video-settings-card compact">
-          <div class="video-settings-header">
-            <h3>Settings</h3>
-            <div class="video-settings-grid inline">
-              <div class="video-grid-cell">
-                <label for="videoDuration">Duration</label>
-                <select id="videoDuration">
-                  <option value="4" selected>4s</option>
-                  <option value="6">6s</option>
-                  <option value="8">8s</option>
-                </select>
-              </div>
-              <div class="video-grid-cell">
-                <label for="videoAspectRatio">Aspect</label>
-                <select id="videoAspectRatio">
-                  <option value="landscape" selected>16:9</option>
-                  <option value="portrait">9:16</option>
-                </select>
-              </div>
-              <div class="video-grid-cell">
-                <label for="videoQuality">Quality</label>
-                <select id="videoQuality">
-                  <option value="720p" selected>Standard (HD)</option>
-                  <option value="1080p">Pro (Full HD)</option>
-                  <option value="4k">Ultra (4K)</option>
-                </select>
-              </div>
+          <!-- Motion Presets -->
+          <div class="vs-section">
+            <span class="vs-label">Motion</span>
+            <div id="videoMotionPresets" class="vs-presets">
+              <button type="button" class="vs-preset is-active" data-preset="">None</button>
+              <button type="button" class="vs-preset" data-preset="slow_pan">Pan</button>
+              <button type="button" class="vs-preset" data-preset="parallax">Parallax</button>
+              <button type="button" class="vs-preset" data-preset="zoom_in">Zoom In</button>
+              <button type="button" class="vs-preset" data-preset="zoom_out">Zoom Out</button>
+              <button type="button" class="vs-preset" data-preset="orbit">Orbit</button>
+              <button type="button" class="vs-preset" data-preset="dolly">Dolly</button>
+              <button type="button" class="vs-preset" data-preset="tilt_up">Tilt</button>
             </div>
           </div>
 
-          <div class="video-motion-section">
-            <label class="video-section-label">Motion Preset</label>
-            <div id="videoMotionPresets" class="motion-preset-row compact">
-              <button type="button" class="motion-preset-btn is-active" data-preset="">None</button>
-              <button type="button" class="motion-preset-btn" data-preset="slow_pan">Pan</button>
-              <button type="button" class="motion-preset-btn" data-preset="parallax">Parallax</button>
-              <button type="button" class="motion-preset-btn" data-preset="zoom_in">Zoom+</button>
-              <button type="button" class="motion-preset-btn" data-preset="zoom_out">Zoom-</button>
-              <button type="button" class="motion-preset-btn" data-preset="orbit">Orbit</button>
-              <button type="button" class="motion-preset-btn" data-preset="dolly">Dolly</button>
-              <button type="button" class="motion-preset-btn" data-preset="tilt_up">Tilt</button>
+          <!-- Output Controls -->
+          <div class="vs-controls">
+            <div class="vs-control">
+              <span class="vs-control-label">Duration</span>
+              <select id="videoDuration">
+                <option value="4" selected>4s</option>
+                <option value="6">6s</option>
+                <option value="8">8s</option>
+              </select>
             </div>
-            <textarea id="videoMotion" rows="2" placeholder="Custom motion: camera slowly zooms in while rotating..."></textarea>
+            <div class="vs-control">
+              <span class="vs-control-label">Aspect</span>
+              <select id="videoAspectRatio">
+                <option value="landscape" selected>16:9</option>
+                <option value="portrait">9:16</option>
+              </select>
+            </div>
+            <div class="vs-control">
+              <span class="vs-control-label">Quality</span>
+              <select id="videoQuality">
+                <option value="720p" selected>720p</option>
+                <option value="1080p">1080p</option>
+                <option value="4k">4K</option>
+              </select>
+            </div>
+            <button type="button" id="videoLoopBtn" class="vs-chip is-active" title="Loop playback">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+              Loop
+            </button>
+            <input type="hidden" id="videoLoop" value="true">
           </div>
 
-          <div class="video-options-row">
-            <label class="video-checkbox-label">
-              <input type="checkbox" id="videoLoop" checked>
-              <span>Loop</span>
-            </label>
-            <span class="field-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
+          <!-- Custom Motion -->
+          <div class="vs-custom">
+            <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion..."></textarea>
+            <span class="vs-hint" id="videoResolutionHint">1080p/4K require 8s duration</span>
           </div>
         </div>
 
@@ -1489,18 +1490,24 @@
       const motionPresetContainer = leftStack.querySelector('#videoMotionPresets');
       const motionPresetInput = leftStack.querySelector('#videoMotionPreset');
       if (motionPresetContainer) {
-        motionPresetContainer.querySelectorAll('.motion-preset-btn').forEach(btn => {
+        motionPresetContainer.querySelectorAll('.vs-preset').forEach(btn => {
           btn.addEventListener('click', function() {
-            motionPresetContainer.querySelectorAll('.motion-preset-btn').forEach(b => {
+            motionPresetContainer.querySelectorAll('.vs-preset').forEach(b => {
               b.classList.remove('is-active');
-              b.style.background = 'transparent';
-              b.style.color = '#999';
             });
             this.classList.add('is-active');
-            this.style.background = 'rgba(255,255,255,.08)';
-            this.style.color = '#ccc';
             if (motionPresetInput) motionPresetInput.value = this.dataset.preset || '';
           });
+        });
+      }
+
+      // Loop chip button — toggles active state and hidden input
+      const loopBtn = leftStack.querySelector('#videoLoopBtn');
+      const loopInput = leftStack.querySelector('#videoLoop');
+      if (loopBtn && loopInput) {
+        loopBtn.addEventListener('click', function() {
+          const isActive = this.classList.toggle('is-active');
+          loopInput.value = isActive ? 'true' : 'false';
         });
       }
 
