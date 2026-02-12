@@ -558,7 +558,6 @@
               <select id="videoQuality">
                 <option value="720p" selected>Standard (HD)</option>
                 <option value="1080p">Pro (Full HD)</option>
-                <option value="4k">Ultra (4K)</option>
               </select>
             </div>
             <button type="button" id="videoLoopBtn" class="vs-chip is-active" title="Loop playback">
@@ -1136,25 +1135,22 @@
       // ========================================
       // Fallback credits by resolution and duration (used if backend unavailable)
       // Actual costs are fetched from backend via WorkspaceCredits
-      // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p, Ultra (4K) = 4k
+      // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p
       const VIDEO_CREDIT_RULES_FALLBACK = {
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
-        '1080p': { 8: 130 },                  // Pro (Full HD) - requires 8s
-        '4k':    { 8: 160 }                   // Ultra (4K) - requires GCP allowlisting, 8s only
+        '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
       // Valid durations per resolution (Veo/Runway constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
-        '1080p': [8],        // Pro: 8s only
-        '4k':    [8]         // Ultra: 8s only
+        '1080p': [8]          // Pro: 8s only
       };
       // Time estimates by quality tier
-      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~4 min' };
+      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min' };
       // UI labels for resolution values
       const VIDEO_QUALITY_LABELS = {
         '720p': 'Standard (HD)',
-        '1080p': 'Pro (Full HD)',
-        '4k': 'Ultra (4K)'
+        '1080p': 'Pro (Full HD)'
       };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
@@ -1169,7 +1165,7 @@
        */
       function getVideoSettingsFromUI() {
         const durationRaw = videoDuration?.value || '4';
-        // videoQuality now contains resolution (720p/1080p/4k)
+        // videoQuality now contains resolution (720p/1080p)
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
@@ -1237,7 +1233,7 @@
 
       /**
        * Check if a duration is valid for the selected resolution
-       * @param {string} resolution - '720p', '1080p', or '4k'
+       * @param {string} resolution - '720p' or '1080p'
        * @param {number} duration - Duration in seconds
        * @returns {boolean}
        */
@@ -1405,11 +1401,10 @@
 
               opts.forEach(opt => {
                 const is1080p = opt.value === '1080p';
-                const is4k = opt.value === '4k';
 
                 if (provider === 'runway') {
                   // Runway: 720p only (API generates at fixed 1280x720)
-                  if (is1080p || is4k) {
+                  if (is1080p) {
                     opt.disabled = true;
                     opt.style.display = 'none';
                   } else {
@@ -1417,21 +1412,14 @@
                     opt.style.display = '';
                   }
                 } else {
-                  // Vertex (Veo): 720p and 1080p, hide 4K (not allowlisted)
-                  if (is4k) {
-                    opt.disabled = true;
-                    opt.style.display = 'none';
-                  } else {
-                    opt.disabled = false;
-                    opt.style.display = '';
-                  }
+                  // Vertex (Veo): 720p and 1080p available
+                  opt.disabled = false;
+                  opt.style.display = '';
                 }
               });
 
               // Reset to 720p if current selection is not available for provider
               if (provider === 'runway' && videoQuality.value !== '720p') {
-                videoQuality.value = '720p';
-              } else if (provider !== 'runway' && videoQuality.value === '4k') {
                 videoQuality.value = '720p';
               }
 
