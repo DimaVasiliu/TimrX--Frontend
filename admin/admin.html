@@ -822,6 +822,153 @@
       font-size: 12px;
       color: #888;
     }
+
+    /* Credit Analytics Styles */
+    .credit-analytics { margin-bottom: 24px; }
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .analytics-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #ccc; }
+    .analytics-controls { display: flex; gap: 8px; align-items: center; }
+    .analytics-stats { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    .billing-stat.large { min-width: 140px; padding: 16px 20px; }
+    .billing-stat.large .stat-value { font-size: 28px; }
+    .usage-progress-bar {
+      margin-top: 8px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .usage-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+    .analytics-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .analytics-card h4 {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .analytics-loading { color: #666; font-size: 12px; padding: 20px; text-align: center; }
+
+    /* Action Type Breakdown - Horizontal Bars */
+    .action-breakdown { display: flex; flex-direction: column; gap: 12px; }
+    .breakdown-row { display: flex; align-items: center; gap: 12px; }
+    .breakdown-label { width: 80px; font-size: 12px; color: #ccc; flex-shrink: 0; }
+    .breakdown-bar-wrap {
+      flex: 1;
+      height: 24px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .breakdown-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .breakdown-bar.image { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .breakdown-bar.model_3d { background: linear-gradient(90deg, #a855f7, #c084fc); }
+    .breakdown-bar.video { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .breakdown-bar.other { background: rgba(255,255,255,0.2); }
+    .breakdown-value {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .breakdown-stats { font-size: 11px; color: #666; margin-left: 8px; white-space: nowrap; }
+
+    /* Time Chart - CSS Bar Chart */
+    .time-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 120px;
+      gap: 2px;
+      padding-top: 8px;
+    }
+    .chart-bar {
+      flex: 1;
+      min-width: 6px;
+      max-width: 20px;
+      background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .chart-bar:hover { background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%); }
+    .chart-bar::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 10;
+    }
+    .chart-bar:hover::after { opacity: 1; }
+
+    /* Top Users Table */
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-header-row h4 { margin: 0; }
+    .toggle-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #888;
+      cursor: pointer;
+    }
+    .toggle-btn:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+    .top-users-table-wrap {
+      max-height: 300px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+    }
+    .top-users-table-wrap.collapsed { max-height: 0; overflow: hidden; }
+    .billing-section-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 24px 0;
+    }
   </style>
 </head>
 <body>
@@ -1188,8 +1335,84 @@
         <!-- Billing Health Tab -->
         <div class="tab-content" id="tab-billing">
           <div class="billing-dashboard">
+
+            <!-- Credit Usage Analytics Section -->
+            <div class="credit-analytics" id="creditAnalytics">
+              <div class="analytics-header">
+                <h3>Credit Usage Analytics</h3>
+                <div class="analytics-controls">
+                  <select class="form-select" id="analyticsPeriod">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                  </select>
+                  <button class="action-btn" id="refreshAnalytics">Refresh</button>
+                </div>
+              </div>
+
+              <!-- Summary Stats Row -->
+              <div class="analytics-stats" id="analyticsStats">
+                <div class="billing-stat large">
+                  <span class="stat-value" id="statTotalPurchased">--</span>
+                  <span class="stat-label">Credits Purchased</span>
+                </div>
+                <div class="billing-stat large">
+                  <span class="stat-value" id="statTotalSpent">--</span>
+                  <span class="stat-label">Credits Spent</span>
+                </div>
+                <div class="billing-stat large">
+                  <span class="stat-value" id="statUsageRate">--%</span>
+                  <span class="stat-label">Usage Rate</span>
+                  <div class="usage-progress-bar">
+                    <div class="usage-progress-fill" id="usageProgressFill"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Two-column layout: Action breakdown | Time chart -->
+              <div class="analytics-grid">
+                <div class="analytics-card">
+                  <h4>Credits by Type</h4>
+                  <div class="action-breakdown" id="actionBreakdown">
+                    <div class="analytics-loading">Loading...</div>
+                  </div>
+                </div>
+                <div class="analytics-card">
+                  <h4>Usage Over Time</h4>
+                  <div class="time-chart" id="timeChart">
+                    <div class="analytics-loading">Loading...</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Collapsible Top Users Table -->
+              <div class="analytics-card">
+                <div class="card-header-row">
+                  <h4>Top Users by Credit Usage</h4>
+                  <button class="toggle-btn" id="toggleTopUsers">Show</button>
+                </div>
+                <div class="top-users-table-wrap collapsed" id="topUsersWrap">
+                  <table class="billing-table" id="topUsersTable">
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Credits Spent</th>
+                        <th>Jobs</th>
+                        <th>Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody id="topUsersBody">
+                      <tr><td colspan="4" class="muted">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="billing-section-divider"></div>
+
             <div class="billing-header">
-              <h3>Billing Health</h3>
+              <h3>Subscription Health</h3>
               <div class="billing-controls">
                 <select class="form-select" id="billingStatusFilter">
                   <option value="">All Statuses</option>
@@ -3507,6 +3730,187 @@
         loadBillingHealth();
       };
     }
+
+    // ========== CREDIT USAGE ANALYTICS ==========
+    let analyticsPeriod = 30;
+
+    /**
+     * Format large numbers with K/M suffix
+     */
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    /**
+     * Load credit analytics data from API
+     */
+    async function loadCreditAnalytics() {
+      const breakdownEl = $('#actionBreakdown');
+      const chartEl = $('#timeChart');
+      const topUsersBody = $('#topUsersBody');
+
+      // Show loading states
+      if (breakdownEl) breakdownEl.innerHTML = '<div class="analytics-loading">Loading...</div>';
+      if (chartEl) chartEl.innerHTML = '<div class="analytics-loading">Loading...</div>';
+      if (topUsersBody) topUsersBody.innerHTML = '<tr><td colspan="4" class="muted">Loading...</td></tr>';
+
+      try {
+        const url = `${BACKEND}/api/admin/billing/credit-analytics?days=${analyticsPeriod}`;
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+        }
+
+        const j = await r.json();
+        if (!j.ok) {
+          throw new Error(j.error || 'Failed to load analytics');
+        }
+
+        // Update summary stats
+        if ($('#statTotalPurchased')) $('#statTotalPurchased').textContent = formatNumber(j.summary?.total_purchased || 0);
+        if ($('#statTotalSpent')) $('#statTotalSpent').textContent = formatNumber(j.summary?.total_spent || 0);
+        if ($('#statUsageRate')) $('#statUsageRate').textContent = `${(j.summary?.usage_rate || 0).toFixed(1)}%`;
+        if ($('#usageProgressFill')) $('#usageProgressFill').style.width = `${Math.min(100, j.summary?.usage_rate || 0)}%`;
+
+        // Render action breakdown
+        renderActionBreakdown(j.by_action_type || []);
+
+        // Render time chart
+        renderTimeChart(j.over_time || []);
+
+        // Render top users
+        renderTopUsers(j.top_users || []);
+
+      } catch (err) {
+        console.error('Analytics fetch error:', err);
+        if (breakdownEl) breakdownEl.innerHTML = `<div class="analytics-loading">Error: ${err.message}</div>`;
+        if (chartEl) chartEl.innerHTML = `<div class="analytics-loading">Error: ${err.message}</div>`;
+      }
+    }
+
+    /**
+     * Render action type breakdown bars
+     */
+    function renderActionBreakdown(data) {
+      const el = $('#actionBreakdown');
+      if (!el) return;
+
+      if (!data || data.length === 0) {
+        el.innerHTML = '<div class="analytics-loading">No data available</div>';
+        return;
+      }
+
+      const maxCredits = Math.max(...data.map(d => d.total_credits || 0));
+      const categoryNames = {
+        'image': 'Images',
+        '3d_model': '3D Models',
+        'video': 'Videos',
+        'other': 'Other'
+      };
+      const categoryClasses = {
+        'image': 'image',
+        '3d_model': 'model_3d',
+        'video': 'video',
+        'other': 'other'
+      };
+
+      el.innerHTML = data.map(item => {
+        const widthPct = maxCredits > 0 ? (item.total_credits / maxCredits * 100) : 0;
+        const label = categoryNames[item.category] || item.category;
+        const cssClass = categoryClasses[item.category] || 'other';
+        return `
+          <div class="breakdown-row">
+            <span class="breakdown-label">${label}</span>
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar ${cssClass}" style="width: ${widthPct}%"></div>
+              <span class="breakdown-value">${formatNumber(item.total_credits)}</span>
+            </div>
+            <span class="breakdown-stats">${(item.percentage || 0).toFixed(1)}%</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Render time series bar chart
+     */
+    function renderTimeChart(data) {
+      const el = $('#timeChart');
+      if (!el) return;
+
+      if (!data || data.length === 0) {
+        el.innerHTML = '<div class="analytics-loading">No data available</div>';
+        return;
+      }
+
+      const maxCredits = Math.max(...data.map(d => d.credits_spent || 0));
+
+      el.innerHTML = data.map(item => {
+        const heightPct = maxCredits > 0 ? (item.credits_spent / maxCredits * 100) : 0;
+        const d = new Date(item.date);
+        const dateLabel = `${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}`;
+        const tooltip = `${dateLabel}: ${formatNumber(item.credits_spent)} credits (${item.job_count} jobs)`;
+        return `<div class="chart-bar" style="height: ${Math.max(2, heightPct)}%" data-tooltip="${tooltip}"></div>`;
+      }).join('');
+    }
+
+    /**
+     * Render top users table
+     */
+    function renderTopUsers(data) {
+      const tbody = $('#topUsersBody');
+      if (!tbody) return;
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="muted">No data available</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(user => `
+        <tr>
+          <td title="${user.identity_id}">${user.email || '—'}</td>
+          <td>${formatNumber(user.total_spent)}</td>
+          <td>${user.job_count}</td>
+          <td>${formatDateUK(user.last_active)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Analytics event listeners
+    if ($('#analyticsPeriod')) {
+      $('#analyticsPeriod').onchange = (e) => {
+        analyticsPeriod = parseInt(e.target.value);
+        loadCreditAnalytics();
+      };
+    }
+
+    if ($('#refreshAnalytics')) {
+      $('#refreshAnalytics').onclick = loadCreditAnalytics;
+    }
+
+    // Top users toggle
+    if ($('#toggleTopUsers')) {
+      $('#toggleTopUsers').onclick = () => {
+        const wrap = $('#topUsersWrap');
+        const btn = $('#toggleTopUsers');
+        if (wrap && btn) {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed') ? 'Show' : 'Hide';
+        }
+      };
+    }
+
+    // Load analytics when billing tab is clicked (combined with billing health)
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'billing') {
+        tab.addEventListener('click', () => {
+          loadCreditAnalytics();
+        });
+      }
+    });
 
     (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
   </script>
