@@ -1,9 +1,13 @@
-
+# Clean URL redirects (old .html URLs → clean paths)
 /index.html       /              301
 /hub.html         /hub           301
 /3dprint.html     /3dprint       301
 /blogs.html       /blogs         301
 /archive.html     /archive       301
-
 /admin.html       /admin         301
-/admin-edit.html  /admin/admin-edit.html  301
+/admin-edit.html  /admin/edit    301
+
+# Rewrite rules for folder-based pages (serve HTML without redirect)
+# Admin folder: /admin → /admin/admin.html (file is admin.html, not index.html)
+/admin            /admin/admin.html       200
+/admin/edit       /admin/admin-edit.html  200
