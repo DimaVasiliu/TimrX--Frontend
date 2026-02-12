@@ -1,0 +1,49 @@
+# Ensure correct MIME types for static assets
+# This prevents SPA fallback from serving HTML for static files
+
+/*.css
+  Content-Type: text/css; charset=utf-8
+
+/*.js
+  Content-Type: application/javascript; charset=utf-8
+
+/admin/*.css
+  Content-Type: text/css; charset=utf-8
+
+/admin/*.js
+  Content-Type: application/javascript; charset=utf-8
+
+/3dprint-modules/*.css
+  Content-Type: text/css; charset=utf-8
+
+/3dprint-modules/*.js
+  Content-Type: application/javascript; charset=utf-8
+
+/3dprint-modules/css/*.css
+  Content-Type: text/css; charset=utf-8
+
+# Font files
+/*.woff2
+  Content-Type: font/woff2
+
+/*.woff
+  Content-Type: font/woff
+
+# Images
+/*.png
+  Content-Type: image/png
+
+/*.svg
+  Content-Type: image/svg+xml
+
+/*.jpg
+  Content-Type: image/jpeg
+
+/*.jpeg
+  Content-Type: image/jpeg
+
+/*.webp
+  Content-Type: image/webp
+
+/*.ico
+  Content-Type: image/x-icon
