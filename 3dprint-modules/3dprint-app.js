@@ -443,87 +443,61 @@
       video: `
         <input type="hidden" id="videoModeValue" value="text2video" />
         <input type="hidden" id="videoAIProvider" value="veo" />
+        <input type="hidden" id="videoMotionPreset" value="" />
 
-        <!-- Provider Selector -->
-        <div class="card video-provider-card">
-          <label class="video-section-label">Video Provider</label>
-          <div class="video-provider-switcher" id="videoProviderSwitcher">
-            <button type="button" class="video-provider-btn is-active" data-provider="veo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-              Veo (Google)
-            </button>
-            <button type="button" class="video-provider-btn" data-provider="runway">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <path d="M4 4h16v16H4z"/>
-                <path d="M9 9l6 3-6 3V9z" fill="currentColor"/>
-              </svg>
-              Runway
-            </button>
+        <!-- Header: Provider + Mode Selection -->
+        <div class="card video-header-card">
+          <div class="video-header-row">
+            <div class="video-provider-switcher compact" id="videoProviderSwitcher">
+              <button type="button" class="video-provider-btn is-active" data-provider="veo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Veo
+              </button>
+              <button type="button" class="video-provider-btn" data-provider="runway">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>
+                Runway
+              </button>
+            </div>
+            <div class="video-mode-switcher compact" id="videoModeSwitcher">
+              <button type="button" class="video-mode-btn is-active" data-mode="text2video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10"/></svg>
+                Text
+              </button>
+              <button type="button" class="video-mode-btn" data-mode="image2video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
+                Image
+              </button>
+            </div>
           </div>
-          <span class="field-hint">Veo: HD/4K with fallback. Runway: Fast Gen-4 models.</span>
         </div>
 
         <!-- Text-to-Video: Prompt input -->
-        <div class="card video-mode-content" id="text2videoContent">
-          <div class="video-mode-switcher" id="videoModeSwitcher">
-            <button type="button" class="video-mode-btn is-active" data-mode="text2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <path d="M4 6h16M4 12h16M4 18h10"/>
-              </svg>
-              Text to Video
-            </button>
-            <button type="button" class="video-mode-btn" data-mode="image2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                <path d="M21 15l-5-5L5 21"/>
-              </svg>
-              Image to Video
-            </button>
-          </div>
+        <div class="card video-mode-content video-input-card" id="text2videoContent">
           <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
-          <textarea id="videoTextPrompt" placeholder="A serene forest with sunlight filtering through the trees, birds flying in slow motion..."></textarea>
-          <span class="field-hint">Keep prompts simple. Short clips look best.</span>
-
-          <div class="inline-field video-style-row">
-            <label for="videoStylePreset">Style Preset</label>
-            <select id="videoStylePreset">
-              <option value="" selected>Auto (cinematic default)</option>
-              <option value="cinematic">Cinematic</option>
-              <option value="documentary">Documentary</option>
-              <option value="product">Product Showcase</option>
-              <option value="aerial">Aerial / Drone</option>
-              <option value="timelapse">Timelapse</option>
-              <option value="slow_motion">Slow Motion</option>
-              <option value="anime">Anime</option>
-              <option value="noir">Film Noir</option>
-            </select>
+          <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
+          <div class="video-input-footer">
+            <span class="field-hint">Keep prompts simple for best results.</span>
+            <div class="inline-field video-style-row">
+              <label for="videoStylePreset">Style</label>
+              <select id="videoStylePreset">
+                <option value="" selected>Auto</option>
+                <option value="cinematic">Cinematic</option>
+                <option value="documentary">Documentary</option>
+                <option value="product">Product</option>
+                <option value="aerial">Aerial</option>
+                <option value="timelapse">Timelapse</option>
+                <option value="slow_motion">Slow-Mo</option>
+                <option value="anime">Anime</option>
+                <option value="noir">Noir</option>
+              </select>
+            </div>
           </div>
-          <span class="field-hint">Style hints added to your prompt for better results.</span>
         </div>
 
         <!-- Image-to-Video: Image upload -->
-        <div class="card video-mode-content hidden" id="image2videoContent">
-          <div class="video-mode-switcher" id="videoModeSwitcherAlt">
-            <button type="button" class="video-mode-btn" data-mode="text2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <path d="M4 6h16M4 12h16M4 18h10"/>
-              </svg>
-              Text to Video
-            </button>
-            <button type="button" class="video-mode-btn is-active" data-mode="image2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                <path d="M21 15l-5-5L5 21"/>
-              </svg>
-              Image to Video
-            </button>
-          </div>
+        <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
           <label for="videoSource" class="video-section-label">Reference Image</label>
-          <div class="video-image-grid">
+          <div class="video-image-grid compact">
             <div id="videoImageDrop" class="video-drop-zone">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -542,78 +516,66 @@
               </div>
             </div>
           </div>
+          <span class="field-hint">Upload an image to animate. Use motion settings below.</span>
         </div>
 
-        <div class="card video-settings-card">
-          <div class="card-header-row">
-            <h3>Video Settings</h3>
-            <div class="info-tooltip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="info-icon">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 16v-4M12 8h.01"/>
-              </svg>
-              <div class="info-bubble">
-                <ul>
-                  <li>Keep prompts simple. Short clips look best.</li>
-                  <li>Use Motion Description for camera moves (pan, orbit, zoom).</li>
-                  <li>Higher resolution and longer duration cost more.</li>
-                </ul>
+        <!-- Video Settings (compact) -->
+        <div class="card video-settings-card compact">
+          <div class="video-settings-header">
+            <h3>Settings</h3>
+            <div class="video-settings-grid inline">
+              <div class="video-grid-cell">
+                <label for="videoDuration">Duration</label>
+                <select id="videoDuration">
+                  <option value="4" selected>4s</option>
+                  <option value="6">6s</option>
+                  <option value="8">8s</option>
+                </select>
+              </div>
+              <div class="video-grid-cell">
+                <label for="videoAspectRatio">Aspect</label>
+                <select id="videoAspectRatio">
+                  <option value="landscape" selected>16:9</option>
+                  <option value="portrait">9:16</option>
+                </select>
+              </div>
+              <div class="video-grid-cell">
+                <label for="videoQuality">Quality</label>
+                <select id="videoQuality">
+                  <option value="720p" selected>Standard (HD)</option>
+                  <option value="1080p">Pro (Full HD)</option>
+                  <option value="4k">Ultra (4K)</option>
+                </select>
               </div>
             </div>
           </div>
-          <label class="video-section-label">Motion Preset</label>
-          <div id="videoMotionPresets" class="motion-preset-row">
-            <button type="button" class="motion-preset-btn is-active" data-preset="">None</button>
-            <button type="button" class="motion-preset-btn" data-preset="slow_pan">Slow Pan</button>
-            <button type="button" class="motion-preset-btn" data-preset="parallax">Parallax</button>
-            <button type="button" class="motion-preset-btn" data-preset="zoom_in">Zoom In</button>
-            <button type="button" class="motion-preset-btn" data-preset="zoom_out">Zoom Out</button>
-            <button type="button" class="motion-preset-btn" data-preset="orbit">Orbit</button>
-            <button type="button" class="motion-preset-btn" data-preset="dolly">Dolly</button>
-            <button type="button" class="motion-preset-btn" data-preset="tilt_up">Tilt Up</button>
-            <button type="button" class="motion-preset-btn" data-preset="breathing">Breathing</button>
+
+          <div class="video-motion-section">
+            <label class="video-section-label">Motion Preset</label>
+            <div id="videoMotionPresets" class="motion-preset-row compact">
+              <button type="button" class="motion-preset-btn is-active" data-preset="">None</button>
+              <button type="button" class="motion-preset-btn" data-preset="slow_pan">Pan</button>
+              <button type="button" class="motion-preset-btn" data-preset="parallax">Parallax</button>
+              <button type="button" class="motion-preset-btn" data-preset="zoom_in">Zoom+</button>
+              <button type="button" class="motion-preset-btn" data-preset="zoom_out">Zoom-</button>
+              <button type="button" class="motion-preset-btn" data-preset="orbit">Orbit</button>
+              <button type="button" class="motion-preset-btn" data-preset="dolly">Dolly</button>
+              <button type="button" class="motion-preset-btn" data-preset="tilt_up">Tilt</button>
+            </div>
+            <textarea id="videoMotion" rows="2" placeholder="Custom motion: camera slowly zooms in while rotating..."></textarea>
           </div>
-          <input type="hidden" id="videoMotionPreset" value="" />
 
-          <label for="videoMotion" class="video-section-label">Motion Description <span class="label-hint">(optional)</span></label>
-          <textarea id="videoMotion" placeholder="Camera slowly zooms in while rotating..."></textarea>
-          <span class="field-hint">Custom motion text overrides the preset above.</span>
-
-          <div class="video-settings-grid">
-            <div class="video-grid-cell">
-              <label for="videoDuration">Duration</label>
-              <select id="videoDuration">
-                <option value="4" selected>4 sec</option>
-                <option value="6">6 sec</option>
-                <option value="8">8 sec</option>
-              </select>
-            </div>
-            <div class="video-grid-cell">
-              <label for="videoAspectRatio">Aspect</label>
-              <select id="videoAspectRatio">
-                <option value="landscape" selected>Landscape</option>
-                <option value="portrait">Portrait</option>
-              </select>
-            </div>
-            <div class="video-grid-cell">
-              <label for="videoQuality">Resolution</label>
-              <select id="videoQuality">
-                <option value="720p" selected>720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
-              </select>
-            </div>
+          <div class="video-options-row">
+            <label class="video-checkbox-label">
+              <input type="checkbox" id="videoLoop" checked>
+              <span>Loop</span>
+            </label>
+            <span class="field-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
           </div>
-          <span class="field-hint settings-hint">Higher resolution uses more credits. 1080p/4K require 8s duration.</span>
-
-          <label class="video-checkbox-label">
-            <input type="checkbox" id="videoLoop" checked>
-            <span>Loop Seamlessly</span>
-          </label>
-          <span class="field-hint loop-hint">Looping works best with orbit/constant motion prompts.</span>
         </div>
 
-        <div class="card gen-footer-card">
+        <!-- Generate Button (sticky footer) -->
+        <div class="card gen-footer-card video-gen-footer">
           <div class="gen-meta">
             <span class="gen-time" id="videoGenTime">~2 min</span>
             <span class="gen-divider">|</span>
@@ -1153,7 +1115,6 @@
       // VIDEO: Mode Switching & Credits Logic
       // ========================================
       const videoModeSwitcher = leftStack.querySelector('#videoModeSwitcher');
-      const videoModeSwitcherAlt = leftStack.querySelector('#videoModeSwitcherAlt');
       const videoModeValue = leftStack.querySelector('#videoModeValue');
       const text2videoContent = leftStack.querySelector('#text2videoContent');
       const image2videoContent = leftStack.querySelector('#image2videoContent');
@@ -1174,19 +1135,26 @@
       // ========================================
       // Fallback credits by resolution and duration (used if backend unavailable)
       // Actual costs are fetched from backend via WorkspaceCredits
+      // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p, Ultra (4K) = 4k
       const VIDEO_CREDIT_RULES_FALLBACK = {
-        '720p':  { 4: 70, 6: 90, 8: 110 },
-        '1080p': { 8: 130 },  // 1080p requires 8s duration
-        '4k':    { 8: 160 }   // 4K requires 8s duration
+        '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
+        '1080p': { 8: 130 },                  // Pro (Full HD) - requires 8s
+        '4k':    { 8: 160 }                   // Ultra (4K) - requires GCP allowlisting, 8s only
       };
-      // Valid durations per resolution (Gemini constraints)
+      // Valid durations per resolution (Veo/Runway constraints)
       const VIDEO_VALID_DURATIONS = {
-        '720p':  [4, 6, 8],
-        '1080p': [8],
-        '4k':    [8]
+        '720p':  [4, 6, 8],   // Standard: all durations
+        '1080p': [8],        // Pro: 8s only
+        '4k':    [8]         // Ultra: 8s only
       };
-      // Time estimates by resolution
+      // Time estimates by quality tier
       const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~4 min' };
+      // UI labels for resolution values
+      const VIDEO_QUALITY_LABELS = {
+        '720p': 'Standard (HD)',
+        '1080p': 'Pro (Full HD)',
+        '4k': 'Ultra (4K)'
+      };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
       const VIDEO_ASPECT_MAP = {
@@ -1287,6 +1255,7 @@
         const resolution = videoQuality.value || '720p';
         const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
         const currentDuration = parseInt(videoDuration.value, 10);
+        const qualityLabel = VIDEO_QUALITY_LABELS['720p'] || 'Standard';
 
         // Enable/disable options based on resolution
         Array.from(videoDuration.options).forEach(opt => {
@@ -1296,7 +1265,7 @@
 
           // Add visual hint for disabled options
           if (!isValid) {
-            opt.textContent = `${dur} sec (720p only)`;
+            opt.textContent = `${dur} sec (${qualityLabel} only)`;
           } else {
             opt.textContent = `${dur} sec`;
           }
@@ -1382,20 +1351,16 @@
         }
       }
 
-      // Video mode switcher - handles both switchers (one in each content card)
-      const allModeSwitchers = [videoModeSwitcher, videoModeSwitcherAlt].filter(Boolean);
-      const allModeButtons = leftStack.querySelectorAll('.video-mode-btn');
-
-      allModeSwitchers.forEach(switcher => {
-        const modeButtons = switcher.querySelectorAll('.video-mode-btn');
+      // Video mode switcher - single switcher in header
+      if (videoModeSwitcher) {
+        const modeButtons = videoModeSwitcher.querySelectorAll('.video-mode-btn');
         modeButtons.forEach(btn => {
           btn.addEventListener('click', function() {
             const mode = this.dataset.mode;
 
-            // Update active state on ALL mode buttons across both switchers
-            allModeButtons.forEach(b => {
-              b.classList.toggle('is-active', b.dataset.mode === mode);
-            });
+            // Update active state
+            modeButtons.forEach(b => b.classList.remove('is-active'));
+            this.classList.add('is-active');
 
             // Update hidden input
             if (videoModeValue) videoModeValue.value = mode;
@@ -1413,7 +1378,7 @@
             console.log('[Video] Mode switched to:', mode);
           });
         });
-      });
+      }
 
       // Video provider switcher
       const videoProviderSwitcher = leftStack.querySelector('#videoProviderSwitcher');
@@ -1430,24 +1395,52 @@
             // Update hidden input
             if (videoAIProvider) videoAIProvider.value = provider;
 
-            // Show/hide resolution options based on provider
-            // Runway doesn't support 1080p/4K, only 720p equivalent
+            // Show/hide resolution options based on provider capabilities
+            // Vertex (Veo): 720p and 1080p (4K requires GCP allowlisting)
+            // Runway: 720p only (API generates at 1280x720 fixed)
             if (videoQuality) {
               const opts = videoQuality.querySelectorAll('option');
+              const resolutionHint = leftStack.querySelector('#videoResolutionHint');
+
               opts.forEach(opt => {
+                const is1080p = opt.value === '1080p';
+                const is4k = opt.value === '4k';
+
                 if (provider === 'runway') {
-                  // Runway: disable 1080p and 4K options
-                  opt.disabled = opt.value !== '720p';
-                  if (opt.value !== '720p') opt.style.display = 'none';
+                  // Runway: 720p only (API generates at fixed 1280x720)
+                  if (is1080p || is4k) {
+                    opt.disabled = true;
+                    opt.style.display = 'none';
+                  } else {
+                    opt.disabled = false;
+                    opt.style.display = '';
+                  }
                 } else {
-                  // Veo: all resolutions available
-                  opt.disabled = false;
-                  opt.style.display = '';
+                  // Vertex (Veo): 720p and 1080p, hide 4K (not allowlisted)
+                  if (is4k) {
+                    opt.disabled = true;
+                    opt.style.display = 'none';
+                  } else {
+                    opt.disabled = false;
+                    opt.style.display = '';
+                  }
                 }
               });
-              // Reset to 720p if current selection is disabled
+
+              // Reset to 720p if current selection is not available for provider
               if (provider === 'runway' && videoQuality.value !== '720p') {
                 videoQuality.value = '720p';
+              } else if (provider !== 'runway' && videoQuality.value === '4k') {
+                videoQuality.value = '720p';
+              }
+
+              // Update resolution hint based on provider
+              if (resolutionHint) {
+                if (provider === 'runway') {
+                  resolutionHint.textContent = 'Runway generates at Standard (HD) quality.';
+                } else {
+                  resolutionHint.textContent = 'Higher quality uses more credits. Pro requires 8s duration.';
+                }
               }
             }
 
