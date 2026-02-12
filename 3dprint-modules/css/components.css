@@ -1439,24 +1439,151 @@ textarea {
   padding: 8px 10px;
 }
 
-/* Video options row */
-.video-options-row {
+/* ===== VIDEO SETTINGS (vs-*) ===== */
+
+/* Section with label */
+.vs-section {
+  margin-bottom: 12px;
+}
+
+.vs-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+/* Motion Presets - pill buttons */
+.vs-presets {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.video-options-row .video-checkbox-label {
-  margin: 0;
+.vs-preset {
+  padding: 5px 10px;
   font-size: 11px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.video-options-row .field-hint {
-  margin: 0;
-  font-size: 10px;
+.vs-preset:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.vs-preset.is-active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(139, 92, 246, 0.2));
+  border-color: rgba(14, 165, 233, 0.5);
+  color: #fff;
+}
+
+/* Output Controls Row */
+.vs-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
+  margin-bottom: 12px;
+}
+
+.vs-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vs-control-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.vs-control select {
+  padding: 6px 22px 6px 8px;
+  font-size: 11px;
+  min-width: 58px;
+  border-radius: 6px;
+  background-size: 10px;
+}
+
+/* Loop Chip Button */
+.vs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.vs-chip svg {
+  width: 11px;
+  height: 11px;
+  opacity: 0.6;
+}
+
+.vs-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.vs-chip.is-active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(139, 92, 246, 0.15));
+  border-color: rgba(14, 165, 233, 0.4);
+  color: #fff;
+}
+
+.vs-chip.is-active svg {
+  opacity: 1;
+}
+
+/* Custom Motion Textarea */
+.vs-custom {
+  margin-top: 4px;
+}
+
+.vs-custom textarea {
+  width: 100%;
+  min-height: 40px;
+  max-height: 60px;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  resize: vertical;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.vs-custom textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.vs-hint {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 8px;
 }
 
 /* Video generate footer - sticky */
