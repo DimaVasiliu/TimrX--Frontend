@@ -1,4 +1,3 @@
-
 /**
  * api.js
  * Handles all fetch calls to the backend, job polling, and orchestrates the other modules
@@ -2508,13 +2507,17 @@ function getVideoCredits(settings) {
 }
 
 /**
- * Start video generation (Google Veo)
+ * Start video generation (Google Veo or Runway)
  */
 export async function startVideoGeneration() {
   if (startLock) return;
 
   // Dispatch generation:start event (e.g., to close Inspire panel)
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'video' } }));
+
+  // Get selected provider (veo or runway)
+  const selectedProvider = byId('videoAIProvider')?.value || 'veo';
+  const isRunway = selectedProvider === 'runway';
 
   // Get video settings from UI (use window.VideoJobControl if available, else read directly)
   // Resolution values: "720p", "1080p", "4k" (NOT "standard" or "high")
@@ -2526,6 +2529,11 @@ export async function startVideoGeneration() {
     loop: byId('videoLoop')?.checked ?? true,
     mode: byId('videoModeValue')?.value || 'text2video'
   };
+
+  // Runway uses 720p equivalent, override resolution if Runway selected
+  if (isRunway) {
+    settings.resolution = '720p';
+  }
 
   const motion = (byId('videoMotion')?.value || '').trim();
   const prompt = (byId('videoTextPrompt')?.value || '').trim();
@@ -2585,8 +2593,8 @@ export async function startVideoGeneration() {
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
-    provider: 'google',
-    provider_used: 'google',
+    provider: isRunway ? 'runway' : 'google',
+    provider_used: isRunway ? 'runway' : 'google',
     credits_used: totalCredits,
     idempotency_key: idempotencyKey
   };
@@ -2595,14 +2603,47 @@ export async function startVideoGeneration() {
   renderHistory();
 
   try {
-    prog.label('Generating video with Veo...');
+    prog.label(isRunway ? 'Generating video with Runway...' : 'Generating video with Veo...');
 
-    // Build payload based on mode and pick the right endpoint
+    // Build payload based on mode and provider
     let endpoint;
     let payload;
 
-    if (settings.mode === 'image2video') {
-      // ── C2: Image → video animation ──
+    if (isRunway) {
+      // ── Runway provider - single unified endpoint ──
+      endpoint = '/api/video/runway/generate';
+
+      if (settings.mode === 'image2video') {
+        const videoImagePreview = byId('videoImagePreview');
+        const imageData = videoImagePreview?.src;
+        const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
+
+        if (!isValidImage) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please upload a reference image for Image to Video mode', 'error');
+          return;
+        }
+
+        payload = {
+          task: 'image2video',
+          image_data: imageData,
+          prompt: motion || prompt,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          seed: undefined
+        };
+      } else {
+        payload = {
+          task: 'text2video',
+          prompt: prompt,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          seed: undefined
+        };
+      }
+    } else if (settings.mode === 'image2video') {
+      // ── Veo: Image → video animation ──
       const videoImagePreview = byId('videoImagePreview');
       const imageData = videoImagePreview?.src;
       const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
@@ -2629,7 +2670,7 @@ export async function startVideoGeneration() {
       console.log('[VIDEO] Image2Video mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
 
     } else {
-      // ── C1: Text → cinematic clip ──
+      // ── Veo: Text → cinematic clip ──
       endpoint = '/api/video/text';
       payload = {
         prompt: prompt,
@@ -2708,6 +2749,13 @@ export async function startVideoGeneration() {
       aspect_ratio: settings.aspectRatio,
       stage: 'video',
       type: 'video'
+    });
+
+    // Show effective settings confirmation
+    UI.showJobCreatedSettings({
+      resolution: data.params?.resolution || settings.resolution,
+      duration_seconds: data.params?.duration_seconds || settings.durationSec,
+      aspect_ratio: data.params?.aspect_ratio || settings.aspectRatio
     });
 
     // Watch the video job
@@ -2825,6 +2873,14 @@ async function watchVideoJob(jobId, reservationId, meta) {
         }
 
         UI.makeProgressDriver().done('Video generated!');
+
+        // Show effective settings confirmation with actual provider used
+        UI.showJobCompletedSettings({
+          provider: data.provider || 'google',
+          resolution: data.resolution || meta.resolution || '720p',
+          duration_seconds: data.duration_seconds || meta.duration_sec
+        });
+
         State.removeActiveJob(jobId);
         return;
       }
