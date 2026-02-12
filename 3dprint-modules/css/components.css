@@ -1138,6 +1138,72 @@ textarea {
   display: none;
 }
 
+/* ===== VIDEO PROVIDER SWITCHER ===== */
+.video-provider-card {
+  margin-bottom: 8px;
+}
+
+.video-provider-switcher {
+  display: flex;
+  width: 100%;
+  gap: 2px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.video-provider-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.video-provider-btn:hover:not(.is-active) {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.video-provider-btn.is-active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+  color: #fff;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.video-provider-btn:focus {
+  outline: none;
+}
+
+.video-provider-btn:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 1px;
+}
+
+.video-provider-btn svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.video-provider-btn.is-active svg {
+  opacity: 1;
+}
+
 /* Video style preset - compact inline layout */
 .timrx-3dprint .card .inline-field.video-style-row {
   margin-top: 12px;
