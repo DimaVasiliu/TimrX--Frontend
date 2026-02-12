@@ -453,6 +453,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 Veo
               </button>
+              <button type="button" class="video-provider-btn" data-provider="luma">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                Luma
+              </button>
               <button type="button" class="video-provider-btn" data-provider="runway">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>
                 Runway
@@ -480,14 +484,15 @@
             <div class="inline-field video-style-row">
               <label for="videoStylePreset">Style</label>
               <select id="videoStylePreset">
-                <option value="" selected>Auto</option>
-                <option value="cinematic">Cinematic</option>
+                <option value="auto" selected>Auto</option>
+                <option value="cinematic_realism">Cinematic Realism</option>
+                <option value="product_ad">Product Ad</option>
+                <option value="anime_motion">Anime Motion</option>
                 <option value="documentary">Documentary</option>
-                <option value="product">Product</option>
+                <option value="dreamlike_surreal">Dreamlike Surreal</option>
                 <option value="aerial">Aerial</option>
                 <option value="timelapse">Timelapse</option>
                 <option value="slow_motion">Slow-Mo</option>
-                <option value="anime">Anime</option>
                 <option value="noir">Noir</option>
               </select>
             </div>
@@ -555,11 +560,19 @@
                   <option value="portrait">9:16 Portrait</option>
                 </select>
               </div>
-              <div class="vs-setting">
+              <div class="vs-setting" id="videoQualityWrap">
                 <label for="videoQuality">Quality</label>
                 <select id="videoQuality">
                   <option value="720p" selected>Standard (HD)</option>
                   <option value="1080p">Pro (Full HD)</option>
+                </select>
+              </div>
+              <div class="vs-setting hidden" id="lumaQualityWrap">
+                <label for="lumaQualityTier">Quality</label>
+                <select id="lumaQualityTier">
+                  <option value="fast_preview">Fast Preview</option>
+                  <option value="studio_hd" selected>Studio HD</option>
+                  <option value="pro_full_hd">Pro Full HD</option>
                 </select>
               </div>
               <div class="vs-setting vs-setting-toggle">
@@ -1135,6 +1148,9 @@
       const videoMotion = leftStack.querySelector('#videoMotion');
       const videoAspectRatio = leftStack.querySelector('#videoAspectRatio');
       const videoQuality = leftStack.querySelector('#videoQuality');
+      const videoQualityWrap = leftStack.querySelector('#videoQualityWrap');
+      const lumaQualityTier = leftStack.querySelector('#lumaQualityTier');
+      const lumaQualityWrap = leftStack.querySelector('#lumaQualityWrap');
       const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
@@ -1147,17 +1163,41 @@
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
         '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
+      // Luma pricing by quality tier and duration
+      // Based on Luma's credit system with 2.5x margin + 5 buffer
+      const LUMA_CREDIT_COSTS = {
+        'fast_preview':  { 4: 115, 6: 170, 8: 225 },   // Ray2 Flash 720p
+        'studio_hd':     { 4: 325, 6: 485, 8: 645 },   // Ray2 720p
+        'pro_full_hd':   { 4: 345, 6: 515, 8: 685 }    // Ray2 1080p
+      };
       // Valid durations per resolution (Veo/Runway constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
         '1080p': [8]          // Pro: 8s only
       };
+      // Luma valid durations (all tiers support all durations)
+      const LUMA_VALID_DURATIONS = {
+        'fast_preview':  [4, 6, 8],
+        'studio_hd':     [4, 6, 8],
+        'pro_full_hd':   [4, 6, 8]
+      };
       // Time estimates by quality tier
       const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min' };
+      const LUMA_TIME_ESTIMATE = {
+        'fast_preview': '~1 min',
+        'studio_hd': '~2 min',
+        'pro_full_hd': '~3 min'
+      };
       // UI labels for resolution values
       const VIDEO_QUALITY_LABELS = {
         '720p': 'Standard (HD)',
         '1080p': 'Pro (Full HD)'
+      };
+      // Luma quality tier labels
+      const LUMA_QUALITY_LABELS = {
+        'fast_preview': 'Fast Preview',
+        'studio_hd': 'Studio HD',
+        'pro_full_hd': 'Pro Full HD'
       };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
@@ -1171,12 +1211,15 @@
        * @returns {Object} Video settings object
        */
       function getVideoSettingsFromUI() {
+        const provider = videoAIProvider?.value || 'veo';
         const durationRaw = videoDuration?.value || '4';
         // videoQuality now contains resolution (720p/1080p)
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
+        const qualityTierRaw = lumaQualityTier?.value || 'studio_hd';
 
-        return {
+        const settings = {
+          provider: provider,
           durationSec: parseInt(durationRaw, 10) || 4,
           resolution: resolutionRaw,
           quality: resolutionRaw,  // Keep for backwards compatibility
@@ -1186,19 +1229,44 @@
           loop: videoLoop?.checked ?? true,
           mode: videoModeValue?.value || 'text2video'
         };
+
+        // Add Luma-specific settings
+        if (provider === 'luma') {
+          settings.qualityTier = qualityTierRaw;
+        }
+
+        return settings;
       }
 
       /**
-       * Compute video credits based on resolution + duration
+       * Compute video credits based on provider + resolution/tier + duration
        * Uses backend-driven costs via WorkspaceCredits, falls back to hardcoded values
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
+        const provider = settings.provider || 'veo';
         const resolution = settings.resolution || '720p';
         const duration = settings.durationSec || 4;
         const mode = settings.mode || 'text2video';
+        const qualityTier = settings.qualityTier || 'studio_hd';
 
+        // Handle Luma pricing separately
+        if (provider === 'luma') {
+          // Try backend first
+          if (window.WorkspaceCredits?.getLumaCreditCost) {
+            return window.WorkspaceCredits.getLumaCreditCost(qualityTier, duration);
+          }
+          // Fallback to hardcoded Luma costs
+          const tierRules = LUMA_CREDIT_COSTS[qualityTier];
+          if (tierRules && tierRules[duration] !== undefined) {
+            return tierRules[duration];
+          }
+          // Default to studio_hd 4s
+          return LUMA_CREDIT_COSTS['studio_hd'][4] || 325;
+        }
+
+        // Veo/Runway pricing (existing logic)
         // Try to get cost from backend via WorkspaceCredits
         if (window.WorkspaceCredits?.getVideoCreditCost) {
           return window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
@@ -1250,18 +1318,31 @@
       }
 
       /**
-       * Update duration dropdown based on selected resolution
-       * Disables invalid durations for 1080p/4K
+       * Update duration dropdown based on selected resolution/quality tier
+       * Disables invalid durations for 1080p/4K (Veo) or validates Luma tiers
        */
       function updateDurationOptions() {
-        if (!videoDuration || !videoQuality) return;
+        if (!videoDuration) return;
 
-        const resolution = videoQuality.value || '720p';
-        const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
+        const provider = videoAIProvider?.value || 'veo';
+        let validDurations = [4, 6, 8];
+        let qualityLabel = 'Standard';
+
+        if (provider === 'luma') {
+          // Luma supports all durations for all quality tiers
+          const qualityTier = lumaQualityTier?.value || 'studio_hd';
+          validDurations = LUMA_VALID_DURATIONS[qualityTier] || [4, 6, 8];
+          qualityLabel = LUMA_QUALITY_LABELS[qualityTier] || 'Studio HD';
+        } else {
+          // Veo/Runway resolution-based constraints
+          const resolution = videoQuality?.value || '720p';
+          validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
+          qualityLabel = VIDEO_QUALITY_LABELS['720p'] || 'Standard';
+        }
+
         const currentDuration = parseInt(videoDuration.value, 10);
-        const qualityLabel = VIDEO_QUALITY_LABELS['720p'] || 'Standard';
 
-        // Enable/disable options based on resolution
+        // Enable/disable options based on provider constraints
         Array.from(videoDuration.options).forEach(opt => {
           const dur = parseInt(opt.value, 10);
           const isValid = validDurations.includes(dur);
@@ -1275,10 +1356,33 @@
           }
         });
 
-        // If current selection is invalid, switch to 8s
+        // If current selection is invalid, switch to first valid or 8s
         if (!validDurations.includes(currentDuration)) {
-          videoDuration.value = '8';
+          videoDuration.value = validDurations.includes(8) ? '8' : String(validDurations[0]);
         }
+      }
+
+      /**
+       * Update UI based on selected provider (Veo/Luma/Runway)
+       * Shows/hides provider-specific controls
+       */
+      function updateProviderUI() {
+        const provider = videoAIProvider?.value || 'veo';
+
+        if (provider === 'luma') {
+          // Show Luma quality tier, hide Veo quality
+          if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
+          if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
+        } else {
+          // Show Veo quality, hide Luma quality tier
+          if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
+          if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+        }
+
+        // Update duration options for new provider
+        updateDurationOptions();
+        // Update footer pricing
+        updateVideoFooter();
       }
 
       // Expose video settings and credits calculator globally
@@ -1304,14 +1408,19 @@
         // Update credits display
         videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
 
-        // Update time estimate based on resolution
+        // Update time estimate based on provider and quality
         if (videoGenTime) {
-          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
+          if (settings.provider === 'luma') {
+            videoGenTime.textContent = LUMA_TIME_ESTIMATE[settings.qualityTier] || '~2 min';
+          } else {
+            videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
+          }
         }
 
         // Update button attributes
         generateVideoBtn.title = `${totalCredits} credits`;
         generateVideoBtn.dataset.baseCredits = totalCredits;
+        generateVideoBtn.dataset.provider = settings.provider || 'veo';
         // Trigger workspace credits update if available
         if (window.WorkspaceCredits?.updateButtonCosts) {
           window.WorkspaceCredits.updateButtonCosts();
@@ -1399,18 +1508,26 @@
             // Update hidden input
             if (videoAIProvider) videoAIProvider.value = provider;
 
-            // Show/hide resolution options based on provider capabilities
-            // Vertex (Veo): 720p and 1080p (4K requires GCP allowlisting)
-            // Runway: 720p only (API generates at 1280x720 fixed)
-            if (videoQuality) {
-              const opts = videoQuality.querySelectorAll('option');
-              const resolutionHint = leftStack.querySelector('#videoResolutionHint');
+            // Show/hide quality controls based on provider
+            const resolutionHint = leftStack.querySelector('#videoResolutionHint');
 
-              opts.forEach(opt => {
-                const is1080p = opt.value === '1080p';
+            if (provider === 'luma') {
+              // Luma: show quality tier dropdown, hide resolution dropdown
+              if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
+              if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
 
-                if (provider === 'runway') {
-                  // Runway: 720p only (API generates at fixed 1280x720)
+              if (resolutionHint) {
+                resolutionHint.textContent = 'Luma Dream Machine - higher tiers use more credits.';
+              }
+            } else if (provider === 'runway') {
+              // Runway: show resolution dropdown (720p only)
+              if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
+              if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+
+              if (videoQuality) {
+                const opts = videoQuality.querySelectorAll('option');
+                opts.forEach(opt => {
+                  const is1080p = opt.value === '1080p';
                   if (is1080p) {
                     opt.disabled = true;
                     opt.style.display = 'none';
@@ -1418,25 +1535,32 @@
                     opt.disabled = false;
                     opt.style.display = '';
                   }
-                } else {
-                  // Vertex (Veo): 720p and 1080p available
-                  opt.disabled = false;
-                  opt.style.display = '';
-                }
-              });
+                });
 
-              // Reset to 720p if current selection is not available for provider
-              if (provider === 'runway' && videoQuality.value !== '720p') {
-                videoQuality.value = '720p';
+                // Reset to 720p if current selection is not available
+                if (videoQuality.value !== '720p') {
+                  videoQuality.value = '720p';
+                }
               }
 
-              // Update resolution hint based on provider
               if (resolutionHint) {
-                if (provider === 'runway') {
-                  resolutionHint.textContent = 'Runway generates at Standard (HD) quality.';
-                } else {
-                  resolutionHint.textContent = 'Higher quality uses more credits. Pro requires 8s duration.';
-                }
+                resolutionHint.textContent = 'Runway generates at Standard (HD) quality.';
+              }
+            } else {
+              // Veo: show resolution dropdown with all options
+              if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
+              if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+
+              if (videoQuality) {
+                const opts = videoQuality.querySelectorAll('option');
+                opts.forEach(opt => {
+                  opt.disabled = false;
+                  opt.style.display = '';
+                });
+              }
+
+              if (resolutionHint) {
+                resolutionHint.textContent = 'Higher quality uses more credits. Pro requires 8s duration.';
               }
             }
 
@@ -1450,7 +1574,7 @@
       }
 
       // Wire up video credits calculation on any option change
-      [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
+      [videoDuration, videoQuality, videoAspectRatio, videoLoop, lumaQualityTier].forEach(el => {
         if (el) {
           el.addEventListener('change', updateVideoFooter);
         }
@@ -1459,6 +1583,14 @@
       // When resolution changes, update valid duration options
       if (videoQuality) {
         videoQuality.addEventListener('change', () => {
+          updateDurationOptions();
+          updateVideoFooter();
+        });
+      }
+
+      // When Luma quality tier changes, update pricing
+      if (lumaQualityTier) {
+        lumaQualityTier.addEventListener('change', () => {
           updateDurationOptions();
           updateVideoFooter();
         });
