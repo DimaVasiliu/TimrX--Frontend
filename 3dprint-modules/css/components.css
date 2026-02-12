@@ -1240,6 +1240,234 @@ textarea {
   }
 }
 
+/* ===== VIDEO TAB COMPACT LAYOUT ===== */
+
+/* Header card with provider + mode switchers side by side */
+.video-header-card {
+  padding: 10px 12px !important;
+  margin-bottom: 4px;
+}
+
+.video-header-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Compact provider switcher */
+.video-provider-switcher.compact {
+  flex: 1;
+  max-width: 160px;
+  padding: 2px;
+  gap: 1px;
+}
+
+.video-provider-switcher.compact .video-provider-btn {
+  padding: 6px 10px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+.video-provider-switcher.compact .video-provider-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Compact mode switcher */
+.video-mode-switcher.compact {
+  flex: 1;
+  max-width: 140px;
+  margin: 0;
+  padding: 2px;
+  gap: 1px;
+}
+
+.video-mode-switcher.compact .video-mode-btn {
+  padding: 6px 10px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+.video-mode-switcher.compact .video-mode-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Video input card */
+.video-input-card {
+  padding: 12px !important;
+}
+
+.video-input-card textarea {
+  min-height: 60px;
+  max-height: 100px;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.video-input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 10px;
+}
+
+.video-input-footer .field-hint {
+  margin: 0;
+  flex: 1;
+}
+
+.video-input-footer .video-style-row {
+  margin: 0;
+  gap: 6px;
+}
+
+.video-input-footer .video-style-row select {
+  min-width: 80px !important;
+  max-width: 100px;
+  padding: 4px 20px 4px 6px;
+  font-size: 10px;
+}
+
+/* Compact image grid */
+.video-image-grid.compact {
+  grid-template-columns: 80px 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.video-image-grid.compact .video-drop-zone {
+  width: 80px;
+  height: 80px;
+  padding: 8px;
+}
+
+.video-image-grid.compact .video-drop-zone svg {
+  width: 20px;
+  height: 20px;
+}
+
+.video-image-grid.compact .video-drop-zone span {
+  font-size: 10px;
+}
+
+.video-image-grid.compact .video-preview-wrap {
+  height: 80px;
+}
+
+.video-motion-label {
+  margin-top: 6px;
+}
+
+/* Compact video settings */
+.video-settings-card.compact {
+  padding: 10px 12px !important;
+}
+
+.video-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.video-settings-header h3 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.video-settings-grid.inline {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.video-settings-grid.inline .video-grid-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.video-settings-grid.inline .video-grid-cell label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.video-settings-grid.inline .video-grid-cell select {
+  padding: 4px 18px 4px 6px;
+  font-size: 11px;
+  min-width: 50px;
+  background-size: 10px;
+}
+
+/* Compact motion section */
+.video-motion-section {
+  margin-bottom: 8px;
+}
+
+.video-motion-section .video-section-label {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.motion-preset-row.compact {
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.motion-preset-row.compact .motion-preset-btn {
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+}
+
+.video-motion-section textarea {
+  min-height: 40px;
+  max-height: 60px;
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+/* Video options row */
+.video-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.video-options-row .video-checkbox-label {
+  margin: 0;
+  font-size: 11px;
+}
+
+.video-options-row .field-hint {
+  margin: 0;
+  font-size: 10px;
+}
+
+/* Video generate footer - sticky */
+.video-gen-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.98) 0%, rgba(18, 18, 20, 0.98) 100%);
+  z-index: 10;
+}
+
 /* ===== CARD HEADER WITH INFO TOOLTIP ===== */
 .card-header-row {
   display: flex;
