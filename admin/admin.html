@@ -3407,10 +3407,25 @@
         }
 
         const r = await fetch(url, { headers: headers(), credentials: 'include' });
+
+        // Handle non-OK HTTP responses (503, 502, etc.)
+        if (!r.ok) {
+          let errorMsg = `HTTP ${r.status}: ${r.statusText || 'Service unavailable'}`;
+          try {
+            const errJson = await r.json();
+            errorMsg = typeof errJson.error === 'string' ? errJson.error : errJson.error?.message || errJson.message || errorMsg;
+          } catch (e) {
+            // Response wasn't JSON
+          }
+          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${errorMsg}</td></tr>`;
+          return;
+        }
+
         const j = await r.json();
 
         if (!j.ok) {
-          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${j.error || 'Failed to load'}</td></tr>`;
+          const errorMsg = typeof j.error === 'string' ? j.error : (j.error?.message || j.message || 'Failed to load');
+          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${errorMsg}</td></tr>`;
           return;
         }
 
