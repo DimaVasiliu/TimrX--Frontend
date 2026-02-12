@@ -556,9 +556,9 @@
             <div class="vs-control">
               <span class="vs-control-label">Quality</span>
               <select id="videoQuality">
-                <option value="720p" selected>720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
+                <option value="720p" selected>Standard (HD)</option>
+                <option value="1080p">Pro (Full HD)</option>
+                <option value="4k">Ultra (4K)</option>
               </select>
             </div>
             <button type="button" id="videoLoopBtn" class="vs-chip is-active" title="Loop playback">
@@ -571,7 +571,7 @@
           <!-- Custom Motion -->
           <div class="vs-custom">
             <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion..."></textarea>
-            <span class="vs-hint" id="videoResolutionHint">1080p/4K require 8s duration</span>
+            <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
           </div>
         </div>
 
