@@ -523,7 +523,7 @@
         <div class="card video-settings-card compact">
           <!-- Motion Presets -->
           <div class="vs-section">
-            <span class="vs-label">Motion</span>
+            <span class="vs-label">Camera Motion</span>
             <div id="videoMotionPresets" class="vs-presets">
               <button type="button" class="vs-preset is-active" data-preset="">None</button>
               <button type="button" class="vs-preset" data-preset="slow_pan">Pan</button>
@@ -536,41 +536,48 @@
             </div>
           </div>
 
-          <!-- Output Controls -->
-          <div class="vs-controls">
-            <div class="vs-control">
-              <span class="vs-control-label">Duration</span>
-              <select id="videoDuration">
-                <option value="4" selected>4s</option>
-                <option value="6">6s</option>
-                <option value="8">8s</option>
-              </select>
+          <!-- Output Settings Grid -->
+          <div class="vs-section">
+            <span class="vs-label">Output Settings</span>
+            <div class="vs-settings-grid">
+              <div class="vs-setting">
+                <label for="videoDuration">Duration</label>
+                <select id="videoDuration">
+                  <option value="4" selected>4 seconds</option>
+                  <option value="6">6 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+              <div class="vs-setting">
+                <label for="videoAspectRatio">Aspect Ratio</label>
+                <select id="videoAspectRatio">
+                  <option value="landscape" selected>16:9 Landscape</option>
+                  <option value="portrait">9:16 Portrait</option>
+                </select>
+              </div>
+              <div class="vs-setting">
+                <label for="videoQuality">Quality</label>
+                <select id="videoQuality">
+                  <option value="720p" selected>Standard (HD)</option>
+                  <option value="1080p">Pro (Full HD)</option>
+                </select>
+              </div>
+              <div class="vs-setting vs-setting-toggle">
+                <label>Playback</label>
+                <button type="button" id="videoLoopBtn" class="vs-toggle-btn is-active" title="Loop playback">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                  <span>Loop</span>
+                </button>
+                <input type="hidden" id="videoLoop" value="true">
+              </div>
             </div>
-            <div class="vs-control">
-              <span class="vs-control-label">Aspect</span>
-              <select id="videoAspectRatio">
-                <option value="landscape" selected>16:9</option>
-                <option value="portrait">9:16</option>
-              </select>
-            </div>
-            <div class="vs-control">
-              <span class="vs-control-label">Quality</span>
-              <select id="videoQuality">
-                <option value="720p" selected>Standard (HD)</option>
-                <option value="1080p">Pro (Full HD)</option>
-              </select>
-            </div>
-            <button type="button" id="videoLoopBtn" class="vs-chip is-active" title="Loop playback">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-              Loop
-            </button>
-            <input type="hidden" id="videoLoop" value="true">
+            <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
           </div>
 
           <!-- Custom Motion -->
-          <div class="vs-custom">
-            <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion..."></textarea>
-            <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
+          <div class="vs-section vs-custom-section">
+            <span class="vs-label">Custom Motion <span class="vs-optional">(optional)</span></span>
+            <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion, e.g. 'slow zoom into the subject'"></textarea>
           </div>
         </div>
 
