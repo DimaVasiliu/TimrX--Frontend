@@ -1363,7 +1363,7 @@ textarea {
 
 /* Compact video settings */
 .video-settings-card.compact {
-  padding: 10px 12px !important;
+  padding: 8px 10px !important;
 }
 
 .video-settings-header {
@@ -1446,29 +1446,33 @@ textarea {
   margin-bottom: 12px;
 }
 
+.vs-section:last-child {
+  margin-bottom: 0;
+}
+
 .vs-label {
   display: block;
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
 }
 
 /* Motion Presets - pill buttons */
 .vs-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .vs-preset {
-  padding: 5px 10px;
+  padding: 4px 9px;
   font-size: 11px;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
@@ -1487,7 +1491,96 @@ textarea {
   color: #fff;
 }
 
-/* Output Controls Row */
+/* Output Settings Grid - 2x2 layout */
+.vs-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vs-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vs-setting label {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.vs-setting select {
+  width: 100%;
+  padding: 8px 24px 8px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  background-size: 10px;
+  background-position: right 8px center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vs-setting select:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.vs-setting select:focus {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+}
+
+/* Toggle Button (Loop) */
+.vs-setting-toggle {
+  justify-content: flex-start;
+}
+
+.vs-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vs-toggle-btn svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+
+.vs-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.vs-toggle-btn.is-active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(139, 92, 246, 0.15));
+  border-color: rgba(14, 165, 233, 0.4);
+  color: #fff;
+}
+
+.vs-toggle-btn.is-active svg {
+  opacity: 1;
+}
+
+/* Legacy controls (kept for backwards compatibility) */
 .vs-controls {
   display: flex;
   align-items: flex-end;
@@ -1518,7 +1611,7 @@ textarea {
   background-size: 10px;
 }
 
-/* Loop Chip Button */
+/* Loop Chip Button (legacy) */
 .vs-chip {
   display: inline-flex;
   align-items: center;
@@ -1557,18 +1650,57 @@ textarea {
   opacity: 1;
 }
 
-/* Custom Motion Textarea */
+/* Custom Motion Section */
+.vs-custom-section textarea {
+  width: 100%;
+  min-height: 36px;
+  max-height: 60px;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  resize: vertical;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.15s ease;
+}
+
+.vs-custom-section textarea:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.vs-custom-section textarea:focus {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+}
+
+.vs-custom-section textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+}
+
+/* Optional label styling */
+.vs-optional {
+  font-weight: 400;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Legacy Custom Motion Textarea */
 .vs-custom {
   margin-top: 4px;
 }
 
 .vs-custom textarea {
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   max-height: 60px;
   font-size: 11px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   resize: vertical;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1581,9 +1713,10 @@ textarea {
 
 .vs-hint {
   display: block;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
-  margin-top: 8px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 6px;
+  line-height: 1.3;
 }
 
 /* Video generate footer - sticky */
@@ -2018,11 +2151,10 @@ textarea {
   display: none;
 }
 
-/* Video Settings card - scrollable */
+/* Video Settings card */
 .video-settings-card {
-  max-height: 480px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-height: none;
+  overflow: visible;
 }
 
 /* Custom scrollbar for video settings */
