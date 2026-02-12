@@ -93,6 +93,107 @@ export function makeProgressDriver() {
 }
 
 // ============================================================================
+// TOAST NOTIFICATIONS
+// ============================================================================
+
+/**
+ * Show a toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - 'success', 'error', 'info', or 'settings'
+ * @param {number} duration - Auto-dismiss duration in ms (default 4000)
+ */
+export function toast(message, type = 'info', duration = 4000) {
+  // Get or create toast container
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  // Create toast element
+  const toastEl = document.createElement('div');
+  toastEl.className = `toast toast-${type}`;
+  toastEl.setAttribute('role', 'alert');
+  toastEl.innerHTML = `
+    <span class="toast-message">${message}</span>
+    <button class="toast-close" aria-label="Dismiss">&times;</button>
+  `;
+
+  container.appendChild(toastEl);
+
+  // Close button handler
+  const closeBtn = toastEl.querySelector('.toast-close');
+  closeBtn?.addEventListener('click', () => dismissToast(toastEl));
+
+  // Trigger entrance animation
+  requestAnimationFrame(() => {
+    toastEl.classList.add('show');
+  });
+
+  // Auto-dismiss
+  if (duration > 0) {
+    setTimeout(() => dismissToast(toastEl), duration);
+  }
+
+  return toastEl;
+}
+
+function dismissToast(toastEl) {
+  if (!toastEl || toastEl.classList.contains('dismissing')) return;
+  toastEl.classList.add('dismissing');
+  toastEl.classList.remove('show');
+  setTimeout(() => toastEl.remove(), 300);
+}
+
+// ============================================================================
+// EFFECTIVE SETTINGS DISPLAY
+// ============================================================================
+
+const QUALITY_LABELS = {
+  '720p': 'Standard (HD)',
+  '1080p': 'Pro (Full HD)',
+  '4k': 'Ultra (4K)'
+};
+
+/**
+ * Show effective settings when a video job is created
+ * @param {Object} params - Job parameters (resolution, duration_seconds, aspect_ratio)
+ */
+export function showJobCreatedSettings(params) {
+  const resolution = params.resolution || '720p';
+  const duration = params.duration_seconds || 6;
+  const aspect = params.aspect_ratio || '16:9';
+  const qualityLabel = QUALITY_LABELS[resolution.toLowerCase()] || resolution;
+
+  const message = `Video queued • ${qualityLabel} • ${duration}s • ${aspect}`;
+  toast(message, 'settings', 3000);
+}
+
+/**
+ * Show effective settings when a video job completes
+ * @param {Object} data - Completion data (provider, resolution, duration_seconds)
+ */
+export function showJobCompletedSettings(data) {
+  const provider = data.provider || 'google';
+  const resolution = data.resolution || '720p';
+  const qualityLabel = QUALITY_LABELS[resolution.toLowerCase()] || resolution;
+
+  // Provider display names
+  const providerNames = {
+    'vertex': 'Veo',
+    'google': 'Veo',
+    'runway': 'Runway',
+    'ai_studio': 'AI Studio'
+  };
+  const providerLabel = providerNames[provider.toLowerCase()] || provider;
+
+  const message = `Generated: ${qualityLabel} • ${providerLabel}`;
+  toast(message, 'success', 5000);
+}
+
+// ============================================================================
 // NICE SELECT INITIALIZATION
 // ============================================================================
 
