@@ -442,7 +442,28 @@
   
       video: `
         <input type="hidden" id="videoModeValue" value="text2video" />
-        <input type="hidden" id="videoAIProvider" value="google" />
+        <input type="hidden" id="videoAIProvider" value="veo" />
+
+        <!-- Provider Selector -->
+        <div class="card video-provider-card">
+          <label class="video-section-label">Video Provider</label>
+          <div class="video-provider-switcher" id="videoProviderSwitcher">
+            <button type="button" class="video-provider-btn is-active" data-provider="veo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              Veo (Google)
+            </button>
+            <button type="button" class="video-provider-btn" data-provider="runway">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+                <path d="M4 4h16v16H4z"/>
+                <path d="M9 9l6 3-6 3V9z" fill="currentColor"/>
+              </svg>
+              Runway
+            </button>
+          </div>
+          <span class="field-hint">Veo: HD/4K with fallback. Runway: Fast Gen-4 models.</span>
+        </div>
 
         <!-- Text-to-Video: Prompt input -->
         <div class="card video-mode-content" id="text2videoContent">
@@ -1393,6 +1414,51 @@
           });
         });
       });
+
+      // Video provider switcher
+      const videoProviderSwitcher = leftStack.querySelector('#videoProviderSwitcher');
+      if (videoProviderSwitcher) {
+        const providerButtons = videoProviderSwitcher.querySelectorAll('.video-provider-btn');
+        providerButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const provider = this.dataset.provider;
+
+            // Update active state
+            providerButtons.forEach(b => b.classList.remove('is-active'));
+            this.classList.add('is-active');
+
+            // Update hidden input
+            if (videoAIProvider) videoAIProvider.value = provider;
+
+            // Show/hide resolution options based on provider
+            // Runway doesn't support 1080p/4K, only 720p equivalent
+            if (videoQuality) {
+              const opts = videoQuality.querySelectorAll('option');
+              opts.forEach(opt => {
+                if (provider === 'runway') {
+                  // Runway: disable 1080p and 4K options
+                  opt.disabled = opt.value !== '720p';
+                  if (opt.value !== '720p') opt.style.display = 'none';
+                } else {
+                  // Veo: all resolutions available
+                  opt.disabled = false;
+                  opt.style.display = '';
+                }
+              });
+              // Reset to 720p if current selection is disabled
+              if (provider === 'runway' && videoQuality.value !== '720p') {
+                videoQuality.value = '720p';
+              }
+            }
+
+            // Update footer and duration options
+            updateDurationOptions();
+            updateVideoFooter();
+
+            console.log('[Video] Provider switched to:', provider);
+          });
+        });
+      }
 
       // Wire up video credits calculation on any option change
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
