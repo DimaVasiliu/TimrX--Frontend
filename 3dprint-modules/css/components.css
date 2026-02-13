@@ -1242,74 +1242,81 @@ textarea {
 
 /* ===== VIDEO TAB COMPACT LAYOUT ===== */
 
-/* Header card with provider + mode switchers side by side */
+/* Header card with provider + mode switchers */
 .video-header-card {
-  padding: 10px 12px !important;
+  padding: 8px 10px !important;
   margin-bottom: 4px;
 }
 
 .video-header-row {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* Compact provider switcher */
 .video-provider-switcher.compact {
-  flex: 1;
-  max-width: 160px;
+  width: 100%;
   padding: 2px;
-  gap: 1px;
+  gap: 2px;
+  min-height: 30px;
 }
 
 .video-provider-switcher.compact .video-provider-btn {
-  padding: 6px 10px;
-  font-size: 11px;
-  gap: 4px;
+  padding: 5px 8px;
+  font-size: 10.5px;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
 
 .video-provider-switcher.compact .video-provider-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
 }
 
 /* Compact mode switcher */
 .video-mode-switcher.compact {
-  flex: 1;
-  max-width: 140px;
+  width: 100%;
   margin: 0;
   padding: 2px;
-  gap: 1px;
+  gap: 2px;
+  min-height: 28px;
 }
 
 .video-mode-switcher.compact .video-mode-btn {
-  padding: 6px 10px;
-  font-size: 11px;
+  padding: 5px 10px;
+  font-size: 10.5px;
   gap: 4px;
+  flex: 1;
 }
 
 .video-mode-switcher.compact .video-mode-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
 }
 
 /* Video input card */
 .video-input-card {
-  padding: 12px !important;
+  padding: 10px 12px !important;
+  margin-bottom: 4px;
 }
 
 .video-input-card textarea {
-  min-height: 60px;
-  max-height: 100px;
-  font-size: 13px;
+  min-height: 65px;
+  max-height: 110px;
+  font-size: 12.5px;
   resize: vertical;
+  line-height: 1.5;
 }
 
 .video-input-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 6px;
   margin-top: 8px;
   gap: 10px;
 }
