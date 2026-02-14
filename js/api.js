@@ -2680,10 +2680,8 @@ export async function startVideoGeneration() {
           prompt: motion || prompt,
           duration_sec: settings.durationSec,
           aspect_ratio: settings.aspectRatio,
-          quality_tier: settings.qualityTier,
-          style_preset: stylePreset || undefined,
-          motion_preset: motionPreset || undefined,
-          custom_motion: motion || undefined,
+          resolution: settings.resolution,
+          concept: settings.concept || 'auto',
           loop: settings.loop
         };
       } else {
@@ -2700,10 +2698,8 @@ export async function startVideoGeneration() {
           prompt: prompt,
           duration_sec: settings.durationSec,
           aspect_ratio: settings.aspectRatio,
-          quality_tier: settings.qualityTier,
-          style_preset: stylePreset || undefined,
-          motion_preset: motionPreset || undefined,
-          custom_motion: motion || undefined,
+          resolution: settings.resolution,
+          concept: settings.concept || 'auto',
           loop: settings.loop
         };
       }
