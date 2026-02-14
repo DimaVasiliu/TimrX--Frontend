@@ -284,7 +284,12 @@ main.page p {
 .hero {
   min-height: 100vh;
   min-height: 100svh;
-  padding-top: calc(var(--navH) + 48px); /* More space below nav */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: calc(var(--navH) + 18px);
+  margin-top: 90px;
   padding-bottom: clamp(32px, 6vh, 48px);
   gap: clamp(20px, 4vw, 32px);
   max-width: 100vw;
