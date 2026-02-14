@@ -568,11 +568,17 @@
                 </select>
               </div>
               <div class="vs-setting hidden" id="lumaQualityWrap">
-                <label for="lumaQualityTier">Quality</label>
+                <label for="lumaQualityTier">Resolution</label>
                 <select id="lumaQualityTier">
-                  <option value="fast_preview">Fast Preview</option>
-                  <option value="studio_hd" selected>Studio HD</option>
-                  <option value="pro_full_hd">Pro Full HD</option>
+                  <option value="540p">Fast (540p)</option>
+                  <option value="720p" selected>Standard (720p)</option>
+                  <option value="1080p">Pro (1080p)</option>
+                </select>
+              </div>
+              <div class="vs-setting hidden" id="lumaConceptWrap">
+                <label for="lumaConceptSelect">Style Concept</label>
+                <select id="lumaConceptSelect">
+                  <option value="auto">Auto (Default)</option>
                 </select>
               </div>
               <div class="vs-setting vs-setting-toggle">
@@ -1151,6 +1157,8 @@
       const videoQualityWrap = leftStack.querySelector('#videoQualityWrap');
       const lumaQualityTier = leftStack.querySelector('#lumaQualityTier');
       const lumaQualityWrap = leftStack.querySelector('#lumaQualityWrap');
+      const lumaConceptSelect = leftStack.querySelector('#lumaConceptSelect');
+      const lumaConceptWrap = leftStack.querySelector('#lumaConceptWrap');
       const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
@@ -1227,6 +1235,11 @@
           loop: videoLoop?.checked ?? true,
           mode: videoModeValue?.value || 'text2video'
         };
+
+        // Add Luma-specific settings
+        if (provider === 'luma') {
+          settings.concept = lumaConceptSelect?.value || 'auto';
+        }
 
         return settings;
       }
@@ -1362,13 +1375,15 @@
         const provider = videoAIProvider?.value || 'veo';
 
         if (provider === 'luma') {
-          // Show Luma quality tier, hide Veo quality
+          // Show Luma resolution and concepts, hide Veo quality
           if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
           if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
+          if (lumaConceptWrap) lumaConceptWrap.classList.remove('hidden');
         } else {
-          // Show Veo quality, hide Luma quality tier
+          // Show Veo quality, hide Luma resolution and concepts
           if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
           if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+          if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
         }
 
         // Update duration options for new provider
@@ -1504,17 +1519,19 @@
             const resolutionHint = leftStack.querySelector('#videoResolutionHint');
 
             if (provider === 'luma') {
-              // Luma: show quality tier dropdown, hide resolution dropdown
+              // Luma: show resolution and concept dropdowns, hide Veo quality
               if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
               if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
+              if (lumaConceptWrap) lumaConceptWrap.classList.remove('hidden');
 
               if (resolutionHint) {
-                resolutionHint.textContent = 'Luma Dream Machine - higher tiers use more credits.';
+                resolutionHint.textContent = 'Luma Dream Machine - higher resolutions use more credits.';
               }
             } else if (provider === 'runway') {
               // Runway: show resolution dropdown (720p only)
               if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
               if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+              if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
 
               if (videoQuality) {
                 const opts = videoQuality.querySelectorAll('option');
@@ -1542,6 +1559,7 @@
               // Veo: show resolution dropdown with all options
               if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
               if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
+              if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
 
               if (videoQuality) {
                 const opts = videoQuality.querySelectorAll('option');
@@ -1580,13 +1598,49 @@
         });
       }
 
-      // When Luma quality tier changes, update pricing
+      // When Luma resolution changes, update pricing and durations
       if (lumaQualityTier) {
         lumaQualityTier.addEventListener('change', () => {
           updateDurationOptions();
           updateVideoFooter();
         });
       }
+
+      // Fetch and populate Luma Concepts
+      async function fetchLumaConcepts() {
+        if (!lumaConceptSelect) return;
+
+        try {
+          const response = await fetch(`${API_URL}/api/video/luma/concepts`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const concepts = data.concepts || [];
+
+            // Clear existing options except "Auto"
+            lumaConceptSelect.innerHTML = '<option value="auto">Auto (Default)</option>';
+
+            // Add concepts from API
+            concepts.forEach(concept => {
+              const option = document.createElement('option');
+              option.value = concept.id;
+              option.textContent = concept.name || concept.id;
+              if (concept.description) {
+                option.title = concept.description;
+              }
+              lumaConceptSelect.appendChild(option);
+            });
+          }
+        } catch (err) {
+          console.warn('[Luma] Failed to fetch concepts:', err);
+        }
+      }
+
+      // Fetch concepts on page load
+      fetchLumaConcepts();
 
       // Initialize duration options based on default resolution
       updateDurationOptions();
