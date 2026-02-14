@@ -1163,41 +1163,40 @@
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
         '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
-      // Luma pricing by quality tier and duration
-      // Based on Luma's credit system with 2.5x margin + 5 buffer
+      // Luma pricing by resolution and duration (5s and 10s only)
       const LUMA_CREDIT_COSTS = {
-        'fast_preview':  { 4: 115, 6: 170, 8: 225 },   // Ray2 Flash 720p
-        'studio_hd':     { 4: 325, 6: 485, 8: 645 },   // Ray2 720p
-        'pro_full_hd':   { 4: 345, 6: 515, 8: 685 }    // Ray2 1080p
+        '540p':  { 5: 65, 10: 130 },    // Ray2 Flash 540p
+        '720p':  { 5: 115, 10: 225 },   // Ray2 720p
+        '1080p': { 5: 255, 10: 505 }    // Ray2 1080p
       };
       // Valid durations per resolution (Veo/Runway constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
         '1080p': [8]          // Pro: 8s only
       };
-      // Luma valid durations (all tiers support all durations)
+      // Luma valid durations (5s and 10s only - Luma's actual supported values)
       const LUMA_VALID_DURATIONS = {
-        'fast_preview':  [4, 6, 8],
-        'studio_hd':     [4, 6, 8],
-        'pro_full_hd':   [4, 6, 8]
+        '540p':  [5, 10],
+        '720p':  [5, 10],
+        '1080p': [5, 10]
       };
       // Time estimates by quality tier
       const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min' };
       const LUMA_TIME_ESTIMATE = {
-        'fast_preview': '~1 min',
-        'studio_hd': '~2 min',
-        'pro_full_hd': '~3 min'
+        '540p': '~1 min',
+        '720p': '~2 min',
+        '1080p': '~3 min'
       };
       // UI labels for resolution values
       const VIDEO_QUALITY_LABELS = {
         '720p': 'Standard (HD)',
         '1080p': 'Pro (Full HD)'
       };
-      // Luma quality tier labels
-      const LUMA_QUALITY_LABELS = {
-        'fast_preview': 'Fast Preview',
-        'studio_hd': 'Studio HD',
-        'pro_full_hd': 'Pro Full HD'
+      // Luma resolution labels
+      const LUMA_RESOLUTION_LABELS = {
+        '540p': 'Fast (540p)',
+        '720p': 'Standard (720p)',
+        '1080p': 'Pro (1080p)'
       };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
@@ -1212,15 +1211,14 @@
        */
       function getVideoSettingsFromUI() {
         const provider = videoAIProvider?.value || 'veo';
-        const durationRaw = videoDuration?.value || '4';
-        // videoQuality now contains resolution (720p/1080p)
+        const durationRaw = videoDuration?.value || '5';
+        // videoQuality now contains resolution (720p/1080p for Veo, 540p/720p/1080p for Luma)
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
-        const qualityTierRaw = lumaQualityTier?.value || 'studio_hd';
 
         const settings = {
           provider: provider,
-          durationSec: parseInt(durationRaw, 10) || 4,
+          durationSec: parseInt(durationRaw, 10) || (provider === 'luma' ? 5 : 4),
           resolution: resolutionRaw,
           quality: resolutionRaw,  // Keep for backwards compatibility
           aspect: aspectRaw,
@@ -1229,11 +1227,6 @@
           loop: videoLoop?.checked ?? true,
           mode: videoModeValue?.value || 'text2video'
         };
-
-        // Add Luma-specific settings
-        if (provider === 'luma') {
-          settings.qualityTier = qualityTierRaw;
-        }
 
         return settings;
       }
@@ -1249,21 +1242,20 @@
         const resolution = settings.resolution || '720p';
         const duration = settings.durationSec || 4;
         const mode = settings.mode || 'text2video';
-        const qualityTier = settings.qualityTier || 'studio_hd';
 
-        // Handle Luma pricing separately
+        // Handle Luma pricing separately (resolution-based, 5s/10s only)
         if (provider === 'luma') {
           // Try backend first
           if (window.WorkspaceCredits?.getLumaCreditCost) {
-            return window.WorkspaceCredits.getLumaCreditCost(qualityTier, duration);
+            return window.WorkspaceCredits.getLumaCreditCost(resolution, duration);
           }
           // Fallback to hardcoded Luma costs
-          const tierRules = LUMA_CREDIT_COSTS[qualityTier];
-          if (tierRules && tierRules[duration] !== undefined) {
-            return tierRules[duration];
+          const resRules = LUMA_CREDIT_COSTS[resolution];
+          if (resRules && resRules[duration] !== undefined) {
+            return resRules[duration];
           }
-          // Default to studio_hd 4s
-          return LUMA_CREDIT_COSTS['studio_hd'][4] || 325;
+          // Default to 720p 5s
+          return LUMA_CREDIT_COSTS['720p'][5] || 115;
         }
 
         // Veo/Runway pricing (existing logic)
@@ -1319,7 +1311,7 @@
 
       /**
        * Update duration dropdown based on selected resolution/quality tier
-       * Disables invalid durations for 1080p/4K (Veo) or validates Luma tiers
+       * Disables invalid durations for 1080p/4K (Veo) or validates Luma resolutions
        */
       function updateDurationOptions() {
         if (!videoDuration) return;
@@ -1329,10 +1321,10 @@
         let qualityLabel = 'Standard';
 
         if (provider === 'luma') {
-          // Luma supports all durations for all quality tiers
-          const qualityTier = lumaQualityTier?.value || 'studio_hd';
-          validDurations = LUMA_VALID_DURATIONS[qualityTier] || [4, 6, 8];
-          qualityLabel = LUMA_QUALITY_LABELS[qualityTier] || 'Studio HD';
+          // Luma supports 5s and 10s only (Luma's actual supported durations)
+          const resolution = videoQuality?.value || '720p';
+          validDurations = LUMA_VALID_DURATIONS[resolution] || [5, 10];
+          qualityLabel = LUMA_RESOLUTION_LABELS[resolution] || 'Standard (720p)';
         } else {
           // Veo/Runway resolution-based constraints
           const resolution = videoQuality?.value || '720p';
@@ -1411,7 +1403,7 @@
         // Update time estimate based on provider and quality
         if (videoGenTime) {
           if (settings.provider === 'luma') {
-            videoGenTime.textContent = LUMA_TIME_ESTIMATE[settings.qualityTier] || '~2 min';
+            videoGenTime.textContent = LUMA_TIME_ESTIMATE[settings.resolution] || '~2 min';
           } else {
             videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
           }
