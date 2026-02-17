@@ -184,7 +184,6 @@ export function showJobCompletedSettings(data) {
   const providerNames = {
     'vertex': 'Veo',
     'google': 'Veo',
-    'runway': 'Runway',
     'ai_studio': 'AI Studio'
   };
   const providerLabel = providerNames[provider.toLowerCase()] || provider;
