@@ -1182,6 +1182,16 @@
           mode: videoModeValue?.value || 'text2video'
         };
 
+        // DEBUG: Log settings on every read
+        console.log('[VIDEO DEBUG] getVideoSettingsFromUI:', {
+          durationRaw,
+          resolutionRaw,
+          durationSec: settings.durationSec,
+          resolution: settings.resolution,
+          videoDurationElement: videoDuration,
+          videoQualityElement: videoQuality
+        });
+
         return settings;
       }
 
@@ -1196,25 +1206,43 @@
         const duration = settings.durationSec || 4;
         const mode = settings.mode || 'text2video';
 
-        // Veo/Runway pricing (existing logic)
+        let cost = null;
+        let source = 'unknown';
+
         // Try to get cost from backend via WorkspaceCredits
         if (window.WorkspaceCredits?.getVideoCreditCost) {
-          return window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
+          cost = window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
+          source = 'WorkspaceCredits';
         }
 
-        // Fallback to hardcoded rules if WorkspaceCredits not available
-        const resRules = VIDEO_CREDIT_RULES_FALLBACK[resolution];
-        if (resRules && resRules[duration] !== undefined) {
-          return resRules[duration];
+        // Fallback to hardcoded rules if WorkspaceCredits not available or returned null
+        if (cost === null || cost === undefined) {
+          const resRules = VIDEO_CREDIT_RULES_FALLBACK[resolution];
+          if (resRules && resRules[duration] !== undefined) {
+            cost = resRules[duration];
+            source = 'fallback-exact';
+          } else if (resRules && resRules[8] !== undefined) {
+            // Duration not valid for resolution, use 8s cost
+            cost = resRules[8];
+            source = 'fallback-8s';
+          } else {
+            // Ultimate fallback: minimum 720p 4s cost
+            cost = 70;
+            source = 'fallback-default';
+          }
         }
 
-        // Fallback: if duration not valid for resolution, use 8s cost
-        if (resRules && resRules[8] !== undefined) {
-          return resRules[8];
-        }
+        // DEBUG: Log credit computation
+        console.log('[VIDEO DEBUG] computeVideoCredits:', {
+          resolution,
+          duration,
+          mode,
+          cost,
+          source,
+          fallbackRules: VIDEO_CREDIT_RULES_FALLBACK
+        });
 
-        // Ultimate fallback: minimum 720p 4s cost
-        return 70;
+        return cost;
       }
 
       /**
@@ -1254,25 +1282,21 @@
       function updateDurationOptions() {
         if (!videoDuration) return;
 
-        const provider = videoAIProvider?.value || 'veo';
-        let validDurations = [4, 6, 8];
-        let qualityLabel = 'Standard';
+        // Veo resolution-based constraints
+        const resolution = videoQuality?.value || '720p';
+        const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
+        const qualityLabel = VIDEO_QUALITY_LABELS[resolution] || 'Standard (HD)';
 
-        if (provider === 'luma') {
-          // Luma supports 5s and 10s only (Luma's actual supported durations)
-          const resolution = videoQuality?.value || '720p';
-          validDurations = LUMA_VALID_DURATIONS[resolution] || [5, 10];
-          qualityLabel = LUMA_RESOLUTION_LABELS[resolution] || 'Standard (720p)';
-        } else {
-          // Veo/Runway resolution-based constraints
-          const resolution = videoQuality?.value || '720p';
-          validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
-          qualityLabel = VIDEO_QUALITY_LABELS['720p'] || 'Standard';
-        }
+        console.log('[VIDEO DEBUG] updateDurationOptions:', {
+          resolution,
+          validDurations,
+          qualityLabel,
+          currentDuration: videoDuration.value
+        });
 
         const currentDuration = parseInt(videoDuration.value, 10);
 
-        // Enable/disable options based on provider constraints
+        // Enable/disable options based on resolution constraints
         Array.from(videoDuration.options).forEach(opt => {
           const dur = parseInt(opt.value, 10);
           const isValid = validDurations.includes(dur);
@@ -1280,15 +1304,17 @@
 
           // Add visual hint for disabled options
           if (!isValid) {
-            opt.textContent = `${dur} sec (${qualityLabel} only)`;
+            opt.textContent = `${dur} sec (requires ${qualityLabel})`;
           } else {
             opt.textContent = `${dur} sec`;
           }
         });
 
-        // If current selection is invalid, switch to first valid or 8s
+        // If current selection is invalid, switch to 8s (or first valid)
         if (!validDurations.includes(currentDuration)) {
-          videoDuration.value = validDurations.includes(8) ? '8' : String(validDurations[0]);
+          const newDuration = validDurations.includes(8) ? '8' : String(validDurations[0]);
+          console.log('[VIDEO DEBUG] Forcing duration to:', newDuration);
+          videoDuration.value = newDuration;
         }
       }
 
@@ -1332,21 +1358,24 @@
        * Update the video footer UI (credits display, time estimate, button)
        */
       function updateVideoFooter() {
-        if (!videoCreditsDisplay || !generateVideoBtn) return;
+        console.log('[VIDEO DEBUG] updateVideoFooter called');
+
+        if (!videoCreditsDisplay || !generateVideoBtn) {
+          console.warn('[VIDEO DEBUG] Missing elements:', { videoCreditsDisplay, generateVideoBtn });
+          return;
+        }
 
         const settings = getVideoSettingsFromUI();
         const totalCredits = computeVideoCredits(settings);
 
+        console.log('[VIDEO DEBUG] Updating UI with credits:', totalCredits);
+
         // Update credits display
         videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
 
-        // Update time estimate based on provider and quality
+        // Update time estimate based on resolution (Veo only now)
         if (videoGenTime) {
-          if (settings.provider === 'luma') {
-            videoGenTime.textContent = LUMA_TIME_ESTIMATE[settings.resolution] || '~2 min';
-          } else {
-            videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
-          }
+          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
         }
 
         // Update button attributes
@@ -1509,63 +1538,31 @@
       }
 
       // Wire up video credits calculation on any option change
-      [videoDuration, videoQuality, videoAspectRatio, videoLoop, lumaQualityTier].forEach(el => {
+      [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
         if (el) {
-          el.addEventListener('change', updateVideoFooter);
+          el.addEventListener('change', () => {
+            console.log('[VIDEO DEBUG] Change event on:', el.id, '- value:', el.value);
+            updateVideoFooter();
+          });
         }
       });
 
       // When resolution changes, update valid duration options
       if (videoQuality) {
         videoQuality.addEventListener('change', () => {
+          console.log('[VIDEO DEBUG] Quality changed to:', videoQuality.value);
           updateDurationOptions();
           updateVideoFooter();
         });
       }
 
-      // When Luma resolution changes, update pricing and durations
-      if (lumaQualityTier) {
-        lumaQualityTier.addEventListener('change', () => {
-          updateDurationOptions();
+      // When duration changes, also update footer
+      if (videoDuration) {
+        videoDuration.addEventListener('change', () => {
+          console.log('[VIDEO DEBUG] Duration changed to:', videoDuration.value);
           updateVideoFooter();
         });
       }
-
-      // Fetch and populate Luma Concepts
-      async function fetchLumaConcepts() {
-        if (!lumaConceptSelect) return;
-
-        try {
-          const response = await fetch(`${API_URL}/api/video/luma/concepts`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const concepts = data.concepts || [];
-
-            // Clear existing options except "Auto"
-            lumaConceptSelect.innerHTML = '<option value="auto">Auto (Default)</option>';
-
-            // Add concepts from API
-            concepts.forEach(concept => {
-              const option = document.createElement('option');
-              option.value = concept.id;
-              option.textContent = concept.name || concept.id;
-              if (concept.description) {
-                option.title = concept.description;
-              }
-              lumaConceptSelect.appendChild(option);
-            });
-          }
-        } catch (err) {
-          console.warn('[Luma] Failed to fetch concepts:', err);
-        }
-      }
-
-      // Fetch concepts on page load
-      fetchLumaConcepts();
 
       // Initialize duration options based on default resolution
       updateDurationOptions();
