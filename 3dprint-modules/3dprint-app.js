@@ -441,180 +441,156 @@
       `,
   
       video: `
-        <input type="hidden" id="videoModeValue" value="text2video" />
-        <input type="hidden" id="videoAIProvider" value="veo" />
-        <input type="hidden" id="videoMotionPreset" value="" />
+      <input type="hidden" id="videoModeValue" value="text2video" />
+      <input type="hidden" id="videoAIProvider" value="veo" />
+      <input type="hidden" id="videoMotionPreset" value="" />
 
-        <!-- Header: Provider + Mode Selection -->
-        <div class="card video-header-card">
-          <div class="video-header-row">
-            <div class="video-provider-switcher compact" id="videoProviderSwitcher">
-              <button type="button" class="video-provider-btn is-active" data-provider="veo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                Veo
-              </button>
-              <button type="button" class="video-provider-btn" data-provider="luma">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                Luma
-              </button>
-              <button type="button" class="video-provider-btn" data-provider="runway">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>
-                Runway
-              </button>
-            </div>
-            <div class="video-mode-switcher compact" id="videoModeSwitcher">
-              <button type="button" class="video-mode-btn is-active" data-mode="text2video">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10"/></svg>
-                Text
-              </button>
-              <button type="button" class="video-mode-btn" data-mode="image2video">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
-                Image
-              </button>
+      <!-- Header: Provider + Mode Selection -->
+      <div class="card video-header-card">
+        <div class="video-header-row">
+          <div class="video-provider-label" id="videoProviderLabel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span>Veo 3.1</span>
+          </div>
+          <div class="video-mode-switcher compact" id="videoModeSwitcher">
+            <button type="button" class="video-mode-btn is-active" data-mode="text2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10"/></svg>
+              Text
+            </button>
+            <button type="button" class="video-mode-btn" data-mode="image2video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
+              Image
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text-to-Video: Prompt input -->
+      <div class="card video-mode-content video-input-card" id="text2videoContent">
+        <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
+        <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
+        <div class="video-input-footer">
+          <span class="field-hint">Keep prompts simple for best results.</span>
+          <div class="inline-field video-style-row">
+            <label for="videoStylePreset">Style</label>
+            <select id="videoStylePreset">
+              <option value="auto" selected>Auto</option>
+              <option value="cinematic_realism">Cinematic Realism</option>
+              <option value="product_ad">Product Ad</option>
+              <option value="anime_motion">Anime Motion</option>
+              <option value="documentary">Documentary</option>
+              <option value="dreamlike_surreal">Dreamlike Surreal</option>
+              <option value="aerial">Aerial</option>
+              <option value="timelapse">Timelapse</option>
+              <option value="slow_motion">Slow-Mo</option>
+              <option value="noir">Noir</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image-to-Video: Image upload -->
+      <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
+        <label for="videoSource" class="video-section-label">Reference Image</label>
+        <div class="video-image-grid compact">
+          <div id="videoImageDrop" class="video-drop-zone">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Upload</span>
+            <input type="file" id="videoSource" accept="image/*" hidden />
+          </div>
+          <div class="video-preview-wrap">
+            <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
+            <div class="video-preview-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
             </div>
           </div>
         </div>
+        <span class="field-hint">Upload an image to animate. Use motion settings below.</span>
+      </div>
 
-        <!-- Text-to-Video: Prompt input -->
-        <div class="card video-mode-content video-input-card" id="text2videoContent">
-          <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
-          <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
-          <div class="video-input-footer">
-            <span class="field-hint">Keep prompts simple for best results.</span>
-            <div class="inline-field video-style-row">
-              <label for="videoStylePreset">Style</label>
-              <select id="videoStylePreset">
-                <option value="auto" selected>Auto</option>
-                <option value="cinematic_realism">Cinematic Realism</option>
-                <option value="product_ad">Product Ad</option>
-                <option value="anime_motion">Anime Motion</option>
-                <option value="documentary">Documentary</option>
-                <option value="dreamlike_surreal">Dreamlike Surreal</option>
-                <option value="aerial">Aerial</option>
-                <option value="timelapse">Timelapse</option>
-                <option value="slow_motion">Slow-Mo</option>
-                <option value="noir">Noir</option>
+      <!-- Video Settings -->
+      <div class="card video-settings-card compact">
+        <!-- Motion Presets -->
+        <div class="vs-section">
+          <span class="vs-label">Camera Motion</span>
+          <div id="videoMotionPresets" class="vs-presets">
+            <button type="button" class="vs-preset is-active" data-preset="">None</button>
+            <button type="button" class="vs-preset" data-preset="slow_pan">Pan</button>
+            <button type="button" class="vs-preset" data-preset="parallax">Parallax</button>
+            <button type="button" class="vs-preset" data-preset="zoom_in">Zoom In</button>
+            <button type="button" class="vs-preset" data-preset="zoom_out">Zoom Out</button>
+            <button type="button" class="vs-preset" data-preset="orbit">Orbit</button>
+            <button type="button" class="vs-preset" data-preset="dolly">Dolly</button>
+            <button type="button" class="vs-preset" data-preset="tilt_up">Tilt</button>
+          </div>
+        </div>
+
+        <!-- Output Settings Grid -->
+        <div class="vs-section">
+          <span class="vs-label">Output Settings</span>
+          <div class="vs-settings-grid">
+            <div class="vs-setting">
+              <label for="videoDuration">Duration</label>
+              <select id="videoDuration">
+                <option value="4" selected>4 seconds</option>
+                <option value="6">6 seconds</option>
+                <option value="8">8 seconds</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        <!-- Image-to-Video: Image upload -->
-        <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
-          <label for="videoSource" class="video-section-label">Reference Image</label>
-          <div class="video-image-grid compact">
-            <div id="videoImageDrop" class="video-drop-zone">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Upload</span>
-              <input type="file" id="videoSource" accept="image/*" hidden />
+            <div class="vs-setting">
+              <label for="videoAspectRatio">Aspect Ratio</label>
+              <select id="videoAspectRatio">
+                <option value="landscape" selected>16:9 Landscape</option>
+                <option value="portrait">9:16 Portrait</option>
+              </select>
             </div>
-            <div class="video-preview-wrap">
-              <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
-              <div class="video-preview-placeholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <path d="M21 15l-5-5L5 21"/>
-                </svg>
-              </div>
+            <div class="vs-setting" id="videoQualityWrap">
+              <label for="videoQuality">Quality</label>
+              <select id="videoQuality">
+                <option value="720p" selected>Standard (HD)</option>
+                <option value="1080p">Pro (Full HD)</option>
+              </select>
+            </div>
+            <div class="vs-setting vs-setting-toggle">
+              <label>Playback</label>
+              <button type="button" id="videoLoopBtn" class="vs-toggle-btn is-active" title="Loop playback">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                <span>Loop</span>
+              </button>
+              <input type="hidden" id="videoLoop" value="true">
             </div>
           </div>
-          <span class="field-hint">Upload an image to animate. Use motion settings below.</span>
+          <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
         </div>
 
-        <!-- Video Settings -->
-        <div class="card video-settings-card compact">
-          <!-- Motion Presets -->
-          <div class="vs-section">
-            <span class="vs-label">Camera Motion</span>
-            <div id="videoMotionPresets" class="vs-presets">
-              <button type="button" class="vs-preset is-active" data-preset="">None</button>
-              <button type="button" class="vs-preset" data-preset="slow_pan">Pan</button>
-              <button type="button" class="vs-preset" data-preset="parallax">Parallax</button>
-              <button type="button" class="vs-preset" data-preset="zoom_in">Zoom In</button>
-              <button type="button" class="vs-preset" data-preset="zoom_out">Zoom Out</button>
-              <button type="button" class="vs-preset" data-preset="orbit">Orbit</button>
-              <button type="button" class="vs-preset" data-preset="dolly">Dolly</button>
-              <button type="button" class="vs-preset" data-preset="tilt_up">Tilt</button>
-            </div>
-          </div>
-
-          <!-- Output Settings Grid -->
-          <div class="vs-section">
-            <span class="vs-label">Output Settings</span>
-            <div class="vs-settings-grid">
-              <div class="vs-setting">
-                <label for="videoDuration">Duration</label>
-                <select id="videoDuration">
-                  <option value="4" selected>4 seconds</option>
-                  <option value="6">6 seconds</option>
-                  <option value="8">8 seconds</option>
-                </select>
-              </div>
-              <div class="vs-setting">
-                <label for="videoAspectRatio">Aspect Ratio</label>
-                <select id="videoAspectRatio">
-                  <option value="landscape" selected>16:9 Landscape</option>
-                  <option value="portrait">9:16 Portrait</option>
-                </select>
-              </div>
-              <div class="vs-setting" id="videoQualityWrap">
-                <label for="videoQuality">Quality</label>
-                <select id="videoQuality">
-                  <option value="720p" selected>Standard (HD)</option>
-                  <option value="1080p">Pro (Full HD)</option>
-                </select>
-              </div>
-              <div class="vs-setting hidden" id="lumaQualityWrap">
-                <label for="lumaQualityTier">Resolution</label>
-                <select id="lumaQualityTier">
-                  <option value="540p">Fast (540p)</option>
-                  <option value="720p" selected>Standard (720p)</option>
-                  <option value="1080p">Pro (1080p)</option>
-                </select>
-              </div>
-              <div class="vs-setting hidden" id="lumaConceptWrap">
-                <label for="lumaConceptSelect">Style Concept</label>
-                <select id="lumaConceptSelect">
-                  <option value="auto">Auto (Default)</option>
-                </select>
-              </div>
-              <div class="vs-setting vs-setting-toggle">
-                <label>Playback</label>
-                <button type="button" id="videoLoopBtn" class="vs-toggle-btn is-active" title="Loop playback">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-                  <span>Loop</span>
-                </button>
-                <input type="hidden" id="videoLoop" value="true">
-              </div>
-            </div>
-            <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
-          </div>
-
-          <!-- Custom Motion -->
-          <div class="vs-section vs-custom-section">
-            <span class="vs-label">Custom Motion <span class="vs-optional">(optional)</span></span>
-            <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion, e.g. 'slow zoom into the subject'"></textarea>
-          </div>
+        <!-- Custom Motion -->
+        <div class="vs-section vs-custom-section">
+          <span class="vs-label">Custom Motion <span class="vs-optional">(optional)</span></span>
+          <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion, e.g. 'slow zoom into the subject'"></textarea>
         </div>
+      </div>
 
-        <!-- Generate Button (sticky footer) -->
-        <div class="card gen-footer-card video-gen-footer">
-          <div class="gen-meta">
-            <span class="gen-time" id="videoGenTime">~2 min</span>
-            <span class="gen-divider">|</span>
-            <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
-          </div>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
-            <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Generate
-          </button>
+      <!-- Generate Button (sticky footer) -->
+      <div class="card gen-footer-card video-gen-footer">
+        <div class="gen-meta">
+          <span class="gen-time" id="videoGenTime">~2 min</span>
+          <span class="gen-divider">|</span>
+          <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
         </div>
-      `
-    };
-  
+        <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
+          <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          Generate
+        </button>
+      </div>
+    `
+  };
+
     /**
      * Injects the stack of cards for the selected tool and binds fresh events.
      * @param {string} panelType - Identifier of the tool that should be shown.
@@ -1155,14 +1131,9 @@
       const videoAspectRatio = leftStack.querySelector('#videoAspectRatio');
       const videoQuality = leftStack.querySelector('#videoQuality');
       const videoQualityWrap = leftStack.querySelector('#videoQualityWrap');
-      const lumaQualityTier = leftStack.querySelector('#lumaQualityTier');
-      const lumaQualityWrap = leftStack.querySelector('#lumaQualityWrap');
-      const lumaConceptSelect = leftStack.querySelector('#lumaConceptSelect');
-      const lumaConceptWrap = leftStack.querySelector('#lumaConceptWrap');
-      const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
-      // VIDEO: Pricing Constants (resolution + duration based)
+      // VIDEO: Pricing Constants (Veo only - resolution + duration based)
       // ========================================
       // Fallback credits by resolution and duration (used if backend unavailable)
       // Actual costs are fetched from backend via WorkspaceCredits
@@ -1171,40 +1142,17 @@
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
         '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
-      // Luma pricing by resolution and duration (5s and 10s only)
-      const LUMA_CREDIT_COSTS = {
-        '540p':  { 5: 65, 10: 130 },    // Ray2 Flash 540p
-        '720p':  { 5: 115, 10: 225 },   // Ray2 720p
-        '1080p': { 5: 255, 10: 505 }    // Ray2 1080p
-      };
-      // Valid durations per resolution (Veo/Runway constraints)
+      // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
         '1080p': [8]          // Pro: 8s only
       };
-      // Luma valid durations (5s and 10s only - Luma's actual supported values)
-      const LUMA_VALID_DURATIONS = {
-        '540p':  [5, 10],
-        '720p':  [5, 10],
-        '1080p': [5, 10]
-      };
       // Time estimates by quality tier
       const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min' };
-      const LUMA_TIME_ESTIMATE = {
-        '540p': '~1 min',
-        '720p': '~2 min',
-        '1080p': '~3 min'
-      };
       // UI labels for resolution values
       const VIDEO_QUALITY_LABELS = {
         '720p': 'Standard (HD)',
         '1080p': 'Pro (Full HD)'
-      };
-      // Luma resolution labels
-      const LUMA_RESOLUTION_LABELS = {
-        '540p': 'Fast (540p)',
-        '720p': 'Standard (720p)',
-        '1080p': 'Pro (1080p)'
       };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
@@ -1214,19 +1162,17 @@
       };
 
       /**
-       * Get current video settings from UI
+       * Get current video settings from UI (Veo only)
        * @returns {Object} Video settings object
        */
       function getVideoSettingsFromUI() {
-        const provider = videoAIProvider?.value || 'veo';
-        const durationRaw = videoDuration?.value || '5';
-        // videoQuality now contains resolution (720p/1080p for Veo, 540p/720p/1080p for Luma)
+        const durationRaw = videoDuration?.value || '4';
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
         const settings = {
-          provider: provider,
-          durationSec: parseInt(durationRaw, 10) || (provider === 'luma' ? 5 : 4),
+          provider: 'veo',
+          durationSec: parseInt(durationRaw, 10) || 4,
           resolution: resolutionRaw,
           quality: resolutionRaw,  // Keep for backwards compatibility
           aspect: aspectRaw,
@@ -1236,40 +1182,19 @@
           mode: videoModeValue?.value || 'text2video'
         };
 
-        // Add Luma-specific settings
-        if (provider === 'luma') {
-          settings.concept = lumaConceptSelect?.value || 'auto';
-        }
-
         return settings;
       }
 
       /**
-       * Compute video credits based on provider + resolution/tier + duration
+       * Compute video credits for Veo based on resolution + duration
        * Uses backend-driven costs via WorkspaceCredits, falls back to hardcoded values
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
-        const provider = settings.provider || 'veo';
         const resolution = settings.resolution || '720p';
         const duration = settings.durationSec || 4;
         const mode = settings.mode || 'text2video';
-
-        // Handle Luma pricing separately (resolution-based, 5s/10s only)
-        if (provider === 'luma') {
-          // Try backend first
-          if (window.WorkspaceCredits?.getLumaCreditCost) {
-            return window.WorkspaceCredits.getLumaCreditCost(resolution, duration);
-          }
-          // Fallback to hardcoded Luma costs
-          const resRules = LUMA_CREDIT_COSTS[resolution];
-          if (resRules && resRules[duration] !== undefined) {
-            return resRules[duration];
-          }
-          // Default to 720p 5s
-          return LUMA_CREDIT_COSTS['720p'][5] || 115;
-        }
 
         // Veo/Runway pricing (existing logic)
         // Try to get cost from backend via WorkspaceCredits
