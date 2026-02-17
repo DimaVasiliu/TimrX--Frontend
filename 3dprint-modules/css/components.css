@@ -1254,6 +1254,30 @@ textarea {
   gap: 6px;
 }
 
+/* Provider label (Veo-only display) */
+.video-provider-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.video-provider-label svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.video-provider-label span {
+  color: var(--text-primary, #fff);
+}
+
 /* Compact provider switcher */
 .video-provider-switcher.compact {
   width: 100%;
