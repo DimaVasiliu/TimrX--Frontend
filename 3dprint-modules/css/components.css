@@ -1488,7 +1488,7 @@ textarea {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 6px;
+  margin: 2px;
 }
 
 /* Motion Presets - pill buttons */
