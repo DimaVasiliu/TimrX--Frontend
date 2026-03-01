@@ -459,19 +459,13 @@
        ------------------------------ */
     window.addEventListener('load', () => {
       if (!hasGSAP) return;
-  
-      gsap.set('.hero-photo .portrait', { autoAlpha: 0, y: 20 });
-      gsap.set('#heroTitle',            { autoAlpha: 0, y: 30 });
-      gsap.set('.hero-list',            { autoAlpha: 0, y: 20 });
-      gsap.set('.hero-list li',         { autoAlpha: 0, y: 10 });
-      gsap.set('.hero-cta .btn',        { autoAlpha: 0, y: 8  });
-  
+
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.to('.hero-photo .portrait', { autoAlpha: 1, y: 0, duration: 0.7 })
-        .to('#heroTitle',            { autoAlpha: 1, y: 0, duration: 0.6 }, '-=0.2')
-        .to('.hero-list',            { autoAlpha: 1, y: 0, duration: 0.5 }, '-=0.3')
-        .to('.hero-list li',         { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.06 }, '-=0.1')
-        .to('.hero-cta .btn',        { autoAlpha: 1, y: 0, duration: 0.40, stagger: 0.06 }, '-=0.2');
+      tl.from('.hero-photo .portrait', { autoAlpha: 0.6, y: 20, duration: 0.7 })
+        .from('#heroTitle',            { y: 26, duration: 0.45 }, '-=0.25')
+        .from('.hero-list',            { y: 18, duration: 0.4 }, '-=0.28')
+        .from('.hero-list li',         { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18')
+        .from('.hero-cta .btn',        { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18');
   
       window.ScrollTrigger?.refresh();
     });
