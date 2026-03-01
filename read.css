@@ -1526,6 +1526,111 @@ blockquote cite {
   display: none;
 }
 
+/* Post Tags Section */
+.post-tags-section {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 24px 0;
+  border-top: 1px solid #1e1e1e;
+  margin-top: 8px;
+}
+
+.post-tags-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #555;
+  white-space: nowrap;
+}
+
+.post-tag {
+  display: inline-block;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid #272727;
+  background: transparent;
+  color: #999;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.post-tag:hover {
+  border-color: #444;
+  color: #ddd;
+}
+
+/* Author Box */
+.author-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  border: 1px solid #1e1e1e;
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 32px;
+  background: #111;
+}
+
+.author-box-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.author-box-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.author-box-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 6px;
+}
+
+.author-box-bio {
+  font-size: 14px;
+  color: #777;
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+.author-box-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.author-box-links a {
+  font-size: 13px;
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.author-box-links a:hover {
+  color: #f0f0f0;
+}
+
+@media (max-width: 540px) {
+  .author-box {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+  }
+  .author-box-links {
+    justify-content: center;
+  }
+}
+
 /* Toast Notification */
 .toast-notification {
   position: fixed;
