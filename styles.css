@@ -19,8 +19,8 @@
   --chat-glass: blur(18px) saturate(120%);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column;}
+html{scroll-behavior:smooth; overflow-x:hidden;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden;}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 .container{max-width:var(--maxw);margin:0 auto;padding:0 calc(var(--gutter));}
@@ -127,7 +127,7 @@ img{max-width:100%;display:block}
     min-height:100vh;
     display:flex;
     flex-direction:column;
-    justify-content:center;
+    justify-content:flex-start;
     align-items:center;
     padding-top:var(--hero-top-pad);
     padding-bottom:clamp(40px,8vh,90px);
@@ -189,7 +189,7 @@ img{max-width:100%;display:block}
   align-items:center;
   gap:12px;
   z-index:2;
-  margin-top:90px;
+  margin-top:clamp(20px, 4vh, 40px);
   opacity:0;
   animation:heroSlideIn 0.6s ease forwards 0.15s;
 }
@@ -223,12 +223,35 @@ img{max-width:100%;display:block}
     letter-spacing:-.04em;
     text-transform:uppercase;
     text-align:center;
-    margin:0 0 0.5rem 0;
-    z-index:3;
+    margin:0;
+    z-index:4;
     white-space:normal;
     opacity:0;
-    animation:heroSlideIn 0.7s ease forwards 0.25s;
-  }
+    animation:heroSlideIn 0.7s ease forwards 0.28s;
+    position:relative;
+    grid-column:1 / -1;
+    grid-row:1;
+    justify-self:center;
+    align-self:start;
+    padding: clamp(24px,3vw,40px) clamp(16px,2vw,28px) clamp(12px,2vw,20px);
+    text-shadow:
+      0 1px 0 rgba(255,255,255,0.14),
+      0 2px 0 rgba(118,118,118,0.24),
+      0 3px 0 rgba(92,92,92,0.22),
+      0 4px 0 rgba(64,64,64,0.2),
+      0 14px 28px rgba(0,0,0,0.45);
+}
+
+.hero-title::after{
+  content:attr(data-text);
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  color:rgba(150,150,150,0.34);
+  transform:translate(8px,8px);
+  filter:blur(1px);
+  pointer-events:none;
+}
 
 
 /* Stage: list + photo on row 1, CTA on row 2 spanning both */
@@ -237,14 +260,16 @@ img{max-width:100%;display:block}
     display:grid;
     grid-template-columns:1fr auto;
     grid-template-rows:auto auto;
-    margin-top: var(--stage-lift);
+    margin-top: clamp(16px, 2.5vh, 28px);
     z-index:2;
     opacity:0;
-    animation:heroFadeIn 0.8s ease forwards 0.4s;    
+    animation:heroFadeIn 0.8s ease forwards 0.4s;
     align-items:start;
     justify-content:center;
     gap:clamp(22px,3vw,36px);
     width:min(92%,1200px);
+    overflow:visible;
+    isolation:isolate;
 }
 
 /* Large soft back-plate behind photo + list */
@@ -253,7 +278,7 @@ img{max-width:100%;display:block}
     /* extend to cover both list and photo */
     left:-6%;
     right:-6%;
-    top:-22px;
+    top:0;
     bottom:-22px;
     z-index:0;
     border:1px solid var(--line);
@@ -301,6 +326,8 @@ img{max-width:100%;display:block}
     align-self:flex-end; justify-self:flex-end;
     transform: translateY(calc(var(--lift) * -1));
     width:clamp(180px,18vw,260px); position: relative; z-index: 2;
+    grid-column:1;
+    grid-row:2;
   }
   .hero-list li{
     position: relative;
@@ -309,14 +336,9 @@ img{max-width:100%;display:block}
     background:rgba(13,13,13,.5);
     backdrop-filter:blur(8px);
     transition: all 0.25s ease;
-    opacity:0;
-    transform:translateX(-20px);
-    animation:listItemIn 0.5s ease forwards;
+    opacity:1;
+    transform:none;
   }
-  .hero-list li:nth-child(1){ animation-delay:0.5s; }
-  .hero-list li:nth-child(2){ animation-delay:0.6s; }
-  .hero-list li:nth-child(3){ animation-delay:0.7s; }
-  .hero-list li:nth-child(4){ animation-delay:0.8s; }
 
   .hero-list li a{
     display:flex; align-items:center; gap:10px;
@@ -353,7 +375,7 @@ img{max-width:100%;display:block}
 }
         
 /* Photo */
-.hero-photo{ grid-column:2; grid-row:1; margin:0; transform:translateY(calc(var(--lift) * -1));
+.hero-photo{ grid-column:2; grid-row:2; margin:0; transform:translateY(calc(var(--lift) * -1));
     position: relative; z-index: 2; }
 
 .portrait{
@@ -1103,51 +1125,50 @@ img{max-width:100%;display:block}
 }
 
 
-/* ===== TICKER — base + placements around ABOUT/APP3D ===== */
+/* ===== IDX-TICKER — index page tickers (separate from 3dprint ticker-header) ===== */
 
 /* Base horizontal marquee */
-.ticker{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#0b0b0b; }
-.ticker .container{ overflow:hidden; }
-.ticker-inner{
+.idx-ticker{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#0b0b0b; }
+.idx-ticker .container{ overflow:hidden; }
+.idx-ticker-inner{
   position:relative; height:48px; display:flex; align-items:center;
   -webkit-mask-image:linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%);
           mask-image:linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%);
 }
-.ticker-track{ display:flex; gap:28px; white-space:nowrap; will-change:transform; animation:tickerMove 38s linear infinite; }
-.ticker-item{ font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.idx-ticker-track{ display:flex; gap:28px; white-space:nowrap; will-change:transform; animation:tickerMove 38s linear infinite; }
+.idx-ticker-item{ font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
 @keyframes tickerMove{ from{ transform:translateX(-50%) } to{ transform:translateX(0) } }
-@media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none } }
+@media (prefers-reduced-motion: reduce){ .idx-ticker-track{ animation:none } }
 
-/* Inline ticker chip look */
-.ticker--inline{
-  border:1px solid var(--line); border-radius:0; background:#0f0f0f;
+/* Inline ticker — full-bleed, no viewport overflow */
+.idx-ticker--inline{
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  border-left: none; border-right: none;
+  border-radius:0; background:#0f0f0f;
   box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 20px 40px rgba(0,0,0,.25);
-  margin-top: clamp(56px, 10vh, 120px);  /* was smaller */
+  margin-top: clamp(56px, 10vh, 120px);
   margin-bottom: clamp(8px, 1.6vh, 14px);
-  position: relative;
-  left: 50%;
-  width: 100vw;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  border-left: none;
-  border-right: none;
+  width: 100%;
 }
-.ticker--inline .ticker-inner{ height:40px; padding-inline:16px; }
-.ticker--inline .ticker-item{ font-weight:700; letter-spacing:.1em; }
+.idx-ticker--inline .idx-ticker-inner{ height:40px; padding-inline:16px; }
+.idx-ticker--inline .idx-ticker-item{ font-weight:700; letter-spacing:.1em; }
 
 /* Positioning for the ticker directly AFTER ABOUT */
-#about + .ticker--inline{
-  margin-top: clamp(24px, 5vh, 56px);   /* push it down from the about block */
-  margin-bottom: clamp(6px, 1.2vh, 10px); /* tighten the gap above the APP3D title */
+#about + .idx-ticker--inline{
+  margin-top: clamp(24px, 5vh, 56px);
+  margin-bottom: clamp(6px, 1.2vh, 10px);
 }
 
 /* Remove large top padding from the next APP3D section (so title hugs ticker) */
-#about + .ticker--inline + .app3d{ padding-top: clamp(10px, 1.6vh, 16px); }
+#about + .idx-ticker--inline + .app3d{ padding-top: clamp(10px, 1.6vh, 16px); }
 
-/* Inline ticker INSIDE app3d (if you use one there too) */
-.app3d .ticker--inline{
+/* Inline ticker INSIDE app3d container — break out of container padding */
+.app3d .idx-ticker--inline{
   margin-top: clamp(8px, 1.4vh, 12px);
   margin-bottom: clamp(14px, 2.4vh, 20px);
+  margin-left: calc(-1 * var(--gutter));
+  margin-right: calc(-1 * var(--gutter));
+  width: calc(100% + 2 * var(--gutter));
 }
 
 /* ===== APP 3D PREVIEW ===== */
