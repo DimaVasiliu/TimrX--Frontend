@@ -148,9 +148,10 @@
     /* Hero Section */
     .about-hero {
       position: relative;
-      min-height: clamp(500px, 70vh, 700px);
+      min-height: clamp(560px, 78vh, 760px);
       display: flex;
       align-items: center;
+      justify-content: center;
       overflow: hidden;
       background: #0a0a0a;
     }
@@ -166,85 +167,111 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(14,165,233,0.08), transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(40,40,40,0.1), transparent 50%);
+        radial-gradient(ellipse 70% 60% at 50% 30%, rgba(14,165,233,0.07), transparent 65%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(30,30,30,0.15), transparent 55%);
       pointer-events: none;
     }
     .hero-watermark {
       position: absolute;
       top: 50%;
-      right: -5%;
+      right: -3%;
       transform: translateY(-50%);
       font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(180px, 25vw, 400px);
+      font-size: clamp(200px, 28vw, 460px);
       font-weight: 400;
       letter-spacing: -0.02em;
-      color: rgba(255,250,245,0.04);
-      -webkit-text-stroke: 1px rgba(255,250,245,0.08);
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,250,245,0.07);
       pointer-events: none;
       -webkit-user-select: none;
       user-select: none;
-      line-height: 0.8;
+      line-height: 0.85;
       white-space: nowrap;
     }
     .hero-arc {
       position: absolute;
       top: 50%;
-      right: 10%;
-      width: clamp(300px, 40vw, 600px);
-      height: clamp(300px, 40vw, 600px);
+      right: 8%;
+      width: clamp(320px, 42vw, 640px);
+      height: clamp(320px, 42vw, 640px);
       transform: translateY(-50%);
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.05);
       border-radius: 50%;
       pointer-events: none;
     }
     .hero-arc::before {
       content: '';
       position: absolute;
-      inset: 40px;
-      border: 1px solid rgba(255,255,255,0.04);
+      inset: 50px;
+      border: 1px solid rgba(255,255,255,0.03);
       border-radius: 50%;
     }
     .hero-content {
       position: relative;
       z-index: 2;
-      padding: 140px 0 80px;
+      padding: 150px 0 90px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 48px;
+      text-align: center;
+      gap: 0;
+      width: 100%;
+    }
+    .avatar-wrap {
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .avatar-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14,165,233,0.12), transparent 70%);
+      pointer-events: none;
     }
     .about-avatar {
-      width: 160px;
-      height: 160px;
+      width: 176px;
+      height: 176px;
       border-radius: 50%;
-      border: 4px solid rgba(255,255,255,0.1);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 0 0 6px rgba(14,165,233,0.06), 0 24px 64px rgba(0,0,0,0.55);
+      display: block;
+      position: relative;
     }
     .hero-text h1 {
       font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(48px, 8vw, 90px);
+      font-size: clamp(56px, 9vw, 108px);
       letter-spacing: -0.02em;
-      margin: 0 0 8px;
-      line-height: 0.95;
+      margin: 0 0 10px;
+      line-height: 0.92;
     }
     .hero-text .subtitle {
-      font-size: clamp(16px, 2vw, 20px);
+      font-size: clamp(13px, 1.4vw, 16px);
       color: var(--accent);
-      margin: 0 0 16px;
+      margin: 0 0 18px;
       font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .hero-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 auto 18px;
     }
     .hero-text .tagline {
-      font-size: clamp(15px, 1.6vw, 18px);
-      color: rgba(255,255,255,0.6);
-      max-width: 500px;
-      line-height: 1.6;
-      margin: 0;
+      font-size: clamp(15px, 1.5vw, 17px);
+      color: rgba(255,255,255,0.55);
+      max-width: 480px;
+      line-height: 1.7;
+      margin: 0 auto;
     }
-    @media (max-width: 768px) {
-      .hero-content { flex-direction: column; text-align: center; padding: 120px 0 60px; }
-      .about-avatar { width: 120px; height: 120px; }
+    @media (max-width: 600px) {
+      .hero-content { padding: 120px 0 60px; }
+      .about-avatar { width: 136px; height: 136px; }
       .hero-text .tagline { max-width: 100%; }
+      .hero-watermark { display: none; }
+      .hero-arc { display: none; }
     }
 
     /* Content */
@@ -253,14 +280,22 @@
       background: var(--bg);
     }
     .about-inner {
-      max-width: 800px;
+      max-width: 760px;
       margin: 0 auto;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(14,165,233,0.7);
+      margin: 0 0 10px;
     }
     .section-title {
       font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(32px, 5vw, 48px);
+      font-size: clamp(30px, 4.5vw, 44px);
       letter-spacing: -0.01em;
-      margin: 0 0 32px;
+      margin: 0 0 28px;
       color: #fff;
       display: flex;
       align-items: center;
@@ -270,22 +305,22 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.15), transparent);
+      background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
     }
     .about-text {
-      font-size: 17px;
-      line-height: 1.85;
-      color: #bbb;
-      margin: 0 0 24px;
+      font-size: 16px;
+      line-height: 1.9;
+      color: rgba(255,255,255,0.6);
+      margin: 0 0 20px;
     }
     .about-text a {
-      color: #fff;
+      color: rgba(255,255,255,0.9);
       text-decoration: underline;
       text-underline-offset: 3px;
       transition: color 0.2s;
     }
     .about-text a:hover { color: var(--accent); text-decoration: none; }
-    .section-spacer { height: 80px; }
+    .section-spacer { height: 64px; }
 
     /* Skills Grid */
     .skills-grid {
@@ -393,10 +428,13 @@
     <div class="hero-watermark" aria-hidden="true">ABOUT</div>
     <div class="hero-arc" aria-hidden="true"></div>
     <div class="container hero-content">
-      <img class="about-avatar" src="/img/dima.jpg" alt="Dima Vasiliu" width="160" height="160" />
+      <div class="avatar-wrap">
+        <img class="about-avatar" src="/img/dima.jpg" alt="Dima Vasiliu" width="176" height="176" />
+      </div>
       <div class="hero-text">
         <h1>Dima Vasiliu</h1>
         <p class="subtitle">Full-Stack Developer</p>
+        <div class="hero-divider" aria-hidden="true"></div>
         <p class="tagline">Creator of TimrX — an AI-powered 3D generation platform. I build production software and write about what I learn.</p>
       </div>
     </div>
@@ -406,24 +444,28 @@
   <main class="about-content">
     <div class="container about-inner">
 
+      <p class="section-label">Background</p>
       <h2 class="section-title">Who I Am</h2>
       <p class="about-text">I'm a full-stack developer based in Europe. I design and build production web applications — from database architecture to frontend interfaces.</p>
       <p class="about-text">My background is in software engineering, not 3D art or manufacturing. I approach 3D workflows from a developer's perspective: how to make them accessible, automated, and production-ready.</p>
 
       <div class="section-spacer"></div>
 
+      <p class="section-label">The Project</p>
       <h2 class="section-title">What TimrX Is</h2>
       <p class="about-text">TimrX is an AI-powered 3D generation platform I built from the ground up. The <a href="/hub">3D Print Hub</a> handles text-to-3D, image-to-3D, remeshing, retexturing, and exports to formats like GLB, STL, and USDZ.</p>
       <p class="about-text">It's a complete system: credit-based billing, job queuing, user authentication, a Three.js-powered viewer, and a modular Flask backend with PostgreSQL. The platform is in active development, with new capabilities shipping regularly.</p>
 
       <div class="section-spacer"></div>
 
+      <p class="section-label">Writing</p>
       <h2 class="section-title">Why I Write</h2>
       <p class="about-text">The <a href="/blogs">TimrX Blog</a> covers technical implementations I've worked through — Three.js patterns, GSAP animation techniques, AI API integrations, and web performance optimization.</p>
       <p class="about-text">I write from direct experience. If something's on the blog, I've built it, debugged it, and shipped it.</p>
 
       <div class="section-spacer"></div>
 
+      <p class="section-label">Stack</p>
       <h2 class="section-title">What I Work With</h2>
       <div class="skills-grid">
         <div class="skill-card">
@@ -446,6 +488,7 @@
 
       <div class="section-spacer"></div>
 
+      <p class="section-label">Links</p>
       <h2 class="section-title">Connect</h2>
       <p class="about-text">Questions, bug reports, or collaboration inquiries are welcome.</p>
       <div class="connect-grid">
