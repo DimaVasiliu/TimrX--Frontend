@@ -277,8 +277,7 @@
       const works = document.getElementById('works');
       if (!works) return;
 
-      const cards = Array.from(works.querySelectorAll('.work-card'));
-      const flipCards = Array.from(works.querySelectorAll('.flip-card'));
+      const rows = Array.from(works.querySelectorAll('.work-row'));
       const orbit = works.querySelector('.works-orbit');
 
       if (hasGSAP) {
@@ -301,57 +300,26 @@
             scrollTrigger: { trigger: works, start: 'top 78%' }
           });
 
-          gsap.to(orbit, { y: -10, duration: 3.4, repeat: -1, yoyo: true, ease: 'sine.inOut' });
           gsap.to('.orbit-ring', { rotation: 360, duration: 22, repeat: -1, ease: 'none', transformOrigin: '50% 50%' });
-          gsap.to('.orbit-cube__spin', { rotationX: 360, rotationY: -360, duration: 18, repeat: -1, ease: 'none', transformOrigin: '50% 50%' });
         }
 
-        gsap.from(cards, {
+        gsap.from(rows, {
           opacity: 0,
-          y: 24,
-          duration: 0.65,
+          y: 18,
+          duration: 0.55,
           ease: 'power2.out',
-          stagger: 0.12,
-          scrollTrigger: { trigger: '.works-grid', start: 'top 82%' }
+          stagger: 0.1,
+          scrollTrigger: { trigger: '.works-list', start: 'top 82%' }
         });
       }
 
-      // Flip toggle
-      flipCards.forEach((card) => {
-        const toggles = card.querySelectorAll('.flip-cta');
-        toggles.forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            card.classList.toggle('is-flipped');
-          });
+      // Accordion toggle — one open at a time
+      rows.forEach((row) => {
+        row.addEventListener('click', () => {
+          const isOpen = row.classList.contains('is-open');
+          rows.forEach((r) => r.classList.remove('is-open'));
+          if (!isOpen) row.classList.add('is-open');
         });
-      });
-
-      // Pointer tilt + light
-      const allowTilt = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      if (!allowTilt) return;
-
-      flipCards.forEach((card) => {
-        const max = 8;
-        function onMove(e) {
-          const r = card.getBoundingClientRect();
-          const x = (e.clientX - r.left) / r.width;
-          const y = (e.clientY - r.top) / r.height;
-          const rx = (0.5 - y) * max;
-          const ry = (x - 0.5) * max;
-          card.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
-          card.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
-          card.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
-          card.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
-        }
-        function onLeave() {
-          card.style.setProperty('--rx', '0deg');
-          card.style.setProperty('--ry', '0deg');
-          card.style.setProperty('--mx', '50%');
-          card.style.setProperty('--my', '50%');
-        }
-        card.addEventListener('pointermove', onMove);
-        card.addEventListener('pointerleave', onLeave);
       });
     })();
   
@@ -978,44 +946,6 @@
       host.addEventListener('pointerleave', onLeave);
     })();
 
-               /* NAV top-sheet controller (minimal) */
-(() => {
-  const burger = document.getElementById('navBurger');
-  const sheet  = document.getElementById('navSheet');
-  const dim    = document.getElementById('navDim');
-  if (!burger || !sheet || !dim) return;
-
-  const open = () => {
-    sheet.hidden = false; dim.hidden = false;
-    requestAnimationFrame(() => {
-      sheet.classList.add('open');
-      burger.setAttribute('aria-expanded','true');
-      document.body.style.overflow = 'hidden';
-    });
-  };
-  const close = () => {
-    sheet.classList.remove('open');
-    burger.setAttribute('aria-expanded','false');
-    document.body.style.overflow = '';
-    sheet.addEventListener('transitionend', () => {
-      if (!sheet.classList.contains('open')) sheet.hidden = true;
-    }, { once:true });
-    dim.hidden = true;
-  };
-
-  burger.addEventListener('click', () => {
-    (sheet.hidden || !sheet.classList.contains('open')) ? open() : close();
-  });
-  dim.addEventListener('click', close);
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-
-  // close on any menu link click
-  sheet.addEventListener('click', (e) => {
-    const a = e.target.closest('a');
-    if (a) close();
-  });
-})();
-  
   })(); // end IIFE
 
   // Give hash targets focus after smooth scroll (accessibility nicety)
