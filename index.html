@@ -234,10 +234,10 @@
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
 <!-- Stylesheets: Preload + Critical CSS -->
-<link rel="preload" href="./styles.css?v=3" as="style">
-<link rel="preload" href="./media/index.css?v=3" as="style">
-<link rel="stylesheet" href="./styles.css?v=4" />
-<link rel="stylesheet" href="./media/index.css?v=4" />
+<link rel="preload" href="./styles.css?v=5" as="style">
+<link rel="preload" href="./media/index.css?v=5" as="style">
+<link rel="stylesheet" href="./styles.css?v=5" />
+<link rel="stylesheet" href="./media/index.css?v=5" />
 
 <!-- Critical CSS: Above-the-fold styles for faster FCP -->
 <style>
@@ -332,12 +332,11 @@
             <script>document.getElementById('eyebrowYear').textContent = new Date().getFullYear();</script>
         </div>
 
-        <h1 class="hero-title" id="heroTitle">CREATIVE DEVELOPER</h1>
-
         <!-- stage holds the image + left list like the reference -->
         <div class="hero-stage">
               <!-- decor -->
             <div class="hero-plate hide-mobile" aria-hidden="true"></div>
+            <h1 class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</h1>
             <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
             <ul class="hero-list" aria-label="Capabilities">
                 <li><a href="#works">WEB DEVELOPMENT</a></li>
@@ -440,6 +439,11 @@
                                 <div class="stat-label">Motion UX, WebGL, print-ready workflows</div>
                             </div>
                         </div>
+
+                        <a href="/about" style="display:inline-flex;align-items:center;gap:6px;margin-top:24px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.25s;" onmouseover="this.style.color='rgba(255,255,255,0.85)';this.querySelector('svg').style.transform='translateX(3px)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.querySelector('svg').style.transform='translateX(0)'">
+                            Full Profile
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
                     </div>
 
                     <!-- Right Column: Info Cards -->
@@ -474,28 +478,28 @@
 
 
 <!-- 3D PROMPT TICKER (between About & Philosophy) -->
-<div class="ticker ticker--inline" aria-label="3D prompt ideas">
-    <div class="ticker-inner">
-    <div class="ticker-track">
-    <span class="ticker-item">Origami‑style dragon</span>
-    <span class="ticker-item">Steampunk potion bottle</span>
-    <span class="ticker-item">Futuristic lounge chair</span>
-    <span class="ticker-item">Ancient silver key</span>
-    <span class="ticker-item">Celtic knot ring</span>
-    <span class="ticker-item">Minimal chess set</span>
-    <span class="ticker-item">Retro ray gun</span>
-    <span class="ticker-item">Viking drinking horn</span>
-    <span class="ticker-item">Art‑deco mask</span>
+<div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
+    <div class="idx-ticker-inner">
+    <div class="idx-ticker-track">
+    <span class="idx-ticker-item">Origami‑style dragon</span>
+    <span class="idx-ticker-item">Steampunk potion bottle</span>
+    <span class="idx-ticker-item">Futuristic lounge chair</span>
+    <span class="idx-ticker-item">Ancient silver key</span>
+    <span class="idx-ticker-item">Celtic knot ring</span>
+    <span class="idx-ticker-item">Minimal chess set</span>
+    <span class="idx-ticker-item">Retro ray gun</span>
+    <span class="idx-ticker-item">Viking drinking horn</span>
+    <span class="idx-ticker-item">Art‑deco mask</span>
     <!-- duplicate for seamless loop -->
-    <span class="ticker-item" aria-hidden="true">Origami‑style dragon</span>
-    <span class="ticker-item" aria-hidden="true">Steampunk potion bottle</span>
-    <span class="ticker-item" aria-hidden="true">Futuristic lounge chair</span>
-    <span class="ticker-item" aria-hidden="true">Ancient silver key</span>
-    <span class="ticker-item" aria-hidden="true">Celtic knot ring</span>
-    <span class="ticker-item" aria-hidden="true">Minimal chess set</span>
-    <span class="ticker-item" aria-hidden="true">Retro ray gun</span>
-    <span class="ticker-item" aria-hidden="true">Viking drinking horn</span>
-    <span class="ticker-item" aria-hidden="true">Art‑deco mask</span>
+    <span class="idx-ticker-item" aria-hidden="true">Origami‑style dragon</span>
+    <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
+    <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
+    <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
+    <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
+    <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
+    <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
+    <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
+    <span class="idx-ticker-item" aria-hidden="true">Art‑deco mask</span>
     </div>
     </div>
 </div>
@@ -506,28 +510,28 @@
         <div class="title-xl">TIMRX 3D APP</div>
       
         <!-- INLINE TICKER (now inside the app preview) -->
-        <div class="ticker ticker--inline" aria-label="3D prompt ideas">
-          <div class="ticker-inner">
-            <div class="ticker-track">
-              <span class="ticker-item">Origami-style dragon</span>
-              <span class="ticker-item">Steampunk potion bottle</span>
-              <span class="ticker-item">Futuristic lounge chair</span>
-              <span class="ticker-item">Ancient silver key</span>
-              <span class="ticker-item">Celtic knot ring</span>
-              <span class="ticker-item">Minimal chess set</span>
-              <span class="ticker-item">Retro ray gun</span>
-              <span class="ticker-item">Viking drinking horn</span>
-              <span class="ticker-item">Art-deco mask</span>
+        <div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
+          <div class="idx-ticker-inner">
+            <div class="idx-ticker-track">
+              <span class="idx-ticker-item">Origami-style dragon</span>
+              <span class="idx-ticker-item">Steampunk potion bottle</span>
+              <span class="idx-ticker-item">Futuristic lounge chair</span>
+              <span class="idx-ticker-item">Ancient silver key</span>
+              <span class="idx-ticker-item">Celtic knot ring</span>
+              <span class="idx-ticker-item">Minimal chess set</span>
+              <span class="idx-ticker-item">Retro ray gun</span>
+              <span class="idx-ticker-item">Viking drinking horn</span>
+              <span class="idx-ticker-item">Art-deco mask</span>
               <!-- duplicates for seamless loop -->
-              <span class="ticker-item" aria-hidden="true">Origami-style dragon</span>
-              <span class="ticker-item" aria-hidden="true">Steampunk potion bottle</span>
-              <span class="ticker-item" aria-hidden="true">Futuristic lounge chair</span>
-              <span class="ticker-item" aria-hidden="true">Ancient silver key</span>
-              <span class="ticker-item" aria-hidden="true">Celtic knot ring</span>
-              <span class="ticker-item" aria-hidden="true">Minimal chess set</span>
-              <span class="ticker-item" aria-hidden="true">Retro ray gun</span>
-              <span class="ticker-item" aria-hidden="true">Viking drinking horn</span>
-              <span class="ticker-item" aria-hidden="true">Art-deco mask</span>
+              <span class="idx-ticker-item" aria-hidden="true">Origami-style dragon</span>
+              <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
+              <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
+              <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
+              <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
+              <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
+              <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
+              <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
+              <span class="idx-ticker-item" aria-hidden="true">Art-deco mask</span>
             </div>
           </div>
         </div>
