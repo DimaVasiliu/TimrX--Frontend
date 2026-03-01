@@ -8,15 +8,9 @@
 /admin.html       /admin         301
 /admin-edit.html  /admin/edit    301
 
-# Optional: normalize trailing slash
+# Normalize trailing slash
 /about/           /about         301
 
-# Rewrites (serve the HTML file at the clean path)
- /               /index.html         200
- /hub            /hub.html           200
- /3dprint        /3dprint.html       200
- /blogs          /blogs.html         200
- /archive        /archive.html       200
- /about          /about.html         200
- /admin          /admin.html         200
- /admin/edit     /admin-edit.html    200
+# Admin: non-standard filenames need explicit rewrites
+/admin            /admin.html         200
+/admin/edit       /admin-edit.html    200
