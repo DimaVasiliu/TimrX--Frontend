@@ -1,9 +1,9 @@
 :root{ --bg:#0d0d0d; --text:#f5f5f5;
   --muted:#9ca3af; --line:#1e1e1e; --accent:#0EA5E9;
-  --accent2:#ff4d4d; --maxw:1320px;
+  --accent2:#ff4d4d; --maxw:1400px;
      --gutter:28px; --hero-overlap: clamp(12px, 4vw, 72px);
      --img-lift: clamp(10px, 2.6vw, 36px);
-    --stage-gap: clamp(28px, 4vw, 56px); --hero-top-pad: clamp(8px, 2.2vh, 28px);
+    --stage-gap: clamp(28px, 4vw, 56px); --hero-top-pad: clamp(80px, 12vh, 120px);
     --photo-max: 520px;   --stage-lift: clamp(-160px, -10vw, -90px);
     --navH: 72px;
   --warm-white: #f6f1e9;
@@ -189,11 +189,12 @@ img{max-width:100%;display:block}
   align-items:center;
   gap:12px;
   z-index:2;
+  margin-top:90px;
   opacity:0;
   animation:heroSlideIn 0.6s ease forwards 0.15s;
 }
 .hero-eyebrow .eyebrow-line{
-  width:32px;
+  width:clamp(20px, 5vw, 32px);
   height:1px;
   background:linear-gradient(90deg, rgba(255,255,255,0.4), transparent);
 }
@@ -296,7 +297,7 @@ img{max-width:100%;display:block}
 /* List card */
 .hero-list{
     list-style:none; margin:0; padding:0;
-    display:flex; flex-direction:column; gap:0;
+    display:flex; flex-direction:column; gap:8px;
     align-self:flex-end; justify-self:flex-end;
     transform: translateY(calc(var(--lift) * -1));
     width:clamp(180px,18vw,260px); position: relative; z-index: 2;
@@ -316,8 +317,6 @@ img{max-width:100%;display:block}
   .hero-list li:nth-child(2){ animation-delay:0.6s; }
   .hero-list li:nth-child(3){ animation-delay:0.7s; }
   .hero-list li:nth-child(4){ animation-delay:0.8s; }
-
-  .hero-list li + li{ margin-top:8px; }
 
   .hero-list li a{
     display:flex; align-items:center; gap:10px;
@@ -656,7 +655,7 @@ img{max-width:100%;display:block}
   z-index: 1;
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: clamp(40px, 5vw, 64px);
+  gap: clamp(20px, 5vw, 64px);
   align-items: start;
 }
 
@@ -699,7 +698,7 @@ img{max-width:100%;display:block}
 
 .about-lead {
   margin: 0;
-  font-size: clamp(15px, 1.8vw, 17px);
+  font-size: clamp(14px, 2.5vw, 17px);
   line-height: 1.75;
   color: var(--muted);
   max-width: 62ch;
@@ -1161,8 +1160,9 @@ img{max-width:100%;display:block}
   margin-bottom:8px;
 }
 .app3d-grid{
-  display:grid; grid-template-columns:1.4fr 1fr; gap:40px; align-items:center;
+  display:grid; grid-template-columns:1.4fr 1fr; gap:clamp(24px, 3vw, 40px); align-items:center;
   position: relative;
+  max-width: 100%;
 }
 
 /* Model viewport + copy */
@@ -1215,7 +1215,8 @@ img{max-width:100%;display:block}
   .chip-btn{
     appearance:none; border:1px solid var(--line); background:#121212;
     color:#e5e7eb; font-weight:800; letter-spacing:.03em;
-    padding:8px 12px; border-radius:999px; cursor:pointer; font-size:12px;
+    padding:clamp(8px, 1.2vw, 10px) clamp(12px, 1.8vw, 16px); border-radius:999px; cursor:pointer; font-size:12px;
+    min-height:44px;
     transition:background .2s ease, border-color .2s ease, transform .06s ease;
   }
   .chip-btn:hover{ background:#161616; border-color:#2a2a2a; }
@@ -1599,7 +1600,8 @@ img{max-width:100%;display:block}
 .work-visual{
   position:relative;
   flex:1 1 auto;
-  height:clamp(140px, 18vw, 190px);
+  height:clamp(140px, min(18vw, 250px), 190px);
+  aspect-ratio:16/9;
   border-radius:16px;
   border:1px solid rgba(255,255,255,.06);
   background: radial-gradient(800px 300px at 0% 0%, rgb(var(--work-accent) / 0.1), transparent 60%), #0a0a0a;
@@ -2072,20 +2074,20 @@ img{max-width:100%;display:block}
 /* Icon fields */
 .field{ position:relative; margin-bottom:10px; }
 .field .icon{
-  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
   opacity:.8; pointer-events:none;
 }
-.field .icon.area{ top:16px; transform:none; }
+.field .icon.area{ top:18px; transform:none; }
 
 /* Inputs */
 .field input, .field textarea{
   width:100%; border:1px solid var(--line); border-radius:12px;
   background:#0c0c0c; color:#eaeaea; font:inherit;
-  padding:12px 12px 12px 42px;  /* room for icon */
+  padding:14px 14px 14px 48px;  /* room for icon */
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
-.field input{ height:46px; }
-.field textarea{ min-height:140px; padding-left:42px; resize:vertical; }
+.field input{ height:52px; min-height:44px; }
+.field textarea{ min-height:clamp(120px, 20vh, 200px); padding-left:48px; resize:vertical; }
 
 /* Focus glow */
 .field input:focus, .field textarea:focus{
@@ -2096,7 +2098,7 @@ img{max-width:100%;display:block}
 }
 
 /* Submit button spacing */
-.contact .submit{ margin-top: 8px; }
+.contact .submit{ margin-top: clamp(12px, 2vh, 20px); min-height: 52px; }
 
 /* Card hover micro-glow */
 .contact-card:hover{
@@ -2327,7 +2329,7 @@ img{max-width:100%;display:block}
 .blogs-sub {
   margin: 8px 0 0 0;
   max-width: 560px;
-  font-size: clamp(18px, 1.6vw, 16px);
+  font-size: clamp(14px, 1.6vw, 18px);
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.7);
   animation: blogSubFade 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s forwards;
@@ -2653,7 +2655,7 @@ img{max-width:100%;display:block}
 
 .blog-card .title {
   font-weight: 800;
-  font-size: 14px;
+  font-size: clamp(13px, 2.4vw, 16px);
   text-decoration: none;
   color: #fff;
   line-height: 1.3;
