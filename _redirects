@@ -11,6 +11,6 @@
 # Normalize trailing slash
 /about/           /about         301
 
-# Admin: non-standard filenames need explicit rewrites
-/admin            /admin.html         200
-/admin/edit       /admin-edit.html    200
+# Admin: files live inside /admin/ subfolder
+/admin            /admin/admin.html         200
+/admin/edit       /admin/admin-edit.html    200
