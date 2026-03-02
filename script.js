@@ -585,10 +585,39 @@
     const chatBody   = document.getElementById('chatBody');
   
     if (!chatToggle || !chatPanel) return;
-  
-    // One-time hello flash (optional)
-    chatToggle.classList.add('is-attract');
-    setTimeout(() => chatToggle.classList.remove('is-attract'), 1200);
+
+    // --- Greeting bubble (appears once after 4s, dismissed on click or chat open)
+    (function greetingBubble(){
+      var KEY = 'timrx_chat_greeted';
+      if (sessionStorage.getItem(KEY)) return;
+
+      var bubble = document.createElement('div');
+      bubble.className = 'chat-greeting';
+      bubble.textContent = 'Hey! Need help? Ask me anything.';
+      document.body.appendChild(bubble);
+
+      var showTimer = setTimeout(function(){ bubble.classList.add('is-visible'); }, 4000);
+      var hideTimer = setTimeout(function(){ dismiss(); }, 12000);
+
+      function dismiss(){
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+        bubble.classList.remove('is-visible');
+        sessionStorage.setItem(KEY, '1');
+        setTimeout(function(){ bubble.remove(); }, 350);
+      }
+
+      bubble.addEventListener('click', function(){
+        dismiss();
+        chatToggle.click();
+      });
+
+      // Also dismiss when chat opens
+      var origOpen = chatToggle.getAttribute('aria-expanded');
+      new MutationObserver(function(muts){
+        if (chatToggle.getAttribute('aria-expanded') === 'true') dismiss();
+      }).observe(chatToggle, { attributes: true, attributeFilter: ['aria-expanded'] });
+    })();
   
     // --- FAQ suggestions strip (auto-created above input bar)
     let suggest = document.getElementById('chatSuggest');
@@ -661,8 +690,8 @@
     const isOpen = () => chatPanel.style.display === 'grid';
   
     function openChat(){
-      firstOpen = true;
       chatPanel.style.display = 'grid';
+      chatToggle.setAttribute('aria-expanded', 'true');
       chatInput?.focus();
       scrollToBottom();
     }
@@ -784,14 +813,6 @@
       a.addEventListener('click', (e)=>{ e.preventDefault(); safeToggle(); });
     });
   
-    // --- Attention: orbit ping every ~12s until first open
-    let firstOpen = false;
-    let attractTimer = setInterval(() => {
-      if (isOpen()) firstOpen = true;
-      if (firstOpen) { clearInterval(attractTimer); return; }
-      chatToggle.classList.add('is-attract');
-      setTimeout(() => chatToggle.classList.remove('is-attract'), 1800);
-    }, 12000);
   })();
   
     /* ------------------------------
