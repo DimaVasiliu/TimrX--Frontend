@@ -266,7 +266,8 @@
       margin: 0 auto;
     }
     @media (max-width: 720px) {
-      .skills-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .skill-card { padding: 18px; }
     }
     @media (max-width: 600px) {
       .hero-content { padding: 120px 0 60px; }
