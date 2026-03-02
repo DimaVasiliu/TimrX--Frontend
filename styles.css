@@ -34,6 +34,7 @@ img{max-width:100%;display:block}
 .nav.divider{
   border-bottom:1px solid rgba(255,255,255,0.06);
 }
+.nav .container{padding:0 16px}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
 .nav-links{display:flex;gap:8px;font-weight:500}
 .nav-links a{
@@ -71,11 +72,26 @@ img{max-width:100%;display:block}
 .brand{
     display:inline-flex;
     align-items:center;
+    gap:8px;
     font-weight:900;
     letter-spacing:.03em;
     font-size: clamp(16px, 1.25vw, 22px);
     line-height:1;
     cursor: pointer;
+  }
+
+  .brand-group{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .idx-nav-logo{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: contain;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.12);
   }
 
   /* When brand has swap children, use grid for overlapping */
@@ -90,6 +106,7 @@ img{max-width:100%;display:block}
     transition: opacity .35s ease, transform .35s ease;
     will-change: opacity, transform;
   }
+
   .brand .swap.out{ opacity:0; transform: translateY(-6px); pointer-events: none; }
 
   /* "Timr" normal, the "X" in accent gradient with soft glow */
