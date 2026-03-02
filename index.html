@@ -970,14 +970,16 @@
 <!-- CHAT -->
 <!-- CHAT TOGGLE -->
 <button id="chatToggle" class="chat-toggle chat-min" aria-controls="chatPanel" aria-expanded="false" aria-label="Open chat">
-    <i class="fa-solid fa-comments" aria-hidden="true"></i>
+    <svg class="chat-ico chat-ico--open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <svg class="chat-ico chat-ico--close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
 
 <div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-modal="false">
   <header class="chat-head">
+    <img src="img/logo.png" alt="" class="chat-avatar" width="36" height="36">
     <div class="chat-title">
       <strong id="chatTitle">Ask TimrX</strong>
-      <span class="muted">site help • services • quotes</span>
+      <span class="muted"><span class="chat-status"></span>Online now</span>
     </div>
     <button id="chatClose" class="chat-x" aria-label="Close chat">✕</button>
   </header>
