@@ -247,7 +247,7 @@
   .container{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
   .nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,8,8,.88);backdrop-filter:blur(12px)}
   .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding-top:calc(var(--navH)+18px)}
+  .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:calc(var(--navH) + 20px)}
   .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
   @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
 </style>
@@ -292,24 +292,24 @@
     <div class="mobile-menu-inner">
       <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
         <a href="#app3d" class="mobile-nav-link">
-          <span class="mobile-nav-icon">→</span>
-          <span>3D Print Hub</span>
+          <span class="mnl-label">3D Print Hub</span>
+          <span class="mnl-sub">Explore the hub</span>
         </a>
         <a href="#works" class="mobile-nav-link">
-          <span class="mobile-nav-icon">◆</span>
-          <span>Works</span>
+          <span class="mnl-label">Works</span>
+          <span class="mnl-sub">Selected projects</span>
         </a>
         <a href="#services" class="mobile-nav-link">
-          <span class="mobile-nav-icon">◇</span>
-          <span>Services</span>
+          <span class="mnl-label">Services</span>
+          <span class="mnl-sub">What I offer</span>
         </a>
         <a href="#blogs" class="mobile-nav-link">
-          <span class="mobile-nav-icon">▢</span>
-          <span>Blogs</span>
+          <span class="mnl-label">Blogs</span>
+          <span class="mnl-sub">Latest writing</span>
         </a>
         <a href="#contact" class="mobile-nav-link">
-          <span class="mobile-nav-icon">●</span>
-          <span>Connect</span>
+          <span class="mnl-label">Connect</span>
+          <span class="mnl-sub">Get in touch</span>
         </a>
       </nav>
       <a class="mobile-cta" href="#contact">CONTACT ME ↗</a>
