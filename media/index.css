@@ -251,6 +251,12 @@ body.menu-open {
   margin-top: 24px;
 }
 
+/* app3d sits flush under its ticker — no top padding */
+.section.app3d {
+  padding-top: 0;
+  margin-top: 0;
+}
+
 /* First section after hero needs no margin */
 .hero + .section {
   margin-top: 90px;
@@ -299,405 +305,24 @@ main.page p {
   font-size: clamp(12px, 2.4vw, 14px);
 }
 
-/* Responsive: Hero */
-.hero {
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: calc(var(--navH) + 20px);
-  padding-bottom: clamp(32px, 6vh, 48px);
-  gap: clamp(16px, 3vw, 24px);
-  width: 100%;
-  max-width: none;
-}
-
-.hero-title {
-  font-size: clamp(34px, 10.5vw, 54px);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  text-align: center;
-  white-space: normal;
-  width: auto;
-  max-width: none;
-  padding: 0 var(--gutter);
-  margin-top: 0;
-  margin-bottom: -4px;
-  overflow-wrap: normal;
-  text-wrap: initial;
-}
-
-/* Show hero-eyebrow on mobile */
-.hero-eyebrow {
-  display: flex;
-  margin-top: 24px;
-  margin-bottom: 8px;
-  opacity: 0.8;
-}
-
-.hero-eyebrow .eyebrow-text {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-}
-
-.hero-eyebrow .eyebrow-line {
-  width: 24px;
-}
-
-.hero-stage {
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto;
-  width: min(100%, 400px);
-  margin-top: 0;
-  justify-items: center;
-  gap: 18px;
-  transition: width 0.3s ease, gap 0.3s ease;
-}
-
-.hero-photo {
-  grid-column: 1;
-  grid-row: 2;
-  justify-self: center;
-  transform: none;
-}
-
-.portrait {
-  width: min(70vw, 280px);
-  aspect-ratio: 3/4;
-  border-radius: 16px;
-  transition: width 0.3s ease, transform 0.35s ease, filter 0.35s ease;
-}
-
-.hero-list {
-  grid-column: 1;
-  grid-row: 3;
-  justify-self: center;
-  width: 100%;
-  max-width: 320px;
-  transform: none;
-}
-
-.hero-list li {
-  border-radius: 12px;
-}
-
-.hero-list li a {
-  font-size: clamp(11px, 2.8vw, 13px);
-  min-height: 44px;
-  padding: 12px 16px;
-}
-
-.hero-cta {
-  width: 100%;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 8px;
-  margin-bottom: 20px;
-  padding: 0 var(--gutter);
-}
-
-.hero-cta .btn {
-  padding: 14px 24px;
-  font-size: 12px;
-  border-radius: 50px;
-}
-
-/* Responsive: About */
-.about-left-note {
-  display: none;
-}
-
-.about-hero {
-  padding: clamp(48px, 8vh, 72px) 0;
-  margin-top: 0;
-}
-
-.about-shell {
-  padding: 24px 18px;
-  margin: 0 var(--gutter);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.about-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.about-title {
-  font-size: clamp(28px, 8vw, 42px);
-  line-height: 1;
-}
-
-.about-badge {
-  font-size: 9px;
-  padding: 6px 12px;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.about-badge svg {
-  width: 11px;
-  height: 11px;
-}
-
-.about-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.about-content-left {
-  padding-right: 0;
-  border-right: none;
-}
-
-.hello-badge {
-  font-size: 9px;
-  padding: 5px 10px;
-  margin-bottom: 12px;
-}
-
-.about-lead {
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.about-stats {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.about-stats .stat-item {
-  padding: 12px 8px;
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  border-radius: 12px;
-}
-
-.about-stats .stat-number {
-  font-size: clamp(16px, 4vw, 22px);
-}
-
-.about-stats .stat-label {
-  font-size: 9px;
-  white-space: normal;
-  word-wrap: break-word;
-  line-height: 1.3;
-}
-
-/* Hide drone animation on mobile */
-.about-drone {
-  display: none;
-}
-
-/* About info cards - stack on mobile */
-.about-content-right {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.about-content-right .info-card {
-  padding: 14px 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.about-content-right .info-card-icon {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.about-content-right .info-card h3 {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.about-content-right .info-card p {
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-/* Hide geometric backgrounds on mobile */
-.about-geometric-bg {
-  display: none;
-}
-
-.about-particles {
-  display: none;
-}
-
 /* Responsive: Ticker */
 .idx-ticker {
-  padding: 10px 0;
-  margin: 16px 0;
+  padding: 7px 0;
+  margin: 12px 0;
 }
 
 .idx-ticker-item {
-  font-size: clamp(11px, 2.8vw, 13px);
-  padding: 0 14px;
+  font-size: clamp(9px, 2.2vw, 11px);
+  padding: 0 12px;
 }
 
 /* Global title sizing for mobile */
 .title-xl {
-  font-size: clamp(32px, 9vw, 52px) !important;
+  font-size: clamp(40px, 9vw, 58px) !important;
   margin-bottom: 12px;
 }
 
-/* Responsive: App3D */
-.app3d {
-  padding: clamp(48px, 8vh, 64px) 0;
-  margin-top: 24px;
-}
 
-.app3d .title-xl {
-  font-size: clamp(28px, 8vw, 40px);
-  margin-bottom: 12px;
-}
-
-.app3d-grid {
-  grid-template-columns: 1fr;
-  gap: 24px;
-}
-
-.app3d-copy {
-  order: 2;
-}
-
-.app3d-copy h3 {
-  font-size: clamp(16px, 4vw, 20px);
-  margin-bottom: 10px;
-}
-
-.app3d-copy p {
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-
-.app3d-copy .bullets {
-  font-size: 12px;
-  margin-bottom: 20px;
-}
-
-.app3d-copy .bullets li {
-  padding: 4px 0;
-}
-
-.app3d-copy .btn {
-  padding: 12px 20px;
-  font-size: 12px;
-}
-
-.viewer-card,
-.viewer-canvas-wrapper {
-  order: 1;
-  border-radius: 14px;
-}
-
-.viewer-canvas-wrapper {
-  min-height: 200px;
-  border-radius: 14px 14px 0 0;
-}
-
-.viewer-actions {
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px;
-}
-
-.chip-btn {
-  min-height: 40px;
-  padding: 10px 14px;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
-/* Hide complex 3D elements on mobile for performance */
-.viewer-overlay-hint {
-  font-size: 10px;
-}
-
-.viewer-placeholder {
-  font-size: 12px;
-  padding: 20px;
-}
-
-/* Responsive: Services */
-.services-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: 12px;
-  transition: gap 0.3s ease;
-  padding: 0;
-}
-
-.service-card,
-.service-card.svc-card-light {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  padding: 14px 12px !important;
-  border-radius: 12px !important;
-}
-
-/* Compact service card icons on mobile */
-.service-card .svc-icon {
-  font-size: 1.4rem !important;
-  margin-bottom: 8px !important;
-  padding: 10px !important;
-  border-radius: 8px !important;
-}
-
-/* Compact service card titles */
-.service-card .svc-title {
-  font-size: 0.9rem !important;
-  margin-bottom: 6px !important;
-}
-
-/* Compact service card copy */
-.service-card .svc-copy {
-  font-size: 11px !important;
-  line-height: 1.4 !important;
-  margin-bottom: 8px !important;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Compact service card bullets */
-.service-card .svc-bullets-light {
-  margin-bottom: 10px !important;
-  display: none; /* Hide bullets on mobile for compact look */
-}
-
-.service-card .svc-bullets-light li {
-  padding: 2px 0 !important;
-  font-size: 10px !important;
-}
-
-/* Compact service card CTA */
-.service-card .svc-cta-light {
-  padding: 6px 12px !important;
-  font-size: 10px !important;
-  border-radius: 6px !important;
-}
-
-.services-sub {
-  max-width: 60ch;
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-.about-lead,
-.app3d-copy p,
 .works-sub,
 .blogs-sub,
 .contact-sub {
@@ -912,7 +537,6 @@ main.page p {
 }
 
 /* Performance: Content visibility for below-fold sections */
-#about,
 #services,
 #works,
 #contact,
@@ -922,7 +546,6 @@ main.page p {
 }
 
 /* Responsive: Motion (mobile + tablet) - disable heavy animations */
-.about-drone .drone-ring,
 .visual-core .visual-rings,
 .visual-core .visual-scan,
 .holo-cube__spin,
@@ -931,33 +554,18 @@ main.page p {
 .services-orbit .svc-ring,
 .orbit-ring,
 .orbit-cube__spin,
-.geo-circle,
-.about-particles .particle {
+.geo-circle {
   animation: none !important;
 }
 
 /* Performance: Disable box-shadow animations on mobile */
 .blogs-badge,
-.about-badge,
 .hello-badge {
   animation: none !important;
 }
 
 /* Responsive: Extra Small Mobile (<480px) */
 @media (max-width: 480px) {
-  .hero-stage {
-    width: min(100%, 400px);
-    gap: 16px;
-  }
-
-  .hero-title {
-    font-size: clamp(30px, 9vw, 42px);
-  }
-
-  .hero-eyebrow .eyebrow-text {
-    font-size: clamp(9px, 2.2vw, 11px);
-  }
-
   .nav-burger {
     width: 48px;
     height: 48px;
@@ -967,12 +575,6 @@ main.page p {
   .mobile-nav-link {
     padding: 20px 24px;
     min-height: 56px;
-  }
-
-  .svc-icon {
-    min-width: 44px !important;
-    min-height: 44px !important;
-    font-size: 1.6rem !important;
   }
 
   .field input,
@@ -998,64 +600,24 @@ main.page p {
   }
 }
 
+/* Mobile-only lateral spacing */
+@media (max-width: 767px) {
+  .title-xl {
+    margin-inline: var(--gutter);
+  }
+
+  .section.container.app3d {
+    margin-inline: var(--gutter);
+    border-radius: 12px;
+  }
+}
+
 /* Responsive: Large Mobile */
 @media (min-width: 480px) {
   :root {
     --gutter: 22px;
   }
 
-  .hero-title {
-    font-size: clamp(42px, 10vw, 72px);
-  }
-
-  .hero-stage {
-    width: min(100%, 620px);
-    grid-template-rows: auto auto auto;
-  }
-
-  .hero-eyebrow {
-    margin-top: 28px;
-  }
-
-  .portrait {
-    width: min(70vw, 360px);
-    aspect-ratio: 3/4;
-  }
-
-  /* About - Large Mobile */
-  .about-shell {
-    padding: 28px 24px;
-  }
-
-  .about-title {
-    font-size: clamp(36px, 9vw, 52px);
-  }
-
-  .about-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .about-stats .stat-item {
-    min-width: 0;
-  }
-
-  .about-stats .stat-item:last-child {
-    grid-column: 1 / -1;
-  }
-
-  /* App3D - Large Mobile */
-  .app3d .title-xl {
-    font-size: clamp(32px, 8vw, 48px);
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 260px;
-  }
-
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-    gap: 14px;
-  }
 }
 
 /* Responsive: Tablet */
@@ -1073,138 +635,10 @@ main.page p {
     padding: clamp(56px, 9vh, 90px) 0;
   }
 
-  /* Hero: Better tablet layout with side-by-side list + photo */
-  .hero-title {
-    font-size: clamp(64px, 10vw, 112px);
-    white-space: normal;
-    padding: 0;
-    width: auto;
-    max-width: none;
-    justify-self: start;
-    text-align: left;
-    margin-bottom: -20px;
-    align-items: flex-start;
-  }
-
-  .hero-stage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-    grid-template-rows: auto auto auto;
-    width: min(100%, 800px);
-    gap: 24px;
-    align-items: end;
-  }
-
-  .hero-list {
-    grid-column: 1;
-    grid-row: 2;
-    width: 100%;
-    max-width: 320px;
-    justify-self: end;
-    align-self: flex-end; /* Align to bottom of photo */
-  }
-
-  .hero-photo {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: start;
-  }
-
-  .portrait {
-    width: min(48vw, 340px);
-    aspect-ratio: 3/4;
-  }
-
-  .hero-cta {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    justify-content: center;
-    width: auto;
-    margin-top: 12px;
-  }
-
-  /* About - Tablet */
-  .about-hero {
-    padding: clamp(60px, 10vh, 100px) 0;
-  }
-
-  .about-shell {
-    padding: 36px 32px;
-    margin: 0 auto;
-    max-width: 720px;
-  }
-
-  .about-title {
-    font-size: clamp(42px, 7vw, 56px);
-  }
-
-  .about-content {
-    flex-direction: row;
-    gap: 32px;
-  }
-
-  .about-content-left {
-    flex: 1.2;
-    padding-right: 24px;
-    border-right: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .about-content-right {
-    flex: 0.8;
-  }
-
-  .about-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .about-stats .stat-item {
-    min-width: 0;
-  }
-
-  .about-stats .stat-item:last-child {
-    grid-column: auto;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(24px, 4vw, 32px);
-  }
-
   /* Ticker - Tablet */
   .idx-ticker-item {
-    font-size: 14px;
-    padding: 0 20px;
-  }
-
-  /* 3D App Section - Tablet */
-  .app3d {
-    padding: clamp(50px, 8vh, 80px) 0;
-  }
-
-  .app3d .title-xl {
-    font-size: clamp(36px, 6vw, 52px);
-  }
-
-  .app3d-grid {
-    gap: 28px;
-  }
-
-  .app3d-copy {
-    order: 1;
-  }
-
-  .viewer-card,
-  .viewer-canvas-wrapper {
-    order: 2;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 300px;
-  }
-
-  /* Services: 2 columns with improved gap */
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+    font-size: 11px;
+    padding: 0 14px;
   }
 
   /* Works: 6-column grid for tablet */
@@ -1264,14 +698,6 @@ main.page p {
 
 /* Responsive: Tablet Refinements (768-1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .about-shell {
-    padding: clamp(32px, 4.5vw, 44px);
-  }
-
-  .services-grid {
-    gap: 24px;
-  }
-
   .works-grid {
     gap: 16px;
   }
@@ -1289,22 +715,6 @@ main.page p {
 @media (min-width: 900px) {
   :root {
     --gutter: 26px;
-  }
-
-  .hero-stage {
-    width: min(96%, 900px);
-    gap: 28px;
-  }
-
-  .portrait {
-    width: min(42vw, 380px);
-    aspect-ratio: 3/4;
-  }
-
-  /* Services: 3 columns for larger tablets */
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
   }
 
   .contact-grid {
@@ -1368,244 +778,10 @@ main.page p {
     padding: 10px 20px;
   }
 
-  .hero {
-    min-height: 100vh;
-    justify-content: flex-start;
-    align-items: stretch;
-    padding-top: calc(var(--navH) + 36px);
-    padding-bottom: clamp(24px, 4vh, 48px);
-    overflow: visible;
-  }
-
-  /* Hero: Full width, override container */
-  .hero.container {
-    width: min(100%, calc(var(--maxw) + var(--gutter) + var(--gutter)));
-    max-width: none;
-    padding-left: var(--gutter);
-    padding-right: var(--gutter);
-    margin: 0 auto;
-  }
-
-  .hero-title {
-    font-size: clamp(58px, 4.6vw, 88px);
-    line-height: 0.88;
-    letter-spacing: -0.05em;
-    text-align: left;
-    align-self: start;
-    justify-self: start;
-    padding: 0 0 0 clamp(20px, 1.8vw, 34px);
-    width: auto;
-    max-width: none;
-    white-space: nowrap;
-    margin: clamp(10px, 1vw, 18px) 0 clamp(-52px, -3.8vw, -24px);
-    position: relative;
-    z-index: 3;
-    transform: scaleX(0.9);
-    transform-origin: left top;
-    text-shadow:
-      0 1px 0 rgba(255,255,255,0.16),
-      0 2px 0 rgba(108,108,108,0.22),
-      0 4px 0 rgba(76,76,76,0.2),
-      0 7px 16px rgba(0, 0, 0, 0.30);
-  }
-
-  /* Show hero-eyebrow on desktop with line */
-  .hero-eyebrow {
-    display: flex;
-    align-self: center;
-    margin-top: 12px;
-    margin-bottom: 12px;
-  }
-
-  /* Hero watermark - move more to the right */
-  .hero-watermark {
-    left: 8%;
-  }
-
-  /* Hero plate - add margins */
-  .hero-plate {
-    display: block;
-    left: -3%;
-    right: -3%;
-    top: clamp(86px, 8vw, 128px);
-  }
-
-  .hero-stage {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
-    grid-template-rows: auto auto auto;
-    width: min(100%, calc(var(--maxw) + 40px));
-    margin: 8px auto 0;
-    justify-items: stretch;
-    gap: clamp(22px, 3vw, 36px);
-    min-height: clamp(520px, 60vh, 750px);
-    align-items: end;
-  }
-
-  .hero-left-note {
-    display: block;
-    left: 10px;
-  }
-
-  .hero-photo {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: stretch;
-    transform: translateY(calc(var(--lift) * -1));
-  }
-
-  .portrait {
-    width: clamp(300px, 26vw, 420px);
-    height: clamp(500px, 50vh, 720px);
-    object-fit: cover;
-    object-position: center 20%;
-  }
-
-  .hero-list {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: end;
-    align-self: flex-end;
-    width: min(100%, clamp(220px, 22vw, 320px));
-    transform: translateY(calc(var(--lift) * -1));
-  }
-
-  .hero-list li {
-    margin-bottom: 5px;
-  }
-
-  .hero-list li a {
-    font-size: clamp(11px, 0.95vw, 13px);
-    padding: 10px 14px;
-  }
-
-  .hero-cta {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    width: auto;
-    margin-top: 16px;
-    justify-content: center;
-  }
-
-  /* About - Desktop */
-  .about-left-note {
-    display: block;
-    left: calc((100vw - min(1000px, 94vw)) / 2 - 60px);
-  }
-
-  .about-hero {
-    padding: clamp(80px, 12vh, 120px) 0;
-  }
-
-  .about-shell {
-    padding: 48px 44px;
-    max-width: 1000px;
-    margin: 0 auto;
-    border-radius: 20px;
-  }
-
-  .about-title {
-    font-size: clamp(48px, 5vw, 64px);
-  }
-
-  .about-content {
-    gap: 40px;
-  }
-
-  .about-content-left {
-    padding-right: 32px;
-    flex: 1.3;
-    min-width: 0;
-  }
-
-  .about-lead {
-    font-size: 16px;
-    line-height: 1.7;
-  }
-
-  .about-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .about-stats .stat-item {
-    min-width: 0;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(28px, 3vw, 36px);
-  }
-
-  .about-stats .stat-label {
-    font-size: 12px;
-    line-height: 1.4;
-  }
-
-  /* Show drone on desktop */
-  .about-drone {
-    display: block;
-  }
-
-  .about-geometric-bg {
-    display: block;
-  }
-
-  .about-content-right .info-card {
-    padding: 16px 18px;
-  }
-
-  .about-content-right .info-card h3 {
-    font-size: 15px;
-  }
-
   /* Ticker - Desktop */
   .idx-ticker-item {
-    font-size: 15px;
-    padding: 0 24px;
-  }
-
-  /* App3D - Desktop */
-  .app3d {
-    padding: clamp(60px, 10vh, 100px) 0;
-  }
-
-  .app3d .title-xl {
-    font-size: clamp(42px, 5vw, 60px);
-  }
-
-  .app3d-grid {
-    grid-template-columns: 1.4fr 1fr;
-    gap: 40px;
-  }
-
-  .app3d-copy h3 {
-    font-size: clamp(22px, 2.5vw, 28px);
-  }
-
-  .app3d-copy p {
-    font-size: 15px;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 320px;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .viewer-card,
-  .viewer-canvas-wrapper {
-    border-radius: 16px;
-  }
-
-  .chip-btn {
-    font-size: 13px;
-    padding: 10px 16px;
-  }
-
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-  }
-
-  .service-card {
-    padding: 18px;
+    font-size: 12px;
+    padding: 0 16px;
   }
 
   .works-head {
@@ -1673,10 +849,6 @@ main.page p {
   }
 
   /* Responsive: Motion */
-  .about-drone .drone-ring {
-    animation: ringSpin 48s linear infinite;
-  }
-
   .visual-core .visual-rings {
     animation: ringSpin 10s linear infinite;
   }
@@ -1724,11 +896,6 @@ main.page p {
     --maxw: 1440px;
   }
 
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-  }
-
   .contact-grid {
     grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
     gap: 32px;
@@ -1756,79 +923,6 @@ main.page p {
     --gutter: 32px;
   }
 
-  .hero-title {
-    font-size: clamp(62px, 4.8vw, 92px);
-    width: auto;
-    max-width: none;
-    margin-bottom: clamp(-62px, -4.5vw, -34px);
-  }
-
-  .hero-stage {
-    width: min(100%, calc(var(--maxw) + 60px));
-    min-height: clamp(560px, 65vh, 800px);
-  }
-
-  .portrait {
-    width: clamp(340px, 28vw, 460px);
-    height: clamp(560px, 55vh, 780px);
-  }
-
-  .hero-list {
-    width: clamp(240px, 24vw, 340px);
-  }
-
-  .hero-list li {
-    margin-bottom: 5px;
-  }
-
-  .hero-list li a {
-    font-size: clamp(12px, 1vw, 14px);
-    padding: 12px 16px;
-  }
-
-  .hero-left-note {
-    left: 20px;
-  }
-
-  /* About - 1280px */
-  .about-left-note {
-    left: calc((100vw - min(1100px, 94vw)) / 2 - 70px);
-  }
-
-  .about-shell {
-    padding: 56px 52px;
-    max-width: 1100px;
-  }
-
-  .about-title {
-    font-size: clamp(52px, 4.5vw, 72px);
-  }
-
-  .about-content {
-    gap: 48px;
-  }
-
-  .about-lead {
-    font-size: 17px;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(32px, 2.8vw, 40px);
-  }
-
-  /* App3D - 1280px */
-  .app3d .title-xl {
-    font-size: clamp(48px, 4.5vw, 68px);
-  }
-
-  .app3d-grid {
-    gap: 48px;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 360px;
-  }
-
   .blogs-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
@@ -1839,91 +933,6 @@ main.page p {
   :root {
     --gutter: 40px;
     --maxw: 1500px;
-  }
-
-  .hero-title {
-    font-size: clamp(72px, 5.1vw, 104px);
-  }
-
-  .hero-stage {
-    width: min(100%, calc(var(--maxw) + 120px));
-    min-height: clamp(600px, 66vh, 820px);
-  }
-
-  .portrait {
-    width: clamp(380px, 29vw, 500px);
-    height: clamp(620px, 58vh, 820px);
-  }
-
-  .hero-list {
-    width: clamp(280px, 24vw, 360px);
-  }
-
-  .hero-list li {
-    margin-bottom: 5px;
-  }
-
-  .hero-list li a {
-    font-size: clamp(13px, 1.1vw, 15px);
-    padding: 14px 18px;
-  }
-
-  .hero-left-note {
-    left: 30px;
-    font-size: 0.95rem;
-  }
-
-  /* About - 1600px */
-  .about-left-note {
-    left: calc((100vw - min(1200px, 92vw)) / 2 - 80px);
-    font-size: 0.75rem;
-  }
-
-  .about-shell {
-    padding: 64px 60px;
-    max-width: 1200px;
-  }
-
-  .about-title {
-    font-size: clamp(56px, 4vw, 80px);
-  }
-
-  .about-lead {
-    font-size: 18px;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(36px, 2.5vw, 44px);
-  }
-
-  .about-content-right .info-card {
-    padding: 18px 20px;
-  }
-
-  /* App3D - 1600px */
-  .app3d .title-xl {
-    font-size: clamp(54px, 4vw, 76px);
-  }
-
-  .app3d-grid {
-    gap: 56px;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 400px;
-  }
-
-  .app3d-copy h3 {
-    font-size: clamp(26px, 2vw, 32px);
-  }
-
-  .app3d-copy p {
-    font-size: 16px;
-  }
-
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 28px;
   }
 
   .contact-grid {
@@ -1942,93 +951,6 @@ main.page p {
   :root {
     --gutter: 48px;
     --maxw: 1560px;
-  }
-
-  .hero-title {
-    font-size: clamp(78px, 4.8vw, 112px);
-  }
-
-  .hero-stage {
-    width: min(100%, calc(var(--maxw) + 120px));
-    min-height: clamp(640px, 68vh, 860px);
-  }
-
-  .portrait {
-    width: clamp(400px, 27vw, 540px);
-    height: clamp(660px, 60vh, 880px);
-  }
-
-  .hero-list {
-    width: clamp(300px, 22vw, 400px);
-  }
-
-  .hero-list li {
-    margin-bottom: 5px;
-  }
-
-  .hero-list li a {
-    font-size: clamp(14px, 1vw, 16px);
-    padding: 16px 20px;
-  }
-
-  .hero-left-note {
-    left: 40px;
-    font-size: 1rem;
-  }
-
-  /* About - 1920px */
-  .about-left-note {
-    left: calc((100vw - min(1400px, 90vw)) / 2 - 100px);
-    font-size: 0.85rem;
-    padding: 14px 24px;
-  }
-
-  .about-shell {
-    padding: 72px 68px;
-    max-width: 1400px;
-  }
-
-  .about-title {
-    font-size: clamp(64px, 3.5vw, 90px);
-  }
-
-  .about-lead {
-    font-size: 19px;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(40px, 2.2vw, 50px);
-  }
-
-  .about-stats .stat-label {
-    font-size: 13px;
-  }
-
-  /* App3D - 1920px */
-  .app3d .title-xl {
-    font-size: clamp(60px, 3.5vw, 84px);
-  }
-
-  .app3d-grid {
-    gap: 64px;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 450px;
-  }
-
-  .app3d-copy h3 {
-    font-size: clamp(28px, 1.8vw, 36px);
-  }
-
-  .app3d-copy p {
-    font-size: 17px;
-    line-height: 1.8;
-  }
-
-  .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 32px;
   }
 
   .contact-grid {
@@ -2053,103 +975,10 @@ main.page p {
     --maxw: 1600px;
   }
 
-  .hero-title {
-    font-size: clamp(108px, 6vw, 156px);
-  }
-
-  .hero-stage {
-    width: min(100%, calc(var(--maxw) + 140px));
-    min-height: clamp(680px, 68vh, 900px);
-  }
-
-  .portrait {
-    width: clamp(460px, 25vw, 600px);
-    height: clamp(730px, 63vh, 940px);
-  }
-
-  .hero-list {
-    width: clamp(340px, 20vw, 440px);
-  }
-
-  .hero-list li {
-    margin-bottom: 5px;
-  }
-
-  .hero-list li a {
-    font-size: clamp(15px, 0.9vw, 18px);
-    padding: 18px 22px;
-  }
-
-  .hero-left-note {
-    left: 50px;
-    font-size: 1.1rem;
-  }
-
-  /* About - 2400px */
-  .about-left-note {
-    left: calc((100vw - min(1600px, 88vw)) / 2 - 120px);
-    font-size: 0.95rem;
-    padding: 16px 28px;
-  }
-
-  .about-shell {
-    padding: 80px 76px;
-    max-width: 1600px;
-  }
-
-  .about-title {
-    font-size: clamp(72px, 3vw, 100px);
-  }
-
-  .about-lead {
-    font-size: 20px;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(44px, 2vw, 56px);
-  }
-
-  .about-stats .stat-label {
-    font-size: 14px;
-  }
-
-  .about-content-right .info-card {
-    padding: 20px 24px;
-  }
-
-  .about-content-right .info-card h3 {
-    font-size: 17px;
-  }
-
-  .about-content-right .info-card p {
-    font-size: 14px;
-  }
-
-  /* App3D - 2400px */
-  .app3d .title-xl {
-    font-size: clamp(68px, 3vw, 96px);
-  }
-
-  .app3d-grid {
-    gap: 72px;
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 520px;
-  }
-
-  .app3d-copy h3 {
-    font-size: clamp(32px, 1.5vw, 42px);
-  }
-
-  .app3d-copy p {
-    font-size: 18px;
-  }
-
   /* Ticker - 2400px */
   .idx-ticker-item {
-    font-size: 18px;
-    padding: 0 32px;
+    font-size: 13px;
+    padding: 0 18px;
   }
 }
 
@@ -2164,56 +993,6 @@ main.page p {
     padding: clamp(100px, 10vh, 160px) 0;
   }
 
-  .hero-title {
-    font-size: clamp(120px, 5.8vw, 168px);
-  }
-
-  .hero-stage {
-    width: min(100%, calc(var(--maxw) + 160px));
-    min-height: clamp(720px, 70vh, 940px);
-  }
-
-  .portrait {
-    width: clamp(500px, 26vw, 640px);
-    height: clamp(780px, 65vh, 980px);
-  }
-
-  .hero-list {
-    width: clamp(360px, 20vw, 460px);
-  }
-
-  .about-shell {
-    max-width: 1600px;
-    padding: 88px 84px;
-  }
-
-  .about-title {
-    font-size: clamp(80px, 3.2vw, 110px);
-  }
-
-  .about-lead {
-    font-size: 21px;
-  }
-
-  .about-stats .stat-number {
-    font-size: clamp(48px, 2.2vw, 60px);
-  }
-
-  .app3d .title-xl {
-    font-size: clamp(72px, 3.8vw, 100px);
-  }
-
-  .viewer-canvas-wrapper {
-    min-height: 560px;
-  }
-
-  .app3d-copy h3 {
-    font-size: clamp(34px, 1.6vw, 44px);
-  }
-
-  .app3d-copy p {
-    font-size: 19px;
-  }
 }
 
 /* Safety: Prevent horizontal overflow */
@@ -2230,7 +1009,6 @@ html, body {
   .blog-card,
   .blogs-badge,
   .blogs-header,
-  .about-drone .drone-ring,
   .visual-core .visual-rings,
   .visual-core .visual-scan,
   .holo-cube__spin,
@@ -2239,4 +1017,7 @@ html, body {
   .services-orbit .svc-ring {
     animation: none !important;
   }
+  /* Elements that start opacity:0 and rely on animation to show — must be made visible */
+  .hero-eyebrow { opacity: 1 !important; }
+  .hero-list li  { opacity: 1 !important; transform: none !important; }
 }
