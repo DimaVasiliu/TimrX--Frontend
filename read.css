@@ -40,7 +40,7 @@ body.read-page {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px clamp(24px, 4vw, 60px);
+  padding: 20px 16px;
   pointer-events: none;
 }
 
@@ -55,7 +55,8 @@ body.read-page {
   color: #fff;
   letter-spacing: -0.01em;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 6px;
   transition: opacity 0.3s ease;
 }
 
@@ -69,6 +70,14 @@ body.read-page {
 
 .read-brand .b-x {
   color: rgba(255, 255, 255, 0.6);
+  margin-left: 0;
+}
+
+.read-nav-logo {
+  width: 100px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .read-nav-link {
