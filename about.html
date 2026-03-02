@@ -106,7 +106,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px clamp(24px, 4vw, 60px);
+      padding: 20px 16px;
       pointer-events: none;
     }
     .about-header > * { pointer-events: auto; }
@@ -117,12 +117,21 @@
       color: #fff;
       letter-spacing: -0.01em;
       display: flex;
-      align-items: baseline;
+      align-items: center;
+      gap: 6px;
       transition: opacity 0.3s ease;
     }
     .about-brand:hover { opacity: 0.8; }
     .about-brand .b-tim { color: #fff; }
-    .about-brand .b-x { color: rgba(255,255,255,0.6); }
+    .about-brand .b-x { color: rgba(255,255,255,0.6); margin-left: 0; }
+    .about-nav-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: contain;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.12);
+    }
     .about-nav-link {
       display: inline-flex;
       align-items: center;
@@ -421,6 +430,7 @@
   <!-- Header -->
   <header class="about-header" aria-label="Site header">
     <a class="about-brand" href="/" aria-label="Home">
+      <img src="img/logo.png" alt="" class="about-nav-logo" width="50" height="50">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
     <a class="about-nav-link" href="/blogs">Read the Blog</a>
