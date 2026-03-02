@@ -64,7 +64,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px var(--gutter);
+      padding: 16px 16px;
       background: rgba(11,11,11,0.85);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
@@ -77,13 +77,20 @@
       text-decoration: none;
       color: #fff;
       display: flex;
-      align-items: baseline;
+      align-items: center;
+      gap: 6px;
       letter-spacing: -0.01em;
       transition: opacity 0.3s ease;
     }
     .archive-brand:hover { opacity: 0.8; }
     .archive-brand .b-tim { color: #fff; }
-    .archive-brand .b-x { color: rgba(255,255,255,0.6); }
+    .archive-brand .b-x { color: rgba(255,255,255,0.6); margin-left: 0; }
+    .archive-nav-logo {
+      width: 100px;
+      height: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
 
     .back-btn {
       display: inline-flex;
@@ -612,6 +619,7 @@
   <!-- HEADER -->
   <header class="archive-header">
     <a class="archive-brand" href="/">
+      <img src="img/blogs.png" alt="" class="archive-nav-logo" width="100">
       <span class="b-tim">Timr</span><span class="b-x">X</span>
     </a>
     <a class="back-btn" href="/blogs">
