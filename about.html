@@ -265,10 +265,6 @@
       line-height: 1.7;
       margin: 0 auto;
     }
-    @media (max-width: 720px) {
-      .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .skill-card { padding: 18px; }
-    }
     @media (max-width: 600px) {
       .hero-content { padding: 120px 0 60px; }
       .about-avatar { width: 136px; height: 136px; }
@@ -355,6 +351,12 @@
       line-height: 1.6;
       color: #888;
       margin: 0;
+    }
+    @media (max-width: 720px) {
+      .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
+      .skill-card { padding: 14px; border-radius: 12px; }
+      .skill-card h3 { font-size: 13px; margin: 0 0 6px; }
+      .skill-card p { font-size: 11px; line-height: 1.45; }
     }
 
     /* Connect Links */
