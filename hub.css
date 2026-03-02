@@ -109,6 +109,10 @@
     letter-spacing:.04em;
     margin-left:4px;
   }
+  .idx-nav-logo{
+    width:50px; height:50px; border-radius:50%; object-fit:contain;
+    flex-shrink:0; border:1.5px solid rgba(255,255,255,0.12);
+  }
   .nav-left{display:flex; align-items:center; gap:18px}
   .nav-right{display:flex; align-items:center; gap:8px}
   .login{font-weight:800; opacity:.9}
