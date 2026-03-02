@@ -584,16 +584,8 @@
 <section id="services" class="section services services-light">
     <div class="container services-shell">
     <div class="services-header">
-      <div class="services-header-text">
-        <div class="title-xl">SERVICES</div>
-        <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
-      </div>
-      <div class="services-orbit hide-mobile" aria-hidden="true">
-        <span class="svc-ring ring-a"></span>
-        <span class="svc-ring ring-b"></span>
-        <span class="svc-ring ring-c"></span>
-        <span class="svc-core"></span>
-      </div>
+      <div class="title-xl">SERVICES</div>
+      <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
     </div>
 
     <div class="services-grid" role="list">
@@ -649,17 +641,21 @@
         <a class="svc-cta-light" href="#contact">Make it 3D <span>→</span></a>
       </div>
 
-      <!-- Video -->
-      <div class="service-card svc-card-light" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🎬</div>
-        <h3 class="svc-title">Video / Shorts</h3>
-        <p class="svc-copy">Platform-native cuts, hooks, and pacing. Mythic vibes optional.</p>
-        <ul class="svc-bullets-light">
-          <li><span class="svc-bullet-arrow">→</span> TikTok/Shorts edits</li>
-          <li><span class="svc-bullet-arrow">→</span> Audio polish</li>
-          <li><span class="svc-bullet-arrow">→</span> Title/thumbnail</li>
+      <!-- Overview panel -->
+      <div class="svc-panel" role="listitem" aria-label="Services overview">
+        <div class="svc-panel-hd">
+          <span class="svc-panel-status"><span class="svc-pdot"></span>ACTIVE</span>
+          <span class="svc-panel-count">04</span>
+        </div>
+        <ul class="svc-panel-list">
+          <li class="svc-pitem pitem-1"><span class="svc-pmark"></span>Web Design</li>
+          <li class="svc-pitem pitem-2"><span class="svc-pmark"></span>UX / UI</li>
+          <li class="svc-pitem pitem-3"><span class="svc-pmark"></span>Development</li>
+          <li class="svc-pitem pitem-4"><span class="svc-pmark"></span>3D Modeling</li>
         </ul>
-        <a class="svc-cta-light" href="#contact">Cut a teaser <span>→</span></a>
+        <div class="svc-panel-prog-wrap">
+          <div class="svc-panel-prog"></div>
+        </div>
       </div>
     </div>
     </div>
@@ -1526,6 +1522,8 @@
                 ? `srcset="${coverUrl}&w=640 640w, ${coverUrl}&w=960 960w, ${coverUrl}&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"`
                 : '';
 
+              const allTags = (post.tags || '').split(',').filter(Boolean);
+
               return `
                 <a class="blog-card${isFeatured ? ' featured' : ''}" href="${url}" role="listitem">
                   <div class="cover">
@@ -1539,6 +1537,8 @@
                   <div class="inner">
                     <h3 class="title">${post.title}</h3>
                     <p class="excerpt muted">${post.excerpt || ''}</p>
+                    ${isFeatured ? '<p class="featured-preview muted" id="featuredPreview"></p>' : ''}
+                    ${isFeatured && allTags.length > 1 ? `<div class="featured-tags">${allTags.map(t => `<span class="featured-tag">${t.trim()}</span>`).join('')}</div>` : ''}
                     <div class="blog-footer">
                       <div class="author-mini">
                         <img src="img/dima.jpg" alt="${post.author || 'Dima Vasiliu'}" class="author-mini-avatar" />
@@ -1554,6 +1554,46 @@
                 </a>
               `;
             }).join('');
+
+            // Fetch full content for the featured post to fill preview on large screens
+            const featuredPost = posts[0];
+            if (featuredPost) {
+              fetch(`${API}/post/${encodeURIComponent(featuredPost.slug)}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(full => {
+                  if (!full) return;
+                  const previewEl = document.getElementById('featuredPreview');
+                  if (!previewEl) return;
+
+                  let plainText = '';
+                  const format = full.content_format || 'markdown';
+                  if (format === 'blocks' && full.content_blocks) {
+                    try {
+                      const blocks = typeof full.content_blocks === 'string' ? JSON.parse(full.content_blocks) : full.content_blocks;
+                      plainText = (blocks.blocks || [])
+                        .filter(b => b.type === 'paragraph')
+                        .map(b => (b.data && b.data.text) || '')
+                        .join(' ')
+                        .replace(/<[^>]+>/g, '');
+                    } catch {}
+                  } else if (full.content_md) {
+                    plainText = full.content_md
+                      .replace(/^#{1,6}\s+.*$/gm, '')
+                      .replace(/!\[.*?\]\(.*?\)/g, '')
+                      .replace(/\[([^\]]+)\]\(.*?\)/g, '$1')
+                      .replace(/[*_~`>#\-]/g, '')
+                      .replace(/\n{2,}/g, ' ')
+                      .replace(/\n/g, ' ')
+                      .trim();
+                  }
+
+                  if (plainText.length > 50) {
+                    const trimmed = plainText.length > 480 ? plainText.slice(0, 480).replace(/\s\S*$/, '') + '...' : plainText;
+                    previewEl.textContent = trimmed;
+                  }
+                })
+                .catch(() => {});
+            }
 
           } catch (error) {
             console.error('Error loading blog posts:', error);
