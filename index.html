@@ -248,8 +248,8 @@
   .nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,8,8,.88);backdrop-filter:blur(12px)}
   .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
   .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding-top:calc(var(--navH)+18px)}
-  .hero-title{font-weight:900;font-size:clamp(36px,12vw,140px);line-height:.9;text-transform:uppercase;text-align:center}
-  @media(min-width:1024px){.hero-title{text-align:left}}
+  .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
+  @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
 </style>
 </head>
 <body>
@@ -349,11 +349,11 @@
                 <!-- Using a placeholder image for demonstration -->
                 <img class="portrait" src="img/dima.jpg" alt="Portrait of Dima Vasiliu, creative developer and founder of TimrX" width="440" height="550" fetchpriority="high" decoding="async" />
             </figure>
-        </div>
-    
-        <div class="hero-cta">
-            <a class="btn" href="#works">WORKS</a>
-            <a class="btn secondary" href="#contact">CONTACT ME</a>
+
+            <div class="hero-cta">
+                <a class="btn" href="#works">WORKS</a>
+                <a class="btn secondary" href="#contact">CONTACT ME</a>
+            </div>
         </div>
     </header>
   
@@ -364,14 +364,14 @@
             <div class="about-left-note hide-tablet" aria-hidden="true">ABOUT • PROFILE</div>
 
             <!-- Geometric background -->
-            <div class="about-geometric-bg hide-mobile" aria-hidden="true">
+            <div class="about-geometric-bg" aria-hidden="true">
                 <div class="geo-circle geo-circle-1"></div>
                 <div class="geo-circle geo-circle-2"></div>
                 <div class="geo-grid"></div>
             </div>
 
             <!-- Floating particles -->
-            <div class="about-particles hide-mobile" id="aboutParticles" aria-hidden="true"></div>
+            <div class="about-particles" id="aboutParticles" aria-hidden="true"></div>
 
             <!-- Main centered dark box - bigger shell -->
             <div class="about-shell">
@@ -379,35 +379,34 @@
                 <div class="shell-geometric" aria-hidden="true">
                     <div class="shell-grid"></div>
                 </div>
-                <div class="about-drone" aria-hidden="true">
-                    <div class="drone-orbit">
-                        <span class="drone-ring ring-a"></span>
-                        <span class="drone-ring ring-b"></span>
-                        <span class="drone-ring ring-c"></span>
-                    </div>
-                    <div class="drone-body">
-                        <span class="drone-core"></span>
-                        <span class="drone-display">
-                            <span class="display-track">
-                                <span>4 YEARS EXP</span>
-                                <span>15 PROJECTS</span>
-                                <span>16 SKILLS</span>
-                                <span>TIMRX LAB</span>
-                            </span>
-                        </span>
-                    </div>
-                </div>
 
                 <!-- Header: Badge + Title -->
                 <header class="about-header">
-                    <div class="about-badge" id="aboutBadge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>DEVELOPER & DESIGNER</span>
+                    <div class="about-header-left">
+                        <div class="about-badge" id="aboutBadge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>DEVELOPER & DESIGNER</span>
+                        </div>
+                        <h2 class="title-xl about-title" id="aboutTitle">ABOUT ME</h2>
                     </div>
-                    <h2 class="title-xl about-title" id="aboutTitle">ABOUT ME</h2>
+                    <div class="about-drone-wrap">
+                        <div class="about-drone" aria-hidden="true">
+                            <div class="drone-body">
+                                <span class="drone-core"></span>
+                                <span class="drone-display">
+                                    <span class="display-track">
+                                        <span>4 YEARS EXP</span>
+                                        <span>15 PROJECTS</span>
+                                        <span>16 SKILLS</span>
+                                        <span>TIMRX LAB</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </header>
 
                 <!-- Content Grid: Left + Right -->
@@ -439,11 +438,6 @@
                                 <div class="stat-label">Motion UX, WebGL, print-ready workflows</div>
                             </div>
                         </div>
-
-                        <a href="/about" style="display:inline-flex;align-items:center;gap:6px;margin-top:24px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.25s;" onmouseover="this.style.color='rgba(255,255,255,0.85)';this.querySelector('svg').style.transform='translateX(3px)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.querySelector('svg').style.transform='translateX(0)'">
-                            Full Profile
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </a>
                     </div>
 
                     <!-- Right Column: Info Cards -->
@@ -471,6 +465,11 @@
                                 <p class="muted">2024 — TimrX born · 2025 — 3D Print Hub · AI expansion</p>
                             </div>
                         </div>
+
+                        <a href="/about" class="about-profile-link" onmouseover="this.style.color='rgba(255,255,255,0.85)';this.querySelector('svg').style.transform='translateX(3px)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.querySelector('svg').style.transform='translateX(0)'">
+                            Full Profile
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
                     </aside>
                 </div>
             </div>
@@ -584,10 +583,12 @@
 <!-- SERVICES -->
 <section id="services" class="section services services-light">
     <div class="container services-shell">
-    <div class="title-xl">SERVICES</div>
-    <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
-    <div class="services-fx hide-mobile" aria-hidden="true">
-      <div class="services-orbit">
+    <div class="services-header">
+      <div class="services-header-text">
+        <div class="title-xl">SERVICES</div>
+        <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
+      </div>
+      <div class="services-orbit hide-mobile" aria-hidden="true">
         <span class="svc-ring ring-a"></span>
         <span class="svc-ring ring-b"></span>
         <span class="svc-ring ring-c"></span>
@@ -952,17 +953,6 @@
         <p style="color:#5a5a5a;font-size:16px;line-height:1.6;margin:0;">AI tools, 3D workflows, and web products under one banner. A focused studio blending rapid prototyping with shipped, client-ready experiences.</p>
       </div>
 
-      <!-- Resource Buttons -->
-      <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px;">
-        <button type="button" data-modal="aboutTimrxModal" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--warm-white-2);color:#0b0b0b;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s ease;">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>About TimrX</span>
-        </button>
-        <button type="button" data-modal="faqModal" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--warm-white-2);color:#0b0b0b;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s ease;">
-          <i class="fa-solid fa-question-circle"></i>
-          <span>FAQ</span>
-        </button>
-      </div>
     </div>
   </section>
   </main>
@@ -1581,140 +1571,8 @@
     <script src="app.js"></script>
 
     <!-- About TimrX Modal -->
-    <div class="modal about-modal" id="aboutTimrxModal" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;">
-      <div class="card about-modal-card" style="background:var(--warm-white);border:1px solid #ececec;border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative;scrollbar-width:none;-ms-overflow-style:none;transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-        <button class="close-x" data-close-modal aria-label="Close" style="position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:50%;color:#0b0b0b;font-size:20px;cursor:pointer;transition:all 0.2s;">&times;</button>
-        <div class="about-modal-header" style="display:flex;align-items:center;gap:12px;padding:24px 24px 0;color:#0b0b0b;">
-          <i class="fa-solid fa-circle-info" style="font-size:24px;color:#0b0b0b;"></i>
-          <h4 style="margin:0;font-size:1.5rem;font-weight:700;">About TimrX</h4>
-        </div>
-        <div class="about-modal-body" style="padding:24px;line-height:1.7;color:#5a5a5a;">
-          <p style="margin-bottom:1rem;"><strong style="color:#0b0b0b;">TimrX is the creative lab of Dima Vasiliu</strong>, focused on AI-powered 3D production and polished web experiences.</p>
-          <p style="margin-bottom:1rem;">The flagship <a href="hub.html" style="color:#0b0b0b;text-decoration:underline;">TimrX 3D Print Hub</a> turns prompts or images into printable models with a fast, iterative workflow. Whether you're a game developer, 3D printing enthusiast, or digital artist, the Hub streamlines your workflow with intuitive tools.</p>
-          <p style="margin-bottom:1rem;">This portfolio highlights shipped builds, experiments, and client work across web development, AI integrations, and creative consulting.</p>
-          <div style="margin-top:20px;padding:16px;background:var(--warm-white-2);border:1px solid #ececec;border-radius:8px;">
-            <p style="margin:0;font-size:14px;color:#5a5a5a;"><i class="fa-solid fa-link" style="color:#0b0b0b;margin-right:8px;"></i><strong style="color:#0b0b0b;">Quick links:</strong></p>
-            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;">
-              <a href="3dprint.html" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">AI Workspace</a>
-              <a href="#works" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Works</a>
-              <a href="blogs.html" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Blog</a>
-              <a href="#contact" style="color:#0b0b0b;text-decoration:underline;font-size:14px;">Contact</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FAQ Modal -->
-    <div class="modal about-modal" id="faqModal" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;">
-      <div class="card about-modal-card" style="background:var(--warm-white);border:1px solid #ececec;border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative;scrollbar-width:none;-ms-overflow-style:none;transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-        <button class="close-x" data-close-modal aria-label="Close" style="position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:50%;color:#0b0b0b;font-size:20px;cursor:pointer;transition:all 0.2s;">&times;</button>
-        <div class="about-modal-header" style="display:flex;align-items:center;gap:12px;padding:24px 24px 0;color:#0b0b0b;">
-          <i class="fa-solid fa-question-circle" style="font-size:24px;color:#0b0b0b;"></i>
-          <h4 style="margin:0;font-size:1.5rem;font-weight:700;">Frequently Asked Questions</h4>
-        </div>
-        <div class="about-modal-body" style="padding:24px;line-height:1.7;color:#5a5a5a;">
-          <div style="background:var(--warm-white-2);border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
-            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What is TimrX?</strong></p>
-            <p style="margin:0;color:#5a5a5a;">TimrX is a creative studio specializing in AI-powered 3D workflows, web development, and digital experiences—founded by Dima Vasiliu.</p>
-          </div>
-          <div style="background:var(--warm-white-2);border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
-            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What services do you offer?</strong></p>
-            <p style="margin:0;color:#5a5a5a;">3D model generation, web development, AI integrations, and creative consulting for digital projects of any scale.</p>
-          </div>
-          <div style="background:var(--warm-white-2);border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
-            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">How do I start a project?</strong></p>
-            <p style="margin:0;color:#5a5a5a;">Use the <a href="#contact" style="color:#0b0b0b;text-decoration:underline;">contact form</a> or <a href="mailto:admin@timrx.live" style="color:#0b0b0b;text-decoration:underline;">email directly</a>. Typical response time is within 24 hours.</p>
-          </div>
-          <div style="background:var(--warm-white-2);border:1px solid #ececec;border-radius:12px;padding:20px;margin-bottom:16px;">
-            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">What is the 3D Print Hub?</strong></p>
-            <p style="margin:0;color:#5a5a5a;">The <a href="hub.html" style="color:#0b0b0b;text-decoration:underline;">3D Print Hub</a> is an AI tool that turns text prompts or images into downloadable 3D models—perfect for games, printing, and visualisation.</p>
-          </div>
-          <div style="background:var(--warm-white-2);border:1px solid #ececec;border-radius:12px;padding:20px;">
-            <p style="margin-bottom:8px;"><strong style="color:#0b0b0b;">Where can I see your work?</strong></p>
-            <p style="margin:0;color:#5a5a5a;">Browse the <a href="#works" style="color:#0b0b0b;text-decoration:underline;">Works section</a> for featured projects, or visit the <a href="blogs.html" style="color:#0b0b0b;text-decoration:underline;">blog</a> for process breakdowns and tutorials.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- About Modal JS -->
-    <script>
-    (function() {
-      const modalButtons = document.querySelectorAll('[data-modal]');
-      if (!modalButtons.length) return;
-
-      // Button hover effects
-      modalButtons.forEach(btn => {
-        btn.addEventListener('mouseenter', () => {
-          btn.style.background = '#f0f0f0';
-          btn.style.borderColor = '#d0d0d0';
-        });
-        btn.addEventListener('mouseleave', () => {
-          btn.style.background = 'var(--warm-white-2)';
-          btn.style.borderColor = '#e0e0e0';
-        });
-
-        btn.addEventListener('click', () => {
-          const modalId = btn.dataset.modal;
-          const modal = document.getElementById(modalId);
-          if (modal) {
-            const card = modal.querySelector('.about-modal-card');
-            modal.style.opacity = '1';
-            modal.style.visibility = 'visible';
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-            if (card) {
-              card.style.transform = 'translateY(0) scale(1)';
-            }
-          }
-        });
-      });
-
-      document.querySelectorAll('.about-modal').forEach(modal => {
-        const closeBtn = modal.querySelector('[data-close-modal]');
-        if (closeBtn) {
-          closeBtn.addEventListener('click', () => closeModal(modal));
-          closeBtn.addEventListener('mouseenter', () => {
-            closeBtn.style.background = '#e0e0e0';
-            closeBtn.style.borderColor = '#d0d0d0';
-            closeBtn.style.transform = 'scale(1.1)';
-          });
-          closeBtn.addEventListener('mouseleave', () => {
-            closeBtn.style.background = '#f0f0f0';
-            closeBtn.style.borderColor = '#e0e0e0';
-            closeBtn.style.transform = 'scale(1)';
-          });
-        }
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) closeModal(modal);
-        });
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          document.querySelectorAll('.about-modal').forEach(modal => {
-            if (modal.style.visibility === 'visible') closeModal(modal);
-          });
-        }
-      });
-
-      function closeModal(modal) {
-        const card = modal.querySelector('.about-modal-card');
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        if (card) {
-          card.style.transform = 'translateY(20px) scale(0.95)';
-        }
-      }
-    })();
-    </script>
-
-    <!-- Hide scrollbar in modal cards + Service card hover effects -->
+    <!-- Service card hover effects -->
     <style>
-    .about-modal-card::-webkit-scrollbar { display: none; }
 
     /* Service cards light theme - flexbox for button alignment */
     .svc-card-light {
