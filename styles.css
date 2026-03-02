@@ -187,37 +187,56 @@ img{max-width:100%;display:block}
   border-radius: 50%;
 }
 
-/* Eyebrow — pill badge */
+/* Eyebrow — shimmer sweep */
 .hero-eyebrow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   z-index: 2;
   margin-top: clamp(12px, 2.5vh, 20px);
   margin-bottom: 2px;
   opacity: 0;
-  animation: heroSlideIn 0.6s ease both 0.15s;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 999px;
-  padding: 6px 16px 6px 10px;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  animation: eyebrowFadeIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s forwards;
+  background: none;
+  border: none;
+  padding: 0;
 }
+
+/* Hide the line span — not needed */
 .hero-eyebrow .eyebrow-line {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.7);
-  box-shadow: 0 0 8px rgba(255,255,255,0.45), 0 0 22px rgba(255,255,255,0.18);
-  flex-shrink: 0;
+  display: none;
 }
+
 .hero-eyebrow .eyebrow-text {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  font-size: clamp(12px, 2.8vw, 15px);
+  font-weight: 400;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.65);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.35) 0%,
+    rgba(255,255,255,0.35) 40%,
+    rgba(14,165,233,0.9)   50%,
+    rgba(255,255,255,0.35) 60%,
+    rgba(255,255,255,0.35) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: eyebrowShimmer 4s ease-in-out 1s infinite;
+}
+
+@keyframes eyebrowFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes eyebrowShimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 @keyframes heroFadeIn { from { opacity:0; } to { opacity:1; } }
@@ -360,15 +379,18 @@ img{max-width:100%;display:block}
 
 /* —— Mobile only: eyebrow + lower position —— */
 @media (max-width: 767px) {
-  .hero-stage {
-    grid-template-rows: auto auto auto auto auto;
-    margin-top: clamp(28px, 5vh, 48px);
+  .hero-eyebrow {
+    margin-top: 4px;
+    margin-bottom: 0;
   }
-  .hero-eyebrow { grid-column: 1; grid-row: 1; }
-  .hero-title   { grid-row: 2; }
-  .hero-photo   { grid-row: 3; }
-  .hero-list    { grid-row: 4; }
-  .hero-cta     { grid-row: 5; }
+  .hero-stage {
+    grid-template-rows: auto auto auto auto;
+    margin-top: clamp(10px, 2vh, 18px);
+  }
+  .hero-title   { grid-row: 1; }
+  .hero-photo   { grid-row: 2; }
+  .hero-list    { grid-row: 3; }
+  .hero-cta     { grid-row: 4; }
 }
 
 /* —— 480px+ —— */
