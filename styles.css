@@ -3088,12 +3088,21 @@ img{max-width:100%;display:block}
 /* Blog footer with author - compact */
 .blog-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin-top: auto;
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  gap: 8px;
+  gap: 6px;
+}
+
+@media (min-width: 768px) {
+  .blog-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 .author-mini {
