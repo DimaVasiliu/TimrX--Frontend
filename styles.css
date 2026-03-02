@@ -952,6 +952,16 @@ img{max-width:100%;display:block}
   line-height: 1.5; margin: 0;
 }
 
+/* —— Mobile: nudge side stat-labels inward so they stay on-screen —— */
+@media (max-width: 767px) {
+  .about-stats .stat-item:first-child .stat-label {
+    margin-left: 60px;
+  }
+  .about-stats .stat-item:last-child .stat-label {
+    margin-right: 70px;
+  }
+}
+
 /* —— 640px+ —— */
 @media (min-width: 640px) {
   .about-header { text-align: left; }
