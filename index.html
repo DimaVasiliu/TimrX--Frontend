@@ -1390,146 +1390,109 @@
       })();
       </script>
 
-      <!-- Dynamic Blog Loading -->
+      <!-- Dynamic Blog Loading: deferred until after window.load to keep it out of the critical path -->
       <script>
-        (async function loadBlogs() {
-          const blogsGrid = document.getElementById('blogsGrid');
+        function _loadBlogs() {
+          var blogsGrid = document.getElementById('blogsGrid');
           if (!blogsGrid) return;
 
-          // API configuration - matches blogs.html and read.html
-          const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-          const API = API_BASE + '/api';
+          var API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+          var API = API_BASE + '/api';
 
-          try {
-            // Fetch latest 9 published posts (4 on first row + 5 on second row)
-            const response = await fetch(`${API}/posts?page=1&size=9`, { cache: 'no-store' });
+          fetch(API + '/posts?page=1&size=9', { cache: 'no-store' })
+            .then(function(r){ if (!r.ok) throw new Error('Failed'); return r.json(); })
+            .then(function(data){
+              var posts = data.items || data.posts || [];
+              if (!posts.length) {
+                blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">No blog posts available yet.</p>';
+                return;
+              }
 
-            if (!response.ok) throw new Error('Failed to fetch posts');
+              // Update stats counters
+              var statsEl = document.getElementById('blogsStats');
+              var statsNumbers = statsEl ? statsEl.querySelectorAll('.stat-number') : [];
+              if (statsNumbers.length >= 3) {
+                var totalMinutes = posts.reduce(function(sum, post){
+                  return sum + (post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60)));
+                }, 0);
+                setTimeout(function(){
+                  _blogCounter(statsNumbers[0], posts.length, 1500);
+                  var tags = new Set(posts.flatMap(function(p){ return (p.tags||'').split(',').filter(Boolean); }));
+                  _blogCounter(statsNumbers[1], tags.size || 5, 1500);
+                  _blogCounter(statsNumbers[2], totalMinutes, 1500);
+                }, 600);
+              }
 
-            const data = await response.json();
-            const posts = data.items || data.posts || [];
+              blogsGrid.innerHTML = posts.map(function(post, index){
+                var url = 'read.html?slug=' + encodeURIComponent(post.slug);
+                var tag = (post.tags || '').split(',')[0] || 'Post';
+                var date = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
+                var readTime = post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60));
+                var coverUrl = post.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
+                var isFeatured = index === 0;
+                var isUnsplash = coverUrl.indexOf('unsplash.com') !== -1;
+                var srcsetAttr = isUnsplash
+                  ? 'srcset="'+coverUrl+'&w=640 640w, '+coverUrl+'&w=960 960w, '+coverUrl+'&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"'
+                  : '';
+                var allTags = (post.tags || '').split(',').filter(Boolean);
 
-            if (!posts.length) {
-              blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">No blog posts available yet.</p>';
-              return;
-            }
+                return '<a class="blog-card'+(isFeatured?' featured':'')+'" href="'+url+'" role="listitem">'
+                  +'<div class="cover"><img src="'+coverUrl+'" '+srcsetAttr+' alt="'+post.title+'" loading="lazy" decoding="async" />'
+                  +(isFeatured?'<span class="pill featured-pill">FEATURED</span>':'')
+                  +'<span class="pill category-pill">'+tag+'</span></div>'
+                  +'<div class="inner"><h3 class="title">'+post.title+'</h3>'
+                  +'<p class="excerpt muted">'+(post.excerpt||'')+'</p>'
+                  +(isFeatured?'<p class="featured-preview muted" id="featuredPreview"></p>':'')
+                  +(isFeatured&&allTags.length>1?'<div class="featured-tags">'+allTags.map(function(t){return '<span class="featured-tag">'+t.trim()+'</span>';}).join('')+'</div>':'')
+                  +'<div class="blog-footer"><div class="author-mini">'
+                  +'<img src="img/dima.jpg" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" />'
+                  +'<span class="author-mini-name">'+(post.author||'Dima Vasiliu')+'</span></div>'
+                  +'<div class="meta"><span>'+readTime+' min read</span><span>\u2022</span>'
+                  +'<time datetime="'+post.created_at+'">'+date+'</time></div></div></div></a>';
+              }).join('');
 
-            // Update stats counters
-            const statsEl = document.getElementById('blogsStats');
-            const statsNumbers = statsEl ? statsEl.querySelectorAll('.stat-number') : [];
-            if (statsNumbers.length >= 3) {
-              const totalMinutes = posts.reduce((sum, post) => {
-                const minutes = post.minutes || Math.max(3, Math.round(((post.excerpt || '') + (post.title || '')).length / 60));
-                return sum + minutes;
-              }, 0);
+              // Fetch featured post detail (non-critical)
+              var fp = posts[0];
+              if (fp) {
+                fetch(API+'/post/'+encodeURIComponent(fp.slug))
+                  .then(function(r){ return r.ok ? r.json() : null; })
+                  .then(function(full){
+                    if (!full) return;
+                    var el = document.getElementById('featuredPreview');
+                    if (!el) return;
+                    var txt = '';
+                    var fmt = full.content_format || 'markdown';
+                    if (fmt==='blocks' && full.content_blocks) {
+                      try {
+                        var blocks = typeof full.content_blocks==='string'?JSON.parse(full.content_blocks):full.content_blocks;
+                        txt = (blocks.blocks||[]).filter(function(b){return b.type==='paragraph';}).map(function(b){return (b.data&&b.data.text)||'';}).join(' ').replace(/<[^>]+>/g,'');
+                      } catch(e){}
+                    } else if (full.content_md) {
+                      txt = full.content_md.replace(/^#{1,6}\s+.*$/gm,'').replace(/!\[.*?\]\(.*?\)/g,'').replace(/\[([^\]]+)\]\(.*?\)/g,'$1').replace(/[*_~`>#\-]/g,'').replace(/\n{2,}/g,' ').replace(/\n/g,' ').trim();
+                    }
+                    if (txt.length>50) el.textContent = txt.length>480 ? txt.slice(0,480).replace(/\s\S*$/,'')+'...' : txt;
+                  }).catch(function(){});
+              }
+            })
+            .catch(function(err){
+              console.error('Error loading blog posts:', err);
+              blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">Unable to load blog posts. <a href="blogs.html" style="color:var(--accent-blue)">Visit the blogs page \u2192</a></p>';
+            });
+        }
 
-              // Animate counters
-              setTimeout(() => {
-                animateCounter(statsNumbers[0], posts.length, 1500);
-                const uniqueTags = new Set(posts.flatMap(p => (p.tags || '').split(',').filter(Boolean)));
-                animateCounter(statsNumbers[1], uniqueTags.size || 5, 1500);
-                animateCounter(statsNumbers[2], totalMinutes, 1500);
-              }, 600);
-            }
+        function _blogCounter(el, target, dur){
+          var inc = target/(dur/16), cur = 0;
+          var t = setInterval(function(){ cur+=inc; if(cur>=target){cur=target;clearInterval(t);} el.textContent=Math.floor(cur); }, 16);
+        }
 
-            // Generate blog cards HTML
-            blogsGrid.innerHTML = posts.map((post, index) => {
-              const url = `read.html?slug=${encodeURIComponent(post.slug)}`;
-              const tag = (post.tags || '').split(',')[0] || 'Post';
-              const date = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const readTime = post.minutes || Math.max(3, Math.round(((post.excerpt || '') + (post.title || '')).length / 60));
-              const coverUrl = post.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
-              const isFeatured = index === 0; // First post is featured
-
-              // Only use srcset for Unsplash images (they support &w= params)
-              const isUnsplash = coverUrl.includes('unsplash.com');
-              const srcsetAttr = isUnsplash
-                ? `srcset="${coverUrl}&w=640 640w, ${coverUrl}&w=960 960w, ${coverUrl}&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"`
-                : '';
-
-              const allTags = (post.tags || '').split(',').filter(Boolean);
-
-              return `
-                <a class="blog-card${isFeatured ? ' featured' : ''}" href="${url}" role="listitem">
-                  <div class="cover">
-                    <img
-                      src="${coverUrl}"
-                      ${srcsetAttr}
-                      alt="${post.title}" loading="lazy" decoding="async" />
-                    ${isFeatured ? '<span class="pill featured-pill">FEATURED</span>' : ''}
-                    <span class="pill category-pill">${tag}</span>
-                  </div>
-                  <div class="inner">
-                    <h3 class="title">${post.title}</h3>
-                    <p class="excerpt muted">${post.excerpt || ''}</p>
-                    ${isFeatured ? '<p class="featured-preview muted" id="featuredPreview"></p>' : ''}
-                    ${isFeatured && allTags.length > 1 ? `<div class="featured-tags">${allTags.map(t => `<span class="featured-tag">${t.trim()}</span>`).join('')}</div>` : ''}
-                    <div class="blog-footer">
-                      <div class="author-mini">
-                        <img src="img/dima.jpg" alt="${post.author || 'Dima Vasiliu'}" class="author-mini-avatar" />
-                        <span class="author-mini-name">${post.author || 'Dima Vasiliu'}</span>
-                      </div>
-                      <div class="meta">
-                        <span>${readTime} min read</span>
-                        <span>•</span>
-                        <time datetime="${post.created_at}">${date}</time>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              `;
-            }).join('');
-
-            // Fetch full content for the featured post to fill preview on large screens
-            const featuredPost = posts[0];
-            if (featuredPost) {
-              fetch(`${API}/post/${encodeURIComponent(featuredPost.slug)}`)
-                .then(r => r.ok ? r.json() : null)
-                .then(full => {
-                  if (!full) return;
-                  const previewEl = document.getElementById('featuredPreview');
-                  if (!previewEl) return;
-
-                  let plainText = '';
-                  const format = full.content_format || 'markdown';
-                  if (format === 'blocks' && full.content_blocks) {
-                    try {
-                      const blocks = typeof full.content_blocks === 'string' ? JSON.parse(full.content_blocks) : full.content_blocks;
-                      plainText = (blocks.blocks || [])
-                        .filter(b => b.type === 'paragraph')
-                        .map(b => (b.data && b.data.text) || '')
-                        .join(' ')
-                        .replace(/<[^>]+>/g, '');
-                    } catch {}
-                  } else if (full.content_md) {
-                    plainText = full.content_md
-                      .replace(/^#{1,6}\s+.*$/gm, '')
-                      .replace(/!\[.*?\]\(.*?\)/g, '')
-                      .replace(/\[([^\]]+)\]\(.*?\)/g, '$1')
-                      .replace(/[*_~`>#\-]/g, '')
-                      .replace(/\n{2,}/g, ' ')
-                      .replace(/\n/g, ' ')
-                      .trim();
-                  }
-
-                  if (plainText.length > 50) {
-                    const trimmed = plainText.length > 480 ? plainText.slice(0, 480).replace(/\s\S*$/, '') + '...' : plainText;
-                    previewEl.textContent = trimmed;
-                  }
-                })
-                .catch(() => {});
-            }
-
-          } catch (error) {
-            console.error('Error loading blog posts:', error);
-            // Fallback to placeholder message
-            blogsGrid.innerHTML = `
-              <p class="muted" style="text-align:center;padding:40px;">
-                Unable to load blog posts. <a href="blogs.html" style="color:var(--accent-blue)">Visit the blogs page →</a>
-              </p>
-            `;
+        // Defer blog loading until AFTER window.load + idle — keeps it off the critical path
+        window.addEventListener('load', function(){
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(_loadBlogs, { timeout: 2000 });
+          } else {
+            setTimeout(_loadBlogs, 800);
           }
-        })();
+        });
       </script>
 
     <script src="script.js" defer></script>
