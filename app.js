@@ -38,7 +38,7 @@ function timrxLocalRouter(q) {
   if (text.includes('3d') && (text.includes('start') || text.includes('project')))
     return 'To start a 3D project: share a reference + size + use (web/print) + budget (chips in Contact). I’ll scope it.';
   if (text.includes('budget') || text.includes('price'))
-    return 'Typical ranges: £500–£1.5k (landing), £1.5–3k (site/3D), £3–7k+ (full stack). Use the budget chips and message me.';
+    return 'Typical ranges: £100–£500 (simple landing page), £500–£1.5k (landing + extras), £1.5–3k (site/3D), £3–7k+ (full stack). Use the budget chips and message me.';
   if (text.includes('email') || text.includes('contact'))
     return 'Use the Contact form below or email me — I usually reply within 24–48h.';
   return 'I can help with About, Works, Services, Blogs, and Contact. Ask away or jump to CONTACT.';
