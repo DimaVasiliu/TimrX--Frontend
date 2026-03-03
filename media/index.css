@@ -528,28 +528,91 @@ main.page p {
 .foot {
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   font-size: 12px;
-  padding: 32px var(--gutter);
+  padding: 28px var(--gutter) 20px;
   text-align: center;
 }
 
-.foot-nav,
-.foot-legal,
-.foot-social {
+.foot-nav {
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
 }
 
-.foot-nav a,
-.foot-legal a,
+.foot-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.2s ease;
+}
+
+.foot-nav a:hover { color: rgba(255, 255, 255, 0.9); }
+
+.foot-social {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
 .foot-social a {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 6px 14px;
   font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.foot-social a:hover {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.foot-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  width: 100%;
+}
+
+.foot-legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.foot-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.2s ease;
+}
+
+.foot-legal a:hover { color: rgba(255, 255, 255, 0.6); }
+
+.foot-copy {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.01em;
 }
 
 /* Performance: GPU hints only for actively animated hero elements */
@@ -719,6 +782,28 @@ main.page p {
     flex-direction: row;
     align-items: center;
     font-size: 15px;
+    gap: 12px;
+    padding: 14px var(--gutter);
+    text-align: left;
+  }
+
+  .foot-nav a,
+  .foot-social a,
+  .foot-legal a {
+    font-size: inherit;
+    min-height: unset;
+    padding: 0;
+    border: none;
+    color: var(--muted);
+  }
+
+  .foot-bottom {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0;
+    border-top: none;
+    width: auto;
   }
 }
 
