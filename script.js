@@ -11,16 +11,17 @@
     /* ------------------------------
        0) Setup & helpers
        ------------------------------ */
-  
+
     // Is GSAP available? If yes, register ScrollTrigger once.
     const hasGSAP = !!window.gsap && !!window.ScrollTrigger;
-    if (hasGSAP) {
+    if (hasGSAP && !ScrollTrigger.__timrx) {
       gsap.registerPlugin(ScrollTrigger);
+      ScrollTrigger.__timrx = true; // guard against duplicate registration
     }
-  
+
     // Small DOM helper
     const byId = (id) => document.getElementById(id);
-  
+
     // Placeholder toggle for the 3D viewer (kept for completeness)
     let viewerPlaceholder;
     function updatePlaceholder(visible = true) {
@@ -98,8 +99,6 @@
 
   
     if (hasGSAP) {
-      gsap.registerPlugin(ScrollTrigger);
-
       // Title: from bottom (we keep initial CSS transform/opacity on .about-title)
       if (title) {
         gsap.to(title, {
@@ -460,14 +459,20 @@
     window.addEventListener('load', () => {
       if (!hasGSAP) return;
 
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.from('.hero-photo .portrait', { autoAlpha: 0.6, y: 20, duration: 0.7 })
-        .from('#heroTitle',            { y: 26, duration: 0.45 }, '-=0.25')
-        .from('.hero-list',            { y: 18, duration: 0.4 }, '-=0.28')
-        .from('.hero-list li',         { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18')
-        .from('.hero-cta .btn',        { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18');
-  
-      window.ScrollTrigger?.refresh();
+      // Wait for fonts + next frame so layout is fully stable before GSAP measures
+      Promise.resolve(document.fonts && document.fonts.ready).then(() => {
+        requestAnimationFrame(() => {
+          const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+          tl.from('.hero-photo .portrait', { autoAlpha: 0.6, y: 20, duration: 0.7 })
+            .from('#heroTitle',            { y: 26, duration: 0.45 }, '-=0.25')
+            .from('.hero-list',            { y: 18, duration: 0.4 }, '-=0.28')
+            .from('.hero-list li',         { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18')
+            .from('.hero-cta .btn',        { y: 8, duration: 0.3, stagger: 0.05 }, '-=0.18');
+
+          // Single refresh after everything is stable
+          ScrollTrigger.refresh();
+        });
+      });
     });
   
     /* ------------------------------
@@ -852,6 +857,8 @@
        10) App3D background FX (parallax glows)
        ------------------------------ */
     (function app3dFx() {
+      // Skip on mobile — saves 96 animated particles + rAF loop
+      if (window.innerWidth < 900) return;
       const host   = document.querySelector('.app3d-grid');
       const canvas = byId('app3dFx');
       if (!host || !canvas) return;
