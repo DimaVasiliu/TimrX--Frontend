@@ -363,9 +363,87 @@
           </span>
           <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
         </div>
+
+        <!-- Mobile burger (same style as index) -->
+        <button class="nav-burger" id="hubBurger" type="button" aria-label="Open menu" aria-expanded="false">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile menu overlay (same style as index) -->
+  <div class="mobile-menu" id="hubMobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="#features" class="mobile-nav-link">
+          <span class="mnl-label">Features</span>
+          <span class="mnl-sub">Prompt to 3D, viewer & more</span>
+        </a>
+        <a href="#pricing" class="mobile-nav-link">
+          <span class="mnl-label">Pricing</span>
+          <span class="mnl-sub">Starter, Creator & Pro packs</span>
+        </a>
+        <a href="#community" class="mobile-nav-link">
+          <span class="mnl-label">Community</span>
+          <span class="mnl-sub">Docs, tips & showcase</span>
+        </a>
+        <a href="index.html" class="mobile-nav-link">
+          <span class="mnl-label">Portfolio</span>
+          <span class="mnl-sub">Back to timrx.live</span>
+        </a>
+      </nav>
+      <div class="mobile-menu-footer">
+        <span class="mobile-footer-text">TimrX / 3D Print Hub</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var burger = document.getElementById('hubBurger');
+    var menu = document.getElementById('hubMobileMenu');
+    if (!burger || !menu) return;
+
+    function openMenu(){
+      burger.classList.add('is-open');
+      burger.setAttribute('aria-expanded','true');
+      burger.setAttribute('aria-label','Close menu');
+      menu.classList.add('is-open');
+      menu.setAttribute('aria-hidden','false');
+      document.body.classList.add('menu-open');
+    }
+    function closeMenu(){
+      burger.classList.remove('is-open');
+      burger.setAttribute('aria-expanded','false');
+      burger.setAttribute('aria-label','Open menu');
+      menu.classList.remove('is-open');
+      menu.setAttribute('aria-hidden','true');
+      document.body.classList.remove('menu-open');
+    }
+
+    burger.addEventListener('click', function(){
+      menu.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menu.classList.contains('is-open')){
+        closeMenu();
+        burger.focus();
+      }
+    });
+
+    window.addEventListener('resize', function(){
+      if (window.innerWidth > 640 && menu.classList.contains('is-open')) closeMenu();
+    });
+  })();
+  </script>
 
   <!-- HERO -->
   <header class="container">
@@ -547,14 +625,14 @@
         <div class="feature-body">
           <h3>Text to 3D</h3>
           <p>Type your imagination — AI sculpts it into a ready 3D model in seconds. No modeling skills needed.</p>
-          <a href="https://timrx.live/3dprint?refresh=1" class="btn" id="tryItBtn">Try It</a>
+          <a href="/3dprint?panel=model" class="btn" id="tryItBtn">Generate</a>
         </div>
         <!-- Text → 3D -->
         <div class="feature-icon-tile">
             <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/box.svg" alt="3D box icon">
         </div>
       </article>
-  
+
       <!-- 2) Image → 3D (reversed) -->
       <article class="feature-card reverse">
         <div class="feature-icon-tile">
@@ -563,31 +641,31 @@
         <div class="feature-body">
           <h3>Image to 3D</h3>
           <p>Upload an image or sketch and let AI build its 3D structure with lighting and texture in seconds.</p>
-          <a href="https://timrx.live/3dprint?refresh=1" class="btn ghost">Learn More</a>
+          <a href="/3dprint?panel=model" class="btn ghost">Generate</a>
         </div>
       </article>
-  
+
       <!-- 3) Text → Image -->
       <article class="feature-card">
         <div class="feature-body">
           <h3>Text to Image</h3>
           <p>Describe your vision — get cinematic art, posters, or concept renders instantly using text-to-image engines.</p>
-          <a href="https://timrx.live/3dprint?refresh=1" class="btn">Generate</a>
+          <a href="/3dprint?panel=image" class="btn">Generate</a>
         </div>
         <div class="feature-icon-tile">
           <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/wand-2.svg" alt="Magic wand icon">
         </div>
       </article>
-  
-      <!-- 4) 3D → Video (reversed) -->
+
+      <!-- 4) Image → Video (reversed) -->
       <article class="feature-card reverse">
         <div class="feature-icon-tile">
           <img class="tile-svg" src="https://unpkg.com/lucide-static@0.321.0/icons/clapperboard.svg" alt="Clapperboard icon">
         </div>
         <div class="feature-body">
           <h3>Image to Video</h3>
-          <p>Turn your imaages into cinematic motion scenes. Animate your creations using next-gen rendering tools.</p>
-          <a href="https://timrx.live/3dprint?refresh=1" class="btn ghost">Coming Soon</a>
+          <p>Turn your images into cinematic motion scenes. Animate your creations using next-gen rendering tools.</p>
+          <a href="/3dprint?panel=video" class="btn ghost">Generate</a>
         </div>
       </article>
     </div>
@@ -1127,9 +1205,7 @@
         <a href="cookies.html">Cookies</a>
       </div>
       <div class="footer-meta">
-        <span>Powered by <strong>Meshy AI</strong></span>
-        <span class="footer-divider">·</span>
-        <span>© <span id="year"></span> Dima Vasiliu</span>
+        <span>© <span id="year"></span> TimrX / Dima Vasiliu</span>
       </div>
     </div>
   </footer>
