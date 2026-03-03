@@ -221,23 +221,31 @@
 }
 </script>
 
+<!-- Preload LCP image for mobile -->
+<link rel="preload" as="image" type="image/webp"
+      href="img/dima-480.webp"
+      imagesrcset="img/dima-480.webp 480w, img/dima-768.webp 768w, img/dima-1024.webp 1024w"
+      imagesizes="(max-width: 600px) 90vw, 600px"
+      fetchpriority="high">
+
 <!-- Fonts: Preconnect + combined request + preload critical -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap"></noscript>
+<!-- Space Grotesk: only used in blog title (below fold) — loaded separately -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap"></noscript>
 
-<!-- Font Awesome: Async load to prevent render-blocking -->
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- Font Awesome: Async load (no preload — below fold, not critical) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
-<!-- Stylesheets: Preload + Critical CSS -->
-<link rel="preload" href="./styles.css?v=5" as="style">
-<link rel="preload" href="./media/index.css?v=5" as="style">
-<link rel="stylesheet" href="./styles.css?v=5" />
-<link rel="stylesheet" href="./media/index.css?v=5" />
+<!-- Stylesheets -->
+<link rel="preload" href="./styles.css?v=6" as="style">
+<link rel="stylesheet" href="./styles.css?v=6" />
+<link rel="stylesheet" href="./media/index.css?v=6" />
 
 <!-- Critical CSS: Above-the-fold styles for faster FCP -->
 <style>
@@ -331,8 +339,14 @@
         <div class="hero-arc hide-mobile" aria-hidden="true"></div>
         <div class="hero-eyebrow">
             <span class="eyebrow-line"></span>
-            <span class="eyebrow-text">Portfolio <span id="eyebrowYear"></span></span>
-            <script>document.getElementById('eyebrowYear').textContent = new Date().getFullYear();</script>
+            <span class="eyebrow-text" id="eyebrowText">Portfolio <span id="eyebrowYear"></span></span>
+            <script>
+              (function(){
+                var y = new Date().getFullYear();
+                document.getElementById('eyebrowYear').textContent = y;
+                document.getElementById('eyebrowText').setAttribute('data-text', 'Portfolio ' + y);
+              })();
+            </script>
         </div>
 
         <!-- stage holds the image + left list like the reference -->
@@ -350,7 +364,21 @@
     
             <figure class="hero-photo">
                 <!-- Using a placeholder image for demonstration -->
-                <img class="portrait" src="img/dima.jpg" alt="Portrait of Dima Vasiliu, creative developer and founder of TimrX" width="440" height="550" fetchpriority="high" decoding="async" />
+                <img
+                  class="portrait"
+                  src="img/dima-768.webp"
+                  srcset="
+                    img/dima-480.webp 480w,
+                    img/dima-768.webp 768w,
+                    img/dima-1024.webp 1024w
+                  "
+                  sizes="(max-width: 600px) 90vw, 600px"
+                  width="600"
+                  height="760"
+                  alt="Portrait of Dima Vasiliu"
+                  decoding="async"
+                  fetchpriority="high"
+                />
             </figure>
 
             <div class="hero-cta">
@@ -1071,178 +1099,142 @@
       })();
     </script>
 
-    <!-- Import map so "three" specifier resolves in the browser -->
-<script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-      }
-    }
-    </script>
+    <!-- Three.js viewer: lazy-loaded when #app3d scrolls into view (desktop only) -->
+    <script>
+    (function lazyViewer(){
+      var section = document.getElementById('app3d');
+      if (!section) return;
 
-    <script type="module">
+      var loaded = false;
+      function boot(){
+        if (loaded) return;
+        loaded = true;
+
+        // Inject the importmap dynamically
+        var im = document.createElement('script');
+        im.type = 'importmap';
+        im.textContent = JSON.stringify({
+          imports: {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+          }
+        });
+        document.head.appendChild(im);
+
+        // Now load the viewer module
+        var mod = document.createElement('script');
+        mod.type = 'module';
+        mod.textContent = `
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
-      
-        // ===== DOM =====
+
         const canvas     = document.getElementById('viewerCanvas');
         const ph         = document.getElementById('viewerPlaceholder');
         const gear       = document.getElementById('viewerGear');
         const viewerMenu = document.getElementById('viewerMenu');
         const rotateToggle = document.getElementById('rotateToggle');
-      
         const uploadBtn  = document.getElementById('uploadBtnTop');
         const clearBtn   = document.getElementById('clearBtnTop');
         const fileInput  = document.getElementById('modelFile');
-      
-        if (!canvas) {
-          console.warn('viewerCanvas not found — skipping viewer init.');
-        } else {
-          // ===== THREE core =====
+
+        if (!canvas) { console.warn('viewerCanvas not found'); }
+        else {
           const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      
           const scene  = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
           camera.position.set(3, 2, 4);
-      
           const controls = new OrbitControls(camera, canvas);
           controls.enableDamping = true;
           controls.target.set(0, 0.75, 0);
-          controls.autoRotate = false;               // default OFF
-          window.viewerControls = controls;          // <— expose for UI
-      
-          // ===== Lights =====
+          controls.autoRotate = false;
+          window.viewerControls = controls;
+
           scene.add(new THREE.AmbientLight(0xffffff, 0.35));
           const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-          dir.position.set(3, 4, 2);
-          scene.add(dir);
-      
-          // ===== Grid =====
+          dir.position.set(3, 4, 2); scene.add(dir);
+
           const grid = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
-          grid.position.y = -0.0001;
-          scene.add(grid);
-      
-          // ===== Demo cube (hidden when a model loads) =====
+          grid.position.y = -0.0001; scene.add(grid);
+
           const cube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshStandardMaterial({ color: 0x6eb4ff, metalness: .25, roughness: .55 })
           );
-          cube.position.y = 1;
-          scene.add(cube);
-      
-          // ===== Sizing =====
+          cube.position.y = 1; scene.add(cube);
+
           const wrapper = canvas.parentElement || canvas;
           function resize(){
             const r = wrapper.getBoundingClientRect();
-            const w = Math.max(1, r.width|0);
-            const h = Math.max(1, r.height|0);
+            const w = Math.max(1, r.width|0), h = Math.max(1, r.height|0);
             renderer.setSize(w, h, false);
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
+            camera.aspect = w / h; camera.updateProjectionMatrix();
           }
           window.addEventListener('resize', resize);
           if (window.ResizeObserver) new ResizeObserver(resize).observe(wrapper);
           resize();
-      
-          // ===== Settings UI =====
-          // open/close the tiny menu with gear
+
           gear?.addEventListener('click', () => viewerMenu?.classList.toggle('hidden'));
-      
-          // sync toggle with actual state
           if (rotateToggle) rotateToggle.checked = !!controls.autoRotate;
-      
-          // toggle auto-rotate (works for cube & uploaded model)
           rotateToggle?.addEventListener('change', (e) => {
             controls.autoRotate = !!e.target.checked;
             viewerMenu?.classList.add('hidden');
           });
-      
-          // ===== Upload / Remove / D&D =====
+
           const loader = new GLTFLoader();
           let currentModel = null;
-      
           uploadBtn?.addEventListener('click', () => fileInput?.click());
-      
           fileInput?.addEventListener('change', async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            await loadModelFromFile(file);
-            fileInput.value = ''; // allow choosing same file again
+            const file = e.target.files?.[0]; if (!file) return;
+            await loadModelFromFile(file); fileInput.value = '';
           });
-      
-          // drag & drop
           ['dragenter','dragover','dragleave','drop'].forEach(ev =>
             wrapper.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
           );
           wrapper.addEventListener('drop', async (e) => {
             const file = e.dataTransfer?.files?.[0];
-            if (file && /\.(gltf?|glb)$/i.test(file.name)) await loadModelFromFile(file);
+            if (file && /\\.(gltf?|glb)$/i.test(file.name)) await loadModelFromFile(file);
           });
-      
           clearBtn?.addEventListener('click', () => {
             if (!currentModel) return;
-            disposeObject(currentModel);
-            scene.remove(currentModel);
-            currentModel = null;
-      
-            cube.visible = true;
-            grid.position.y = -0.0001;
+            disposeObject(currentModel); scene.remove(currentModel); currentModel = null;
+            cube.visible = true; grid.position.y = -0.0001;
             fitCameraToObject(cube, camera, controls);
-      
-            clearBtn.disabled = true;
-            if (ph) ph.style.opacity = 0;
+            clearBtn.disabled = true; if (ph) ph.style.opacity = 0;
           });
-      
+
           async function loadModelFromFile(file){
             const url = URL.createObjectURL(file);
             try {
               const gltf = await loader.loadAsync(url);
               if (currentModel) { disposeObject(currentModel); scene.remove(currentModel); }
               currentModel = gltf.scene;
-      
-              placeOnGround(currentModel);     // sit on y=0 so grid is underneath
-              scene.add(currentModel);
-      
+              placeOnGround(currentModel); scene.add(currentModel);
               cube.visible = false;
               fitCameraToObject(currentModel, camera, controls);
               clearBtn && (clearBtn.disabled = false);
               if (ph) ph.style.opacity = 0;
-            } catch (err){
-              console.error('Failed to load model:', err);
-            } finally {
-              URL.revokeObjectURL(url);
-            }
+            } catch (err){ console.error('Failed to load model:', err); }
+            finally { URL.revokeObjectURL(url); }
           }
-      
-          // ===== Helpers =====
-          function fitCameraToObject(obj, camera, controls){
+
+          function fitCameraToObject(obj, cam, ctrl){
             const box = new THREE.Box3().setFromObject(obj);
             const size = new THREE.Vector3(); box.getSize(size);
             const center = new THREE.Vector3(); box.getCenter(center);
-      
             const maxDim = Math.max(size.x, size.y, size.z);
             const dist = Math.max(1, maxDim * 1.8);
-      
-            controls.target.copy(center);
-            camera.near = Math.max(0.01, dist / 100);
-            camera.far  = dist * 100;
-            camera.updateProjectionMatrix();
-      
-            const dir = new THREE.Vector3(1, 0.7, 1).normalize();
-            camera.position.copy(center).addScaledVector(dir, dist);
-            controls.update();
+            ctrl.target.copy(center);
+            cam.near = Math.max(0.01, dist / 100); cam.far = dist * 100;
+            cam.updateProjectionMatrix();
+            const d = new THREE.Vector3(1, 0.7, 1).normalize();
+            cam.position.copy(center).addScaledVector(d, dist); ctrl.update();
           }
-      
           function placeOnGround(obj){
             const box = new THREE.Box3().setFromObject(obj);
-            const minY = box.min.y;
-            obj.position.y -= minY;        // put lowest point at y=0
-            grid.position.y = -0.0001;     // keep grid just under 0
+            obj.position.y -= box.min.y; grid.position.y = -0.0001;
           }
-      
           function disposeObject(root){
             root.traverse((o) => {
               if (o.geometry) o.geometry.dispose?.();
@@ -1252,222 +1244,150 @@
               }
             });
           }
-      
-          // ===== Animate =====
-          function loop(){
-            requestAnimationFrame(loop);
-            controls.update();                         // required for damping/autoRotate
-            renderer.render(scene, camera);
-          }
+          function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); }
           loop();
-      
-          // First paint: fade the placeholder
           ph && requestAnimationFrame(() => (ph.style.opacity = 0));
         }
-      </script>
+        `;
+        document.body.appendChild(mod);
+      }
 
-      <!-- About Section Enhancements -->
+      // Only load on desktop (>=900px) via IntersectionObserver
+      if (window.innerWidth < 900) return;
+
+      var io = new IntersectionObserver(function(entries){
+        if (entries[0].isIntersecting) { io.disconnect(); boot(); }
+      }, { rootMargin: '200px 0px' });
+      io.observe(section);
+    })();
+    </script>
+
+      <!-- About + Blog section enhancements: deferred to idle time -->
       <script>
-        // Create about section particles
-        (function createAboutParticles() {
-          const container = document.getElementById('aboutParticles');
-          if (!container) return;
+      (function deferBelowFold(){
+        var idle = window.requestIdleCallback || function(cb){ setTimeout(cb, 200); };
 
-          const particleCount = 12;
-
-          for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-
-            // Random starting position
-            const startX = Math.random() * 100;
-            const startY = Math.random() * 100;
-            particle.style.left = `${startX}%`;
-            particle.style.top = `${startY}%`;
-
-            // Random movement
-            const dx = (Math.random() - 0.5) * 150;
-            const dy = (Math.random() - 0.5) * 150;
-            particle.style.setProperty('--dx', `${dx}px`);
-            particle.style.setProperty('--dy', `${dy}px`);
-
-            // Random delay
-            particle.style.animationDelay = `${Math.random() * 12}s`;
-
-            // Random color variation
-            if (Math.random() > 0.6) {
-              particle.style.background = 'rgba(139, 92, 246, 0.3)';
-              particle.style.boxShadow = '0 0 8px rgba(139, 92, 246, 0.4)';
+        idle(function(){
+          // About particles
+          var container = document.getElementById('aboutParticles');
+          if (container) {
+            for (var i = 0; i < 12; i++) {
+              var p = document.createElement('div');
+              p.className = 'particle';
+              var sx = Math.random() * 100, sy = Math.random() * 100;
+              p.style.left = sx + '%'; p.style.top = sy + '%';
+              p.style.setProperty('--dx', ((Math.random()-.5)*150)+'px');
+              p.style.setProperty('--dy', ((Math.random()-.5)*150)+'px');
+              p.style.animationDelay = (Math.random()*12)+'s';
+              if (Math.random() > 0.6) {
+                p.style.background = 'rgba(139, 92, 246, 0.3)';
+                p.style.boxShadow = '0 0 8px rgba(139, 92, 246, 0.4)';
+              }
+              container.appendChild(p);
             }
-
-            container.appendChild(particle);
           }
-        })();
 
-        // Parallax effect on about section scroll
-        (function aboutParallax() {
-          const aboutSection = document.getElementById('about');
-          if (!aboutSection) return;
-
-          const geoBg = aboutSection.querySelector('.about-geometric-bg');
-          if (!geoBg) return;
-
-          let ticking = false;
-
-          window.addEventListener('scroll', () => {
-            if (!ticking) {
-              window.requestAnimationFrame(() => {
-                const rect = aboutSection.getBoundingClientRect();
-                const scrollPercent = Math.max(0, Math.min(1, -rect.top / rect.height));
-
+          // About parallax
+          var aboutSection = document.getElementById('about');
+          var geoBg = aboutSection ? aboutSection.querySelector('.about-geometric-bg') : null;
+          if (geoBg) {
+            var ticking = false;
+            window.addEventListener('scroll', function(){
+              if (ticking) return; ticking = true;
+              requestAnimationFrame(function(){
+                var rect = aboutSection.getBoundingClientRect();
                 if (rect.top < window.innerHeight && rect.bottom > 0) {
-                  const offset = scrollPercent * 40;
-                  geoBg.style.transform = `translateY(${offset}px)`;
+                  var pct = Math.max(0, Math.min(1, -rect.top / rect.height));
+                  geoBg.style.transform = 'translateY(' + (pct*40) + 'px)';
                 }
-
                 ticking = false;
               });
-              ticking = true;
-            }
-          });
-        })();
-
-        // Title scroll animation with GSAP
-        (function aboutTitleScroll() {
-          const title = document.getElementById('aboutTitle');
-          if (!title || !window.gsap) return;
-
-          gsap.registerPlugin(ScrollTrigger);
-
-          gsap.to(title, {
-            x: -80,
-            scrollTrigger: {
-              trigger: '#about',
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1.5,
-            }
-          });
-        })();
-
-        // Enhanced kicker interaction
-        (function aboutKickerEffect() {
-          const kicker = document.querySelector('.about-kicker');
-          if (!kicker) return;
-
-          kicker.addEventListener('mouseenter', () => {
-            kicker.style.transform = 'scale(1.05) translateY(-2px)';
-          });
-
-          kicker.addEventListener('mouseleave', () => {
-            kicker.style.transform = 'scale(1) translateY(0)';
-          });
-        })();
-      </script>
-
-      <!-- Blog Section Enhancements -->
-      <script>
-        // Cool blog tagline text rotation
-        (function rotateBlogTagline() {
-          const taglines = [
-            'Fresh insights • Deep dives • Creative experiments',
-            'Code stories • Design patterns • 3D adventures',
-            'Web magic • UI craft • Innovation notes',
-            'Build better • Learn faster • Create more'
-          ];
-          let currentIndex = 0;
-          const taglineEl = document.getElementById('blogTagline');
-
-          if (!taglineEl) return;
-
-          setInterval(() => {
-            currentIndex = (currentIndex + 1) % taglines.length;
-            taglineEl.style.opacity = '0';
-            taglineEl.style.transform = 'translateX(-20px)';
-
-            setTimeout(() => {
-              taglineEl.textContent = taglines[currentIndex];
-              taglineEl.style.opacity = '1';
-              taglineEl.style.transform = 'translateX(0)';
-            }, 300);
-          }, 5000);
-        })();
-
-        // Cursor glow effect on blog section
-        (function blogCursorGlow() {
-          const blogsSection = document.getElementById('blogs');
-          if (!blogsSection) return;
-
-          blogsSection.addEventListener('mousemove', (e) => {
-            const rect = blogsSection.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            blogsSection.style.setProperty('--mouse-x', `${x}px`);
-            blogsSection.style.setProperty('--mouse-y', `${y}px`);
-          });
-        })();
-
-        // Animated stats counter for blogs
-        (function animateBlogsStatsCounter() {
-          const statsEl = document.getElementById('blogsStats');
-          if (!statsEl) return;
-
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                const statNumbers = statsEl.querySelectorAll('.stat-number');
-                statNumbers.forEach((el, index) => {
-                  const target = parseInt(el.getAttribute('data-target') || '0');
-                  setTimeout(() => {
-                    animateCounter(el, target, 1500);
-                  }, index * 100);
-                });
-                observer.disconnect();
-              }
             });
-          }, { threshold: 0.5 });
+          }
 
-          observer.observe(statsEl);
-        })();
-
-        // Counter animation utility
-        function animateCounter(element, target, duration = 1000) {
-          const start = 0;
-          const increment = target / (duration / 16);
-          let current = start;
-
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-              current = target;
-              clearInterval(timer);
+          // About title GSAP scrub
+          if (window.gsap && window.ScrollTrigger) {
+            var title = document.getElementById('aboutTitle');
+            if (title) {
+              gsap.to(title, {
+                x: -80,
+                scrollTrigger: { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
+              });
             }
-            element.textContent = Math.floor(current);
+          }
+
+          // About kicker hover
+          var kicker = document.querySelector('.about-kicker');
+          if (kicker) {
+            kicker.addEventListener('mouseenter', function(){ kicker.style.transform = 'scale(1.05) translateY(-2px)'; });
+            kicker.addEventListener('mouseleave', function(){ kicker.style.transform = 'scale(1) translateY(0)'; });
+          }
+        });
+
+        // Blog enhancements — slightly later idle
+        idle(function(){
+          // Tagline rotation
+          var taglines = [
+            'Fresh insights \u2022 Deep dives \u2022 Creative experiments',
+            'Code stories \u2022 Design patterns \u2022 3D adventures',
+            'Web magic \u2022 UI craft \u2022 Innovation notes',
+            'Build better \u2022 Learn faster \u2022 Create more'
+          ];
+          var ci = 0, tagEl = document.getElementById('blogTagline');
+          if (tagEl) {
+            setInterval(function(){
+              ci = (ci + 1) % taglines.length;
+              tagEl.style.opacity = '0'; tagEl.style.transform = 'translateX(-20px)';
+              setTimeout(function(){ tagEl.textContent = taglines[ci]; tagEl.style.opacity = '1'; tagEl.style.transform = 'translateX(0)'; }, 300);
+            }, 5000);
+          }
+
+          // Blog cursor glow
+          var blogsSection = document.getElementById('blogs');
+          if (blogsSection) {
+            blogsSection.addEventListener('mousemove', function(e){
+              var r = blogsSection.getBoundingClientRect();
+              blogsSection.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+              blogsSection.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+            });
+          }
+
+          // Stats counter
+          var statsEl = document.getElementById('blogsStats');
+          if (statsEl) {
+            var obs = new IntersectionObserver(function(entries){
+              entries.forEach(function(entry){
+                if (entry.isIntersecting) {
+                  statsEl.querySelectorAll('.stat-number').forEach(function(el, idx){
+                    var target = parseInt(el.getAttribute('data-target') || '0');
+                    setTimeout(function(){ animateCounter(el, target, 1500); }, idx * 100);
+                  });
+                  obs.disconnect();
+                }
+              });
+            }, { threshold: 0.5 });
+            obs.observe(statsEl);
+          }
+
+          // Blog card scroll-in
+          var cardObs = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry, idx){
+              if (entry.isIntersecting) { entry.target.style.animationDelay = (idx*0.1)+'s'; entry.target.classList.add('visible'); }
+            });
+          }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+          setTimeout(function(){
+            document.querySelectorAll('.blog-card').forEach(function(c){ cardObs.observe(c); });
+          }, 1000);
+        });
+
+        function animateCounter(el, target, dur){
+          var inc = target / (dur / 16), cur = 0;
+          var t = setInterval(function(){
+            cur += inc; if (cur >= target) { cur = target; clearInterval(t); }
+            el.textContent = Math.floor(cur);
           }, 16);
         }
-
-        // Intersection Observer for blog cards scroll animation
-        (function observeBlogCards() {
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-              if (entry.isIntersecting) {
-                entry.target.style.animationDelay = `${index * 0.1}s`;
-                entry.target.classList.add('visible');
-              }
-            });
-          }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-          });
-
-          // Observe will happen after blog cards are loaded
-          setTimeout(() => {
-            const cards = document.querySelectorAll('.blog-card');
-            cards.forEach(card => observer.observe(card));
-          }, 1000);
-        })();
-
+      })();
       </script>
 
       <!-- Dynamic Blog Loading -->
@@ -1613,7 +1533,7 @@
       </script>
 
     <script src="script.js" defer></script>
-    <script src="app.js"></script>
+    <script src="app.js" defer></script>
 
     <!-- About TimrX Modal -->
     <!-- Service card hover effects -->
