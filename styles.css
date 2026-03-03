@@ -224,19 +224,30 @@ img{max-width:100%;display:block}
   font-weight: 400;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Composited shimmer: pseudo-element moves via transform instead of background-position */
+.hero-eyebrow .eyebrow-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: transparent;
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.35) 0%,
-    rgba(255,255,255,0.35) 40%,
-    rgba(14,165,233,0.9)   50%,
-    rgba(255,255,255,0.35) 60%,
-    rgba(255,255,255,0.35) 100%
+    transparent 0%,
+    transparent 35%,
+    rgba(14,165,233,0.9) 50%,
+    transparent 65%,
+    transparent 100%
   );
-  background-size: 250% 100%;
-  background-position: 100% 0;
+  background-size: 100% 100%;
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
+  will-change: transform;
   animation: eyebrowShimmer 4s ease-in-out 1s infinite;
 }
 
@@ -246,8 +257,8 @@ img{max-width:100%;display:block}
 }
 
 @keyframes eyebrowShimmer {
-  0%   { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
 @keyframes heroFadeIn { from { opacity:0; } to { opacity:1; } }
@@ -749,14 +760,15 @@ img{max-width:100%;display:block}
   animation-delay: -4s;
 }
 
-/* Grid — diagonal slow drift */
+/* Grid — diagonal slow drift (composited via transform) */
 .about-geometric-bg .geo-grid {
   position: absolute;
-  inset: -72px;
+  inset: -144px;
   background-image:
     linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
   background-size: 72px 72px;
+  will-change: transform;
   animation: aboutGridDrift 18s linear infinite;
 }
 
@@ -791,8 +803,8 @@ img{max-width:100%;display:block}
 }
 
 @keyframes aboutGridDrift {
-  from { background-position: 0 0; }
-  to   { background-position: 72px 72px; }
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(72px, 72px, 0); }
 }
 
 @keyframes aboutParticleTwinkle {
@@ -2503,32 +2515,52 @@ img{max-width:100%;display:block}
   font-weight: 800;
   letter-spacing: 1.2px;
   color: rgba(14, 165, 233, 0.95);
-  animation: badgeSlideIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards, badgePulse 3s ease-in-out 1s infinite;
+  animation: badgeSlideIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
   cursor: default;
+  position: relative;
+  z-index: 0;
+}
+
+/* Composited glow ring replaces animated box-shadow */
+.blogs-badge::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.35), transparent 70%);
+  opacity: 0;
+  z-index: -1;
+  will-change: opacity, transform;
+  animation: badgePulse 3s ease-in-out 1s infinite;
 }
 
 .blogs-badge:hover {
   background: rgba(14, 165, 233, 0.15);
   border-color: rgba(14, 165, 233, 0.5);
   transform: translateY(-1px) scale(1.05);
+}
+
+.blogs-badge:hover::before {
   animation: none;
+  opacity: 0;
 }
 
 .blogs-badge svg {
   stroke: var(--accent);
+  will-change: transform;
   animation: badgeIcon 3s ease-in-out infinite;
 }
 
 @keyframes badgePulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
-    border-color: rgba(14, 165, 233, 0.2);
+    opacity: 0;
+    transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
-    border-color: rgba(14, 165, 233, 0.4);
+    opacity: 1;
+    transform: scale(1.15);
   }
 }
 
@@ -3345,8 +3377,7 @@ img{max-width:100%;display:block}
   opacity: 0;
   transform: translateY(12px) scale(0.98);
   pointer-events: none;
-  visibility: hidden;
-  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+  transition: opacity 0.22s ease, transform 0.22s ease;
   z-index: 5;
 }
 
@@ -3367,8 +3398,7 @@ img{max-width:100%;display:block}
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
-  visibility: visible;
-  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .about-page-bubble-header {
