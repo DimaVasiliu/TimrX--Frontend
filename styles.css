@@ -380,7 +380,7 @@ img{max-width:100%;display:block}
 }
 .portrait {
   width: min(72vw, 280px);
-  aspect-ratio: 3/4; object-fit: cover;
+  aspect-ratio: 4/4; object-fit: cover; object-position: center 20%;
   border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
   filter: grayscale(88%);
   transition: transform .4s ease, filter .4s ease, box-shadow .4s ease;
