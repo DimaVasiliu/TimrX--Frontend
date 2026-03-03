@@ -2202,9 +2202,25 @@
      * Applies the markup-defined active rail button on initial load.
      */
     function bootstrapInitialPanel() {
-      const activeBtn = document.querySelector('.timrx-3dprint .rail-btn.is-active');
-      if (!activeBtn) return;
-      const initialPanel = activeBtn.getAttribute('data-panel');
+      // Support ?panel=image|model|video|remesh|texture|rig from URL
+      const urlPanel = new URLSearchParams(window.location.search).get('panel');
+      let targetBtn;
+      if (urlPanel) {
+        targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + urlPanel + '"]');
+      }
+      if (!targetBtn) {
+        targetBtn = document.querySelector('.timrx-3dprint .rail-btn.is-active');
+      }
+      if (!targetBtn) return;
+
+      // Activate the target button
+      railButtons.forEach(function(btn) {
+        var isTarget = btn === targetBtn;
+        btn.classList.toggle('is-active', isTarget);
+        btn.setAttribute('aria-pressed', isTarget ? 'true' : 'false');
+      });
+
+      var initialPanel = targetBtn.getAttribute('data-panel');
       updateLeftPanel(initialPanel);
       switchViewer(initialPanel);
       ensureThreeViewer();
