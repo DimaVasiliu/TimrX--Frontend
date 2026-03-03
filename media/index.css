@@ -552,14 +552,11 @@ main.page p {
   font-size: 11px;
 }
 
-/* Performance: GPU hints for animated elements */
+/* Performance: GPU hints only for actively animated hero elements */
 .hero-title,
 .hero-eyebrow,
 .hero-list li,
-.portrait,
-.blog-card,
-.work-card,
-.flip-card__inner {
+.portrait {
   will-change: transform, opacity;
 }
 
@@ -585,9 +582,29 @@ main.page p {
   animation: none !important;
 }
 
-/* Performance: Disable box-shadow animations on mobile */
+/* Performance: Disable heavy decorative animations on mobile */
 .blogs-badge,
 .hello-badge {
+  animation: none !important;
+}
+
+.blogs-badge::before {
+  animation: none !important;
+  display: none;
+}
+
+/* Disable non-essential decorative layers on mobile */
+.about-particles,
+.about-geometric-bg,
+.contact-deco,
+.app3d-fx {
+  display: none !important;
+}
+
+/* Disable contact figurine animations on mobile */
+.contact-figurine,
+.contact-figurine::after,
+.cf-ring, .cf-prism, .cf-core, .cf-spark {
   animation: none !important;
 }
 
@@ -843,6 +860,14 @@ main.page p {
 
   .services-orbit .svc-ring {
     animation: svcSpin 14s linear infinite;
+  }
+
+  /* Re-enable decorative layers on desktop */
+  .about-particles,
+  .about-geometric-bg,
+  .contact-deco,
+  .app3d-fx {
+    display: revert !important;
   }
 }
 
