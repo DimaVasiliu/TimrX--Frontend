@@ -704,6 +704,21 @@
       chatPanel.style.display = 'none';
       chatToggle.setAttribute('aria-expanded', 'false');
       hideSuggest();
+      chatPanel.style.bottom = '';  // reset keyboard offset
+    }
+
+    // --- Mobile keyboard handler: lift panel above software keyboard
+    if (window.visualViewport && window.matchMedia('(max-width:560px)').matches) {
+      const vv = window.visualViewport;
+      const onVVResize = () => {
+        if (!isOpen()) return;
+        // offsetTop = how far the visual viewport top is from the layout viewport top
+        // When keyboard opens, vv.height shrinks; the gap is the keyboard height
+        const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
+        chatPanel.style.bottom = kbHeight > 40 ? (kbHeight + 6) + 'px' : '';
+      };
+      vv.addEventListener('resize', onVVResize);
+      vv.addEventListener('scroll', onVVResize);
     }
   
     // Toggle debounce to avoid double toggles on fast taps
