@@ -3480,6 +3480,8 @@ footer{border-top:1px solid var(--line);padding:14px 0 2px;color:var(--muted); m
 .foot-nav{display:flex;gap:12px}
 .foot-legal{display:flex;gap:12px}
 .foot-social{display:flex;gap:10px}
+.foot-bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.foot-copy{white-space:nowrap}
 
 /* =========================================================
    TimrX Chat (Nova) — neon glass, orbit ping, spring panel
