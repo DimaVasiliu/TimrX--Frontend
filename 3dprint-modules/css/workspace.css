@@ -1081,3 +1081,293 @@
   font-size: 13px;
   color: #666666;
 }
+
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS
+   ========================================================================== */
+
+/* Tablet — stacked layout */
+@media (max-width: 980px) {
+  .timrx-3dprint {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .timrx-3dprint .ws-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .timrx-3dprint .ws-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    order: -1;
+  }
+  .timrx-3dprint .ws-left,
+  .timrx-3dprint .ws-right {
+    max-height: none;
+    overflow: visible;
+  }
+  .viewer-canvas-wrapper {
+    height: clamp(300px, 50vh, 600px);
+  }
+  .timrx-3dprint .pane-head h2 {
+    font-size: 18px;
+  }
+  .timrx-3dprint .pane-head .pane-sub {
+    font-size: 12px;
+  }
+  .timrx-3dprint .card {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+}
+
+/* ==========================================================================
+   MOBILE WORKSPACE REDESIGN (768px) — Tab-segmented layout
+   Rail -> Viewer -> [Controls|History] tabs
+   ========================================================================== */
+
+/* Tab bar — hidden on desktop */
+.ws-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* --- Grid reflow --- */
+  .timrx-3dprint .ws-grid {
+    gap: 0;
+    padding: 8px;
+  }
+
+  /* --- Ordering: Rail(1) -> Viewer(2) -> Tabs(3) -> Left(4) -> Right(5) --- */
+  .timrx-3dprint .ws-rail        { order: 1; }
+  .timrx-3dprint .ws-viewer      { order: 2; }
+  .timrx-3dprint .ws-mobile-tabs { order: 3; }
+  .timrx-3dprint .ws-left        { order: 4; }
+  .timrx-3dprint .ws-right       { order: 5; }
+
+  /* --- HORIZONTAL RAIL --- */
+  .timrx-3dprint .ws-rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding: 10px 0;
+    margin: 0 auto 10px !important;
+    justify-content: center;
+    width: fit-content;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .timrx-3dprint .ws-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .timrx-3dprint .rail-btn {
+    flex-direction: row;
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.04);
+  }
+  .timrx-3dprint .rail-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .timrx-3dprint .rail-btn span {
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
+
+  /* --- VIEWER PROMINENCE --- */
+  .timrx-3dprint .ws-viewer {
+    width: 100%;
+    position: static;
+    height: auto;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+  .timrx-3dprint .viewer-wrap {
+    height: 55vh;
+    min-height: 260px;
+    max-height: 420px;
+    border-radius: 12px;
+  }
+  /* Hide viewer pane-head on mobile */
+  .timrx-3dprint .ws-viewer > .pane-head {
+    display: none;
+  }
+
+  /* --- TAB BAR --- */
+  .ws-mobile-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 5px 6px;
+    margin: 18px auto 22px;
+    width: fit-content;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+  }
+  .ws-mobile-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 30px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.35);
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ws-mobile-tab svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  .ws-mobile-tab.is-active {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.18);
+    padding: 11px 36px;
+  }
+  .ws-mobile-tab.is-active svg {
+    opacity: 1;
+  }
+  .ws-mobile-tab:hover:not(.is-active) {
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* --- PANELS --- */
+  .timrx-3dprint .ws-left,
+  .timrx-3dprint .ws-right {
+    width: 100%;
+    position: static;
+    max-height: none;
+    overflow: visible;
+    border-radius: 0;
+    padding: 0 4px;
+  }
+  /* Hide pane headers — tab bar replaces them */
+  .timrx-3dprint .ws-left > .pane-head,
+  .timrx-3dprint .ws-right > .pane-head {
+    display: none;
+  }
+
+  /* Right panel hidden by default — shown by tab */
+  .timrx-3dprint .ws-right {
+    display: none;
+  }
+  .timrx-3dprint .ws-right.mob-active {
+    display: flex;
+  }
+  /* Left panel — hidden by tab */
+  .timrx-3dprint .ws-left.mob-hidden {
+    display: none;
+  }
+
+  /* --- CARD COMPACTION --- */
+  .timrx-3dprint .card {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+  .timrx-3dprint .card h3 {
+    font-size: 11px;
+  }
+  .timrx-3dprint .pane-stack {
+    gap: 6px;
+  }
+}
+
+/* Small phone refinements */
+@media (max-width: 400px) {
+  .timrx-3dprint .rail-btn span {
+    display: none;
+  }
+  .timrx-3dprint .rail-btn {
+    padding: 8px 10px;
+  }
+  .timrx-3dprint .viewer-wrap {
+    height: 45vh;
+    min-height: 220px;
+  }
+  .ws-mobile-tab {
+    font-size: 11px;
+    padding: 8px 0;
+  }
+}
+
+/* ====================================================== */
+/* Mobile notice popup                                     */
+/* ====================================================== */
+.mobile-notice {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200000;
+  background: rgba(0,0,0,0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  place-items: center;
+}
+.mobile-notice.visible {
+  display: grid;
+  animation: mnFadeIn 0.3s ease;
+}
+.mobile-notice-card {
+  width: min(80vw, 280px);
+  background: #161618;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 22px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-notice-ico {
+  font-size: 30px;
+  line-height: 1;
+}
+.mobile-notice-msg {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #b0b0b0;
+  margin: 0;
+}
+.mobile-notice-btn {
+  margin-top: 2px;
+  padding: 8px 28px;
+  border: none;
+  border-radius: 8px;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mobile-notice-btn:hover {
+  background: #0284c7;
+}
+@keyframes mnFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
