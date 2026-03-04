@@ -70,7 +70,7 @@ let i = 0; let timer = null;
 function cycle(){ pills.forEach(p=>p.classList.remove('active')); pills[i%pills.length].classList.add('active'); i++; }
 function start(){ timer = setInterval(cycle, 2400); }
 function stop(){ clearInterval(timer); }
-pills.forEach(p=> p.addEventListener('click', ()=>{ location.hash = p.dataset.to || '#features'; }));
+pills.forEach(p=> p.addEventListener('click', ()=>{ stop(); pills.forEach(x=>x.classList.remove('active')); p.classList.add('active'); }));
 start();
 
 // Modals
@@ -467,32 +467,6 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
     }
   })();
 
-// Burger menu login/signup handlers
-(function() {
-  const burgerLogin = document.getElementById('burgerLogin');
-  const burgerSignup = document.getElementById('burgerSignup');
-  const loginModal = document.getElementById('loginModal');
-  const signupModal = document.getElementById('signupModal');
-
-  burgerLogin?.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginModal?.classList.add('open');
-    // Close burger menu
-    document.getElementById('burgerMenu')?.classList.remove('active');
-    document.getElementById('burgerOverlay')?.classList.remove('active');
-    document.getElementById('burgerBtn')?.classList.remove('active');
-  });
-
-  burgerSignup?.addEventListener('click', (e) => {
-    e.preventDefault();
-    signupModal?.classList.add('open');
-    // Close burger menu
-    document.getElementById('burgerMenu')?.classList.remove('active');
-    document.getElementById('burgerOverlay')?.classList.remove('active');
-    document.getElementById('burgerBtn')?.classList.remove('active');
-  });
-})();
-
 // =================== COMMUNITY RESOURCE MODALS ===================
 (function() {
   const tabs = document.querySelectorAll('.resource-tab[data-modal]');
@@ -582,4 +556,21 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
       }
     });
   });
+})();
+
+/* ================================================================ */
+/* Hero model — gentle left/right orbit swing                       */
+/* ================================================================ */
+(function heroModelSwing() {
+  var mv = document.querySelector('.hero-figure');
+  if (!mv) return;
+  var SWING = 35;
+  var SPEED = 0.00025;
+  var start = performance.now();
+  function tick(t) {
+    var angle = Math.sin((t - start) * SPEED) * SWING;
+    mv.setAttribute('camera-orbit', angle + 'deg 80deg 120%');
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 })();
