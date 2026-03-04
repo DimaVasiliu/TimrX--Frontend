@@ -1397,18 +1397,25 @@
   }
 
   .card .info{
-    padding:16px;
-    display:grid;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
     gap:8px;
+    flex:1;
   }
 
   .card .title{
     margin: 0;
-    font-weight:600;
+    font-weight:800;
     color:#fff;
-    line-height:1.35;
-    font-size: 16px;
+    line-height:1.3;
+    font-size: clamp(13px, 2.4vw, 16px);
     transition: color 0.3s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .card:hover .title{
@@ -1418,7 +1425,8 @@
   .card .excerpt{
     color:#bbb;
     line-height: 1.5;
-    font-size: 13px;
+    font-size: 12px;
+    flex:1;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -1426,13 +1434,59 @@
     overflow: hidden;
   }
 
+  .card .card-footer{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    margin-top:auto;
+    padding-top:10px;
+    border-top:1px solid rgba(255,255,255,0.06);
+    gap:6px;
+  }
+
+  .card .author-mini{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .card .author-mini-avatar{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    object-fit:cover;
+    border:1.5px solid rgba(255,255,255,0.1);
+  }
+
+  .card .author-mini-name{
+    font-size:11px;
+    font-weight:600;
+    color:#e5e5e5;
+  }
+
   .card .meta{
     display:flex;
-    gap:8px;
+    gap:6px;
     align-items:center;
-    font-size:12px;
-    color: #aaa;
-    margin-top: 4px;
+    font-size:10px;
+    color: #a1a1a1;
+    white-space:nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .card .excerpt {
+      display: none;
+    }
+
+    .card .info {
+      padding: 10px;
+      gap: 6px;
+    }
+
+    .card .card-footer {
+      padding-top: 8px;
+      gap: 4px;
+    }
   }
   
   /* ===== LOAD BAR ===== */
