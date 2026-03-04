@@ -1,1080 +1,1701 @@
 <!DOCTYPE html>
-<html lang="en" class="archive-page">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>All Posts | TimrX Blog Archive</title>
-  <meta name="description" content="Browse all TimrX blog posts. Filter by category, search by keyword, and discover guides on AI, 3D printing, web development, and more." />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://timrx.live/archive" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Favicon (Blog section) -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-blogs-32.png"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-blogs-16.png"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-blogs-180.png"/>
-  <link rel="alternate" type="application/rss+xml" title="TimrX Blog RSS" href="https://timrx.live/rss.xml"/>
-  <meta name="theme-color" content="#0b0b0b" />
+<!-- Primary Meta Tags -->
+<title>TimrX | AI 3D Model Generator & Creative Tools Platform</title>
+<meta name="title" content="TimrX | AI 3D Model Generator & Creative Tools Platform" />
+<meta name="description" content="Create 3D models from text or images with AI. TimrX offers text-to-3D, image-to-3D generation, remeshing, texturing, and GLB/STL export. No Blender required. Built by Dima Vasiliu." />
+<meta name="keywords" content="AI 3D generator, text to 3D, image to 3D, 3D model generator, AI 3D printing, GLB export, STL export, online 3D tool, 3D printing software, AI art generator, TimrX, Dima Vasiliu, web developer, creative developer, full-stack developer" />
+<meta name="author" content="Dima Vasiliu" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="googlebot" content="index, follow" />
+<link rel="canonical" href="https://timrx.live/" />
 
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://timrx.live/archive" />
-  <meta property="og:title" content="All Posts | TimrX Blog Archive" />
-  <meta property="og:description" content="Browse all TimrX blog posts by category." />
-  <meta property="og:image" content="https://timrx.live/og-image-blog.png" />
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-logo-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-logo-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#0b0b0b" />
+<meta name="msapplication-TileColor" content="#0b0b0b" />
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<!-- Hreflang Tags -->
+<link rel="alternate" hreflang="en-gb" href="https://timrx.live/" />
+<link rel="alternate" hreflang="en-us" href="https://timrx.live/" />
+<link rel="alternate" hreflang="x-default" href="https://timrx.live/" />
 
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --bg-elevated: #0d0d0d;
-      --bg-card: #111;
-      --text: #f5f5f5;
-      --muted: #777;
-      --border: rgba(255,255,255,0.06);
-      --border-hover: rgba(255,255,255,0.12);
-      --accent: #c084fc;
-      --accent-bg: rgba(168, 85, 247, 0.12);
-      --accent-border: rgba(168, 85, 247, 0.4);
-      --gutter: clamp(20px, 4vw, 60px);
-      --maxw: 1440px;
-    }
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://timrx.live/" />
+<meta property="og:title" content="TimrX | AI 3D Model Generator & Creative Tools" />
+<meta property="og:description" content="Create 3D models from text or images with AI. Text-to-3D, image-to-3D, remeshing, texturing, and GLB/STL export. No Blender required." />
+<meta property="og:image" content="https://timrx.live/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="TimrX AI 3D Generator - Create 3D Models from Text and Images" />
+<meta property="og:site_name" content="TimrX" />
+<meta property="og:locale" content="en_GB" />
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content="https://timrx.live/" />
+<meta name="twitter:title" content="TimrX | AI 3D Model Generator & Creative Tools" />
+<meta name="twitter:description" content="Create 3D models from text or images with AI. Text-to-3D, image-to-3D, GLB/STL export. No Blender required." />
+<meta name="twitter:image" content="https://timrx.live/og-image.png" />
+<meta name="twitter:creator" content="@timrx_live" />
 
-    /* Breadcrumbs */
-    .breadcrumbs { display: flex; align-items: center; gap: 6px; padding: 74px var(--gutter) 0; font-size: 13px; color: rgba(255,255,255,0.4); max-width: var(--maxw); margin: 0 auto; }
-    .breadcrumbs a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
-    .breadcrumbs a:hover { color: rgba(255,255,255,0.85); }
-    .breadcrumbs .bc-sep { font-size: 10px; color: rgba(255,255,255,0.2); }
-    .breadcrumbs .bc-current { color: rgba(255,255,255,0.65); }
+<!-- Google Site Verification (replace with your actual verification code) -->
+<!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, sans-serif;
-      min-height: 100vh;
-      line-height: 1.5;
-    }
+<!-- Additional SEO -->
+<meta name="application-name" content="TimrX" />
+<meta name="apple-mobile-web-app-title" content="TimrX" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    /* ===== HEADER ===== */
-    .archive-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      pointer-events: none;
-      transition: transform 0.35s ease;
-    }
-    .archive-header.nav-hidden { transform: translateY(-100%); }
-    .archive-header > * { pointer-events: auto; }
-
-    .archive-brand {
-      font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(24px, 3vw, 32px);
-      text-decoration: none;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      letter-spacing: -0.01em;
-      transition: opacity 0.3s ease;
-    }
-    .archive-brand:hover { opacity: 0.8; }
-    .archive-brand .b-tim { color: #fff; }
-    .archive-brand .b-x { color: rgba(255,255,255,0.6); margin-left: 0; }
-    .archive-nav-logo {
-      width: 52px;
-      height: 52px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: #fff;
-      text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 999px;
-      background: rgba(255,255,255,0.05);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-    }
-    .back-btn:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.35);
-      transform: translateY(-1px);
-    }
-    .back-btn svg { width: 14px; height: 14px; }
-
-    /* ===== MINI HERO ===== */
-    .mini-hero {
-      position: relative;
-      padding: 100px var(--gutter) 40px;
-      background: linear-gradient(180deg, #0f0f0f 0%, var(--bg) 100%);
-      border-bottom: 1px solid var(--border);
-      overflow: hidden;
-    }
-
-    .mini-hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 70% 0%, rgba(139, 92, 246, 0.06), transparent 50%),
-        radial-gradient(ellipse 50% 40% at 20% 100%, rgba(139, 92, 246, 0.04), transparent 40%);
-      pointer-events: none;
-    }
-
-    .hero-watermark {
-      position: absolute;
-      top: 55%;
-      right: 0%;
-      transform: translateY(-50%);
-      font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(120px, 18vw, 280px);
-      color: rgba(255,255,255,0.025);
-      letter-spacing: -0.02em;
-      pointer-events: none;
-      user-select: none;
-      line-height: 0.85;
-    }
-
-    .hero-inner {
-      position: relative;
-      max-width: var(--maxw);
-      margin: 0 auto;
-    }
-
-    .hero-eyebrow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .eyebrow-line {
-      width: 32px;
-      height: 1px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-    }
-
-    .eyebrow-text {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    .hero-title {
-      font-size: clamp(32px, 5vw, 52px);
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-    }
-
-    .hero-title span {
-      display: inline-block;
-    }
-
-    .hero-title .outline {
-      -webkit-text-stroke: 1px rgba(255,255,255,0.4);
-      color: transparent;
-    }
-
-    .hero-desc {
-      font-size: 15px;
-      color: var(--muted);
-      max-width: 480px;
-      line-height: 1.6;
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 32px;
-      margin-top: 24px;
-    }
-
-    .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    /* ===== FILTER STRIP ===== */
-    .filter-strip {
-      position: sticky;
-      top: 61px;
-      z-index: 90;
-      background: #fafafa;
-      border-bottom: 1px solid #e5e5e5;
-      padding: 14px var(--gutter);
-    }
-
-    .filter-inner {
-      max-width: var(--maxw);
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .search-box {
-      position: relative;
-      width: 240px;
-      flex-shrink: 0;
-    }
-
-    .search-box input {
-      width: 100%;
-      height: 38px;
-      padding: 0 14px 0 40px;
-      font-size: 13px;
-      font-family: inherit;
-      color: #1a1a1a;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .search-box input:focus {
-      border-color: #8b5cf6;
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-    }
-    .search-box input::placeholder { color: #999; }
-
-    .search-box svg {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      stroke: #999;
-    }
-
-    .chips {
-      display: flex;
-      gap: 8px;
-      flex: 1;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      padding: 2px 0;
-    }
-    .chips::-webkit-scrollbar { display: none; }
-
-    .chip {
-      height: 36px;
-      padding: 0 16px;
-      font-size: 13px;
-      font-weight: 500;
-      font-family: inherit;
-      color: #444;
-      background: #f0f0f0;
-      border: 1px solid #d4d4d4;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-    }
-    .chip:hover {
-      background: #e8e8e8;
-      border-color: #bbb;
-      color: #222;
-    }
-    .chip.active {
-      background: #1a1a1a;
-      border-color: #1a1a1a;
-      color: #fff;
-    }
-
-    .filter-tools {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-
-    .sort-select {
-      height: 38px;
-      padding: 0 32px 0 12px;
-      font-size: 13px;
-      font-family: inherit;
-      color: #1a1a1a;
-      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") right 10px center/14px no-repeat;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-    .sort-select:focus {
-      outline: none;
-      border-color: #8b5cf6;
-    }
-
-    .results-count {
-      font-size: 13px;
-      color: #666;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    /* ===== MAIN CONTENT ===== */
-    main {
-      padding: 32px var(--gutter) 60px;
-      max-width: var(--maxw);
-      margin: 0 auto;
-    }
-
-    /* ===== GRID ===== */
-    .archive-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    @media (min-width: 900px) {
-      .archive-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (min-width: 1200px) {
-      .archive-grid { grid-template-columns: repeat(5, 1fr); gap: 22px; }
-    }
-    @media (min-width: 1400px) {
-      .archive-grid { grid-template-columns: repeat(6, 1fr); }
-    }
-
-    /* ===== CARD ===== */
-    .mini-card {
-      position: relative;
-      display: block;
-      text-decoration: none;
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      opacity: 0;
-      animation: cardIn 0.4s ease forwards;
-    }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .mini-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--border-hover);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
-    }
-
-    .mini-card .thumb {
-      position: relative;
-      aspect-ratio: 16/10;
-      overflow: hidden;
-    }
-
-    .mini-card .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.88);
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s;
-    }
-    .mini-card:hover .thumb img {
-      transform: scale(1.06);
-      filter: brightness(0.98);
-    }
-
-    .mini-card .tag {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 5px 10px;
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--accent);
-      background: rgba(10,10,10,0.85);
-      border: 1px solid var(--accent-border);
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .mini-card:hover .tag {
-      border-color: var(--accent);
-      color: #d8b4fe;
-    }
-
-    .mini-card .info {
-      padding: 14px;
-    }
-
-    .mini-card .title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      line-height: 1.4;
-      margin-bottom: 6px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .mini-card:hover .title { color: #f5f5f5; }
-
-    .mini-card .meta {
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* ===== PAGINATION ===== */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      margin-top: 48px;
-      flex-wrap: wrap;
-    }
-
-    .page-btn {
-      min-width: 40px;
-      height: 40px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: inherit;
-      color: var(--muted);
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .page-btn:hover:not(:disabled) {
-      color: #fff;
-      border-color: var(--border-hover);
-      background: rgba(255,255,255,0.04);
-    }
-    .page-btn.active {
-      color: #fff;
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .page-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-    .page-btn.nav {
-      padding: 0 16px;
-      gap: 6px;
-    }
-    .page-ellipsis {
-      color: var(--muted);
-      padding: 0 4px;
-    }
-
-    /* ===== EMPTY STATE ===== */
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      grid-column: 1/-1;
-    }
-    .empty-state svg {
-      width: 56px;
-      height: 56px;
-      stroke: rgba(255,255,255,0.12);
-      margin-bottom: 16px;
-    }
-    .empty-state h3 {
-      font-size: 18px;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-    .empty-state p {
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    /* ===== SKELETON ===== */
-    .skeleton {
-      background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.03) 50%, var(--bg-card) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .skeleton-card {
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    .skeleton-card .thumb { aspect-ratio: 16/10; }
-    .skeleton-card .info { padding: 14px; }
-    .skeleton-card .skel-title {
-      height: 14px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-    .skeleton-card .skel-meta {
-      height: 10px;
-      width: 50%;
-      background: rgba(255,255,255,0.03);
-      border-radius: 4px;
-    }
-
-    /* ===== FOOTER ===== */
-    .archive-footer {
-      border-top: 1px solid var(--border);
-      padding: 24px 0 32px;
-      background: rgba(10,10,10,0.5);
-    }
-    .foot {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      max-width: var(--maxw);
-      margin: 0 auto;
-      padding: 0 var(--gutter);
-    }
-    .foot > span { color: #bbb; font-size: 14px; }
-    .foot-nav { display: flex; gap: 4px; }
-    .foot-nav a { margin-right: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
-    .foot-nav a:hover { color: #fff; }
-    .foot-social { display: flex; gap: 4px; }
-    .foot-social a { margin-left: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
-    .foot-social a:hover { color: #fff; }
-    .foot-legal { display: flex; gap: 4px; }
-    .foot-legal a { margin-right: 12px; color: #999; text-decoration: none; transition: color 0.2s; font-size: 13px; }
-    .foot-legal a:hover { color: #fff; }
-
-    /* ===== MOBILE ===== */
-    @media (max-width: 768px) {
-      .archive-nav-logo { width: 44px; height: 44px; }
-      .back-btn { padding: 8px 14px; font-size: 12px; }
-
-      .mini-hero { padding: 80px 16px 32px; }
-      .hero-title { font-size: 28px; }
-      .hero-stats { gap: 24px; margin-top: 20px; }
-      .stat-value { font-size: 20px; }
-
-      .filter-strip {
-        top: 0;
-        padding: 12px 16px;
-        overflow-x: auto;
-      }
-      .filter-inner { gap: 12px; flex-wrap: wrap; }
-      .search-box { width: 100%; order: -1; }
-      .chips { gap: 6px; }
-      .chip { height: 32px; padding: 0 12px; font-size: 12px; }
-
-      main { padding: 24px 16px 48px; }
-      .archive-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
-
-      .archive-footer { padding: 28px 0 24px; }
-      .foot {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 20px;
-        padding: 0 20px;
-      }
-      .foot > span { order: 4; font-size: 12px; color: rgba(255,255,255,0.25); padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); width: 60%; }
-      .foot-nav { order: 1; justify-content: center; flex-wrap: wrap; gap: 4px; }
-      .foot-nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; margin-right: 0; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); }
-      .foot-nav a:hover { color: rgba(255,255,255,0.9); }
-      .foot-social { order: 2; justify-content: center; flex-wrap: wrap; gap: 6px; }
-      .foot-social a { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 14px; margin-left: 0; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; }
-      .foot-social a:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.18); }
-      .foot-legal { order: 3; justify-content: center; flex-wrap: wrap; gap: 4px; }
-      .foot-legal a { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 10px; margin-right: 0; font-size: 10px; color: rgba(255,255,255,0.3); }
-      .foot-legal a:hover { color: rgba(255,255,255,0.6); }
-    }
-  </style>
-
-  <!-- JSON-LD Structured Data - CollectionPage -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "@id": "https://timrx.live/archive#page",
-    "name": "All Posts | TimrX Blog Archive",
-    "description": "Browse all TimrX blog posts. Filter by category, search by keyword, and discover guides on AI, 3D printing, web development, and more.",
-    "url": "https://timrx.live/archive",
-    "inLanguage": "en-US",
-    "isPartOf": {
-      "@type": "Blog",
-      "@id": "https://timrx.live/blogs#blog",
-      "name": "TimrX Blog",
-      "url": "https://timrx.live/blogs"
+<!-- Structured Data - WebSite (for sitelinks search box) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "TimrX",
+  "alternateName": ["TimrX 3D Print Hub", "AI 3D Generator"],
+  "url": "https://timrx.live",
+  "description": "AI-powered platform for 3D model generation. Create 3D models from text or images, remesh, texture, and export to GLB/STL for 3D printing and game development.",
+  "publisher": {
+    "@type": "Person",
+    "name": "Dima Vasiliu",
+    "url": "https://timrx.live/about"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://timrx.live/hub?search={search_term_string}"
     },
-    "author": {
-      "@type": "Person",
-      "name": "Dima Vasiliu",
-      "url": "https://timrx.live",
-      "sameAs": [
-        "https://github.com/DimaVasiliu",
-        "https://www.linkedin.com/in/dumitru-vasiliu"
-      ]
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<!-- Structured Data - SoftwareApplication (Primary focus) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX AI 3D Generator",
+  "applicationCategory": "DesignApplication",
+  "applicationSubCategory": "3D Modeling",
+  "operatingSystem": "Web Browser",
+  "url": "https://timrx.live",
+  "description": "AI-powered 3D model generator. Create 3D models from text prompts or images. Features text-to-3D, image-to-3D, remeshing, texturing, and export to GLB/STL/USDZ.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "GBP",
+    "description": "Free tier with credit-based pricing for additional generations"
+  },
+  "featureList": [
+    "Text to 3D model generation",
+    "Image to 3D model conversion",
+    "AI texture generation",
+    "Mesh remeshing and optimization",
+    "GLB/GLTF/STL/USDZ export",
+    "Real-time 3D preview",
+    "Print-ready model output",
+    "No Blender required"
+  ],
+  "screenshot": "https://timrx.live/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Dima Vasiliu",
+    "url": "https://timrx.live/about"
+  }
+}
+</script>
+
+<!-- Structured Data - Person (Creator) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Dima Vasiliu",
+  "alternateName": "Dumitru Vasiliu",
+  "url": "https://timrx.live/about",
+  "image": "https://timrx.live/img/dima.jpg",
+  "jobTitle": "Full-Stack Developer",
+  "description": "Full-stack developer and creator of TimrX, an AI-powered 3D generation platform. Specializes in Three.js, Flask, and modern web technologies.",
+  "sameAs": [
+    "https://github.com/DimaVasiliu",
+    "https://www.linkedin.com/in/dumitru-vasiliu"
+  ],
+  "knowsAbout": [
+    "Three.js",
+    "WebGL",
+    "Python",
+    "Flask",
+    "AI Integration",
+    "3D Printing",
+    "Full-Stack Development",
+    "Web Performance"
+  ],
+  "worksFor": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live"
+  }
+}
+</script>
+
+<!-- Structured Data - Organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "TimrX",
+  "alternateName": "TimrX 3D Print Hub",
+  "url": "https://timrx.live",
+  "logo": "https://timrx.live/img/logo.png",
+  "description": "AI-powered 3D generation platform. Create 3D models from text or images for 3D printing, games, and digital design.",
+  "founder": {
+    "@type": "Person",
+    "name": "Dima Vasiliu",
+    "url": "https://timrx.live/about"
+  },
+  "foundingDate": "2024",
+  "sameAs": [
+    "https://github.com/DimaVasiliu"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "admin@timrx.live"
+  },
+  "areaServed": "Worldwide",
+  "serviceType": ["AI 3D Generation", "Text to 3D", "Image to 3D", "3D Printing Tools"]
+}
+</script>
+
+<!-- Structured Data - FAQPage (for rich snippets) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "TimrX is an AI-powered 3D generation platform that creates 3D models from text descriptions or images. Perfect for 3D printing, game development, and digital design."
+      }
     },
-    "publisher": {
-      "@type": "Organization",
-      "name": "TimrX",
-      "url": "https://timrx.live",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://timrx.live/img/blogs.png",
-        "width": 512,
-        "height": 512
+    {
+      "@type": "Question",
+      "name": "How does text-to-3D work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Describe what you want to create in natural language, and our AI generates a detailed 3D model. For example: 'A medieval castle with towers' produces a downloadable 3D asset."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What formats can I export?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "TimrX exports to GLB, GLTF, STL, and USDZ formats, compatible with Blender, Unity, Unreal Engine, and 3D printing slicers like Cura and PrusaSlicer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need Blender to use TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. TimrX is a complete browser-based solution. Generate, preview, remesh, texture, and export 3D models without any external software."
       }
     }
-  }
-  </script>
+  ]
+}
+</script>
 
-  <!-- JSON-LD Structured Data - BreadcrumbList -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://timrx.live"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Blog",
-        "item": "https://timrx.live/blogs"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Archive",
-        "item": "https://timrx.live/archive"
-      }
-    ]
-  }
-  </script>
+<!-- Preload LCP image for mobile -->
+<link rel="preload" as="image" type="image/webp"
+      href="img/dima-480.webp"
+      imagesrcset="img/dima-480.webp 480w, img/dima-768.webp 768w, img/dima-1024.webp 1024w"
+      imagesizes="(max-width: 600px) 90vw, 600px"
+      fetchpriority="high">
+
+<!-- Fonts: Preconnect + combined request + preload critical -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap"></noscript>
+<!-- Space Grotesk: only used in blog title (below fold) — loaded separately -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap"></noscript>
+
+<!-- Font Awesome: Async load (no preload — below fold, not critical) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+
+<!-- Stylesheets -->
+<link rel="preload" href="./styles.css?v=7" as="style">
+<link rel="stylesheet" href="./styles.css?v=7" />
+<link rel="stylesheet" href="./media/index.css?v=7" />
+
+<!-- Critical CSS: Above-the-fold styles for faster FCP -->
+<style>
+  :root{--bg:#0d0d0d;--text:#f5f5f5;--navH:72px;--gutter:28px;--maxw:1320px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  .nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,8,8,.88);backdrop-filter:blur(12px)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:calc(var(--navH) + 20px)}
+  .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
+  @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
+</style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header class="archive-header">
-    <a class="archive-brand" href="/">
-      <img src="img/blogs.png" alt="" class="archive-nav-logo" width="52" height="52">
-      <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
-    </a>
-    <a class="back-btn" href="/blogs">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Blog
-    </a>
-  </header>
 
-  <!-- Breadcrumbs -->
-  <nav class="breadcrumbs" aria-label="Breadcrumb">
-    <a href="/">Home</a>
-    <span class="bc-sep" aria-hidden="true">›</span>
-    <a href="/blogs">Blog</a>
-    <span class="bc-sep" aria-hidden="true">›</span>
-    <span class="bc-current">Archive</span>
+    
+<!-- NAV -->
+<nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" id="brand" href="index.html" aria-label="Home">
+          <span class="swap" id="brandTim" aria-label="TimrX">
+            <span class="b-tim">Timr</span><span class="b-x">X</span>
+          </span>
+          <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
+            <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- Desktop links -->
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="#app3d">—&gt; 3D Print Hub</a>
+        <a href="#works">WORKS</a>
+        <a href="#services">SERVICES</a>
+        <a href="#blogs">BLOGS</a>
+        <a href="#contact">{ CONNECT }</a>
+      </div>
+
+      <a class="nav-cta nav-cta-desktop" href="#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
+
+      <!-- Mobile hamburger button -->
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
   </nav>
 
-  <!-- MINI HERO -->
-  <section class="mini-hero">
-    <div class="hero-watermark">ARCHIVE</div>
-    <div class="hero-inner">
-      <div class="hero-eyebrow">
-        <span class="eyebrow-line"></span>
-        <span class="eyebrow-text">Browse All</span>
+  <!-- Mobile menu overlay -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="#app3d" class="mobile-nav-link">
+          <span class="mnl-label">3D Print Hub</span>
+          <span class="mnl-sub">Explore the hub</span>
+        </a>
+        <a href="#works" class="mobile-nav-link">
+          <span class="mnl-label">Works</span>
+          <span class="mnl-sub">Selected projects</span>
+        </a>
+        <a href="#services" class="mobile-nav-link">
+          <span class="mnl-label">Services</span>
+          <span class="mnl-sub">What I offer</span>
+        </a>
+        <a href="#blogs" class="mobile-nav-link">
+          <span class="mnl-label">Blogs</span>
+          <span class="mnl-sub">Latest writing</span>
+        </a>
+        <a href="#contact" class="mobile-nav-link">
+          <span class="mnl-label">Connect</span>
+          <span class="mnl-sub">Get in touch</span>
+        </a>
+      </nav>
+      <a class="mobile-cta" href="#contact">CONTACT ME ↗</a>
+      <div class="mobile-menu-footer">
+        <span class="mobile-footer-text">TimrX / Dima Vasiliu</span>
       </div>
-      <h1 class="hero-title">
-        <span>All</span> <span class="outline">Posts</span>
-      </h1>
-      <p class="hero-desc">Explore the complete archive of articles, guides, and experiments across all topics.</p>
-      <div class="hero-stats">
-        <div class="stat">
-          <span class="stat-value" id="totalPosts">—</span>
-          <span class="stat-label">Articles</span>
+    </div>
+  </div>
+
+
+  <main class="page" style="flex:1;">
+    <!-- HERO -->
+    <header class="container hero" id="hero" role="banner">
+        <!-- Subtle decorative elements -->
+        <div class="hero-watermark hide-mobile" aria-hidden="true">BUILD</div>
+        <div class="hero-arc hide-mobile" aria-hidden="true"></div>
+        <div class="hero-eyebrow">
+            <span class="eyebrow-line"></span>
+            <span class="eyebrow-text" id="eyebrowText">Portfolio <span id="eyebrowYear"></span></span>
+            <script>
+              (function(){
+                var y = new Date().getFullYear();
+                document.getElementById('eyebrowYear').textContent = y;
+                document.getElementById('eyebrowText').setAttribute('data-text', 'Portfolio ' + y);
+              })();
+            </script>
         </div>
-        <div class="stat">
-          <span class="stat-value" id="totalTags">8</span>
-          <span class="stat-label">Topics</span>
+
+        <!-- stage holds the image + left list like the reference -->
+        <div class="hero-stage">
+              <!-- decor -->
+            <div class="hero-plate hide-mobile" aria-hidden="true"></div>
+            <h1 class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</h1>
+            <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
+            <ul class="hero-list" aria-label="Capabilities">
+                <li><a href="#works">WEB DEVELOPMENT</a></li>
+                <li><a href="#services">UX/UI DESIGN</a></li>
+                <li><a href="#app3d">3D MODELING & PRINT</a></li>
+                <li><a href="#works">LIGHT VIDEO & MOTION</a></li>
+            </ul>
+    
+            <figure class="hero-photo">
+                <!-- Using a placeholder image for demonstration -->
+                <img
+                  class="portrait"
+                  src="img/dima-768.webp"
+                  srcset="
+                    img/dima-480.webp 480w,
+                    img/dima-768.webp 768w,
+                    img/dima-1024.webp 1024w
+                  "
+                  sizes="(max-width: 600px) 90vw, 600px"
+                  width="600"
+                  height="760"
+                  alt="Portrait of Dima Vasiliu"
+                  decoding="async"
+                  fetchpriority="high"
+                />
+            </figure>
+
+            <div class="hero-cta">
+                <a class="btn" href="#works">WORKS</a>
+                <a class="btn secondary" href="#contact">CONTACT ME</a>
+            </div>
+        </div>
+    </header>
+  
+  
+  
+        <section id="about" class="about-hero">
+            <!-- Outside vertical label -->
+            <div class="about-left-note hide-tablet" aria-hidden="true">ABOUT • PROFILE</div>
+
+            <!-- Geometric background -->
+            <div class="about-geometric-bg" aria-hidden="true">
+                <div class="geo-circle geo-circle-1"></div>
+                <div class="geo-circle geo-circle-2"></div>
+                <div class="geo-grid"></div>
+            </div>
+
+            <!-- Floating particles -->
+            <div class="about-particles" id="aboutParticles" aria-hidden="true"></div>
+
+            <!-- Main centered dark box - bigger shell -->
+            <div class="about-shell">
+                <!-- Geometric decorations inside shell -->
+                <div class="shell-geometric" aria-hidden="true">
+                    <div class="shell-grid"></div>
+                </div>
+
+                <!-- Header: Badge + Title -->
+                <header class="about-header">
+                    <div class="about-header-left">
+                        <div class="about-badge" id="aboutBadge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>DEVELOPER & DESIGNER</span>
+                        </div>
+                        <h2 class="title-xl about-title" id="aboutTitle">ABOUT ME</h2>
+                    </div>
+                    <div class="about-drone-wrap">
+                        <div class="about-drone" aria-hidden="true">
+                            <div class="drone-body">
+                                <span class="drone-core"></span>
+                                <span class="drone-display">
+                                    <span class="display-track">
+                                        <span>4 YEARS EXP</span>
+                                        <span>15 PROJECTS</span>
+                                        <span>16 SKILLS</span>
+                                        <span>TIMRX LAB</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Content Grid: Left + Right -->
+                <div class="about-content">
+                    <!-- Left Column -->
+                    <div class="about-content-left">
+                        <div class="hello-badge">
+                            <span class="dot"></span>
+                            <span>HELLO! I'M DIMA VASILIU</span>
+                        </div>
+
+                        <p class="about-lead muted">
+                            I design and develop modern websites, build 3D models for print and web,
+                            and craft clear interfaces with thoughtful motion. I value clarity, speed, and results.
+                        </p>
+
+                        <!-- Stats -->
+                        <div class="about-stats" id="aboutStats">
+                            <div class="stat-item">
+                                <div class="stat-number about-year" data-start-year="2022">4Y+</div>
+                                <div class="stat-label">Experience building web + 3D systems</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">SHIP</div>
+                                <div class="stat-label">TimrX 3D Print Hub + live experiments</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">FOCUS</div>
+                                <div class="stat-label">Motion UX, WebGL, print-ready workflows</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Info Cards -->
+                    <aside class="about-content-right">
+                        <div class="info-card">
+                            <div class="info-card-icon">📍</div>
+                            <div class="info-card-content">
+                                <h3>Based in London</h3>
+                                <p class="muted">Remote-friendly</p>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-icon">🛠️</div>
+                            <div class="info-card-content">
+                                <h3>Tools I enjoy</h3>
+                                <p class="muted">HTML/CSS/JS, TypeScript, React, GSAP, Three.js, Flask, Meshy, Figma, Blender, Git, Python, Node.js, PostgreSQL, WebGL</p>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-icon">🚀</div>
+                            <div class="info-card-content">
+                                <h3>Milestones</h3>
+                                <p class="muted">2024 — TimrX born · 2025 — 3D Print Hub · AI expansion</p>
+                            </div>
+                        </div>
+
+                        <a href="/about" class="about-profile-link" onmouseover="this.style.color='rgba(255,255,255,0.85)';this.querySelector('svg').style.transform='translateX(3px)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.querySelector('svg').style.transform='translateX(0)'">
+                            Full Profile
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+
+<!-- 3D PROMPT TICKER (between About & Philosophy) -->
+<div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
+    <div class="idx-ticker-inner">
+    <div class="idx-ticker-track">
+    <span class="idx-ticker-item">Origami‑style dragon</span>
+    <span class="idx-ticker-item">Steampunk potion bottle</span>
+    <span class="idx-ticker-item">Futuristic lounge chair</span>
+    <span class="idx-ticker-item">Ancient silver key</span>
+    <span class="idx-ticker-item">Celtic knot ring</span>
+    <span class="idx-ticker-item">Minimal chess set</span>
+    <span class="idx-ticker-item">Retro ray gun</span>
+    <span class="idx-ticker-item">Viking drinking horn</span>
+    <span class="idx-ticker-item">Art‑deco mask</span>
+    <!-- duplicate for seamless loop -->
+    <span class="idx-ticker-item" aria-hidden="true">Origami‑style dragon</span>
+    <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
+    <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
+    <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
+    <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
+    <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
+    <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
+    <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
+    <span class="idx-ticker-item" aria-hidden="true">Art‑deco mask</span>
+    </div>
+    </div>
+</div>
+    
+    
+    <!-- 3D APP PREVIEW (under ticker) -->
+    <section id="app3d" class="section container app3d">
+        <div class="title-xl">TIMRX 3D APP</div>
+      
+        <!-- INLINE TICKER (now inside the app preview) -->
+        <div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
+          <div class="idx-ticker-inner">
+            <div class="idx-ticker-track">
+              <span class="idx-ticker-item">Origami-style dragon</span>
+              <span class="idx-ticker-item">Steampunk potion bottle</span>
+              <span class="idx-ticker-item">Futuristic lounge chair</span>
+              <span class="idx-ticker-item">Ancient silver key</span>
+              <span class="idx-ticker-item">Celtic knot ring</span>
+              <span class="idx-ticker-item">Minimal chess set</span>
+              <span class="idx-ticker-item">Retro ray gun</span>
+              <span class="idx-ticker-item">Viking drinking horn</span>
+              <span class="idx-ticker-item">Art-deco mask</span>
+              <!-- duplicates for seamless loop -->
+              <span class="idx-ticker-item" aria-hidden="true">Origami-style dragon</span>
+              <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
+              <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
+              <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
+              <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
+              <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
+              <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
+              <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
+              <span class="idx-ticker-item" aria-hidden="true">Art-deco mask</span>
+            </div>
+          </div>
+        </div>
+      
+        <div class="app3d-grid">
+            <!-- APP3D viewer (left column) -->
+            <div class="viewer-canvas-wrapper">
+                <!-- always visible actions (top-left) -->
+                <div class="viewer-actions">
+                  <button type="button" class="chip-btn" id="uploadBtnTop">Upload (.glb/.gltf)</button>
+                  <button type="button" class="chip-btn ghost" id="clearBtnTop" disabled>Remove</button>
+                  <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
+                </div>
+              
+                <canvas id="viewerCanvas" aria-label="3D viewer"></canvas>
+              
+                <div id="viewerPlaceholder" class="viewer-placeholder">
+                  Drag a GLB/GLTF here or click <b>Upload</b>
+                </div>
+              
+                <!-- settings (gear) stays for auto-rotate only -->
+                <button class="viewer-gear" id="viewerGear" aria-label="Viewer settings">⚙️</button>
+
+                  <div class="viewer-autorotate hidden" id="viewerRotateCard">
+                    <span class="label">Auto-rotate</span>
+                    <label class="toggle sm">
+                      <input type="checkbox" id="rotateToggle" />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+              </div>
+            <!-- APP3D copy (right column) -->
+            <div class="app3d-copy">
+            <h3 class="about-kicker">Generate • View • Print</h3>
+            <p class="muted">A fast, browser-based 3D pipeline I’m building for creators
+                and small teams. Upload or prompt, preview in real‑time, export print‑ready
+                files.</p>
+            <ul class="muted bullets">
+            <li>GLB/GLTF viewer with orbit controls</li>
+            <li>Print‑ready export experiments (FDM/SLA)</li>
+            <li>Prompt‑to‑3D prototypes via API</li>
+            </ul>
+            <a class="btn" href="hub.html">Explore 3D Print Hub →</a>
+            </div>
+            <!-- FX layer (sits behind content) -->
+            <div class="app3d-fx" aria-hidden="true"><canvas id="app3dFx"></canvas></div>
+        </div>
+    </section>
+
+<!-- SERVICES -->
+<section id="services" class="section services services-light">
+    <div class="container services-shell">
+    <div class="services-header">
+      <div class="title-xl">SERVICES</div>
+      <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
+    </div>
+
+    <div class="services-grid" role="list">
+      <!-- Web Design -->
+      <div class="service-card svc-card-light" role="listitem">
+        <div class="svc-icon" aria-hidden="true">🖥️</div>
+        <h3 class="svc-title">Web Design</h3>
+        <p class="svc-copy">Wireframes to polished UI with motion. Accessible, scalable, fast.</p>
+        <ul class="svc-bullets-light">
+          <li><span class="svc-bullet-arrow">→</span> Figma → Dev-ready</li>
+          <li><span class="svc-bullet-arrow">→</span> Design systems</li>
+          <li><span class="svc-bullet-arrow">→</span> Landing pages</li>
+        </ul>
+        <a class="svc-cta-light" href="#contact">Get a quote <span>→</span></a>
+      </div>
+
+      <!-- UX/UI -->
+      <div class="service-card svc-card-light" role="listitem">
+        <div class="svc-icon" aria-hidden="true">🎛️</div>
+        <h3 class="svc-title">UX / UI</h3>
+        <p class="svc-copy">Clear flows, components, and micro-interactions that guide attention.</p>
+        <ul class="svc-bullets-light">
+          <li><span class="svc-bullet-arrow">→</span> User flows & IA</li>
+          <li><span class="svc-bullet-arrow">→</span> Components & tokens</li>
+          <li><span class="svc-bullet-arrow">→</span> Motion guidelines</li>
+        </ul>
+        <a class="svc-cta-light" href="#contact">Let's map it <span>→</span></a>
+      </div>
+
+      <!-- Development -->
+      <div class="service-card svc-card-light" role="listitem">
+        <div class="svc-icon" aria-hidden="true">⚙️</div>
+        <h3 class="svc-title">Development</h3>
+        <p class="svc-copy">Clean, semantic code with performance and SEO in mind.</p>
+        <ul class="svc-bullets-light">
+          <li><span class="svc-bullet-arrow">→</span> HTML/CSS/JS</li>
+          <li><span class="svc-bullet-arrow">→</span> GSAP / Three.js</li>
+          <li><span class="svc-bullet-arrow">→</span> Flask backends</li>
+        </ul>
+        <a class="svc-cta-light" href="#contact">Ship it <span>→</span></a>
+      </div>
+
+      <!-- 3D -->
+      <div class="service-card svc-card-light" role="listitem">
+        <div class="svc-icon" aria-hidden="true">🧊</div>
+        <h3 class="svc-title">3D Modeling & Print</h3>
+        <p class="svc-copy">Prompt-to-3D, remesh, viewer integration, print-ready exports.</p>
+        <ul class="svc-bullets-light">
+          <li><span class="svc-bullet-arrow">→</span> GLB/GLTF assets</li>
+          <li><span class="svc-bullet-arrow">→</span> Viewer embeds</li>
+          <li><span class="svc-bullet-arrow">→</span> FDM/SLA prep</li>
+        </ul>
+        <a class="svc-cta-light" href="#contact">Make it 3D <span>→</span></a>
+      </div>
+
+      <!-- Overview panel -->
+      <div class="svc-panel" role="listitem" aria-label="Services overview">
+        <div class="svc-panel-hd">
+          <span class="svc-panel-status"><span class="svc-pdot"></span>ACTIVE</span>
+          <span class="svc-panel-count">04</span>
+        </div>
+        <ul class="svc-panel-list">
+          <li class="svc-pitem pitem-1"><span class="svc-pmark"></span>Web Design</li>
+          <li class="svc-pitem pitem-2"><span class="svc-pmark"></span>UX / UI</li>
+          <li class="svc-pitem pitem-3"><span class="svc-pmark"></span>Development</li>
+          <li class="svc-pitem pitem-4"><span class="svc-pmark"></span>3D Modeling</li>
+        </ul>
+        <div class="svc-panel-prog-wrap">
+          <div class="svc-panel-prog"></div>
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- FILTER STRIP -->
-  <section class="filter-strip">
-    <div class="filter-inner">
-      <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="search" id="searchInput" placeholder="Search posts..." />
-      </div>
-      <div class="chips" id="tagChips">
-        <button class="chip active" data-tag="all">All</button>
-        <button class="chip" data-tag="GSAP">GSAP</button>
-        <button class="chip" data-tag="Three.js">Three.js</button>
-        <button class="chip" data-tag="3D">3D</button>
-        <button class="chip" data-tag="3D Hub">3D Hub</button>
-        <button class="chip" data-tag="UX">UX</button>
-        <button class="chip" data-tag="Performance">Performance</button>
-        <button class="chip" data-tag="Workflow">Workflow</button>
-        <button class="chip" data-tag="AI">AI</button>
-        <button class="chip" data-tag="Commercials">Commercials</button>
-        <button class="chip" data-tag="Affiliate">Affiliate</button>
-        <button class="chip" data-tag="IT">IT</button>
-      </div>
-      <div class="filter-tools">
-        <select class="sort-select" id="sortSelect">
-          <option value="new">Newest</option>
-          <option value="old">Oldest</option>
-          <option value="title">A-Z</option>
-        </select>
-        <span class="results-count" id="resultsCount">—</span>
-      </div>
     </div>
   </section>
 
-  <!-- MAIN GRID -->
-  <main>
-    <div class="archive-grid" id="archiveGrid"></div>
-    <div class="pagination" id="pagination"></div>
+<!-- WORKS -->
+<section id="works" class="section container works-showcase">
+  <div class="works-head">
+    <div class="works-intro">
+      <div class="title-xl">WORKS</div>
+      <p class="muted works-sub">Early stage, but loud. One live product, a few university builds, and a lab of experiments.</p>
+      <div class="works-meta" role="list">
+        <span class="meta-pill" role="listitem">01 Live</span>
+        <span class="meta-pill" role="listitem">03 Uni apps</span>
+        <span class="meta-pill" role="listitem">In progress</span>
+      </div>
+    </div>
+    <div class="works-orbit hide-mobile" aria-hidden="true">
+      <div class="orbit-ring ring-a"></div>
+      <div class="orbit-ring ring-b"></div>
+      <div class="orbit-ring ring-c"></div>
+      <span class="orbit-prism"></span>
+      <span class="orbit-core-dot"></span>
+      <span class="orbit-spark os1"></span>
+      <span class="orbit-spark os2"></span>
+      <span class="orbit-spark os3"></span>
+      <span class="orbit-spark os4"></span>
+    </div>
+  </div>
+
+  <div class="works-list">
+
+    <article class="work-row">
+      <span class="work-row__num">01</span>
+      <div class="work-row__body">
+        <span class="work-row__name">TimrX 3D Print Hub</span>
+        <span class="work-row__sub">Browser-based pipeline turning prompts into printable 3D models.</span>
+      </div>
+      <div class="work-row__meta">
+        <div class="work-row__pills">
+          <span class="work-pill is-live">Live</span>
+          <span class="work-pill">3D Platform</span>
+        </div>
+        <span class="work-row__arrow">›</span>
+      </div>
+      <div class="work-panel">
+        <div class="work-panel__inner">
+          <ul>
+            <li>Prompt or image to 3D flow with live preview</li>
+            <li>Orbit controls, material tweaks, and print export tests</li>
+            <li>Guided workspace UI with step-by-step checkpoints</li>
+            <li>Watertight checks + scale hints for printability</li>
+            <li>S3 asset pipeline with history sync and previews</li>
+          </ul>
+          <div class="work-panel__foot">
+            <span class="work-stack">Meshy API / Three.js / GSAP</span>
+            <a class="work-link" href="hub.html">Explore hub →</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="work-row">
+      <span class="work-row__num">02</span>
+      <div class="work-row__body">
+        <span class="work-row__name">University Web Apps</span>
+        <span class="work-row__sub">Course projects focused on practical UX, clean data flows, and responsive UI.</span>
+      </div>
+      <div class="work-row__meta">
+        <div class="work-row__pills">
+          <span class="work-pill">Uni</span>
+          <span class="work-pill">Web Apps</span>
+        </div>
+        <span class="work-row__arrow">›</span>
+      </div>
+      <div class="work-panel">
+        <div class="work-panel__inner">
+          <ul>
+            <li>Campus Queue: book equipment or lab slots</li>
+            <li>Study Planner: weekly tasks with reminders</li>
+            <li>Club Finder: browse events and sign up fast</li>
+            <li>Auth + CRUD flows for student and staff roles</li>
+            <li>Responsive UI QA and accessibility passes</li>
+          </ul>
+          <div class="work-panel__foot">
+            <span class="work-stack">React / Flask / SQLite</span>
+            <span class="work-stack">Teams of 2–3, rapid sprints</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="work-row">
+      <span class="work-row__num">03</span>
+      <div class="work-row__body">
+        <span class="work-row__name">Experiment Queue</span>
+        <span class="work-row__sub">Ideas I want to ship next. Small, sharp, and very visual.</span>
+      </div>
+      <div class="work-row__meta">
+        <div class="work-row__pills">
+          <span class="work-pill">Lab</span>
+          <span class="work-pill">Next</span>
+        </div>
+        <span class="work-row__arrow">›</span>
+      </div>
+      <div class="work-panel">
+        <div class="work-panel__inner">
+          <ul>
+            <li>Interactive product cards with real-time 3D spins</li>
+            <li>Procedural materials gallery for print-ready textures</li>
+            <li>Animated build log timeline for shipping updates</li>
+            <li>Shader-driven highlights for hero visuals</li>
+            <li>Collab mode: live notes + feedback snapshots</li>
+          </ul>
+          <div class="work-panel__foot">
+            <span class="work-stack">R&amp;D / GSAP / Three.js</span>
+            <a class="work-link" href="#contact">Want to collab? →</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="works-cta">
+    <a class="btn" href="#contact">Need something similar? Let's build it →</a>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="section contact contact-light">
+  <!-- Decorative floating element - prismatic beacon -->
+  <div class="contact-deco hide-tablet" aria-hidden="true">
+    <div class="contact-figurine">
+      <span class="cf-ring ring-a"></span>
+      <span class="cf-ring ring-b"></span>
+      <span class="cf-ring ring-c"></span>
+      <span class="cf-prism"></span>
+      <span class="cf-core"></span>
+      <span class="cf-spark s1"></span>
+      <span class="cf-spark s2"></span>
+      <span class="cf-spark s3"></span>
+      <span class="cf-spark s4"></span>
+      <span class="cf-spark s5"></span>
+    </div>
+  </div>
+
+  <div class="container contact-shell">
+    <h2 class="title-xl contact-title">CONTACT</h2>
+    <div class="contact-badges">
+      <span class="kbadge is-solid">Available for new projects</span>
+      <span class="kbadge is-outline">Web/UI</span>
+      <span class="kbadge is-outline">GSAP • Three.js</span>
+      <span class="kbadge is-outline">3D & Print</span>
+    </div>
+    <p class="muted contact-sub">Tell me a bit about your project and budget. I'll reply within 24–48h.</p>
+
+    <div class="contact-grid">
+      <!-- Left: info -->
+      <aside class="contact-info">
+        <div class="contact-info-card">
+          <div class="contact-info-icon">📍</div>
+          <div>
+            <strong class="contact-info-title">Based in London</strong>
+            <p class="contact-info-copy">Available for remote and hybrid work.</p>
+          </div>
+        </div>
+        <div class="contact-info-card">
+          <div class="contact-info-icon">🕒</div>
+          <div>
+            <strong class="contact-info-title">Response</strong>
+            <p class="contact-info-copy">Usually within 24–48 hours.</p>
+          </div>
+        </div>
+        <div class="contact-info-card">
+          <div class="contact-info-icon">⚡</div>
+          <div>
+            <strong class="contact-info-title">Services</strong>
+            <p class="contact-info-copy">Web & UI/UX, motion dev, AI 3D generation, print prep.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right: form -->
+      <form id="contactForm" class="contact-form-card" novalidate>
+        <label class="contact-form-label">Budget (required)</label>
+        <div id="budgetChips" class="contact-chips">
+          <label class="contact-chip"><input type="radio" name="budget" value="£100–£500" />£100–£500</label>
+          <label class="contact-chip"><input type="radio" name="budget" value="£500–£1,500" />£500–£1,500</label>
+          <label class="contact-chip"><input type="radio" name="budget" value="£1,500–£3,000" />£1,500–£3,000</label>
+          <label class="contact-chip"><input type="radio" name="budget" value="£3,000–£7,000" />£3,000–£7,000</label>
+          <label class="contact-chip"><input type="radio" name="budget" value="£7,000+" />£7,000+</label>
+        </div>
+
+        <div class="contact-row">
+          <div class="contact-field">
+            <span class="contact-field-icon">👤</span>
+            <input name="name" type="text" placeholder="Your name *" required />
+          </div>
+          <div class="contact-field">
+            <span class="contact-field-icon">✉️</span>
+            <input name="email" type="email" placeholder="Email *" required />
+          </div>
+        </div>
+
+        <div class="contact-field">
+          <span class="contact-field-icon">🏷️</span>
+          <input name="subject" type="text" placeholder="Subject (optional)" />
+        </div>
+
+        <div class="contact-field">
+          <span class="contact-field-icon area">📝</span>
+          <textarea name="message" placeholder="Tell me about the project *" required></textarea>
+        </div>
+
+        <p id="formNote" class="contact-note"></p>
+        <button class="contact-submit-btn" type="submit">Send message <span>→</span></button>
+      </form>
+    </div>
+  </div>
+</section>
+    
+    
+<!-- BLOGS -->
+<section id="blogs" class="section container blogs">
+  <div class="blogs-header">
+    <!-- Left column: content stack -->
+    <div class="blogs-header-left">
+      <div class="blogs-badge" id="blogsBadge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span>LATEST INSIGHTS</span>
+      </div>
+      <h2 class="title-xl blogs-title blog-title-animated">BLOGS</h2>
+      <p class="muted blogs-sub" id="blogSubtitle">Notes on building modern, motion-first websites, 3D workflows, and creative tech.</p>
+      <div class="blogs-topics">
+        <span class="topic-tag">Web Dev</span>
+        <span class="topic-tag">3D Design</span>
+        <span class="topic-tag">UX/UI</span>
+        <span class="topic-tag">Motion</span>
+      </div>
+    </div>
+
+    <!-- Right column: meta stack -->
+    <div class="blogs-header-right">
+      <a class="blogs-view-all" href="blogs.html">
+        <span>View all posts</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+
+      <div class="blogs-stats" id="blogsStats">
+        <div class="stat-item">
+          <div class="stat-number" data-target="20">0</div>
+          <div class="stat-label">Articles</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="10">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="3">0</div>
+          <div class="stat-label">Min Read</div>
+        </div>
+      </div>
+
+      <p class="blogs-tagline" id="blogTagline">Build better • Learn faster • Create more</p>
+    </div>
+  </div>
+
+  <div id="blogsGrid" class="blogs-grid" role="list">
+    <!-- Blog posts will be loaded dynamically from API -->
+  </div>
+
+  <div class="blogs-cta">
+    <a class="btn secondary" href="blogs.html">Explore all posts →</a>
+    <p class="blogs-footer-text">Join the journey through code, design, and 3D innovation</p>
+  </div>
+</section>
+
+  <!-- SEO: About TimrX -->
+  <section aria-labelledby="aboutPageTitle" style="background:var(--warm-white);color:#0b0b0b;border-top:1px solid #ececec;padding:clamp(60px,8vh,100px) 0;">
+    <div class="container">
+      <!-- Centered Header -->
+      <div style="text-align:center;max-width:700px;margin:0 auto 40px;">
+        <h2 id="aboutPageTitle" style="font-family:'Bebas Neue',system-ui,sans-serif;font-size:clamp(36px,6vw,60px);margin:0 0 12px;letter-spacing:0.5px;color:#0b0b0b;">About TimrX</h2>
+        <p style="color:#5a5a5a;font-size:16px;line-height:1.6;margin:0;">AI tools, 3D workflows, and web products under one banner. A focused studio blending rapid prototyping with shipped, client-ready experiences.</p>
+      </div>
+
+    </div>
+  </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="archive-footer">
-    <div class="foot">
-      <span>&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-      <nav class="foot-nav">
-        <a href="/blogs">Blog</a>
-        <a href="/#works">Works</a>
-        <a href="/#services">Services</a>
-        <a href="/#contact">Contact</a>
-      </nav>
-      <nav class="foot-legal">
-        <a href="/terms.html">Terms</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/cookies.html">Cookies</a>
-      </nav>
+  <footer style="margin-top:0;margin-bottom:0;padding-bottom:8px;">
+    <div class="container foot">
+      <nav class="foot-nav"><a href="#about">About</a><a href="#works">Works</a><a href="#services">Services</a><a href="#contact">Contact</a></nav>
       <div class="foot-social">
         <a href="mailto:admin@timrx.live">Email</a>
-        <a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a>
+        <a href="https://github.com/DimaVasiliu">GitHub</a>
+      </div>
+      <div class="foot-bottom">
+        <nav class="foot-legal"><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="cookies.html">Cookies</a></nav>
+        <span class="foot-copy">© <span id="year"></span> TimrX / Dima Vasiliu</span>
       </div>
     </div>
   </footer>
+    
+    
+<!-- CHAT -->
+<!-- CHAT TOGGLE -->
+<button id="chatToggle" class="chat-toggle chat-min" aria-controls="chatPanel" aria-expanded="false" aria-label="Open chat">
+    <svg class="chat-ico chat-ico--open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <svg class="chat-ico chat-ico--close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
 
-  <script>
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
-    const API = API_BASE + '/api';
-    const PER_PAGE = 36;
+<div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-modal="false">
+  <header class="chat-head">
+    <img src="img/logo.png" alt="" class="chat-avatar" width="36" height="36">
+    <div class="chat-title">
+      <strong id="chatTitle">Ask TimrX</strong>
+      <span class="muted"><span class="chat-status"></span>Online now</span>
+    </div>
+    <button id="chatClose" class="chat-x" aria-label="Close chat">✕</button>
+  </header>
 
-    // Fallback data
-    const FALLBACK_POSTS = [
-      { slug:'scroll-choreography', title:'Scroll Choreography That Feels Native', excerpt:'Scene planning and anchor triggers so scroll never fights the OS.', cover_url:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=800&auto=format&fit=crop', tags:'GSAP,UX,Performance', minutes:6, created_at: Date.now()-864e5*1 },
-      { slug:'viewer-craft', title:'Viewer Craft: Camera Fit, Orbit, Shadows', excerpt:'Tiny choices that make 3D viewers feel premium.', cover_url:'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=800&auto=format&fit=crop', tags:'Three.js,3D,UX', minutes:7, created_at: Date.now()-864e5*3 },
-      { slug:'print-workflow', title:'From Prompt to Print: A Practical Workflow', excerpt:'A simple, reliable path from AI model to physical object.', cover_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop', tags:'3D,Workflow', minutes:8, created_at: Date.now()-864e5*7 },
-      { slug:'gsap-deep-dive', title:'GSAP Timeline Deep Dive', excerpt:'Master complex animations with timeline orchestration.', cover_url:'https://images.unsplash.com/photo-1550439062-609e1531270e?q=80&w=800&auto=format&fit=crop', tags:'GSAP,Animation', minutes:10, created_at: Date.now()-864e5*10 },
-      { slug:'webgl-performance', title:'WebGL Performance Tips', excerpt:'Optimize your 3D scenes for smooth 60fps rendering.', cover_url:'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop', tags:'Three.js,Performance,WebGL', minutes:12, created_at: Date.now()-864e5*14 },
-      { slug:'ai-workflow-2024', title:'AI-Assisted Design Workflow', excerpt:'How to integrate AI tools into your creative process.', cover_url:'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop', tags:'AI,Workflow,Design', minutes:9, created_at: Date.now()-864e5*18 },
-      { slug:'threejs-materials', title:'Three.js Material Guide', excerpt:'Understanding PBR materials and custom shaders.', cover_url:'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=800&auto=format&fit=crop', tags:'Three.js,3D,Shaders', minutes:14, created_at: Date.now()-864e5*22 },
-      { slug:'ux-micro-interactions', title:'Micro-Interactions That Matter', excerpt:'Small details that elevate user experience.', cover_url:'https://images.unsplash.com/photo-1558655146-9f40138edfeb?q=80&w=800&auto=format&fit=crop', tags:'UX,Animation,Design', minutes:7, created_at: Date.now()-864e5*26 },
-      { slug:'3d-printing-tips', title:'3D Printing Pro Tips', excerpt:'Avoid common pitfalls and get perfect prints.', cover_url:'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop', tags:'3D,Workflow,Hardware', minutes:11, created_at: Date.now()-864e5*30 },
-      { slug:'css-grid-mastery', title:'CSS Grid Mastery', excerpt:'Build complex layouts with modern CSS Grid.', cover_url:'https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?q=80&w=800&auto=format&fit=crop', tags:'CSS,Performance,Design', minutes:8, created_at: Date.now()-864e5*35 },
-      { slug:'react-performance', title:'React Performance Patterns', excerpt:'Optimize renders and improve app responsiveness.', cover_url:'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?q=80&w=800&auto=format&fit=crop', tags:'IT,Performance,JavaScript', minutes:13, created_at: Date.now()-864e5*40 },
-      { slug:'blender-basics', title:'Blender for Web Developers', excerpt:'Create 3D assets for your web projects.', cover_url:'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?q=80&w=800&auto=format&fit=crop', tags:'3D,Blender,Workflow', minutes:15, created_at: Date.now()-864e5*45 },
-    ];
+  <div id="chatBody" class="chat-body" aria-live="polite">
+    <!-- messages injected here -->
+  </div>
 
-    let allPosts = [];
-    let filteredPosts = [];
-    let currentPage = 1;
-    let currentTag = 'all';
-    let searchQuery = '';
-    let sortBy = 'new';
+  <div class="chat-quick">
+    <button class="q">What services do you offer?</button>
+    <button class="q">How do I start a 3D project?</button>
+    <button class="q">What’s the usual budget?</button>
+  </div>
 
-    const grid = document.getElementById('archiveGrid');
-    const pagination = document.getElementById('pagination');
-    const resultsCount = document.getElementById('resultsCount');
-    const searchInput = document.getElementById('searchInput');
-    const sortSelect = document.getElementById('sortSelect');
-    const tagChips = document.getElementById('tagChips');
-    const totalPostsEl = document.getElementById('totalPosts');
+  <div class="chat-inputbar">
+    <textarea id="chatInput" rows="1" placeholder="Type a message…"></textarea>
+    <button id="chatSend" class="btn small">Send →</button>
+  </div>
+</div>
+    
+    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 
-    // Year in footer
-    document.getElementById('year').textContent = new Date().getFullYear();
+    <script>
+      window.TIMRX_API_BASE = 'https://chat.timrx.live';
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
 
-    // Scroll-hide navbar
-    (function(){
-      var hdr = document.querySelector('.archive-header');
-      if (!hdr) return;
-      var lastY = 0;
-      window.addEventListener('scroll', function(){
-        var y = window.scrollY;
-        hdr.classList.toggle('nav-hidden', y > lastY && y > 60);
-        lastY = y;
-      }, {passive: true});
-    })();
+    <!-- Mobile Navigation Toggle -->
+    <script>
+      (function() {
+        const burger = document.getElementById('navBurger');
+        const menu = document.getElementById('mobileMenu');
+        const body = document.body;
 
-    // Show skeletons
-    function showSkeletons() {
-      grid.innerHTML = Array(12).fill(0).map(() => `
-        <div class="skeleton-card">
-          <div class="thumb skeleton"></div>
-          <div class="info">
-            <div class="skel-title skeleton"></div>
-            <div class="skel-meta skeleton"></div>
-          </div>
-        </div>
-      `).join('');
-    }
+        if (!burger || !menu) return;
 
-    // Fetch posts
-    async function fetchAllPosts() {
-      showSkeletons();
-      try {
-        let page = 1, hasMore = true;
-        const posts = [];
-        while (hasMore) {
-          const r = await fetch(`${API}/posts?page=${page}&size=50`);
-          if (!r.ok) throw new Error('API error');
-          const j = await r.json();
-          const items = j.items || j.posts || [];
-          posts.push(...items);
-          hasMore = items.length === 50;
-          page++;
-          if (page > 20) break;
+        function openMenu() {
+          burger.classList.add('is-open');
+          burger.setAttribute('aria-expanded', 'true');
+          burger.setAttribute('aria-label', 'Close menu');
+          menu.classList.add('is-open');
+          menu.setAttribute('aria-hidden', 'false');
+          body.classList.add('menu-open');
         }
-        if (posts.length === 0) throw new Error('No posts');
-        allPosts = posts;
-      } catch (e) {
-        console.log('[Archive] Using fallback:', e.message);
-        allPosts = FALLBACK_POSTS;
+
+        function closeMenu() {
+          burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded', 'false');
+          burger.setAttribute('aria-label', 'Open menu');
+          menu.classList.remove('is-open');
+          menu.setAttribute('aria-hidden', 'true');
+          body.classList.remove('menu-open');
+        }
+
+        function toggleMenu() {
+          if (menu.classList.contains('is-open')) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        }
+
+        // Toggle on burger click
+        burger.addEventListener('click', toggleMenu);
+
+        // Close menu when clicking a nav link
+        menu.querySelectorAll('a').forEach(function(link) {
+          link.addEventListener('click', closeMenu);
+        });
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+            closeMenu();
+            burger.focus();
+          }
+        });
+
+        // Close menu when resizing to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth >= 1024 && menu.classList.contains('is-open')) {
+            closeMenu();
+          }
+        });
+      })();
+    </script>
+
+    <!-- Three.js viewer: lazy-loaded when #app3d scrolls into view (desktop only) -->
+    <script>
+    (function lazyViewer(){
+      var section = document.getElementById('app3d');
+      if (!section) return;
+
+      var loaded = false;
+      function boot(){
+        if (loaded) return;
+        loaded = true;
+
+        // Inject the importmap dynamically
+        var im = document.createElement('script');
+        im.type = 'importmap';
+        im.textContent = JSON.stringify({
+          imports: {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+          }
+        });
+        document.head.appendChild(im);
+
+        // Now load the viewer module
+        var mod = document.createElement('script');
+        mod.type = 'module';
+        mod.textContent = `
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
+
+        const canvas     = document.getElementById('viewerCanvas');
+        const ph         = document.getElementById('viewerPlaceholder');
+        const gear       = document.getElementById('viewerGear');
+        const viewerMenu = document.getElementById('viewerMenu');
+        const rotateToggle = document.getElementById('rotateToggle');
+        const uploadBtn  = document.getElementById('uploadBtnTop');
+        const clearBtn   = document.getElementById('clearBtnTop');
+        const fileInput  = document.getElementById('modelFile');
+
+        if (!canvas) { console.warn('viewerCanvas not found'); }
+        else {
+          const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          const scene  = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
+          camera.position.set(3, 2, 4);
+          const controls = new OrbitControls(camera, canvas);
+          controls.enableDamping = true;
+          controls.target.set(0, 0.75, 0);
+          controls.autoRotate = false;
+          window.viewerControls = controls;
+
+          scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+          const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+          dir.position.set(3, 4, 2); scene.add(dir);
+
+          const grid = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
+          grid.position.y = -0.0001; scene.add(grid);
+
+          const cube = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color: 0x6eb4ff, metalness: .25, roughness: .55 })
+          );
+          cube.position.y = 1; scene.add(cube);
+
+          const wrapper = canvas.parentElement || canvas;
+          function resize(){
+            const r = wrapper.getBoundingClientRect();
+            const w = Math.max(1, r.width|0), h = Math.max(1, r.height|0);
+            renderer.setSize(w, h, false);
+            camera.aspect = w / h; camera.updateProjectionMatrix();
+          }
+          window.addEventListener('resize', resize);
+          if (window.ResizeObserver) new ResizeObserver(resize).observe(wrapper);
+          resize();
+
+          gear?.addEventListener('click', () => viewerMenu?.classList.toggle('hidden'));
+          if (rotateToggle) rotateToggle.checked = !!controls.autoRotate;
+          rotateToggle?.addEventListener('change', (e) => {
+            controls.autoRotate = !!e.target.checked;
+            viewerMenu?.classList.add('hidden');
+          });
+
+          const loader = new GLTFLoader();
+          let currentModel = null;
+          uploadBtn?.addEventListener('click', () => fileInput?.click());
+          fileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files?.[0]; if (!file) return;
+            await loadModelFromFile(file); fileInput.value = '';
+          });
+          ['dragenter','dragover','dragleave','drop'].forEach(ev =>
+            wrapper.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
+          );
+          wrapper.addEventListener('drop', async (e) => {
+            const file = e.dataTransfer?.files?.[0];
+            if (file && /\\.(gltf?|glb)$/i.test(file.name)) await loadModelFromFile(file);
+          });
+          clearBtn?.addEventListener('click', () => {
+            if (!currentModel) return;
+            disposeObject(currentModel); scene.remove(currentModel); currentModel = null;
+            cube.visible = true; grid.position.y = -0.0001;
+            fitCameraToObject(cube, camera, controls);
+            clearBtn.disabled = true; if (ph) ph.style.opacity = 0;
+          });
+
+          async function loadModelFromFile(file){
+            const url = URL.createObjectURL(file);
+            try {
+              const gltf = await loader.loadAsync(url);
+              if (currentModel) { disposeObject(currentModel); scene.remove(currentModel); }
+              currentModel = gltf.scene;
+              placeOnGround(currentModel); scene.add(currentModel);
+              cube.visible = false;
+              fitCameraToObject(currentModel, camera, controls);
+              clearBtn && (clearBtn.disabled = false);
+              if (ph) ph.style.opacity = 0;
+            } catch (err){ console.error('Failed to load model:', err); }
+            finally { URL.revokeObjectURL(url); }
+          }
+
+          function fitCameraToObject(obj, cam, ctrl){
+            const box = new THREE.Box3().setFromObject(obj);
+            const size = new THREE.Vector3(); box.getSize(size);
+            const center = new THREE.Vector3(); box.getCenter(center);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const dist = Math.max(1, maxDim * 1.8);
+            ctrl.target.copy(center);
+            cam.near = Math.max(0.01, dist / 100); cam.far = dist * 100;
+            cam.updateProjectionMatrix();
+            const d = new THREE.Vector3(1, 0.7, 1).normalize();
+            cam.position.copy(center).addScaledVector(d, dist); ctrl.update();
+          }
+          function placeOnGround(obj){
+            const box = new THREE.Box3().setFromObject(obj);
+            obj.position.y -= box.min.y; grid.position.y = -0.0001;
+          }
+          function disposeObject(root){
+            root.traverse((o) => {
+              if (o.geometry) o.geometry.dispose?.();
+              if (o.material) {
+                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose?.());
+                else o.material.dispose?.();
+              }
+            });
+          }
+          function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); }
+          loop();
+          ph && requestAnimationFrame(() => (ph.style.opacity = 0));
+        }
+        `;
+        document.body.appendChild(mod);
       }
-      totalPostsEl.textContent = allPosts.length;
-      applyFilters();
+
+      // Only load on desktop (>=900px) via IntersectionObserver
+      if (window.innerWidth < 900) return;
+
+      var io = new IntersectionObserver(function(entries){
+        if (entries[0].isIntersecting) { io.disconnect(); boot(); }
+      }, { rootMargin: '200px 0px' });
+      io.observe(section);
+    })();
+    </script>
+
+      <!-- About + Blog section enhancements: deferred to idle time -->
+      <script>
+      (function deferBelowFold(){
+        var idle = window.requestIdleCallback || function(cb){ setTimeout(cb, 200); };
+
+        idle(function(){
+          // About particles
+          var container = document.getElementById('aboutParticles');
+          if (container) {
+            for (var i = 0; i < 12; i++) {
+              var p = document.createElement('div');
+              p.className = 'particle';
+              var sx = Math.random() * 100, sy = Math.random() * 100;
+              p.style.left = sx + '%'; p.style.top = sy + '%';
+              p.style.setProperty('--dx', ((Math.random()-.5)*150)+'px');
+              p.style.setProperty('--dy', ((Math.random()-.5)*150)+'px');
+              p.style.animationDelay = (Math.random()*12)+'s';
+              if (Math.random() > 0.6) {
+                p.style.background = 'rgba(139, 92, 246, 0.3)';
+                p.style.boxShadow = '0 0 8px rgba(139, 92, 246, 0.4)';
+              }
+              container.appendChild(p);
+            }
+          }
+
+          // About parallax
+          var aboutSection = document.getElementById('about');
+          var geoBg = aboutSection ? aboutSection.querySelector('.about-geometric-bg') : null;
+          if (geoBg) {
+            var ticking = false;
+            window.addEventListener('scroll', function(){
+              if (ticking) return; ticking = true;
+              requestAnimationFrame(function(){
+                var rect = aboutSection.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                  var pct = Math.max(0, Math.min(1, -rect.top / rect.height));
+                  geoBg.style.transform = 'translateY(' + (pct*40) + 'px)';
+                }
+                ticking = false;
+              });
+            });
+          }
+
+          // About title GSAP scrub
+          if (window.gsap && window.ScrollTrigger) {
+            var title = document.getElementById('aboutTitle');
+            if (title) {
+              gsap.to(title, {
+                x: -80,
+                scrollTrigger: { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
+              });
+            }
+          }
+
+          // About kicker hover
+          var kicker = document.querySelector('.about-kicker');
+          if (kicker) {
+            kicker.addEventListener('mouseenter', function(){ kicker.style.transform = 'scale(1.05) translateY(-2px)'; });
+            kicker.addEventListener('mouseleave', function(){ kicker.style.transform = 'scale(1) translateY(0)'; });
+          }
+        });
+
+        // Blog enhancements — slightly later idle
+        idle(function(){
+          // Tagline rotation
+          var taglines = [
+            'Fresh insights \u2022 Deep dives \u2022 Creative experiments',
+            'Code stories \u2022 Design patterns \u2022 3D adventures',
+            'Web magic \u2022 UI craft \u2022 Innovation notes',
+            'Build better \u2022 Learn faster \u2022 Create more'
+          ];
+          var ci = 0, tagEl = document.getElementById('blogTagline');
+          if (tagEl) {
+            setInterval(function(){
+              ci = (ci + 1) % taglines.length;
+              tagEl.style.opacity = '0'; tagEl.style.transform = 'translateX(-20px)';
+              setTimeout(function(){ tagEl.textContent = taglines[ci]; tagEl.style.opacity = '1'; tagEl.style.transform = 'translateX(0)'; }, 300);
+            }, 5000);
+          }
+
+          // Blog cursor glow
+          var blogsSection = document.getElementById('blogs');
+          if (blogsSection) {
+            blogsSection.addEventListener('mousemove', function(e){
+              var r = blogsSection.getBoundingClientRect();
+              blogsSection.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+              blogsSection.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+            });
+          }
+
+          // Stats counter
+          var statsEl = document.getElementById('blogsStats');
+          if (statsEl) {
+            var obs = new IntersectionObserver(function(entries){
+              entries.forEach(function(entry){
+                if (entry.isIntersecting) {
+                  statsEl.querySelectorAll('.stat-number').forEach(function(el, idx){
+                    var target = parseInt(el.getAttribute('data-target') || '0');
+                    setTimeout(function(){ animateCounter(el, target, 1500); }, idx * 100);
+                  });
+                  obs.disconnect();
+                }
+              });
+            }, { threshold: 0.5 });
+            obs.observe(statsEl);
+          }
+
+          // Blog card scroll-in
+          var cardObs = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry, idx){
+              if (entry.isIntersecting) { entry.target.style.animationDelay = (idx*0.1)+'s'; entry.target.classList.add('visible'); }
+            });
+          }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+          setTimeout(function(){
+            document.querySelectorAll('.blog-card').forEach(function(c){ cardObs.observe(c); });
+          }, 1000);
+        });
+
+        function animateCounter(el, target, dur){
+          var inc = target / (dur / 16), cur = 0;
+          var t = setInterval(function(){
+            cur += inc; if (cur >= target) { cur = target; clearInterval(t); }
+            el.textContent = Math.floor(cur);
+          }, 16);
+        }
+      })();
+      </script>
+
+      <!-- Dynamic Blog Loading: deferred until after window.load to keep it out of the critical path -->
+      <script>
+        function _loadBlogs() {
+          var blogsGrid = document.getElementById('blogsGrid');
+          if (!blogsGrid) return;
+
+          var API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+          var API = API_BASE + '/api';
+
+          fetch(API + '/posts?page=1&size=9', { cache: 'no-store' })
+            .then(function(r){ if (!r.ok) throw new Error('Failed'); return r.json(); })
+            .then(function(data){
+              var posts = data.items || data.posts || [];
+              if (!posts.length) {
+                blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">No blog posts available yet.</p>';
+                return;
+              }
+
+              // Update stats counters
+              var statsEl = document.getElementById('blogsStats');
+              var statsNumbers = statsEl ? statsEl.querySelectorAll('.stat-number') : [];
+              if (statsNumbers.length >= 3) {
+                var totalMinutes = posts.reduce(function(sum, post){
+                  return sum + (post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60)));
+                }, 0);
+                setTimeout(function(){
+                  _blogCounter(statsNumbers[0], posts.length, 1500);
+                  var tags = new Set(posts.flatMap(function(p){ return (p.tags||'').split(',').filter(Boolean); }));
+                  _blogCounter(statsNumbers[1], tags.size || 5, 1500);
+                  _blogCounter(statsNumbers[2], totalMinutes, 1500);
+                }, 600);
+              }
+
+              blogsGrid.innerHTML = posts.map(function(post, index){
+                var url = '/blog/' + encodeURIComponent(post.slug);
+                var tag = (post.tags || '').split(',')[0] || 'Post';
+                var date = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
+                var readTime = post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60));
+                var coverUrl = post.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
+                var isFeatured = index === 0;
+                var isUnsplash = coverUrl.indexOf('unsplash.com') !== -1;
+                var srcsetAttr = isUnsplash
+                  ? 'srcset="'+coverUrl+'&w=640 640w, '+coverUrl+'&w=960 960w, '+coverUrl+'&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"'
+                  : '';
+                var allTags = (post.tags || '').split(',').filter(Boolean);
+
+                return '<a class="blog-card'+(isFeatured?' featured':'')+'" href="'+url+'" role="listitem">'
+                  +'<div class="cover"><img src="'+coverUrl+'" '+srcsetAttr+' alt="'+post.title+'" loading="lazy" decoding="async" />'
+                  +(isFeatured?'<span class="pill featured-pill">FEATURED</span>':'')
+                  +'<span class="pill category-pill">'+tag+'</span></div>'
+                  +'<div class="inner"><h3 class="title">'+post.title+'</h3>'
+                  +'<p class="excerpt muted">'+(post.excerpt||'')+'</p>'
+                  +(isFeatured?'<p class="featured-preview muted" id="featuredPreview"></p>':'')
+                  +(isFeatured&&allTags.length>1?'<div class="featured-tags">'+allTags.map(function(t){return '<span class="featured-tag">'+t.trim()+'</span>';}).join('')+'</div>':'')
+                  +'<div class="blog-footer"><div class="author-mini">'
+                  +'<img src="img/dima.jpg" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" />'
+                  +'<span class="author-mini-name">'+(post.author||'Dima Vasiliu')+'</span></div>'
+                  +'<div class="meta"><span>'+readTime+' min read</span><span>\u2022</span>'
+                  +'<time datetime="'+post.created_at+'">'+date+'</time></div></div></div></a>';
+              }).join('');
+
+              // Fetch featured post detail (non-critical)
+              var fp = posts[0];
+              if (fp) {
+                fetch(API+'/post/'+encodeURIComponent(fp.slug))
+                  .then(function(r){ return r.ok ? r.json() : null; })
+                  .then(function(full){
+                    if (!full) return;
+                    var el = document.getElementById('featuredPreview');
+                    if (!el) return;
+                    var txt = '';
+                    var fmt = full.content_format || 'markdown';
+                    if (fmt==='blocks' && full.content_blocks) {
+                      try {
+                        var blocks = typeof full.content_blocks==='string'?JSON.parse(full.content_blocks):full.content_blocks;
+                        txt = (blocks.blocks||[]).filter(function(b){return b.type==='paragraph';}).map(function(b){return (b.data&&b.data.text)||'';}).join(' ').replace(/<[^>]+>/g,'');
+                      } catch(e){}
+                    } else if (full.content_md) {
+                      txt = full.content_md.replace(/^#{1,6}\s+.*$/gm,'').replace(/!\[.*?\]\(.*?\)/g,'').replace(/\[([^\]]+)\]\(.*?\)/g,'$1').replace(/[*_~`>#\-]/g,'').replace(/\n{2,}/g,' ').replace(/\n/g,' ').trim();
+                    }
+                    if (txt.length>50) el.textContent = txt.length>480 ? txt.slice(0,480).replace(/\s\S*$/,'')+'...' : txt;
+                  }).catch(function(){});
+              }
+            })
+            .catch(function(err){
+              console.error('Error loading blog posts:', err);
+              blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">Unable to load blog posts. <a href="blogs.html" style="color:var(--accent-blue)">Visit the blogs page \u2192</a></p>';
+            });
+        }
+
+        function _blogCounter(el, target, dur){
+          var inc = target/(dur/16), cur = 0;
+          var t = setInterval(function(){ cur+=inc; if(cur>=target){cur=target;clearInterval(t);} el.textContent=Math.floor(cur); }, 16);
+        }
+
+        // Defer blog loading until AFTER window.load + idle — keeps it off the critical path
+        window.addEventListener('load', function(){
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(_loadBlogs, { timeout: 2000 });
+          } else {
+            setTimeout(_loadBlogs, 800);
+          }
+        });
+      </script>
+
+    <script src="script.js?v=7" defer></script>
+    <script src="app.js?v=7" defer></script>
+
+    <!-- About TimrX Modal -->
+    <!-- Service card hover effects -->
+    <style>
+
+    /* Service cards light theme - flexbox for button alignment */
+    .svc-card-light {
+      display: flex;
+      flex-direction: column;
+    }
+    .svc-card-light .svc-cta-light {
+      margin-top: auto;
+    }
+    .svc-card-light:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+      border-color: #d0d0d0 !important;
+    }
+    .svc-card-light:hover .svc-icon {
+      transform: scale(1.1);
+    }
+    .svc-card-light .svc-icon {
+      transition: transform 0.3s ease;
+    }
+    .svc-cta-light:hover {
+      background: #0b0b0b !important;
+      color: #ffffff !important;
+    }
+    .svc-cta-light:hover span {
+      transform: translateX(4px);
     }
 
-    // Helper to get timestamp from created_at (handles both string dates and numbers)
-    function getTimestamp(dateVal) {
-      if (!dateVal) return 0;
-      if (typeof dateVal === 'number') return dateVal;
-      const parsed = new Date(dateVal).getTime();
-      return isNaN(parsed) ? 0 : parsed;
+    /* Contact figurine (prismatic beacon) */
+    .contact-deco{
+      position:absolute;
+      top:48px;
+      right:8%;
+      pointer-events:none;
+      z-index:0;
+      opacity:0.9;
+      filter: saturate(1.15);
+    }
+    .contact-figurine{
+      position:relative;
+      width:clamp(150px, 20vw, 230px);
+      height:clamp(150px, 20vw, 230px);
+      transform-style:preserve-3d;
+      animation: cfFloat 7.5s ease-in-out infinite;
+    }
+    .contact-figurine::before{
+      content:"";
+      position:absolute;
+      inset:-18%;
+      background:
+        radial-gradient(60% 60% at 25% 25%, rgba(14,165,233,0.35), transparent 60%),
+        radial-gradient(60% 60% at 75% 70%, rgba(236,72,153,0.28), transparent 65%);
+      filter: blur(10px);
+      opacity:0.8;
+    }
+    .contact-figurine::after{
+      content:"";
+      position:absolute;
+      inset:10%;
+      border-radius:50%;
+      background: conic-gradient(from 120deg, rgba(14,165,233,0.28), rgba(255,77,77,0.18), rgba(236,72,153,0.22), rgba(14,165,233,0.28));
+      opacity:0.25;
+      animation: cfSpinFlat 18s linear infinite;
     }
 
-    // Filters
-    function applyFilters() {
-      let posts = [...allPosts];
-      if (currentTag !== 'all') {
-        posts = posts.filter(p => (p.tags || '').toLowerCase().includes(currentTag.toLowerCase()));
-      }
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        posts = posts.filter(p =>
-          (p.title || '').toLowerCase().includes(q) ||
-          (p.excerpt || '').toLowerCase().includes(q) ||
-          (p.tags || '').toLowerCase().includes(q)
-        );
-      }
-      if (sortBy === 'old') posts.sort((a, b) => getTimestamp(a.created_at) - getTimestamp(b.created_at));
-      else if (sortBy === 'title') posts.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-      else posts.sort((a, b) => getTimestamp(b.created_at) - getTimestamp(a.created_at));
-
-      filteredPosts = posts;
-      currentPage = 1;
-      render();
-      updateURL();
+    .cf-ring{
+      position:absolute;
+      inset:8%;
+      border-radius:50%;
+      border:1px solid rgba(11,11,11,0.18);
+      --tilt: 68deg;
+      animation: cfSpin 16s linear infinite;
+    }
+    .cf-ring.ring-b{
+      inset:18%;
+      border-style:dashed;
+      border-color: rgba(14,165,233,0.35);
+      --tilt: 74deg;
+      animation-duration: 22s;
+    }
+    .cf-ring.ring-c{
+      inset:28%;
+      border-color: rgba(236,72,153,0.32);
+      --tilt: 62deg;
+      animation-duration: 26s;
     }
 
-    // Render
-    function render() {
-      const start = (currentPage - 1) * PER_PAGE;
-      const pagePosts = filteredPosts.slice(start, start + PER_PAGE);
-
-      if (!pagePosts.length) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <h3>No posts found</h3>
-            <p>Try a different search or filter.</p>
-          </div>`;
-        pagination.innerHTML = '';
-        resultsCount.textContent = '0 posts';
-        return;
-      }
-
-      grid.innerHTML = pagePosts.map((p, i) => {
-        const tag = (p.tags || '').split(',')[0] || 'Post';
-        const url = `/blog/${encodeURIComponent(p.slug)}`;
-        const cover = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop';
-        const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB', {month:'short', day:'numeric'}) : '';
-        const mins = p.minutes || Math.max(3, Math.round((p.excerpt || p.title || '').length / 60));
-        return `
-          <a class="mini-card" href="${url}" style="animation-delay:${i * 25}ms">
-            <div class="thumb">
-              <img src="${cover}" alt="" loading="lazy" decoding="async"/>
-              <span class="tag">${esc(tag)}</span>
-            </div>
-            <div class="info">
-              <div class="title">${esc(p.title)}</div>
-              <div class="meta"><span>${date}</span> · <span>${mins} min</span></div>
-            </div>
-          </a>`;
-      }).join('');
-
-      resultsCount.textContent = `${filteredPosts.length} post${filteredPosts.length !== 1 ? 's' : ''}`;
-      renderPagination();
+    .cf-prism{
+      position:absolute;
+      width:46%;
+      height:46%;
+      left:27%;
+      top:27%;
+      background: linear-gradient(135deg, rgba(14,165,233,0.55), rgba(236,72,153,0.38));
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      transform: rotate(45deg);
+      box-shadow: 0 0 22px rgba(14,165,233,0.35), inset 0 0 12px rgba(255,255,255,0.35);
+      animation: cfPrism 6s ease-in-out infinite;
+    }
+    .cf-core{
+      position:absolute;
+      width:22%;
+      height:22%;
+      left:39%;
+      top:39%;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--warm-white), rgba(14,165,233,0.6) 55%, rgba(236,72,153,0.35) 70%, transparent 72%);
+      box-shadow: 0 0 24px rgba(14,165,233,0.35), 0 0 50px rgba(236,72,153,0.25);
+      animation: cfPulse 2.8s ease-in-out infinite;
     }
 
-    // Pagination
-    function renderPagination() {
-      const total = Math.ceil(filteredPosts.length / PER_PAGE);
-      if (total <= 1) { pagination.innerHTML = ''; return; }
+    .cf-spark{
+      position:absolute;
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(14,165,233,0.7) 55%, transparent 70%);
+      opacity:0.7;
+      animation: cfSpark 3s ease-in-out infinite;
+    }
+    .cf-spark.s1{ top:6%; left:62%; animation-delay:0s; }
+    .cf-spark.s2{ top:22%; right:6%; animation-delay:.6s; }
+    .cf-spark.s3{ bottom:18%; left:14%; animation-delay:1.1s; }
+    .cf-spark.s4{ bottom:6%; right:26%; animation-delay:1.6s; }
+    .cf-spark.s5{ top:40%; left:4%; animation-delay:2.1s; }
 
-      let html = `<button class="page-btn nav" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>Prev</button>`;
-
-      const maxV = 5;
-      let s = Math.max(1, currentPage - Math.floor(maxV / 2));
-      let e = Math.min(total, s + maxV - 1);
-      if (e - s < maxV - 1) s = Math.max(1, e - maxV + 1);
-
-      if (s > 1) {
-        html += `<button class="page-btn" data-page="1">1</button>`;
-        if (s > 2) html += `<span class="page-ellipsis">...</span>`;
+    @keyframes cfFloat{
+      0%, 100%{ transform: translateY(0) rotate(-2deg); }
+      50%{ transform: translateY(-12px) rotate(3deg); }
+    }
+    @keyframes cfSpin{
+      0%{ transform: rotateX(var(--tilt)) rotateZ(0deg); }
+      100%{ transform: rotateX(var(--tilt)) rotateZ(360deg); }
+    }
+    @keyframes cfSpinFlat{
+      0%{ transform: rotate(0deg); }
+      100%{ transform: rotate(360deg); }
+    }
+    @keyframes cfPrism{
+      0%, 100%{ transform: rotate(45deg) translateY(0); }
+      50%{ transform: rotate(45deg) translateY(-8px) scale(1.05); }
+    }
+    @keyframes cfPulse{
+      0%, 100%{ transform: scale(1); opacity:1; }
+      50%{ transform: scale(1.15); opacity:.75; }
+    }
+    @keyframes cfSpark{
+      0%, 100%{ transform: scale(1); opacity:.8; }
+      50%{ transform: scale(1.7); opacity:.35; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .contact-figurine,
+      .contact-figurine::after,
+      .cf-ring,
+      .cf-prism,
+      .cf-core,
+      .cf-spark{
+        animation: none !important;
       }
-      for (let i = s; i <= e; i++) {
-        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-      }
-      if (e < total) {
-        if (e < total - 1) html += `<span class="page-ellipsis">...</span>`;
-        html += `<button class="page-btn" data-page="${total}">${total}</button>`;
-      }
-
-      html += `<button class="page-btn nav" ${currentPage === total ? 'disabled' : ''} data-page="${currentPage + 1}">Next<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`;
-      pagination.innerHTML = html;
     }
 
-    function esc(s) {
-      const d = document.createElement('div');
-      d.textContent = s || '';
-      return d.innerHTML;
+    /* Contact form styling - minimal black/white */
+    .contact-chip:hover {
+      background: #ebebeb !important;
+      transform: translateY(-2px);
     }
-
-    // URL state
-    function updateURL() {
-      const p = new URLSearchParams();
-      if (currentTag !== 'all') p.set('tag', currentTag);
-      if (searchQuery) p.set('q', searchQuery);
-      if (currentPage > 1) p.set('page', currentPage);
-      if (sortBy !== 'new') p.set('sort', sortBy);
-      history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
+    .contact-chip:has(input:checked) {
+      background: #0b0b0b !important;
+      color: #fff !important;
+      border-color: #0b0b0b !important;
     }
-
-    function loadFromURL() {
-      const p = new URLSearchParams(location.search);
-      if (p.get('tag')) {
-        currentTag = p.get('tag');
-        tagChips.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.tag === currentTag));
-      }
-      if (p.get('q')) { searchQuery = p.get('q'); searchInput.value = searchQuery; }
-      if (p.get('page')) currentPage = parseInt(p.get('page')) || 1;
-      if (p.get('sort')) { sortBy = p.get('sort'); sortSelect.value = sortBy; }
+    .contact-field input:focus,
+    .contact-field textarea:focus {
+      border-color: #0b0b0b !important;
+      background: var(--warm-white) !important;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
     }
+    .contact-submit-btn:hover {
+      background: #2a2a2a !important;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+    }
+    .contact-submit-btn:hover span {
+      transform: translateX(5px);
+    }
+    .contact-info-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.08) !important;
+      border-color: #d0d0d0 !important;
+    }
+    </style>
 
-    // Events
-    let searchT;
-    searchInput.addEventListener('input', e => {
-      clearTimeout(searchT);
-      searchT = setTimeout(() => { searchQuery = e.target.value.trim(); applyFilters(); }, 200);
-    });
-    sortSelect.addEventListener('change', e => { sortBy = e.target.value; applyFilters(); });
-    tagChips.addEventListener('click', e => {
-      const c = e.target.closest('.chip');
-      if (!c) return;
-      tagChips.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
-      c.classList.add('active');
-      currentTag = c.dataset.tag || 'all';
-      applyFilters();
-    });
-    pagination.addEventListener('click', e => {
-      const b = e.target.closest('.page-btn');
-      if (!b || b.disabled) return;
-      currentPage = parseInt(b.dataset.page);
-      render();
-      updateURL();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // Keyboard
-    window.addEventListener('keydown', e => {
-      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        searchInput.focus();
-      }
-      if (e.key === 'Escape') searchInput.blur();
-    });
-
-    // Init
-    loadFromURL();
-    fetchAllPosts();
-  </script>
-</body>
+    <script src="js/cookie-consent.js" defer></script>
+    </body>
 </html>
