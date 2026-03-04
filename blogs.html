@@ -504,8 +504,14 @@
           </div>
           <div class="info">
             <h3 class="title">${p.title}</h3>
-            <p class="muted">${p.excerpt || ''}</p>
-            <div class="meta muted"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
+            <p class="excerpt">${p.excerpt || ''}</p>
+            <div class="card-footer">
+              <div class="author-mini">
+                <img class="author-mini-avatar" src="${p.author_avatar || '/img/dima.jpg'}" alt="" loading="lazy"/>
+                <span class="author-mini-name">${p.author || 'Dima V'}</span>
+              </div>
+              <div class="meta"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
+            </div>
           </div>
         </a>`;
     }
