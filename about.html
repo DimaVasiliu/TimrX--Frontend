@@ -100,19 +100,21 @@
 
     /* Header */
     .about-header {
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; right: 0;
-      z-index: 100;
+      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 16px;
+      padding: 10px 12px;
       pointer-events: none;
+      transition: transform 0.35s ease;
     }
+    .about-header.nav-hidden { transform: translateY(-100%); }
     .about-header > * { pointer-events: auto; }
     .about-brand {
       font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(28px, 3.5vw, 38px);
+      font-size: clamp(24px, 3vw, 32px);
       text-decoration: none;
       color: #fff;
       letter-spacing: -0.01em;
@@ -125,12 +127,10 @@
     .about-brand .b-tim { color: #fff; }
     .about-brand .b-x { color: rgba(255,255,255,0.6); margin-left: 0; }
     .about-nav-logo {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
+      width: 52px;
+      height: 52px;
       object-fit: contain;
       flex-shrink: 0;
-      border: 1.5px solid rgba(255,255,255,0.12);
     }
     .about-nav-link {
       display: inline-flex;
@@ -139,6 +139,7 @@
       padding: 10px 18px;
       font-size: 13px;
       font-weight: 600;
+      letter-spacing: 0.02em;
       color: #fff;
       text-decoration: none;
       border: 1px solid rgba(255,255,255,0.2);
@@ -151,6 +152,11 @@
     .about-nav-link:hover {
       background: rgba(255,255,255,0.12);
       border-color: rgba(255,255,255,0.35);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 640px) {
+      .about-nav-logo { width: 44px; height: 44px; }
+      .about-nav-link { padding: 8px 14px; font-size: 12px; }
     }
 
     /* Hero Section */
@@ -403,26 +409,46 @@
 
     /* Footer */
     .about-footer {
-      padding: 40px 0;
       border-top: 1px solid rgba(255,255,255,0.06);
-      background: #0a0a0a;
+      padding: 24px 0 32px;
+      background: rgba(10,10,10,0.5);
     }
     .foot {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
-      font-size: 13px;
-      color: #666;
+      gap: 16px;
     }
-    .foot a { color: #888; text-decoration: none; transition: color 0.2s; }
-    .foot a:hover { color: #fff; }
-    .foot-nav { display: flex; gap: 24px; }
-    .foot-legal { display: flex; gap: 24px; }
-    @media (max-width: 768px) {
-      .foot { flex-direction: column; text-align: center; }
-      .foot-nav, .foot-legal { justify-content: center; }
+    .foot > span { color: #bbb; font-size: 14px; }
+    .foot-nav { display: flex; gap: 4px; }
+    .foot-nav a { margin-right: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
+    .foot-nav a:hover { color: #fff; }
+    .foot-social { display: flex; gap: 4px; }
+    .foot-social a { margin-left: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
+    .foot-social a:hover { color: #fff; }
+    .foot-legal { display: flex; gap: 4px; }
+    .foot-legal a { margin-right: 12px; color: #999; text-decoration: none; transition: color 0.2s; font-size: 13px; }
+    .foot-legal a:hover { color: #fff; }
+    @media (max-width: 640px) {
+      .about-footer { padding: 28px 0 24px; }
+      .foot {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+        padding: 0 20px;
+      }
+      .foot > span { order: 4; font-size: 12px; color: rgba(255,255,255,0.25); padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); width: 60%; }
+      .foot-nav { order: 1; justify-content: center; flex-wrap: wrap; gap: 4px; }
+      .foot-nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; margin-right: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: rgba(255,255,255,0.6); }
+      .foot-nav a:hover { color: rgba(255,255,255,0.9); }
+      .foot-social { order: 2; justify-content: center; flex-wrap: wrap; gap: 6px; }
+      .foot-social a { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 14px; margin-left: 0; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; }
+      .foot-social a:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.18); }
+      .foot-legal { order: 3; justify-content: center; flex-wrap: wrap; gap: 4px; }
+      .foot-legal a { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 10px; margin-right: 0; font-size: 10px; color: rgba(255,255,255,0.3); }
+      .foot-legal a:hover { color: rgba(255,255,255,0.6); }
     }
   </style>
 </head>
@@ -430,8 +456,8 @@
   <!-- Header -->
   <header class="about-header" aria-label="Site header">
     <a class="about-brand" href="/" aria-label="Home">
-      <img src="img/logo.png" alt="" class="about-nav-logo" width="50" height="50">
-      <span class="b-tim">Timr</span><span class="b-x">X</span>
+      <img src="img/blogs.png" alt="" class="about-nav-logo" width="52" height="52">
+      <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
     </a>
     <a class="about-nav-link" href="/blogs">Read the Blog</a>
   </header>
@@ -555,11 +581,28 @@
         <a href="/privacy">Privacy</a>
         <a href="/cookies">Cookies</a>
       </nav>
+      <div class="foot-social">
+        <a href="mailto:admin@timrx.live">Email</a>
+        <a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener">GitHub</a>
+      </div>
     </div>
   </footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* Scroll-hide navbar */
+    (function(){
+      var hdr = document.querySelector('.about-header');
+      if (!hdr) return;
+      var lastY = 0;
+      window.addEventListener('scroll', function(){
+        var y = window.scrollY;
+        hdr.classList.toggle('nav-hidden', y > lastY && y > 60);
+        lastY = y;
+      }, {passive: true});
+    })();
   </script>
   <script src="js/cookie-consent.js" defer></script>
 </body>
