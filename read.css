@@ -32,16 +32,21 @@ body.read-page {
 
 /* ===== MINIMAL HEADER ===== */
 .read-header {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 12px;
   pointer-events: none;
+  transition: transform 0.35s ease;
+}
+
+.read-header.nav-hidden {
+  transform: translateY(-100%);
 }
 
 .read-header > * {
@@ -74,8 +79,8 @@ body.read-page {
 }
 
 .read-nav-logo {
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -1904,11 +1909,16 @@ blockquote cite {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .read-header {
-    padding: 16px 20px;
+    padding: 8px 10px;
   }
 
   .read-brand {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .read-nav-logo {
+    width: 44px;
+    height: 44px;
   }
 
   .read-nav-link {
