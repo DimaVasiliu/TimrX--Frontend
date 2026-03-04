@@ -119,6 +119,9 @@
   }
   </script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="3dprint-modules/main.css">
   <script defer src="3dprint-modules/3dprint-app.js"></script>
@@ -246,9 +249,142 @@
         <span class="ws-credits-value" id="workspaceCreditsValue">--</span>
       </span>
       <a href="/hub#pricing" class="ws-credits-buy" id="workspaceBuyBtn">Buy</a>
+      <!-- Mobile burger -->
+      <button class="ws-burger" id="wsBurger" type="button" aria-label="Open menu" aria-expanded="false">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
     </div>
 
   </header>
+
+  <!-- Mobile menu overlay -->
+  <div class="ws-mobile-menu" id="wsMobileMenu" aria-hidden="true" style="display:none">
+    <div class="ws-mobile-menu-inner">
+      <nav class="ws-mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="hub.html" class="ws-mobile-link">
+          <span class="wml-label">Hub</span>
+          <span class="wml-sub">Back to 3D Print Hub</span>
+        </a>
+        <a href="#stories" class="ws-mobile-link" data-open-user-stories>
+          <span class="wml-label">Community</span>
+          <span class="wml-sub">User stories & showcase</span>
+        </a>
+        <a href="#my-assets" class="ws-mobile-link">
+          <span class="wml-label">My Assets</span>
+          <span class="wml-sub">Your generated models</span>
+        </a>
+        <a href="blogs.html" class="ws-mobile-link">
+          <span class="wml-label">Blogs</span>
+          <span class="wml-sub">Latest articles</span>
+        </a>
+        <a href="#tutorials" class="ws-mobile-link" data-open-tutorials>
+          <span class="wml-label">Tutorials</span>
+          <span class="wml-sub">Learn the tools</span>
+        </a>
+        <a href="#converter" class="ws-mobile-link" data-open-converter>
+          <span class="wml-label">Converter</span>
+          <span class="wml-sub">Convert file formats</span>
+        </a>
+        <a href="#about" class="ws-mobile-link" data-open-about>
+          <span class="wml-label">About</span>
+          <span class="wml-sub">About TimrX</span>
+        </a>
+        <a href="#inspire" class="ws-mobile-link" id="wsMobileInspire">
+          <span class="wml-label">Inspire</span>
+          <span class="wml-sub">Discover amazing creations</span>
+        </a>
+      </nav>
+      <div class="ws-mobile-footer">
+        <span class="ws-mobile-footer-text">TimrX / 3D Workspace</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var burger = document.getElementById('wsBurger');
+    var menu   = document.getElementById('wsMobileMenu');
+    if (!burger || !menu) return;
+
+    function open(){
+      menu.style.display = 'block';
+      requestAnimationFrame(function(){
+        burger.classList.add('is-open');
+        burger.setAttribute('aria-expanded','true');
+        burger.setAttribute('aria-label','Close menu');
+        menu.classList.add('is-open');
+        menu.setAttribute('aria-hidden','false');
+        document.body.classList.add('menu-open');
+      });
+    }
+    function close(){
+      burger.classList.remove('is-open');
+      burger.setAttribute('aria-expanded','false');
+      burger.setAttribute('aria-label','Open menu');
+      menu.classList.remove('is-open');
+      menu.setAttribute('aria-hidden','true');
+      document.body.classList.remove('menu-open');
+      setTimeout(function(){ menu.style.display = 'none'; }, 450);
+    }
+
+    burger.addEventListener('click', function(){
+      menu.classList.contains('is-open') ? close() : open();
+    });
+
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', close);
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menu.classList.contains('is-open')){
+        close();
+        burger.focus();
+      }
+    });
+
+    window.addEventListener('resize', function(){
+      if (window.innerWidth > 768 && menu.classList.contains('is-open')) close();
+    });
+
+    var inspireBtn = document.getElementById('wsMobileInspire');
+    if (inspireBtn) {
+      inspireBtn.addEventListener('click', function(){
+        close();
+        setTimeout(function(){
+          if (window.TimrXInspire && typeof window.TimrXInspire.open === 'function') {
+            window.TimrXInspire.open();
+          } else {
+            var triggerBtn = document.getElementById('inspireTriggerBtn');
+            if (triggerBtn) triggerBtn.click();
+          }
+        }, 500);
+      });
+    }
+
+    // Mobile nav hide on scroll
+    if (window.innerWidth <= 768) {
+      var header = document.querySelector('.ws-header');
+      if (header) {
+        var lastY = window.scrollY;
+        var navHidden = false;
+        header.style.transition = 'transform 0.3s ease';
+        window.addEventListener('scroll', function(){
+          var y = window.scrollY;
+          if (y > lastY && y > 60 && !navHidden) {
+            header.style.transform = 'translateY(-100%)';
+            navHidden = true;
+          } else if (y < lastY && navHidden) {
+            header.style.transform = 'translateY(0)';
+            navHidden = false;
+          }
+          lastY = y;
+        }, {passive: true});
+      }
+    }
+  })();
+  </script>
 
   <!-- Visually hidden SEO content -->
   <p class="visually-hidden">Use TimrX to generate 3D models from text prompts or reference images. Models can be refined, remeshed, textured, and exported in GLB or GLTF formats for 3D printing.</p>
@@ -306,7 +442,7 @@
     </nav>
 
     <!-- Left Panel -->
-    <aside class="ws-left ws-pane" aria-label="Tool controls">
+    <aside class="ws-left ws-pane" id="ws-left-panel" aria-label="Tool controls">
       <header class="pane-head">
         <h2>3D Workspace</h2>
         <p class="pane-sub">Switch tools without disturbing the layout.</p>
@@ -477,7 +613,7 @@
     </main>
 
     <!-- Right Panel -->
-    <aside class="ws-right ws-pane" aria-label="Generation history">
+    <aside class="ws-right ws-pane" id="ws-right-panel" aria-label="Generation history">
       <header class="pane-head">
         <h2>Generation History</h2>
         <p class="pane-sub">Browse and manage your past creations.</p>
@@ -575,8 +711,54 @@
       </div>
     </aside>
 
+    <!-- Mobile Tab Bar (visible only at 768px and below) -->
+    <div class="ws-mobile-tabs" role="tablist" aria-label="Workspace panels">
+      <button type="button" class="ws-mobile-tab is-active" data-tab="controls" role="tab" aria-selected="true" aria-controls="ws-left-panel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        Controls
+      </button>
+      <button type="button" class="ws-mobile-tab" data-tab="history" role="tab" aria-selected="false" aria-controls="ws-right-panel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        History
+      </button>
+    </div>
+
   </div>
 </section>
+
+  <!-- Mobile Tab Switching (Controls / History) -->
+  <script>
+  (function(){
+    if (window.innerWidth > 768) return;
+    var tabBar = document.querySelector('.ws-mobile-tabs');
+    if (!tabBar) return;
+    var tabs   = tabBar.querySelectorAll('.ws-mobile-tab');
+    var wsLeft = document.getElementById('ws-left-panel');
+    var wsRight= document.getElementById('ws-right-panel');
+    if (!wsLeft || !wsRight) return;
+
+    tabBar.addEventListener('click', function(e){
+      var tab = e.target.closest('.ws-mobile-tab');
+      if (!tab) return;
+      var target = tab.dataset.tab;
+
+      tabs.forEach(function(t){
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected','false');
+      });
+      tab.classList.add('is-active');
+      tab.setAttribute('aria-selected','true');
+
+      if (target === 'controls') {
+        wsLeft.classList.remove('mob-hidden');
+        wsRight.classList.remove('mob-active');
+      } else if (target === 'history') {
+        wsLeft.classList.add('mob-hidden');
+        wsRight.classList.add('mob-active');
+      }
+    });
+  })();
+  </script>
 
   <script>
     window.TIMRX_3D_API_BASE = 'https://3d.timrx.live';
@@ -1399,29 +1581,29 @@
         <div class="tutorials-video-grid">
           <article class="tutorials-video-card">
             <div class="tutorials-video-embed">
-              <iframe src="https://www.youtube.com/embed/wa8OrQ_ehJk" title="Prompting for clean meshes" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              <iframe src="https://www.youtube.com/embed/O24vOtyz3PE" title="AI-powered 3D printing with text prompts" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
             </div>
             <div class="tutorials-video-meta">
-              <h3>Prompting for clean meshes</h3>
-              <p>Blender artist SouthernShot explains how descriptive verbs and scale hints create beautiful, printer-ready silhouettes.</p>
+              <h3>AI-powered 3D model creation</h3>
+              <p>Captain Creativity walks through using AI text prompts to generate custom, print-ready 3D models from scratch.</p>
             </div>
           </article>
           <article class="tutorials-video-card">
             <div class="tutorials-video-embed">
-              <iframe src="https://www.youtube.com/embed/1rP3nNY2hTo" title="Finishing & texturing pipeline" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              <iframe src="https://www.youtube.com/embed/Qk_YRkDsJrQ" title="Texturing an asset from start to finish" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
             </div>
             <div class="tutorials-video-meta">
-              <h3>Finishing & texturing pipeline</h3>
-              <p>Follow a complete TimrX → Substance Painter loop to add rugged paint chips and export optimized PBR packs.</p>
+              <h3>Texturing pipeline start to finish</h3>
+              <p>Adobe Substance 3D demonstrates a complete Substance Painter texturing workflow — from import to polished PBR output.</p>
             </div>
           </article>
           <article class="tutorials-video-card">
             <div class="tutorials-video-embed">
-              <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Advanced workflow tips" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              <iframe src="https://www.youtube.com/embed/EwE8mSHJaGI" title="HDRI lighting setup in Blender" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
             </div>
             <div class="tutorials-video-meta">
-              <h3>Advanced workflow tips</h3>
-              <p>Learn advanced techniques for optimizing your workflow, from batch processing to custom HDRI setups for perfect lighting.</p>
+              <h3>HDRI lighting for perfect renders</h3>
+              <p>Brandon 3D covers custom HDRI setups in Blender to achieve studio-quality lighting on your 3D printed models.</p>
             </div>
           </article>
         </div>
@@ -2075,7 +2257,7 @@
           <article class="timeline-item">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
-              <span class="timeline-date">2023</span>
+              <span class="timeline-date">Early 2025</span>
               <h3>The Beginning</h3>
               <p>First prototype built. Text-to-3D experiments begin with early AI models.</p>
             </div>
@@ -2083,7 +2265,7 @@
           <article class="timeline-item">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
-              <span class="timeline-date">Early 2024</span>
+              <span class="timeline-date">Mid 2025</span>
               <h3>Platform Launch</h3>
               <p>TimrX 3D Print Hub goes live. First 1,000 users join the beta program.</p>
             </div>
@@ -2091,7 +2273,7 @@
           <article class="timeline-item">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
-              <span class="timeline-date">Mid 2024</span>
+              <span class="timeline-date">Late 2025</span>
               <h3>Community Growth</h3>
               <p>User Stories launches. Discord community reaches 5,000 members.</p>
             </div>
@@ -2099,7 +2281,7 @@
           <article class="timeline-item">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
-              <span class="timeline-date">Late 2024</span>
+              <span class="timeline-date">Early 2026</span>
               <h3>Advanced Tools</h3>
               <p>Remesh, Texture, and Video-to-3D features released. File converter added.</p>
             </div>
@@ -2107,9 +2289,9 @@
           <article class="timeline-item">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
-              <span class="timeline-date">2025</span>
+              <span class="timeline-date">2026</span>
               <h3>Print & Ship</h3>
-              <p>Integrated printing and fulfillment services launching globally.</p>
+              <p>Integrated printing and fulfillment services in progress.</p>
             </div>
           </article>
         </div>
@@ -2291,5 +2473,26 @@
     });
   </script>
   <script src="js/cookie-consent.js" defer></script>
+
+  <!-- Mobile notice popup -->
+  <div id="mobileNotice" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200000;background:rgba(0,0,0,0.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);place-items:center;">
+    <div class="mobile-notice-card">
+      <span class="mobile-notice-ico">&#128421;</span>
+      <p class="mobile-notice-msg">This workspace is optimized for desktop. For the best 3D editing experience, switch to a larger screen.</p>
+      <button class="mobile-notice-btn" id="mobileNoticeClose">Got it</button>
+    </div>
+  </div>
+  <script>
+    (function(){
+      if(window.innerWidth > 768) return;
+      var el = document.getElementById('mobileNotice');
+      if(!el || sessionStorage.getItem('mobileNoticeDismissed3d')) return;
+      el.style.display = 'grid';
+      document.getElementById('mobileNoticeClose').addEventListener('click', function(){
+        el.style.display = 'none';
+        sessionStorage.setItem('mobileNoticeDismissed3d','1');
+      });
+    })();
+  </script>
 </body>
 </html>
