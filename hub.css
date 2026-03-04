@@ -1108,7 +1108,7 @@ header {
   top: 60%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(200px, 28vw, 500px);
+  font-size: clamp(200px, 28vw, 400px);
   font-weight: 900;
   letter-spacing: 0.05em;
   line-height: 1;
