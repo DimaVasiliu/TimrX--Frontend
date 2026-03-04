@@ -3674,3 +3674,61 @@ body.has-modal {
 .history-thumb.is-fresh .history-thumb__date-chip {
   opacity: 0 !important;
 }
+
+/* ==========================================================================
+   MOBILE HISTORY — Tab-controlled visibility (768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .timrx-3dprint .ws-right {
+    display: none;
+    padding: 0 4px;
+  }
+  .timrx-3dprint .ws-right.mob-active {
+    display: flex;
+  }
+
+  .history .history-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .timrx-3dprint .history-head {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .timrx-3dprint .history-head-row-top {
+    gap: 6px;
+  }
+
+  .timrx-3dprint .history-search-wrapper {
+    padding: 7px 10px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+
+  .timrx-3dprint .history-search-wrapper input {
+    font-size: 12px;
+  }
+
+  .timrx-3dprint .history-sort-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .timrx-3dprint .history-refresh-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .timrx-3dprint .history-refresh-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .timrx-3dprint .history-pager {
+    padding: 6px 0;
+  }
+}
