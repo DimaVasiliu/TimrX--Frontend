@@ -2700,17 +2700,22 @@
         const j = await r.json();
         if (j.ok) {
           if (j.title && !nameEl.value.trim()) nameEl.value = j.title;
-          if (j.image_url && !imageEl.value.trim()) {
-            imageEl.value = j.image_url;
+          // Only accept image URLs that look like actual images (not redirects/affiliate links)
+          const imgUrl = j.image_url || '';
+          const isValidImg = imgUrl.startsWith('http') && (imgUrl.includes('images/') || imgUrl.includes('.jpg') || imgUrl.includes('.jpeg') || imgUrl.includes('.png') || imgUrl.includes('.webp') || imgUrl.includes('media-amazon'));
+          if (isValidImg && !imageEl.value.trim()) {
+            imageEl.value = imgUrl;
             if (thumbEl && previewEl) {
-              thumbEl.src = j.image_url;
+              thumbEl.src = imgUrl;
+              thumbEl.onerror = () => { previewEl.style.display = 'none'; imageEl.value = ''; };
               previewEl.style.display = 'block';
             }
           }
           const parts = [];
-          if (j.title) parts.push(j.title.slice(0, 40));
+          if (j.title) parts.push(j.title.slice(0, 50));
           if (j.price) parts.push(j.price);
-          if (statusEl) { statusEl.textContent = parts.length ? 'Fetched: ' + parts.join(' — ') : 'Fetched (no metadata found)'; statusEl.style.color = '#6c6'; }
+          if (j.asin) parts.push('ASIN: ' + j.asin);
+          if (statusEl) { statusEl.textContent = parts.length ? 'Fetched: ' + parts.join(' — ') : 'No product data found (try the full Amazon URL)'; statusEl.style.color = parts.length ? '#6c6' : '#c96'; }
         } else {
           if (statusEl) { statusEl.textContent = j.error || 'Could not fetch'; statusEl.style.color = '#c66'; }
         }
