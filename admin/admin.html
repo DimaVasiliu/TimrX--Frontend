@@ -1131,7 +1131,12 @@
             <div class="form-group affiliate-section">
               <label class="form-label">Affiliate Product <span class="optional">(optional)</span></label>
               <input class="form-input" id="ai_affiliate_url" placeholder="Amazon affiliate link (e.g., https://amzn.to/...)"/>
-              <input class="form-input" id="ai_product_name" placeholder="Product name (optional - AI will use topic if empty)" style="margin-top:8px;"/>
+              <div id="ai_aff_fetch_status" style="display:none;font-size:11px;margin:4px 0 0;color:#888;"></div>
+              <input class="form-input" id="ai_product_name" placeholder="Product name (auto-fetched or manual)" style="margin-top:8px;"/>
+              <input class="form-input" id="ai_product_image" placeholder="Product image URL (auto-fetched or manual)" style="margin-top:8px;"/>
+              <div id="ai_product_image_preview" style="display:none;margin-top:8px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-align:center;">
+                <img id="ai_product_image_thumb" style="max-height:120px;max-width:100%;object-fit:contain;border-radius:4px;" alt="Product preview"/>
+              </div>
               <select class="form-select" id="ai_affiliate_cta" style="margin-top:8px;">
                 <option value="Check Price on Amazon">Check Price on Amazon</option>
                 <option value="Buy Now on Amazon">Buy Now on Amazon</option>
@@ -1591,6 +1596,10 @@
       <div class="edit-section-label" style="margin-top:12px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Affiliate</div>
       <label><span>Affiliate URL</span><input id="e_affiliate_url" placeholder="https://amzn.to/..."/></label>
       <label><span>Product Name</span><input id="e_affiliate_product" placeholder="Product name"/></label>
+      <label><span>Product Image</span><input id="e_product_image" placeholder="Product image URL (auto-fetched or manual)"/></label>
+      <div id="e_product_image_preview" style="display:none;margin:4px 0 8px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-align:center;">
+        <img id="e_product_image_thumb" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;" alt="Product preview"/>
+      </div>
       <div class="row">
         <label style="flex:1"><span>CTA</span>
           <select id="e_affiliate_cta">
@@ -2256,6 +2265,7 @@
       try {
         const affiliateUrl = $('#ai_affiliate_url').value.trim();
         const productName = $('#ai_product_name').value.trim();
+        const productImageUrl = $('#ai_product_image').value.trim();
         const imagesMode = $('#ai_images_mode').value;
 
         const r = await fetch(API + '/admin/ai/generate', {
@@ -2273,6 +2283,7 @@
             strict_image_relevance: $('#ai_strict_image_relevance').checked,
             affiliate_url: affiliateUrl || undefined,
             product_name: productName || undefined,
+            product_image_url: productImageUrl || undefined,
             affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
             affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
           })
@@ -2556,6 +2567,21 @@
       $('#e_affiliate_product').value = p.affiliate_product||'';
       $('#e_affiliate_cta').value = p.affiliate_cta||'';
       $('#e_affiliate_placement').value = p.affiliate_placement||'';
+      // Extract product image from content blocks
+      let prodImg = '';
+      try {
+        const cb = typeof p.content_blocks === 'string' ? JSON.parse(p.content_blocks) : p.content_blocks;
+        const blocks = cb?.blocks || (Array.isArray(cb) ? cb : []);
+        const prodBlock = blocks.find(b => b.type === 'product');
+        if (prodBlock) prodImg = prodBlock.data?.image_url || '';
+      } catch(e) {}
+      $('#e_product_image').value = prodImg;
+      if (prodImg) {
+        $('#e_product_image_thumb').src = prodImg;
+        $('#e_product_image_preview').style.display = 'block';
+      } else {
+        $('#e_product_image_preview').style.display = 'none';
+      }
       $('#e_msg').textContent = '';
     }
 
@@ -2576,6 +2602,7 @@
         affiliate_product: $('#e_affiliate_product').value.trim() || null,
         affiliate_cta: $('#e_affiliate_cta').value || null,
         affiliate_placement: $('#e_affiliate_placement').value || null,
+        product_image_url: $('#e_product_image').value.trim() || null,
       };
       $('#e_msg').textContent = 'Saving…';
       const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
@@ -2625,6 +2652,84 @@
     $('#flt').onchange = load;
     $('#affFlt').onchange = load;
     $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
+
+    // Auto-fetch product metadata when affiliate URL is pasted
+    async function fetchProductMeta(url, nameEl, imageEl, previewEl, thumbEl, statusEl) {
+      if (!url) return;
+      if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Fetching product info...'; statusEl.style.color = '#888'; }
+      try {
+        const r = await fetch(API + '/admin/ai/fetch-product', {
+          method: 'POST', headers: headers(), body: JSON.stringify({ url })
+        });
+        const j = await r.json();
+        if (j.ok) {
+          if (j.title && !nameEl.value.trim()) nameEl.value = j.title;
+          if (j.image_url && !imageEl.value.trim()) {
+            imageEl.value = j.image_url;
+            if (thumbEl && previewEl) {
+              thumbEl.src = j.image_url;
+              previewEl.style.display = 'block';
+            }
+          }
+          const parts = [];
+          if (j.title) parts.push(j.title.slice(0, 40));
+          if (j.price) parts.push(j.price);
+          if (statusEl) { statusEl.textContent = parts.length ? 'Fetched: ' + parts.join(' — ') : 'Fetched (no metadata found)'; statusEl.style.color = '#6c6'; }
+        } else {
+          if (statusEl) { statusEl.textContent = j.error || 'Could not fetch'; statusEl.style.color = '#c66'; }
+        }
+      } catch(e) {
+        if (statusEl) { statusEl.textContent = 'Fetch failed'; statusEl.style.color = '#c66'; }
+      }
+    }
+
+    // Generate form: auto-fetch on paste
+    let _affFetchTimer = null;
+    const aiAffUrlEl = $('#ai_affiliate_url');
+    aiAffUrlEl.addEventListener('paste', () => {
+      clearTimeout(_affFetchTimer);
+      _affFetchTimer = setTimeout(() => {
+        const url = aiAffUrlEl.value.trim();
+        if (url.startsWith('http')) {
+          fetchProductMeta(url, $('#ai_product_name'), $('#ai_product_image'), $('#ai_product_image_preview'), $('#ai_product_image_thumb'), $('#ai_aff_fetch_status'));
+        }
+      }, 300);
+    });
+    aiAffUrlEl.addEventListener('change', () => {
+      const url = aiAffUrlEl.value.trim();
+      if (url.startsWith('http')) {
+        fetchProductMeta(url, $('#ai_product_name'), $('#ai_product_image'), $('#ai_product_image_preview'), $('#ai_product_image_thumb'), $('#ai_aff_fetch_status'));
+      }
+    });
+
+    // Image preview update when product image URL changes manually
+    ['ai_product_image', 'e_product_image'].forEach(id => {
+      const input = $('#' + id);
+      const previewId = id === 'ai_product_image' ? 'ai_product_image_preview' : 'e_product_image_preview';
+      const thumbId = id === 'ai_product_image' ? 'ai_product_image_thumb' : 'e_product_image_thumb';
+      input.addEventListener('input', () => {
+        const val = input.value.trim();
+        const preview = $('#' + previewId);
+        const thumb = $('#' + thumbId);
+        if (val.startsWith('http') && thumb && preview) {
+          thumb.src = val;
+          preview.style.display = 'block';
+        } else if (preview) {
+          preview.style.display = 'none';
+        }
+      });
+    });
+
+    // Edit modal: auto-fetch on paste
+    const eAffUrlEl = $('#e_affiliate_url');
+    eAffUrlEl.addEventListener('paste', () => {
+      setTimeout(() => {
+        const url = eAffUrlEl.value.trim();
+        if (url.startsWith('http')) {
+          fetchProductMeta(url, $('#e_affiliate_product'), $('#e_product_image'), $('#e_product_image_preview'), $('#e_product_image_thumb'), null);
+        }
+      }, 300);
+    });
 
     // Close modals on backdrop click or Escape key
     ['blogModal'].forEach(id => {
