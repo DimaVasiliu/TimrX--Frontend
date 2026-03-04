@@ -46,6 +46,13 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
 
+    /* Breadcrumbs */
+    .breadcrumbs { display: flex; align-items: center; gap: 6px; padding: 74px var(--gutter) 0; font-size: 13px; color: rgba(255,255,255,0.4); max-width: var(--maxw); margin: 0 auto; }
+    .breadcrumbs a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+    .breadcrumbs a:hover { color: rgba(255,255,255,0.85); }
+    .breadcrumbs .bc-sep { font-size: 10px; color: rgba(255,255,255,0.2); }
+    .breadcrumbs .bc-current { color: rgba(255,255,255,0.65); }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -638,6 +645,73 @@
       .foot-legal a:hover { color: rgba(255,255,255,0.6); }
     }
   </style>
+
+  <!-- JSON-LD Structured Data - CollectionPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": "https://timrx.live/archive#page",
+    "name": "All Posts | TimrX Blog Archive",
+    "description": "Browse all TimrX blog posts. Filter by category, search by keyword, and discover guides on AI, 3D printing, web development, and more.",
+    "url": "https://timrx.live/archive",
+    "inLanguage": "en-US",
+    "isPartOf": {
+      "@type": "Blog",
+      "@id": "https://timrx.live/blogs#blog",
+      "name": "TimrX Blog",
+      "url": "https://timrx.live/blogs"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Dima Vasiliu",
+      "url": "https://timrx.live",
+      "sameAs": [
+        "https://github.com/DimaVasiliu",
+        "https://www.linkedin.com/in/dumitru-vasiliu"
+      ]
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "TimrX",
+      "url": "https://timrx.live",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://timrx.live/img/blogs.png",
+        "width": 512,
+        "height": 512
+      }
+    }
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data - BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://timrx.live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://timrx.live/blogs"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Archive",
+        "item": "https://timrx.live/archive"
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <!-- HEADER -->
@@ -651,6 +725,15 @@
       Blog
     </a>
   </header>
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="bc-sep" aria-hidden="true">›</span>
+    <a href="/blogs">Blog</a>
+    <span class="bc-sep" aria-hidden="true">›</span>
+    <span class="bc-current">Archive</span>
+  </nav>
 
   <!-- MINI HERO -->
   <section class="mini-hero">
