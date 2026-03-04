@@ -1,0 +1,20 @@
+name = "blog-proxy"
+main = "blog-proxy.js"
+compatibility_date = "2024-01-01"
+
+# Route bindings - Worker will handle these paths on timrx.live
+routes = [
+  { pattern = "timrx.live/blog/*", zone_name = "timrx.live" },
+  { pattern = "timrx.live/rss.xml", zone_name = "timrx.live" },
+  { pattern = "timrx.live/sitemap-blogs.xml", zone_name = "timrx.live" }
+]
+
+# Optional: Add www routes if you have www subdomain
+# routes = [
+#   { pattern = "timrx.live/blog/*", zone_name = "timrx.live" },
+#   { pattern = "timrx.live/rss.xml", zone_name = "timrx.live" },
+#   { pattern = "timrx.live/sitemap-blogs.xml", zone_name = "timrx.live" },
+#   { pattern = "www.timrx.live/blog/*", zone_name = "timrx.live" },
+#   { pattern = "www.timrx.live/rss.xml", zone_name = "timrx.live" },
+#   { pattern = "www.timrx.live/sitemap-blogs.xml", zone_name = "timrx.live" }
+# ]
