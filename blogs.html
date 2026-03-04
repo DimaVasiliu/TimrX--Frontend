@@ -118,10 +118,10 @@
   <!-- Font Awesome (deferred - not critical for first paint) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
   <!-- Site base CSS -->
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
   <!-- Page CSS -->
-  <link rel="stylesheet" href="/blogs.css">
-  <link rel="stylesheet" href="/media/blogs.css">
+  <link rel="stylesheet" href="blogs.css">
+  <link rel="stylesheet" href="media/blogs.css">
 </head>
 <body>
   <!-- MINIMAL HEADER -->
@@ -130,8 +130,34 @@
       <img src="img/blogs.png" alt="" class="blog-nav-logo" width="60" height="60">
       <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
     </a>
-    <a class="blog-contact-btn" href="/#contact" aria-label="Contact">Contact ↗</a>
+    <button class="blog-burger" id="blogBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="blogMobileMenu">
+      <span class="blog-burger-ring"></span>
+      <span class="blog-burger-line"></span>
+      <span class="blog-burger-line"></span>
+      <span class="blog-burger-line"></span>
+    </button>
   </header>
+
+  <!-- MOBILE MENU -->
+  <div class="blog-mobile-menu" id="blogMobileMenu" aria-hidden="true">
+    <div class="blog-mobile-inner">
+      <nav class="blog-mobile-nav" aria-label="Mobile navigation">
+        <a href="blogs.html" class="blog-mobile-link active"><span class="bml-num">01</span><span class="bml-text">Blog</span></a>
+        <a href="blogs.html#filter-strip" class="blog-mobile-link"><span class="bml-num">02</span><span class="bml-text">Archive</span></a>
+        <a href="hub.html" class="blog-mobile-link"><span class="bml-num">03</span><span class="bml-text">3D Hub</span></a>
+        <a href="about.html" class="blog-mobile-link"><span class="bml-num">04</span><span class="bml-text">About</span></a>
+        <a href="blogs.html#submit" class="blog-mobile-link"><span class="bml-num">05</span><span class="bml-text">Write</span></a>
+      </nav>
+      <div class="blog-mobile-footer">
+        <div class="blog-mobile-socials">
+          <a href="https://github.com/dimavasiliu" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://x.com/" target="_blank" rel="noopener">X</a>
+          <a href="https://linkedin.com/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <span>TimrX / Dima Vasiliu</span>
+      </div>
+    </div>
+  </div>
 
   <!-- HERO -->
   <header class="blogs-hero" id="hero" role="banner">
@@ -349,6 +375,17 @@
 
     // Keyboard navigation for brand
     qs('#brand')?.addEventListener('keydown', e=>{ if(e.key==='Enter') location.href='index.html'; });
+
+    // Hide navbar on scroll down, show on scroll up
+    (function(){
+      const hdr = qs('.blog-header');
+      let lastY = 0;
+      window.addEventListener('scroll', ()=>{
+        const y = scrollY;
+        hdr.classList.toggle('nav-hidden', y > lastY && y > 60);
+        lastY = y;
+      }, {passive:true});
+    })();
 
     // To top button (if exists)
     (function(){
@@ -627,9 +664,11 @@
         ];
         const rnd = (a,b)=> a + Math.random()*(b-a);
 
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
         function targetCount(){
           const area = canvas.width * canvas.height;
-          return Math.max(120, Math.min(800, Math.floor(area / 500)));
+          const count = Math.max(120, Math.min(800, Math.floor(area / 500)));
+          return isMobile ? Math.min(count, 60) : count;
         }
         function spawnOne(x, y){
           if (x == null) x = Math.random()*canvas.width;
@@ -796,6 +835,45 @@
       } else {
         start();
       }
+    })();
+
+    // Blog burger menu toggle
+    // Swap watermark text on mobile
+    (function(){
+      const wm = qs('.hero-watermark');
+      if (wm && window.matchMedia('(max-width: 768px)').matches) wm.textContent = 'TIMRX';
+    })();
+
+    (function(){
+      const burger = qs('#blogBurger');
+      const menu = qs('#blogMobileMenu');
+      if (!burger || !menu) return;
+
+      function toggle(){
+        const open = burger.classList.toggle('is-open');
+        menu.classList.toggle('is-open', open);
+        burger.setAttribute('aria-expanded', open);
+        burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        menu.setAttribute('aria-hidden', !open);
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+
+      burger.addEventListener('click', toggle);
+
+      // Close on backdrop click (click on menu overlay but not on nav links)
+      menu.addEventListener('click', e => {
+        if (e.target === menu || e.target.classList.contains('blog-mobile-inner')) toggle();
+      });
+
+      // Close on link click
+      qsa('.blog-mobile-link').forEach(a => a.addEventListener('click', () => {
+        if (menu.classList.contains('is-open')) toggle();
+      }));
+
+      // Close on Escape
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && menu.classList.contains('is-open')) toggle();
+      });
     })();
   </script>
 
