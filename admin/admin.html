@@ -2531,15 +2531,20 @@
       if(b.dataset.del){
         if(confirm('Delete this post permanently? This cannot be undone.')){
           try {
-            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
-            const j = await r.json();
-            if(j.ok){
-              alert('Post deleted successfully');
-              await load();
+            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
+            if(r.ok){
+              const j = await r.json();
+              if(j.ok){
+                alert('Post deleted successfully');
+                await load();
+              } else {
+                alert('Delete failed: ' + (j.error || 'Unknown error'));
+              }
             } else {
-              alert('Delete failed: ' + (j.error || 'Unknown error'));
+              alert('Delete failed: HTTP ' + r.status);
             }
           } catch(err){
+            console.error('Delete error:', err);
             alert('Delete failed: ' + err.message);
           }
         }
@@ -2626,16 +2631,21 @@
       const slug = $('#e_slug').value;
       if(confirm('Delete this post permanently? This cannot be undone.')){
         try {
-          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: headers()});
-          const j = await r.json();
-          if(j.ok){
-            alert('Post deleted successfully');
-            $('#edit').classList.remove('show');
-            await load();
+          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
+          if(r.ok){
+            const j = await r.json();
+            if(j.ok){
+              alert('Post deleted successfully');
+              $('#edit').classList.remove('show');
+              await load();
+            } else {
+              alert('Delete failed: ' + (j.error || 'Unknown error'));
+            }
           } else {
-            alert('Delete failed: ' + (j.error || 'Unknown error'));
+            alert('Delete failed: HTTP ' + r.status);
           }
         } catch(err){
+          console.error('Delete error:', err);
           alert('Delete failed: ' + err.message);
         }
       }
