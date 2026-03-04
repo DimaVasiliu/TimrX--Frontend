@@ -1,41 +1,204 @@
-/* Responsive overrides for blogs.html. */
+/* Responsive overrides for blogs.html — mobile only.
+   Base + hero + filter strip rules live in blogs.css (single source of truth). */
 
-@media (max-width: 900px) {
-  .controls-inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+/* ===== 768px — Tablet / Large Phone ===== */
+@media (max-width: 768px) {
+  .featured {
+    padding: 32px 0;
   }
 
-  .tools {
-    width: 100%;
-    justify-content: space-between;
+  .feat-card.large {
+    min-height: 260px;
   }
 
-  .tools .search,
-  .tools .search input {
-    width: 100%;
-    min-width: 0;
+  .feat-card.small {
+    min-height: 160px;
+  }
+
+  .grid {
+    padding: 28px 0;
   }
 }
 
+/* ===== 640px — Small Phone ===== */
 @media (max-width: 640px) {
-  .hero-content {
-    padding-top: 48px;
-    padding-bottom: 48px;
+  /* -- Gutter reduction -- */
+  :root {
+    --gutter: 20px;
   }
 
-  .hero-title {
-    font-size: clamp(36px, 12vw, 72px);
+  /* -- Featured cards -- */
+  .feat-card {
+    border-radius: 12px;
   }
 
-  .tools {
-    flex-direction: column;
-    align-items: stretch;
+  .feat-card.large {
+    min-height: 220px;
   }
 
-  .select-wrap,
+  .feat-card.small {
+    min-height: 140px;
+  }
+
+  .feat-card .t {
+    font-size: 20px;
+  }
+
+  .feat-card.large .t {
+    font-size: 22px;
+  }
+
+  /* -- Card images: taller on full-width single column -- */
+  .card .thumb img {
+    height: 200px;
+  }
+
+  /* -- Grid spacing -- */
+  .grid {
+    padding: 20px 0;
+    gap: 16px;
+  }
+
+  /* -- Select iOS zoom fix -- */
   .select-wrap select {
+    font-size: 16px;
+  }
+
+  /* -- Hero scroll: smaller on phones -- */
+  .hero-scroll {
+    bottom: 10px;
+    left: 16px;
+  }
+
+  /* -- Watermark + lines: scale down for small phones -- */
+  .hero-watermark {
+    font-size: clamp(160px, 46vw, 280px);
+    color: rgba(255, 250, 245, 0.05);
+    -webkit-text-stroke: 1px rgba(255, 250, 245, 0.08);
+  }
+
+  .hero-lines {
+    opacity: 0.35;
+  }
+
+  .h-line {
+    left: 5%;
+    width: 90%;
+  }
+}
+
+/* ===== 480px — Very Small Phone ===== */
+@media (max-width: 480px) {
+  /* -- Tighter gutter -- */
+  :root {
+    --gutter: 16px;
+  }
+
+  /* -- Featured cards even tighter -- */
+  .featured {
+    padding: 24px 0;
+  }
+
+  .feat-card {
+    border-radius: 10px;
+  }
+
+  .feat-card.large {
+    min-height: 200px;
+  }
+
+  .feat-card.small {
+    min-height: 120px;
+  }
+
+  .feat-card .body {
+    padding: 16px;
+  }
+
+  /* -- Card images -- */
+  .card .thumb img {
+    height: 180px;
+  }
+
+  .card .info {
+    padding: 14px;
+  }
+
+  /* -- Hide heavy hero decorations -- */
+  .hero-arc {
+    display: none;
+  }
+
+  .hero-brand {
+    display: none;
+  }
+
+  /* -- Watermark: sole decoration now, more visible -- */
+  .hero-watermark {
+    font-size: clamp(140px, 40vw, 240px);
+    color: rgba(255, 250, 245, 0.05);
+    -webkit-text-stroke: 1px rgba(255, 250, 245, 0.09);
+  }
+
+  .hero-lines {
+    opacity: 0.3;
+  }
+
+  .h-line {
+    left: 0;
     width: 100%;
+  }
+
+  /* -- Particles: reduce to subtle -- */
+  .hero-particles {
+    opacity: 0.5;
+  }
+
+  /* -- Loadbar -- */
+  .loadbar {
+    padding: 16px 0 28px;
+  }
+
+  .btn {
+    padding: 12px 22px;
+    font-size: 13px;
+  }
+
+  /* -- Submit CTA -- */
+  .submit {
+    padding: clamp(28px, 5vh, 44px) 0;
+  }
+
+  /* -- Mobile menu inner padding -- */
+  .blog-mobile-inner {
+    padding: 90px 24px 32px;
+  }
+}
+
+/* ===== 400px — Smallest Phones ===== */
+@media (max-width: 400px) {
+  /* -- Touch targets: keep chips tappable -- */
+  .chip {
+    height: 28px;
+    padding: 0 11px;
+    font-size: 11px;
+  }
+
+  /* -- Gutter at minimum -- */
+  :root {
+    --gutter: 14px;
+  }
+
+  .feat-card .body {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .feat-card .t {
+    font-size: 18px;
+  }
+
+  .feat-card.large .t {
+    font-size: 20px;
   }
 }
