@@ -853,6 +853,66 @@ body.inspire-open .ws-right {
   }
 }
 
+/* Mobile — full-screen inspire overlay */
+@media (max-width: 768px) {
+  .inspire-overlay {
+    top: var(--ws-navH, 56px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    border-radius: 0;
+    border: none;
+  }
+
+  .inspire-header {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .inspire-header__icon {
+    display: none;
+  }
+
+  .inspire-header__title h2 {
+    font-size: 14px;
+  }
+
+  .inspire-header__title p {
+    font-size: 11px;
+  }
+
+  .inspire-potd {
+    display: none !important;
+  }
+
+  .inspire-content {
+    padding: 12px;
+  }
+
+  .inspire-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .inspire-card {
+    border-radius: 8px;
+  }
+
+  .inspire-filters {
+    gap: 4px;
+  }
+
+  .inspire-filter-btn {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+
+  .inspire-close-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 /* ===== VISUAL FEEDBACK FOR PROMPT FILL ===== */
 textarea.inspire-filled,
 input.inspire-filled {
