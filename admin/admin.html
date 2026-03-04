@@ -1012,6 +1012,11 @@
           <option value="published">Published</option>
           <option value="all">All</option>
         </select>
+        <select id="affFlt">
+          <option value="">All Types</option>
+          <option value="true">Affiliate Only</option>
+          <option value="false">Non-Affiliate</option>
+        </select>
         <button class="btn" id="reload">Reload</button>
         <button class="btn primary" id="newPost">+ New</button>
       </div>
@@ -1583,6 +1588,29 @@
       <label><span>Minutes</span><input id="e_minutes" type="number" min="1"/></label>
       <label><span>Excerpt</span><textarea id="e_excerpt"></textarea></label>
       <label><span>Content</span><textarea id="e_content"></textarea></label>
+      <div class="edit-section-label" style="margin-top:12px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Affiliate</div>
+      <label><span>Affiliate URL</span><input id="e_affiliate_url" placeholder="https://amzn.to/..."/></label>
+      <label><span>Product Name</span><input id="e_affiliate_product" placeholder="Product name"/></label>
+      <div class="row">
+        <label style="flex:1"><span>CTA</span>
+          <select id="e_affiliate_cta">
+            <option value="">None</option>
+            <option value="Check Price on Amazon">Check Price on Amazon</option>
+            <option value="Learn More">Learn More</option>
+            <option value="Buy Now">Buy Now</option>
+            <option value="View on Amazon">View on Amazon</option>
+          </select>
+        </label>
+        <label style="flex:1"><span>Placement</span>
+          <select id="e_affiliate_placement">
+            <option value="">None</option>
+            <option value="natural">Natural</option>
+            <option value="early">Early</option>
+            <option value="middle">Middle</option>
+            <option value="end">End</option>
+          </select>
+        </label>
+      </div>
       <div class="row">
         <select id="e_status">
           <option value="draft">Draft</option>
@@ -2071,6 +2099,12 @@
       statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
 
       try {
+        // Capture affiliate fields from the generation form
+        const affUrl = $('#ai_affiliate_url').value.trim();
+        const affProduct = $('#ai_product_name').value.trim();
+        const affCta = affUrl ? $('#ai_affiliate_cta').value : '';
+        const affPlacement = affUrl ? $('#ai_affiliate_placement').value : '';
+
         const r = await fetch(API + '/post', {
           method: 'POST',
           headers: headers(),
@@ -2084,7 +2118,12 @@
             content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
             status: 'draft',
             author: 'Dima V',
-            author_avatar: 'img/dima.jpg'
+            author_avatar: 'img/dima.jpg',
+            affiliate_url: affUrl || undefined,
+            affiliate_product: affProduct || undefined,
+            affiliate_cta: affCta || undefined,
+            affiliate_placement: affPlacement || undefined,
+            generation_params: blogData.generation_params || undefined,
           })
         });
         const j = await r.json();
@@ -2362,7 +2401,7 @@
     // View saved post
     $('#modalViewPost').onclick = () => {
       if (savedDraftSlug) {
-        window.open(`read.html?slug=${encodeURIComponent(savedDraftSlug)}`, '_blank');
+        window.open(`/blog/${encodeURIComponent(savedDraftSlug)}`, '_blank');
       } else {
         Toast.warning('Post not saved yet. Please wait for auto-save to complete.');
       }
@@ -2427,7 +2466,10 @@
     async function load(){
       const q = $('#search').value.trim();
       const status = $('#flt').value;
-      const r = await fetch(`${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`, { headers: headers() });
+      const aff = $('#affFlt').value;
+      let url = `${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`;
+      if (aff) url += `&affiliate=${encodeURIComponent(aff)}`;
+      const r = await fetch(url, { headers: headers() });
       if (!r.ok) {
         console.error('[Admin] Failed to load posts:', r.status, r.statusText);
         render([]);
@@ -2453,6 +2495,7 @@
             <div class="post-title">${esc(p.title||'(no title)')}</div>
             <div class="post-meta">
               <span class="post-status">${p.status}</span>
+              ${p.is_affiliate ? '<span class="post-affiliate-badge">affiliate</span>' : ''}
               <span>${p.slug}</span>
             </div>
           </div>
@@ -2509,6 +2552,10 @@
       $('#e_content').value = p.content_md||'';
       $('#e_status').value = p.status||'draft';
       $('#e_author').value = p.author||'Dima V';
+      $('#e_affiliate_url').value = p.affiliate_url||'';
+      $('#e_affiliate_product').value = p.affiliate_product||'';
+      $('#e_affiliate_cta').value = p.affiliate_cta||'';
+      $('#e_affiliate_placement').value = p.affiliate_placement||'';
       $('#e_msg').textContent = '';
     }
 
@@ -2524,7 +2571,11 @@
         content_md: $('#e_content').value,
         status: $('#e_status').value,
         author: $('#e_author').value.trim()||'Dima V',
-        author_avatar: 'img/dima.jpg'
+        author_avatar: 'img/dima.jpg',
+        affiliate_url: $('#e_affiliate_url').value.trim() || null,
+        affiliate_product: $('#e_affiliate_product').value.trim() || null,
+        affiliate_cta: $('#e_affiliate_cta').value || null,
+        affiliate_placement: $('#e_affiliate_placement').value || null,
       };
       $('#e_msg').textContent = 'Saving…';
       const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
@@ -2572,6 +2623,7 @@
     // Filters
     $('#reload').onclick = load;
     $('#flt').onchange = load;
+    $('#affFlt').onchange = load;
     $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
 
     // Close modals on backdrop click or Escape key
