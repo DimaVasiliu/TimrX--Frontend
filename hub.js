@@ -574,3 +574,24 @@ signupClose?.addEventListener('click', (e)=>{ e.preventDefault(); signupModal.cl
   }
   requestAnimationFrame(tick);
 })();
+
+// =================== MOBILE NAV HIDE ON SCROLL ===================
+(function(){
+  if (window.innerWidth > 768) return;
+  var nav = document.querySelector('.nav');
+  if (!nav) return;
+  var lastY = window.scrollY;
+  var hidden = false;
+  nav.style.transition = 'transform 0.3s ease';
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY;
+    if (y > lastY && y > 60 && !hidden) {
+      nav.style.transform = 'translateY(-100%)';
+      hidden = true;
+    } else if (y < lastY && hidden) {
+      nav.style.transform = 'translateY(0)';
+      hidden = false;
+    }
+    lastY = y;
+  }, {passive: true});
+})();
