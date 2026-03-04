@@ -275,6 +275,17 @@
   const qsa = s => Array.from(document.querySelectorAll(s));
   const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
   const API = API_BASE + '/api';
+
+  // Hide navbar on scroll down, show on scroll up
+  (function(){
+    const hdr = qs('.read-header');
+    let lastY = 0;
+    window.addEventListener('scroll', ()=>{
+      const y = scrollY;
+      hdr.classList.toggle('nav-hidden', y > lastY && y > 60);
+      lastY = y;
+    }, {passive:true});
+  })();
   function getParam(name){ return new URLSearchParams(location.search).get(name); }
   function md(s){ return marked.parse(s || ''); }
 
