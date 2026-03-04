@@ -390,12 +390,13 @@
           const pDesc = d.description || '';
           const pUrl = d.url || '#';
           const pCta = d.cta || 'View on Amazon';
-          return `<div class="product-block">
-            <div class="product-content">
-              <div class="product-badge">Recommended</div>
-              <h4 class="product-name">${pName}</h4>
-              <p class="product-desc">${pDesc}</p>
-              <a href="${pUrl}" target="_blank" rel="noopener sponsored" class="product-link">${pCta} <span class="arrow">→</span></a>
+          const pImg = d.image_url || '';
+          return `<div class="product-card">
+            ${pImg ? `<div class="product-card-img"><img src="${pImg}" alt="${pName}" loading="lazy" decoding="async"/></div>` : ''}
+            <div class="product-card-body">
+              <h3 class="product-card-title">${pName}</h3>
+              ${pDesc ? `<p class="product-card-desc">${pDesc}</p>` : ''}
+              <a href="${pUrl}" target="_blank" rel="sponsored nofollow noopener" class="product-card-cta">${pCta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
             </div>
           </div>`;
         case 'validationRefs':
