@@ -207,7 +207,7 @@
       if (result.ok && result.data?.ok) {
         const cards = (result.data.cards || []).map(card => ({
           ...card,
-          thumbnail: card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+          thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
         })).filter(card => card.thumbnail);
 
         INSPIRE_POOL = cards;
@@ -385,10 +385,10 @@
       if (result.ok && result.data?.ok) {
         const data = result.data;
 
-        // Normalize card format (backend uses thumb_url, we also support thumbnail)
+        // Normalize card format (backend uses thumb_url/thumb_preview, we also support thumbnail)
         const cards = (data.cards || []).map(card => ({
           ...card,
-          thumbnail: card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+          thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
         })).filter(card => card.thumbnail); // Only cards with valid thumbnails
 
         // Update state and cache
