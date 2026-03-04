@@ -488,6 +488,7 @@ body.read-page {
   font-size: 17px;
   line-height: 1.85;
   color: #c8c8c8;
+  text-align: justify;
 }
 
 .post-article h2,
