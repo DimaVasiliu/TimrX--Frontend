@@ -205,10 +205,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+
+  <!-- Model Viewer (lightweight GLB renderer) -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="hub.css" />
@@ -314,33 +316,14 @@
           <img src="img/logo.png" alt="" class="idx-nav-logo" width="50" height="50">
           <span class="b-tim">Timr</span><span class="b-x">X</span>
         </a>
-        <ul class="menu" role="menubar">
-          <li>
-            <button type="button" role="menuitem" data-open="features">Features ▾</button>
-            <div class="drop" data-drop="features" role="menu">
-              <a href="#features">Prompt → 3D (Meshy)</a>
-              <a href="#features">Image → 3D</a>
-              <a href="#features">Text → Image</a>
-              <a href="#features">3D Viewer</a>
-            </div>
-          </li>
-          <li>
-            <button type="button" role="menuitem" data-open="pricing">Pricing ▾</button>
-            <div class="drop" data-drop="pricing" role="menu">
-              <a href="#pricing">Starter Pack</a>
-              <a href="#pricing">Creator Pack</a>
-              <a href="#pricing">Pro Pack</a>
-            </div>
-          </li>
-          <li>
-            <button type="button" role="menuitem" data-open="community">Community ▾</button>
-            <div class="drop" data-drop="community" role="menu">
-              <a href="#community">Discord (soon)</a>
-              <a href="#community">Docs & tips</a>
-              <a href="#community">Showcase</a>
-            </div>
-          </li>
-        </ul>
+      </div>
+
+      <div class="nav-pills" role="navigation" aria-label="Sections">
+        <a href="#features" class="nav-pill">Features</a>
+        <a href="#pricing" class="nav-pill">Pricing</a>
+        <a href="#community" class="nav-pill">Community</a>
+        <a href="index.html" class="nav-pill">Portfolio</a>
+        <a href="/3dprint" class="nav-pill nav-pill--accent">Open Workspace</a>
       </div>
 
       <div class="nav-right">
@@ -448,101 +431,74 @@
   <!-- HERO -->
   <header class="container">
     <div class="hero" id="hero">
-      <div class="kicker">TIMRX • 3D PRINT HUB</div>
-      <h1>The Easiest Way to Create 3D Models</h1>
+
+      <!-- Watermark -->
+      <div class="hero-watermark" aria-hidden="true">
+        <span class="wm-l" style="--i:0">T</span><span class="wm-l" style="--i:1">I</span><span class="wm-l" style="--i:2">M</span><span class="wm-l" style="--i:3">R</span><span class="wm-l" style="--i:4">X</span>
+      </div>
+
+      <!-- Eyebrow with shimmer -->
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-text" data-text="TIMRX  /  3D PRINT HUB">TIMRX  /  3D PRINT HUB</span>
+      </div>
+
+      <!-- Headline — two tiers -->
+      <h1 class="hero-headline">
+        <span class="hero-line hero-line--top">
+          <span class="hw">The</span> <span class="hw">Easiest</span> <span class="hw">Way</span> <span class="hw">to</span> <span class="hw">Create</span>
+        </span>
+        <span class="hero-line hero-line--bottom">
+          <span class="hw hw--accent" data-text="3D Models">3D Models</span>
+        </span>
+      </h1>
+
       <p class="hero-subheadline">AI Image, Video & 3D Model Generator – Ready for 3D Printing</p>
-      <p class="hero-powered">Powered by your favorite AI models and LLMs.</p>
-      <!-- Visually hidden SEO content for search engines and screen readers -->
-      <div class="visually-hidden">
-        <p>TimrX is an all-in-one AI generation hub for text to image, image to video, text to 3D, and image to 3D models. Create high-quality, remeshed, textured, print-ready 3D models with no Blender, no setup, and no manual modeling.</p>
-        <ul>
-          <li>Text to Image generation</li>
-          <li>Image to Image enhancement</li>
-          <li>Text to Video and Image to Video</li>
-          <li>Text to 3D model generation</li>
-          <li>Image to 3D model generation</li>
-          <li>Remesh and texture optimization</li>
-          <li>GLB/GLTF export for 3D printing</li>
-        </ul>
-      </div>
 
-      <!-- Slider of options -->
-      <div class="hero-slider" id="slider">
-        <button class="pill active" data-to="#features">Text → 3D</button>
-        <button class="pill" data-to="#features">Image → 3D</button>
-        <button class="pill" data-to="#features">Text → Image</button>
-        <button class="pill" data-to="#features">Image → Video</button>
-      </div>
+      <!-- Visually hidden SEO paragraph -->
+      <p class="visually-hidden">TimrX is an all-in-one AI generation hub for text to image, image to video, text to 3D, and image to 3D models. Create high-quality, remeshed, textured, print-ready 3D models with no Blender, no setup, and no manual modeling. Supports GLB/GLTF export for 3D printing, remesh and texture optimization.</p>
 
-      <div class="cta-row">
-        <a class="btn" href="https://timrx.live/3dprint?refresh=1" id="startCreatingBtn">Start Creating →</a>
-        <a class="btn ghost" href="#features">Explore Features</a>
-      </div>
-
-        <!-- HERO FX confined to hero only -->
-        <div class="hero-fx" aria-hidden="true">
-            <div class="aurora"></div>
-
-            <!-- TOP RUNNER — FOX (sprints right-to-left, playful bounce) -->
+      <!-- Actions — orbital pills around nexus -->
+      <nav class="hero-actions" aria-label="AI generation tools">
+        <div class="hero-orbit-area" id="slider">
+          <!-- Hero figure — cursor-reactive 3D model -->
+          <div class="hero-figure-wrap" aria-hidden="true">
+            <div class="hero-figure-holo"></div>
             <model-viewer
-                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb"
-                class="floater floater-3d runner runner-top runner-rtl"
-                style="--duration:18s; --delay:0s; --size:280px; --bounce-height:25px; --wobble:8deg;"
-                bounds="tight"
-                camera-controls="false"
-                disable-zoom
-                disable-tap
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="45deg"
-                camera-orbit="30deg 70deg auto"
-                min-field-of-view="60deg"
-                max-field-of-view="90deg"
-                field-of-view="80deg"
-                exposure="1.3"
-                environment-image="neutral">
-            </model-viewer>
+              class="hero-figure"
+              src="img/duck.glb"
+              shadow-intensity="0.5"
+              shadow-softness="1"
+              camera-orbit="0deg 80deg 120%"
+              field-of-view="20deg"
+              disable-zoom
+              interaction-prompt="none"
+              alt="3D model preview"
+            ></model-viewer>
+          </div>
 
-            <!-- MIDDLE FLOATER — ASTRONAUT (drifts left-to-right, zero-G tumble) -->
-            <model-viewer
-                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                class="floater floater-3d runner runner-mid runner-ltr"
-                style="--duration:25s; --delay:-8s; --size:300px; --bounce-height:40px; --wobble:15deg;"
-                bounds="tight"
-                camera-controls="false"
-                disable-zoom
-                disable-tap
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="-25deg"
-                camera-orbit="0deg 75deg auto"
-                min-field-of-view="60deg"
-                max-field-of-view="90deg"
-                field-of-view="75deg"
-                exposure="1.2"
-                environment-image="neutral">
-            </model-viewer>
-
-            <!-- BOTTOM WALKER — CESIUM MAN (marches left-to-right, determined stride) -->
-            <model-viewer
-                src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
-                class="floater floater-3d runner runner-bottom runner-ltr"
-                style="--duration:22s; --delay:-12s; --size:320px; --bounce-height:15px; --wobble:5deg;"
-                bounds="tight"
-                camera-controls="false"
-                disable-zoom
-                disable-tap
-                interaction-prompt="none"
-                auto-rotate
-                rotation-per-second="60deg"
-                camera-orbit="0deg 75deg auto"
-                min-field-of-view="60deg"
-                max-field-of-view="90deg"
-                field-of-view="80deg"
-                exposure="1.25"
-                environment-image="neutral">
-            </model-viewer>
+          <!-- Orbital pills -->
+          <a class="pill pill--pos-tl active" href="/3dprint?panel=model" title="AI Text to 3D Model Generator">
+            <span class="pill-ico" aria-hidden="true"><span class="ico-cube"></span></span>
+            <span class="pill-label">Text → 3D</span>
+          </a>
+          <a class="pill pill--pos-tr" href="/3dprint?panel=model" title="AI Image to 3D Model Generator">
+            <span class="pill-ico" aria-hidden="true"><span class="ico-img3d"></span></span>
+            <span class="pill-label">Image → 3D</span>
+          </a>
+          <a class="pill pill--pos-bl" href="/3dprint?panel=image" title="AI Text to Image Generator">
+            <span class="pill-ico" aria-hidden="true"><span class="ico-frame"></span></span>
+            <span class="pill-label">Text → Image</span>
+          </a>
+          <a class="pill pill--pos-br" href="/3dprint?panel=video" title="AI Image to Video Generator">
+            <span class="pill-ico" aria-hidden="true"><span class="ico-play"></span></span>
+            <span class="pill-label">Image → Video</span>
+          </a>
         </div>
+        <div class="cta-row">
+          <a class="btn" href="https://timrx.live/3dprint?refresh=1" id="startCreatingBtn">Start Creating →</a>
+          <a class="btn ghost" href="#features">Explore Features</a>
+        </div>
+      </nav>
     </div>
   </header>
 
