@@ -1634,12 +1634,19 @@ blockquote cite {
 }
 
 @media (max-width: 540px) {
+  .post-tags-section {
+    padding: 20px 16px;
+  }
+
   .author-box {
     flex-direction: column;
     align-items: center;
     text-align: center;
     gap: 14px;
+    margin: 0 16px 28px;
+    padding: 20px;
   }
+
   .author-box-links {
     justify-content: center;
   }
@@ -1897,7 +1904,8 @@ blockquote cite {
 
 @media (max-width: 600px) {
   .related-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .related-posts-section {
