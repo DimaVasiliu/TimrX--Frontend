@@ -4364,3 +4364,307 @@ body.about-view .about-expanded-view {
 .viewer-toolbar__btn[data-action="print"]:hover {
   color: var(--accent-orange, #fb923c);
 }
+
+/* Toolbar mobile */
+@media (max-width: 640px) {
+  .viewer-toolbar {
+    bottom: 12px;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
+  }
+  .viewer-toolbar__btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .viewer-toolbar__btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .viewer-toolbar__divider {
+    height: 18px;
+    margin: 0 3px;
+  }
+  .viewer-toolbar__btn::before,
+  .viewer-toolbar__btn::after {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   MOBILE POLISH — All Expansion Pages (768px)
+   Tutorials, Stories, Converter, About
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* --- Containers — prevent overflow --- */
+  .tutorials-expanded-view,
+  .stories-expanded-view,
+  .converter-expanded-view,
+  .about-expanded-view {
+    max-width: 100vw;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .tutorials-expanded-shell,
+  .stories-expanded-shell,
+  .converter-expanded-shell,
+  .about-expanded-shell {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Catch-all: prevent any child from exceeding viewport */
+  .tutorials-expanded-shell > *,
+  .stories-expanded-shell > *,
+  .converter-expanded-shell > *,
+  .about-expanded-shell > * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* --- Shared hero improvements --- */
+  .tutorials-hero,
+  .stories-hero,
+  .converter-hero,
+  .about-hero {
+    min-height: 0;
+    padding-top: 60px;
+    padding-bottom: 32px;
+    flex-direction: column;
+  }
+
+  .tutorials-hero-text,
+  .stories-hero-text,
+  .converter-hero-text,
+  .about-hero-text {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 20px 16px !important;
+    gap: 12px;
+    text-align: center;
+    align-items: center;
+    box-sizing: border-box !important;
+  }
+
+  /* --- Hero actions — full width stacked --- */
+  .tutorials-hero-actions,
+  .stories-hero-actions,
+  .converter-hero-actions,
+  .about-hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .tutorials-primary-btn,
+  .tutorials-secondary-btn,
+  .stories-primary-btn,
+  .stories-secondary-btn,
+  .converter-primary-btn,
+  .converter-secondary-btn,
+  .about-primary-btn,
+  .about-secondary-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 12px;
+  }
+
+  /* Titles — tighter on mobile */
+  .tutorials-hero h1, .tutorials-title,
+  .stories-hero h1, .stories-title,
+  .converter-hero h1, .converter-title,
+  .about-hero h1, .about-title {
+    font-size: clamp(26px, 7vw, 36px);
+    letter-spacing: -0.02em;
+  }
+
+  /* Descriptions — more readable */
+  .tutorials-hero p,
+  .stories-hero p,
+  .converter-hero p,
+  .about-hero p {
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 100%;
+  }
+
+  /* Eyebrow pills — centered */
+  .tutorials-pill,
+  .stories-pill,
+  .converter-pill,
+  .about-pill {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    justify-content: center;
+  }
+
+  /* Stats — compact row */
+  .tutorials-hero-stats,
+  .stories-hero-stats,
+  .converter-hero-stats,
+  .about-hero-stats {
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .tutorials-hero-stats li,
+  .stories-hero-stats li,
+  .converter-hero-stats li,
+  .about-hero-stats li {
+    text-align: center;
+  }
+
+  .tutorials-hero-stats li span,
+  .stories-hero-stats li span,
+  .converter-hero-stats li span,
+  .about-hero-stats li span {
+    font-size: 18px;
+  }
+
+  .tutorials-hero-stats li small,
+  .stories-hero-stats li small,
+  .converter-hero-stats li small,
+  .about-hero-stats li small {
+    font-size: 10px;
+  }
+
+  /* Watermarks — smaller on mobile */
+  .tutorials-watermark,
+  .stories-watermark,
+  .converter-watermark,
+  .about-watermark {
+    font-size: clamp(60px, 15vw, 120px);
+    opacity: 0.02;
+  }
+
+  /* --- Exit buttons — consistent sticky pill --- */
+  .tutorials-exit-btn,
+  .stories-exit-btn,
+  .converter-exit-btn,
+  .about-exit-btn {
+    top: 10px !important;
+    right: 10px !important;
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+    width: auto !important;
+    gap: 4px;
+    border-radius: 999px;
+  }
+
+  .tutorials-exit-btn svg,
+  .stories-exit-btn svg,
+  .converter-exit-btn svg,
+  .about-exit-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* (shell styles merged into overflow block above) */
+
+  /* --- Sections — tighter vertical rhythm --- */
+  .tutorials-section,
+  .stories-section,
+  .converter-section,
+  .about-section {
+    margin-top: clamp(32px, 6vw, 48px);
+    padding: 0 16px !important;
+    box-sizing: border-box;
+    max-width: 100% !important;
+  }
+
+  .tutorials-section-content,
+  .stories-section-content,
+  .converter-section-content,
+  .about-section-content {
+    min-width: 0 !important;
+  }
+
+  .tutorials-section-header,
+  .stories-section-header,
+  .converter-section-header,
+  .about-section-header {
+    margin-bottom: 20px;
+  }
+
+  .tutorials-section-header h2,
+  .stories-section-header h2,
+  .converter-section-header h2,
+  .about-section-header h2 {
+    font-size: clamp(22px, 5.5vw, 28px);
+  }
+
+  .tutorials-section-header p,
+  .stories-section-header p,
+  .converter-section-header p,
+  .about-section-header p {
+    font-size: 13px;
+  }
+
+  /* --- Cards — compact mobile treatment --- */
+  .tutorials-card,
+  .stories-card,
+  .converter-card,
+  .about-card,
+  .tutorials-step,
+  .tutorials-practice-card,
+  .stories-quote-card,
+  .converter-tool {
+    padding: 18px 16px;
+    border-radius: 12px;
+  }
+
+  /* --- Grids — single column on mobile --- */
+  .tutorials-guides-grid,
+  .tutorials-resource-grid,
+  .tutorials-steps-grid,
+  .tutorials-best-practices-grid,
+  .tutorials-faq-grid,
+  .stories-grid,
+  .stories-quote-list,
+  .converter-format-grid,
+  .converter-tools-grid,
+  .about-mission-grid,
+  .about-team-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tutorials-hero h1, .tutorials-title,
+  .stories-hero h1, .stories-title,
+  .converter-hero h1, .converter-title,
+  .about-hero h1, .about-title {
+    font-size: clamp(24px, 6.5vw, 30px);
+  }
+
+  .tutorials-hero-stats,
+  .stories-hero-stats,
+  .converter-hero-stats,
+  .about-hero-stats {
+    gap: 12px;
+  }
+
+  .tutorials-section,
+  .stories-section,
+  .converter-section,
+  .about-section {
+    padding: 0 12px !important;
+  }
+}
