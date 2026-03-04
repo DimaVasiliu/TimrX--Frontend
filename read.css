@@ -13,6 +13,7 @@
 html.read-page {
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
+  width: 100%;
 }
 
 body.read-page {
@@ -22,12 +23,24 @@ body.read-page {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .container {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 0 var(--gutter);
+  box-sizing: border-box;
+}
+
+/* Prevent any element from blowing out the viewport */
+.post-article img,
+.post-article video,
+.post-article iframe,
+.post-article table,
+.post-article pre {
+  max-width: 100%;
 }
 
 /* ===== MINIMAL HEADER ===== */
@@ -126,6 +139,8 @@ body.read-page {
 /* ===== MAIN ===== */
 .read-main {
   min-height: 100vh;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* ===== HERO SECTION ===== */
@@ -386,6 +401,7 @@ body.read-page {
   grid-template-columns: 260px 1fr;
   gap: 48px;
   padding-bottom: 80px;
+  min-width: 0;
 }
 
 @media (max-width: 1060px) {
@@ -404,6 +420,7 @@ body.read-page {
 /* ===== TABLE OF CONTENTS ===== */
 .post-toc {
   order: 1;
+  min-width: 0;
 }
 
 @media (min-width: 1061px) {
@@ -472,6 +489,9 @@ body.read-page {
   padding: clamp(28px, 5vw, 48px);
   background: var(--surface);
   line-height: 1.8;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 @media (max-width: 1060px) {
@@ -1547,7 +1567,7 @@ blockquote cite {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 24px 0;
+  padding: 24px var(--gutter);
   border-top: 1px solid #1e1e1e;
   margin-top: 8px;
 }
@@ -1797,7 +1817,7 @@ blockquote cite {
 
 /* ===== RELATED POSTS ===== */
 .related-posts-section {
-  padding: 60px 0 80px;
+  padding: 60px var(--gutter) 80px;
   border-top: 1px solid rgba(255,255,255,0.06);
   margin-top: 60px;
 }
@@ -1910,7 +1930,7 @@ blockquote cite {
   }
 
   .related-posts-section {
-    padding: 40px 0 60px;
+    padding: 40px var(--gutter) 60px;
     margin-top: 40px;
   }
 }
@@ -2172,7 +2192,7 @@ blockquote cite {
 
   /* Related posts */
   .related-posts-section {
-    padding: 32px 0 48px;
+    padding: 32px var(--gutter) 48px;
     margin-top: 32px;
   }
 
