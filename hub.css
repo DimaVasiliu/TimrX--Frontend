@@ -1522,16 +1522,36 @@ header {
   .hero-subheadline { text-align: center; }
   .hero-orbit-area {
     height: auto;
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px;
+    margin-top: 32px;
   }
   .pill {
-    position: static; animation: none; opacity: 1;
-    padding: 10px 14px; border-radius: 999px; font-size: 13px;
+    position: static;
+    animation: none;
+    opacity: 1;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    justify-content: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .pill.active {
+    border-color: rgba(14,165,233,0.3);
+    background: rgba(14,165,233,0.08);
   }
   .pill::after { display: none; }
-  .pill-ico { display: none; }
+  .pill-ico {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+  }
+  .pill-label { font-size: 12px; }
   .hero-figure-wrap { display: none; }
   .hero-actions::before { display: none; }
+  .cta-row { margin-top: 32px !important; }
 }
 
 /* Reduced motion */
