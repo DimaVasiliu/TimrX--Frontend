@@ -532,10 +532,12 @@
     }
 
     // Render grid and featured posts
+    const GRID_LIMIT = 8;
+
     function render(){
       const grid = qs('#blogsGrid');
       const data = applySort(applyFilterSearch(posts));
-      grid.innerHTML = data.map(cardHTML).join('');
+      grid.innerHTML = data.slice(0, GRID_LIMIT).map(cardHTML).join('');
 
       // Update featured posts (direct link to canonical /blog/<slug>)
       const top = data.slice(0,2);
