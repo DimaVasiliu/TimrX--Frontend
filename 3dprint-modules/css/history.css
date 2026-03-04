@@ -2660,7 +2660,7 @@ body.has-modal {
 .history-thumb--video .history-thumb__video-click {
   display: block;
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 16 / 9;
   border: none;
   padding: 0;
   margin: 0;
@@ -2677,7 +2677,7 @@ body.has-modal {
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s ease, filter 0.3s ease;
-  filter: brightness(0.85);
+  filter: brightness(0.92);
 }
 
 .history-thumb--video .history-thumb__video-click:hover img {
@@ -2707,10 +2707,12 @@ body.has-modal {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 44px;
-  height: 44px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2721,8 +2723,8 @@ body.has-modal {
 }
 
 .history-thumb__play-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: #fff;
   margin-left: 2px;
 }
