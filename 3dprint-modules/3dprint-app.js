@@ -173,16 +173,26 @@
               <label for="imageModelName" style="font-size:12px">Name</label>
               <input type="text" id="imageModelName" placeholder="My 3D Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
             </div>
-            <label for="modelImageUpload" style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:5px">Upload Reference Image</label>
-            <div id="modelImageDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease">
-              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-              <span style="font-size:11px;color:#666">PNG, JPG, WEBP</span>
-              <input type="file" id="modelImageUpload" accept="image/*" hidden />
+            <label for="modelImageUpload" class="video-section-label">Upload Reference Image</label>
+            <div class="video-image-grid compact">
+              <div id="modelImageDrop" class="video-drop-zone">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload</span>
+                <input type="file" id="modelImageUpload" accept="image/*" hidden />
+              </div>
+              <div class="video-preview-wrap">
+                <img id="modelImagePreview" class="video-preview-img" alt="Preview"/>
+                <div class="video-preview-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+              </div>
             </div>
-            <img id="modelImagePreview" style="display:none;width:100%;border-radius:7px;margin-top:10px" alt="Preview"/>
           </div>
         </div>
 
@@ -1055,22 +1065,20 @@
             const reader = new FileReader();
             reader.onload = (e) => {
               modelImagePreview.src = e.target.result;
-              modelImagePreview.style.display = 'block';
             };
             reader.readAsDataURL(this.files[0]);
           }
         });
-        // Drag-n-drop
         modelImageDrop.addEventListener('dragover', (e) => {
           e.preventDefault();
-          modelImageDrop.style.borderColor = 'rgba(255,255,255,.3)';
+          modelImageDrop.classList.add('drag-over');
         });
         modelImageDrop.addEventListener('dragleave', () => {
-          modelImageDrop.style.borderColor = 'rgba(255,255,255,.15)';
+          modelImageDrop.classList.remove('drag-over');
         });
         modelImageDrop.addEventListener('drop', (e) => {
           e.preventDefault();
-          modelImageDrop.style.borderColor = 'rgba(255,255,255,.15)';
+          modelImageDrop.classList.remove('drag-over');
           if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             modelImageUpload.files = e.dataTransfer.files;
             modelImageUpload.dispatchEvent(new Event('change'));
