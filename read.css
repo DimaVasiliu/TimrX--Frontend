@@ -2190,8 +2190,15 @@ blockquote cite {
   color: #737373;
 }
 
-.vref-icon {
+.validation-refs-section .vref-icon {
   opacity: 0.6;
+  width: auto;
+  height: auto;
+  display: inline;
+  background: none;
+  border-radius: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .vref-count {
@@ -2258,7 +2265,8 @@ blockquote cite {
   font-size: 11px;
 }
 
-.vref-claim {
+.validation-refs-section .vref-claim {
+  display: inline;
   max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
@@ -2385,7 +2393,7 @@ blockquote cite {
 
 /* Mobile: tap to toggle tooltip */
 @media (max-width: 768px) {
-  .vref-claim {
+  .validation-refs-section .vref-claim {
     max-width: 140px;
   }
 
