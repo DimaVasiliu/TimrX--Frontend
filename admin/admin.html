@@ -2122,7 +2122,7 @@
             excerpt: blogData.excerpt,
             tags: blogData.tags,
             type: blogData.type,
-            cover_url: '',
+            cover_url: generatedCoverUrl || '',
             cover_attribution: '',
             content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
             status: 'draft',
@@ -2313,6 +2313,32 @@
           generatedCoverUrl = '';
           generatedCoverData = null;
           savedDraftSlug = null;
+
+          // For affiliate posts: auto-set product image as cover
+          if (j.product_image_url) {
+            generatedCoverUrl = j.product_image_url;
+            generatedCoverData = { url: j.product_image_url, attribution: '' };
+            // Update the cover preview in the modal
+            const coverPreview = $('#modalCoverPreview');
+            const coverImg = $('#modalDraftCoverImg');
+            if (coverPreview && coverImg) {
+              coverImg.src = j.product_image_url;
+              coverPreview.classList.remove('hidden');
+            }
+            const coverStatus = $('#coverStatus');
+            if (coverStatus) {
+              coverStatus.textContent = 'Product image set as cover';
+              coverStatus.classList.add('ready');
+              coverStatus.classList.remove('hidden');
+            }
+            // Also populate the product image field if empty
+            const imgField = $('#ai_product_image');
+            if (imgField && !imgField.value.trim()) imgField.value = j.product_image_url;
+            // Show preview
+            const prevEl = $('#ai_product_image_preview');
+            const thumbEl = $('#ai_product_image_thumb');
+            if (prevEl && thumbEl) { thumbEl.src = j.product_image_url; prevEl.style.display = 'block'; }
+          }
 
           // Show modal
           $('#blogModal').classList.add('show');
