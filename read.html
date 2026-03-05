@@ -389,14 +389,18 @@
           const pName = d.name || 'Product';
           const pDesc = d.description || '';
           const pUrl = d.url || '#';
-          const pCta = d.cta || 'View on Amazon';
+          const pCta = d.cta || 'Check Price on Amazon';
           const pImg = d.image_url || '';
+          const pPrice = d.price || '';
           return `<div class="product-card">
             ${pImg ? `<div class="product-card-img"><img src="${pImg}" alt="${pName}" loading="lazy" decoding="async"/></div>` : ''}
             <div class="product-card-body">
+              <div class="product-card-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>Available on Amazon</div>
               <h3 class="product-card-title">${pName}</h3>
+              ${pPrice ? `<div class="product-card-price">${pPrice}</div>` : ''}
               ${pDesc ? `<p class="product-card-desc">${pDesc}</p>` : ''}
-              <a href="${pUrl}" target="_blank" rel="sponsored nofollow noopener" class="product-card-cta">${pCta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+              <a href="${pUrl}" target="_blank" rel="sponsored nofollow noopener" class="product-card-cta">${pCta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+              <div class="product-card-footer">As an Amazon Associate we earn from qualifying purchases</div>
             </div>
           </div>`;
         case 'validationRefs':
