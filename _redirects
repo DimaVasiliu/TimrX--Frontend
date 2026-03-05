@@ -15,6 +15,16 @@
 # Normalize trailing slash
 /about/           /about         301
 
+# Clean URL rewrites (serve HTML while keeping clean URL)
+/hub              /hub.html       200
+/3dprint          /3dprint.html   200
+/archive          /archive.html   200
+/about            /about.html     200
+/terms            /terms.html     200
+/cookies          /cookies.html   200
+/privacy          /privacy.html   200
+/write            /write.html     200
+
 # Admin: files live inside /admin/ subfolder
 /admin            /admin/admin.html         200
 /admin/edit       /admin/admin-edit.html    200
