@@ -385,24 +385,66 @@
           return `<ul class="checklist">${checks}</ul>`;
         case 'warning':
           return `<div class="warning-block"><strong>${d.title || 'Warning'}</strong><p>${d.message || ''}</p></div>`;
-        case 'product':
-          const pName = d.name || 'Product';
-          const pDesc = d.description || '';
-          const pUrl = d.url || '#';
-          const pCta = d.cta || 'Check Price on Amazon';
-          const pImg = d.image_url || '';
-          const pPrice = d.price || '';
-          return `<div class="product-card">
-            ${pImg ? `<div class="product-card-img"><img src="${pImg}" alt="${pName}" loading="lazy" decoding="async"/></div>` : ''}
-            <div class="product-card-body">
-              <div class="product-card-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>Available on Amazon</div>
-              <h3 class="product-card-title">${pName}</h3>
-              ${pPrice ? `<div class="product-card-price">${pPrice}</div>` : ''}
-              ${pDesc ? `<p class="product-card-desc">${pDesc}</p>` : ''}
-              <a href="${pUrl}" target="_blank" rel="sponsored nofollow noopener" class="product-card-cta">${pCta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-              <div class="product-card-footer">As an Amazon Associate we earn from qualifying purchases</div>
-            </div>
-          </div>`;
+        case 'product_card': {
+          const t = d.title || 'Product';
+          const badge = d.badge || '';
+          const score = d.score || 0;
+          const sLabel = d.score_label || '';
+          const img = d.image || '';
+          const url = d.affiliate_url || '';
+          const cta = d.cta || 'View Deal';
+          const feats = (d.features || []).slice(0, 6);
+          if (!url) return '';
+          const sPct = Math.min(100, Math.max(0, score * 10));
+          return `<div class="aff-product-card">${badge ? `<div class="aff-badge">${badge}</div>` : ''}${img ? `<div class="aff-product-img"><img src="${img}" alt="${t}" loading="lazy" decoding="async"/></div>` : ''}<div class="aff-product-body"><h3 class="aff-product-title">${t}</h3>${score ? `<div class="aff-rating"><span class="aff-rating-score">${score}</span><div class="aff-rating-bar"><div class="aff-rating-fill" style="width:${sPct}%"></div></div>${sLabel ? `<span class="aff-rating-label">${sLabel}</span>` : ''}</div>` : ''}${feats.length ? `<ul class="aff-features">${feats.map(f=>`<li>${f}</li>`).join('')}</ul>` : ''}<a href="${url}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${cta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
+        }
+        case 'product': {
+          // Backward compat: old product blocks → simplified product_card
+          const url = d.url || '';
+          if (!url) return '';
+          const desc = d.description || '';
+          return `<div class="aff-product-card"><div class="aff-product-body"><h3 class="aff-product-title">${d.name || 'Product'}</h3>${desc ? `<ul class="aff-features"><li>${desc}</li></ul>` : ''}<a href="${url}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${d.cta || 'View Deal'}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
+        }
+        case 'comparison_table': {
+          const cols = d.columns || [];
+          const rows = d.rows || [];
+          const links = d.links || [];
+          const ctitle = d.title || '';
+          if (!cols.length || !rows.length) return '';
+          const thead = cols.map(c=>`<th>${c}</th>`).join('');
+          const tbody = rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+          const linksHtml = links.filter(l=>l.url).map(l=>`<a href="${l.url}" class="aff-cta aff-cta--sm" target="_blank" rel="nofollow sponsored noopener">${l.label||'View'}</a>`).join('');
+          return `<div class="aff-comparison">${ctitle?`<h3 class="aff-comparison-title">${ctitle}</h3>`:''}<div class="aff-table-wrap"><table class="aff-table"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>${linksHtml?`<div class="aff-comparison-links">${linksHtml}</div>`:''}</div>`;
+        }
+        case 'pros_cons': {
+          const pros = d.pros || [];
+          const cons = d.cons || [];
+          if (!pros.length && !cons.length) return '';
+          const prosHtml = pros.length ? `<div class="aff-pros"><div class="aff-proscons-head aff-proscons-head--pro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Pros</div><ul>${pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>` : '';
+          const consHtml = cons.length ? `<div class="aff-cons"><div class="aff-proscons-head aff-proscons-head--con"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Cons</div><ul>${cons.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : '';
+          return `<div class="aff-proscons">${prosHtml}${consHtml}</div>`;
+        }
+        case 'deal_alert': {
+          const dUrl = d.affiliate_url || '';
+          if (!dUrl) return '';
+          const dTitle = d.title || 'Deal Alert';
+          const dText = d.text || '';
+          const dCta = d.cta || 'Check Deal';
+          const dVar = d.variant || 'blue';
+          const popupAttrs = d.popup ? ` data-deal-popup="true" data-deal-title="${dTitle}" data-deal-url="${dUrl}" data-deal-cta="${dCta}"` : '';
+          return `<div class="aff-deal aff-deal--${dVar}"${popupAttrs}><div class="aff-deal-body"><strong class="aff-deal-title">${dTitle}</strong>${dText?`<span class="aff-deal-text">${dText}</span>`:''}</div><a href="${dUrl}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${dCta}</a></div>`;
+        }
+        case 'rating_meter': {
+          const rScore = d.score || 0;
+          const rLbl = d.label || '';
+          const subs = d.subscores || [];
+          const rPct = Math.min(100, Math.max(0, rScore * 10));
+          const subsHtml = subs.map(s => {
+            const vPct = Math.min(100, Math.max(0, (s.value||0) * 10));
+            return `<div class="aff-subscore"><span class="aff-subscore-name">${s.name||''}</span><div class="aff-subscore-bar"><div class="aff-subscore-fill" style="width:${vPct}%"></div></div><span class="aff-subscore-val">${s.value||0}</span></div>`;
+          }).join('');
+          return `<div class="aff-rating-meter"><div class="aff-meter-main"><span class="aff-meter-score">${rScore}</span><div class="aff-meter-bar"><div class="aff-meter-fill" style="width:${rPct}%"></div></div>${rLbl?`<span class="aff-meter-label">${rLbl}</span>`:''}</div>${subs.length?`<div class="aff-subscores">${subsHtml}</div>`:''}</div>`;
+        }
         case 'validationRefs':
           const cards = d.cards || [];
           if (!cards.length) return '';
@@ -1025,6 +1067,56 @@
       }
     });
   }
+
+    // Deal popup (only for affiliate posts with deal_alert[popup=true])
+    (function(){
+      var dealEl = document.querySelector('[data-deal-popup="true"]');
+      if (!dealEl) return;
+      var title = dealEl.getAttribute('data-deal-title') || 'Deal Alert';
+      var url = dealEl.getAttribute('data-deal-url') || '';
+      var ctaText = dealEl.getAttribute('data-deal-cta') || 'View Deal';
+      if (!url) return;
+      if (sessionStorage.getItem('aff-popup-shown')) return;
+      var shown = false;
+      function buildPopup() {
+        if (shown) return;
+        shown = true;
+        sessionStorage.setItem('aff-popup-shown', '1');
+        var overlay = document.createElement('div');
+        overlay.className = 'aff-popup-overlay';
+        var popup = document.createElement('div');
+        popup.className = 'aff-popup';
+        popup.innerHTML = '<button class="aff-popup-close" aria-label="Close">&times;</button><div class="aff-popup-title">' + title + '</div><div class="aff-popup-countdown" id="affCountdown">--:--:--</div><a href="' + url + '" class="aff-cta" target="_blank" rel="nofollow sponsored noopener" style="width:100%;justify-content:center;">' + ctaText + '</a>';
+        document.body.appendChild(overlay);
+        document.body.appendChild(popup);
+        var remaining = 2 * 60 * 60;
+        var cd = popup.querySelector('#affCountdown');
+        function tick() {
+          var h = Math.floor(remaining / 3600);
+          var m = Math.floor((remaining % 3600) / 60);
+          var s = remaining % 60;
+          cd.textContent = h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+          if (remaining > 0) { remaining--; setTimeout(tick, 1000); }
+        }
+        tick();
+        requestAnimationFrame(function() { overlay.classList.add('is-visible'); popup.classList.add('is-visible'); });
+        function close() {
+          overlay.classList.remove('is-visible'); popup.classList.remove('is-visible');
+          setTimeout(function() { overlay.remove(); popup.remove(); }, 300);
+        }
+        popup.querySelector('.aff-popup-close').onclick = close;
+        overlay.onclick = close;
+      }
+      addEventListener('scroll', function onScroll() {
+        if (shown) return;
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        if (docH > 0 && (window.scrollY / docH) >= 0.4) { buildPopup(); removeEventListener('scroll', onScroll); }
+      }, { passive: true });
+      document.addEventListener('mouseout', function handler(e) {
+        if (shown) return;
+        if (e.clientY <= 0) { buildPopup(); document.removeEventListener('mouseout', handler); }
+      });
+    })();
 </script>
 <script src="js/cookie-consent.js" defer></script>
 </body>
