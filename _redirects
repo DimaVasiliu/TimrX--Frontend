@@ -1,4 +1,3 @@
 # Serve static pages at clean URLs (V3 has no Pretty URLs)
 /archive   /archive.html  200
 /about     /about.html    200
-/          /index.html    200
