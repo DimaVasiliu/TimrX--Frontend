@@ -1,11 +1,44 @@
-# Canonical old .html -> clean URLs
+# ----------------------------
+# 1) Rewrites: serve HTML at clean URLs (200 = serve content, no redirect)
+# ----------------------------
+/archive        /archive.html           200
+/about          /about.html             200
+/hub            /hub.html               200
+/3dprint        /3dprint.html           200
+/blogs          /blogs.html             200
+/write          /write.html             200
+/terms          /terms.html             200
+/cookies        /cookies.html           200
+/privacy        /privacy.html           200
+/admin          /admin/admin.html       200
+/admin/edit     /admin/admin-edit.html  200
+
+# ----------------------------
+# 2) Canonical: redirect .html -> clean URL (301 for SEO)
+# ----------------------------
 /index.html       /              301
+/archive.html     /archive       301
+/about.html       /about         301
 /hub.html         /hub           301
 /3dprint.html     /3dprint       301
 /blogs.html       /blogs         301
-/archive.html     /archive       301
-/about.html       /about         301
+/write.html       /write         301
 /terms.html       /terms         301
 /cookies.html     /cookies       301
 /privacy.html     /privacy       301
-/write.html       /write         301
+/admin.html       /admin         301
+/admin-edit.html  /admin/edit    301
+
+# ----------------------------
+# 3) Trailing-slash normalization (no trailing slashes)
+# ----------------------------
+/archive/     /archive    301
+/about/       /about      301
+/hub/         /hub        301
+/3dprint/     /3dprint    301
+/blogs/       /blogs      301
+/write/       /write      301
+/terms/       /terms      301
+/cookies/     /cookies    301
+/privacy/     /privacy    301
+/admin/edit/  /admin/edit 301
