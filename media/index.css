@@ -954,6 +954,16 @@ main.page p {
   .app3d-fx {
     display: revert !important;
   }
+
+  /* Re-enable contact figurine animations on desktop */
+  .contact-figurine { animation: cfFloat 7.5s ease-in-out infinite !important; }
+  .contact-figurine::after { animation: cfSpinFlat 18s linear infinite !important; }
+  .cf-ring { animation: cfSpin 16s linear infinite !important; }
+  .cf-ring.ring-b { animation-duration: 22s !important; }
+  .cf-ring.ring-c { animation-duration: 26s !important; }
+  .cf-prism { animation: cfPrism 6s ease-in-out infinite !important; }
+  .cf-core { animation: cfPulse 2.8s ease-in-out infinite !important; }
+  .cf-spark { animation: cfSpark 3s ease-in-out infinite !important; }
 }
 
 /* Responsive: Desktop Refinements (1024-1399px) */
