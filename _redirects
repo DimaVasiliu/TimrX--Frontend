@@ -1,8 +1,5 @@
-
-# Canonical: redirect .html extensions to clean URLs
-/blogs.html    /blogs     301
-/archive.html  /archive   301
-/about.html    /about     301
-
-# Root
-/              /index.html    200
+# Serve clean URLs (rewrite, not redirect)
+/blogs     /blogs.html    200
+/archive   /archive.html  200
+/about     /about.html    200
+/          /index.html    200
