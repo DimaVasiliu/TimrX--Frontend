@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -990,11 +989,30 @@
   <section id="latestArticles" style="max-width:720px;margin:0 auto;padding:40px 24px 32px;">
     <h3 style="font-family:'Bebas Neue',system-ui,sans-serif;font-size:22px;letter-spacing:0.3px;color:#aaa;margin:0 0 16px;">Latest Articles</h3>
     <ul id="latestArticlesList" style="list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:8px;">
-      <noscript>
-        <li><a href="/blogs" style="color:rgba(255,255,255,0.7);text-decoration:none;">View all blog posts &rarr;</a></li>
-      </noscript>
+      <li><a href="/blogs" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;">Browse all blog posts &rarr;</a></li>
+      <li><a href="/blog/tag/ai" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;">AI Articles</a></li>
+      <li><a href="/blog/tag/3d" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;">3D Printing Articles</a></li>
+      <li><a href="/blog/tag/workflow" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;">Workflow Articles</a></li>
     </ul>
     <a href="/blogs" style="color:rgba(255,255,255,0.5);font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.85)'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Browse All Posts &rarr;</a>
+    <script>
+    // Inline fetch for latest articles — runs immediately for fastest crawler discovery
+    (function(){
+      var ul = document.getElementById('latestArticlesList');
+      if (!ul) return;
+      var API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
+      fetch(API_BASE + '/api/posts?page=1&size=5')
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          var posts = (j.items || j.posts || []).slice(0, 5);
+          if (!posts.length) return;
+          ul.innerHTML = posts.map(function(p){
+            return '<li><a href="/blog/' + p.slug + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;transition:color 0.2s;" onmouseover="this.style.color=\'rgba(255,255,255,1)\'" onmouseout="this.style.color=\'rgba(255,255,255,0.7)\'">' + p.title + '</a></li>';
+          }).join('');
+        })
+        .catch(function(){});
+    })();
+    </script>
   </section>
 
   <footer style="margin-top:0;margin-bottom:0;padding-bottom:8px;">
@@ -1509,22 +1527,6 @@
           }
         });
 
-        // Latest Articles footer section (lightweight, for SEO internal linking)
-        (function(){
-          var ul = document.getElementById('latestArticlesList');
-          if (!ul) return;
-          var API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-          fetch(API_BASE + '/api/posts?page=1&size=5')
-            .then(function(r){ return r.json(); })
-            .then(function(j){
-              var posts = (j.items || j.posts || []).slice(0, 5);
-              if (!posts.length) return;
-              ul.innerHTML = posts.map(function(p){
-                return '<li><a href="/blog/' + p.slug + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;line-height:1.6;transition:color 0.2s;" onmouseover="this.style.color=\'rgba(255,255,255,1)\'" onmouseout="this.style.color=\'rgba(255,255,255,0.7)\'">' + p.title + '</a></li>';
-              }).join('');
-            })
-            .catch(function(){});
-        })();
       </script>
 
     <script src="script.js?v=7" defer></script>
