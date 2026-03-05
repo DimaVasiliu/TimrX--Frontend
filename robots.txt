@@ -10,11 +10,14 @@ Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 
+# Allow blog stylesheet explicitly (before /read block)
+Allow: /read.css
+
 # Block non-canonical reader routes
 Disallow: /read
 Disallow: /read.html
 
-# Block SEO tools (optional)
+# Block SEO tools
 User-agent: AhrefsBot
 Disallow: /
 
