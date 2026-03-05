@@ -1,21 +1,9 @@
 # ----------------------------
-# 1) Rewrites: serve HTML at clean URLs (200 = serve content, no redirect)
-#    REQUIRES Build System V2 — V3's 308 .html stripping causes loops
+# NO 200 rewrites — V2 Pretty URLs auto-serves /hub from hub.html
 # ----------------------------
-/archive        /archive.html           200
-/about          /about.html             200
-/hub            /hub.html               200
-/3dprint        /3dprint.html           200
-/blogs          /blogs.html             200
-/write          /write.html             200
-/terms          /terms.html             200
-/cookies        /cookies.html           200
-/privacy        /privacy.html           200
-/admin          /admin/admin.html       200
-/admin/edit     /admin/admin-edit.html  200
 
 # ----------------------------
-# 2) Canonical: redirect .html -> clean URL (301 for SEO)
+# Canonical: redirect .html -> clean URL (301 for SEO)
 # ----------------------------
 /index.html       /              301
 /archive.html     /archive       301
@@ -31,7 +19,13 @@
 /admin-edit.html  /admin/edit    301
 
 # ----------------------------
-# 3) Trailing-slash normalization (no trailing slashes)
+# Admin rewrites (non-standard paths, Pretty URLs can't resolve these)
+# ----------------------------
+/admin          /admin/admin.html       200
+/admin/edit     /admin/admin-edit.html  200
+
+# ----------------------------
+# Trailing-slash normalization (no trailing slashes)
 # ----------------------------
 /archive/     /archive    301
 /about/       /about      301
