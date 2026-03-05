@@ -1,17 +1,11 @@
-# Serve clean URLs (rewrites). Do NOT pair these with .html->clean redirects.
-/hub             /hub.html        200
-/3dprint         /3dprint.html    200
-/blogs           /blogs.html      200
-/archive         /archive.html    200
-/about           /about.html      200
-/terms           /terms.html      200
-/cookies         /cookies.html    200
-/privacy         /privacy.html    200
-/write           /write.html      200
-
-# Admin folder (if your admin files live inside /admin/)
-#/admin           /admin/admin.html        200
-#/admin/edit      /admin/admin-edit.html   200
-
-# Optional: keep only this safe redirect
-/index.html      /               301
+# Canonical old .html -> clean URLs
+/index.html       /              301
+/hub.html         /hub           301
+/3dprint.html     /3dprint       301
+/blogs.html       /blogs         301
+/archive.html     /archive       301
+/about.html       /about         301
+/terms.html       /terms         301
+/cookies.html     /cookies       301
+/privacy.html     /privacy       301
+/write.html       /write         301
