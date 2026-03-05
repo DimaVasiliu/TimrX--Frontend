@@ -142,10 +142,10 @@
   <div class="blog-mobile-menu" id="blogMobileMenu" aria-hidden="true">
     <div class="blog-mobile-inner">
       <nav class="blog-mobile-nav" aria-label="Mobile navigation">
-        <a href="blogs.html" class="blog-mobile-link active"><span class="bml-num">01</span><span class="bml-text">Blog</span></a>
+        <a href="/blogs" class="blog-mobile-link active"><span class="bml-num">01</span><span class="bml-text">Blog</span></a>
         <a href="blogs.html#filter-strip" class="blog-mobile-link"><span class="bml-num">02</span><span class="bml-text">Archive</span></a>
-        <a href="hub.html" class="blog-mobile-link"><span class="bml-num">03</span><span class="bml-text">3D Hub</span></a>
-        <a href="about.html" class="blog-mobile-link"><span class="bml-num">04</span><span class="bml-text">About</span></a>
+        <a href="/hub" class="blog-mobile-link"><span class="bml-num">03</span><span class="bml-text">3D Hub</span></a>
+        <a href="/about" class="blog-mobile-link"><span class="bml-num">04</span><span class="bml-text">About</span></a>
         <a href="blogs.html#submit" class="blog-mobile-link"><span class="bml-num">05</span><span class="bml-text">Write</span></a>
       </nav>
       <div class="blog-mobile-footer">
@@ -162,7 +162,7 @@
   <!-- HERO -->
   <header class="blogs-hero" id="hero" role="banner">
     <!-- Hub Hint (stays within hero) -->
-    <a class="hub-hint" href="/hub.html" aria-label="Visit 3D Print Hub">
+    <a class="hub-hint" href="/hub" aria-label="Visit 3D Print Hub">
       <span class="hub-hint-icon">◆</span>
       <span class="hub-hint-text">Try the 3D Hub</span>
     </a>
@@ -299,7 +299,7 @@
         <h3>Submit a Post</h3>
         <p class="muted">Share a walkthrough or story. Reviewed before publishing.</p>
       </div>
-      <a class="btn" href="/write.html">Open Writer →</a>
+      <a class="btn" href="/write">Open Writer →</a>
     </div>
   </section>
 
@@ -335,9 +335,9 @@
         <a href="/#contact">Contact</a>
       </nav>
       <nav class="foot-legal">
-        <a href="/terms.html">Terms</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
       </nav>
       <div class="foot-social"><a href="/rss.xml" title="Subscribe via RSS">RSS</a><a href="mailto:admin@timrx.live">Email</a><a href="https://www.linkedin.com/in/dumitru-vasiliu">LinkedIn</a><a href="https://github.com/DimaVasiliu">GitHub</a></div>
     </div>
@@ -374,7 +374,7 @@
     (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
 
     // Keyboard navigation for brand
-    qs('#brand')?.addEventListener('keydown', e=>{ if(e.key==='Enter') location.href='index.html'; });
+    qs('#brand')?.addEventListener('keydown', e=>{ if(e.key==='Enter') location.href='/'; });
 
     // Hide navbar on scroll down, show on scroll up
     (function(){
