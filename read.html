@@ -390,7 +390,8 @@
           const badge = d.badge || '';
           const score = d.score || 0;
           const sLabel = d.score_label || '';
-          const img = d.image || '';
+          let img = d.image || '';
+          if (img && /amazon\.com|media-amazon|images-amazon|ssl-images-amazon/i.test(img)) img = '/img/product-placeholder.svg';
           const url = d.affiliate_url || '';
           const cta = d.cta || 'View Deal';
           const feats = (d.features || []).slice(0, 6);
