@@ -1,2 +1,20 @@
-# V3 handles clean URLs automatically (.html stripping built-in)
-# Worker routes handle /blogs, /blog/*, /api/*, /rss.xml, etc.
+# --- Canonical: strip .html (SEO clean) ---
+/archive.html    /archive        301
+/blogs.html      /blogs          301
+/write.html      /write          301
+/about.html      /about          301
+/hub.html        /hub            301
+/3dprint.html    /3dprint        301
+/admin.html      /admin          301
+/admin-edit.html /admin/edit     301
+/index.html      /               301
+
+# --- Rewrites: serve HTML while keeping clean URL ---
+/archive         /archive.html   200
+/blogs           /blogs.html     200
+/write           /write.html     200
+/about           /about.html     200
+/hub             /hub.html       200
+/3dprint         /3dprint.html   200
+/admin           /admin.html     200
+/admin/edit      /admin-edit.html 200
