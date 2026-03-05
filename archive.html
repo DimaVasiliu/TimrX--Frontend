@@ -47,11 +47,27 @@
     html { scroll-behavior: smooth; }
 
     /* Breadcrumbs */
-    .breadcrumbs { display: flex; align-items: center; gap: 6px; padding: 74px var(--gutter) 0; font-size: 13px; color: rgba(255,255,255,0.4); max-width: var(--maxw); margin: 0 auto; }
-    .breadcrumbs a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
-    .breadcrumbs a:hover { color: rgba(255,255,255,0.85); }
-    .breadcrumbs .bc-sep { font-size: 10px; color: rgba(255,255,255,0.2); }
-    .breadcrumbs .bc-current { color: rgba(255,255,255,0.65); }
+    .breadcrumbs {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: var(--maxw);
+      margin: 0 auto 16px;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.35);
+    }
+    .breadcrumbs a {
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumbs a:hover { color: var(--accent); }
+    .breadcrumbs .bc-sep { color: rgba(255,255,255,0.18); font-size: 12px; }
+    .breadcrumbs .bc-current { color: rgba(255,255,255,0.6); }
 
     body {
       background: var(--bg);
@@ -726,18 +742,17 @@
     </a>
   </header>
 
-  <!-- Breadcrumbs -->
-  <nav class="breadcrumbs" aria-label="Breadcrumb">
-    <a href="/">Home</a>
-    <span class="bc-sep" aria-hidden="true">›</span>
-    <a href="/blogs">Blog</a>
-    <span class="bc-sep" aria-hidden="true">›</span>
-    <span class="bc-current">Archive</span>
-  </nav>
-
   <!-- MINI HERO -->
   <section class="mini-hero">
     <div class="hero-watermark">ARCHIVE</div>
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span class="bc-sep" aria-hidden="true">/</span>
+      <a href="/blogs">Blog</a>
+      <span class="bc-sep" aria-hidden="true">/</span>
+      <span class="bc-current">Archive</span>
+    </nav>
     <div class="hero-inner">
       <div class="hero-eyebrow">
         <span class="eyebrow-line"></span>
