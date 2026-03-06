@@ -1,3 +1,4 @@
+
 /**
  * main.js
  * The entry point. Imports all modules, runs initialization logic,
@@ -41,6 +42,10 @@ let genHint;
 function switchHistoryFilter(filter = 'all') {
   // Only reset page if filter actually changed
   if (State.historyState.filter !== filter) {
+    // Collapse expanded gallery when switching away from 'all'
+    if (filter !== 'all' && State.historyState.galleryExpanded) {
+      State.historyState.galleryExpanded = false;
+    }
     State.historyState.filter = filter;
     State.historyState.page = 1;
     renderHistory();
@@ -1101,6 +1106,11 @@ function wireGallery() {
       }
 
       if (act === 'open-video') {
+        // Collapse expanded gallery first (viewer is hidden in expanded mode)
+        if (State.historyState.galleryExpanded) {
+          State.historyState.galleryExpanded = false;
+          State.historyState.page = 1;
+        }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (videoUrl) {
           const videoRailBtn = document.querySelector('[data-panel="video"]');
