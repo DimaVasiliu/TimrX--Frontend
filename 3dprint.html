@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -203,7 +202,7 @@
     <!-- Center Links -->
     <nav class="ws-nav" aria-label="Workspace navigation">
       <a href="/hub" class="ws-nav-link is-active">HUB</a>
-      <a href="#stories" class="ws-nav-link" data-open-user-stories>COMMUNITY</a>
+      <a href="#community" class="ws-nav-link" data-open-community>COMMUNITY</a>
       <a href="#my-assets" class="ws-nav-link">MY ASSETS</a>
 
       <!-- Menu Dropdown (combines Learn + Resources) -->
@@ -268,9 +267,9 @@
           <span class="wml-label">Hub</span>
           <span class="wml-sub">Back to 3D Print Hub</span>
         </a>
-        <a href="#stories" class="ws-mobile-link" data-open-user-stories>
+        <a href="#community" class="ws-mobile-link" data-open-community>
           <span class="wml-label">Community</span>
-          <span class="wml-sub">User stories & showcase</span>
+          <span class="wml-sub">Connect, share, and grow together</span>
         </a>
         <a href="#my-assets" class="ws-mobile-link">
           <span class="wml-label">My Assets</span>
@@ -1008,17 +1007,26 @@
         }
       });
 
+      // Backward compat: redirect #stories to #community
+      if (window.location.hash === '#stories') window.location.hash = '#community';
+
       initExpandedView({
-        id: 'userStoriesGallery',
-        triggerAttr: 'data-open-user-stories',
-        bodyClass: 'stories-view',
-        hash: '#stories',
-        focusSelector: '[data-stories-focus]',
-        closeSelector: '#storiesExit',
+        id: 'communityGallery',
+        triggerAttr: 'data-open-community',
+        bodyClass: 'community-view',
+        hash: '#community',
+        focusSelector: '[data-community-focus]',
+        closeSelector: '#communityExit',
         onNavigate: ({ action, close }) => {
-          if (action === 'community') {
+          if (action === 'discord') {
             close?.();
             window.open('https://discord.gg/timrx', '_blank', 'noopener');
+          }
+          if (action === 'tutorials') {
+            close?.();
+            requestAnimationFrame(() => {
+              document.querySelector('[data-open-tutorials]')?.click();
+            });
           }
         }
       });
@@ -1694,109 +1702,127 @@
     </div>
   </section>
 
-  <!-- User Stories Expanded View -->
-  <section id="userStoriesGallery" class="stories-expanded-view" aria-labelledby="storiesTitle" hidden inert>
-    <div class="stories-expanded-shell">
-      <header class="stories-hero">
-        <div class="stories-hero-text" id="storiesFocus" data-stories-focus tabindex="-1">
-          <span class="stories-pill">Community Spotlight</span>
-          <h1 class="stories-title" id="storiesTitle">User Stories</h1>
-          <p>Real TimrX makers share the prompts, refinements, and print tricks that helped them ship their dream projects.</p>
-          <ul class="stories-metrics">
+  <!-- Community Expanded View -->
+  <section id=”communityGallery” class=”community-expanded-view” aria-labelledby=”communityTitle” hidden inert>
+    <div class=”community-expanded-shell”>
+      <header class=”community-hero”>
+        <div class=”community-hero-text” id=”communityFocus” data-community-focus tabindex=”-1”>
+          <span class=”community-pill”>Community</span>
+          <h1 class=”community-title” id=”communityTitle”>Built Together</h1>
+          <p>TimrX is built by and for creators. We are a growing community of makers, artists, and tinkerers exploring what is possible with AI-assisted 3D modeling. Every idea shared makes the platform better for everyone.</p>
+          <ul class=”community-hero-stats”>
             <li>
-              <span>120K+</span>
-              <small>Print-ready jobs</small>
+              <span>Open</span>
+              <small>Free core tools</small>
             </li>
             <li>
-              <span>48 hrs</span>
-              <small>Avg. iteration cycle</small>
+              <span>Growing</span>
+              <small>New creators daily</small>
             </li>
             <li>
-              <span>32</span>
-              <small>Countries represented</small>
+              <span>Global</span>
+              <small>Makers worldwide</small>
             </li>
           </ul>
         </div>
-        <button type="button" class="stories-exit-btn" id="storiesExit" aria-label="Close user stories">Back to Workspace ✕</button>
+        <button type=”button” class=”community-exit-btn” id=”communityExit” aria-label=”Close community”>Back to Workspace &#10005;</button>
+        <span class=”community-watermark”>COMMUNITY</span>
       </header>
 
-      <section class="stories-section">
-        <div class="stories-section-header">
-          <div class="stories-section-content">
-            <h2>Latest creator highlights</h2>
-            <p>Discover how makers around the world are using TimrX to bring their creative visions to life.</p>
+      <!-- Section 1: What We're Building -->
+      <section class=”community-section”>
+        <div class=”community-section-header”>
+          <div class=”community-section-content”>
+            <h2>What we're building</h2>
+            <p>TimrX started as a simple idea: make 3D creation accessible to everyone. Here is where that idea is heading.</p>
           </div>
-          <div class="stories-highlight">Featured Creators</div>
+          <div class=”community-highlight”>Our Vision</div>
         </div>
-        <div class="stories-grid">
-          <article class="stories-card">
-            <header>
-              <img src="https://images.unsplash.com/photo-1520340356584-8f1a9c7e69c5?w=200&h=200&fit=crop" alt="Kai Tanaka portrait">
-              <div>
-                <h3>Kai Tanaka</h3>
-                <p>Mecha Concept Artist · Tokyo</p>
-              </div>
-            </header>
-            <p>“I used TimrX to generate a modular mech kit. Refine gave me panel lines, then I remeshed at 0.3mm tolerance for resin printing.”</p>
-            <ul class="stories-tags">
-              <li>Prompt stack</li>
-              <li>Refine + Texture</li>
-              <li>Resin print</li>
-            </ul>
+        <div class=”community-vision-grid”>
+          <article class=”community-card”>
+            <h3 class=”community-card__title”>AI-powered 3D generation</h3>
+            <p class=”community-card__body”>Turn text prompts and reference images into printable 3D models. We are continuously improving generation quality and adding new capabilities like texture and refinement tools.</p>
           </article>
-
-          <article class="stories-card">
-            <header>
-              <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop" alt="Lena Bower portrait">
-              <div>
-                <h3>Lena Bower</h3>
-                <p>Tabletop Maker · Berlin</p>
-              </div>
-            </header>
-            <p>“Image-to-3D on my sketch gave me perfect silhouettes. I shared the STL with my Patreon patrons the same day.”</p>
-            <ul class="stories-tags">
-              <li>Image mode</li>
-              <li>Tabletop</li>
-              <li>Community drop</li>
-            </ul>
+          <article class=”community-card”>
+            <h3 class=”community-card__title”>Browser-first workflow</h3>
+            <p class=”community-card__body”>No installs, no plugins. Generate, refine, convert, and preview models entirely in your browser. Your files stay on your device when using local tools like the converter.</p>
           </article>
-
-          <article class="stories-card">
-            <header>
-              <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=200&h=200&fit=crop" alt="Dr. Milo Carter portrait">
-              <div>
-                <h3>Dr. Milo Carter</h3>
-                <p>Medical Lab · Austin</p>
-              </div>
-            </header>
-            <p>“We prototype surgical grips in TimrX. Remesh sealed the model, and the autorotate preview made stakeholder reviews a breeze.”</p>
-            <ul class="stories-tags">
-              <li>Remesh</li>
-              <li>Product</li>
-              <li>Stakeholder review</li>
-            </ul>
+          <article class=”community-card”>
+            <h3 class=”community-card__title”>Print-ready output</h3>
+            <p class=”community-card__body”>Every model is designed with 3D printing in mind. Export to STL, OBJ, or GLB and take your creation straight to the printer with minimal cleanup.</p>
           </article>
         </div>
       </section>
 
-      <section class="stories-section">
-        <div class="stories-section-header">
-          <div class="stories-section-content">
-            <h2>What creators are saying</h2>
-            <p>Hear directly from our community about their experiences with TimrX.</p>
+      <!-- Section 2: Get Involved -->
+      <section class=”community-section”>
+        <div class=”community-section-header”>
+          <div class=”community-section-content”>
+            <h2>Get involved</h2>
+            <p>Whether you are just starting or have been creating for years, there is a place for you here.</p>
           </div>
-          <div class="stories-highlight">Testimonials</div>
+          <div class=”community-highlight”>Join Us</div>
         </div>
-        <ul class="stories-quote-list">
-          <li>"History view feels like a private artboard—perfect for comparing iterations."</li>
-          <li>"Being able to refine without reuploading assets saved our team days this quarter."</li>
-          <li>"Autorotate + dark viewer background = instant product shots."</li>
-          <li>"The remesh feature saved me hours of manual cleanup in Blender. It just works!"</li>
-          <li>"I went from concept sketch to printed prototype in under 2 hours. Game changer."</li>
-          <li>"TimrX makes professional 3D modeling accessible to artists like me without technical backgrounds."</li>
+        <div class=”community-involve-grid”>
+          <article class=”community-card community-involve-card”>
+            <span class=”community-involve-icon”>
+              <svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2” width=”24” height=”24”><path d=”M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z”/></svg>
+            </span>
+            <h3 class=”community-card__title”>Join the Discord</h3>
+            <p class=”community-card__body”>Share your prints, ask questions, get feedback, and connect with other makers. This is where most of the conversation happens.</p>
+            <a href=”https://discord.gg/timrx” target=”_blank” rel=”noopener” class=”community-secondary-btn” data-expanded-nav=”discord”>Join Discord</a>
+          </article>
+          <article class=”community-card community-involve-card”>
+            <span class=”community-involve-icon”>
+              <svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2” width=”24” height=”24”><path d=”M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z”/><path d=”M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z”/></svg>
+            </span>
+            <h3 class=”community-card__title”>Explore tutorials</h3>
+            <p class=”community-card__body”>Step-by-step guides covering text-to-3D prompting, image-to-3D workflows, refinement techniques, and printing best practices.</p>
+            <button type=”button” class=”community-secondary-btn” data-expanded-nav=”tutorials”>Browse Tutorials</button>
+          </article>
+          <article class=”community-card community-involve-card”>
+            <span class=”community-involve-icon”>
+              <svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2” width=”24” height=”24”><path d=”M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2”/><circle cx=”9” cy=”7” r=”4”/><path d=”M23 21v-2a4 4 0 00-3-3.87”/><path d=”M16 3.13a4 4 0 010 7.75”/></svg>
+            </span>
+            <h3 class=”community-card__title”>Share your work</h3>
+            <p class=”community-card__body”>Post your creations on Discord or social media with #TimrX. We feature standout projects and love seeing what people build.</p>
+            <a href=”https://discord.gg/timrx” target=”_blank” rel=”noopener” class=”community-secondary-btn” data-expanded-nav=”discord”>Share a Project</a>
+          </article>
+          <article class=”community-card community-involve-card”>
+            <span class=”community-involve-icon”>
+              <svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2” width=”24” height=”24”><path d=”M12 20h9”/><path d=”M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z”/></svg>
+            </span>
+            <h3 class=”community-card__title”>Give feedback</h3>
+            <p class=”community-card__body”>TimrX is actively developed and your input shapes what gets built next. Report bugs, request features, or just tell us what you think.</p>
+            <a href=”https://discord.gg/timrx” target=”_blank” rel=”noopener” class=”community-secondary-btn” data-expanded-nav=”discord”>Send Feedback</a>
+          </article>
+        </div>
+      </section>
+
+      <!-- Section 3: Updates -->
+      <section class=”community-section”>
+        <div class=”community-section-header”>
+          <div class=”community-section-content”>
+            <h2>What's new</h2>
+            <p>Recent updates and things we are working on. This page will grow as the community does.</p>
+          </div>
+          <div class=”community-highlight”>Updates</div>
+        </div>
+        <ul class=”community-updates-list”>
+          <li>Launched the 3D File Converter — convert between GLB, OBJ, STL, and more directly in the browser.</li>
+          <li>Added image-to-3D generation. Upload a reference photo and get a printable model.</li>
+          <li>Introduced the Refine tool for improving mesh quality and adding detail to generated models.</li>
+          <li>Built a full tutorial system with step-by-step walkthroughs for every major feature.</li>
+          <li>Working on community project galleries and collaborative features. Stay tuned.</li>
         </ul>
-        <div class="stories-cta">
-          <button type="button" class="stories-community-btn" data-expanded-nav="community">Meet the Community ↗</button>
+
+        <div class=”community-cta”>
+          <h2>This is just the beginning</h2>
+          <p>TimrX is growing every day. Jump in, make something, and help us shape what comes next.</p>
+          <div class=”community-cta-actions”>
+            <a href=”https://discord.gg/timrx” target=”_blank” rel=”noopener” class=”community-primary-btn”>Join the Community</a>
+            <button type=”button” class=”community-secondary-btn” data-expanded-nav=”tutorials”>Explore Tutorials</button>
+          </div>
         </div>
       </section>
     </div>
@@ -2365,9 +2391,9 @@
           </article>
           <article class="about-community-card">
             <div class="community-icon">🌟</div>
-            <h3>User Stories</h3>
-            <p>Get inspired by what other creators are building. From cosplay props to architectural models.</p>
-            <button type="button" class="about-community-btn" data-open-user-stories>See Stories</button>
+            <h3>Community</h3>
+            <p>See what others are building and connect with fellow creators.</p>
+            <button type="button" class="about-community-btn" data-open-community>Visit Community</button>
           </article>
         </div>
       </section>
@@ -2445,7 +2471,7 @@
         const handleScroll = () => {
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
                                   document.body.classList.contains('converter-view') ||
-                                  document.body.classList.contains('stories-view') ||
+                                  document.body.classList.contains('community-view') ||
                                   document.body.classList.contains('about-view');
 
           if (!isExpandedView) {
