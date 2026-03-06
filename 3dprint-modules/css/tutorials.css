@@ -20,7 +20,7 @@
 
 /* ===== Nav Hide on Scroll ===== */
 .ws-nav,
-.ws-blog-cta,
+.ws-header-left,
 .ws-credits {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -31,7 +31,7 @@
   pointer-events: none;
 }
 
-.ws-blog-cta.nav-hidden,
+.ws-header-left.nav-hidden,
 .ws-credits.nav-hidden {
   transform: translateY(-20px);
   opacity: 0;
