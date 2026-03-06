@@ -947,7 +947,7 @@ body.history-menu-open .history-thumb__name {
 
 /* ===== Global Layout ===== */
 body.tutorials-view,
-body.stories-view {
+body.community-view {
   min-height: 100vh;
   overflow: auto;
   background: var(--bg);
@@ -955,7 +955,7 @@ body.stories-view {
 }
 
 body.tutorials-view::before,
-body.stories-view::before {
+body.community-view::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -965,7 +965,7 @@ body.stories-view::before {
 }
 
 body.tutorials-view > *,
-body.stories-view > *,
+body.community-view > *,
 body.converter-view > *,
 body.about-view > * {
   position: relative;
@@ -997,7 +997,7 @@ body.about-view::before {
 }
 
 body.tutorials-view .timrx-3dprint.workspace,
-body.stories-view .timrx-3dprint.workspace,
+body.community-view .timrx-3dprint.workspace,
 body.converter-view .timrx-3dprint.workspace,
 body.about-view .timrx-3dprint.workspace {
   display: none;
@@ -1005,7 +1005,7 @@ body.about-view .timrx-3dprint.workspace {
 
 /* Scroll progress bar */
 body.tutorials-view::after,
-body.stories-view::after,
+body.community-view::after,
 body.converter-view::after,
 body.about-view::after {
   content: "";
@@ -1828,587 +1828,10 @@ body.tutorials-view .tutorials-expanded-view {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   USER STORIES EXPANDED VIEW
+   COMMUNITY — styles moved to community.css
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Container */
-.stories-expanded-view {
-  display: none;
-  width: 100%;
-  max-width: 1400px;
-  margin: calc(var(--navH) + 24px) auto calc(var(--ws-gap) * 2.2);
-  padding: 0 clamp(24px, 5vw, 60px);
-  scroll-behavior: smooth;
-}
-
-body.stories-view .stories-expanded-view {
-  display: block;
-  animation: tutorialsFadeInUp 0.5s ease-out;
-}
-
-/* Shell - Clean minimal container (matches converter/about/tutorials) */
-.stories-expanded-shell {
-  width: 100%;
-  max-width: 1800px;
-  margin: 0 auto;
-  background: #0a0a0a;
-  padding: 0;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-}
-
-.stories-expanded-shell::before {
-  display: none;
-}
-
-.stories-expanded-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* ────────────────────────────────────────────────────────────
-   HERO
-   ──────────────────────────────────────────────────────────── */
-
-.stories-hero {
-  position: relative;
-  min-height: clamp(280px, 35vh, 380px);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  padding-top: 80px;
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-  animation: tutorialsFadeInUp 0.8s ease-out 0.1s forwards;
-  opacity: 0;
-}
-
-/* Noise texture */
-.stories-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-
-.stories-hero-text {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  min-width: 280px;
-  max-width: 100%;
-  padding: clamp(32px, 5vh, 60px) clamp(24px, 4vw, 60px);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Category pill */
-.stories-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  margin-bottom: 20px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #999;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-/* Title + intro */
-.stories-title {
-  margin: 0;
-  font-size: clamp(42px, 8vw, 72px);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  background: none;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  -webkit-text-fill-color: #fff;
-  color: #fff;
-}
-
-.stories-hero-text p {
-  margin: 0;
-  max-width: 600px;
-  font-size: clamp(14px, 1rem, 16px);
-  line-height: 1.7;
-  color: #999;
-}
-
-/* Metrics cards - clean card style (matches converter/about) */
-.stories-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-  padding: 0;
-  list-style: none;
-}
-
-.stories-metrics li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  min-width: 80px;
-}
-
-.stories-metrics li span {
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-  background: none;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  -webkit-text-fill-color: #fff;
-}
-
-.stories-metrics li small {
-  font-size: 10px;
-  font-weight: 600;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 4px;
-  max-width: 100px;
-  line-height: 1.3;
-}
-
-/* Exit Button - Clean style (matches tutorials/converter/about) */
-.stories-exit-btn {
-  position: fixed;
-  top: 20px;
-  right: clamp(24px, 4vw, 60px);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ccc;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 1000;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: none;
-}
-
-.stories-exit-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
-  box-shadow: none;
-  transform: scale(1.05);
-}
-
-/* ────────────────────────────────────────────────────────────
-   SECTIONS
-   ──────────────────────────────────────────────────────────── */
-
-.stories-section {
-  max-width: 1200px;
-  margin: clamp(56px, 7vw, 96px) auto 0;
-  opacity: 0;
-  animation: tutorialsFadeInUp 0.8s ease-out forwards;
-}
-
-.stories-section:nth-of-type(1) { animation-delay: 0.25s; }
-.stories-section:nth-of-type(2) { animation-delay: 0.35s; }
-.stories-section:nth-of-type(3) { animation-delay: 0.45s; }
-
-.stories-section-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.stories-section-content {
-  flex: 1;
-  min-width: 280px;
-}
-
-/* Section badge */
-.stories-highlight {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 20px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #bbf7d0;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(139, 92, 246, 0.22));
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  white-space: nowrap;
-  align-self: flex-start;
-  height: fit-content;
-  transition: all 0.3s ease;
-}
-
-.stories-highlight:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
-  border-color: rgba(34, 197, 94, 0.6);
-}
-
-/* Section heading + copy */
-.stories-section h2 {
-  margin: 0 0 18px;
-  font-size: clamp(28px, 3.2vw, 42px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  color: #ffffff;
-}
-
-.stories-section-content > p {
-  margin: 0;
-  max-width: 920px;
-  font-size: clamp(15px, 1.1rem, 17px);
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-/* ────────────────────────────────────────────────────────────
-   STORY CARDS GRID
-   ──────────────────────────────────────────────────────────── */
-
-.stories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.stories-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  height: 100%;
-  padding: 28px;
-  border-radius: 20px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stories-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #22c55e 0%, #8b5cf6 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.stories-card:hover {
-  transform: translateY(-8px) scale(1.01);
-  border-color: rgba(34, 197, 94, 0.5);
-  box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(34, 197, 94, 0.2);
-}
-
-.stories-card:hover::before {
-  opacity: 1;
-}
-
-/* Card header (avatar + title) */
-.stories-card header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.stories-card header img {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.stories-card header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #ffffff;
-}
-
-.stories-card header p {
-  margin: 2px 0 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.stories-card p {
-  margin: 0;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-/* Tag pills */
-.stories-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stories-tags li {
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #bbf7d0;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(139, 92, 246, 0.12));
-  border: 1px solid rgba(34, 197, 94, 0.25);
-  transition: all 0.3s ease;
-}
-
-.stories-tags li:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(139, 92, 246, 0.18));
-  border-color: rgba(34, 197, 94, 0.4);
-}
-
-/* ────────────────────────────────────────────────────────────
-   QUOTE LIST
-   ──────────────────────────────────────────────────────────── */
-
-.stories-quote-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin: 24px 0 32px;
-  padding: 0;
-  list-style: none;
-}
-
-.stories-quote-list li {
-  position: relative;
-  padding: 20px 22px 20px 24px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.75);
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.65;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
-
-.stories-quote-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: 3px 0 0 3px;
-  background: linear-gradient(180deg, #22c55e 0%, #8b5cf6 100%);
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-}
-
-.stories-quote-list li:hover {
-  transform: translateX(4px);
-  border-color: rgba(34, 197, 94, 0.25);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-}
-
-.stories-quote-list li:hover::before {
-  opacity: 1;
-}
-
-/* ────────────────────────────────────────────────────────────
-   CTA
-   ──────────────────────────────────────────────────────────── */
-
-.stories-cta {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.stories-community-btn {
-  position: relative;
-  overflow: hidden;
-  border: none;
-  border-radius: 999px;
-  padding: 14px 32px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #22c55e, #8b5cf6);
-  color: #ffffff;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.35);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stories-community-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #10b981, #7c3aed);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.stories-community-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 40px rgba(34, 197, 94, 0.45);
-}
-
-.stories-community-btn:hover::before {
-  opacity: 1;
-}
-
-.stories-community-btn:active {
-  transform: translateY(-1px);
-}
-
-/* ────────────────────────────────────────────────────────────
-   STORIES RESPONSIVE
-   ──────────────────────────────────────────────────────────── */
-
-@media (max-width: 1024px) {
-  .stories-expanded-view {
-    max-width: 100%;
-    padding: 0 clamp(20px, 4vw, 40px);
-  }
-
-  .stories-hero {
-    padding-top: 60px;
-  }
-
-  .stories-quote-list {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 14px;
-  }
-}
-
-@media (max-width: 768px) {
-  .stories-title {
-    font-size: clamp(28px, 8vw, 42px);
-  }
-
-  .stories-metrics {
-    justify-content: center;
-    gap: 24px;
-  }
-
-  .stories-exit-btn {
-    top: 16px;
-    right: 16px;
-    padding: 8px 14px;
-    font-size: 12px;
-  }
-
-  .stories-section-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .stories-section-content {
-    text-align: center;
-  }
-
-  .stories-highlight {
-    margin-top: 8px;
-  }
-
-  .stories-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stories-quote-list {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .stories-section {
-    margin-top: clamp(40px, 8vw, 60px);
-  }
-
-  .stories-cta {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .stories-expanded-shell {
-    border-radius: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .stories-expanded-shell {
-    border-radius: 0;
-  }
-
-  .stories-card {
-    padding: 20px;
-  }
-
-  .stories-metrics {
-    gap: 20px;
-  }
-
-  .stories-metrics li span {
-    font-size: 24px;
-  }
-
-  .stories-community-btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
+/* (Legacy stories block deleted — see css/community.css) */
 
 /* ╔════════════════════════════════════════════════════════════════════╗
    ║  3D FILE CONVERTER – Expanded View                                 ║
@@ -4394,7 +3817,7 @@ body.about-view .about-expanded-view {
 
   /* --- Containers — prevent overflow --- */
   .tutorials-expanded-view,
-  .stories-expanded-view,
+  .community-expanded-view,
   .converter-expanded-view,
   .about-expanded-view {
     max-width: 100vw;
@@ -4405,7 +3828,7 @@ body.about-view .about-expanded-view {
   }
 
   .tutorials-expanded-shell,
-  .stories-expanded-shell,
+  .community-expanded-shell,
   .converter-expanded-shell,
   .about-expanded-shell {
     max-width: 100%;
@@ -4418,7 +3841,7 @@ body.about-view .about-expanded-view {
 
   /* Catch-all: prevent any child from exceeding viewport */
   .tutorials-expanded-shell > *,
-  .stories-expanded-shell > *,
+  .community-expanded-shell > *,
   .converter-expanded-shell > *,
   .about-expanded-shell > * {
     max-width: 100%;
@@ -4427,7 +3850,7 @@ body.about-view .about-expanded-view {
 
   /* --- Shared hero improvements --- */
   .tutorials-hero,
-  .stories-hero,
+  .community-hero,
   .converter-hero,
   .about-hero {
     min-height: 0;
@@ -4437,7 +3860,7 @@ body.about-view .about-expanded-view {
   }
 
   .tutorials-hero-text,
-  .stories-hero-text,
+  .community-hero-text,
   .converter-hero-text,
   .about-hero-text {
     min-width: 0 !important;
@@ -4451,7 +3874,7 @@ body.about-view .about-expanded-view {
 
   /* --- Hero actions — full width stacked --- */
   .tutorials-hero-actions,
-  .stories-hero-actions,
+  .community-hero-actions,
   .converter-hero-actions,
   .about-hero-actions {
     flex-direction: column;
@@ -4462,8 +3885,8 @@ body.about-view .about-expanded-view {
 
   .tutorials-primary-btn,
   .tutorials-secondary-btn,
-  .stories-primary-btn,
-  .stories-secondary-btn,
+  .community-primary-btn,
+  .community-secondary-btn,
   .converter-primary-btn,
   .converter-secondary-btn,
   .about-primary-btn,
@@ -4477,7 +3900,7 @@ body.about-view .about-expanded-view {
 
   /* Titles — tighter on mobile */
   .tutorials-hero h1, .tutorials-title,
-  .stories-hero h1, .stories-title,
+  .community-hero h1, .community-title,
   .converter-hero h1, .converter-title,
   .about-hero h1, .about-title {
     font-size: clamp(26px, 7vw, 36px);
@@ -4486,7 +3909,7 @@ body.about-view .about-expanded-view {
 
   /* Descriptions — more readable */
   .tutorials-hero p,
-  .stories-hero p,
+  .community-hero p,
   .converter-hero p,
   .about-hero p {
     font-size: 13px;
@@ -4496,7 +3919,7 @@ body.about-view .about-expanded-view {
 
   /* Eyebrow pills — centered */
   .tutorials-pill,
-  .stories-pill,
+  .community-pill,
   .converter-pill,
   .about-pill {
     font-size: 10px;
@@ -4506,7 +3929,7 @@ body.about-view .about-expanded-view {
 
   /* Stats — compact row */
   .tutorials-hero-stats,
-  .stories-hero-stats,
+  .community-hero-stats,
   .converter-hero-stats,
   .about-hero-stats {
     justify-content: center;
@@ -4515,21 +3938,21 @@ body.about-view .about-expanded-view {
   }
 
   .tutorials-hero-stats li,
-  .stories-hero-stats li,
+  .community-hero-stats li,
   .converter-hero-stats li,
   .about-hero-stats li {
     text-align: center;
   }
 
   .tutorials-hero-stats li span,
-  .stories-hero-stats li span,
+  .community-hero-stats li span,
   .converter-hero-stats li span,
   .about-hero-stats li span {
     font-size: 18px;
   }
 
   .tutorials-hero-stats li small,
-  .stories-hero-stats li small,
+  .community-hero-stats li small,
   .converter-hero-stats li small,
   .about-hero-stats li small {
     font-size: 10px;
@@ -4537,7 +3960,7 @@ body.about-view .about-expanded-view {
 
   /* Watermarks — smaller on mobile */
   .tutorials-watermark,
-  .stories-watermark,
+  .community-watermark,
   .converter-watermark,
   .about-watermark {
     font-size: clamp(60px, 15vw, 120px);
@@ -4546,7 +3969,7 @@ body.about-view .about-expanded-view {
 
   /* --- Exit buttons — consistent sticky pill --- */
   .tutorials-exit-btn,
-  .stories-exit-btn,
+  .community-exit-btn,
   .converter-exit-btn,
   .about-exit-btn {
     top: 10px !important;
@@ -4559,7 +3982,7 @@ body.about-view .about-expanded-view {
   }
 
   .tutorials-exit-btn svg,
-  .stories-exit-btn svg,
+  .community-exit-btn svg,
   .converter-exit-btn svg,
   .about-exit-btn svg {
     width: 12px;
@@ -4570,7 +3993,7 @@ body.about-view .about-expanded-view {
 
   /* --- Sections — tighter vertical rhythm --- */
   .tutorials-section,
-  .stories-section,
+  .community-section,
   .converter-section,
   .about-section {
     margin-top: clamp(32px, 6vw, 48px);
@@ -4580,28 +4003,28 @@ body.about-view .about-expanded-view {
   }
 
   .tutorials-section-content,
-  .stories-section-content,
+  .community-section-content,
   .converter-section-content,
   .about-section-content {
     min-width: 0 !important;
   }
 
   .tutorials-section-header,
-  .stories-section-header,
+  .community-section-header,
   .converter-section-header,
   .about-section-header {
     margin-bottom: 20px;
   }
 
   .tutorials-section-header h2,
-  .stories-section-header h2,
+  .community-section-header h2,
   .converter-section-header h2,
   .about-section-header h2 {
     font-size: clamp(22px, 5.5vw, 28px);
   }
 
   .tutorials-section-header p,
-  .stories-section-header p,
+  .community-section-header p,
   .converter-section-header p,
   .about-section-header p {
     font-size: 13px;
@@ -4609,12 +4032,11 @@ body.about-view .about-expanded-view {
 
   /* --- Cards — compact mobile treatment --- */
   .tutorials-card,
-  .stories-card,
+  .community-card,
   .converter-card,
   .about-card,
   .tutorials-step,
   .tutorials-practice-card,
-  .stories-quote-card,
   .converter-tool {
     padding: 18px 16px;
     border-radius: 12px;
@@ -4626,8 +4048,9 @@ body.about-view .about-expanded-view {
   .tutorials-steps-grid,
   .tutorials-best-practices-grid,
   .tutorials-faq-grid,
-  .stories-grid,
-  .stories-quote-list,
+  .community-vision-grid,
+  .community-involve-grid,
+  .community-updates-list,
   .converter-format-grid,
   .converter-tools-grid,
   .about-mission-grid,
@@ -4639,21 +4062,21 @@ body.about-view .about-expanded-view {
 
 @media (max-width: 480px) {
   .tutorials-hero h1, .tutorials-title,
-  .stories-hero h1, .stories-title,
+  .community-hero h1, .community-title,
   .converter-hero h1, .converter-title,
   .about-hero h1, .about-title {
     font-size: clamp(24px, 6.5vw, 30px);
   }
 
   .tutorials-hero-stats,
-  .stories-hero-stats,
+  .community-hero-stats,
   .converter-hero-stats,
   .about-hero-stats {
     gap: 12px;
   }
 
   .tutorials-section,
-  .stories-section,
+  .community-section,
   .converter-section,
   .about-section {
     padding: 0 12px !important;
