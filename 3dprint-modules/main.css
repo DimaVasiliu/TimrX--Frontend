@@ -50,5 +50,8 @@
 /* 11. Community Styles (separate file for community page) */
 @import url('css/community.css');
 
-/* 12. Inspire Section (discovery overlay) */
+/* 12. Docs Styles (separate file for documentation page) */
+@import url('css/docs.css');
+
+/* 13. Inspire Section (discovery overlay) */
 @import url('css/inspire.css');
