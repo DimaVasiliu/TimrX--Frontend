@@ -3576,7 +3576,7 @@ img{max-width:100%;display:block}
   gap:14px;
 }
 @media(min-width:768px){
-  .seo-tools-grid{grid-template-columns:repeat(4,1fr);gap:16px}
+  .seo-tools-grid{grid-template-columns:repeat(3,1fr);gap:16px}
 }
 .seo-tool-card{
   display:block;padding:clamp(16px,2vw,22px);
