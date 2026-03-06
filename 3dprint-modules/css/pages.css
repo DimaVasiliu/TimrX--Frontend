@@ -947,7 +947,8 @@ body.history-menu-open .history-thumb__name {
 
 /* ===== Global Layout ===== */
 body.tutorials-view,
-body.community-view {
+body.community-view,
+body.docs-view {
   min-height: 100vh;
   overflow: auto;
   background: var(--bg);
@@ -955,7 +956,8 @@ body.community-view {
 }
 
 body.tutorials-view::before,
-body.community-view::before {
+body.community-view::before,
+body.docs-view::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -967,7 +969,8 @@ body.community-view::before {
 body.tutorials-view > *,
 body.community-view > *,
 body.converter-view > *,
-body.about-view > * {
+body.about-view > *,
+body.docs-view > * {
   position: relative;
   z-index: 1;
 }
@@ -999,7 +1002,8 @@ body.about-view::before {
 body.tutorials-view .timrx-3dprint.workspace,
 body.community-view .timrx-3dprint.workspace,
 body.converter-view .timrx-3dprint.workspace,
-body.about-view .timrx-3dprint.workspace {
+body.about-view .timrx-3dprint.workspace,
+body.docs-view .timrx-3dprint.workspace {
   display: none;
 }
 
@@ -1007,7 +1011,8 @@ body.about-view .timrx-3dprint.workspace {
 body.tutorials-view::after,
 body.community-view::after,
 body.converter-view::after,
-body.about-view::after {
+body.about-view::after,
+body.docs-view::after {
   content: "";
   position: fixed;
   top: 0;
