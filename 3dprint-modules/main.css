@@ -35,7 +35,7 @@
 /* 6. History Panel */
 @import url('css/history.css');
 
-/* 7. Expanded View Pages (tutorials, stories, about, etc.) */
+/* 7. Expanded View Pages (tutorials, community, about, etc.) */
 @import url('css/pages.css');
 
 /* 8. Converter Styles (separate file for converter page) */
@@ -47,5 +47,8 @@
 /* 10. About Styles (separate file for about page) */
 @import url('css/about.css');
 
-/* 11. Inspire Section (discovery overlay) */
+/* 11. Community Styles (separate file for community page) */
+@import url('css/community.css');
+
+/* 12. Inspire Section (discovery overlay) */
 @import url('css/inspire.css');
