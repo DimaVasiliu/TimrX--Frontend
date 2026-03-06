@@ -230,7 +230,7 @@
         <button class="chip" data-tag="GSAP" role="tab">GSAP</button>
         <button class="chip" data-tag="Three.js" role="tab">Three.js</button>
         <button class="chip" data-tag="3D" role="tab">3D</button>
-        <button class="chip" data-tag="3D Hub" role="tab">3D Hub</button>
+        <button class="chip" data-tag="TimrX" role="tab">TimrX</button>
         <button class="chip" data-tag="UX" role="tab">UX</button>
         <button class="chip" data-tag="Performance" role="tab">Performance</button>
         <button class="chip" data-tag="Workflow" role="tab">Workflow</button>
@@ -562,7 +562,11 @@
 
     // Apply filtering and search
     function applyFilterSearch(list){
-      const byTag = currentTag==='all' ? list : list.filter(p => (p.tags||'').toLowerCase().includes(currentTag.toLowerCase()));
+      const byTag = currentTag==='all' ? list : list.filter(p => {
+        var t = (p.tags||'').toLowerCase(), c = currentTag.toLowerCase();
+        if (c==='timrx') return t.includes('timrx') || t.includes('3d hub') || t.includes('hub') || t.includes('3d');
+        return t.includes(c);
+      });
       if (!searchQ) return byTag;
       const q = searchQ.toLowerCase();
       return byTag.filter(p => (p.title||'').toLowerCase().includes(q) || (p.excerpt||'').toLowerCase().includes(q) || (p.tags||'').toLowerCase().includes(q));
