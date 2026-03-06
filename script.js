@@ -163,6 +163,78 @@
     }
   })();
 
+  /* ------------------------------
+     2b) Platform Showcase motion
+     ------------------------------ */
+  (function platformShowcase() {
+    if (!hasGSAP) return;
+    const section = document.getElementById('platformShowcase');
+    if (!section) return;
+
+    // Content column: badge, heading, paragraph, CTAs stagger up
+    const contentEls = section.querySelectorAll('.pf-badge, .pf-heading, .pf-sub, .pf-ctas');
+    if (contentEls.length) {
+      gsap.from(contentEls, {
+        autoAlpha: 0, y: 20, duration: 0.6,
+        ease: 'power2.out', stagger: 0.08,
+        immediateRender: false,
+        scrollTrigger: { trigger: section, start: 'top 78%', toggleActions: 'play none none none' }
+      });
+    }
+
+    // Main image card: scale up + fade
+    const mainCard = section.querySelector('.pf-card-main');
+    if (mainCard) {
+      gsap.from(mainCard, {
+        autoAlpha: 0, scale: 0.92, y: 24, duration: 0.7,
+        ease: 'power3.out', immediateRender: false,
+        scrollTrigger: { trigger: section, start: 'top 78%', toggleActions: 'play none none none' }
+      });
+    }
+
+    // Floating glass cards: stagger in with slight bounce
+    const floats = section.querySelectorAll('.pf-float');
+    if (floats.length) {
+      gsap.from(floats, {
+        autoAlpha: 0, y: 16, scale: 0.9, duration: 0.5,
+        ease: 'back.out(1.6)', stagger: 0.1, delay: 0.3,
+        immediateRender: false,
+        scrollTrigger: { trigger: section, start: 'top 78%', toggleActions: 'play none none none' }
+      });
+
+      // Desktop-only: subtle floating motion
+      if (window.innerWidth >= 768) {
+        floats.forEach((el, i) => {
+          gsap.to(el, {
+            y: (i % 2 === 0) ? -12 : 12,
+            duration: 2.5 + i * 0.4,
+            repeat: -1, yoyo: true, ease: 'sine.inOut'
+          });
+        });
+      }
+    }
+
+    // Workflow steps: stagger in
+    const steps = section.querySelectorAll('.pf-wf-step');
+    const lines = section.querySelectorAll('.pf-wf-line');
+    if (steps.length) {
+      gsap.from(steps, {
+        autoAlpha: 0, y: 14, duration: 0.45,
+        ease: 'power2.out', stagger: 0.06,
+        immediateRender: false,
+        scrollTrigger: { trigger: '.pf-workflow', start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    }
+    if (lines.length) {
+      gsap.from(lines, {
+        scaleX: 0, duration: 0.4,
+        ease: 'power2.out', stagger: 0.06, delay: 0.15,
+        immediateRender: false,
+        scrollTrigger: { trigger: '.pf-workflow', start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    }
+  })();
+
     /* ------------------------------
        3) BLOGS section motion (enhanced compact header + cards)
        ------------------------------ */
