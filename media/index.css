@@ -1080,7 +1080,17 @@ html, body {
   .services-orbit .svc-ring {
     animation: none !important;
   }
+  .pf-badge-dot {
+    animation: none !important;
+  }
   /* Elements that start opacity:0 and rely on animation to show — must be made visible */
   .hero-eyebrow { opacity: 1 !important; }
   .hero-list li  { opacity: 1 !important; transform: none !important; }
+  /* Platform showcase: ensure GSAP-animated elements are visible */
+  .pf-badge, .pf-heading, .pf-sub, .pf-ctas,
+  .pf-card-main, .pf-float,
+  .pf-wf-step, .pf-wf-line {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
