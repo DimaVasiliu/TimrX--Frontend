@@ -2433,9 +2433,9 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Nav hide on scroll for expanded views
       const nav = document.querySelector('.ws-nav');
-      const blogsCta = document.querySelector('.ws-blog-cta');
+      const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
-      const hideableElements = [nav, blogsCta, creditsGroup].filter(Boolean);
+      const hideableElements = [nav, headerLeft, creditsGroup].filter(Boolean);
 
       if (hideableElements.length > 0) {
         let lastScrollY = 0;
