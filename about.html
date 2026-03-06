@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="about-page">
 <head>
@@ -86,6 +87,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="footer.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
@@ -409,49 +411,7 @@
     }
     .connect-link:hover svg { opacity: 1; }
 
-    /* Footer */
-    .about-footer {
-      border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 24px 0 32px;
-      background: rgba(10,10,10,0.5);
-    }
-    .foot {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-    .foot > span { color: #bbb; font-size: 14px; }
-    .foot-nav { display: flex; gap: 4px; }
-    .foot-nav a { margin-right: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
-    .foot-nav a:hover { color: #fff; }
-    .foot-social { display: flex; gap: 4px; }
-    .foot-social a { margin-left: 12px; color: #ccc; text-decoration: none; transition: color 0.2s; font-size: 14px; }
-    .foot-social a:hover { color: #fff; }
-    .foot-legal { display: flex; gap: 4px; }
-    .foot-legal a { margin-right: 12px; color: #999; text-decoration: none; transition: color 0.2s; font-size: 13px; }
-    .foot-legal a:hover { color: #fff; }
-    @media (max-width: 640px) {
-      .about-footer { padding: 28px 0 24px; }
-      .foot {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 20px;
-        padding: 0 20px;
-      }
-      .foot > span { order: 4; font-size: 12px; color: rgba(255,255,255,0.25); padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); width: 60%; }
-      .foot-nav { order: 1; justify-content: center; flex-wrap: wrap; gap: 4px; }
-      .foot-nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; margin-right: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: rgba(255,255,255,0.6); }
-      .foot-nav a:hover { color: rgba(255,255,255,0.9); }
-      .foot-social { order: 2; justify-content: center; flex-wrap: wrap; gap: 6px; }
-      .foot-social a { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 14px; margin-left: 0; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; }
-      .foot-social a:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.18); }
-      .foot-legal { order: 3; justify-content: center; flex-wrap: wrap; gap: 4px; }
-      .foot-legal a { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 10px; margin-right: 0; font-size: 10px; color: rgba(255,255,255,0.3); }
-      .foot-legal a:hover { color: rgba(255,255,255,0.6); }
-    }
+    /* Footer styles loaded from footer.css */
   </style>
 </head>
 <body>
@@ -569,24 +529,49 @@
   </main>
 
   <!-- Footer -->
-  <footer class="about-footer">
-    <div class="container foot">
-      <span>&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-      <nav class="foot-nav">
-        <a href="/blogs">Blog</a>
-        <a href="/#works">Works</a>
-        <a href="/#services">Services</a>
-        <a href="/#contact">Contact</a>
-      </nav>
-      <nav class="foot-legal">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/cookies">Cookies</a>
-      </nav>
-      <div class="foot-social">
-        <a href="mailto:admin@timrx.live">Email</a>
-        <a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener">GitHub</a>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">AI Creative Platform</span>
+          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Explore</h3>
+            <ul class="ft-links">
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/#works">Works</a></li>
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Legal</h3>
+            <ul class="ft-links">
+              <li><a href="/terms">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/cookies">Cookies</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; AI creative tools</span>
       </div>
     </div>
   </footer>
