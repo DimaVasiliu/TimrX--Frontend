@@ -2279,6 +2279,10 @@
             affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
           })
         });
+        const ct = r.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+          throw new Error('Server returned non-JSON response (possible timeout). Try again.');
+        }
         const j = await r.json();
 
         if (j.ok) {
@@ -2429,6 +2433,10 @@
               context: $('#assist_context').value.trim()
             })
           });
+          const ct = r.headers.get('content-type') || '';
+          if (!ct.includes('application/json')) {
+            throw new Error('Server returned non-JSON response (possible timeout). Try again.');
+          }
           const j = await r.json();
 
           if (j.ok) {
