@@ -1,4 +1,3 @@
-
 /* ===========================================================
    COMMUNITY.CSS - Styles for the Community Expanded View
    Clean minimal style matching tutorials, converter, and about
@@ -574,7 +573,6 @@ body.community-view .community-expanded-view {
   .community-hero-actions,
   .community-cta-actions {
     flex-direction: column;
-    width: 100%;
   }
 }
 
@@ -589,8 +587,8 @@ body.community-view .community-expanded-view {
 
   .community-primary-btn,
   .community-secondary-btn {
-    width: 100%;
-    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .community-hero-stats {
