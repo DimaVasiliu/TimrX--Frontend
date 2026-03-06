@@ -1,4 +1,3 @@
-
 /**
  * main.js
  * The entry point. Imports all modules, runs initialization logic,
@@ -1443,6 +1442,18 @@ window.addEventListener('DOMContentLoaded', () => {
     if (imageRail) imageRail.addEventListener('click', () => switchHistoryFilter('image'));
     if (modelRail) modelRail.addEventListener('click', () => switchHistoryFilter('all'));
     if (videoRail) videoRail.addEventListener('click', () => switchHistoryFilter('video'));
+
+    // MY ASSETS nav link → open expanded history gallery
+    document.querySelectorAll('[data-open-assets]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        State.historyState.galleryExpanded = true;
+        State.historyState.filter = 'all';
+        State.historyState.page = 1;
+        renderHistory();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
 
     // Set up generate button listeners
     setupGenerateButtonListeners();
