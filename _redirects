@@ -17,6 +17,14 @@
 /privacy.html     /privacy       301
 /admin.html       /admin         301
 /admin-edit.html  /admin/edit    301
+/ai-image-generator.html        /ai-image-generator       301
+/ai-video-generator.html        /ai-video-generator       301
+/ai-3d-generator.html           /ai-3d-generator          301
+/text-to-3d.html                /text-to-3d               301
+/image-to-3d.html               /image-to-3d              301
+/3d-print-model-generator.html  /3d-print-model-generator 301
+/ai-tools.html                  /ai-tools                 301
+/ai-knowledge.html              /ai-knowledge             301
 
 # ----------------------------
 # Admin rewrites (non-standard paths, Pretty URLs can't resolve these)
@@ -38,3 +46,11 @@
 /privacy/     /privacy    301
 /admin/edit/  /admin/edit 301
 /admin/       /admin      301
+/ai-image-generator/        /ai-image-generator       301
+/ai-video-generator/        /ai-video-generator       301
+/ai-3d-generator/           /ai-3d-generator          301
+/text-to-3d/                /text-to-3d               301
+/image-to-3d/               /image-to-3d              301
+/3d-print-model-generator/  /3d-print-model-generator 301
+/ai-tools/                  /ai-tools                 301
+/ai-knowledge/              /ai-knowledge             301
