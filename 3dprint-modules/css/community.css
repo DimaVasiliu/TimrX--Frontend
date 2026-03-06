@@ -1,3 +1,4 @@
+
 /* ===========================================================
    COMMUNITY.CSS - Styles for the Community Expanded View
    Clean minimal style matching tutorials, converter, and about
@@ -145,7 +146,7 @@ body.community-view .community-expanded-view {
   right: 0;
   transform: translateY(-50%);
   font-family: Inter, system-ui, sans-serif;
-  font-size: clamp(120px, 18vw, 280px);
+  font-size: clamp(80px, 12vw, 180px);
   font-weight: 700;
   letter-spacing: -0.04em;
   color: rgba(255, 255, 255, 0.03);
