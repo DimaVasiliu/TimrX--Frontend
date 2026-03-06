@@ -2472,7 +2472,8 @@
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
                                   document.body.classList.contains('converter-view') ||
                                   document.body.classList.contains('community-view') ||
-                                  document.body.classList.contains('about-view');
+                                  document.body.classList.contains('about-view') ||
+                                  document.body.classList.contains('history-expanded');
 
           if (!isExpandedView) {
             hideableElements.forEach(el => el.classList.remove('nav-hidden'));
