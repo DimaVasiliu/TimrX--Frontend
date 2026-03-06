@@ -390,13 +390,100 @@
         </div>
     </header>
 
-    <!-- SEO H1 Brand Section -->
-    <section class="seo-brand-strip" aria-label="Platform overview">
+    <!-- Platform Showcase + Workflow -->
+    <section class="pf-showcase" id="platformShowcase" aria-label="Platform overview">
+
+      <!-- Decorative background -->
+      <div class="pf-bg" aria-hidden="true">
+        <div class="pf-bg-grid"></div>
+        <div class="pf-bg-glow pf-bg-glow--accent"></div>
+        <div class="pf-bg-glow pf-bg-glow--accent2"></div>
+      </div>
+
       <div class="container">
-        <span class="seo-brand-label"><span class="sbl-dot"></span>AI Creative Platform</span>
-        <h1 class="seo-brand-heading">TimrX — AI Platform for 3D, Video & Image Generation</h1>
-        <hr class="seo-brand-rule" aria-hidden="true">
-        <p class="seo-brand-sub">Built by full-stack developer Dima Vasiliu. Generate 3D models, images, and videos with text-to-video, image-to-video, and image-to-3D — directly in the browser.</p>
+
+        <!-- Two-column showcase -->
+        <div class="pf-grid">
+
+          <!-- Left: Content -->
+          <div class="pf-content">
+            <span class="pf-badge"><span class="pf-badge-dot"></span>AI Creative Platform</span>
+            <h1 class="pf-heading">TimrX &mdash; AI Platform for 3D, Video &amp; Image Generation</h1>
+            <p class="pf-sub">Built by full-stack developer Dima Vasiliu. Generate 3D models, images, and videos with text-to-video, image-to-video, and image-to-3D &mdash; directly in the browser.</p>
+            <div class="pf-ctas">
+              <a class="btn" href="/hub">Explore Hub</a>
+              <a class="btn secondary" href="#works">View Works</a>
+            </div>
+          </div>
+
+          <!-- Right: Visual -->
+          <div class="pf-visual">
+            <div class="pf-visual-glow" aria-hidden="true"></div>
+            <div class="pf-card-main">
+              <img
+                src="img/img1.jpg"
+                alt="TimrX AI platform interface preview"
+                loading="lazy"
+                decoding="async"
+                class="pf-card-img"
+                onerror="this.parentElement.classList.add('pf-card-main--fallback')"
+              />
+              <div class="pf-card-fallback" aria-hidden="true">
+                <i class="fa-solid fa-cube"></i>
+                <span>TimrX Platform</span>
+              </div>
+            </div>
+
+            <!-- Floating glass cards -->
+            <div class="pf-float pf-float--1" aria-hidden="true">
+              <i class="fa-solid fa-cube"></i>
+              <span>3D Models</span>
+            </div>
+            <div class="pf-float pf-float--2" aria-hidden="true">
+              <i class="fa-solid fa-video"></i>
+              <span>Text to Video</span>
+            </div>
+            <div class="pf-float pf-float--3" aria-hidden="true">
+              <i class="fa-solid fa-globe"></i>
+              <span>Browser-Based</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Workflow row -->
+        <div class="pf-workflow">
+          <div class="pf-wf-step">
+            <div class="pf-wf-icon"><i class="fa-solid fa-keyboard"></i></div>
+            <span class="pf-wf-num">01</span>
+            <span class="pf-wf-label">Prompt</span>
+          </div>
+          <div class="pf-wf-line" aria-hidden="true"></div>
+          <div class="pf-wf-step">
+            <div class="pf-wf-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <span class="pf-wf-num">02</span>
+            <span class="pf-wf-label">Generate</span>
+          </div>
+          <div class="pf-wf-line" aria-hidden="true"></div>
+          <div class="pf-wf-step">
+            <div class="pf-wf-icon"><i class="fa-solid fa-cube"></i></div>
+            <span class="pf-wf-num">03</span>
+            <span class="pf-wf-label">Transform</span>
+          </div>
+          <div class="pf-wf-line" aria-hidden="true"></div>
+          <div class="pf-wf-step">
+            <div class="pf-wf-icon"><i class="fa-solid fa-film"></i></div>
+            <span class="pf-wf-num">04</span>
+            <span class="pf-wf-label">Animate</span>
+          </div>
+          <div class="pf-wf-line" aria-hidden="true"></div>
+          <div class="pf-wf-step">
+            <div class="pf-wf-icon"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+            <span class="pf-wf-num">05</span>
+            <span class="pf-wf-label">Export</span>
+          </div>
+        </div>
+
       </div>
     </section>
 
