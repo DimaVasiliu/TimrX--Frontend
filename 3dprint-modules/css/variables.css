@@ -93,7 +93,8 @@ body.print3d-page.history-expanded {
 body.print3d-page.tutorials-view,
 body.print3d-page.community-view,
 body.print3d-page.converter-view,
-body.print3d-page.about-view {
+body.print3d-page.about-view,
+body.print3d-page.docs-view {
   overflow: auto;
   overflow-x: hidden;
   height: auto;
