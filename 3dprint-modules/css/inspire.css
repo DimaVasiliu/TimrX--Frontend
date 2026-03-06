@@ -12,11 +12,11 @@ body.inspire-open {
 
 /* Hide Inspire button and email beacon during expansion views */
 body.tutorials-view .inspire-trigger-btn,
-body.stories-view .inspire-trigger-btn,
+body.community-view .inspire-trigger-btn,
 body.converter-view .inspire-trigger-btn,
 body.about-view .inspire-trigger-btn,
 body.tutorials-view .email-beacon,
-body.stories-view .email-beacon,
+body.community-view .email-beacon,
 body.converter-view .email-beacon,
 body.about-view .email-beacon {
   display: none !important;
