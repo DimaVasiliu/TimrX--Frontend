@@ -3557,6 +3557,47 @@ img{max-width:100%;display:block}
 }
 
 /* =========================================================
+   Explore TimrX AI Tools — internal linking
+   ========================================================= */
+.seo-tools{
+  padding:clamp(40px,6vh,64px) 0;
+  border-top:1px solid var(--line);
+  background:var(--bg);
+}
+.seo-tools-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-weight:400;font-size:clamp(22px,3vw,32px);
+  letter-spacing:.04em;color:var(--text);
+  margin:0 0 clamp(20px,3vh,32px);
+}
+.seo-tools-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+@media(min-width:768px){
+  .seo-tools-grid{grid-template-columns:repeat(4,1fr);gap:16px}
+}
+.seo-tool-card{
+  display:block;padding:clamp(16px,2vw,22px);
+  border:1px solid rgba(255,255,255,.06);border-radius:12px;
+  background:#0f0f0f;text-decoration:none;
+  transition:border-color .22s ease, transform .22s ease;
+}
+.seo-tool-card:hover{
+  border-color:rgba(14,165,233,.3);
+  transform:translateY(-2px);
+}
+.seo-tool-card h3{
+  font-size:14px;font-weight:700;color:var(--text);
+  margin:0 0 6px;
+}
+.seo-tool-card p{
+  font-size:12px;color:var(--muted);
+  line-height:1.55;margin:0;
+}
+
+/* =========================================================
    Footer
    ========================================================= */
 .site-footer{
