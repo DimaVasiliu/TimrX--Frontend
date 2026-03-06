@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -211,6 +212,7 @@
           MENU
         </button>
         <div class="ws-dropdown-menu">
+          <a href="#docs" class="ws-dropdown-item" data-open-docs>Docs</a>
           <a href="#tutorials" class="ws-dropdown-item" data-open-tutorials>Tutorials</a>
           <a href="#converter" class="ws-dropdown-item" data-open-converter>Converter</a>
           <a href="#about" class="ws-dropdown-item" data-open-about>About</a>
@@ -286,6 +288,10 @@
         <a href="#converter" class="ws-mobile-link" data-open-converter>
           <span class="wml-label">Converter</span>
           <span class="wml-sub">Convert file formats</span>
+        </a>
+        <a href="#docs" class="ws-mobile-link" data-open-docs>
+          <span class="wml-label">Docs</span>
+          <span class="wml-sub">Platform documentation</span>
         </a>
         <a href="#about" class="ws-mobile-link" data-open-about>
           <span class="wml-label">About</span>
@@ -1053,6 +1059,55 @@
           }
         }
       });
+
+      initExpandedView({
+        id: 'docsGallery',
+        triggerAttr: 'data-open-docs',
+        bodyClass: 'docs-view',
+        hash: '#docs',
+        focusSelector: '[data-docs-focus]',
+        closeSelector: '#docsExit',
+        onNavigate: ({ action, close }) => {
+          if (action === 'workspace') {
+            close?.();
+          }
+          if (action === 'tutorials') {
+            close?.();
+            requestAnimationFrame(() => {
+              document.querySelector('[data-open-tutorials]')?.click();
+            });
+          }
+        }
+      });
+
+      // Docs sidebar scroll-spy
+      (() => {
+        const docsEl = document.getElementById('docsGallery');
+        if (!docsEl) return;
+        const links = docsEl.querySelectorAll('.docs-sidebar-link');
+        const articles = docsEl.querySelectorAll('.docs-article');
+
+        // Click handler for sidebar links
+        links.forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = docsEl.querySelector(link.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+
+        // IntersectionObserver for active state
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === '#' + id));
+            }
+          });
+        }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+
+        articles.forEach(a => observer.observe(a));
+      })();
 
       window.addEventListener('hashchange', () => {
         const target = viewHandles.find(handle => handle.hash === window.location.hash);
@@ -1822,9 +1877,372 @@
           <div class="community-cta-actions">
             <a href="https://discord.gg/timrx" target="_blank" rel="noopener" class="community-primary-btn">Join the Community</a>
             <button type="button" class="community-secondary-btn" data-expanded-nav="tutorials">Explore Tutorials</button>
+            <a href="#docs" class="community-secondary-btn" data-open-docs>Read the Docs</a>
           </div>
         </div>
       </section>
+    </div>
+  </section>
+
+  <!-- Documentation Expanded View -->
+  <section id="docsGallery" class="docs-expanded-view" aria-labelledby="docsTitle" hidden inert>
+    <div class="docs-expanded-shell">
+
+      <!-- Hero -->
+      <header class="docs-hero">
+        <div class="docs-hero-text" id="docsFocus" data-docs-focus tabindex="-1">
+          <span class="docs-pill">Documentation</span>
+          <h1 class="docs-title" id="docsTitle">TimrX Docs</h1>
+          <p>Everything you need to know about the 3D Print Hub — features, tools, supported formats, and workflows.</p>
+        </div>
+        <button type="button" class="docs-exit-btn" id="docsExit" aria-label="Close docs">Exit Docs &#10005;</button>
+        <span class="docs-watermark">DOCS</span>
+      </header>
+
+      <!-- Layout: Sidebar + Content -->
+      <div class="docs-layout">
+
+        <!-- Sidebar Navigation -->
+        <nav class="docs-sidebar" aria-label="Documentation navigation">
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Getting Started</span>
+            <a href="#doc-overview" class="docs-sidebar-link is-active">Overview</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Generation</span>
+            <a href="#doc-text-to-3d" class="docs-sidebar-link">Text to 3D</a>
+            <a href="#doc-image-to-3d" class="docs-sidebar-link">Image to 3D</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Post-Processing</span>
+            <a href="#doc-remesh" class="docs-sidebar-link">Remesh</a>
+            <a href="#doc-texture" class="docs-sidebar-link">AI Texture</a>
+            <a href="#doc-rig" class="docs-sidebar-link">Auto-Rig</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Media</span>
+            <a href="#doc-image-gen" class="docs-sidebar-link">AI Image</a>
+            <a href="#doc-video" class="docs-sidebar-link">AI Video</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Tools</span>
+            <a href="#doc-viewer" class="docs-sidebar-link">3D Viewer</a>
+            <a href="#doc-converter" class="docs-sidebar-link">File Converter</a>
+            <a href="#doc-assets" class="docs-sidebar-link">My Assets</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Reference</span>
+            <a href="#doc-formats" class="docs-sidebar-link">Formats</a>
+            <a href="#doc-credits" class="docs-sidebar-link">Credits</a>
+            <a href="#doc-faq" class="docs-sidebar-link">FAQ</a>
+          </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="docs-content">
+
+          <!-- Overview -->
+          <article class="docs-article" id="doc-overview">
+            <h2>Overview</h2>
+            <p>TimrX 3D Print Hub is a browser-based workspace for creating 3D models, textures, animations, and videos using AI. Everything runs in the browser — no downloads, no installs. Generate a model from text or an image, refine it, add textures, rig it for animation, and export it for 3D printing or game engines.</p>
+            <h3>Workspace layout</h3>
+            <p>The workspace is split into three areas:</p>
+            <ul>
+              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, Rig, and Video panels.</li>
+              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Remesh, Texture, Rig, Download, and Share.</li>
+              <li><strong>Right panel</strong> — Generation history. Browse, search, and filter all your past creations. Expand to a full gallery view.</li>
+            </ul>
+            <div class="docs-tip"><strong>Tip:</strong> Click any item in the history panel to load it into the 3D viewer instantly.</div>
+          </article>
+
+          <!-- Text to 3D -->
+          <article class="docs-article" id="doc-text-to-3d">
+            <h2>Text to 3D</h2>
+            <p>Describe what you want and get a 3D model. Select the Model panel from the left rail, choose the Text to 3D tab, enter your prompt, and hit Generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>AI Model</dt>
+                <dd>Meshy 6 Preview (latest), Meshy 5, Meshy 4</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Batch Count</dt>
+                <dd>1 to 4 models per generation</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Symmetry</dt>
+                <dd>Off, Auto, or On</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Art Style</dt>
+                <dd>Realistic or Sculpture</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>A/T Pose</dt>
+                <dd>Toggle on for rig-ready character models</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>License</dt>
+                <dd>CC BY 4.0 or Private</dd>
+              </dl>
+            </div>
+            <p>When generating more than one model, a draft selection grid appears. Pick your favorite, then continue to texture or export.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 20 credits per generation. Estimated time ~1 minute.</div>
+          </article>
+
+          <!-- Image to 3D -->
+          <article class="docs-article" id="doc-image-to-3d">
+            <h2>Image to 3D</h2>
+            <p>Upload a reference image and get a 3D model based on it. Switch to the Image to 3D tab inside the Model panel, upload your image, optionally name the model, and generate.</p>
+            <p>All the same options from Text to 3D apply — AI model, symmetry, art style, batch count, and license. The AI uses the image as a visual reference to construct the geometry.</p>
+            <div class="docs-tip"><strong>Best results:</strong> Use clean, well-lit images with a single subject on a simple background. Multiple angles of the same object are not needed — a single front-facing shot works.</div>
+          </article>
+
+          <!-- Remesh -->
+          <article class="docs-article" id="doc-remesh">
+            <h2>Remesh</h2>
+            <p>Optimize a model's topology for 3D printing or further editing. Select the Remesh panel from the left rail, choose the current model or upload a new one, set your options, and run.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Poly Count</dt>
+                <dd>Target polygon count (default 10,000)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Mode</dt>
+                <dd>Uniform, Adaptive, Feature Preserving, Quad Based</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Preserve UV</dt>
+                <dd>Keep UV mapping intact (on by default)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Preserve Boundaries</dt>
+                <dd>Maintain mesh edges (on by default)</dd>
+              </dl>
+            </div>
+            <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 10 credits. Estimated time ~2 minutes.</div>
+          </article>
+
+          <!-- AI Texture -->
+          <article class="docs-article" id="doc-texture">
+            <h2>AI Texture</h2>
+            <p>Generate PBR (physically-based rendering) textures for any 3D model using a text prompt. Select the Texture panel, choose the current model or upload a new one, describe the surface you want, and generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Resolution</dt>
+                <dd>512, 1024, 2048 (default), or 4096</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Map Type</dt>
+                <dd>PBR All Maps, Diffuse Only, Normal, Roughness, Metallic</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seamless Tiling</dt>
+                <dd>On by default for continuous surfaces</dd>
+              </dl>
+            </div>
+            <p>When using PBR All Maps, the following maps are generated: Albedo/Diffuse, Normal, Roughness, Metallic, and Ambient Occlusion.</p>
+            <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 15 credits. Estimated time ~1.5 minutes.</div>
+          </article>
+
+          <!-- Auto-Rig -->
+          <article class="docs-article" id="doc-rig">
+            <h2>Auto-Rig</h2>
+            <p>Automatically rig humanoid character models for animation. Select the Rig panel, choose the current model or upload a textured GLB/GLTF file, set the character height, and run.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Height</dt>
+                <dd>0.5m to 3m (default 1.7m)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Override Texture</dt>
+                <dd>Optional PNG upload to replace the surface</dd>
+              </dl>
+            </div>
+            <p>The output is compatible with Mixamo and can be exported to game engines like Unity and Unreal.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 25 credits. Estimated time ~2 minutes. For best results, enable A/T Pose during model generation.</div>
+          </article>
+
+          <!-- AI Image -->
+          <article class="docs-article" id="doc-image-gen">
+            <h2>AI Image</h2>
+            <p>Generate 2D images using AI. Select the Image panel from the left rail, enter a text prompt, choose your provider and settings, and generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Provider</dt>
+                <dd>OpenAI or Google (Imagen)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Shape</dt>
+                <dd>Square, Portrait, or Landscape</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Quality</dt>
+                <dd>Standard (5 credits) or 2K (7 credits)</dd>
+              </dl>
+            </div>
+            <div class="docs-tip"><strong>Cost:</strong> 5-7 credits. Estimated time ~30 seconds.</div>
+          </article>
+
+          <!-- AI Video -->
+          <article class="docs-article" id="doc-video">
+            <h2>AI Video</h2>
+            <p>Generate AI videos using Veo 3.1. Select the Video panel, choose Text to Video or Image to Video, configure your settings, and generate.</p>
+            <h3>Text to Video</h3>
+            <p>Enter a text prompt and optionally select a style preset:</p>
+            <ul>
+              <li>Auto, Cinematic Realism, Product Ad, Anime Motion, Documentary</li>
+              <li>Dreamlike Surreal, Aerial, Timelapse, Slow-Mo, Noir</li>
+            </ul>
+            <h3>Camera motion</h3>
+            <p>Choose from: None, Pan, Parallax, Zoom In, Zoom Out, Orbit, Dolly, or Tilt. You can also provide custom motion instructions.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Duration</dt>
+                <dd>4s (default), 6s, or 8s</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Aspect Ratio</dt>
+                <dd>16:9 Landscape or 9:16 Portrait</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Quality</dt>
+                <dd>Standard HD (720p) or Pro Full HD (1080p)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Loop</dt>
+                <dd>Seamless loop playback (on by default)</dd>
+              </dl>
+            </div>
+            <div class="docs-tip"><strong>Cost:</strong> 70 credits (base). Estimated time ~2 minutes.</div>
+          </article>
+
+          <!-- 3D Viewer -->
+          <article class="docs-article" id="doc-viewer">
+            <h2>3D Viewer</h2>
+            <p>The center of the workspace is a real-time 3D viewer powered by Three.js. Any generated or uploaded model loads here automatically.</p>
+            <h3>Controls</h3>
+            <ul>
+              <li><strong>Orbit</strong> — Left-click and drag to rotate around the model.</li>
+              <li><strong>Zoom</strong> — Scroll wheel to zoom in and out.</li>
+              <li><strong>Pan</strong> — Right-click and drag to move the camera.</li>
+              <li><strong>Auto-rotate</strong> — Toggle via the settings gear icon.</li>
+            </ul>
+            <h3>Toolbar actions</h3>
+            <p>Below the viewer, quick actions let you: Retry the generation, jump to Remesh, Texture, or Rig panels, Download the model as GLB, Share a link, or send to a printer.</p>
+            <p>You can also upload your own model (GLB/GLTF, max 50MB) via the "New" button in the viewer header.</p>
+          </article>
+
+          <!-- File Converter -->
+          <article class="docs-article" id="doc-converter">
+            <h2>File Converter</h2>
+            <p>A free, client-side 3D file converter. No account required. Files never leave your device — all processing happens in the browser.</p>
+            <h3>Supported conversions</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Input Formats</th><th>Export Formats</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GLB, GLTF, OBJ, STL, FBX</td><td>GLB, GLTF, OBJ, STL</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Maximum file size: 100MB. After upload, the converter shows filename, format, file size, vertex count, and face count.</p>
+            <h3>Advanced options</h3>
+            <ul>
+              <li><strong>Include textures</strong> — Embed textures in GLB/GLTF output (on by default).</li>
+              <li><strong>Binary STL</strong> — Smaller file size for STL exports (on by default).</li>
+              <li><strong>Flip Y/Z axis</strong> — Swap vertical axis for compatibility with some applications.</li>
+            </ul>
+          </article>
+
+          <!-- My Assets -->
+          <article class="docs-article" id="doc-assets">
+            <h2>My Assets</h2>
+            <p>The right panel stores your full generation history — 3D models, images, and videos. Everything is synced to your account.</p>
+            <h3>Features</h3>
+            <ul>
+              <li><strong>Search</strong> — Find models by prompt text.</li>
+              <li><strong>Filter</strong> — Show all items, or only images, videos, or 3D models.</li>
+              <li><strong>Sort</strong> — Toggle between newest and oldest first.</li>
+              <li><strong>Pagination</strong> — 9, 12, 15, or 24 items per page.</li>
+              <li><strong>Expanded gallery</strong> — Open a full-screen gallery view from the nav or the expand button.</li>
+            </ul>
+            <h3>Context menu</h3>
+            <p>Right-click (or long-press on mobile) any asset for actions: Texture, Remesh, Rig, Refine Preview, Image to 3D, Download (GLB/PNG/MP4), Share, Print, Change License, or Delete.</p>
+          </article>
+
+          <!-- Supported Formats -->
+          <article class="docs-article" id="doc-formats">
+            <h2>Supported Formats</h2>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Format</th><th>Import</th><th>Export</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GLB</td><td>Yes</td><td>Yes</td><td>Binary GLTF. Compact single file with embedded textures.</td></tr>
+                  <tr><td>GLTF</td><td>Yes</td><td>Yes</td><td>JSON-based. Separate asset files.</td></tr>
+                  <tr><td>OBJ</td><td>Yes</td><td>Yes</td><td>Universal format. No embedded textures.</td></tr>
+                  <tr><td>STL</td><td>Yes</td><td>Yes</td><td>3D printing standard. Geometry only.</td></tr>
+                  <tr><td>FBX</td><td>Yes</td><td>No</td><td>Import only. Widely used in game engines.</td></tr>
+                  <tr><td>USDZ</td><td>No</td><td>Yes</td><td>Available from generation API for AR Quick Look.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <!-- Credit Costs -->
+          <article class="docs-article" id="doc-credits">
+            <h2>Credit Costs</h2>
+            <p>Each feature uses a fixed number of credits per operation.</p>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Feature</th><th>Credits</th><th>Est. Time</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>AI Image (Standard)</td><td>5</td><td>~30s</td></tr>
+                  <tr><td>AI Image (2K)</td><td>7</td><td>~30s</td></tr>
+                  <tr><td>Text to 3D / Image to 3D</td><td>20</td><td>~1 min</td></tr>
+                  <tr><td>Remesh</td><td>10</td><td>~2 min</td></tr>
+                  <tr><td>AI Texture</td><td>15</td><td>~1.5 min</td></tr>
+                  <tr><td>Auto-Rig</td><td>25</td><td>~2 min</td></tr>
+                  <tr><td>AI Video</td><td>70</td><td>~2 min</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="docs-tip"><strong>Free retry:</strong> When generating multiple drafts, you get a free retry if none of the results match your expectation.</div>
+          </article>
+
+          <!-- FAQ -->
+          <article class="docs-article" id="doc-faq">
+            <h2>FAQ</h2>
+
+            <h3>What file format do generated models use?</h3>
+            <p>All AI-generated 3D models are delivered as GLB files. You can convert them to OBJ, STL, or GLTF using the built-in File Converter.</p>
+
+            <h3>Are my models print-ready?</h3>
+            <p>Generated models are suitable for most FDM and resin printers. For best results, run the Remesh tool with Feature Preserving or Adaptive mode to optimize the topology before slicing.</p>
+
+            <h3>What is the difference between Refine and Remesh?</h3>
+            <p>Refine adds aesthetic detail and improves overall mesh quality. Remesh optimizes the topology (polygon structure) for printing or further editing. Use Refine for visual quality, Remesh for structural quality.</p>
+
+            <h3>Can I upload my own models?</h3>
+            <p>Yes. Use the "New" button in the 3D viewer to upload a GLB or GLTF file (max 50MB). You can also upload models directly into the Remesh, Texture, and Rig panels for processing.</p>
+
+            <h3>Is the File Converter free?</h3>
+            <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
+
+            <h3>How long do generations take?</h3>
+            <p>Most 3D model generations complete in about 1 minute. Remesh and Rig take about 2 minutes. Video generation takes about 2 minutes. Times vary depending on server load.</p>
+          </article>
+
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -2473,6 +2891,7 @@
                                   document.body.classList.contains('converter-view') ||
                                   document.body.classList.contains('community-view') ||
                                   document.body.classList.contains('about-view') ||
+                                  document.body.classList.contains('docs-view') ||
                                   document.body.classList.contains('history-expanded');
 
           if (!isExpandedView) {
