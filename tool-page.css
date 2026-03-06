@@ -1,0 +1,190 @@
+/* =========================================================
+   Tool / Landing Pages — shared styles
+   Loaded alongside styles.css + footer.css
+   ========================================================= */
+
+/* Hero */
+.tool-hero{
+  padding:calc(var(--navH,72px) + 60px) 0 48px;
+  background:linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 60%);
+  border-bottom:1px solid var(--line);
+}
+.tool-hero .container{max-width:900px}
+.tool-hero h1{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(2rem,5vw,3.2rem);
+  font-weight:400;letter-spacing:.03em;
+  line-height:1.1;margin:0 0 16px;color:var(--text);
+}
+.tool-hero .tool-subtitle{
+  font-size:clamp(14px,1.4vw,17px);
+  color:var(--muted);line-height:1.65;margin:0;
+  max-width:640px;
+}
+
+/* Intro */
+.tool-intro{padding:clamp(40px,6vh,64px) 0}
+.tool-intro .container{max-width:800px}
+.tool-intro p{
+  font-size:15px;color:var(--muted);
+  line-height:1.7;margin:0 0 16px;
+}
+.tool-intro p:last-child{margin-bottom:0}
+
+/* How It Works */
+.tool-steps{
+  padding:clamp(40px,6vh,64px) 0;
+  border-top:1px solid var(--line);
+}
+.tool-steps-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.4rem,3vw,2rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 clamp(24px,3vh,36px);
+}
+.tool-steps-grid{
+  display:grid;grid-template-columns:1fr;gap:16px;
+}
+@media(min-width:640px){.tool-steps-grid{grid-template-columns:repeat(3,1fr)}}
+.tool-step{
+  padding:clamp(18px,2vw,24px);
+  border:1px solid rgba(255,255,255,.06);border-radius:12px;
+  background:#0f0f0f;
+}
+.tool-step-num{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:28px;color:var(--accent);
+  line-height:1;margin:0 0 10px;
+}
+.tool-step h3{
+  font-size:15px;font-weight:700;color:var(--text);
+  margin:0 0 8px;
+}
+.tool-step p{
+  font-size:13px;color:var(--muted);line-height:1.6;margin:0;
+}
+
+/* Use Cases */
+.tool-usecases{
+  padding:clamp(40px,6vh,64px) 0;
+  border-top:1px solid var(--line);
+}
+.tool-usecases-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.4rem,3vw,2rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 clamp(24px,3vh,36px);
+}
+.tool-usecases-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+@media(min-width:768px){.tool-usecases-grid{grid-template-columns:repeat(4,1fr)}}
+.tool-usecase{
+  padding:clamp(16px,2vw,20px);
+  border:1px solid rgba(255,255,255,.06);border-radius:10px;
+  background:#0f0f0f;
+}
+.tool-usecase h4{
+  font-size:13px;font-weight:700;color:var(--text);
+  margin:0 0 6px;
+}
+.tool-usecase p{
+  font-size:12px;color:var(--muted);line-height:1.55;margin:0;
+}
+
+/* CTA Block */
+.tool-cta{
+  padding:clamp(40px,6vh,56px) 0;
+  text-align:center;
+  border-top:1px solid var(--line);
+}
+.tool-cta-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.4rem,3vw,2rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 20px;
+}
+.tool-cta-buttons{
+  display:flex;justify-content:center;
+  flex-wrap:wrap;gap:12px;
+}
+
+/* Related Tools */
+.tool-related{
+  padding:clamp(40px,6vh,64px) 0;
+  border-top:1px solid var(--line);
+}
+.tool-related-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.2rem,2.5vw,1.6rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 clamp(20px,3vh,28px);
+}
+.tool-related-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+@media(min-width:768px){.tool-related-grid{grid-template-columns:repeat(3,1fr)}}
+.tool-link-card{
+  display:block;padding:clamp(16px,2vw,20px);
+  border:1px solid rgba(255,255,255,.06);border-radius:10px;
+  background:#0f0f0f;text-decoration:none;
+  transition:border-color .22s ease,transform .22s ease;
+}
+.tool-link-card:hover{
+  border-color:rgba(14,165,233,.3);transform:translateY(-2px);
+}
+.tool-link-card h4{
+  font-size:14px;font-weight:700;color:var(--text);margin:0 0 4px;
+}
+.tool-link-card p{
+  font-size:12px;color:var(--muted);line-height:1.5;margin:0;
+}
+
+/* Directory: ai-tools page categories */
+.tools-category{
+  padding:clamp(32px,4vh,48px) 0;
+  border-top:1px solid var(--line);
+}
+.tools-category:first-of-type{border-top:none}
+.tools-cat-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 clamp(16px,2vh,24px);
+}
+.tools-cat-grid{
+  display:grid;grid-template-columns:1fr;gap:14px;
+}
+@media(min-width:640px){.tools-cat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:768px){.tools-cat-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* Knowledge hub categories */
+.knowledge-category{
+  padding:clamp(32px,4vh,48px) 0;
+  border-top:1px solid var(--line);
+}
+.knowledge-category:first-of-type{border-top:none}
+.knowledge-cat-title{
+  font-family:'Bebas Neue',system-ui,sans-serif;
+  font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:400;
+  letter-spacing:.03em;color:var(--text);
+  margin:0 0 clamp(16px,2vh,24px);
+}
+.knowledge-list{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:1fr;gap:12px;
+}
+@media(min-width:640px){.knowledge-list{grid-template-columns:repeat(2,1fr)}}
+.knowledge-item a{
+  display:block;padding:clamp(14px,2vw,18px);
+  border:1px solid rgba(255,255,255,.06);border-radius:10px;
+  background:#0f0f0f;text-decoration:none;
+  transition:border-color .22s ease;
+}
+.knowledge-item a:hover{border-color:rgba(14,165,233,.3)}
+.knowledge-item h4{
+  font-size:14px;font-weight:700;color:var(--text);margin:0 0 4px;
+}
+.knowledge-item p{
+  font-size:12px;color:var(--muted);line-height:1.5;margin:0;
+}
