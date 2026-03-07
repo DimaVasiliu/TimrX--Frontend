@@ -759,6 +759,7 @@
         <button class="chip" data-tag="Three.js">Three.js</button>
         <button class="chip" data-tag="3D">3D</button>
         <button class="chip" data-tag="3D Hub">3D Hub</button>
+        <button class="chip" data-tag="TimrX">TimrX</button>
         <button class="chip" data-tag="UX">UX</button>
         <button class="chip" data-tag="Performance">Performance</button>
         <button class="chip" data-tag="Workflow">Workflow</button>
@@ -934,7 +935,13 @@
     function applyFilters() {
       let posts = [...allPosts];
       if (currentTag !== 'all') {
-        posts = posts.filter(p => (p.tags || '').toLowerCase().includes(currentTag.toLowerCase()));
+        const c = currentTag.toLowerCase();
+        posts = posts.filter(p => {
+          const t = (p.tags || '').toLowerCase();
+          if (c === 'timrx') return t.includes('timrx') || t.includes('3d hub') || t.includes('hub') || t.includes('3d');
+          if (c === '3d hub') return t.includes('3d hub') || t.includes('timrx') || t.includes('hub');
+          return t.includes(c);
+        });
       }
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
