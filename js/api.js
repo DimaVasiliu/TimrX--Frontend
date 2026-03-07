@@ -30,6 +30,9 @@ let postProcessLock = false;
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
 
+// Show Discord share modal only once per session for the first model generation
+let _discordModelPromptShown = false;
+
 // ============================================================================
 // CREDITS HELPERS
 // ============================================================================
@@ -1009,7 +1012,12 @@ export function watchJob(job_id) {
         prog.jump(99, 'Downloading model...');
         await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
         prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
-        UI.showDiscordSharePrompt('model', meta.prompt || '', st.thumbnail_url || '');
+
+        // Show Discord share modal only for first model generation or refine
+        if (stage === 'refine' || !_discordModelPromptShown) {
+          _discordModelPromptShown = true;
+          UI.showDiscordSharePrompt('model', meta.prompt || '', st.thumbnail_url || '');
+        }
         State.watchers.delete(job_id);
         return;
       }
@@ -1261,6 +1269,11 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         } else {
           prog.done(`${stageLabel} complete.`);
         }
+
+        // Show Discord share modal for texture completions
+        if (kind === 'texture') {
+          UI.showDiscordSharePrompt('model', meta.prompt || promptCandidate || '', st.thumbnail_url || meta.thumbnail_url || '');
+        }
         State.watchers.delete(job_id);
         return;
       }
@@ -1385,8 +1398,6 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
         } else {
           refreshCreditsInBackground();
         }
-
-        UI.showDiscordSharePrompt('image', meta.prompt || '', imageUrl || '');
 
         // Unlock UI after job completes
         if (window.ImageJobControl?.unlock) {
@@ -2887,8 +2898,6 @@ async function watchVideoJob(jobId, reservationId, meta) {
           resolution: data.resolution || meta.resolution || '720p',
           duration_seconds: data.duration_seconds || meta.duration_sec
         });
-        UI.showDiscordSharePrompt('video', meta.prompt || '', data.thumbnail_url || '');
-
         State.removeActiveJob(jobId);
         return;
       }
