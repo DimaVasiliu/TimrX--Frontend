@@ -2357,23 +2357,24 @@ textarea {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), #1a1a1a);
 }
 
-/* Discord Share Overlay — centered modal over viewer */
-.discord-share-overlay {
+/* Discord Share Overlay — centered modal over viewer
+   Uses body.print3d-page > to beat the body > * { position: relative; z-index: 2 } rule */
+body.print3d-page > .discord-share-overlay {
   position: fixed;
   inset: 0;
   z-index: 300000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
 
-.discord-share-overlay.show {
+body.print3d-page > .discord-share-overlay.show {
   opacity: 1;
   pointer-events: auto;
 }
@@ -2382,37 +2383,37 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 32px 36px;
-  background: #1a1a1a;
-  border: 1px solid rgba(88, 101, 242, 0.3);
-  border-radius: 16px;
-  max-width: 380px;
+  gap: 14px;
+  padding: 28px 32px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  max-width: 360px;
   width: 90%;
   text-align: center;
-  transform: translateY(12px) scale(0.97);
+  transform: translateY(10px) scale(0.97);
   transition: transform 0.3s ease;
 }
 
-.discord-share-overlay.show .discord-share-card {
+body.print3d-page > .discord-share-overlay.show .discord-share-card {
   transform: translateY(0) scale(1);
 }
 
 .discord-share-card svg {
   flex-shrink: 0;
-  color: #5865F2;
+  color: #7b83eb;
 }
 
 .discord-share-text {
-  color: #f5f5f5;
-  font-size: 14px;
+  color: #ccc;
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .discord-share-text em {
   display: block;
   margin-top: 6px;
-  color: #888;
+  color: #666;
   font-style: normal;
   font-size: 12px;
   overflow: hidden;
@@ -2425,22 +2426,23 @@ textarea {
   display: flex;
   gap: 10px;
   width: 100%;
+  margin-top: 2px;
 }
 
 .discord-share-btn {
   flex: 1;
-  padding: 10px 0;
+  padding: 9px 0;
   border-radius: 8px;
-  background: #5865F2;
-  color: #fff;
-  font-size: 13px;
+  background: rgba(123, 131, 235, 0.2);
+  border: 1px solid rgba(123, 131, 235, 0.25);
+  color: #b0b6f2;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   text-decoration: none;
-  border: none;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2448,31 +2450,33 @@ textarea {
 }
 
 .discord-share-btn:hover {
-  background: #4752c4;
+  background: rgba(123, 131, 235, 0.3);
+  border-color: rgba(123, 131, 235, 0.4);
+  color: #d0d4f7;
 }
 
 .discord-share-dismiss {
   flex: 1;
-  padding: 10px 0;
+  padding: 9px 0;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #aaa;
-  font-size: 13px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #777;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .discord-share-dismiss:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #aaa;
 }
 
 @media (max-width: 480px) {
   .discord-share-card {
-    padding: 24px 20px;
-    max-width: 320px;
+    padding: 22px 18px;
+    max-width: 300px;
   }
 }
 
