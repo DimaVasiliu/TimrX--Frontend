@@ -206,49 +206,60 @@ const DISCORD_INVITE = 'https://discord.gg/VpqT2UywDG';
 export function showDiscordSharePrompt(type, prompt) {
   const labels = { model: '3D model', image: 'image', video: 'video' };
   const label = labels[type] || 'creation';
-  const short = prompt ? (prompt.length > 50 ? prompt.slice(0, 50) + '...' : prompt) : '';
+  const short = prompt ? (prompt.length > 60 ? prompt.slice(0, 60) + '...' : prompt) : '';
 
-  let container = document.getElementById('toastContainer');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
+  // Remove any existing overlay
+  document.getElementById('discordShareOverlay')?.remove();
 
-  const toastEl = document.createElement('div');
-  toastEl.className = 'toast toast-discord';
-  toastEl.setAttribute('role', 'status');
-  toastEl.innerHTML = `
-    <div class="toast-discord-content">
-      <svg width="20" height="16" viewBox="0 0 71 55" fill="currentColor" style="flex-shrink:0;color:#5865F2">
+  const overlay = document.createElement('div');
+  overlay.id = 'discordShareOverlay';
+  overlay.className = 'discord-share-overlay';
+  overlay.innerHTML = `
+    <div class="discord-share-card">
+      <svg width="28" height="22" viewBox="0 0 71 55" fill="currentColor">
         <path d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.8 40.8 0 00-1.8 3.7 54 54 0 00-16.2 0A37.4 37.4 0 0025.4.3a.2.2 0 00-.2-.1A58.4 58.4 0 0010.5 4.9a.2.2 0 00-.1.1C1.5 18.7-.9 32 .3 45.1v.1a58.8 58.8 0 0017.7 9 .2.2 0 00.3-.1 42.1 42.1 0 003.6-5.9.2.2 0 00-.1-.3 38.7 38.7 0 01-5.5-2.6.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .3 36.4 36.4 0 01-5.5 2.7.2.2 0 00-.1.3 47.3 47.3 0 003.6 5.8.2.2 0 00.3.1A58.6 58.6 0 0070.3 45.3v-.2C71.7 30.1 67.8 16.9 60.1 5a.2.2 0 000-.1zM23.7 37c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 3.9-2.8 7.1-6.4 7.1zm23.6 0c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 3.9-2.8 7.1-6.4 7.1z"/>
       </svg>
-      <span class="toast-discord-text">Your ${label} is ready${short ? ': <em>' + short + '</em>' : ''}. Share it on Discord!</span>
-      <a href="${DISCORD_INVITE}" target="_blank" rel="noopener" class="toast-discord-btn" data-discord-share>Share</a>
+      <div class="discord-share-text">
+        Your ${label} is ready! Share it on Discord.${short ? '<em>' + short + '</em>' : ''}
+      </div>
+      <div class="discord-share-actions">
+        <a href="${DISCORD_INVITE}" target="_blank" rel="noopener" class="discord-share-btn" data-discord-share>Share</a>
+        <button class="discord-share-dismiss" data-discord-dismiss>Dismiss</button>
+      </div>
     </div>
-    <button class="toast-close" aria-label="Dismiss">&times;</button>
   `;
 
-  container.appendChild(toastEl);
+  document.body.appendChild(overlay);
 
-  // Fire webhook when Share is clicked
-  toastEl.querySelector('[data-discord-share]')?.addEventListener('click', () => {
+  const close = () => {
+    overlay.classList.remove('show');
+    setTimeout(() => overlay.remove(), 250);
+  };
+
+  // Share button — fire webhook + open Discord
+  overlay.querySelector('[data-discord-share]')?.addEventListener('click', () => {
     apiFetch('/api/_mod/community/discord-share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type, prompt: prompt.slice(0, 200) })
     }).catch(() => {});
-    dismissToast(toastEl);
+    close();
   });
 
-  toastEl.querySelector('.toast-close')?.addEventListener('click', () => dismissToast(toastEl));
+  // Dismiss button
+  overlay.querySelector('[data-discord-dismiss]')?.addEventListener('click', close);
 
-  requestAnimationFrame(() => toastEl.classList.add('show'));
+  // Click backdrop to dismiss
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
 
-  setTimeout(() => dismissToast(toastEl), 10000);
+  requestAnimationFrame(() => overlay.classList.add('show'));
 
-  return toastEl;
+  // Auto-dismiss after 15s
+  setTimeout(() => { if (overlay.parentNode) close(); }, 15000);
+
+  return overlay;
 }
 
 // ============================================================================
