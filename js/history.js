@@ -871,6 +871,10 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <span class="card-menu__icon">in</span>
             Share on LinkedIn
           </button>
+          <button class="card-submenu__item" type="button" data-act="share-discord" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#9670;</span>
+            Share on Discord
+          </button>
         </div>
       </div>
       ` : ''}
