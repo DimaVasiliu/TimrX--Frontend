@@ -203,7 +203,7 @@ const DISCORD_INVITE = 'https://discord.gg/VpqT2UywDG';
  * @param {'model'|'image'|'video'} type - What was generated
  * @param {string} prompt - The prompt used (for context)
  */
-export function showDiscordSharePrompt(type, prompt) {
+export function showDiscordSharePrompt(type, prompt, thumbnailUrl) {
   const labels = { model: '3D model', image: 'image', video: 'video' };
   const label = labels[type] || 'creation';
   const short = prompt ? (prompt.length > 60 ? prompt.slice(0, 60) + '...' : prompt) : '';
@@ -241,7 +241,7 @@ export function showDiscordSharePrompt(type, prompt) {
     apiFetch('/api/_mod/community/discord-share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, prompt: prompt.slice(0, 200) })
+      body: JSON.stringify({ type, prompt: prompt.slice(0, 200), thumbnail_url: thumbnailUrl || '' })
     }).catch(() => {});
     close();
   });
