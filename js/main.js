@@ -1165,6 +1165,42 @@ function wireGallery() {
         return;
       }
 
+      if (act === 'share-twitter') {
+        const text = item.prompt ? `Check out my creation: "${item.prompt.slice(0, 120)}"` : 'Check out my AI creation on TimrX!';
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-facebook') {
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-linkedin') {
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-discord') {
+        const thumbUrl = item.thumbnail_url || item.image_url || '';
+        const prompt = item.prompt || '';
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/community/discord-share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: assetType, prompt, thumbnail_url: thumbUrl }),
+        }).then(() => {
+          alert('Shared to Discord!');
+        }).catch(() => {
+          alert('Failed to share to Discord.');
+        });
+        window.open('https://discord.gg/VpqT2UywDG', '_blank');
+        return;
+      }
+
       if (act === 'texture') {
         await API.startTextureFromHistory(item);
         return;
