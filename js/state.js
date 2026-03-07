@@ -4,12 +4,13 @@
  * Falls back to localStorage for active jobs and as a cache.
  */
 
-import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch } from './config.js';
+import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, readWalletCache } from './config.js';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 const HISTORY_CACHE_KEY = 'meshy_history_cache';
+const HISTORY_OWNER_KEY = 'meshy_history_owner';
 export const HISTORY_LIMIT = 500;
 export const MAX_DATA_URI_LEN = 50000;
 
@@ -192,10 +193,41 @@ function shouldSkipRemoteHistoryItem(item = {}) {
 }
 
 /**
- * Get cached history from localStorage (fast, synchronous)
+ * Get the current user's identity_id from wallet cache (best-effort, synchronous)
+ */
+function getCurrentIdentityId() {
+  try {
+    const wallet = readWalletCache();
+    return wallet?.identity_id || null;
+  } catch { return null; }
+}
+
+/**
+ * Clear all user-scoped caches (history, active jobs, pending jobs)
+ */
+function clearUserCaches() {
+  localStorage.removeItem(HISTORY_CACHE_KEY);
+  localStorage.removeItem(HISTORY_OWNER_KEY);
+  localStorage.removeItem(ACTIVE_JOBS_STORAGE_KEY);
+  localStorage.removeItem(PENDING_JOBS_STORAGE_KEY);
+}
+
+/**
+ * Get cached history from localStorage (fast, synchronous).
+ * Returns empty if cache belongs to a different user.
  */
 function getHistoryCache() {
   try {
+    const currentUser = getCurrentIdentityId();
+    const cacheOwner = localStorage.getItem(HISTORY_OWNER_KEY);
+
+    // If we know who the current user is and the cache belongs to someone else, clear it
+    if (currentUser && cacheOwner && cacheOwner !== currentUser) {
+      log('[History] User changed, clearing stale cache');
+      clearUserCaches();
+      return [];
+    }
+
     const cached = localStorage.getItem(HISTORY_CACHE_KEY);
     return cached ? JSON.parse(cached) : [];
   } catch {
@@ -204,10 +236,17 @@ function getHistoryCache() {
 }
 
 /**
- * Save to localStorage cache (best-effort, ignore quota errors)
+ * Save to localStorage cache (best-effort, ignore quota errors).
+ * Tags the cache with the current user's identity so it won't leak to other accounts.
  */
 function saveHistoryCache(arr) {
   try {
+    // Tag cache with current user
+    const currentUser = getCurrentIdentityId();
+    if (currentUser) {
+      localStorage.setItem(HISTORY_OWNER_KEY, currentUser);
+    }
+
     // Only cache essential fields to avoid quota issues
     const minimal = (arr || []).slice(0, 100).map(item => ({
       id: item.id,
