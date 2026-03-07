@@ -66,8 +66,18 @@
 
   /* -- Hero scroll: smaller on phones -- */
   .hero-scroll {
-    bottom: 10px;
-    left: 16px;
+    bottom: 8px;
+    left: 14px;
+    gap: 6px;
+  }
+
+  .hero-scroll .scroll-text {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+  }
+
+  .hero-scroll .scroll-line {
+    height: 28px;
   }
 
   /* -- Watermark + lines: scale down for small phones -- */
