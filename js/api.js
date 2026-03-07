@@ -30,8 +30,20 @@ let postProcessLock = false;
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
 
-// Show Discord share modal only once per session for the first model generation
-let _discordModelPromptShown = false;
+// Show Discord share modal sparingly — once per 7 days max
+const DISCORD_PROMPT_KEY = 'timrx_discord_prompt_ts';
+const DISCORD_PROMPT_COOLDOWN = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function shouldShowDiscordPrompt() {
+  try {
+    const last = parseInt(localStorage.getItem(DISCORD_PROMPT_KEY) || '0', 10);
+    return Date.now() - last > DISCORD_PROMPT_COOLDOWN;
+  } catch { return false; }
+}
+
+function markDiscordPromptShown() {
+  try { localStorage.setItem(DISCORD_PROMPT_KEY, String(Date.now())); } catch {}
+}
 
 // ============================================================================
 // CREDITS HELPERS
@@ -1013,9 +1025,9 @@ export function watchJob(job_id) {
         await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
         prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
 
-        // Show Discord share modal only for first model generation or refine
-        if (stage === 'refine' || !_discordModelPromptShown) {
-          _discordModelPromptShown = true;
+        // Show Discord share modal sparingly (once per 7 days)
+        if (shouldShowDiscordPrompt()) {
+          markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || '', st.thumbnail_url || '');
         }
         State.watchers.delete(job_id);
@@ -1270,8 +1282,9 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           prog.done(`${stageLabel} complete.`);
         }
 
-        // Show Discord share modal for texture completions
-        if (kind === 'texture') {
+        // Show Discord share modal for texture completions (respects cooldown)
+        if (kind === 'texture' && shouldShowDiscordPrompt()) {
+          markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || promptCandidate || '', st.thumbnail_url || meta.thumbnail_url || '');
         }
         State.watchers.delete(job_id);
