@@ -451,13 +451,15 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : status === 'remeshing' ? 'status-remeshing'
     : status === 'texturing' ? 'status-texturing'
     : status === 'rigging' ? 'status-rigging'
+    : status === 'animating' ? 'status-animating'
     : '';
 
-  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing', 'rigging'].includes(status);
+  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating'].includes(status);
   const processingLabel = status === 'refining' ? 'Refining...'
     : status === 'remeshing' ? 'Remeshing...'
     : status === 'texturing' ? 'Texturing...'
     : status === 'rigging' ? 'Rigging...'
+    : status === 'animating' ? 'Animating...'
     : 'Generating...';
 
   let modelName = displayModel.title || displayModel.prompt?.slice(0, 30) || 'New Model';
@@ -749,6 +751,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'remesh' ? 'Remeshed'
     : stageVal === 'texture' ? 'Textured'
     : stageVal === 'rig' ? 'Rigged'
+    : stageVal === 'animate' ? 'Animated'
     : stageVal === 'image3d' ? 'Image to 3D'
     : '';
 
@@ -839,9 +842,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <span class="card-menu__icon">&#11041;</span>
             Remesh
           </button>
-          <button class="card-submenu__item" type="button" data-act="rig" data-id="${displayModel.id}" ${!canRig ? 'disabled' : ''}>
+          <button class="card-submenu__item" type="button" data-act="animate" data-id="${displayModel.id}" ${!canRig ? 'disabled' : ''}>
             <span class="card-menu__icon">&#9881;</span>
-            Rig
+            Animate
           </button>
           <div class="card-submenu__divider"></div>
           <button class="card-submenu__item" type="button" data-act="refine" data-id="${displayModel.id}" ${!canRefine ? 'disabled' : ''}>
