@@ -430,12 +430,12 @@
         <span>Texture</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="rig" aria-pressed="false">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <circle cx="12" cy="6" r="2"></circle>
-          <path d="M12 8v6l-4 6m4-6l4 6M8 11l4 3 4-3" stroke-linecap="round" stroke-linejoin="round"></path>
+      <button type="button" class="rail-btn" data-panel="animate" aria-pressed="false">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="4" r="2"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l3 3-2 2 3 5m-6-10l-3 3 2 2-3 5m1-6h4"/>
         </svg>
-        <span>Rig</span>
+        <span>Animate</span>
       </button>
 
       <button type="button" class="rail-btn" data-panel="video" aria-pressed="false">
@@ -517,10 +517,10 @@
               <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
             </svg>
           </button>
-          <button type="button" class="viewer-toolbar__btn" data-action="rig" data-tooltip="Rig">
+          <button type="button" class="viewer-toolbar__btn" data-action="animate" data-tooltip="Animate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="5" r="2"/>
-              <path d="M12 7v6l-4 6m4-6l4 6M8 10l4 3 4-3"/>
+              <circle cx="11" cy="4" r="2"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l3 3-2 2 3 5m-6-10l-3 3 2 2-3 5m1-6h4"/>
             </svg>
           </button>
           <div class="viewer-toolbar__divider"></div>
@@ -541,6 +541,14 @@
               <rect x="6" y="14" width="12" height="8"/>
             </svg>
           </button>
+          <div id="animationPlaybackControls" style="display:none">
+            <div class="viewer-toolbar__divider"></div>
+            <button type="button" class="viewer-toolbar__btn" data-action="toggle-animation" data-tooltip="Play/Pause">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
