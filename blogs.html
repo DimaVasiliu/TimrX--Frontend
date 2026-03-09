@@ -276,21 +276,56 @@
     <section class="featured" aria-label="Featured posts">
       <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Featured Articles</h2>
       <div class="container featured-inner">
-        <a class="feat-card large" id="feat-0" href="#">
+        <a class="feat-card feat-card--hero" id="feat-0" href="#">
           <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop')"></div>
           <div class="body">
-            <span class="pill">Featured</span>
+            <div class="pill-row">
+              <span class="pill featured-pill">Featured</span>
+              <span class="pill category-pill">Post</span>
+            </div>
             <h3 class="t">Loading…</h3>
             <p class="e muted">—</p>
+            <div class="meta">
+              <span class="feat-date">—</span>
+              <span aria-hidden="true">•</span>
+              <span class="feat-minutes">3 min</span>
+            </div>
           </div>
         </a>
-        <a class="feat-card small" id="feat-1" href="#">
-          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop')"></div>
-          <div class="body">
-            <span class="pill">Featured</span>
-            <h4 class="t">Loading…</h4>
-          </div>
-        </a>
+        <div class="featured-stack">
+          <a class="feat-card feat-card--support" id="feat-1" href="#">
+            <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop')"></div>
+            <div class="body">
+              <div class="pill-row">
+                <span class="pill featured-pill">Featured</span>
+                <span class="pill category-pill">Post</span>
+              </div>
+              <h4 class="t">Loading…</h4>
+              <p class="e muted">—</p>
+              <div class="meta">
+                <span class="feat-date">—</span>
+                <span aria-hidden="true">•</span>
+                <span class="feat-minutes">3 min</span>
+              </div>
+            </div>
+          </a>
+          <a class="feat-card feat-card--support" id="feat-2" href="#">
+            <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop')"></div>
+            <div class="body">
+              <div class="pill-row">
+                <span class="pill featured-pill">Featured</span>
+                <span class="pill category-pill">Post</span>
+              </div>
+              <h4 class="t">Loading…</h4>
+              <p class="e muted">—</p>
+              <div class="meta">
+                <span class="feat-date">—</span>
+                <span aria-hidden="true">•</span>
+                <span class="feat-minutes">3 min</span>
+              </div>
+            </div>
+          </a>
+        </div>
       </div>
     </section>
   <!-- GRID -->
@@ -476,16 +511,21 @@
       grid.innerHTML = skeletonHTML;
 
       // Also show skeleton for featured
-      qs('#feat-0 .body .t').textContent = '';
-      qs('#feat-0 .body .e').textContent = '';
-      qs('#feat-1 .body .t').textContent = '';
-      qs('#feat-0').classList.add('feat--loading');
-      qs('#feat-1').classList.add('feat--loading');
+      qs('#feat-0 .body .t') && (qs('#feat-0 .body .t').textContent = '');
+      qs('#feat-0 .body .e') && (qs('#feat-0 .body .e').textContent = '');
+      qs('#feat-1 .body .t') && (qs('#feat-1 .body .t').textContent = '');
+      qs('#feat-1 .body .e') && (qs('#feat-1 .body .e').textContent = '');
+      qs('#feat-2 .body .t') && (qs('#feat-2 .body .t').textContent = '');
+      qs('#feat-2 .body .e') && (qs('#feat-2 .body .e').textContent = '');
+      qs('#feat-0')?.classList.add('feat--loading');
+      qs('#feat-1')?.classList.add('feat--loading');
+      qs('#feat-2')?.classList.add('feat--loading');
     }
 
     function hideSkeletons() {
       qs('#feat-0')?.classList.remove('feat--loading');
       qs('#feat-1')?.classList.remove('feat--loading');
+      qs('#feat-2')?.classList.remove('feat--loading');
     }
 
     // Show error banner
@@ -574,6 +614,47 @@
       return byTag.filter(p => (p.title||'').toLowerCase().includes(q) || (p.excerpt||'').toLowerCase().includes(q) || (p.tags||'').toLowerCase().includes(q));
     }
 
+    function featuredReadTime(post) {
+      return post.minutes || Math.max(3, Math.round(((post.excerpt || '') + (post.title || '')).length / 60));
+    }
+
+    function featuredDate(post) {
+      return post.created_at
+        ? new Date(post.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+        : 'Recent';
+    }
+
+    function featuredTag(post) {
+      return (post.tags || '').split(',')[0] || 'Post';
+    }
+
+    function applyFeaturedCard(cardId, post) {
+      const card = qs(cardId);
+      if (!card) return;
+      if (!post) {
+        card.classList.add('is-hidden');
+        return;
+      }
+
+      card.classList.remove('is-hidden');
+      card.href = `/blog/${encodeURIComponent(post.slug)}`;
+
+      const titleEl = card.querySelector('.body .t');
+      const excerptEl = card.querySelector('.body .e');
+      const coverEl = card.querySelector('.cover');
+      const categoryEl = card.querySelector('.body .category-pill');
+      const dateEl = card.querySelector('.body .feat-date');
+      const minutesEl = card.querySelector('.body .feat-minutes');
+      const fallbackCover = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
+
+      if (titleEl) titleEl.textContent = post.title || 'Untitled';
+      if (excerptEl) excerptEl.textContent = post.excerpt || 'Explore this article.';
+      if (coverEl) coverEl.style.backgroundImage = `url('${post.cover_url || fallbackCover}')`;
+      if (categoryEl) categoryEl.textContent = featuredTag(post);
+      if (dateEl) dateEl.textContent = featuredDate(post);
+      if (minutesEl) minutesEl.textContent = `${featuredReadTime(post)} min`;
+    }
+
     // Render grid and featured posts
     const GRID_LIMIT = 8;
 
@@ -583,19 +664,14 @@
       grid.innerHTML = data.slice(0, GRID_LIMIT).map(cardHTML).join('');
 
       // Update featured posts (direct link to canonical /blog/<slug>)
-      const top = data.slice(0,2);
-      if (top[0]) {
-        const a = qs('#feat-0');
-        a.href = `/blog/${encodeURIComponent(top[0].slug)}`;
-        a.querySelector('.body .t').textContent = top[0].title;
-        a.querySelector('.body .e').textContent = top[0].excerpt || '';
-        a.querySelector('.cover').style.backgroundImage = `url('${top[0].cover_url || ''}')`;
-      }
-      if (top[1]) {
-        const b = qs('#feat-1');
-        b.href = `/blog/${encodeURIComponent(top[1].slug)}`;
-        b.querySelector('.body .t').textContent = top[1].title;
-        b.querySelector('.cover').style.backgroundImage = `url('${top[1].cover_url || ''}')`;
+      const top = data.slice(0,3);
+      applyFeaturedCard('#feat-0', top[0]);
+      applyFeaturedCard('#feat-1', top[1]);
+      applyFeaturedCard('#feat-2', top[2]);
+      const featuredStack = qs('.featured-stack');
+      if (featuredStack) {
+        featuredStack.classList.toggle('featured-stack--single', !!top[1] && !top[2]);
+        featuredStack.classList.toggle('featured-stack--empty', !top[1] && !top[2]);
       }
 
       // Update ItemList JSON-LD for SEO (limit to 20 items)
