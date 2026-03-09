@@ -450,34 +450,27 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : status === 'refining' ? 'status-refining'
     : status === 'remeshing' ? 'status-remeshing'
     : status === 'texturing' ? 'status-texturing'
-    : status === 'rigging' ? 'status-rigging'
-    : status === 'animating' ? 'status-animating'
     : '';
 
-  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating'].includes(status);
+  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing'].includes(status);
   const processingLabel = status === 'refining' ? 'Refining...'
     : status === 'remeshing' ? 'Remeshing...'
     : status === 'texturing' ? 'Texturing...'
-    : status === 'rigging' ? 'Rigging...'
-    : status === 'animating' ? 'Animating...'
     : 'Generating...';
 
   let modelName = displayModel.title || displayModel.prompt?.slice(0, 30) || 'New Model';
   // Clean up prefixes like "(refine)", "(texture)", "(remesh)", "(rig)", "(image2-3d)" from model names
-  modelName = modelName.replace(/^\s*\((refine|texture|remesh|rig|image2?-?3d)\)\s*/i, '');
+  modelName = modelName.replace(/^\s*\((refine|texture|remesh|image2?-?3d)\)\s*/i, '');
   const createdLabel = dateLabel(displayModel.created_at);
   const canRefine = displayModel.stage === 'preview' && status === 'finished';
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
-  const canRig = status === 'finished';
   const canDownload = !!displayModel.glb_url;
   const isActive = models.some((m) => m && m.id === historyActiveModelId);
   const isFreshThumb = models.some((m) => historyFreshThumbs.has(m.id));
   const variantCount = models.length;
   const editSubmenuId = `edit-${displayModel.id}`;
   const overlayVisible = hasVariants || (Math.max(1, parseInt(displayModel.batch_count, 10) || 1) > 1);
-  const rigged = !!displayModel.is_a_t_pose;
-
   // IMAGE TYPE
   if (itemType === 'image') {
     const imgSrc = displayModel.thumbnail_url || displayModel.image_url || '';
@@ -750,8 +743,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const stageLabel = stageVal === 'refine' ? 'Refined'
     : stageVal === 'remesh' ? 'Remeshed'
     : stageVal === 'texture' ? 'Textured'
-    : stageVal === 'rig' ? 'Rigged'
-    : stageVal === 'animate' ? 'Animated'
     : stageVal === 'image3d' ? 'Image to 3D'
     : '';
 
@@ -771,14 +762,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
         </div>
       ` : ''}
       ${stageLabel ? `<span class="${thumbPrefix}__stage">${stageLabel}</span>` : ''}
-      ${rigged ? `
-        <span class="${thumbPrefix}__rig" aria-label="Rig-ready">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M12 8.2V14l-4 6m4-6l4 6M8 11l4 3 4-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-      ` : ''}
       ${!isExpanded ? `
       <div class="${thumbPrefix}__menu-wrap">
         <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Model actions" data-history-menu>
@@ -841,10 +824,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           <button class="card-submenu__item" type="button" data-act="remesh" data-id="${displayModel.id}" ${!canRemesh ? 'disabled' : ''}>
             <span class="card-menu__icon">&#11041;</span>
             Remesh
-          </button>
-          <button class="card-submenu__item" type="button" data-act="animate" data-id="${displayModel.id}" ${!canRig ? 'disabled' : ''}>
-            <span class="card-menu__icon">&#9881;</span>
-            Animate
           </button>
           <div class="card-submenu__divider"></div>
           <button class="card-submenu__item" type="button" data-act="refine" data-id="${displayModel.id}" ${!canRefine ? 'disabled' : ''}>
