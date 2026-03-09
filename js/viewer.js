@@ -13,6 +13,24 @@ let viewerPlaceholder = null;
 let currentModel = null;
 let demoCube, grid;
 
+/**
+ * Compute bounding box from visible mesh geometry only.
+ * Avoids skeleton/bone distortion in rigged models.
+ */
+function getVisualBounds(root) {
+    const box = new THREE.Box3();
+    root.updateMatrixWorld(true);
+    root.traverse(child => {
+        if (!child.geometry) return;
+        if (!child.visible) return;
+        child.geometry.computeBoundingBox();
+        const b = child.geometry.boundingBox.clone();
+        b.applyMatrix4(child.matrixWorld);
+        if (!b.isEmpty()) box.union(b);
+    });
+    return box.isEmpty() ? new THREE.Box3().setFromObject(root) : box;
+}
+
 // Animation playback state
 let mixer = null;
 let animationClock = null;
@@ -204,8 +222,8 @@ export async function loadGlbFromUrl(url) {
 
             scene.add(currentModel);
 
-            // Center model
-            const box = new THREE.Box3().setFromObject(currentModel);
+            // Center model using mesh-only bounds (avoids skeleton distortion)
+            const box = getVisualBounds(currentModel);
             const center = box.getCenter(new THREE.Vector3());
             const min = box.min;
             currentModel.position.x += -center.x;
@@ -222,8 +240,8 @@ export async function loadGlbFromUrl(url) {
     });
 }
 
-function fitCameraToObject(object, offset = 0.7) {
-    const box = new THREE.Box3().setFromObject(object);
+function fitCameraToObject(object, offset = 1.0) {
+    const box = getVisualBounds(object);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
 
@@ -288,7 +306,8 @@ async function loadAnimatedGlb(url) {
 
             scene.add(currentModel);
 
-            const box = new THREE.Box3().setFromObject(currentModel);
+            // Center model using mesh-only bounds (avoids skeleton distortion)
+            const box = getVisualBounds(currentModel);
             const center = box.getCenter(new THREE.Vector3());
             const min = box.min;
             currentModel.position.x += -center.x;
