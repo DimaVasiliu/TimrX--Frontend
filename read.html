@@ -311,8 +311,26 @@
 <script>
   const qs = s => document.querySelector(s);
   const qsa = s => Array.from(document.querySelectorAll(s));
-  const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-  const API = API_BASE + '/api';
+  const API = '/api';
+  const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.hostname.endsWith('.local');
+  const BOT_UA_RE = /(bot|crawler|spider|crawling|googlebot|bingbot|duckduckbot|yandex|baiduspider|slurp|facebookexternalhit|twitterbot|linkedinbot|embedly|whatsapp|pinterest|slackbot|telegrambot|headlesschrome|lighthouse|pagespeed|gtmetrix|prerender)/i;
+
+  function devLog(message, error) {
+    if (!IS_DEV) return;
+    if (error) {
+      console.debug(message, error);
+      return;
+    }
+    console.debug(message);
+  }
+
+  function isBotLikeEnvironment() {
+    if (typeof navigator === 'undefined') return true;
+    if (navigator.webdriver) return true;
+    return BOT_UA_RE.test(navigator.userAgent || '');
+  }
+
+  const SHOULD_RUN_OPTIONAL_API = !isBotLikeEnvironment();
 
   // Hide navbar on scroll down, show on scroll up
   (function(){
@@ -329,7 +347,9 @@
 
   // API warmup - wake up server early with lightweight request (fire and forget)
   (function warmupAPI() {
-    fetch(`${API}/posts?page=1&size=1`, { method: 'GET', cache: 'no-store' }).catch(() => {});
+    if (!SHOULD_RUN_OPTIONAL_API) return;
+    fetch(`${API}/posts?page=1&size=1`, { method: 'GET', cache: 'no-store' })
+      .catch((error) => devLog('[API] Warmup failed', error));
   })();
 
   // Cache configuration
@@ -815,46 +835,48 @@
 
   // Track page view
   async function trackView() {
-    if (!postSlug) return;
+    if (!postSlug || !SHOULD_RUN_OPTIONAL_API) return;
     try {
       await fetch(`${API}/post/${encodeURIComponent(postSlug)}/view`, { method: 'POST' });
     } catch (e) {
-      console.log('[Engagement] View tracking failed:', e);
+      devLog('[Engagement] View tracking failed', e);
     }
   }
 
   // Load engagement stats
   async function loadEngagement() {
-    if (!postSlug) return;
+    if (!postSlug || !SHOULD_RUN_OPTIONAL_API) return;
     try {
       const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/engagement`);
+      if (!r.ok) return;
       const data = await r.json();
       if (data.ok) {
         likeCount.textContent = data.likes || 0;
         viewCount.textContent = `${data.views || 0} views`;
       }
     } catch (e) {
-      console.log('[Engagement] Failed to load stats:', e);
+      devLog('[Engagement] Failed to load stats', e);
     }
   }
 
   // Check if user has liked
   async function checkIfLiked() {
-    if (!postSlug) return;
+    if (!postSlug || !SHOULD_RUN_OPTIONAL_API) return;
     const fp = getUserFingerprint();
     try {
       const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/liked?fingerprint=${encodeURIComponent(fp)}`);
+      if (!r.ok) return;
       const data = await r.json();
       if (data.liked) {
         likeBtn.classList.add('liked');
       }
     } catch (e) {
-      console.log('[Engagement] Like check failed:', e);
+      devLog('[Engagement] Like check failed', e);
     }
   }
 
   // Toggle like
-  likeBtn.addEventListener('click', async () => {
+  if (likeBtn) likeBtn.addEventListener('click', async () => {
     if (!postSlug) return;
     const fp = getUserFingerprint();
 
@@ -889,7 +911,7 @@
       // Revert on error
       likeBtn.classList.toggle('liked');
       likeCount.textContent = currentCount;
-      console.log('[Engagement] Like toggle failed:', e);
+      devLog('[Engagement] Like toggle failed', e);
     }
   });
 
@@ -912,11 +934,11 @@
 
   // Track share action
   async function trackShare() {
-    if (!postSlug) return;
+    if (!postSlug || !SHOULD_RUN_OPTIONAL_API) return;
     try {
       await fetch(`${API}/post/${encodeURIComponent(postSlug)}/share`, { method: 'POST' });
     } catch (e) {
-      console.log('[Engagement] Share tracking failed:', e);
+      devLog('[Engagement] Share tracking failed', e);
     }
   }
 
@@ -1000,21 +1022,22 @@
   }
 
   async function loadComments() {
-    if (!postSlug) return;
+    if (!postSlug || !SHOULD_RUN_OPTIONAL_API) return;
     try {
       const r = await fetch(`${API}/post/${encodeURIComponent(postSlug)}/comments`);
+      if (!r.ok) return;
       const data = await r.json();
       if (data.ok) {
         renderCommentsUI(data.comments || []);
       }
     } catch (e) {
-      console.log('[Comments] Failed to load:', e);
-      commentsList.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">Failed to load comments</p>';
+      devLog('[Comments] Failed to load', e);
     }
   }
 
-  commentForm.addEventListener('submit', async (e) => {
+  if (commentForm) commentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!SHOULD_RUN_OPTIONAL_API) return;
     const name = qs('#commenterName').value.trim();
     const content = qs('#commentText').value.trim();
 
@@ -1037,12 +1060,12 @@
         qs('#commentText').value = '';
         showToast('Comment posted!');
         // Reload comments to show the new one
-        loadComments();
+        loadComments().catch(() => {});
       } else {
         showToast(data.error || 'Failed to post comment');
       }
     } catch (e) {
-      console.log('[Comments] Post error:', e);
+      devLog('[Comments] Post error', e);
       showToast('Failed to post comment');
     } finally {
       submitBtn.disabled = false;
@@ -1052,21 +1075,27 @@
 
   // Initialize engagement
   async function initEngagement() {
+    if (!SHOULD_RUN_OPTIONAL_API) return;
     // Track the view
-    trackView();
-    // Load engagement stats
-    await loadEngagement();
-    // Check if user has liked
-    await checkIfLiked();
-    // Load comments
-    await loadComments();
+    trackView().catch(() => {});
+    await Promise.allSettled([
+      loadEngagement(),
+      checkIfLiked(),
+      loadComments()
+    ]);
   }
 
   window.addEventListener('scroll', progress, {passive:true});
   window.addEventListener('resize', progress);
-  load().then(() => {
-    initEngagement();
-  });
+  load()
+    .then(() => {
+      initEngagement().catch((error) => devLog('[Engagement] Init failed', error));
+    })
+    .catch((error) => {
+      hidePostSkeleton();
+      qs('#postTitle').textContent = 'Post not found';
+      devLog('[Post] Failed to load', error);
+    });
 
   // CTA Subscribe Form Handler
   const ctaSubscribeForm = qs('#ctaSubscribeForm');
