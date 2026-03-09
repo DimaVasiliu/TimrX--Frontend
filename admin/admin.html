@@ -597,6 +597,44 @@
     .cover-source-btn .icon { font-size: 20px; }
     .cover-source-btn .label { font-weight: 600; }
     .cover-source-btn .desc { font-size: 10px; opacity: 0.7; }
+    .cover-prompt-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .cover-prompt-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cover-prompt-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .cover-prompt-text {
+      font-size: 12px;
+      color: #d1d5db;
+      min-height: 18px;
+      line-height: 1.4;
+    }
+    .cover-inline-note {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    @media (max-width: 860px) {
+      .cover-prompt-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     /* Cover action buttons row */
     .cover-actions-row {
       display: flex;
@@ -697,6 +735,10 @@
       background: rgba(0,0,0,0.5);
       z-index: 1;
     }
+    .modal-picker-item.selected {
+      border-color: #4ade80;
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.55), 0 4px 20px rgba(0,0,0,0.4);
+    }
     .modal-picker-item .picker-credit {
       position: absolute;
       bottom: 0;
@@ -707,6 +749,20 @@
       font-size: 11px;
       color: rgba(255,255,255,0.9);
       text-align: center;
+    }
+    .modal-picker-item .picker-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      background: rgba(34,197,94,0.9);
+      color: #06110a;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
     }
     .modal-picker-item .selecting-spinner {
       position: absolute;
@@ -1096,7 +1152,8 @@
                 <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
                 <option value="none">No images</option>
               </select>
-              <span class="form-hint">Royalty-free adds attribution automatically</span>
+              <span class="form-hint">Royalty-free adds attribution automatically. "No images" means no inline article images.</span>
+              <span class="form-hint">Cover image is handled separately in the modal.</span>
             </div>
             <div class="form-group" id="image_count_group">
               <label class="form-label">Images Count</label>
@@ -1108,6 +1165,7 @@
                 <option value="4">4 images</option>
                 <option value="5">5 images</option>
               </select>
+              <span class="form-hint">Inline article images only. One extra cover slot is always reserved separately.</span>
             </div>
             <div class="form-group">
               <label class="form-label checkbox-label">
@@ -1656,13 +1714,19 @@
             <span class="label">Cover Image:</span>
             <span id="coverStatus" class="cover-status">No cover yet</span>
           </div>
-          <div class="cover-prompt-row">
-            <span class="cover-prompt-label">Auto prompt:</span>
-            <span class="cover-prompt-text" id="modalPreviewCoverPrompt"></span>
+          <div class="cover-prompt-grid">
+            <div class="cover-prompt-card">
+              <span class="cover-prompt-label">Royalty-free search prompt</span>
+              <span class="cover-prompt-text" id="modalPreviewStockPrompt"></span>
+              <input type="text" id="customStockPrompt" class="form-input" placeholder="Optional: edit stock search prompt..." aria-label="Royalty-free stock search prompt"/>
+            </div>
+            <div class="cover-prompt-card">
+              <span class="cover-prompt-label">AI cover prompt</span>
+              <span class="cover-prompt-text" id="modalPreviewAIPrompt"></span>
+              <textarea id="customAICoverPrompt" class="form-textarea" rows="2" placeholder="Optional: edit AI cover prompt..." aria-label="AI cover prompt"></textarea>
+            </div>
           </div>
-          <div class="cover-custom-search">
-            <input type="text" id="customCoverPrompt" class="form-input" placeholder="Or enter your own search terms..." aria-label="Custom cover search prompt"/>
-          </div>
+          <p class="cover-inline-note">Cover image is handled separately from inline article images.</p>
           <!-- Inline source selector -->
           <div class="cover-source-selector" id="coverSourceSelector">
             <button type="button" class="cover-source-btn selected" id="coverSourceRoyaltyFree" aria-pressed="true" aria-label="Stock photos from Unsplash and Pexels">
@@ -1733,6 +1797,7 @@
     let generatedCoverUrl = null;
     let generatedCoverData = null;  // Full response including attribution
     let savedDraftSlug = null;  // Slug of auto-saved draft
+    let pendingCoverForDraft = null;
 
     // ========== TOAST UTILITY ==========
     const Toast = {
@@ -1759,34 +1824,218 @@
       warning(msg) { this.show(msg, 'warning', 3500); }
     };
 
+    class ApiRequestError extends Error {
+      constructor(message, details = {}) {
+        super(message);
+        this.name = 'ApiRequestError';
+        Object.assign(this, details);
+      }
+    }
+
+    function shortTextPreview(raw) {
+      return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 220);
+    }
+
+    function escapeHtmlText(value) {
+      return String(value || '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
+
+    function logApiError(error, contextLabel, showToast = true) {
+      const endpoint = error?.endpoint || 'unknown endpoint';
+      const status = error?.status != null ? ` status=${error.status}` : '';
+      const ct = error?.contentType ? ` content-type=${error.contentType}` : '';
+      const preview = error?.preview ? ` preview="${error.preview}"` : '';
+      console.error(`[Modal API] ${contextLabel} failed @ ${endpoint}${status}${ct}${preview}`, error);
+      if (showToast) {
+        Toast.error(error?.message || `${contextLabel} failed`);
+      }
+    }
+
+    async function fetchJson(url, options = {}, contextLabel = 'Request') {
+      let response;
+      try {
+        response = await fetch(url, options);
+      } catch (networkError) {
+        throw new ApiRequestError(`${contextLabel} failed: network error`, {
+          endpoint: url,
+          cause: networkError
+        });
+      }
+
+      const contentType = (response.headers.get('content-type') || '').toLowerCase();
+      const isJson = contentType.includes('application/json');
+      if (!response.ok) {
+        if (!isJson) {
+          const preview = shortTextPreview(await response.text().catch(() => ''));
+          throw new ApiRequestError(`${contextLabel} failed: expected JSON response`, {
+            endpoint: url,
+            status: response.status,
+            contentType,
+            preview
+          });
+        }
+
+        let errorPayload = null;
+        try {
+          errorPayload = await response.json();
+        } catch (parseError) {
+          throw new ApiRequestError(`${contextLabel} failed: invalid JSON response`, {
+            endpoint: url,
+            status: response.status,
+            contentType,
+            cause: parseError
+          });
+        }
+
+        const apiMessage = errorPayload?.error || errorPayload?.message || `HTTP ${response.status}`;
+        throw new ApiRequestError(`${contextLabel} failed: ${apiMessage}`, {
+          endpoint: url,
+          status: response.status,
+          contentType,
+          data: errorPayload
+        });
+      }
+
+      if (!isJson) {
+        const preview = shortTextPreview(await response.text().catch(() => ''));
+        throw new ApiRequestError(`${contextLabel} failed: expected JSON response`, {
+          endpoint: url,
+          status: response.status,
+          contentType,
+          preview
+        });
+      }
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch (parseError) {
+        throw new ApiRequestError(`${contextLabel} failed: invalid JSON response`, {
+          endpoint: url,
+          status: response.status,
+          contentType,
+          cause: parseError
+        });
+      }
+
+      return payload;
+    }
+
+    function makeCoverSelectionKey(option, index = 0) {
+      if (!option) return `stock_option_${index}`;
+      const idPart = option.id || option.photo_id || '';
+      const srcPart = (option.source || 'stock').toLowerCase();
+      const urlPart = option.preview_url || option.url || '';
+      return `${srcPart}:${idPart}:${urlPart}` || `stock_option_${index}`;
+    }
+
+    function extractArticleImagesFromBlocks(blocks) {
+      if (!Array.isArray(blocks)) return [];
+      return blocks
+        .filter((block) => block && block.type === 'image')
+        .map((block, index) => {
+          const data = block.data || {};
+          const file = data.file || {};
+          return {
+            index,
+            url: file.url || '',
+            caption: data.caption || '',
+            search_query: data.search_query || '',
+            prompt: data.prompt || '',
+            source: data.licensing?.provider || null
+          };
+        });
+    }
+
+    function createBlogDraftImagesState({ blogData = null, articleImageTargetCount = 0 } = {}) {
+      const safeArticleCount = Number.isFinite(articleImageTargetCount) ? Math.max(0, articleImageTargetCount) : 0;
+      const stockPrompt = (blogData?.stock_search_prompt || blogData?.cover_prompt || '').trim();
+      const aiPrompt = (blogData?.ai_cover_prompt || blogData?.cover_prompt || '').trim();
+
+      return {
+        articleImageTargetCount: safeArticleCount,
+        reservedCoverSlot: 1,
+        totalAssetTargetCount: safeArticleCount + 1,
+        stockSearchPrompt: stockPrompt,
+        aiCoverPrompt: aiPrompt,
+        coverImage: null,
+        articleImages: extractArticleImagesFromBlocks(blogData?.blocks || []),
+        stockResults: [],
+        aiResults: [],
+        manualCoverSelection: false,
+        autoSuggestedCover: null
+      };
+    }
+
+    let blogDraftImagesState = createBlogDraftImagesState();
+
+    function syncCoverPromptFields() {
+      const stockPrompt = blogDraftImagesState?.stockSearchPrompt || '';
+      const aiPrompt = blogDraftImagesState?.aiCoverPrompt || '';
+      const stockLabel = $('#modalPreviewStockPrompt');
+      const aiLabel = $('#modalPreviewAIPrompt');
+      if (stockLabel) stockLabel.textContent = stockPrompt || '(none)';
+      if (aiLabel) aiLabel.textContent = aiPrompt || '(none)';
+      const stockInput = $('#customStockPrompt');
+      const aiInput = $('#customAICoverPrompt');
+      if (stockInput && stockInput.value !== stockPrompt) stockInput.value = stockPrompt;
+      if (aiInput && aiInput.value !== aiPrompt) aiInput.value = aiPrompt;
+    }
+
+    function buildDraftGenerationParams(blogData) {
+      const base = (blogData?.generation_params && typeof blogData.generation_params === 'object')
+        ? { ...blogData.generation_params }
+        : {};
+      return {
+        ...base,
+        article_image_target_count: blogDraftImagesState.articleImageTargetCount,
+        reserved_cover_slot: blogDraftImagesState.reservedCoverSlot,
+        total_asset_target_count: blogDraftImagesState.totalAssetTargetCount,
+        stock_search_prompt: blogDraftImagesState.stockSearchPrompt || null,
+        ai_cover_prompt: blogDraftImagesState.aiCoverPrompt || null,
+        cover_image: blogDraftImagesState.coverImage ? {
+          source: blogDraftImagesState.coverImage.source || null,
+          id: blogDraftImagesState.coverImage.id || null,
+          url: blogDraftImagesState.coverImage.url || null,
+          attribution: blogDraftImagesState.coverImage.attribution || null,
+          prompt: blogDraftImagesState.coverImage.prompt || null,
+          licensing: blogDraftImagesState.coverImage.licensing || null
+        } : null
+      };
+    }
+
     // ========== UNIFIED COVER MANAGER ==========
     const CoverManager = {
-      // Explicit state object - all UI derives from this
       state: {
         mode: 'royalty_free',     // 'royalty_free' or 'ai'
         isLoading: false,
         lastCover: null,          // { url, attribution } - for reliable retry
-        prompt: '',
-        options: [],
-        size: '1536x1024'
+        size: '1536x1024',
+        searchRequestId: 0,
+        selectRequestId: 0
       },
 
-      // Initialize/reset state
       reset() {
-        this.state.options = [];
-        this.state.lastCover = null;
         this.state.isLoading = false;
-        this.state.prompt = '';
+        this.state.lastCover = null;
+        this.state.searchRequestId = 0;
+        this.state.selectRequestId = 0;
         this.hideDraftStatus();
         this.syncUI();
         $('#modalCoverPicker').classList.add('hidden');
         $('#modalCoverPreview').classList.add('hidden');
+        $('#coverActionSecondary').classList.add('hidden');
         $('#coverStatus').textContent = 'No cover yet';
         $('#coverStatus').classList.remove('ready');
-        $('#coverActionSecondary').classList.add('hidden');
+        syncCoverPromptFields();
       },
 
-      // Sync UI to state - single source of truth
       syncUI() {
         const { mode, isLoading } = this.state;
         const primaryBtn = $('#coverActionPrimary');
@@ -1795,23 +2044,20 @@
         const sourceAI = $('#coverSourceAI');
         const sizeRow = $('#coverSizeRow');
 
-        // Disable all controls when loading
         primaryBtn.disabled = isLoading;
         secondaryBtn.disabled = isLoading;
         sourceRF.disabled = isLoading;
         sourceAI.disabled = isLoading;
 
-        // Button labels based on mode and loading
         if (isLoading) {
           primaryBtn.textContent = mode === 'ai' ? 'Generating...' : 'Searching...';
         } else {
           primaryBtn.textContent = mode === 'ai' ? 'Generate' : 'Search';
         }
         primaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Generate AI cover' : 'Search for stock photos');
-        secondaryBtn.textContent = mode === 'ai' ? 'Regenerate' : 'Try New';
-        secondaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Regenerate with same prompt' : 'Try 3 new options');
+        secondaryBtn.textContent = mode === 'ai' ? 'Try New' : 'Try New';
+        secondaryBtn.setAttribute('aria-label', mode === 'ai' ? 'Try new AI cover result' : 'Try new stock photo results');
 
-        // Mode selection
         sourceRF.classList.toggle('selected', mode === 'royalty_free');
         sourceAI.classList.toggle('selected', mode === 'ai');
         sourceRF.setAttribute('aria-pressed', mode === 'royalty_free');
@@ -1819,198 +2065,277 @@
         sizeRow.classList.toggle('show', mode === 'ai');
       },
 
-      // Set loading state
       setLoading(loading) {
         this.state.isLoading = loading;
         this.syncUI();
       },
 
-      // Switch mode (royalty_free or ai)
       setMode(mode) {
-        if (this.state.isLoading) return;  // Prevent mode switch while loading
+        if (this.state.isLoading) return;
         this.state.mode = mode;
         this.syncUI();
-        // Hide picker when switching modes
         $('#modalCoverPicker').classList.add('hidden');
         $('#coverActionSecondary').classList.add('hidden');
+        if (blogDraftImagesState.coverImage?.url) {
+          this.renderPreview(blogDraftImagesState.coverImage);
+        }
       },
 
-      // Build optimized query for cover image searches (landscape, minimal text)
-      buildCoverSearchQuery(basePrompt) {
-        const bias = 'wide landscape cover photo, banner, minimal text, editorial, clean background';
-        const avoid = 'no screenshot, no phone screen, no vertical portrait, no watermark, no logo, no text overlay';
-        return `${basePrompt}. ${bias}. ${avoid}`;
+      getStockPrompt() {
+        const input = ($('#customStockPrompt')?.value || '').trim();
+        if (input) {
+          blogDraftImagesState.stockSearchPrompt = input;
+        }
+        return (blogDraftImagesState.stockSearchPrompt || '').trim();
       },
 
-      // Search royalty-free images (returns preview options)
+      getAIPrompt() {
+        const input = ($('#customAICoverPrompt')?.value || '').trim();
+        if (input) {
+          blogDraftImagesState.aiCoverPrompt = input;
+        }
+        return (blogDraftImagesState.aiCoverPrompt || '').trim();
+      },
+
       async searchRoyaltyFree(prompt) {
-        if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
-        this.state.prompt = prompt;  // Store original prompt for display
+        if (!prompt) {
+          Toast.warning('Please enter a royalty-free search prompt first');
+          return null;
+        }
+
+        blogDraftImagesState.stockSearchPrompt = prompt;
+        syncCoverPromptFields();
+
+        const requestId = ++this.state.searchRequestId;
         this.setLoading(true);
-
-        // Use optimized query for cover search
-        const searchQuery = this.buildCoverSearchQuery(prompt);
-
         try {
-          const r = await fetch(API + '/admin/ai/cover', {
+          const j = await fetchJson(API + '/admin/ai/cover', {
             method: 'POST',
             headers: headers(),
-            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free' })
-          });
-          const j = await r.json();
-          if (j.ok && j.mode === 'preview' && j.options) {
-            this.state.options = j.options;
-            return j.options;
-          } else {
-            Toast.error('Search failed: ' + (j.error || 'No images found'));
+            body: JSON.stringify({ prompt, mode: 'royalty_free' })
+          }, 'Stock cover search');
+
+          if (requestId !== this.state.searchRequestId) {
             return null;
           }
-        } catch (err) {
-          Toast.error('Error: ' + err.message);
+
+          if (j.ok && j.mode === 'preview' && Array.isArray(j.options)) {
+            blogDraftImagesState.stockResults = j.options.map((opt, idx) => ({
+              ...opt,
+              option_key: makeCoverSelectionKey(opt, idx)
+            }));
+            blogDraftImagesState.autoSuggestedCover = blogDraftImagesState.stockResults[0] || null;
+            return blogDraftImagesState.stockResults;
+          }
+
+          Toast.error('Search failed: no stock images found');
+          return null;
+        } catch (error) {
+          logApiError(error, 'Stock cover search');
           return null;
         } finally {
-          this.setLoading(false);
+          if (requestId === this.state.searchRequestId) {
+            this.setLoading(false);
+          }
         }
       },
 
-      // Select a royalty-free image by index (uploads to S3)
-      async selectRoyaltyFree(prompt, selectedIndex) {
-        // Use same optimized query as search to get consistent results
-        const searchQuery = this.buildCoverSearchQuery(prompt);
-        try {
-          const r = await fetch(API + '/admin/ai/cover', {
-            method: 'POST',
-            headers: headers(),
-            body: JSON.stringify({ prompt: searchQuery, mode: 'royalty_free', selected_index: selectedIndex })
-          });
-          const j = await r.json();
-          if (j.ok && j.url) {
-            return j;
-          } else {
-            Toast.error('Selection failed: ' + (j.error || 'Unknown error'));
-            return null;
-          }
-        } catch (err) {
-          Toast.error('Error: ' + err.message);
+      async selectRoyaltyFree(option) {
+        const prompt = this.getStockPrompt();
+        const selectedPayload = {
+          id: option.id || null,
+          url: option.preview_url || option.url || '',
+          preview_url: option.preview_url || option.url || '',
+          source: option.source || 'stock',
+          source_url: option.source_url || '',
+          photographer: option.photographer || '',
+          photographer_url: option.photographer_url || '',
+          attribution: option.attribution || '',
+          alt_description: option.alt_description || ''
+        };
+
+        return fetchJson(API + '/admin/ai/cover', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            prompt,
+            mode: 'royalty_free',
+            selected_image: selectedPayload
+          })
+        }, 'Stock cover select');
+      },
+
+      async generateAI(prompt, size = '1536x1024') {
+        if (!prompt) {
+          Toast.warning('Please enter an AI cover prompt first');
           return null;
         }
-      },
 
-      // Generate AI cover image
-      async generateAI(prompt, size = '1536x1024') {
-        if (!prompt) { Toast.warning('Please enter a cover prompt first'); return null; }
-        this.state.prompt = prompt;
+        blogDraftImagesState.aiCoverPrompt = prompt;
         this.state.size = size;
-        this.setLoading(true);
+        syncCoverPromptFields();
 
+        const requestId = ++this.state.searchRequestId;
+        this.setLoading(true);
         try {
-          const r = await fetch(API + '/admin/ai/cover', {
+          const j = await fetchJson(API + '/admin/ai/cover', {
             method: 'POST',
             headers: headers(),
             body: JSON.stringify({ prompt, size, mode: 'ai_photoreal' })
-          });
-          const j = await r.json();
-          if (j.ok && j.url) {
-            return j;
-          } else {
-            Toast.error('Generation failed: ' + (j.error || 'Unknown error'));
-            return null;
-          }
-        } catch (err) {
-          Toast.error('Error: ' + err.message);
+          }, 'AI cover generation');
+
+          if (requestId !== this.state.searchRequestId) return null;
+          if (j.ok && j.url) return j;
+          Toast.error('Generation failed: invalid response');
+          return null;
+        } catch (error) {
+          logApiError(error, 'AI cover generation');
           return null;
         } finally {
-          this.setLoading(false);
+          if (requestId === this.state.searchRequestId) {
+            this.setLoading(false);
+          }
         }
       },
 
-      // Render picker grid inline in blogModal
       renderPicker(options) {
         const picker = $('#modalCoverPicker');
         const preview = $('#modalCoverPreview');
         const status = $('#coverStatus');
         const secondaryBtn = $('#coverActionSecondary');
+        const selectedKey = blogDraftImagesState.coverImage?.optionKey || null;
 
         preview.classList.add('hidden');
         picker.classList.remove('hidden');
-        status.textContent = 'Choose an image:';
+        status.textContent = 'Choose a stock image for cover:';
         status.classList.remove('ready');
-        secondaryBtn.classList.remove('hidden');  // Show "Try New" button
+        secondaryBtn.classList.remove('hidden');
 
         picker.innerHTML = `
           <div class="modal-picker-grid">
-            ${options.map((opt, idx) => `
-              <div class="modal-picker-item" data-idx="${idx}" tabindex="0" role="button" aria-label="Select cover by ${opt.photographer}">
-                <img src="${opt.preview_url}" alt="${opt.alt_description || 'Cover option'}"/>
-                <div class="picker-credit">by <strong>${opt.photographer}</strong></div>
-              </div>
-            `).join('')}
+            ${options.map((opt) => {
+              const encodedKey = encodeURIComponent(opt.option_key);
+              const isSelected = selectedKey && selectedKey === opt.option_key;
+              const provider = escapeHtmlText(opt.source || 'Stock');
+              const photographer = escapeHtmlText(opt.photographer || 'Unknown');
+              const alt = escapeHtmlText(opt.alt_description || 'Cover option');
+              const badge = isSelected ? '<span class="picker-badge">Selected as cover</span>' : '';
+              return `
+                <div class="modal-picker-item ${isSelected ? 'selected' : ''}" data-option-key="${encodedKey}" tabindex="0" role="button" aria-label="Select cover by ${photographer}">
+                  ${badge}
+                  <img src="${opt.preview_url}" alt="${alt}"/>
+                  <div class="picker-credit">by <strong>${photographer}</strong> on ${provider}</div>
+                </div>
+              `;
+            }).join('')}
           </div>
         `;
 
-        // Add click and keyboard handlers
-        picker.querySelectorAll('.modal-picker-item').forEach(item => {
-          item.onclick = () => this.handlePickerSelection(parseInt(item.dataset.idx));
+        picker.querySelectorAll('.modal-picker-item').forEach((item) => {
+          const optionKey = decodeURIComponent(item.dataset.optionKey || '');
+          item.onclick = () => this.handlePickerSelection(optionKey, item);
           item.onkeydown = (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              this.handlePickerSelection(parseInt(item.dataset.idx));
+              this.handlePickerSelection(optionKey, item);
             }
           };
         });
       },
 
-      // Handle picker selection
-      async handlePickerSelection(index) {
-        const item = $(`[data-idx="${index}"]`);
-        if (!item || item.classList.contains('selecting')) return;
+      async handlePickerSelection(optionKey, item) {
+        const option = blogDraftImagesState.stockResults.find((entry) => entry.option_key === optionKey);
+        if (!option || !item || item.classList.contains('selecting')) return;
 
+        const previousCover = blogDraftImagesState.coverImage ? { ...blogDraftImagesState.coverImage } : null;
+        blogDraftImagesState.manualCoverSelection = true;
+        blogDraftImagesState.coverImage = {
+          source: 'stock',
+          id: option.id || optionKey,
+          optionKey,
+          url: option.preview_url || option.url || '',
+          attribution: option.attribution || '',
+          prompt: this.getStockPrompt(),
+          licensing: {
+            photographer: option.photographer || '',
+            photographer_url: option.photographer_url || '',
+            provider: option.source || 'stock',
+            provider_url: option.source_url || '',
+            original_url: option.preview_url || option.url || ''
+          }
+        };
+        this.renderPicker(blogDraftImagesState.stockResults);
+
+        const requestId = ++this.state.selectRequestId;
         item.classList.add('selecting');
         item.insertAdjacentHTML('beforeend', '<div class="selecting-spinner"></div>');
 
-        const result = await this.selectRoyaltyFree(this.state.prompt, index);
-        if (result) {
+        try {
+          const result = await this.selectRoyaltyFree(option);
+          if (requestId !== this.state.selectRequestId) return;
+          if (!result || !result.url) {
+            throw new ApiRequestError('Stock cover select failed: missing URL');
+          }
+
+          blogDraftImagesState.coverImage = {
+            source: 'stock',
+            id: option.id || optionKey,
+            optionKey,
+            url: result.url,
+            attribution: result.attribution || option.attribution || '',
+            prompt: this.getStockPrompt(),
+            licensing: result.licensing || blogDraftImagesState.coverImage.licensing || null
+          };
           generatedCoverUrl = result.url;
           generatedCoverData = result;
-          this.renderPreview(result);
-        } else {
+          blogDraftImagesState.aiResults = [];
+
+          this.renderPreview(blogDraftImagesState.coverImage);
+          this.updateDraftWithCover(blogDraftImagesState.coverImage);
+        } catch (error) {
+          blogDraftImagesState.coverImage = previousCover;
+          if (previousCover?.url) {
+            this.renderPreview(previousCover);
+          } else {
+            this.renderPicker(blogDraftImagesState.stockResults);
+          }
+          logApiError(error, 'Stock cover select');
           item.classList.remove('selecting');
           item.querySelector('.selecting-spinner')?.remove();
         }
       },
 
-      // Render final preview inline in blogModal
-      renderPreview(result) {
+      renderPreview(coverImage) {
         const picker = $('#modalCoverPicker');
         const preview = $('#modalCoverPreview');
         const status = $('#coverStatus');
         const secondaryBtn = $('#coverActionSecondary');
 
-        picker.classList.add('hidden');
+        const keepPickerVisible = coverImage?.source === 'stock' && Array.isArray(blogDraftImagesState.stockResults) && blogDraftImagesState.stockResults.length > 0;
+        picker.classList.toggle('hidden', !keepPickerVisible);
         preview.classList.remove('hidden');
         status.textContent = 'Cover ready!';
         status.classList.add('ready');
-        secondaryBtn.classList.remove('hidden');  // Show Regenerate/Try New
+        secondaryBtn.classList.remove('hidden');
 
         const img = $('#modalDraftCoverImg');
-        if (img && result.url) {
-          img.src = result.url;
+        if (img && coverImage?.url) {
+          img.src = coverImage.url;
         }
 
         const attr = $('#modalDraftCoverAttr');
-        if (result.attribution) {
-          attr.innerHTML = result.attribution;
+        if (coverImage?.attribution) {
+          attr.innerHTML = coverImage.attribution;
           attr.classList.remove('hidden');
         } else {
           attr.classList.add('hidden');
         }
 
-        // Store for retry and update draft
-        this.state.lastCover = { url: result.url, attribution: result.attribution || '' };
-        this.updateDraftWithCover(result.url, result.attribution || '');
+        this.state.lastCover = coverImage
+          ? { ...coverImage, url: coverImage.url, attribution: coverImage.attribution || '' }
+          : null;
       },
 
-      // Show draft status
       showDraftStatus(success, message) {
         const statusEl = $('#coverDraftStatus');
         statusEl.classList.remove('hidden', 'success', 'error');
@@ -2024,27 +2349,26 @@
         }
       },
 
-      // Hide draft status
       hideDraftStatus() {
         $('#coverDraftStatus').classList.add('hidden');
       },
 
-      // Retry draft update
       async retryDraftUpdate() {
-        if (!this.state.lastCover) return;
-        await this.updateDraftWithCover(this.state.lastCover.url, this.state.lastCover.attribution);
+        const coverToSave = this.state.lastCover || blogDraftImagesState.coverImage;
+        if (!coverToSave) return;
+        await this.updateDraftWithCover(coverToSave);
       },
 
-      // Update draft with cover image
-      async updateDraftWithCover(url, attribution) {
+      async updateDraftWithCover(coverImage) {
         if (!savedDraftSlug) {
-          this.showDraftStatus(false, 'No draft to save to');
+          pendingCoverForDraft = coverImage ? { ...coverImage } : null;
+          this.showDraftStatus(true, 'Draft not ready yet. Cover will be saved automatically.');
           return;
         }
 
+        pendingCoverForDraft = null;
         this.showDraftStatus(true, 'Saving to draft...');
-        const success = await updateDraftCover(url, attribution);
-
+        const success = await updateDraftCover(coverImage);
         if (success) {
           this.showDraftStatus(true, 'Saved to draft');
         } else {
@@ -2052,42 +2376,51 @@
         }
       },
 
-      // Get the current prompt (custom or auto)
-      getPrompt() {
-        const customPrompt = $('#customCoverPrompt')?.value?.trim();
-        const autoPrompt = generatedBlog?.cover_prompt;
-        return customPrompt || autoPrompt || '';
-      },
-
-      // Primary action (Search or Generate based on mode)
       async runPrimaryAction() {
-        if (this.state.isLoading) return;  // Prevent double-clicks
-
-        const prompt = this.getPrompt();
-        if (!prompt) {
-          Toast.warning('Enter a cover prompt or generate a blog first');
-          return;
-        }
+        if (this.state.isLoading) return;
 
         if (this.state.mode === 'ai') {
+          const prompt = this.getAIPrompt();
+          if (!prompt) {
+            Toast.warning('Enter an AI cover prompt or generate a blog first');
+            return;
+          }
           const size = $('#modalCoverSize').value || '1536x1024';
           const result = await this.generateAI(prompt, size);
           if (result) {
+            const aiCover = {
+              source: 'ai',
+              id: result.url,
+              optionKey: null,
+              url: result.url,
+              attribution: result.attribution || '',
+              prompt,
+              licensing: result.licensing || null
+            };
+            blogDraftImagesState.coverImage = aiCover;
+            blogDraftImagesState.manualCoverSelection = true;
+            blogDraftImagesState.aiResults = [result];
             generatedCoverUrl = result.url;
             generatedCoverData = result;
-            this.renderPreview(result);
+            this.renderPreview(aiCover);
+            this.updateDraftWithCover(aiCover);
           }
-        } else {
-          const options = await this.searchRoyaltyFree(prompt);
-          if (options) {
-            this.renderPicker(options);
-          }
+          return;
+        }
+
+        const prompt = this.getStockPrompt();
+        if (!prompt) {
+          Toast.warning('Enter a royalty-free search prompt or generate a blog first');
+          return;
+        }
+        const options = await this.searchRoyaltyFree(prompt);
+        if (options) {
+          this.renderPicker(options);
         }
       },
 
-      // Secondary action (Try New or Regenerate)
       async runSecondaryAction() {
-        if (this.state.isLoading) return;  // Prevent double-clicks
+        if (this.state.isLoading) return;
         await this.runPrimaryAction();
       }
     };
@@ -2095,7 +2428,6 @@
     // Auto-save blog as draft
     async function autoSaveDraft(blogData) {
       const statusEl = $('#blogDraftStatus');
-      const slugEl = $('#blogDraftSlug');
 
       statusEl.className = 'blog-draft-status saving';
       statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
@@ -2106,8 +2438,9 @@
         const affProduct = $('#ai_product_name').value.trim();
         const affCta = affUrl ? $('#ai_affiliate_cta').value : '';
         const affPlacement = affUrl ? $('#ai_affiliate_placement').value : '';
+        const coverImage = blogDraftImagesState.coverImage;
 
-        const r = await fetch(API + '/post', {
+        const j = await fetchJson(API + '/post', {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({
@@ -2115,8 +2448,8 @@
             excerpt: blogData.excerpt,
             tags: blogData.tags,
             type: blogData.type,
-            cover_url: generatedCoverUrl || '',
-            cover_attribution: '',
+            cover_url: coverImage?.url || generatedCoverUrl || '',
+            cover_attribution: coverImage?.attribution || '',
             content_blocks: { time: Date.now(), blocks: blogData.blocks, version: '2.29.1' },
             status: 'draft',
             author: 'Dima V',
@@ -2125,43 +2458,46 @@
             affiliate_product: affProduct || undefined,
             affiliate_cta: affCta || undefined,
             affiliate_placement: affPlacement || undefined,
-            generation_params: blogData.generation_params || undefined,
+            generation_params: buildDraftGenerationParams(blogData),
           })
-        });
-        const j = await r.json();
+        }, 'Auto-save draft');
 
         if (j.ok || j.slug) {
           savedDraftSlug = j.slug;
           statusEl.className = 'blog-draft-status';
           statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + j.slug + '</span>';
+          if (pendingCoverForDraft?.url) {
+            CoverManager.updateDraftWithCover(pendingCoverForDraft);
+          }
           load();  // Refresh posts list
         } else {
           statusEl.className = 'blog-draft-status error';
           statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Failed to save: ' + (j.error || 'Unknown error') + '</span>';
         }
       } catch (err) {
+        logApiError(err, 'Auto-save draft', false);
         statusEl.className = 'blog-draft-status error';
         statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Error: ' + err.message + '</span>';
       }
     }
 
     // Update draft with cover image
-    async function updateDraftCover(coverUrl, coverAttribution) {
+    async function updateDraftCover(coverImage) {
       if (!savedDraftSlug) return false;
 
       try {
-        const r = await fetch(API + '/post/' + encodeURIComponent(savedDraftSlug), {
+        const j = await fetchJson(API + '/post/' + encodeURIComponent(savedDraftSlug), {
           method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
-            cover_url: coverUrl,
-            cover_attribution: coverAttribution
+            cover_url: coverImage?.url || '',
+            cover_attribution: coverImage?.attribution || '',
+            generation_params: buildDraftGenerationParams(generatedBlog)
           })
-        });
-        const j = await r.json();
+        }, 'Update draft cover');
         return j.ok;
       } catch (err) {
-        console.error('Failed to update draft cover:', err);
+        logApiError(err, 'Update draft cover', false);
         return false;
       }
     }
@@ -2221,14 +2557,18 @@
       };
     });
 
-    // Dynamic UI: Hide/show image count and smart image options based on images mode
+    // Dynamic UI: image mode controls inline image count only (cover is always handled separately)
     $('#ai_images_mode').onchange = function() {
       const imageCountGroup = $('#image_count_group');
+      const imageCountSelect = $('#ai_image_count');
       const smartImageOptions = $('#smart_image_options');
       const isRoyaltyFree = this.value === 'royalty_free';
       const isNone = this.value === 'none';
-      if (imageCountGroup) {
-        imageCountGroup.style.display = isNone ? 'none' : 'block';
+      if (imageCountGroup && imageCountSelect) {
+        imageCountGroup.style.display = 'block';
+        imageCountSelect.disabled = isNone;
+        imageCountGroup.style.opacity = isNone ? '0.65' : '1';
+        if (isNone) imageCountSelect.value = '0';
       }
       if (smartImageOptions) {
         // Only show smart image options for royalty-free mode
@@ -2259,8 +2599,11 @@
         const affiliateUrl = $('#ai_affiliate_url').value.trim();
         const productName = $('#ai_product_name').value.trim();
         const imagesMode = $('#ai_images_mode').value;
+        const selectedInlineCount = Math.max(0, parseInt($('#ai_image_count').value, 10) || 0);
+        const articleImageCount = imagesMode === 'none' ? 0 : selectedInlineCount;
+        const totalImagesNeeded = articleImageCount + 1; // Always reserve one slot for cover
 
-        const r = await fetch(API + '/admin/ai/generate', {
+        const j = await fetchJson(API + '/admin/ai/generate', {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({
@@ -2268,7 +2611,10 @@
             style: $('#ai_style').value,
             length: $('#ai_length').value,
             tone: $('#ai_tone').value,
-            image_count: imagesMode === 'none' ? 0 : parseInt($('#ai_image_count').value, 10),
+            image_count: articleImageCount,
+            article_image_count: articleImageCount,
+            reserved_cover_slot: 1,
+            total_images_needed: totalImagesNeeded,
             images_mode: imagesMode,
             strict_factcheck: $('#ai_strict_factcheck').checked,
             smart_image_search: $('#ai_smart_image_search').checked,
@@ -2278,15 +2624,26 @@
             affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
             affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
           })
-        });
-        const ct = r.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) {
-          throw new Error('Server returned non-JSON response (possible timeout). Try again.');
-        }
-        const j = await r.json();
+        }, 'Generate blog');
 
         if (j.ok) {
-          generatedBlog = j;
+          const normalizedStockPrompt = (j.stock_search_prompt || j.cover_prompt || '').trim();
+          const normalizedAIPrompt = (j.ai_cover_prompt || j.cover_prompt || '').trim();
+          generatedBlog = {
+            ...j,
+            stock_search_prompt: normalizedStockPrompt,
+            ai_cover_prompt: normalizedAIPrompt
+          };
+
+          const resolvedArticleImageCount = Number.isFinite(Number(j.article_image_count))
+            ? Math.max(0, Number(j.article_image_count))
+            : articleImageCount;
+          blogDraftImagesState = createBlogDraftImagesState({
+            blogData: generatedBlog,
+            articleImageTargetCount: resolvedArticleImageCount
+          });
+          syncCoverPromptFields();
+
           // Show warnings for graceful degradation and quality gates
           const warnings = [];
           if (j.images_mode_warning) warnings.push(j.images_mode_warning);
@@ -2300,7 +2657,6 @@
           $('#modalPreviewExcerpt').textContent = j.excerpt;
           $('#modalPreviewType').textContent = j.type;
           $('#modalPreviewTags').textContent = j.tags;
-          $('#modalPreviewCoverPrompt').textContent = j.cover_prompt || '(none)';
 
           // Reset cover section and globals
           CoverManager.reset();
@@ -2313,12 +2669,12 @@
           $('#blogModal').classList.add('show');
 
           // Auto-save as draft
-          autoSaveDraft(j);
+          autoSaveDraft(generatedBlog);
         } else {
           Toast.error('Generation failed: ' + (j.error || 'Unknown error'));
         }
       } catch (err) {
-        Toast.error('Error: ' + err.message);
+        logApiError(err, 'Generate blog');
       } finally {
         btn.disabled = false;
         btn.innerHTML = 'Generate Blog Post';
@@ -2337,12 +2693,8 @@
         btn.disabled = true;
         btn.textContent = 'Saving...';
         try {
-          // Build cover attribution from generatedCoverData if available
-          let coverAttribution = '';
-          if (generatedCoverData && generatedCoverData.attribution) {
-            coverAttribution = generatedCoverData.attribution;
-          }
-          const r = await fetch(API + '/post', {
+          const coverImage = blogDraftImagesState.coverImage;
+          const j = await fetchJson(API + '/post', {
             method: 'POST',
             headers: headers(),
             body: JSON.stringify({
@@ -2350,15 +2702,15 @@
               excerpt: generatedBlog.excerpt,
               tags: generatedBlog.tags,
               type: generatedBlog.type,
-              cover_url: generatedCoverUrl || '',
-              cover_attribution: coverAttribution,
+              cover_url: coverImage?.url || generatedCoverUrl || '',
+              cover_attribution: coverImage?.attribution || '',
               content_blocks: { time: Date.now(), blocks: generatedBlog.blocks, version: '2.29.1' },
               status: 'draft',
               author: 'Dima V',
-              author_avatar: 'img/dima.jpg'
+              author_avatar: 'img/dima.jpg',
+              generation_params: buildDraftGenerationParams(generatedBlog)
             })
-          });
-          const j = await r.json();
+          }, 'Save generated draft');
           if (j.ok || j.slug) {
             alert('Draft saved! Slug: ' + j.slug);
             load();
@@ -2370,6 +2722,7 @@
             alert('Save failed: ' + (j.error || 'Unknown error'));
           }
         } catch (err) {
+          logApiError(err, 'Save generated draft');
           alert('Error: ' + err.message);
         } finally {
           btn.disabled = false;
@@ -2403,6 +2756,24 @@
 
     // Secondary action button (Try New / Regenerate)
     $('#coverActionSecondary').onclick = () => CoverManager.runSecondaryAction();
+
+    // Prompt inputs keep stock and AI prompts independent
+    const stockPromptInput = $('#customStockPrompt');
+    const aiPromptInput = $('#customAICoverPrompt');
+    if (stockPromptInput) {
+      stockPromptInput.addEventListener('input', () => {
+        blogDraftImagesState.stockSearchPrompt = stockPromptInput.value.trim();
+        const label = $('#modalPreviewStockPrompt');
+        if (label) label.textContent = blogDraftImagesState.stockSearchPrompt || '(none)';
+      });
+    }
+    if (aiPromptInput) {
+      aiPromptInput.addEventListener('input', () => {
+        blogDraftImagesState.aiCoverPrompt = aiPromptInput.value.trim();
+        const label = $('#modalPreviewAIPrompt');
+        if (label) label.textContent = blogDraftImagesState.aiCoverPrompt || '(none)';
+      });
+    }
 
     // View saved post
     $('#modalViewPost').onclick = () => {
