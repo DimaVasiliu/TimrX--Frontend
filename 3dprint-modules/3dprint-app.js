@@ -90,6 +90,43 @@
     }
   
     /* -------------------------------------------------------------------------
+     * ANIMATION LIBRARY (Meshy action_id reference)
+     * ---------------------------------------------------------------------- */
+    window.ANIMATION_LIBRARY = [
+      { action_id: 0, category: 'DailyActions', label: 'Idle' },
+      { action_id: 1, category: 'DailyActions', label: 'Look Around' },
+      { action_id: 2, category: 'DailyActions', label: 'Interact' },
+      { action_id: 3, category: 'DailyActions', label: 'Pick Up' },
+      { action_id: 4, category: 'DailyActions', label: 'Push' },
+      { action_id: 5, category: 'DailyActions', label: 'Drink' },
+      { action_id: 6, category: 'DailyActions', label: 'Work Out' },
+      { action_id: 7, category: 'DailyActions', label: 'Sleep' },
+      { action_id: 10, category: 'WalkAndRun', label: 'Walk' },
+      { action_id: 11, category: 'WalkAndRun', label: 'Run' },
+      { action_id: 12, category: 'WalkAndRun', label: 'Sprint' },
+      { action_id: 13, category: 'WalkAndRun', label: 'Crouch Walk' },
+      { action_id: 14, category: 'WalkAndRun', label: 'Swim' },
+      { action_id: 15, category: 'WalkAndRun', label: 'Turn Left' },
+      { action_id: 16, category: 'WalkAndRun', label: 'Turn Right' },
+      { action_id: 30, category: 'Fighting', label: 'Combat Stance' },
+      { action_id: 31, category: 'Fighting', label: 'Punch' },
+      { action_id: 32, category: 'Fighting', label: 'Kick' },
+      { action_id: 33, category: 'Fighting', label: 'Block' },
+      { action_id: 34, category: 'Fighting', label: 'Spellcast' },
+      { action_id: 35, category: 'Fighting', label: 'Die' },
+      { action_id: 70, category: 'Dancing', label: 'Dance 1' },
+      { action_id: 71, category: 'Dancing', label: 'Dance 2' },
+      { action_id: 72, category: 'Dancing', label: 'Dance 3' },
+      { action_id: 73, category: 'Dancing', label: 'Hip Hop' },
+      { action_id: 74, category: 'Dancing', label: 'Gangnam Groove' },
+      { action_id: 50, category: 'BodyMovements', label: 'Jump' },
+      { action_id: 51, category: 'BodyMovements', label: 'Climb' },
+      { action_id: 52, category: 'BodyMovements', label: 'Vault' },
+      { action_id: 53, category: 'BodyMovements', label: 'Fall' },
+      { action_id: 54, category: 'BodyMovements', label: 'Hang' },
+    ];
+
+    /* -------------------------------------------------------------------------
      * PANEL CONTENT TEMPLATES (left control column)
      * ---------------------------------------------------------------------- */
     const panelContent = {
@@ -396,57 +433,85 @@
         </div>
       `,
 
-      rig: `
-        <div class="card">
-          <h3>Rig Target</h3>
-          <div class="inline-field">
-            <label for="rigModelSelect">Target</label>
-            <select id="rigModelSelect">
-              <option value="current" selected>Current Model</option>
-              <option value="upload">Upload New Model</option>
-            </select>
-          </div>
-
-          <div id="rigModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
-            <label for="rigModelUpload" style="font-size:12px">Upload Humanoid GLB/GLTF</label>
-            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
-              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle cx="12" cy="6" r="2.4" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6l-4 6m4-6l4 6M8 12l4 3 4-3" />
-              </svg>
-              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-              <span style="font-size:11px;color:#666">GLB, GLTF (textured)</span>
-              <input type="file" id="rigModelUpload" accept=".gltf,.glb" hidden />
+      animate: `
+        <div class="card animate-steps-indicator">
+          <span class="animate-step-dot is-active" data-step="1">1</span>
+          <span class="animate-step-line"></span>
+          <span class="animate-step-dot" data-step="2">2</span>
+          <span style="flex:1"></span>
+          <span class="animate-step-label" id="animateStepLabel">Step 1: Rig</span>
+        </div>
+        <div id="animateStep1">
+          <div class="card">
+            <h3>Rig Target</h3>
+            <div class="inline-field">
+              <label for="animateModelSelect">Target</label>
+              <select id="animateModelSelect">
+                <option value="current" selected>Current Model</option>
+                <option value="upload">Upload New Model</option>
+              </select>
             </div>
-            <div id="rigModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
+            <div id="animateModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+              <label for="animateModelUpload" style="font-size:12px">Upload Humanoid GLB/GLTF</label>
+              <div id="animateModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+                <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="6" r="2.4"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6l-4 6m4-6l4 6M8 12l4 3 4-3"/>
+                </svg>
+                <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
+                <span style="font-size:11px;color:#666">GLB, GLTF (textured humanoid)</span>
+                <input type="file" id="animateModelUpload" accept=".gltf,.glb" hidden/>
+              </div>
+              <div id="animateModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Rig Settings</h3>
+            <div class="inline-field">
+              <label for="animateHeight">Height (m)</label>
+              <input type="number" id="animateHeight" value="1.7" min="0.5" max="3" step="0.1">
+            </div>
+            <label for="animateTextureUpload" style="margin-top:8px;font-size:12px">Override Texture (optional)</label>
+            <div id="animateTextureDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <p style="margin:0 0 4px;font-size:12px;color:#ccc">Click or drop PNG</p>
+              <span style="font-size:11px;color:#666">PNG only</span>
+              <input type="file" id="animateTextureUpload" accept="image/png" hidden/>
+            </div>
+            <div id="animateTextureFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
+          </div>
+          <div class="card gen-footer-card">
+            <div class="gen-meta">
+              <span class="gen-time">2 min</span>
+              <span class="gen-divider">|</span>
+              <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
+            </div>
+            <button type="button" id="animateRigBtn" class="gen-btn" title="5 credits">
+              <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v6l-4 6m4-6l4 6M8 10l4 3 4-3"/></svg>
+              Rig Model
+            </button>
           </div>
         </div>
-
-        <div class="card">
-          <h3>Rig Settings</h3>
-          <div class="inline-field">
-            <label for="rigHeight">Height (m)</label>
-            <input type="number" id="rigHeight" value="1.7" min="0.5" max="3" step="0.1">
+        <div id="animateStep2" style="display:none">
+          <div class="card">
+            <h3>Choose Animation</h3>
+            <div id="animateCategoryChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+            <div id="animateGrid" style="max-height:300px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:4px 0"></div>
+            <input type="hidden" id="animateSelectedActionId" value=""/>
           </div>
-          <label for="rigTextureUpload" style="margin-top:8px;font-size:12px">Override Texture (optional)</label>
-          <div id="rigTextureDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
-            <p style="margin:0 0 4px;font-size:12px;color:#ccc">Click or drop PNG</p>
-            <span style="font-size:11px;color:#666">PNG only</span>
-            <input type="file" id="rigTextureUpload" accept="image/png" hidden />
+          <div class="card gen-footer-card">
+            <div class="gen-meta">
+              <span class="gen-time">1 min</span>
+              <span class="gen-divider">|</span>
+              <span class="gen-credits"><i class="fa-solid fa-coins"></i> 3</span>
+            </div>
+            <button type="button" id="animateApplyBtn" class="gen-btn" title="3 credits" disabled>
+              <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="4" r="2"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l3 3-2 2 3 5m-6-10l-3 3 2 2-3 5m1-6h4"/>
+              </svg>
+              Animate
+            </button>
           </div>
-          <div id="rigTextureFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
-        </div>
-
-        <div class="card gen-footer-card">
-          <div class="gen-meta">
-            <span class="gen-time">2 min</span>
-            <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 25</span>
-          </div>
-          <button type="button" id="applyRigBtn" class="gen-btn" title="25 credits">
-            <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v6l-4 6m4-6l4 6M8 10l4 3 4-3"/></svg>
-            Rig
-          </button>
         </div>
       `,
   
@@ -2029,62 +2094,114 @@
         });
       }
 
-      // Rig upload toggles
-      const rigModelSelect   = leftStack.querySelector('#rigModelSelect');
-      const rigUploadSection = leftStack.querySelector('#rigModelUploadSection');
-      const rigModelDrop     = leftStack.querySelector('#rigModelDrop');
-      const rigModelUpload   = leftStack.querySelector('#rigModelUpload');
-      const rigModelFileName = leftStack.querySelector('#rigModelFileName');
-      const rigTexDrop       = leftStack.querySelector('#rigTextureDrop');
-      const rigTexUpload     = leftStack.querySelector('#rigTextureUpload');
-      const rigTexFileName   = leftStack.querySelector('#rigTextureFileName');
+      // Animate panel: Step 1 upload toggles
+      const animateModelSelect   = leftStack.querySelector('#animateModelSelect');
+      const animateUploadSection = leftStack.querySelector('#animateModelUploadSection');
+      const animateModelDrop     = leftStack.querySelector('#animateModelDrop');
+      const animateModelUpload   = leftStack.querySelector('#animateModelUpload');
+      const animateModelFileName = leftStack.querySelector('#animateModelFileName');
+      const animateTexDrop       = leftStack.querySelector('#animateTextureDrop');
+      const animateTexUpload     = leftStack.querySelector('#animateTextureUpload');
+      const animateTexFileName   = leftStack.querySelector('#animateTextureFileName');
 
-      if (rigModelSelect && rigUploadSection) {
-        rigModelSelect.addEventListener('change', function () {
+      if (animateModelSelect && animateUploadSection) {
+        animateModelSelect.addEventListener('change', function () {
           const show = this.value === 'upload';
-          rigUploadSection.style.display = show ? 'block' : 'none';
-          if (!show && rigModelFileName) rigModelFileName.style.display = 'none';
+          animateUploadSection.style.display = show ? 'block' : 'none';
+          if (!show && animateModelFileName) animateModelFileName.style.display = 'none';
         });
       }
-      if (rigModelDrop && rigModelUpload && rigModelFileName) {
-        rigModelDrop.addEventListener('click', () => rigModelUpload.click());
-        rigModelUpload.addEventListener('change', function () {
+      if (animateModelDrop && animateModelUpload && animateModelFileName) {
+        animateModelDrop.addEventListener('click', () => animateModelUpload.click());
+        animateModelUpload.addEventListener('change', function () {
           if (this.files && this.files[0]) {
             const f = this.files[0];
-            rigModelFileName.textContent = `📦 ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
-            rigModelFileName.style.display = 'block';
+            animateModelFileName.textContent = `📦 ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
+            animateModelFileName.style.display = 'block';
           }
         });
-        rigModelDrop.addEventListener('dragover', (e) => { e.preventDefault(); rigModelDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
-        rigModelDrop.addEventListener('dragleave', () => { rigModelDrop.style.borderColor = 'rgba(255,255,255,.15)'; });
-        rigModelDrop.addEventListener('drop', (e) => {
+        animateModelDrop.addEventListener('dragover', (e) => { e.preventDefault(); animateModelDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
+        animateModelDrop.addEventListener('dragleave', () => { animateModelDrop.style.borderColor = 'rgba(255,255,255,.15)'; });
+        animateModelDrop.addEventListener('drop', (e) => {
           e.preventDefault();
-          rigModelDrop.style.borderColor = 'rgba(255,255,255,.15)';
+          animateModelDrop.style.borderColor = 'rgba(255,255,255,.15)';
           if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            rigModelUpload.files = e.dataTransfer.files;
-            rigModelUpload.dispatchEvent(new Event('change'));
+            animateModelUpload.files = e.dataTransfer.files;
+            animateModelUpload.dispatchEvent(new Event('change'));
           }
         });
       }
 
-      if (rigTexDrop && rigTexUpload && rigTexFileName) {
-        rigTexDrop.addEventListener('click', () => rigTexUpload.click());
-        rigTexUpload.addEventListener('change', function () {
+      if (animateTexDrop && animateTexUpload && animateTexFileName) {
+        animateTexDrop.addEventListener('click', () => animateTexUpload.click());
+        animateTexUpload.addEventListener('change', function () {
           if (this.files && this.files[0]) {
             const f = this.files[0];
-            rigTexFileName.textContent = `🖼 ${f.name}`;
-            rigTexFileName.style.display = 'block';
+            animateTexFileName.textContent = `🖼 ${f.name}`;
+            animateTexFileName.style.display = 'block';
           }
         });
-        rigTexDrop.addEventListener('dragover', (e) => { e.preventDefault(); rigTexDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
-        rigTexDrop.addEventListener('dragleave', () => { rigTexDrop.style.borderColor = 'rgba(255,255,255,.15)'; });
-        rigTexDrop.addEventListener('drop', (e) => {
+        animateTexDrop.addEventListener('dragover', (e) => { e.preventDefault(); animateTexDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
+        animateTexDrop.addEventListener('dragleave', () => { animateTexDrop.style.borderColor = 'rgba(255,255,255,.15)'; });
+        animateTexDrop.addEventListener('drop', (e) => {
           e.preventDefault();
-          rigTexDrop.style.borderColor = 'rgba(255,255,255,.15)';
+          animateTexDrop.style.borderColor = 'rgba(255,255,255,.15)';
           if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            rigTexUpload.files = e.dataTransfer.files;
-            rigTexUpload.dispatchEvent(new Event('change'));
+            animateTexUpload.files = e.dataTransfer.files;
+            animateTexUpload.dispatchEvent(new Event('change'));
           }
+        });
+      }
+
+      // Animate panel: Step 2 animation picker
+      const animChipsContainer = leftStack.querySelector('#animateCategoryChips');
+      const animGrid           = leftStack.querySelector('#animateGrid');
+      const animActionInput    = leftStack.querySelector('#animateSelectedActionId');
+      const animApplyBtn       = leftStack.querySelector('#animateApplyBtn');
+
+      if (animChipsContainer && animGrid && window.ANIMATION_LIBRARY) {
+        const lib = window.ANIMATION_LIBRARY;
+        const categories = [...new Set(lib.map(a => a.category))];
+
+        // Build category chips
+        categories.forEach((cat, i) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'animate-chip' + (i === 0 ? ' is-active' : '');
+          chip.textContent = cat.replace(/([A-Z])/g, ' $1').trim();
+          chip.dataset.cat = cat;
+          animChipsContainer.appendChild(chip);
+        });
+
+        function renderAnimGrid(activeCat) {
+          const filtered = lib.filter(a => a.category === activeCat);
+          animGrid.innerHTML = filtered.map(a => `
+            <div class="animate-card" data-action-id="${a.action_id}">
+              <span class="animate-card-label">${a.label}</span>
+            </div>
+          `).join('');
+        }
+
+        renderAnimGrid(categories[0]);
+
+        animChipsContainer.addEventListener('click', (e) => {
+          const chip = e.target.closest('.animate-chip');
+          if (!chip) return;
+          animChipsContainer.querySelectorAll('.animate-chip').forEach(c => c.classList.remove('is-active'));
+          chip.classList.add('is-active');
+          renderAnimGrid(chip.dataset.cat);
+          // Clear selection
+          if (animActionInput) animActionInput.value = '';
+          if (animApplyBtn) animApplyBtn.disabled = true;
+        });
+
+        animGrid.addEventListener('click', (e) => {
+          const card = e.target.closest('.animate-card');
+          if (!card) return;
+          animGrid.querySelectorAll('.animate-card').forEach(c => c.classList.remove('is-selected'));
+          card.classList.add('is-selected');
+          if (animActionInput) animActionInput.value = card.dataset.actionId;
+          if (animApplyBtn) animApplyBtn.disabled = false;
         });
       }
 
@@ -2210,7 +2327,7 @@
      * Applies the markup-defined active rail button on initial load.
      */
     function bootstrapInitialPanel() {
-      // Support ?panel=image|model|video|remesh|texture|rig from URL
+      // Support ?panel=image|model|video|remesh|texture|animate from URL
       const urlPanel = new URLSearchParams(window.location.search).get('panel');
       let targetBtn;
       if (urlPanel) {
