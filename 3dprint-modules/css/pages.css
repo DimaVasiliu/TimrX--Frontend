@@ -3768,7 +3768,7 @@ body.about-view .about-expanded-view {
   color: var(--accent-neo, #d4ff4f);
 }
 
-.viewer-toolbar__btn[data-action="rig"]:hover {
+.viewer-toolbar__btn[data-action="animate"]:hover {
   color: var(--accent-pink, #ec4899);
 }
 
