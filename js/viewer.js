@@ -15,7 +15,6 @@ let demoCube, grid;
 
 /**
  * Compute bounding box from visible mesh geometry only.
- * Avoids skeleton/bone distortion in rigged models.
  */
 function getVisualBounds(root) {
     const box = new THREE.Box3();
@@ -30,12 +29,6 @@ function getVisualBounds(root) {
     });
     return box.isEmpty() ? new THREE.Box3().setFromObject(root) : box;
 }
-
-// Animation playback state
-let mixer = null;
-let animationClock = null;
-let currentAnimations = [];
-let animFrameId = null;
 
 /**
  * Check if the 3D viewer is available and ready.
@@ -110,9 +103,6 @@ function updatePlaceholder() {
 }
 
 export function clearModel() {
-    // Stop any running animation before clearing
-    stopAnimation();
-
     // Guard: Check if scene is available
     if (!scene) {
         log('[Viewer] clearModel: scene not available');
@@ -258,102 +248,6 @@ function fitCameraToObject(object, offset = 1.0) {
     // Move camera to a nice angle
     const direction = new THREE.Vector3(1, 1, 1).normalize();
     camera.position.copy(center).add(direction.multiplyScalar(size / offset));
-}
-
-// ---- Animation playback ----
-
-export function stopAnimation() {
-    if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
-        animFrameId = null;
-    }
-    if (mixer) {
-        currentAnimations.forEach(a => a.stop());
-        currentAnimations = [];
-        mixer = null;
-    }
-    animationClock = null;
-    const ctrl = byId('animationPlaybackControls');
-    if (ctrl) ctrl.style.display = 'none';
-}
-
-export async function loadAnimatedModel(primaryUrl, fallbackUrl) {
-    if (!isViewerReady()) {
-        showViewerUnavailableMessage('load animated model');
-        throw new Error('3D viewer not available (WebGL disabled)');
-    }
-    try {
-        await loadAnimatedGlb(primaryUrl);
-    } catch (err) {
-        if (fallbackUrl) await loadAnimatedGlb(fallbackUrl);
-        else throw err;
-    }
-}
-
-async function loadAnimatedGlb(url) {
-    if (!(window.THREE && THREE.GLTFLoader)) throw new Error('GLTFLoader missing');
-
-    const loader = new THREE.GLTFLoader();
-    loader.setCrossOrigin('anonymous');
-
-    stopAnimation();
-    clearModel();
-
-    return new Promise((resolve, reject) => {
-        loader.load(url, (gltf) => {
-            currentModel = gltf.scene;
-            if (!scene) { reject(new Error('Scene unavailable')); return; }
-
-            scene.add(currentModel);
-
-            // Center model using mesh-only bounds (avoids skeleton distortion)
-            const box = getVisualBounds(currentModel);
-            const center = box.getCenter(new THREE.Vector3());
-            const min = box.min;
-            currentModel.position.x += -center.x;
-            currentModel.position.z += -center.z;
-            currentModel.position.y += -min.y;
-
-            if (demoCube) demoCube.visible = false;
-            // Use wider offset for character models (rigged/animated)
-            fitCameraToObject(currentModel, 1.2);
-            byId('viewerToolbar')?.classList.add('visible');
-            updatePlaceholder();
-
-            // Set up animation if clips exist
-            if (gltf.animations && gltf.animations.length > 0) {
-                mixer = new THREE.AnimationMixer(currentModel);
-                animationClock = new THREE.Clock();
-                currentAnimations = [];
-
-                gltf.animations.forEach(clip => {
-                    const action = mixer.clipAction(clip);
-                    action.play();
-                    currentAnimations.push(action);
-                });
-
-                const ctrl = byId('animationPlaybackControls');
-                if (ctrl) ctrl.style.display = '';
-
-                function animateLoop() {
-                    if (!mixer) return;
-                    animFrameId = requestAnimationFrame(animateLoop);
-                    const delta = animationClock.getDelta();
-                    mixer.update(delta);
-                    if (renderer) renderer.render(scene, camera);
-                }
-                animateLoop();
-            }
-
-            resolve();
-        }, undefined, reject);
-    });
-}
-
-export function toggleAnimationPlayback() {
-    if (!mixer || currentAnimations.length === 0) return;
-    const paused = !currentAnimations[0].paused;
-    currentAnimations.forEach(a => { a.paused = paused; });
 }
 
 export function showImageInViewer(url) {
