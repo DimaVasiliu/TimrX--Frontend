@@ -602,14 +602,6 @@ function setupGenerateButtonListeners() {
       API.startTextureFromPanel();
       return;
     }
-    if (btnId === 'animateRigBtn') {
-      API.startAnimateRigFromPanel();
-      return;
-    }
-    if (btnId === 'animateApplyBtn') {
-      API.startAnimateFromPanel();
-      return;
-    }
     if (!btnId || !btnId.includes('generate')) return;
 
     if (btnId === 'generateModelBtn') {
@@ -656,13 +648,6 @@ function initViewerToolbar() {
       API.startRemeshFromHistory(activeItem);
     }
 
-    if (action === 'animate' && activeItem) {
-      API.startAnimateFromHistory(activeItem);
-    }
-
-    if (action === 'toggle-animation') {
-      Viewer.toggleAnimationPlayback();
-    }
   });
 }
 
@@ -1007,7 +992,7 @@ function wireGallery() {
       const item = State.getHistory().find(x => x.id === id);
       if (!item) return;
 
-      const glbUrl = item.glb_proxy || item.glb_url || item.animation_glb_url || item.rigged_character_glb_url;
+      const glbUrl = item.glb_proxy || item.glb_url;
 
       // Handle actions
       if (act === 'open') {
@@ -1066,11 +1051,7 @@ function wireGallery() {
         // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
         const primary = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
         const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
-        if (item.stage === 'animate' || item.stage === 'rig') {
-          await Viewer.loadAnimatedModel(primary, fallback);
-        } else {
-          await Viewer.loadModelWithFallback(primary, fallback);
-        }
+        await Viewer.loadModelWithFallback(primary, fallback);
         if (genHintEl) genHintEl.textContent = 'Loaded from history.';
         return;
       }
@@ -1220,11 +1201,6 @@ function wireGallery() {
 
       if (act === 'remesh') {
         await API.startRemeshFromHistory(item);
-        return;
-      }
-
-      if (act === 'animate') {
-        await API.startAnimateFromHistory(item);
         return;
       }
 
