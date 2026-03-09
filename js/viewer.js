@@ -92,6 +92,9 @@ function updatePlaceholder() {
 }
 
 export function clearModel() {
+    // Stop any running animation before clearing
+    stopAnimation();
+
     // Guard: Check if scene is available
     if (!scene) {
         log('[Viewer] clearModel: scene not available');
@@ -293,7 +296,8 @@ async function loadAnimatedGlb(url) {
             currentModel.position.y += -min.y;
 
             if (demoCube) demoCube.visible = false;
-            fitCameraToObject(currentModel);
+            // Use wider offset for character models (rigged/animated)
+            fitCameraToObject(currentModel, 1.2);
             byId('viewerToolbar')?.classList.add('visible');
             updatePlaceholder();
 
