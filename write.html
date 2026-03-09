@@ -242,8 +242,7 @@
 
   <script>
     // API endpoint
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-    const API = API_BASE + '/api';
+    const API = '/api';
 
     const $ = s => document.querySelector(s);
     const msg = $('#msg');
