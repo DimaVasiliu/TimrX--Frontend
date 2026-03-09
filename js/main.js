@@ -1066,7 +1066,11 @@ function wireGallery() {
         // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
         const primary = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
         const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
-        await Viewer.loadModelWithFallback(primary, fallback);
+        if (item.stage === 'animate') {
+          await Viewer.loadAnimatedModel(primary, fallback);
+        } else {
+          await Viewer.loadModelWithFallback(primary, fallback);
+        }
         if (genHintEl) genHintEl.textContent = 'Loaded from history.';
         return;
       }
