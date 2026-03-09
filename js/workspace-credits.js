@@ -342,12 +342,6 @@ export async function fetchActionCosts() {
       if (costsMap['retexture']) {
         costsMap['texture'] = costsMap['retexture'];
       }
-      if (costsMap['rigging']) {
-        costsMap['rig'] = costsMap['rigging'];
-      }
-      if (costsMap['animation']) {
-        costsMap['animate'] = costsMap['animation'];
-      }
       if (costsMap['video_generate']) {
         costsMap['video'] = costsMap['video_generate'];
       }
@@ -419,8 +413,6 @@ function getDefaultActionCosts() {
     'refine': 8,                  // Refine 3D model
     'remesh': 8,                  // Remesh 3D model
     'retexture': 12,              // Retexture 3D model
-    'rigging': 5,                 // Rig 3D model
-    'animation': 3,               // Animate rigged model
     'video_generate': 70,         // Video generation (minimum - actual cost from video_credit_rules)
     'video_text_generate': 70,    // Text to video (minimum)
     'video_image_animate': 70,    // Image to video (minimum)
@@ -446,10 +438,6 @@ function getDefaultActionCosts() {
     'OPENAI_IMAGE': 5,
     'OPENAI_IMAGE_2K': 7,
     'OPENAI_IMAGE_4K': 10,
-    'rig': 5,                     // -> rigging
-    'animate': 3,                 // -> animation
-    'MESHY_RIG': 5,
-    'MESHY_ANIMATE': 3,
     'VIDEO_GENERATE': 70,         // Minimum video cost
     'VIDEO_TEXT_GENERATE': 70,
     'VIDEO_IMAGE_ANIMATE': 70,
@@ -1332,8 +1320,6 @@ export function updateCreditsUI() {
  * - refine               (10c) - Refine 3D model
  * - remesh               (10c) - Remesh 3D model
  * - retexture            (15c) - Retexture 3D model
- * - rigging              (5c)  - Rig 3D model
- * - animation            (3c)  - Animate rigged model
  * - video_generate       (70-160c) - Video generation (varies by duration/resolution)
  * - video_text_generate  (70-160c) - Text to video
  * - video_image_animate  (70-160c) - Image to video
@@ -1347,8 +1333,6 @@ const BUTTON_CONFIG = {
   'generateTextureBtn': { action: 'retexture', batchInput: null },
   'applyRemeshBtn': { action: 'remesh', batchInput: null },
   'applyRefineBtn': { action: 'refine', batchInput: null },
-  'animateRigBtn': { action: 'rigging', batchInput: null },
-  'animateApplyBtn': { action: 'animation', batchInput: null },
   'applyUpscaleBtn': { action: 'refine', batchInput: null },  // Upscale uses refine cost
   'generateVideoBtn': { action: 'video_generate', batchInput: null },
 };
