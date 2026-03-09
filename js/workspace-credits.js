@@ -363,8 +363,9 @@ export async function fetchActionCosts() {
         log('[Credits] API returned empty action_costs array, using defaults');
         creditsState.actionCosts = getDefaultActionCosts();
       } else {
-        creditsState.actionCosts = costsMap;
-        log('[Credits] Action costs loaded:', Object.keys(costsMap).length, 'keys');
+        // Merge: defaults as fallback, backend values take priority
+        creditsState.actionCosts = { ...getDefaultActionCosts(), ...costsMap };
+        log('[Credits] Action costs loaded:', Object.keys(costsMap).length, 'keys from backend +', Object.keys(creditsState.actionCosts).length, 'total with defaults');
       }
     } else if (data.costs && Object.keys(data.costs).length > 0) {
       // Handle old object format (backward compatibility)
