@@ -620,9 +620,73 @@ function setupGenerateButtonListeners() {
 // VIEWER TOOLBAR
 // ============================================================================
 
+let _printToastTimer = null;
+
+function closeViewerPopovers() {
+  document.getElementById('viewerSharePopover')?.classList.remove('is-visible');
+  document.getElementById('viewerPrintToast')?.classList.remove('is-visible');
+  if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
+}
+
 function initViewerToolbar() {
   const toolbar = document.getElementById('viewerToolbar');
   if (!toolbar) return;
+
+  const sharePopover = document.getElementById('viewerSharePopover');
+  const printToast = document.getElementById('viewerPrintToast');
+
+  // Share popover button clicks
+  if (sharePopover) {
+    sharePopover.addEventListener('click', async (e) => {
+      const shareBtn = e.target.closest('[data-share-action]');
+      if (!shareBtn) return;
+      e.stopPropagation();
+      const act = shareBtn.dataset.shareAction;
+      const item = API.getActiveHistoryItem();
+
+      if (act === 'copy-link') {
+        const link = item?.glb_proxy || item?.glb_url;
+        if (!link) { alert('No downloadable link available yet.'); return; }
+        try {
+          await navigator.clipboard.writeText(link);
+          alert('Link copied to clipboard.');
+        } catch { prompt('Copy link manually:', link); }
+      }
+      if (act === 'share-twitter') {
+        const text = item?.prompt ? `Check out my creation: "${item.prompt.slice(0, 120)}"` : 'Check out my AI creation on TimrX!';
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-facebook') {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-linkedin') {
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-discord' && item) {
+        const thumbUrl = item.thumbnail_url || item.image_url || '';
+        const promptText = item.prompt || '';
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/community/discord-share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: assetType, prompt: promptText, thumbnail_url: thumbUrl }),
+        }).then(() => alert('Shared to Discord!')).catch(() => alert('Failed to share to Discord.'));
+        window.open('https://discord.gg/VpqT2UywDG', '_blank');
+      }
+      closeViewerPopovers();
+    });
+  }
+
+  // Close popovers on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#viewerSharePopover') && !e.target.closest('[data-action="share"]')) {
+      sharePopover?.classList.remove('is-visible');
+    }
+    if (!e.target.closest('#viewerPrintToast') && !e.target.closest('[data-action="print"]')) {
+      printToast?.classList.remove('is-visible');
+      if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
+    }
+  });
 
   toolbar.addEventListener('click', (e) => {
     const btn = e.target.closest('.viewer-toolbar__btn');
@@ -646,6 +710,42 @@ function initViewerToolbar() {
 
     if (action === 'remesh' && activeItem) {
       API.startRemeshFromHistory(activeItem);
+    }
+
+    if (action === 'share') {
+      printToast?.classList.remove('is-visible');
+      sharePopover?.classList.toggle('is-visible');
+    }
+
+    if (action === 'print') {
+      sharePopover?.classList.remove('is-visible');
+      const showing = printToast?.classList.toggle('is-visible');
+      if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
+      if (showing) {
+        _printToastTimer = setTimeout(() => {
+          printToast?.classList.remove('is-visible');
+          _printToastTimer = null;
+        }, 8000);
+      }
+    }
+
+    if (action === 'retry' && activeItem) {
+      closeViewerPopovers();
+      const prompt = activeItem.prompt || activeItem.root_prompt || '';
+      if (!prompt) { alert('No prompt available to retry.'); return; }
+      const isImage = activeItem.stage === 'image-to-3d' || activeItem.stage === 'image_to_3d';
+      if (isImage) {
+        const railBtn = document.querySelector('[data-panel="image3d"]');
+        if (railBtn) railBtn.click();
+      } else {
+        const railBtn = document.querySelector('[data-panel="text3d"]');
+        if (railBtn) railBtn.click();
+        const promptInput = byId('modelPrompt');
+        if (promptInput) {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
     }
 
   });
