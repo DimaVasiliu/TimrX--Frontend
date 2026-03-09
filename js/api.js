@@ -683,14 +683,13 @@ function showErrorModal(title, message, suggestion = '', icon = '') {
 
 /**
  * Show user-friendly error for expired/old models
- * @param {string} operation - 'refine', 'remesh', 'texture', or 'rig'
+ * @param {string} operation - 'refine', 'remesh', or 'texture'
  */
 function showExpiredModelError(operation = 'process') {
   const opNames = {
     refine: 'refine',
     remesh: 'remesh',
     texture: 'retexture',
-    rig: 'rig'
   };
   const opName = opNames[operation] || operation;
 
@@ -781,35 +780,12 @@ function getTextureFormValues() {
 }
 
 /**
- * Get rig form values from the Animate panel Step 1 UI
- */
-async function getAnimateRigFormValues() {
-  const heightInput = byId('animateHeight');
-  let height_meters = parseFloat(heightInput?.value || '1.7');
-  if (!Number.isFinite(height_meters) || height_meters <= 0) height_meters = 1.7;
-  let texture_image_url = '';
-  const texFile = byId('animateTextureUpload')?.files?.[0];
-  if (texFile) {
-    texture_image_url = await fileToDataURL(texFile);
-  }
-  return { height_meters, texture_image_url };
-}
-
-/**
- * Get animation form values from the Animate panel Step 2 UI
- */
-function getAnimateFormValues() {
-  const actionId = byId('animateSelectedActionId')?.value;
-  return { action_id: actionId ? parseInt(actionId, 10) : null };
-}
-
-/**
  * Add a generating placeholder to history
  */
 function addGeneratingPlaceholder(jobId, meta = {}) {
   if (State.historyHasJobId(jobId)) {
     State.updateHistoryItem(jobId, {
-      status: meta.status_label?.includes('Refin') ? 'refining' : meta.status_label?.includes('Remesh') ? 'remeshing' : meta.stage === 'texture' ? 'texturing' : meta.stage === 'rig' ? 'rigging' : meta.stage === 'animate' ? 'animating' : meta.type === 'image' ? 'generating' : 'generating',
+      status: meta.status_label?.includes('Refin') ? 'refining' : meta.status_label?.includes('Remesh') ? 'remeshing' : meta.stage === 'texture' ? 'texturing' : meta.type === 'image' ? 'generating' : 'generating',
       status_label: meta.status_label || 'Generating...',
       stage: meta.stage || 'preview',
       prompt: meta.prompt || '',
@@ -824,8 +800,6 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   const isRemesh = meta.status_label?.includes('Remesh');
   let statusType = isRefine ? 'refining' : isRemesh ? 'remeshing' : 'generating';
   if (meta.stage === 'texture') statusType = 'texturing';
-  if (meta.stage === 'rig') statusType = 'rigging';
-  if (meta.stage === 'animate') statusType = 'animating';
   if (meta.type === 'image') statusType = 'generating';
   const stage = meta.stage || (isRefine ? 'refine' : isRemesh ? 'remesh' : 'preview');
 
@@ -1096,23 +1070,15 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
 
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
-    : kind === 'rig'
-      ? '/api/_mod/mesh/rigging'
-      : kind === 'animate'
-        ? '/api/_mod/mesh/animations'
-        : kind === 'image3d'
-          ? '/api/_mod/image-to-3d/status'
-          : '/api/_mod/mesh/remesh';
+    : kind === 'image3d'
+      ? '/api/_mod/image-to-3d/status'
+      : '/api/_mod/mesh/remesh';
 
   const stageLabel = kind === 'texture'
     ? 'Texturing'
-    : kind === 'rig'
-      ? 'Rigging'
-      : kind === 'animate'
-        ? 'Animating'
-        : kind === 'image3d'
-          ? 'Image to 3D'
-          : 'Remeshing';
+    : kind === 'image3d'
+      ? 'Image to 3D'
+      : 'Remeshing';
 
   const prog = UI.makeProgressDriver();
 
@@ -1228,8 +1194,6 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         }
 
         const glbDirect = st.glb_url
-          || st.animation_glb_url
-          || st.rigged_character_glb_url
           || (st.model_urls && st.model_urls.glb)
           || '';
         // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
@@ -1268,10 +1232,6 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           lineage_root_id: lineageRootId,
           texture_urls: st.texture_urls || [],
           model_urls: st.model_urls || {},
-          animation_glb_url: st.animation_glb_url || '',
-          rigged_character_glb_url: st.rigged_character_glb_url,
-          rigged_character_fbx_url: st.rigged_character_fbx_url,
-          basic_animations: st.basic_animations || []
         };
         if (promptCandidate) historyData.prompt = promptCandidate;
         if (rootPromptCandidate) historyData.root_prompt = rootPromptCandidate;
@@ -1291,31 +1251,10 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
 
         if (glbDirect) {
           prog.jump(99, 'Downloading model...');
-          if (kind === 'animate' || kind === 'rig') {
-            await Viewer.loadAnimatedModel(glbProxy || glbDirect, glbDirect);
-          } else {
-            await Viewer.loadModelWithFallback(glbProxy || glbDirect, glbDirect);
-          }
+          await Viewer.loadModelWithFallback(glbProxy || glbDirect, glbDirect);
           prog.done(`${stageLabel} complete.`);
         } else {
           prog.done(`${stageLabel} complete.`);
-        }
-
-        // After rig completes, transition Animate panel to Step 2
-        if (kind === 'rig') {
-          const step1 = byId('animateStep1');
-          const step2 = byId('animateStep2');
-          if (step1 && step2) {
-            window._animateRigTaskId = job_id;
-            step1.style.display = 'none';
-            step2.style.display = 'block';
-            const dot1 = byId('animateDot1');
-            const dot2 = byId('animateDot2');
-            const stepLabel = byId('animateStepLabel');
-            if (dot1) { dot1.classList.remove('is-active'); dot1.classList.add('is-done'); }
-            if (dot2) dot2.classList.add('is-active');
-            if (stepLabel) stepLabel.textContent = 'Step 2: Animate';
-          }
         }
 
         // Show Discord share modal for texture completions (respects cooldown)
@@ -1683,7 +1622,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
 // ============================================================================
 
 /**
- * Begin a Meshy task (remesh, texture, rig)
+ * Begin a Meshy task (remesh, texture)
  */
 async function beginMeshyTask(kind, payload, meta = {}) {
   // Check credits before proceeding
@@ -1693,12 +1632,8 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
-    : kind === 'rig'
-      ? '/api/_mod/mesh/rigging'
-      : kind === 'animate'
-        ? '/api/_mod/mesh/animations'
-        : '/api/_mod/mesh/remesh';
-  const statusLabel = kind === 'texture' ? 'Texturing...' : kind === 'rig' ? 'Rigging...' : kind === 'animate' ? 'Animating...' : 'Remeshing...';
+    : '/api/_mod/mesh/remesh';
+  const statusLabel = kind === 'texture' ? 'Texturing...' : 'Remeshing...';
   const prog = UI.makeProgressDriver();
 
   // Reserve credits BEFORE API call
@@ -3486,89 +3421,8 @@ export async function startTextureFromPanel() {
   }
 }
 
-/**
- * Start rig (Step 1) from the Animate panel UI
- */
-export async function startAnimateRigFromPanel() {
-  if (startLock) return;
-  const choice = byId('animateModelSelect')?.value || 'current';
-  const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
-  if (choice === 'current' && !baseItem) {
-    alert('Load or generate a humanoid model before rigging.');
-    return;
-  }
-
-  let source = {};
-  let labelPrompt = '';
-  if (choice === 'upload') {
-    const file = byId('animateModelUpload')?.files?.[0];
-    if (!file) { alert('Please choose a humanoid GLB/GLTF to rig.'); return; }
-    const dataUrl = await fileToDataURL(file);
-    source = { model_url: dataUrl };
-    labelPrompt = `Rig ${file.name}`;
-  } else if (baseItem) {
-    source = buildMeshySourceFromItem(baseItem);
-    labelPrompt = `Rig ${shortTitle(baseItem)}`;
-  }
-
-  const rigValues = await getAnimateRigFormValues();
-  const meta = {
-    prompt: labelPrompt || 'Rig character',
-    root_prompt: baseItem?.root_prompt || baseItem?.prompt || labelPrompt,
-    art_style: baseItem?.art_style || 'realistic',
-    model: baseItem?.model || 'latest',
-    license: baseItem?.license || 'private',
-    lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
-    source_model_id: baseItem?.id || null,
-    thumbnail_url: baseItem?.thumbnail_url || ''
-  };
-
-  try {
-    await beginMeshyTask('rig', { ...source, ...rigValues }, meta);
-  } catch (err) {
-    console.error(err);
-    alert(err?.message || 'Rigging failed.');
-  }
-}
-
-/**
- * Start animation (Step 2) from the Animate panel UI
- */
-export async function startAnimateFromPanel() {
-  if (startLock) return;
-  const rigTaskId = window._animateRigTaskId;
-  if (!rigTaskId) {
-    alert('Please complete Step 1 (Rig) first.');
-    return;
-  }
-  const { action_id } = getAnimateFormValues();
-  if (!action_id) {
-    alert('Please select an animation.');
-    return;
-  }
-
-  const baseItem = getActiveHistoryItem();
-  const meta = {
-    prompt: `Animate ${shortTitle(baseItem) || 'character'}`,
-    root_prompt: baseItem?.root_prompt || baseItem?.prompt || '',
-    art_style: baseItem?.art_style || 'realistic',
-    model: baseItem?.model || 'latest',
-    license: baseItem?.license || 'private',
-    lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
-    source_model_id: baseItem?.id || null,
-    thumbnail_url: baseItem?.thumbnail_url || ''
-  };
-
-  try {
-    await beginMeshyTask('animate', { rig_task_id: rigTaskId, action_id }, meta);
-  } catch (err) {
-    console.error(err);
-    alert(err?.message || 'Animation failed.');
-  }
-}
-
 // ============================================================================
-// HISTORY-BASED OPERATIONS (Remesh, Texture, Rig)
+// HISTORY-BASED OPERATIONS (Remesh, Texture)
 // ============================================================================
 
 /**
@@ -3623,37 +3477,6 @@ export async function startTextureFromHistory(item) {
   } catch (err) {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
-  }
-}
-
-/**
- * Start animate from a history item (triggers rig Step 1, then Step 2 transition)
- */
-export async function startAnimateFromHistory(item) {
-  if (!item) return;
-  State.setHistoryActiveModelId(item.id);
-
-  // Switch to animate panel
-  const animBtn = document.querySelector('[data-panel="animate"]');
-  if (animBtn) animBtn.click();
-
-  const source = buildMeshySourceFromItem(item);
-  const rigValues = await getAnimateRigFormValues();
-  const meta = {
-    prompt: `Rig ${shortTitle(item)}`,
-    root_prompt: item.root_prompt || item.prompt || '',
-    art_style: item.art_style || 'realistic',
-    model: item.model || 'latest',
-    license: item.license || 'private',
-    lineage_origin_id: item.lineage_root_id || item.id,
-    source_model_id: item.id,
-    thumbnail_url: item.thumbnail_url || ''
-  };
-  try {
-    await beginMeshyTask('rig', { ...source, ...rigValues }, meta);
-  } catch (err) {
-    console.error(err);
-    alert(err?.message || 'Rigging failed.');
   }
 }
 
@@ -3744,7 +3567,7 @@ export async function resumePendingJobs(options = {}) {
 
   ids.forEach((id) => {
     const stage = pendingMeta?.[id]?.stage;
-    if (stage === 'remesh' || stage === 'texture' || stage === 'rig' || stage === 'animate' || stage === 'image3d') {
+    if (stage === 'remesh' || stage === 'texture' || stage === 'image3d') {
       meshIds.push(id);
     } else if (stage === 'image') {
       imageIds.push(id);
@@ -4060,7 +3883,6 @@ window.watchJob = watchJob;
 window.watchMeshyTask = watchMeshyTask;
 window.startTextureFromHistory = startTextureFromHistory;
 window.startRemeshFromHistory = startRemeshFromHistory;
-window.startAnimateFromHistory = startAnimateFromHistory;
 window.startImageTo3DFromHistory = startImageTo3DFromHistory;
 window.onGenerateClick = onGenerateClick;
 window.startVideoGeneration = startVideoGeneration;
