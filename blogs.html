@@ -275,57 +275,75 @@
     <!-- FEATURED -->
     <section class="featured" aria-label="Featured posts">
       <h2 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Featured Articles</h2>
-      <div class="container featured-inner">
-        <a class="feat-card feat-card--hero" id="feat-0" href="#">
-          <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop')"></div>
-          <div class="body">
-            <div class="pill-row">
-              <span class="pill featured-pill">Featured</span>
-              <span class="pill category-pill">Post</span>
-            </div>
-            <h3 class="t">Loading…</h3>
-            <p class="e muted">—</p>
-            <div class="meta">
-              <span class="feat-date">—</span>
-              <span aria-hidden="true">•</span>
-              <span class="feat-minutes">3 min</span>
+      <div class="container blogs-grid featured-inner">
+        <a class="blog-card featured" id="feat-0" href="#" role="listitem">
+          <div class="cover">
+            <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop" alt="" loading="lazy" decoding="async" />
+            <span class="pill featured-pill">FEATURED</span>
+            <span class="pill category-pill">Post</span>
+          </div>
+          <div class="inner">
+            <h3 class="title">Loading…</h3>
+            <p class="excerpt muted">—</p>
+            <div class="blog-footer">
+              <div class="author-mini">
+                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <span class="author-mini-name">Dima V</span>
+              </div>
+              <div class="meta">
+                <span class="feat-date">—</span>
+                <span aria-hidden="true">•</span>
+                <span class="feat-minutes">3 min</span>
+              </div>
             </div>
           </div>
         </a>
-        <div class="featured-stack">
-          <a class="feat-card feat-card--support" id="feat-1" href="#">
-            <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop')"></div>
-            <div class="body">
-              <div class="pill-row">
-                <span class="pill featured-pill">Featured</span>
-                <span class="pill category-pill">Post</span>
+
+        <a class="blog-card" id="feat-1" href="#" role="listitem">
+          <div class="cover">
+            <img src="https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1600&auto=format&fit=crop" alt="" loading="lazy" decoding="async" />
+            <span class="pill featured-pill">FEATURED</span>
+            <span class="pill category-pill">Post</span>
+          </div>
+          <div class="inner">
+            <h3 class="title">Loading…</h3>
+            <p class="excerpt muted">—</p>
+            <div class="blog-footer">
+              <div class="author-mini">
+                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <span class="author-mini-name">Dima V</span>
               </div>
-              <h4 class="t">Loading…</h4>
-              <p class="e muted">—</p>
               <div class="meta">
                 <span class="feat-date">—</span>
                 <span aria-hidden="true">•</span>
                 <span class="feat-minutes">3 min</span>
               </div>
             </div>
-          </a>
-          <a class="feat-card feat-card--support" id="feat-2" href="#">
-            <div class="cover" style="background-image:url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop')"></div>
-            <div class="body">
-              <div class="pill-row">
-                <span class="pill featured-pill">Featured</span>
-                <span class="pill category-pill">Post</span>
+          </div>
+        </a>
+
+        <a class="blog-card" id="feat-2" href="#" role="listitem">
+          <div class="cover">
+            <img src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop" alt="" loading="lazy" decoding="async" />
+            <span class="pill featured-pill">FEATURED</span>
+            <span class="pill category-pill">Post</span>
+          </div>
+          <div class="inner">
+            <h3 class="title">Loading…</h3>
+            <p class="excerpt muted">—</p>
+            <div class="blog-footer">
+              <div class="author-mini">
+                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <span class="author-mini-name">Dima V</span>
               </div>
-              <h4 class="t">Loading…</h4>
-              <p class="e muted">—</p>
               <div class="meta">
                 <span class="feat-date">—</span>
                 <span aria-hidden="true">•</span>
                 <span class="feat-minutes">3 min</span>
               </div>
             </div>
-          </a>
-        </div>
+          </div>
+        </a>
       </div>
     </section>
   <!-- GRID -->
@@ -511,12 +529,12 @@
       grid.innerHTML = skeletonHTML;
 
       // Also show skeleton for featured
-      qs('#feat-0 .body .t') && (qs('#feat-0 .body .t').textContent = '');
-      qs('#feat-0 .body .e') && (qs('#feat-0 .body .e').textContent = '');
-      qs('#feat-1 .body .t') && (qs('#feat-1 .body .t').textContent = '');
-      qs('#feat-1 .body .e') && (qs('#feat-1 .body .e').textContent = '');
-      qs('#feat-2 .body .t') && (qs('#feat-2 .body .t').textContent = '');
-      qs('#feat-2 .body .e') && (qs('#feat-2 .body .e').textContent = '');
+      qs('#feat-0 .title') && (qs('#feat-0 .title').textContent = '');
+      qs('#feat-0 .excerpt') && (qs('#feat-0 .excerpt').textContent = '');
+      qs('#feat-1 .title') && (qs('#feat-1 .title').textContent = '');
+      qs('#feat-1 .excerpt') && (qs('#feat-1 .excerpt').textContent = '');
+      qs('#feat-2 .title') && (qs('#feat-2 .title').textContent = '');
+      qs('#feat-2 .excerpt') && (qs('#feat-2 .excerpt').textContent = '');
       qs('#feat-0')?.classList.add('feat--loading');
       qs('#feat-1')?.classList.add('feat--loading');
       qs('#feat-2')?.classList.add('feat--loading');
@@ -639,20 +657,27 @@
       card.classList.remove('is-hidden');
       card.href = `/blog/${encodeURIComponent(post.slug)}`;
 
-      const titleEl = card.querySelector('.body .t');
-      const excerptEl = card.querySelector('.body .e');
-      const coverEl = card.querySelector('.cover');
-      const categoryEl = card.querySelector('.body .category-pill');
-      const dateEl = card.querySelector('.body .feat-date');
-      const minutesEl = card.querySelector('.body .feat-minutes');
+      const titleEl = card.querySelector('.title');
+      const excerptEl = card.querySelector('.excerpt');
+      const coverEl = card.querySelector('.cover img');
+      const categoryEl = card.querySelector('.category-pill');
+      const dateEl = card.querySelector('.feat-date');
+      const minutesEl = card.querySelector('.feat-minutes');
+      const authorEl = card.querySelector('.author-mini-name');
+      const authorAvatarEl = card.querySelector('.author-mini-avatar');
       const fallbackCover = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
 
       if (titleEl) titleEl.textContent = post.title || 'Untitled';
       if (excerptEl) excerptEl.textContent = post.excerpt || 'Explore this article.';
-      if (coverEl) coverEl.style.backgroundImage = `url('${post.cover_url || fallbackCover}')`;
+      if (coverEl) {
+        coverEl.src = post.cover_url || fallbackCover;
+        coverEl.alt = post.title || 'Blog featured image';
+      }
       if (categoryEl) categoryEl.textContent = featuredTag(post);
       if (dateEl) dateEl.textContent = featuredDate(post);
       if (minutesEl) minutesEl.textContent = `${featuredReadTime(post)} min`;
+      if (authorEl) authorEl.textContent = post.author || 'Dima V';
+      if (authorAvatarEl) authorAvatarEl.src = post.author_avatar || '/img/dima.jpg';
     }
 
     // Render grid and featured posts
@@ -668,11 +693,6 @@
       applyFeaturedCard('#feat-0', top[0]);
       applyFeaturedCard('#feat-1', top[1]);
       applyFeaturedCard('#feat-2', top[2]);
-      const featuredStack = qs('.featured-stack');
-      if (featuredStack) {
-        featuredStack.classList.toggle('featured-stack--single', !!top[1] && !top[2]);
-        featuredStack.classList.toggle('featured-stack--empty', !top[1] && !top[2]);
-      }
 
       // Update ItemList JSON-LD for SEO (limit to 20 items)
       updateItemListJsonLd(data.slice(0, 20));
