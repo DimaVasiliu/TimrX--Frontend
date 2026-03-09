@@ -1,3 +1,4 @@
+
 <!-- admin-edit.html — Full-page post editor for admins -->
 <!DOCTYPE html>
 <html lang="en" class="write-page">
@@ -234,8 +235,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 
   <script>
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || 'https://blog.timrx.live').replace(/\/$/, '');
-    const API = API_BASE + '/api';
+    const API = '/api';
     const $ = s => document.querySelector(s);
 
     // API warmup
