@@ -3,18 +3,6 @@
 
 /* ===== 768px — Tablet / Large Phone ===== */
 @media (max-width: 768px) {
-  .featured {
-    padding: 32px 0;
-  }
-
-  .feat-card.large {
-    min-height: 260px;
-  }
-
-  .feat-card.small {
-    min-height: 160px;
-  }
-
   .grid {
     padding: 28px 0;
   }
@@ -25,27 +13,6 @@
   /* -- Gutter reduction -- */
   :root {
     --gutter: 20px;
-  }
-
-  /* -- Featured cards -- */
-  .feat-card {
-    border-radius: 12px;
-  }
-
-  .feat-card.large {
-    min-height: 220px;
-  }
-
-  .feat-card.small {
-    min-height: 140px;
-  }
-
-  .feat-card .t {
-    font-size: 20px;
-  }
-
-  .feat-card.large .t {
-    font-size: 22px;
   }
 
   /* -- Card images: taller on full-width single column -- */
@@ -102,27 +69,6 @@
   /* -- Tighter gutter -- */
   :root {
     --gutter: 16px;
-  }
-
-  /* -- Featured cards even tighter -- */
-  .featured {
-    padding: 24px 0;
-  }
-
-  .feat-card {
-    border-radius: 10px;
-  }
-
-  .feat-card.large {
-    min-height: 200px;
-  }
-
-  .feat-card.small {
-    min-height: 120px;
-  }
-
-  .feat-card .body {
-    padding: 16px;
   }
 
   /* -- Card images -- */
@@ -199,16 +145,4 @@
     --gutter: 14px;
   }
 
-  .feat-card .body {
-    padding: 14px;
-    gap: 8px;
-  }
-
-  .feat-card .t {
-    font-size: 18px;
-  }
-
-  .feat-card.large .t {
-    font-size: 20px;
-  }
 }
