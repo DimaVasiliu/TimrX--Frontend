@@ -676,6 +676,10 @@
       leftStack.innerHTML = content;
       initPanelInteractions();   // bind events in newly injected content
       bindLeftOpenButton();      // (re)bind optional "New model" button in left panel if you add it
+      // Update credit badges for newly rendered buttons
+      if (window.WorkspaceCredits?.updateButtonCosts) {
+        window.WorkspaceCredits.updateButtonCosts();
+      }
     }
   
     /* -------------------------------------------------------------------------
