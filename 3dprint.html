@@ -430,14 +430,6 @@
         <span>Texture</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="animate" aria-pressed="false">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="4" r="2"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l3 3-2 2 3 5m-6-10l-3 3 2 2-3 5m1-6h4"/>
-        </svg>
-        <span>Animate</span>
-      </button>
-
       <button type="button" class="rail-btn" data-panel="video" aria-pressed="false">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -517,12 +509,6 @@
               <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
             </svg>
           </button>
-          <button type="button" class="viewer-toolbar__btn" data-action="animate" data-tooltip="Animate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="4" r="2"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l3 3-2 2 3 5m-6-10l-3 3 2 2-3 5m1-6h4"/>
-            </svg>
-          </button>
           <div class="viewer-toolbar__divider"></div>
           <button type="button" class="viewer-toolbar__btn" data-action="download" data-tooltip="Download">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -541,14 +527,6 @@
               <rect x="6" y="14" width="12" height="8"/>
             </svg>
           </button>
-          <div id="animationPlaybackControls" style="display:none">
-            <div class="viewer-toolbar__divider"></div>
-            <button type="button" class="viewer-toolbar__btn" data-action="toggle-animation" data-tooltip="Play/Pause">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"/>
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1546,26 +1524,6 @@
               <li>Perfect for portfolios</li>
             </ul>
           </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Auto-Rigging</h3>
-            <p class="tutorials-card__body">Automatically rig humanoid characters for animation. No manual bone placement needed.</p>
-            <ul class="tutorials-card__list">
-              <li>AI-powered skeleton generation</li>
-              <li>Automatic weight painting</li>
-              <li>Compatible with Mixamo</li>
-              <li>Export to game engines</li>
-            </ul>
-          </article>
-          <article class="tutorials-card">
-            <h3 class="tutorials-card__title">Animation Library</h3>
-            <p class="tutorials-card__body">Apply pre-made animations to your rigged characters with one click.</p>
-            <ul class="tutorials-card__list">
-              <li>Walk, run, jump cycles</li>
-              <li>Idle and action poses</li>
-              <li>Combat animations</li>
-              <li>Custom animation upload</li>
-            </ul>
-          </article>
         </div>
       </section>
 
@@ -1924,7 +1882,6 @@
             <span class="docs-sidebar-label">Post-Processing</span>
             <a href="#doc-remesh" class="docs-sidebar-link">Remesh</a>
             <a href="#doc-texture" class="docs-sidebar-link">AI Texture</a>
-            <a href="#doc-rig" class="docs-sidebar-link">Auto-Rig</a>
           </div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Media</span>
@@ -1951,12 +1908,12 @@
           <!-- Overview -->
           <article class="docs-article" id="doc-overview">
             <h2>Overview</h2>
-            <p>TimrX 3D Print Hub is a browser-based workspace for creating 3D models, textures, animations, and videos using AI. Everything runs in the browser — no downloads, no installs. Generate a model from text or an image, refine it, add textures, rig it for animation, and export it for 3D printing or game engines.</p>
+            <p>TimrX 3D Print Hub is a browser-based workspace for creating 3D models, textures, and videos using AI. Everything runs in the browser — no downloads, no installs. Generate a model from text or an image, refine it, add textures, and export it for 3D printing or game engines.</p>
             <h3>Workspace layout</h3>
             <p>The workspace is split into three areas:</p>
             <ul>
-              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, Rig, and Video panels.</li>
-              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Remesh, Texture, Rig, Download, and Share.</li>
+              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, and Video panels.</li>
+              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Remesh, Texture, Download, and Share.</li>
               <li><strong>Right panel</strong> — Generation history. Browse, search, and filter all your past creations. Expand to a full gallery view.</li>
             </ul>
             <div class="docs-tip"><strong>Tip:</strong> Click any item in the history panel to load it into the 3D viewer instantly.</div>
@@ -2053,23 +2010,6 @@
             <div class="docs-tip"><strong>Cost:</strong> 15 credits. Estimated time ~1.5 minutes.</div>
           </article>
 
-          <!-- Auto-Rig -->
-          <article class="docs-article" id="doc-rig">
-            <h2>Auto-Rig</h2>
-            <p>Automatically rig humanoid character models for animation. Select the Rig panel, choose the current model or upload a textured GLB/GLTF file, set the character height, and run.</p>
-            <div class="docs-option-grid">
-              <dl class="docs-option-card">
-                <dt>Height</dt>
-                <dd>0.5m to 3m (default 1.7m)</dd>
-              </dl>
-              <dl class="docs-option-card">
-                <dt>Override Texture</dt>
-                <dd>Optional PNG upload to replace the surface</dd>
-              </dl>
-            </div>
-            <p>The output is compatible with Mixamo and can be exported to game engines like Unity and Unreal.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 25 credits. Estimated time ~2 minutes. For best results, enable A/T Pose during model generation.</div>
-          </article>
 
           <!-- AI Image -->
           <article class="docs-article" id="doc-image-gen">
