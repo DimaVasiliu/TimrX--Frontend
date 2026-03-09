@@ -1228,6 +1228,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         }
 
         const glbDirect = st.glb_url
+          || st.animation_glb_url
           || st.rigged_character_glb_url
           || (st.model_urls && st.model_urls.glb)
           || '';
@@ -1267,6 +1268,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           lineage_root_id: lineageRootId,
           texture_urls: st.texture_urls || [],
           model_urls: st.model_urls || {},
+          animation_glb_url: st.animation_glb_url || '',
           rigged_character_glb_url: st.rigged_character_glb_url,
           rigged_character_fbx_url: st.rigged_character_fbx_url,
           basic_animations: st.basic_animations || []
@@ -1289,7 +1291,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
 
         if (glbDirect) {
           prog.jump(99, 'Downloading model...');
-          if (kind === 'animate') {
+          if (kind === 'animate' || kind === 'rig') {
             await Viewer.loadAnimatedModel(glbProxy || glbDirect, glbDirect);
           } else {
             await Viewer.loadModelWithFallback(glbProxy || glbDirect, glbDirect);
