@@ -602,8 +602,12 @@ function setupGenerateButtonListeners() {
       API.startTextureFromPanel();
       return;
     }
-    if (btnId === 'applyRigBtn') {
-      API.startRigFromPanel();
+    if (btnId === 'animateRigBtn') {
+      API.startAnimateRigFromPanel();
+      return;
+    }
+    if (btnId === 'animateApplyBtn') {
+      API.startAnimateFromPanel();
       return;
     }
     if (!btnId || !btnId.includes('generate')) return;
@@ -652,8 +656,12 @@ function initViewerToolbar() {
       API.startRemeshFromHistory(activeItem);
     }
 
-    if (action === 'rig' && activeItem) {
-      API.startRigFromHistory(activeItem);
+    if (action === 'animate' && activeItem) {
+      API.startAnimateFromHistory(activeItem);
+    }
+
+    if (action === 'toggle-animation') {
+      Viewer.toggleAnimationPlayback();
     }
   });
 }
@@ -1211,8 +1219,8 @@ function wireGallery() {
         return;
       }
 
-      if (act === 'rig') {
-        await API.startRigFromHistory(item);
+      if (act === 'animate') {
+        await API.startAnimateFromHistory(item);
         return;
       }
 
