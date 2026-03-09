@@ -1425,7 +1425,7 @@
 
       const generateBtn = e.target.closest(
         '#generateModelBtn, #generateImageBtn, #generateVideoBtn, ' +
-        '#applyRemeshBtn, #generateTextureBtn, #animateRigBtn, #animateApplyBtn, ' +
+        '#applyRemeshBtn, #generateTextureBtn, ' +
         '[data-action="generate"], button[id*="generate"]'
       );
 
