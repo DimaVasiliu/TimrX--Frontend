@@ -307,16 +307,30 @@ function handleApiError(response, action, reservationId = null) {
     return true;
   }
 
-  // Handle 429 quota exceeded errors
+  // Handle 429 rate limit / video limit errors — use toast, never alert()
   if (response.status === 429) {
     log('[Quota] 429 Rate limit exceeded for:', action);
     if (reservationId) {
       releaseCreditsReservation(reservationId);
     }
-    if (window.showQuotaExceededPopup) {
+    const msg = response.data?.message || 'Rate limit reached. Please try again shortly.';
+    if (typeof UI !== 'undefined' && UI.toast) {
+      UI.toast(msg, 'error', 6000);
+    } else if (window.showQuotaExceededPopup) {
       window.showQuotaExceededPopup();
-    } else {
-      alert('Daily video generation limit reached. Please try again tomorrow.');
+    }
+    return true;
+  }
+
+  // Handle 503 global budget / service unavailable — toast
+  if (response.status === 503) {
+    log('[Service] 503 Service unavailable for:', action);
+    if (reservationId) {
+      releaseCreditsReservation(reservationId);
+    }
+    const msg = response.data?.message || 'Service temporarily unavailable. Please try again later.';
+    if (typeof UI !== 'undefined' && UI.toast) {
+      UI.toast(msg, 'error', 6000);
     }
     return true;
   }
@@ -332,10 +346,11 @@ function handleApiError(response, action, reservationId = null) {
     if (reservationId) {
       releaseCreditsReservation(reservationId);
     }
-    if (window.showQuotaExceededPopup) {
+    const msg = response.data?.message || 'Generation limit reached. Please try again later.';
+    if (typeof UI !== 'undefined' && UI.toast) {
+      UI.toast(msg, 'error', 6000);
+    } else if (window.showQuotaExceededPopup) {
       window.showQuotaExceededPopup();
-    } else {
-      alert('Daily video generation limit reached. Please try again tomorrow.');
     }
     return true;
   }
@@ -2955,6 +2970,22 @@ async function watchVideoJob(jobId, reservationId, meta) {
           resolution: data.resolution || meta.resolution || '720p',
           duration_seconds: data.duration_seconds || meta.duration_sec
         });
+
+        // Credit upsell — show remaining balance with buy-more prompt
+        try {
+          const bal = typeof data.new_balance === 'number'
+            ? data.new_balance
+            : (window.WorkspaceCredits?.getBalance?.() ?? null);
+          if (bal !== null && bal < 100) {
+            setTimeout(() => {
+              UI.toast(
+                `You have ${bal} credits remaining. <a href="/hub#pricing" style="color:#7dd3fc;text-decoration:underline">Buy more</a>`,
+                'info', 8000
+              );
+            }, 2000);
+          }
+        } catch (_) { /* non-critical */ }
+
         State.removeActiveJob(jobId);
         return;
       }
