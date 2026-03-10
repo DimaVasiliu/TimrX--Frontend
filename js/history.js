@@ -1291,6 +1291,9 @@ export function renderHistory() {
   disableNav(nextBtn, historyState.page >= pages || isGallery);
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
+
+  // Notify listeners (e.g., toolbar disabled state)
+  window.dispatchEvent(new CustomEvent('history:rendered'));
 }
 
 // Expose globally for backward compatibility
