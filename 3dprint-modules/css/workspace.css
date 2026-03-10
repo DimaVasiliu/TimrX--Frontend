@@ -1371,3 +1371,108 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* ==========================================================================
+   PROMPT ENHANCE
+   ========================================================================== */
+.enhance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+.enhance-row .field-hint {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.enhance-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.55);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.enhance-btn:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.85);
+  box-shadow: 0 0 8px rgba(255,255,255,.04);
+}
+.enhance-btn:active {
+  transform: scale(.97);
+}
+.enhance-btn:disabled,
+.enhance-btn.is-loading {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.enhance-btn-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* Feedback strip below textarea */
+.enhance-feedback {
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 4px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: enhanceFadeIn .2s ease;
+}
+.enhance-feedback.hidden {
+  display: none;
+}
+.enhance-feedback--hint {
+  color: rgba(255,255,255,.45);
+}
+.enhance-feedback--loading {
+  color: rgba(255,255,255,.5);
+}
+.enhance-feedback--error {
+  color: #f87171;
+}
+.enhance-feedback--undo {
+  color: rgba(255,255,255,.5);
+}
+
+.enhance-undo-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 4px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.6);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.5;
+}
+.enhance-undo-btn:hover {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.85);
+}
+
+@keyframes enhanceFadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
