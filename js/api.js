@@ -18,7 +18,7 @@ import {
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
 import * as UI from './ui-utils.js';
-import { renderHistory, shortTitle } from './history.js';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js';
 
 // ============================================================================
 // LOCKS & STATE
@@ -3032,21 +3032,23 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
       // Quota queued — job is waiting for provider quota reset
       if (status === 'queued' && data.quota_queued) {
+        const qLabel = 'Queued — waiting for provider quota reset';
         State.updateHistoryItem(jobId, {
           status: 'generating',
-          status_label: 'Queued — waiting for provider quota reset'
+          status_label: qLabel
         });
-        renderHistory();
+        if (!updateJobStatusInPlace(jobId, qLabel)) renderHistory();
         continue;
       }
 
-      // Still processing - update progress
+      // Still processing - update progress (surgical DOM update to avoid flicker)
       if (data.progress !== undefined) {
+        const pLabel = `Generating... ${data.progress}%`;
         State.updateHistoryItem(jobId, {
           status: 'generating',
-          status_label: `Generating... ${data.progress}%`
+          status_label: pLabel
         });
-        renderHistory();
+        updateJobStatusInPlace(jobId, pLabel);
       }
 
     } catch (err) {
