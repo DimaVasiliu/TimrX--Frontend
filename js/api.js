@@ -2885,14 +2885,36 @@ export async function startVideoGeneration() {
 }
 
 /**
+ * Map machine error codes to user-friendly failure messages.
+ * Falls back to the raw message if no mapping exists.
+ */
+function _friendlyVideoError(errorCode, rawMsg) {
+  const map = {
+    seedance_pending_timeout: 'Provider queue timed out',
+    seedance_processing_timeout: 'Render timed out',
+    seedance_poll_error: 'Lost connection to provider',
+    seedance_generation_failed: 'Provider rejected this generation',
+    seedance_no_video_url: 'Completed but no video returned',
+    seedance_auth_error: 'Provider authentication failed',
+    gemini_video_failed: 'Video generation failed',
+    gemini_timeout: 'Generation timed out',
+    gemini_poll_error: 'Lost connection to provider',
+    worker_limit_exceeded: 'Server busy — please retry',
+    no_provider_available: 'No video providers available',
+  };
+  return map[errorCode] || rawMsg || 'Video generation failed';
+}
+
+/**
  * Watch a video generation job for completion
  */
 async function watchVideoJob(jobId, reservationId, meta) {
   // D2: Exponential backoff — start at 2s, cap at 15s
-  // 20 min frontend budget (backend Seedance hard timeouts are up to 25 min)
+  // 55 min frontend budget — backend Seedance preview can take 30 min pending
+  // + fallback to fast adds another 20 min worst case
   const INITIAL_INTERVAL = 2000;
   const MAX_INTERVAL = 15000;
-  const MAX_ELAPSED_MS = 20 * 60 * 1000;
+  const MAX_ELAPSED_MS = 55 * 60 * 1000;
   let interval = INITIAL_INTERVAL;
   let elapsed = 0;
 
@@ -3013,8 +3035,10 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
         State.updateHistoryItem(jobId, {
           status: 'failed',
-          status_label: isFiltered ? 'Content blocked' : isQuotaError ? 'Daily limit reached' : errorMsg,
+          status_label: isFiltered ? 'Content blocked' : isQuotaError ? 'Daily limit reached' : _friendlyVideoError(errorCode, errorMsg),
           error_message: errorMsg,
+          error_code: errorCode,
+          provider_stalled: data.provider_stalled || false,
           video_id: jobId,
           type: 'video'
         });
