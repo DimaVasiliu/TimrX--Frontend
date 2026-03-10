@@ -1625,6 +1625,7 @@
   window.TimrXInspire = {
     init,
     open: () => openInspire({ isAuto: false }),
+    openVideos: () => { openInspire({ isAuto: false }); applyFilter('videos'); },
     close: () => closeInspire({ isManual: true }),
     toggle: toggleInspire,
     shuffle: shuffleCards,
