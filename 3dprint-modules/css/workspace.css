@@ -370,6 +370,23 @@
   gap: 4px;
   align-items: center;
   padding-top: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.timrx-3dprint .ws-rail::-webkit-scrollbar {
+  width: 3px;
+}
+.timrx-3dprint .ws-rail::-webkit-scrollbar-track {
+  background: transparent;
+}
+.timrx-3dprint .ws-rail::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+.timrx-3dprint .ws-rail::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .timrx-3dprint .rail-btn {
@@ -507,10 +524,13 @@
   .timrx-3dprint .pane-stack {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
     min-height: 0;
+    padding: 2px 6px 20px 2px;
+    scroll-behavior: smooth;
   }
 
   /* Scrollbar styling */
@@ -543,11 +563,11 @@
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(18, 18, 20, 0.95) 100%);
     border: 1px solid var(--ws-card-border);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 18px 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Subtle inner glow on cards */
@@ -759,14 +779,15 @@
   /* Small hint text under fields -------------------------------------------- */
   .timrx-3dprint .card .field-hint {
     display: block;
-    margin-top: 4px;
-    font-size: 11px;
-    color: #666666;
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.4;
   }
 
   /* Vertical rhythm between stacked cards ----------------------------------- */
   .timrx-3dprint .card + .card {
-    margin-top: 2px;
+    margin-top: 0;
   }
 
   /* ============================================================================
@@ -1121,7 +1142,7 @@
     font-size: 12px;
   }
   .timrx-3dprint .card {
-    padding: 12px 14px;
+    padding: 16px 18px;
     border-radius: 10px;
   }
 }
@@ -1284,14 +1305,14 @@
 
   /* --- CARD COMPACTION --- */
   .timrx-3dprint .card {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-radius: 10px;
   }
   .timrx-3dprint .card h3 {
-    font-size: 11px;
+    font-size: 12px;
   }
   .timrx-3dprint .pane-stack {
-    gap: 6px;
+    gap: 8px;
   }
 }
 
@@ -1379,8 +1400,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 10px;
 }
 .enhance-row .field-hint {
   margin: 0;
@@ -1391,13 +1412,13 @@
 .enhance-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 6px;
+  padding: 7px 14px;
   border: 1px solid rgba(255,255,255,.1);
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(255,255,255,.04);
   color: rgba(255,255,255,.55);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all .2s ease;
