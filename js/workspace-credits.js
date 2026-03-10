@@ -1814,6 +1814,18 @@ export function getIdentityId() {
   return creditsState.identityId;
 }
 
+/**
+ * Check if the current user can download assets.
+ * Requires: wallet loaded AND (general credits > 0 OR video credits > 0).
+ * Unauthenticated/zero-credit users are blocked.
+ */
+export function canDownloadAssets() {
+  if (!creditsState.loaded) return false;
+  const totalAvailable = (creditsState.wallet.available || 0)
+    + (creditsState.wallet.videoAvailable || 0);
+  return totalAvailable > 0;
+}
+
 // Expose globally for backward compatibility and cross-module access
 window.WorkspaceCredits = {
   // Original API
@@ -1832,6 +1844,7 @@ window.WorkspaceCredits = {
   showInsufficientCreditsMessage,
   isLoaded,
   getIdentityId,
+  canDownloadAssets,
   // Video credits API (separate pool)
   getVideoCredits,
   getVideoWallet,
