@@ -306,28 +306,49 @@
         </div>
 
         <div class="card">
-          <h3>Remesh Settings</h3>
-          <div class="inline-field">
-            <label for="targetPolyCount">Poly Count</label>
-            <input type="number" id="targetPolyCount" value="10000" min="100" max="1000000" step="1000">
+          <h3>Remesh Preset</h3>
+          <div class="remesh-presets" id="remeshPresets">
+            <button type="button" class="remesh-preset is-active" data-preset="print-ready" data-poly="50000" data-topo="triangle">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.72 13.829a5.25 5.25 0 01-.905-2.578L4.5 10.5l1.315-.751A5.25 5.25 0 016.72 7.171L8 6l.754 1.321a5.25 5.25 0 012.578.905L12.5 9.5l-1.168.674a5.25 5.25 0 01-.905 2.578L9.5 14l-.754-1.321a5.25 5.25 0 01-2.026.15z"/><path d="M15 4l.5 1a3.5 3.5 0 001.5 1.5l1 .5-1 .5a3.5 3.5 0 00-1.5 1.5L15 10l-.5-1a3.5 3.5 0 00-1.5-1.5L12 7l1-.5a3.5 3.5 0 001.5-1.5L15 4z"/><path d="M6 14v4a2 2 0 002 2h8a2 2 0 002-2v-4"/></svg>
+              <span class="remesh-preset__name">Print Ready</span>
+              <span class="remesh-preset__desc">50K polys - optimized for 3D printing</span>
+            </button>
+            <button type="button" class="remesh-preset" data-preset="game-asset" data-poly="10000" data-topo="triangle">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875S10.5 3.089 10.5 4.125c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.95 3.064 2.109 4.112A6.002 6.002 0 0112 12a6.002 6.002 0 013.461-1.458 6.998 6.998 0 002.109-4.112 48.39 48.39 0 01-4.163.3.64.64 0 01-.657-.643z"/><path d="M3 18h18M5.25 18v-3h13.5v3"/></svg>
+              <span class="remesh-preset__name">Game Asset</span>
+              <span class="remesh-preset__desc">10K polys - low-poly for real-time</span>
+            </button>
+            <button type="button" class="remesh-preset" data-preset="high-detail" data-poly="100000" data-topo="triangle">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/><path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+              <span class="remesh-preset__name">High Detail</span>
+              <span class="remesh-preset__desc">100K polys - maximum fidelity</span>
+            </button>
+            <button type="button" class="remesh-preset" data-preset="quad-clean" data-poly="30000" data-topo="quad">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              <span class="remesh-preset__name">Quad Clean</span>
+              <span class="remesh-preset__desc">30K quads - clean topology for animation</span>
+            </button>
           </div>
-          <div class="inline-field">
-            <label for="remeshMode">Mode</label>
-            <select id="remeshMode">
-              <option value="uniform">Uniform</option>
-              <option value="adaptive" selected>Adaptive</option>
-              <option value="feature-preserving">Feature Preserving</option>
-              <option value="quad-based">Quad Based</option>
-            </select>
+
+          <button type="button" class="remesh-advanced-toggle" id="remeshAdvancedToggle">
+            <span>Advanced Settings</span>
+            <svg class="remesh-advanced-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="remesh-advanced remesh-advanced--collapsed" id="remeshAdvanced">
+            <div class="inline-field">
+              <label for="targetPolyCount">Poly Count</label>
+              <input type="number" id="targetPolyCount" value="50000" min="100" max="1000000" step="1000">
+            </div>
+            <div class="inline-field">
+              <label for="remeshMode">Mode</label>
+              <select id="remeshMode">
+                <option value="uniform">Uniform</option>
+                <option value="adaptive" selected>Adaptive</option>
+                <option value="feature-preserving">Feature Preserving</option>
+                <option value="quad-based">Quad Based</option>
+              </select>
+            </div>
           </div>
-          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
-            <input type="checkbox" id="preserveUVs" checked>
-            <span>Preserve UV Mapping</span>
-          </label>
-          <label style="margin-top:5px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
-            <input type="checkbox" id="preserveBoundaries" checked>
-            <span>Preserve Boundaries</span>
-          </label>
         </div>
 
         <div class="card gen-footer-card">
@@ -369,32 +390,57 @@
         </div>
 
         <div class="card">
-          <h3>Texture Settings</h3>
-          <label for="texturePrompt" style="font-size:12px">Description</label>
-          <textarea id="texturePrompt" placeholder="Rusty metal with scratches and dents..."></textarea>
-          <div class="inline-field" style="margin-top:8px">
-            <label for="textureResolution">Resolution</label>
-            <select id="textureResolution">
-              <option value="512x512">512x512</option>
-              <option value="1024x1024">1024x1024</option>
-              <option value="2048x2048" selected>2048x2048</option>
-              <option value="4096x4096">4096x4096</option>
-            </select>
+          <h3>Texture Description</h3>
+          <textarea id="texturePrompt" placeholder="Rusty metal with scratches and weathering..."></textarea>
+          <div class="enhance-row">
+            <span class="field-hint">Describe material, surface, and color</span>
+            <button type="button" class="enhance-btn" data-enhance-mode="texture" data-enhance-target="#texturePrompt" title="Make this prompt clearer and more detailed">
+              <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
+              <span class="enhance-btn-label">Enhance</span>
+            </button>
           </div>
-          <div class="inline-field">
-            <label for="textureType">Map Type</label>
-            <select id="textureType">
-              <option value="pbr-all" selected>PBR (All Maps)</option>
-              <option value="diffuse">Diffuse Only</option>
-              <option value="normal">Normal Map</option>
-              <option value="roughness">Roughness</option>
-              <option value="metallic">Metallic</option>
-            </select>
+          <div class="enhance-feedback hidden" data-enhance-feedback="texture"></div>
+
+          <div class="material-chips" id="materialChips">
+            <button type="button" class="material-chip" data-material="Rusty weathered metal with scratches, oxidation, and patina">Rusty Metal</button>
+            <button type="button" class="material-chip" data-material="Polished natural wood grain with warm tones and subtle varnish">Polished Wood</button>
+            <button type="button" class="material-chip" data-material="Rough carved stone with moss accents and natural texture">Stone</button>
+            <button type="button" class="material-chip" data-material="Soft woven fabric with visible thread pattern and gentle folds">Fabric</button>
+            <button type="button" class="material-chip" data-material="Smooth glossy plastic with subtle surface imperfections">Plastic</button>
+            <button type="button" class="material-chip" data-material="Transparent glass with refractive edges, caustics, and slight tint">Glass</button>
+            <button type="button" class="material-chip" data-material="Matte carbon fiber weave with subtle reflective highlights">Carbon Fiber</button>
+            <button type="button" class="material-chip" data-material="Glazed ceramic with smooth finish and subtle crackle pattern">Ceramic</button>
           </div>
-          <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
-            <input type="checkbox" id="seamless" checked>
-            <span>Seamless Tiling</span>
-          </label>
+        </div>
+
+        <div class="card">
+          <div class="field-row">
+            <span class="field-label-inline">PBR Maps</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="texturePBRToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <input type="hidden" id="textureType" value="pbr-all">
+
+          <button type="button" class="remesh-advanced-toggle" id="textureAdvancedToggle">
+            <span>Advanced Settings</span>
+            <svg class="remesh-advanced-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="remesh-advanced remesh-advanced--collapsed" id="textureAdvanced">
+            <div class="inline-field">
+              <label for="textureResolution">Resolution</label>
+              <select id="textureResolution">
+                <option value="1024x1024">1024x1024</option>
+                <option value="2048x2048" selected>2048x2048</option>
+                <option value="4096x4096">4096x4096</option>
+              </select>
+            </div>
+            <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
+              <input type="checkbox" id="seamless" checked>
+              <span>Preserve Original UV</span>
+            </label>
+          </div>
         </div>
 
         <div class="card gen-footer-card">
@@ -2014,6 +2060,68 @@
             remeshModelUpload.files = e.dataTransfer.files;
             remeshModelUpload.dispatchEvent(new Event('change'));
           }
+        });
+      }
+
+      // Remesh preset cards
+      const remeshPresetsWrap = leftStack.querySelector('#remeshPresets');
+      const remeshAdvancedToggle = leftStack.querySelector('#remeshAdvancedToggle');
+      const remeshAdvanced = leftStack.querySelector('#remeshAdvanced');
+
+      if (remeshPresetsWrap) {
+        remeshPresetsWrap.addEventListener('click', (e) => {
+          const card = e.target.closest('.remesh-preset');
+          if (!card) return;
+          remeshPresetsWrap.querySelectorAll('.remesh-preset').forEach(c => c.classList.remove('is-active'));
+          card.classList.add('is-active');
+          // Sync hidden form fields
+          const polyInput = leftStack.querySelector('#targetPolyCount');
+          const modeInput = leftStack.querySelector('#remeshMode');
+          if (polyInput) polyInput.value = card.dataset.poly || '50000';
+          if (modeInput) modeInput.value = card.dataset.topo === 'quad' ? 'quad-based' : 'adaptive';
+        });
+      }
+
+      if (remeshAdvancedToggle && remeshAdvanced) {
+        remeshAdvancedToggle.addEventListener('click', () => {
+          const collapsed = remeshAdvanced.classList.toggle('remesh-advanced--collapsed');
+          remeshAdvancedToggle.classList.toggle('is-open', !collapsed);
+        });
+      }
+
+      // Material chips for texture panel
+      const materialChipsWrap = leftStack.querySelector('#materialChips');
+      if (materialChipsWrap) {
+        materialChipsWrap.addEventListener('click', (e) => {
+          const chip = e.target.closest('.material-chip');
+          if (!chip) return;
+          const prompt = leftStack.querySelector('#texturePrompt');
+          if (prompt) {
+            prompt.value = chip.dataset.material || '';
+            prompt.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          // Visual: highlight selected chip
+          materialChipsWrap.querySelectorAll('.material-chip').forEach(c => c.classList.remove('is-active'));
+          chip.classList.add('is-active');
+        });
+      }
+
+      // PBR toggle syncs hidden textureType field
+      const pbrToggle = leftStack.querySelector('#texturePBRToggle');
+      const textureTypeHidden = leftStack.querySelector('#textureType');
+      if (pbrToggle && textureTypeHidden) {
+        pbrToggle.addEventListener('change', () => {
+          textureTypeHidden.value = pbrToggle.checked ? 'pbr-all' : 'diffuse';
+        });
+      }
+
+      // Texture advanced toggle (reuses remesh-advanced CSS classes)
+      const textureAdvancedToggle = leftStack.querySelector('#textureAdvancedToggle');
+      const textureAdvanced = leftStack.querySelector('#textureAdvanced');
+      if (textureAdvancedToggle && textureAdvanced) {
+        textureAdvancedToggle.addEventListener('click', () => {
+          const collapsed = textureAdvanced.classList.toggle('remesh-advanced--collapsed');
+          textureAdvancedToggle.classList.toggle('is-open', !collapsed);
         });
       }
 
