@@ -1279,7 +1279,7 @@
           showMotion: false,
           showTier: true,
           hint: 'Peak queue times may be longer during busy hours.',
-          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u20136 min' : '~1\u20133 min',
+          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u201310 min (may queue)' : '~1\u20133 min',
         },
       };
 
@@ -1604,7 +1604,7 @@
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model</label><select id="seedanceTierSelect"><option value="fast" selected>Fast (~1\u20133 min)</option><option value="preview">Preview (~2\u20136 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model</label><select id="seedanceTierSelect"><option value="fast" selected>Fast (~1\u20133 min)</option><option value="preview">Preview — experimental, may queue longer (~2\u20136 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
