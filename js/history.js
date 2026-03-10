@@ -465,7 +465,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const canRefine = displayModel.stage === 'preview' && status === 'finished';
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
-  const canDownload = !!displayModel.glb_url;
+  const _hasCredits = window.WorkspaceCredits?.canDownloadAssets?.() ?? false;
+  const canDownload = !!displayModel.glb_url && _hasCredits;
   const isActive = models.some((m) => m && m.id === historyActiveModelId);
   const isFreshThumb = models.some((m) => historyFreshThumbs.has(m.id));
   const variantCount = models.length;
@@ -475,7 +476,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   if (itemType === 'image') {
     const imgSrc = displayModel.thumbnail_url || displayModel.image_url || '';
     const name = shortTitle(displayModel);
-    const imgCanDownload = !!imgSrc;
+    const imgCanDownload = !!imgSrc && _hasCredits;
     const isImageFailed = status === 'failed';
 
     // Failed image card
@@ -596,7 +597,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const videoSrc = displayModel.video_url || '';
     const thumbSrc = displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
-    const videoCanDownload = !!videoSrc;
+    const videoCanDownload = !!videoSrc && _hasCredits;
     const isFailed = status === 'failed';
     const videoProcessingLabel = status === 'generating' ? 'Generating video...'
       : status === 'processing' ? 'Processing...'
