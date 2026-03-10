@@ -2554,3 +2554,44 @@ body.print3d-page > .discord-share-overlay.show .discord-share-card {
     max-width: 90vw;
   }
 }
+
+/* ===== GEN BUTTON ROW (Preview + Generate side by side) ===== */
+.gen-btn-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.gen-btn-row .gen-btn {
+  flex: 1;
+}
+.gen-btn--preview {
+  background: linear-gradient(135deg, #374151, #4b5563);
+  font-size: 13px;
+  padding: 11px 14px;
+}
+.gen-btn--preview:hover {
+  box-shadow: 0 6px 18px rgba(75, 85, 99, 0.4);
+}
+
+/* ===== VIDEO GALLERY BUTTON ===== */
+.video-gallery-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 16px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.video-gallery-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.2);
+}
