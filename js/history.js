@@ -1009,6 +1009,23 @@ export function updateJobStatusInPlace(jobId, statusLabel) {
   return false;
 }
 
+/**
+ * Check if the existing video grid children match the expected card IDs.
+ * Used to decide whether we can patch in-place vs full rebuild.
+ */
+function _videoGridIdsMatch(gridEl, cards) {
+  for (let i = 0; i < cards.length; i++) {
+    const child = gridEl.children[i];
+    if (!child) return false;
+    const idEl = child.querySelector('[data-id]');
+    const childId = idEl?.dataset.id
+                 || child.querySelector('[data-job-id]')?.dataset.jobId
+                 || '';
+    if (childId !== cards[i].id) return false;
+  }
+  return true;
+}
+
 export function renderHistory() {
   const grid = document.getElementById('historyGrid');
   const pageLabel = document.getElementById('historyPageLabel');
@@ -1163,12 +1180,45 @@ export function renderHistory() {
       slice = sortedVideos;
     }
 
-    const videoGridMarkup = slice.map(vid => {
+    const videoCards = slice.map(vid => {
       const bundle = { models: [vid], isBundle: false };
-      return buildHistoryThumb(bundle, false);
-    }).join('');
+      return { id: vid.id, status: vid.status, html: buildHistoryThumb(bundle, false) };
+    });
 
-    grid.innerHTML = `<div class="history-video-grid">${videoGridMarkup}</div>`;
+    // Surgical update: if the grid already shows the same item IDs in the same
+    // order, patch only the cards whose status changed.  This prevents thumbnail
+    // images from flickering on every poll tick (innerHTML destroys <img> elements
+    // causing them to reload).
+    const existingGrid = grid.querySelector('.history-video-grid');
+    const canPatch = existingGrid
+      && existingGrid.children.length === videoCards.length
+      && _videoGridIdsMatch(existingGrid, videoCards);
+
+    if (canPatch) {
+      for (let i = 0; i < videoCards.length; i++) {
+        const child = existingGrid.children[i];
+        // Skip unchanged finished cards (their thumbnails are expensive to rebuild)
+        const childStatus = child.dataset._vs || '';
+        if (childStatus === videoCards[i].status && videoCards[i].status === 'finished') continue;
+        const temp = document.createElement('div');
+        temp.innerHTML = videoCards[i].html;
+        const replacement = temp.firstElementChild;
+        if (replacement) {
+          replacement.dataset._vs = videoCards[i].status;
+          existingGrid.replaceChild(replacement, child);
+        }
+      }
+    } else {
+      // Full rebuild — tag each child with status for future patches
+      const markup = videoCards.map(c => c.html).join('');
+      grid.innerHTML = `<div class="history-video-grid">${markup}</div>`;
+      const builtGrid = grid.querySelector('.history-video-grid');
+      if (builtGrid) {
+        Array.from(builtGrid.children).forEach((child, i) => {
+          if (videoCards[i]) child.dataset._vs = videoCards[i].status;
+        });
+      }
+    }
 
     if (pageLabel) {
       pageLabel.textContent = isGallery
