@@ -748,7 +748,68 @@ function initViewerToolbar() {
       }
     }
 
+    if (action === 'evolve' && activeItem) {
+      closeViewerPopovers();
+      API.evolveFromHistory(activeItem, 2);
+    }
+
   });
+}
+
+// ============================================================================
+// VIEWER ACTION BAR (Accept / Revert)
+// ============================================================================
+
+function initViewerActionBar() {
+  const actionBar = byId('viewerActionBar');
+  if (!actionBar) return;
+
+  actionBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-vab]');
+    if (!btn) return;
+    const act = btn.dataset.vab;
+
+    if (act === 'accept') {
+      actionBar.classList.add('hidden');
+    }
+
+    if (act === 'revert') {
+      const popped = State.popModelVersion();
+      if (popped && popped.glb_url) {
+        Viewer.loadGlbFromUrl(popped.glb_url);
+        State.setHistoryActiveModelId(popped.id);
+      }
+      if (!State.canRevertModel()) {
+        actionBar.classList.add('hidden');
+      }
+    }
+  });
+
+  // Listen for model:edited events to show the bar
+  window.addEventListener('model:edited', () => {
+    if (State.canRevertModel()) {
+      actionBar.classList.remove('hidden');
+    }
+  });
+
+  // Update toolbar disabled states based on active model
+  function updateToolbarState() {
+    const toolbar = byId('viewerToolbar');
+    if (!toolbar) return;
+    const hasModel = !!API.getActiveHistoryItem();
+    const actionBtns = toolbar.querySelectorAll('.viewer-toolbar__btn[data-action]');
+    actionBtns.forEach(btn => {
+      const act = btn.dataset.action;
+      // download, share, print, remesh, texture, evolve, retry all need a model
+      if (['download', 'remesh', 'texture', 'evolve', 'retry'].includes(act)) {
+        btn.disabled = !hasModel;
+      }
+    });
+  }
+
+  // Run on init and whenever history re-renders
+  updateToolbarState();
+  window.addEventListener('history:rendered', updateToolbarState);
 }
 
 // ============================================================================
@@ -1142,6 +1203,18 @@ function wireGallery() {
         State.setHistoryActiveModelId(id);
         renderHistory();
 
+        // Reset version stack for this model and hide action bar
+        const loadUrl = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
+        State.resetModelVersionStack({
+          id,
+          glb_url: loadUrl,
+          thumbnail_url: item.thumbnail_url || '',
+          stage: item.stage || 'preview',
+          prompt: item.prompt || ''
+        });
+        const actionBar = byId('viewerActionBar');
+        if (actionBar) actionBar.classList.add('hidden');
+
         if (wasGallery) {
           requestAnimationFrame(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1149,7 +1222,7 @@ function wireGallery() {
         }
 
         // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
-        const primary = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
+        const primary = loadUrl;
         const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
         await Viewer.loadModelWithFallback(primary, fallback);
         if (genHintEl) genHintEl.textContent = 'Loaded from history.';
@@ -1584,6 +1657,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Initialize viewer toolbar
     initViewerToolbar();
+    initViewerActionBar();
 
     // Hide progress initially
     UI.showOutputEmpty();
