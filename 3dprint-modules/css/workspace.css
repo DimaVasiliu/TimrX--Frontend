@@ -766,7 +766,7 @@
 
   /* Vertical rhythm between stacked cards ----------------------------------- */
   .timrx-3dprint .card + .card {
-    margin-top: 8px;
+    margin-top: 2px;
   }
 
   /* ============================================================================
