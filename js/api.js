@@ -2888,10 +2888,11 @@ export async function startVideoGeneration() {
  * Watch a video generation job for completion
  */
 async function watchVideoJob(jobId, reservationId, meta) {
-  // D2: Exponential backoff — start at 2s, cap at 15s, ~10 min total budget
+  // D2: Exponential backoff — start at 2s, cap at 15s
+  // 20 min frontend budget (backend Seedance hard timeouts are up to 25 min)
   const INITIAL_INTERVAL = 2000;
   const MAX_INTERVAL = 15000;
-  const MAX_ELAPSED_MS = 10 * 60 * 1000; // 10 minutes
+  const MAX_ELAPSED_MS = 20 * 60 * 1000;
   let interval = INITIAL_INTERVAL;
   let elapsed = 0;
 
@@ -3030,6 +3031,22 @@ async function watchVideoJob(jobId, reservationId, meta) {
         return;
       }
 
+      // Provider pending — job accepted but never started upstream
+      if (status === 'provider_pending') {
+        const pendSec = data.pending_seconds || 0;
+        const ppLabel = pendSec > 120
+          ? 'Provider queue busy — please wait'
+          : 'Queued with provider';
+        State.updateHistoryItem(jobId, {
+          status: 'generating',
+          status_label: ppLabel
+        });
+        if (!updateJobStatusInPlace(jobId, ppLabel)) renderHistory();
+        // Extend frontend timeout while provider is pending (don't time out early)
+        elapsed = Math.min(elapsed, MAX_ELAPSED_MS * 0.5);
+        continue;
+      }
+
       // Quota queued — job is waiting for provider quota reset
       if (status === 'queued' && data.quota_queued) {
         const qLabel = 'Queued — waiting for provider quota reset';
@@ -3042,8 +3059,10 @@ async function watchVideoJob(jobId, reservationId, meta) {
       }
 
       // Still processing - update progress (surgical DOM update to avoid flicker)
-      if (data.progress !== undefined) {
-        const pLabel = `Generating... ${data.progress}%`;
+      if (data.progress !== undefined || status === 'processing') {
+        const pLabel = data.progress !== undefined
+          ? `Generating... ${data.progress}%`
+          : (data.message || 'Rendering...');
         State.updateHistoryItem(jobId, {
           status: 'generating',
           status_label: pLabel
@@ -3056,7 +3075,26 @@ async function watchVideoJob(jobId, reservationId, meta) {
     }
   }
 
-  // Timeout
+  // Frontend poll timeout — do a final check before giving up.
+  // The backend may still be tracking the job with longer Seedance timeouts.
+  try {
+    const finalCheck = await apiFetch(`/api/video/status/${encodeURIComponent(jobId)}`);
+    const fs = finalCheck.data?.status;
+    if (fs === 'provider_pending' || fs === 'processing' || fs === 'queued') {
+      // Backend is still working — don't mark failed, just stop polling
+      State.updateHistoryItem(jobId, {
+        status: 'generating',
+        status_label: fs === 'provider_pending' ? 'Delayed — still queued with provider' : 'Still rendering — check back shortly',
+        video_id: jobId,
+        type: 'video'
+      });
+      renderHistory();
+      UI.makeProgressDriver().done('Video is still processing — it will appear in your history when ready.');
+      State.removeActiveJob(jobId);
+      return;
+    }
+  } catch (_) { /* final check failed, proceed with timeout */ }
+
   releaseCreditsReservation(reservationId);
   State.updateHistoryItem(jobId, {
     status: 'failed',
