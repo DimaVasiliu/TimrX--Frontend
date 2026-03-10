@@ -236,6 +236,10 @@ function resetUpload() {
  * Export the model to the specified format
  */
 async function exportModel(format) {
+  if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+    if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = 'hub.html#pricing';
+    return;
+  }
   if (!converterModel) {
     alert('Please upload a model first');
     return;
