@@ -696,6 +696,10 @@ function initViewerToolbar() {
     const activeItem = API.getActiveHistoryItem();
 
     if (action === 'download' && activeItem?.glb_url) {
+      if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+        if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = 'hub.html#pricing';
+        return;
+      }
       const a = document.createElement('a');
       a.href = activeItem.glb_url;
       a.download = 'model.glb';
@@ -1230,6 +1234,10 @@ function wireGallery() {
       }
 
       if ((act === 'download' || act === 'print') && item.glb_url) {
+        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = 'hub.html#pricing';
+          return;
+        }
         const a = document.createElement('a');
         a.href = item.glb_url;
         a.download = 'model.glb';
@@ -1240,6 +1248,10 @@ function wireGallery() {
       }
 
       if (act === 'download-image') {
+        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = 'hub.html#pricing';
+          return;
+        }
         const imageUrl = btn.getAttribute('data-image-url') || item.image_url || item.thumbnail_url;
         if (!imageUrl) {
           alert('No image available to download.');
@@ -1256,6 +1268,10 @@ function wireGallery() {
 
       // Video actions
       if (act === 'download-video') {
+        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = 'hub.html#pricing';
+          return;
+        }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (!videoUrl) {
           alert('No video available to download.');
