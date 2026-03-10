@@ -1512,12 +1512,14 @@ body.history-expanded .timrx-3dprint .history-pager {
   letter-spacing: 0.08em;
 }
 
-/* Failed state in expanded view */
-.expanded-thumb--video.expanded-thumb--failed {
+/* Failed state in expanded view (video + image) */
+.expanded-thumb--video.expanded-thumb--failed,
+.expanded-thumb--image.expanded-thumb--failed {
   border-color: rgba(239, 68, 68, 0.3);
 }
 
-.expanded-thumb--video .expanded-thumb__error-card {
+.expanded-thumb--video .expanded-thumb__error-card,
+.expanded-thumb--image .expanded-thumb__error-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1529,16 +1531,25 @@ body.history-expanded .timrx-3dprint .history-pager {
   background: rgba(239, 68, 68, 0.05);
 }
 
-.expanded-thumb--video .expanded-thumb__error-icon {
+.expanded-thumb--video .expanded-thumb__error-icon,
+.expanded-thumb--image .expanded-thumb__error-icon {
   font-size: 18px;
   color: rgba(239, 68, 68, 0.5);
 }
 
-.expanded-thumb--video .expanded-thumb__error-text {
+.expanded-thumb--video .expanded-thumb__error-text,
+.expanded-thumb--image .expanded-thumb__error-text {
   font-size: 8px;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
   line-height: 1.3;
+}
+
+.expanded-thumb__image-badge--failed {
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(239, 68, 68, 0.8);
+  text-transform: uppercase;
 }
 
 .expanded-thumb__retry-btn {
@@ -3120,16 +3131,19 @@ body.has-modal {
   transition: opacity 0.08s ease, transform 0.08s ease !important;
 }
 
-/* Failed video card styles */
-.history-thumb--video.history-thumb--failed {
+/* Failed card styles (video + image) */
+.history-thumb--video.history-thumb--failed,
+.history-thumb--image.history-thumb--failed {
   border-color: rgba(239, 68, 68, 0.3);
 }
 
-.history-thumb--video.history-thumb--failed:hover {
+.history-thumb--video.history-thumb--failed:hover,
+.history-thumb--image.history-thumb--failed:hover {
   border-color: rgba(239, 68, 68, 0.5);
 }
 
-.history-thumb--video .history-thumb__error-card {
+.history-thumb--video .history-thumb__error-card,
+.history-thumb--image .history-thumb__error-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3140,16 +3154,27 @@ body.has-modal {
   background: rgba(239, 68, 68, 0.05);
 }
 
-.history-thumb--video .history-thumb__error-icon {
+.history-thumb--video .history-thumb__error-icon,
+.history-thumb--image .history-thumb__error-icon {
   font-size: 24px;
   color: rgba(239, 68, 68, 0.5);
 }
 
-.history-thumb--video .history-thumb__error-text {
+.history-thumb--video .history-thumb__error-text,
+.history-thumb--image .history-thumb__error-text {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
   line-height: 1.4;
+}
+
+.history-thumb__image-badge--failed {
+  font-size: 9px;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 /* Retry button for failed videos */
