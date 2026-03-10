@@ -610,16 +610,20 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
 
     // Failed video card
     if (isFailed) {
-      const errorMsg = displayModel.error_message || displayModel.error || 'Video generation failed';
+      // Prefer status_label (friendly) > error_message (raw) > fallback
+      const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Video generation failed';
+      const errorCode = displayModel.error_code || '';
+      const isStalled = displayModel.provider_stalled;
+      const failBadge = isStalled ? 'Timed out' : 'Failed';
       return `
-        <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
+        <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''}">
           <div class="${thumbPrefix}__status-bar">
             <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
-            <span class="${thumbPrefix}__video-badge ${thumbPrefix}__video-badge--failed">Failed</span>
+            <span class="${thumbPrefix}__video-badge ${thumbPrefix}__video-badge--failed">${failBadge}</span>
           </div>
           <div class="${thumbPrefix}__error-card">
-            <span class="${thumbPrefix}__error-icon">&#9888;</span>
-            <span class="${thumbPrefix}__error-text">${errorMsg.length > 40 ? errorMsg.slice(0, 40) + '...' : errorMsg}</span>
+            <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
+            <span class="${thumbPrefix}__error-text">${errorMsg.length > 60 ? errorMsg.slice(0, 60) + '...' : errorMsg}</span>
             <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
               <span>&#8635;</span> Retry
             </button>
