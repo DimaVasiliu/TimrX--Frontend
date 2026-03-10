@@ -493,10 +493,14 @@
 
       <!-- Video Settings -->
       <div class="card video-settings-card compact">
-        <!-- Motion Presets -->
-        <div class="vs-section">
-          <span class="vs-label">Camera Motion</span>
-          <div id="videoMotionPresets" class="vs-presets">
+        <!-- Motion Presets (collapsible) -->
+        <div class="vs-section vs-motion-section">
+          <button type="button" class="vs-motion-trigger" id="vsMotionTrigger">
+            <span class="vs-label">Camera Motion</span>
+            <span class="vs-motion-value" id="vsMotionValue">None</span>
+            <svg class="vs-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="videoMotionPresets" class="vs-presets vs-presets--collapsed">
             <button type="button" class="vs-preset is-active" data-preset="">None</button>
             <button type="button" class="vs-preset" data-preset="slow_pan">Pan</button>
             <button type="button" class="vs-preset" data-preset="parallax">Parallax</button>
@@ -1560,9 +1564,18 @@
         videoMotion.addEventListener('input', validateVideoForm);
       }
 
-      // Motion preset buttons — click toggles active state and sets hidden input
+      // Motion preset buttons — collapsible trigger + click toggles active state
       const motionPresetContainer = leftStack.querySelector('#videoMotionPresets');
       const motionPresetInput = leftStack.querySelector('#videoMotionPreset');
+      const motionTrigger = leftStack.querySelector('#vsMotionTrigger');
+      const motionValueLabel = leftStack.querySelector('#vsMotionValue');
+
+      if (motionTrigger && motionPresetContainer) {
+        motionTrigger.addEventListener('click', function() {
+          motionPresetContainer.classList.toggle('vs-presets--collapsed');
+          motionTrigger.classList.toggle('is-open');
+        });
+      }
       if (motionPresetContainer) {
         motionPresetContainer.querySelectorAll('.vs-preset').forEach(btn => {
           btn.addEventListener('click', function() {
@@ -1571,6 +1584,10 @@
             });
             this.classList.add('is-active');
             if (motionPresetInput) motionPresetInput.value = this.dataset.preset || '';
+            // Update trigger label and collapse
+            if (motionValueLabel) motionValueLabel.textContent = this.textContent.trim();
+            motionPresetContainer.classList.add('vs-presets--collapsed');
+            if (motionTrigger) motionTrigger.classList.remove('is-open');
           });
         });
       }
