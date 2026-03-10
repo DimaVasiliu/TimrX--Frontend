@@ -460,13 +460,14 @@
       <input type="hidden" id="videoModeValue" value="text2video" />
       <input type="hidden" id="videoAIProvider" value="veo" />
       <input type="hidden" id="videoMotionPreset" value="" />
+      <input type="hidden" id="seedanceTier" value="fast" />
 
       <!-- Header: Provider + Mode Selection -->
       <div class="card video-header-card">
         <div class="video-header-row">
-          <div class="video-provider-label" id="videoProviderLabel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            <span>Veo 3.1</span>
+          <div class="video-provider-switcher" id="videoProviderSwitcher">
+            <button type="button" class="video-provider-btn is-active" data-provider="veo">Veo 3.1</button>
+            <button type="button" class="video-provider-btn" data-provider="seedance">Seedance 2.0</button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -1154,12 +1155,12 @@
       const videoGenTime = leftStack.querySelector('#videoGenTime');
       const generateVideoBtn = leftStack.querySelector('#generateVideoBtn');
       const videoDuration = leftStack.querySelector('#videoDuration');
-      const videoFPS = leftStack.querySelector('#videoFPS');
       const videoLoop = leftStack.querySelector('#videoLoop');
       const videoMotion = leftStack.querySelector('#videoMotion');
       const videoAspectRatio = leftStack.querySelector('#videoAspectRatio');
       const videoQuality = leftStack.querySelector('#videoQuality');
       const videoQualityWrap = leftStack.querySelector('#videoQualityWrap');
+      const videoAIProvider = leftStack.querySelector('#videoAIProvider');
 
       // ========================================
       // VIDEO: Pricing Constants (Veo only - resolution + duration based)
@@ -1171,6 +1172,10 @@
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
         '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
+      // Seedance credit costs: credits-per-second * duration
+      // Fast (seedance-2-fast-preview): 14 credits/sec
+      // Preview (seedance-2-preview):   24 credits/sec
+      const SEEDANCE_CPS = { fast: 14, preview: 24 };
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
@@ -1190,29 +1195,97 @@
         portrait: '9:16'
       };
 
+      // ========================================
+      // VIDEO_PROVIDER_CONFIG — single source of truth for provider-specific UI
+      // ========================================
+      const VIDEO_PROVIDER_CONFIG = {
+        veo: {
+          label: 'Veo 3.1',
+          durations: [
+            { value: '4', text: '4 seconds', selected: true },
+            { value: '6', text: '6 seconds' },
+            { value: '8', text: '8 seconds' },
+          ],
+          aspects: [
+            { value: 'landscape', text: '16:9 Landscape', selected: true },
+            { value: 'portrait', text: '9:16 Portrait' },
+          ],
+          styles: [
+            { value: 'auto', text: 'Auto', selected: true },
+            { value: 'cinematic_realism', text: 'Cinematic Realism' },
+            { value: 'product_ad', text: 'Product Ad' },
+            { value: 'anime_motion', text: 'Anime Motion' },
+            { value: 'documentary', text: 'Documentary' },
+            { value: 'dreamlike_surreal', text: 'Dreamlike Surreal' },
+            { value: 'aerial', text: 'Aerial' },
+            { value: 'timelapse', text: 'Timelapse' },
+            { value: 'slow_motion', text: 'Slow-Mo' },
+            { value: 'noir', text: 'Noir' },
+          ],
+          showQuality: true,
+          showMotion: true,
+          showTier: false,
+          hint: 'Higher quality uses more credits. Pro requires 8s duration.',
+          timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
+        },
+        seedance: {
+          label: 'Seedance 2.0',
+          durations: [
+            { value: '5', text: '5 sec', selected: true },
+            { value: '10', text: '10 sec' },
+            { value: '15', text: '15 sec' },
+          ],
+          aspects: [
+            { value: '16:9', text: '16:9 Landscape', selected: true },
+            { value: '9:16', text: '9:16 Portrait' },
+            { value: '1:1', text: '1:1 Square' },
+          ],
+          styles: [
+            { value: 'auto', text: 'Auto', selected: true },
+            { value: 'cinematic', text: 'Cinematic' },
+            { value: 'realistic', text: 'Realistic' },
+            { value: 'anime', text: 'Anime' },
+            { value: 'fantasy', text: 'Fantasy' },
+            { value: 'cyberpunk', text: 'Cyberpunk' },
+            { value: 'cartoon', text: 'Cartoon' },
+          ],
+          showQuality: false,
+          showMotion: false,
+          showTier: true,
+          hint: 'Peak queue times may be longer during busy hours.',
+          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u20136 min' : '~1\u20133 min',
+        },
+      };
+
       /**
-       * Get current video settings from UI (Veo only)
+       * Get current video settings from UI
        * @returns {Object} Video settings object
        */
       function getVideoSettingsFromUI() {
-        const durationRaw = videoDuration?.value || '4';
+        const provider = videoAIProvider?.value || 'veo';
+        const durationRaw = videoDuration?.value || (provider === 'seedance' ? '5' : '4');
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
+        const seedanceTierInput = leftStack.querySelector('#seedanceTier');
+        const seedanceTier = (provider === 'seedance') ? (seedanceTierInput?.value || 'fast') : null;
+
         const settings = {
-          provider: 'veo',
-          durationSec: parseInt(durationRaw, 10) || 4,
-          resolution: resolutionRaw,
-          quality: resolutionRaw,  // Keep for backwards compatibility
+          provider: provider,
+          durationSec: parseInt(durationRaw, 10) || (provider === 'seedance' ? 5 : 4),
+          resolution: provider === 'seedance' ? '720p' : resolutionRaw,
+          quality: resolutionRaw,
           aspect: aspectRaw,
-          aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || '16:9',
-          fps: 24, // Fixed for Veo
+          aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || aspectRaw || '16:9',
+          fps: 24,
           loop: videoLoop?.checked ?? true,
-          mode: videoModeValue?.value || 'text2video'
+          mode: videoModeValue?.value || 'text2video',
+          seedanceTier: seedanceTier,
+          seedanceVariant: seedanceTier === 'preview' ? 'seedance-2-preview' : (seedanceTier === 'fast' ? 'seedance-2-fast-preview' : null),
         };
 
-        // DEBUG: Log settings on every read
         console.log('[VIDEO DEBUG] getVideoSettingsFromUI:', {
+          provider,
           durationRaw,
           resolutionRaw,
           durationSec: settings.durationSec,
@@ -1231,15 +1304,24 @@
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
+        const provider = settings.provider || 'veo';
         const resolution = settings.resolution || '720p';
-        const duration = settings.durationSec || 4;
+        const duration = settings.durationSec || (provider === 'seedance' ? 5 : 4);
         const mode = settings.mode || 'text2video';
 
         let cost = null;
         let source = 'unknown';
 
-        // Try to get cost from backend via WorkspaceCredits
-        if (window.WorkspaceCredits?.getVideoCreditCost) {
+        // Seedance: tier * duration credits
+        if (provider === 'seedance') {
+          const tier = settings.seedanceTier || 'fast';
+          const cps = SEEDANCE_CPS[tier] || 14;
+          cost = cps * duration;
+          source = `seedance-${tier}`;
+        }
+
+        // Veo: Try to get cost from backend via WorkspaceCredits
+        if (cost === null && window.WorkspaceCredits?.getVideoCreditCost) {
           cost = window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
           source = 'WorkspaceCredits';
         }
@@ -1251,11 +1333,9 @@
             cost = resRules[duration];
             source = 'fallback-exact';
           } else if (resRules && resRules[8] !== undefined) {
-            // Duration not valid for resolution, use 8s cost
             cost = resRules[8];
             source = 'fallback-8s';
           } else {
-            // Ultimate fallback: minimum 720p 4s cost
             cost = 70;
             source = 'fallback-default';
           }
@@ -1275,25 +1355,6 @@
       }
 
       /**
-       * Get the video action code for current settings (for API request)
-       * @param {Object} settings - Video settings from getVideoSettingsFromUI()
-       * @returns {string} Action code like video_text_generate_4s_720p (lowercase canonical)
-       */
-      function getVideoActionCodeForSettings(settings) {
-        const resolution = settings.resolution || '720p';
-        const duration = settings.durationSec || 4;
-        const mode = settings.mode || 'text2video';
-
-        if (window.WorkspaceCredits?.getVideoActionCode) {
-          return window.WorkspaceCredits.getVideoActionCode(mode, duration, resolution);
-        }
-
-        // Fallback: build it manually (lowercase canonical format)
-        const taskPart = mode === 'text2video' ? 'text_generate' : 'image_animate';
-        return `video_${taskPart}_${duration}s_${resolution.toLowerCase()}`;
-      }
-
-      /**
        * Check if a duration is valid for the selected resolution
        * @param {string} resolution - '720p' or '1080p'
        * @param {number} duration - Duration in seconds
@@ -1306,10 +1367,14 @@
 
       /**
        * Update duration dropdown based on selected resolution/quality tier
-       * Disables invalid durations for 1080p/4K (Veo) or validates Luma resolutions
+       * Disables invalid durations for 1080p/4K (Veo)
        */
       function updateDurationOptions() {
         if (!videoDuration) return;
+
+        // Seedance has no resolution-based duration constraints
+        const provider = videoAIProvider?.value || 'veo';
+        if (provider === 'seedance') return;
 
         // Veo resolution-based constraints
         const resolution = videoQuality?.value || '720p';
@@ -1348,27 +1413,13 @@
       }
 
       /**
-       * Update UI based on selected provider (Veo/Luma/Runway)
-       * Shows/hides provider-specific controls
+       * Sync provider UI from the current hidden input value.
+       * Uses applyProviderConfig for a single code path.
        */
       function updateProviderUI() {
         const provider = videoAIProvider?.value || 'veo';
-
-        if (provider === 'luma') {
-          // Show Luma resolution and concepts, hide Veo quality
-          if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
-          if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
-          if (lumaConceptWrap) lumaConceptWrap.classList.remove('hidden');
-        } else {
-          // Show Veo quality, hide Luma resolution and concepts
-          if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
-          if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
-          if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
-        }
-
-        // Update duration options for new provider
+        applyProviderConfig(provider);
         updateDurationOptions();
-        // Update footer pricing
         updateVideoFooter();
       }
 
@@ -1402,9 +1453,10 @@
         // Update credits display
         videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
 
-        // Update time estimate based on resolution (Veo only now)
+        // Update time estimate from provider config
         if (videoGenTime) {
-          videoGenTime.textContent = VIDEO_TIME_ESTIMATE[settings.resolution] || '~2 min';
+          const cfg = VIDEO_PROVIDER_CONFIG[settings.provider];
+          videoGenTime.textContent = cfg?.timeEstimate?.(settings) || '~2 min';
         }
 
         // Update button attributes
@@ -1483,6 +1535,76 @@
         });
       }
 
+      // Helper: build <option> HTML from config arrays
+      function buildOptionsHTML(items) {
+        return items.map(o => `<option value="${o.value}"${o.selected ? ' selected' : ''}>${o.text}</option>`).join('');
+      }
+
+      /**
+       * Apply VIDEO_PROVIDER_CONFIG to the UI — single code path for provider switching.
+       * Fully rebuilds duration, aspect, style, quality, motion, tier controls.
+       */
+      function applyProviderConfig(provider) {
+        const cfg = VIDEO_PROVIDER_CONFIG[provider];
+        if (!cfg) return;
+
+        const resolutionHint = leftStack.querySelector('#videoResolutionHint');
+        const motionSection = leftStack.querySelector('.vs-motion-section');
+        const styleRow = leftStack.querySelector('.video-style-row');
+        const stylePreset = leftStack.querySelector('#videoStylePreset');
+
+        // Duration, aspect, style — rebuild from config
+        if (videoDuration) videoDuration.innerHTML = buildOptionsHTML(cfg.durations);
+        if (videoAspectRatio) videoAspectRatio.innerHTML = buildOptionsHTML(cfg.aspects);
+        if (styleRow) styleRow.classList.remove('hidden');
+        if (stylePreset) stylePreset.innerHTML = buildOptionsHTML(cfg.styles);
+
+        // Quality wrap (Veo only)
+        if (videoQualityWrap) videoQualityWrap.classList.toggle('hidden', !cfg.showQuality);
+        if (cfg.showQuality && videoQuality) {
+          videoQuality.querySelectorAll('option').forEach(opt => {
+            opt.disabled = false;
+            opt.style.display = '';
+          });
+        }
+
+        // Motion section (Veo only)
+        if (motionSection) motionSection.classList.toggle('hidden', !cfg.showMotion);
+
+        // Tier selector (Seedance only)
+        let tierWrap = leftStack.querySelector('#seedanceTierWrap');
+        if (cfg.showTier) {
+          if (!tierWrap) {
+            tierWrap = document.createElement('div');
+            tierWrap.id = 'seedanceTierWrap';
+            tierWrap.className = 'vs-setting';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model</label><select id="seedanceTierSelect"><option value="fast" selected>Fast (~1\u20133 min)</option><option value="preview">Preview (~2\u20136 min)</option></select>';
+            const durationSetting = videoDuration?.closest('.vs-setting');
+            if (durationSetting) durationSetting.after(tierWrap);
+          }
+          tierWrap.classList.remove('hidden');
+
+          const tierSelect = tierWrap.querySelector('#seedanceTierSelect');
+          if (tierSelect && !tierSelect._seedanceWired) {
+            tierSelect._seedanceWired = true;
+            tierSelect.addEventListener('change', () => {
+              const seedanceTierInput = leftStack.querySelector('#seedanceTier');
+              if (seedanceTierInput) seedanceTierInput.value = tierSelect.value;
+              updateVideoFooter();
+            });
+          }
+          // Reset tier
+          const seedanceTierInput = leftStack.querySelector('#seedanceTier');
+          if (seedanceTierInput) seedanceTierInput.value = 'fast';
+          if (tierSelect) tierSelect.value = 'fast';
+        } else if (tierWrap) {
+          tierWrap.classList.add('hidden');
+        }
+
+        // Hint text
+        if (resolutionHint) resolutionHint.textContent = cfg.hint;
+      }
+
       // Video provider switcher
       const videoProviderSwitcher = leftStack.querySelector('#videoProviderSwitcher');
       if (videoProviderSwitcher) {
@@ -1491,73 +1613,11 @@
           btn.addEventListener('click', function() {
             const provider = this.dataset.provider;
 
-            // Update active state
             providerButtons.forEach(b => b.classList.remove('is-active'));
             this.classList.add('is-active');
-
-            // Update hidden input
             if (videoAIProvider) videoAIProvider.value = provider;
 
-            // Show/hide quality controls based on provider
-            const resolutionHint = leftStack.querySelector('#videoResolutionHint');
-
-            if (provider === 'luma') {
-              // Luma: show resolution and concept dropdowns, hide Veo quality
-              if (videoQualityWrap) videoQualityWrap.classList.add('hidden');
-              if (lumaQualityWrap) lumaQualityWrap.classList.remove('hidden');
-              if (lumaConceptWrap) lumaConceptWrap.classList.remove('hidden');
-
-              if (resolutionHint) {
-                resolutionHint.textContent = 'Luma Dream Machine - higher resolutions use more credits.';
-              }
-            } else if (provider === 'runway') {
-              // Runway: show resolution dropdown (720p only)
-              if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
-              if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
-              if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
-
-              if (videoQuality) {
-                const opts = videoQuality.querySelectorAll('option');
-                opts.forEach(opt => {
-                  const is1080p = opt.value === '1080p';
-                  if (is1080p) {
-                    opt.disabled = true;
-                    opt.style.display = 'none';
-                  } else {
-                    opt.disabled = false;
-                    opt.style.display = '';
-                  }
-                });
-
-                // Reset to 720p if current selection is not available
-                if (videoQuality.value !== '720p') {
-                  videoQuality.value = '720p';
-                }
-              }
-
-              if (resolutionHint) {
-                resolutionHint.textContent = 'Runway generates at Standard (HD) quality.';
-              }
-            } else {
-              // Veo: show resolution dropdown with all options
-              if (videoQualityWrap) videoQualityWrap.classList.remove('hidden');
-              if (lumaQualityWrap) lumaQualityWrap.classList.add('hidden');
-              if (lumaConceptWrap) lumaConceptWrap.classList.add('hidden');
-
-              if (videoQuality) {
-                const opts = videoQuality.querySelectorAll('option');
-                opts.forEach(opt => {
-                  opt.disabled = false;
-                  opt.style.display = '';
-                });
-              }
-
-              if (resolutionHint) {
-                resolutionHint.textContent = 'Higher quality uses more credits. Pro requires 8s duration.';
-              }
-            }
-
-            // Update footer and duration options
+            applyProviderConfig(provider);
             updateDurationOptions();
             updateVideoFooter();
 
@@ -1668,30 +1728,6 @@
                       ' settings=' + JSON.stringify(settings));
           // Event bubbles to main.js which calls API.startVideoGeneration()
         });
-      }
-
-      /**
-       * Show a video error message to the user
-       * @param {string} message - Error message to display
-       */
-      function showVideoError(message) {
-        // Find or create error container
-        let errorEl = leftStack.querySelector('.video-error-message');
-        if (!errorEl) {
-          errorEl = document.createElement('div');
-          errorEl.className = 'video-error-message';
-          const footerCard = leftStack.querySelector('.gen-footer-card');
-          if (footerCard) {
-            footerCard.parentNode.insertBefore(errorEl, footerCard);
-          }
-        }
-        errorEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
-        errorEl.style.display = 'block';
-
-        // Auto-hide after 8 seconds
-        setTimeout(() => {
-          if (errorEl) errorEl.style.display = 'none';
-        }, 8000);
       }
 
       // ========================================
