@@ -509,6 +509,15 @@
               <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
             </svg>
           </button>
+          <button type="button" class="viewer-toolbar__btn" data-action="evolve" data-tooltip="Evolve">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 3v12"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="6" r="3"/>
+              <path d="M6 6a6 6 0 006 6h3"/>
+              <path d="M15 9l3 3-3 3"/>
+            </svg>
+          </button>
           <div class="viewer-toolbar__divider"></div>
           <button type="button" class="viewer-toolbar__btn" data-action="download" data-tooltip="Download">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -558,6 +567,18 @@
               <a href="https://jlc3dp.com/" target="_blank" rel="noopener">JLCPCB 3DP</a>
               <a href="https://www.shapeways.com/" target="_blank" rel="noopener">Shapeways</a>
             </div>
+          </div>
+
+          <!-- Accept / Revert Action Bar -->
+          <div class="viewer-action-bar hidden" id="viewerActionBar">
+            <button type="button" class="vab-btn vab-btn--revert" data-vab="revert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 010 10H9M3 10l4-4M3 10l4 4"/></svg>
+              Revert
+            </button>
+            <button type="button" class="vab-btn vab-btn--accept" data-vab="accept">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              Accept
+            </button>
           </div>
         </div>
       </div>
