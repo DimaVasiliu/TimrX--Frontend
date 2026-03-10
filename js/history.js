@@ -599,7 +599,10 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const name = shortTitle(displayModel);
     const videoCanDownload = !!videoSrc && _hasCredits;
     const isFailed = status === 'failed';
-    const videoProcessingLabel = status === 'generating' ? 'Generating video...'
+    const statusLabel = displayModel.status_label || '';
+    const videoProcessingLabel = statusLabel
+      ? statusLabel
+      : status === 'generating' ? 'Generating video...'
       : status === 'processing' ? 'Processing...'
       : status === 'queued' ? 'Queued...'
       : processingLabel;
