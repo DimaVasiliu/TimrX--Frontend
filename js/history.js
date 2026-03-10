@@ -986,6 +986,22 @@ export function getFilteredHistory() {
 // MAIN RENDER FUNCTION
 // ============================================================================
 
+/**
+ * Lightweight in-place update for a generating job's status text.
+ * Avoids full DOM rebuild (renderHistory) to prevent flicker during polling.
+ * Returns true if the card was found and updated, false otherwise.
+ */
+export function updateJobStatusInPlace(jobId, statusLabel) {
+  const card = document.querySelector(`[data-job-id="${jobId}"]`);
+  if (!card) return false;
+  const statusEl = card.querySelector('[class*="__video-status"]');
+  if (statusEl) {
+    statusEl.textContent = statusLabel;
+    return true;
+  }
+  return false;
+}
+
 export function renderHistory() {
   const grid = document.getElementById('historyGrid');
   const pageLabel = document.getElementById('historyPageLabel');
