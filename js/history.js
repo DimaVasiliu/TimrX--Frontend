@@ -476,6 +476,51 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const imgSrc = displayModel.thumbnail_url || displayModel.image_url || '';
     const name = shortTitle(displayModel);
     const imgCanDownload = !!imgSrc;
+    const isImageFailed = status === 'failed';
+
+    // Failed image card
+    if (isImageFailed) {
+      const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed';
+      // Make moderation errors user-friendly
+      const displayError = errorMsg.includes('safety system') || errorMsg.includes('moderation')
+        ? 'Blocked by content policy'
+        : (errorMsg.length > 50 ? errorMsg.slice(0, 50) + '...' : errorMsg);
+      return `
+        <div class="${thumbPrefix} ${thumbPrefix}--image ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
+          <div class="${thumbPrefix}__status-bar">
+            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+            <span class="${thumbPrefix}__image-badge ${thumbPrefix}__image-badge--failed">Failed</span>
+          </div>
+          <div class="${thumbPrefix}__error-card">
+            <span class="${thumbPrefix}__error-icon">&#9888;</span>
+            <span class="${thumbPrefix}__error-text">${displayError}</span>
+          </div>
+          <span class="${thumbPrefix}__name">${name}</span>
+          ${!isExpanded ? `
+          <div class="${thumbPrefix}__menu-wrap">
+            <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="19" cy="12" r="2"/>
+              </svg>
+            </button>
+            <div class="card-menu" role="menu" aria-label="Image actions">
+              <div class="card-menu__list">
+                <button class="card-menu__item card-menu__item--danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#128465;</span>
+                    <span>Delete</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
     return `
       <div class="${thumbPrefix} ${thumbPrefix}--image ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
         <div class="${thumbPrefix}__status-bar">
