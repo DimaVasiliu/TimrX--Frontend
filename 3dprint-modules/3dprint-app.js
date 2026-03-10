@@ -604,17 +604,43 @@
         </div>
       </div>
 
-      <!-- Generate Button (sticky footer) -->
+      <!-- Video Templates (Part 14) -->
+      <div class="card video-templates-card compact">
+        <button type="button" class="vs-motion-trigger" id="videoTemplatesTrigger">
+          <span class="vs-label">Prompt Templates</span>
+          <svg class="vs-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="videoTemplatesPanel" class="vs-presets vs-presets--collapsed">
+          <button type="button" class="vs-preset video-template-btn" data-template="product">Product Reveal</button>
+          <button type="button" class="vs-preset video-template-btn" data-template="cinematic">Cinematic Orbit</button>
+          <button type="button" class="vs-preset video-template-btn" data-template="zoom">Zoom Intro</button>
+          <button type="button" class="vs-preset video-template-btn" data-template="anime">Anime Action</button>
+          <button type="button" class="vs-preset video-template-btn" data-template="flythrough">Camera Flythrough</button>
+        </div>
+      </div>
+
+      <!-- Video Gallery shortcut -->
+      <button type="button" class="video-gallery-btn" id="videoGalleryBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M10 8l6 4-6 4V8z"/></svg>
+        Browse Video Gallery
+      </button>
+
+      <!-- Credit Estimate + Generate Buttons -->
       <div class="card gen-footer-card video-gen-footer">
         <div class="gen-meta">
           <span class="gen-time" id="videoGenTime">~2 min</span>
           <span class="gen-divider">|</span>
           <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
         </div>
-        <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
-          <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          Generate
-        </button>
+        <div class="gen-btn-row">
+          <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled>
+            Preview
+          </button>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
+            <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            Generate
+          </button>
+        </div>
       </div>
     `
   };
@@ -1727,6 +1753,73 @@
                       ' cost=' + totalCredits + ' available=' + available +
                       ' settings=' + JSON.stringify(settings));
           // Event bubbles to main.js which calls API.startVideoGeneration()
+        });
+      }
+
+      // ========================================
+      // VIDEO: Prompt Templates (Part 14)
+      // ========================================
+      const VIDEO_TEMPLATES = {
+        product: 'Smooth 360-degree product reveal on a clean studio backdrop, soft studio lighting, slow rotation, premium feel',
+        cinematic: 'Cinematic orbit shot around the subject, dramatic lighting, shallow depth of field, film grain, slow steady movement',
+        zoom: 'Extreme close-up slowly zooming out to reveal the full scene, shallow focus pulling to sharp, cinematic',
+        anime: 'Dynamic anime-style action sequence with speed lines, bold colors, fast camera movement, stylized motion blur',
+        flythrough: 'Smooth aerial camera flythrough over a sweeping landscape, golden hour lighting, parallax depth, slow forward motion',
+      };
+
+      const templatesTrigger = leftStack.querySelector('#videoTemplatesTrigger');
+      const templatesPanel = leftStack.querySelector('#videoTemplatesPanel');
+      if (templatesTrigger && templatesPanel) {
+        templatesTrigger.addEventListener('click', () => {
+          templatesPanel.classList.toggle('vs-presets--collapsed');
+          templatesTrigger.classList.toggle('is-open');
+        });
+        templatesPanel.querySelectorAll('.video-template-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.template;
+            const tpl = VIDEO_TEMPLATES[key];
+            if (tpl && videoTextPrompt) {
+              videoTextPrompt.value = tpl;
+              videoTextPrompt.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            templatesPanel.classList.add('vs-presets--collapsed');
+            if (templatesTrigger) templatesTrigger.classList.remove('is-open');
+          });
+        });
+      }
+
+      // ========================================
+      // VIDEO: Preview Button (Part 13)
+      // ========================================
+      const previewVideoBtn = leftStack.querySelector('#previewVideoBtn');
+      if (previewVideoBtn) {
+        previewVideoBtn.addEventListener('click', function() {
+          // Force shortest duration + cheapest provider for preview
+          if (videoDuration) videoDuration.value = videoDuration.options[0]?.value || '4';
+          if (videoQuality) videoQuality.value = '720p';
+          updateVideoFooter();
+          // Trigger the normal generate flow
+          if (generateVideoBtn) generateVideoBtn.click();
+        });
+        // Enable/disable preview button alongside generate button
+        const origValidate = validateVideoForm;
+        validateVideoForm = function() {
+          origValidate();
+          if (previewVideoBtn) previewVideoBtn.disabled = generateVideoBtn?.disabled ?? true;
+        };
+      }
+
+      // ========================================
+      // VIDEO: Gallery Button (Part 17)
+      // ========================================
+      const videoGalleryBtn = leftStack.querySelector('#videoGalleryBtn');
+      if (videoGalleryBtn) {
+        videoGalleryBtn.addEventListener('click', () => {
+          if (window.TimrXInspire?.openVideos) {
+            window.TimrXInspire.openVideos();
+          } else if (window.TimrXInspire?.open) {
+            window.TimrXInspire.open();
+          }
         });
       }
 
