@@ -98,7 +98,14 @@
           <h3>Generate Image</h3>
           <label for="imagePrompt">Describe Your Image</label>
           <textarea id="imagePrompt" placeholder="A futuristic cityscape at sunset with flying cars..."></textarea>
-          <span class="field-hint">Be detailed and specific for best results</span>
+          <div class="enhance-row">
+            <span class="field-hint">Be detailed and specific for best results</span>
+            <button type="button" class="enhance-btn" data-enhance-mode="image" data-enhance-target="#imagePrompt" title="Make this prompt clearer and more detailed">
+              <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
+              <span class="enhance-btn-label">Enhance</span>
+            </button>
+          </div>
+          <div class="enhance-feedback hidden" data-enhance-feedback="image"></div>
         </div>
 
         <div class="card">
@@ -165,7 +172,14 @@
           <div class="tab-content active" id="text3d">
             <label for="modelPrompt">Describe Your Model</label>
             <textarea id="modelPrompt" placeholder="A futuristic gaming chair with RGB lighting..."></textarea>
-            <span class="field-hint">Be specific for better results</span>
+            <div class="enhance-row">
+              <span class="field-hint">Be specific for better results</span>
+              <button type="button" class="enhance-btn" data-enhance-mode="model" data-enhance-target="#modelPrompt" title="Make this prompt clearer and more detailed">
+                <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
+                <span class="enhance-btn-label">Enhance</span>
+              </button>
+            </div>
+            <div class="enhance-feedback hidden" data-enhance-feedback="model"></div>
           </div>
 
           <div class="tab-content hidden" id="image3d">
@@ -425,8 +439,15 @@
       <div class="card video-mode-content video-input-card" id="text2videoContent">
         <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
         <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
-        <div class="video-input-footer">
+        <div class="enhance-row">
           <span class="field-hint">Keep prompts simple for best results.</span>
+          <button type="button" class="enhance-btn" data-enhance-mode="video" data-enhance-target="#videoTextPrompt" title="Make this prompt clearer and more detailed">
+            <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
+            <span class="enhance-btn-label">Enhance</span>
+          </button>
+        </div>
+        <div class="enhance-feedback hidden" data-enhance-feedback="video"></div>
+        <div class="video-input-footer">
           <div class="inline-field video-style-row">
             <label for="videoStylePreset">Style</label>
             <select id="videoStylePreset">
@@ -2069,6 +2090,157 @@
             modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
           }
         });
+      }
+
+      // ========================================
+      // PROMPT ENHANCE: Bind enhance buttons
+      // ========================================
+      initPromptEnhanceButtons();
+    }
+
+    // ========================================
+    // PROMPT ENHANCE: Shared logic
+    // ========================================
+    const ENHANCE_API = (window.TIMRX_3D_API_BASE || 'https://3d.timrx.live') + '/api/_mod/prompt-enhance';
+    const _enhanceUndoMap = {};  // mode → original prompt for undo
+
+    function initPromptEnhanceButtons() {
+      const enhanceBtns = leftStack.querySelectorAll('.enhance-btn[data-enhance-mode]');
+      enhanceBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const mode = btn.getAttribute('data-enhance-mode');
+          const targetSel = btn.getAttribute('data-enhance-target');
+          if (!mode || !targetSel) return;
+          const textarea = leftStack.querySelector(targetSel);
+          if (!textarea) return;
+          enhancePromptForField(mode, textarea, btn);
+        });
+      });
+
+      // Keyboard shortcut: Ctrl/Cmd + Shift + E
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'E') {
+          const active = document.activeElement;
+          if (!active || active.tagName !== 'TEXTAREA') return;
+          // Find the enhance button associated with this textarea
+          const card = active.closest('.card');
+          if (!card) return;
+          const btn = card.querySelector('.enhance-btn[data-enhance-mode]');
+          if (!btn) return;
+          e.preventDefault();
+          btn.click();
+        }
+      });
+    }
+
+    function enhancePromptForField(mode, textarea, btn) {
+      const raw = (textarea.value || '').trim();
+      const feedbackEl = leftStack.querySelector('[data-enhance-feedback="' + mode + '"]');
+
+      // Empty prompt guard
+      if (!raw) {
+        showEnhanceFeedback(feedbackEl, 'hint', 'Add a starting idea first.');
+        return;
+      }
+
+      // Length guard
+      if (raw.length > 2000) {
+        showEnhanceFeedback(feedbackEl, 'error', 'Prompt is too long (max 2000 chars).');
+        return;
+      }
+
+      // Set loading state
+      setEnhanceButtonState(btn, 'loading');
+      showEnhanceFeedback(feedbackEl, 'loading', 'Enhancing\u2026');
+
+      fetch(ENHANCE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt: raw, mode: mode }),
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.ok && data.enhanced_prompt) {
+          // Store original for undo
+          _enhanceUndoMap[mode] = raw;
+
+          // Update textarea
+          textarea.value = data.enhanced_prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.dispatchEvent(new Event('change', { bubbles: true }));
+          textarea.focus();
+
+          setEnhanceButtonState(btn, 'idle');
+          showEnhanceFeedback(feedbackEl, 'undo', 'Enhanced.', function onUndo() {
+            textarea.value = _enhanceUndoMap[mode] || raw;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            textarea.focus();
+            delete _enhanceUndoMap[mode];
+            showEnhanceFeedback(feedbackEl, null);
+          });
+        } else {
+          setEnhanceButtonState(btn, 'idle');
+          showEnhanceFeedback(feedbackEl, 'error', data.error || 'Enhancement failed.');
+        }
+      })
+      .catch(function() {
+        setEnhanceButtonState(btn, 'idle');
+        showEnhanceFeedback(feedbackEl, 'error', 'Could not reach server. Try again.');
+      });
+    }
+
+    function setEnhanceButtonState(btn, state) {
+      if (!btn) return;
+      var label = btn.querySelector('.enhance-btn-label');
+      if (state === 'loading') {
+        btn.disabled = true;
+        btn.classList.add('is-loading');
+        if (label) label.textContent = 'Enhancing\u2026';
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('is-loading');
+        if (label) label.textContent = 'Enhance';
+      }
+    }
+
+    function showEnhanceFeedback(el, type, message, onUndo) {
+      if (!el) return;
+      if (!type) {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+        return;
+      }
+      el.classList.remove('hidden');
+      var cls = 'enhance-feedback--' + type;
+      el.className = 'enhance-feedback ' + cls;
+
+      if (type === 'undo' && onUndo) {
+        el.innerHTML = '<span>' + message + '</span> <button type="button" class="enhance-undo-btn">Undo</button>';
+        el.querySelector('.enhance-undo-btn').addEventListener('click', function(e) {
+          e.preventDefault();
+          onUndo();
+        });
+        // Auto-hide after 8 seconds
+        setTimeout(function() {
+          if (el.querySelector('.enhance-undo-btn')) {
+            el.classList.add('hidden');
+            el.innerHTML = '';
+          }
+        }, 8000);
+      } else {
+        el.textContent = message;
+        // Auto-hide hints and errors after 4 seconds
+        if (type !== 'loading') {
+          setTimeout(function() {
+            if (el.textContent === message) {
+              el.classList.add('hidden');
+              el.innerHTML = '';
+            }
+          }, 4000);
+        }
       }
     }
 
