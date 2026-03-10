@@ -2512,11 +2512,14 @@ const VIDEO_CREDIT_COSTS = {
   '4k':    { 8: 160 }
 };
 
+// Seedance credits: tier * duration (fast=14 cps, preview=24 cps)
+const SEEDANCE_CPS = { fast: 14, preview: 24 };
+
 /**
- * Get video credit cost based on resolution and duration.
- * Uses VideoJobControl if available, falls back to local VIDEO_CREDIT_COSTS.
+ * Get video credit cost based on provider, resolution and duration.
+ * Uses VideoJobControl if available, falls back to local costs.
  *
- * @param {Object} settings - { durationSec, resolution }
+ * @param {Object} settings - { provider, durationSec, resolution }
  * @returns {number} Total credits (70-160)
  */
 function getVideoCredits(settings) {
@@ -2525,7 +2528,14 @@ function getVideoCredits(settings) {
     return window.VideoJobControl.computeCredits(settings);
   }
 
-  // Fallback to local canonical costs
+  // Seedance: tier * duration
+  if (settings.provider === 'seedance') {
+    const tier = settings.seedanceTier || 'fast';
+    const cps = SEEDANCE_CPS[tier] || 14;
+    return cps * (settings.durationSec || 5);
+  }
+
+  // Veo fallback to local canonical costs
   const resolution = settings.resolution || '720p';
   const duration = settings.durationSec || 4;
   const resolutionCosts = VIDEO_CREDIT_COSTS[resolution] || VIDEO_CREDIT_COSTS['720p'];
@@ -2533,7 +2543,34 @@ function getVideoCredits(settings) {
 }
 
 /**
- * Start video generation (Google Veo)
+ * Compose Seedance prompt: [main]. [style phrase]. [motion phrase].
+ * For non-Seedance providers, returns the original prompt unchanged.
+ */
+function _composeSeedancePrompt(mainPrompt, stylePreset, motionText, settings) {
+  if (!settings || settings.provider !== 'seedance') return mainPrompt;
+  if (!mainPrompt) return mainPrompt;
+
+  const SEEDANCE_STYLE_PHRASES = {
+    cinematic: 'Cinematic style.',
+    realistic: 'Realistic style.',
+    anime: 'Anime style.',
+    fantasy: 'Fantasy style.',
+    cyberpunk: 'Cyberpunk style.',
+    cartoon: 'Cartoon style.',
+  };
+
+  let composed = mainPrompt.trim();
+  if (stylePreset && stylePreset !== 'auto' && SEEDANCE_STYLE_PHRASES[stylePreset]) {
+    composed += ' ' + SEEDANCE_STYLE_PHRASES[stylePreset];
+  }
+  if (motionText && motionText.trim()) {
+    composed += ' ' + motionText.trim() + '.';
+  }
+  return composed;
+}
+
+/**
+ * Start video generation
  */
 export async function startVideoGeneration() {
   if (startLock) return;
@@ -2543,34 +2580,34 @@ export async function startVideoGeneration() {
 
   // Get video settings from UI (use window.VideoJobControl if available, else read directly)
   // Resolution values: "720p", "1080p", "4k" (NOT "standard" or "high")
+  const aspectVal = byId('videoAspectRatio')?.value || 'landscape';
   const settings = window.VideoJobControl?.getSettings?.() || {
-    provider: 'veo',
+    provider: byId('videoAIProvider')?.value || 'veo',
     durationSec: parseInt(byId('videoDuration')?.value || '4', 10),
-    resolution: byId('videoQuality')?.value || '720p',  // Resolution: 720p, 1080p, 4k
-    aspect: byId('videoAspectRatio')?.value || 'landscape',
-    aspectRatio: VIDEO_ASPECT_MAP[byId('videoAspectRatio')?.value] || '16:9',
+    resolution: byId('videoQuality')?.value || '720p',
+    aspect: aspectVal,
+    aspectRatio: VIDEO_ASPECT_MAP[aspectVal] || aspectVal || '16:9',
     loop: byId('videoLoop')?.checked ?? true,
     mode: byId('videoModeValue')?.value || 'text2video'
   };
 
-  // Add provider to settings for credit calculation
-  settings.provider = 'veo';
+  // Read provider from UI (veo or seedance)
+  if (!settings.provider || settings.provider === 'google') {
+    settings.provider = byId('videoAIProvider')?.value || 'veo';
+  }
 
   const motion = (byId('videoMotion')?.value || '').trim();
   const prompt = (byId('videoTextPrompt')?.value || '').trim();
   const stylePreset = byId('videoStylePreset')?.value || '';
   const motionPreset = byId('videoMotionPreset')?.value || '';
 
-  // Compute credits for Veo
   const totalCredits = getVideoCredits(settings);
 
-  // Defensive logging for video credit flow
   console.log('[VIDEO] Credit check:', {
-    provider: 'veo',
+    provider: settings.provider,
     durationSec: settings.durationSec,
     resolution: settings.resolution,
     computedCredits: totalCredits,
-    formula: `VIDEO_CREDIT_COSTS[${settings.resolution}][${settings.durationSec}s] = ${totalCredits}`
   });
 
   // Unified credit check with proper numeric conversion
@@ -2615,8 +2652,8 @@ export async function startVideoGeneration() {
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
-    provider: 'google',
-    provider_used: 'google',
+    provider: settings.provider || 'veo',
+    provider_used: settings.provider || 'veo',
     credits_used: totalCredits,
     idempotency_key: idempotencyKey
   };
@@ -2625,7 +2662,7 @@ export async function startVideoGeneration() {
   renderHistory();
 
   try {
-    prog.label('Generating video with Veo...');
+    prog.label(settings.provider === 'seedance' ? 'Generating video with Seedance...' : 'Generating video with Veo...');
 
     // Build payload for Veo
     let endpoint;
@@ -2646,39 +2683,43 @@ export async function startVideoGeneration() {
 
       endpoint = '/api/video/animate';
       payload = {
+        provider: settings.provider,
         image_data: imageData,
-        prompt: motion || prompt,
+        prompt: _composeSeedancePrompt(motion || prompt, stylePreset, null, settings),
         motion_preset: motionPreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        resolution: settings.resolution,  // Resolution: 720p, 1080p, 4k
-        loop: settings.loop
+        resolution: settings.resolution,
+        loop: settings.loop,
+        seedance_variant: settings.seedanceVariant || undefined,
       };
 
       const isDataUrl = imageData.startsWith('data:');
       console.log('[VIDEO] Image2Video mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
 
     } else {
-      // ── Veo: Text → cinematic clip ──
+      // ── Text → cinematic clip ──
       endpoint = '/api/video/text';
       payload = {
-        prompt: prompt,
+        provider: settings.provider,
+        prompt: _composeSeedancePrompt(prompt, stylePreset, motion, settings),
         style_preset: stylePreset || undefined,
         duration_sec: settings.durationSec,
         aspect_ratio: settings.aspectRatio,
-        resolution: settings.resolution,  // Resolution: 720p, 1080p, 4k
+        resolution: settings.resolution,
         motion: motion,
-        loop: settings.loop
+        loop: settings.loop,
+        seedance_variant: settings.seedanceVariant || undefined,
       };
     }
 
     // Log action code for debugging (lowercase canonical format)
     const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
                  `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
-    console.log('[VIDEO] Action code:', actionCode, '| Provider: veo | Expected cost:', totalCredits);
+    console.log('[VIDEO] Action code:', actionCode, '| Provider:', settings.provider, '| Expected cost:', totalCredits);
 
     // Debug log before API call
-    console.log('[GEN] provider=veo mode=' + settings.mode + ' endpoint=' + endpoint +
+    console.log('[GEN] provider=' + settings.provider + ' mode=' + settings.mode + ' endpoint=' + endpoint +
                 ' cost=' + totalCredits + ' available=' + creditCheck.available);
 
       if (settings.mode === 'image2video') {
@@ -2695,13 +2736,15 @@ export async function startVideoGeneration() {
 
         payload = {
           task: 'image2video',
+          provider: settings.provider,
           image_data: imageData,
-          prompt: motion || prompt,
+          prompt: _composeSeedancePrompt(motion || prompt, stylePreset, null, settings),
           duration_sec: settings.durationSec,
           aspect_ratio: settings.aspectRatio,
           resolution: settings.resolution,
           concept: settings.concept || 'auto',
-          loop: settings.loop
+          loop: settings.loop,
+          seedance_variant: settings.seedanceVariant || undefined,
         };
       } else {
         // Text-to-video
@@ -2714,11 +2757,13 @@ export async function startVideoGeneration() {
 
         payload = {
           task: 'text2video',
-          prompt: prompt,
+          provider: settings.provider,
+          prompt: _composeSeedancePrompt(prompt, stylePreset, motion, settings),
           duration_sec: settings.durationSec,
           aspect_ratio: settings.aspectRatio,
           resolution: settings.resolution,
-          loop: settings.loop
+          loop: settings.loop,
+          seedance_variant: settings.seedanceVariant || undefined,
         };
     }
 
