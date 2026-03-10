@@ -749,12 +749,26 @@ function buildMeshySourceFromItem(item = {}) {
  * Get remesh form values from the UI
  */
 function getRemeshFormValues() {
-  const polyInput = byId('targetPolyCount');
-  const modeInput = byId('remeshMode');
-  let target_polycount = parseInt(polyInput?.value || '0', 10);
-  if (!Number.isFinite(target_polycount) || target_polycount <= 0) target_polycount = 45000;
-  const remeshMode = (modeInput?.value || '').toLowerCase();
-  const topology = remeshMode.includes('quad') ? 'quad' : 'triangle';
+  // Try active preset first
+  const activePreset = document.querySelector('#remeshPresets .remesh-preset.is-active');
+  const advancedOpen = document.querySelector('#remeshAdvanced') &&
+    !document.querySelector('#remeshAdvanced').classList.contains('remesh-advanced--collapsed');
+
+  let target_polycount;
+  let topology;
+
+  if (activePreset && !advancedOpen) {
+    target_polycount = parseInt(activePreset.dataset.poly || '50000', 10);
+    topology = activePreset.dataset.topo || 'triangle';
+  } else {
+    const polyInput = byId('targetPolyCount');
+    const modeInput = byId('remeshMode');
+    target_polycount = parseInt(polyInput?.value || '0', 10);
+    if (!Number.isFinite(target_polycount) || target_polycount <= 0) target_polycount = 45000;
+    const remeshMode = (modeInput?.value || '').toLowerCase();
+    topology = remeshMode.includes('quad') ? 'quad' : 'triangle';
+  }
+
   return {
     target_polycount,
     topology,
@@ -1007,6 +1021,18 @@ export function watchJob(job_id) {
         prog.jump(99, 'Downloading model...');
         await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
         prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
+
+        // Version stack: push for edit operations, dispatch event for action bar
+        if (stage === 'remesh' || stage === 'texture') {
+          State.pushModelVersion({
+            id: job_id,
+            glb_url: glbProxy || st.glb_url,
+            thumbnail_url: st.thumbnail_url || '',
+            stage,
+            prompt: meta.prompt || ''
+          });
+          window.dispatchEvent(new CustomEvent('model:edited', { detail: { id: job_id, stage } }));
+        }
 
         // Show Discord share modal sparingly (once per 7 days)
         if (shouldShowDiscordPrompt()) {
@@ -3478,6 +3504,101 @@ export async function startTextureFromHistory(item) {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
   }
+}
+
+/**
+ * Evolve: re-generate variants from an existing model's prompt
+ */
+export async function evolveFromHistory(item, count = 2) {
+  if (!item) return;
+  const prompt = item.prompt || item.root_prompt || '';
+  if (!prompt) {
+    alert('No prompt available to evolve from.');
+    return;
+  }
+
+  if (!checkCreditsFor('text-to-3d', count)) return;
+
+  const art_style = item.art_style || 'realistic';
+  const model = item.model || 'latest';
+  const license = item.license || 'private';
+  const symmetry = item.symmetry_mode || 'auto';
+  const batchGroupId = crypto?.randomUUID ? crypto.randomUUID() : `evolve-${Date.now()}`;
+
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'evolve' } }));
+  const prog = UI.makeProgressDriver();
+
+  for (let slot = 0; slot < count; slot++) {
+    try {
+      const reservation = reserveCreditsForAction('text-to-3d', 1);
+      if (reservation.insufficient) continue;
+
+      const idempotencyKey = State.generateIdempotencyKey();
+      const tempId = crypto?.randomUUID ? crypto.randomUUID() : `evolve-${Date.now()}-${slot}`;
+      const tempMeta = {
+        prompt, art_style, model, license,
+        symmetry_mode: symmetry,
+        batch_count: count, batch_slot: slot + 1,
+        batch_group_id: batchGroupId,
+        stage: 'preview',
+        status_label: `Evolving ${slot + 1}/${count}...`,
+        idempotency_key: idempotencyKey
+      };
+      addGeneratingPlaceholder(tempId, tempMeta);
+      State.savePendingMeta(tempId, tempMeta);
+
+      const payload = {
+        prompt, art_style, model,
+        symmetry_mode: symmetry, license,
+        batch_count: count, batch_slot: slot + 1,
+        batch_group_id: batchGroupId, refine: false
+      };
+
+      const result = await apiFetch('/api/_mod/text-to-3d/start', {
+        method: 'POST', body: payload,
+        headers: { 'Idempotency-Key': idempotencyKey }
+      });
+
+      if (!result.ok) {
+        releaseCreditsReservation(reservation.reservationId);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        console.error(`[Evolve] Variant ${slot + 1} failed:`, result.error);
+        continue;
+      }
+
+      const { job_id } = result.data;
+      if (!job_id) {
+        releaseCreditsReservation(reservation.reservationId);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        continue;
+      }
+
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      confirmCreditsReservation(reservation.reservationId, job_id);
+      State.addActiveJob(job_id);
+      State.savePendingMeta(job_id, {
+        prompt, art_style, model, root_prompt: prompt, license,
+        symmetry_mode: symmetry,
+        batch_count: count, batch_slot: slot + 1,
+        batch_group_id: batchGroupId
+      });
+      addGeneratingPlaceholder(job_id, {
+        prompt, art_style, model, root_prompt: prompt,
+        batch_count: count, batch_slot: slot + 1,
+        batch_group_id: batchGroupId, stage: 'preview',
+        status_label: `Evolving ${slot + 1}/${count}...`
+      });
+      watchJob(job_id);
+    } catch (err) {
+      console.error(`[Evolve] Variant ${slot + 1} error:`, err);
+    }
+  }
+
+  prog.label(`Evolving ${count} variants...`);
+  renderHistory();
 }
 
 // ============================================================================
