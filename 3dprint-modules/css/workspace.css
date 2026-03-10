@@ -1497,3 +1497,264 @@
     min-height: 26px;
   }
 }
+
+/* ==========================================================================
+   REMESH PRESETS
+   ========================================================================== */
+.remesh-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.remesh-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s ease;
+  color: #aaa;
+  text-align: center;
+}
+
+.remesh-preset:hover {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.15);
+  color: #ccc;
+}
+
+.remesh-preset.is-active {
+  background: rgba(139,92,246,.12);
+  border-color: rgba(139,92,246,.4);
+  color: #e0d0ff;
+}
+
+.remesh-preset__icon {
+  width: 22px;
+  height: 22px;
+  opacity: .6;
+  flex-shrink: 0;
+}
+
+.remesh-preset.is-active .remesh-preset__icon {
+  opacity: .9;
+  stroke: #b88aff;
+}
+
+.remesh-preset__name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.remesh-preset__desc {
+  font-size: 10px;
+  line-height: 1.3;
+  opacity: .6;
+}
+
+.remesh-advanced-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+
+.remesh-advanced-toggle:hover {
+  color: #bbb;
+}
+
+.remesh-advanced-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform .2s ease;
+}
+
+.remesh-advanced-toggle.is-open .remesh-advanced-chevron {
+  transform: rotate(180deg);
+}
+
+.remesh-advanced {
+  overflow: hidden;
+  transition: max-height .25s ease, opacity .2s ease;
+  max-height: 200px;
+  opacity: 1;
+}
+
+.remesh-advanced--collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   MATERIAL CHIPS (Texture panel)
+   ========================================================================== */
+.material-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.material-chip {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #aaa;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all .2s ease;
+  white-space: nowrap;
+}
+
+.material-chip:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.18);
+  color: #ddd;
+}
+
+.material-chip.is-active {
+  background: rgba(139,92,246,.15);
+  border-color: rgba(139,92,246,.4);
+  color: #d4bbff;
+}
+
+/* ==========================================================================
+   VIEWER ACTION BAR (Accept / Revert)
+   ========================================================================== */
+.viewer-action-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(10,10,10,.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  z-index: 20;
+  animation: vabSlideUp .3s ease;
+}
+
+.viewer-action-bar.hidden {
+  display: none;
+}
+
+@keyframes vabSlideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.vab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.vab-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.vab-btn--revert {
+  background: rgba(255,255,255,.08);
+  color: #ccc;
+}
+
+.vab-btn--revert:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+
+.vab-btn--accept {
+  background: rgba(139,92,246,.25);
+  color: #d4bbff;
+}
+
+.vab-btn--accept:hover {
+  background: rgba(139,92,246,.4);
+  color: #fff;
+}
+
+/* ==========================================================================
+   VIEWER TOOLBAR TOOLTIPS
+   ========================================================================== */
+.viewer-toolbar__btn[data-tooltip] {
+  position: relative;
+}
+
+.viewer-toolbar__btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(0,0,0,.85);
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 30;
+}
+
+.viewer-toolbar__btn[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.viewer-toolbar__btn:disabled,
+.viewer-toolbar__btn[disabled] {
+  opacity: .3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .remesh-presets {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .remesh-preset {
+    padding: 10px 6px;
+  }
+  .viewer-action-bar {
+    bottom: 12px;
+    padding: 5px;
+  }
+  .vab-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+}
