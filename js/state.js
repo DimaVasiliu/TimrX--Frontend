@@ -1017,6 +1017,51 @@ export function setHistoryActiveModelId(id) {
 }
 
 // ============================================================================
+// MODEL VERSION STACK (for Accept/Revert flow)
+// ============================================================================
+let modelVersionStack = []; // [{id, glb_url, thumbnail_url, stage, prompt}]
+
+/**
+ * Push a model version onto the stack (after remesh/texture/evolve)
+ */
+export function pushModelVersion(entry) {
+  if (entry && entry.id) {
+    modelVersionStack.push(entry);
+  }
+}
+
+/**
+ * Pop the latest version, returning it. Returns null if only base version remains.
+ */
+export function popModelVersion() {
+  if (modelVersionStack.length > 1) {
+    return modelVersionStack.pop();
+  }
+  return null;
+}
+
+/**
+ * Get the current version stack (copy)
+ */
+export function getModelVersionStack() {
+  return [...modelVersionStack];
+}
+
+/**
+ * Reset the version stack (when a new model is loaded from history)
+ */
+export function resetModelVersionStack(initialEntry) {
+  modelVersionStack = initialEntry ? [initialEntry] : [];
+}
+
+/**
+ * Check if revert is possible (stack has more than base entry)
+ */
+export function canRevertModel() {
+  return modelVersionStack.length > 1;
+}
+
+// ============================================================================
 // IDEMPOTENCY KEY MANAGEMENT (for generation reliability)
 // ============================================================================
 const IDEMPOTENCY_KEYS_STORAGE = 'timrx_idempotency_keys';
