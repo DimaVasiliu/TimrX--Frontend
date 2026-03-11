@@ -1220,6 +1220,7 @@
 
   section.featured .featured-inner{
     margin: 0;
+    max-width: 1600px;
   }
 
   section.featured .blog-card.is-hidden{
