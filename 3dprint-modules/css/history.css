@@ -1,4 +1,3 @@
-
 /* ============================================================================
    RESPONSIVE TWEAKS — Viewer Controls
    - Tighten spacing on low-height viewports
@@ -2883,6 +2882,12 @@ body.has-modal {
   transform: translateY(-3px);
   border-color: rgba(251, 146, 60, 0.4);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Keep card geometry stable while menu is open (fixed-position menu alignment) */
+.history-thumb--video.is-menu-open,
+.history-thumb--video.is-menu-open:hover {
+  transform: none;
 }
 
 .history-thumb--video.is-active {
