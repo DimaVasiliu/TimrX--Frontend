@@ -2506,10 +2506,12 @@ export async function startImageGenerationByProvider() {
   }
 }
 
-// Map simplified aspect to API format (no square/1:1 - not supported by Veo)
+// Map simplified aspect names to API ratio strings.
+// Vertex uses "landscape"/"portrait" names; Seedance passes ratios directly
+// (e.g. "16:9", "1:1") which fall through via || aspectVal in the caller.
 const VIDEO_ASPECT_MAP = {
   landscape: '16:9',
-  portrait: '9:16'
+  portrait: '9:16',
 };
 
 /**
@@ -2732,55 +2734,8 @@ export async function startVideoGeneration() {
     const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
                  `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
     console.log('[VIDEO] Action code:', actionCode, '| Provider:', settings.provider, '| Expected cost:', totalCredits);
-
-    // Debug log before API call
     console.log('[GEN] provider=' + settings.provider + ' mode=' + settings.mode + ' endpoint=' + endpoint +
                 ' cost=' + totalCredits + ' available=' + creditCheck.available);
-
-      if (settings.mode === 'image2video') {
-        const videoImagePreview = byId('videoImagePreview');
-        const imageData = videoImagePreview?.src;
-        const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
-
-        if (!isValidImage) {
-          startLock = false;
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please upload a reference image for Image to Video mode', 'error');
-          return;
-        }
-
-        payload = {
-          task: 'image2video',
-          provider: settings.provider,
-          image_data: imageData,
-          prompt: _composeSeedancePrompt(motion || prompt, stylePreset, null, settings),
-          duration_sec: settings.durationSec,
-          aspect_ratio: settings.aspectRatio,
-          resolution: settings.resolution,
-          concept: settings.concept || 'auto',
-          loop: settings.loop,
-          seedance_variant: settings.seedanceVariant || undefined,
-        };
-      } else {
-        // Text-to-video
-        if (!prompt) {
-          startLock = false;
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please enter a prompt for video generation', 'error');
-          return;
-        }
-
-        payload = {
-          task: 'text2video',
-          provider: settings.provider,
-          prompt: _composeSeedancePrompt(prompt, stylePreset, motion, settings),
-          duration_sec: settings.durationSec,
-          aspect_ratio: settings.aspectRatio,
-          resolution: settings.resolution,
-          loop: settings.loop,
-          seedance_variant: settings.seedanceVariant || undefined,
-        };
-    }
 
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch(endpoint, {
