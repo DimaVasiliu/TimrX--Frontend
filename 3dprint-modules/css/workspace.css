@@ -513,7 +513,7 @@
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     height: 100%;
-    border-radius: 16px;
+    border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
