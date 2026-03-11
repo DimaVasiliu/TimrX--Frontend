@@ -258,6 +258,11 @@ export async function fetchWallet() {
         creditsState.email = data.email || null;
         creditsState.emailVerified = data.email_verified || false;
 
+        // Server's available already accounts for backend reservations.
+        // Clear client-side reservations to avoid double-counting.
+        creditsState.reservations.clear();
+        creditsState.totalReserved = 0;
+
         // Update email beacon visibility
         updateEmailBeaconUI();
 
@@ -1676,11 +1681,10 @@ export async function refreshCredits() {
         creditsState.wallet.videoAvailable = videoAvailable;
         creditsState.lastServerBalance = serverBalance;
 
-        // Clear local reservations if server has none (reconciliation)
-        if (serverReserved === 0) {
-          creditsState.reservations.clear();
-          creditsState.totalReserved = 0;
-        }
+        // Server's available_credits already accounts for all backend reservations.
+        // Clear client-side reservations to avoid double-counting.
+        creditsState.reservations.clear();
+        creditsState.totalReserved = 0;
 
         if (data.identity_id) {
           creditsState.identityId = data.identity_id;
@@ -1769,8 +1773,10 @@ export function applyBackendBalance(newBalance, source = 'api_response') {
   const previousBalance = creditsState.wallet.available;
   const balance = Math.max(0, Math.floor(newBalance));
 
-  // Clear pending deductions - backend balance is authoritative
+  // Clear pending deductions and client-side reservations - backend balance is authoritative
   creditsState.pendingDeductions = [];
+  creditsState.reservations.clear();
+  creditsState.totalReserved = 0;
 
   // Apply backend balance
   creditsState.wallet.available = balance;
