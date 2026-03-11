@@ -41,6 +41,70 @@
     </image:image>
   </url>
 
+  <!-- AI Tools Directory -->
+  <url>
+    <loc>https://timrx.live/ai-tools</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- AI Video Generator -->
+  <url>
+    <loc>https://timrx.live/ai-video-generator</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- AI Image Generator -->
+  <url>
+    <loc>https://timrx.live/ai-image-generator</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- AI 3D Generator -->
+  <url>
+    <loc>https://timrx.live/ai-3d-generator</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Text to 3D -->
+  <url>
+    <loc>https://timrx.live/text-to-3d</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Image to 3D -->
+  <url>
+    <loc>https://timrx.live/image-to-3d</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 3D Print Model Generator -->
+  <url>
+    <loc>https://timrx.live/3d-print-model-generator</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- AI Knowledge Hub -->
+  <url>
+    <loc>https://timrx.live/ai-knowledge</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Blog Listing -->
   <url>
     <loc>https://timrx.live/blogs</loc>
