@@ -264,6 +264,7 @@ body.print3d-page > .ws-header {
 }
 
 .ws-credits-pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -340,6 +341,68 @@ body.print3d-page > .ws-header {
 .ws-credits-pill.empty i {
   color: #ef4444;
   filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+}
+
+/* Credits tooltip (hover breakdown) */
+.ws-credits-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  padding: 10px 14px;
+  background: rgba(20, 20, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.ws-credits-pill:hover .ws-credits-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.ws-credits-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.ws-credits-tooltip-row i {
+  width: 14px;
+  text-align: center;
+  font-size: 11px;
+  filter: none;
+}
+
+.ws-credits-tooltip-row:first-child i {
+  color: #a78bfa;
+}
+
+.ws-credits-tooltip-row:last-child i {
+  color: #60a5fa;
+}
+
+.ws-credits-tooltip-val {
+  margin-left: auto;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Syncing animation */
