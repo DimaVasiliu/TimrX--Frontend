@@ -1254,6 +1254,16 @@ export function updateCreditsUI() {
     creditsValue.textContent = effectiveAvailable.toLocaleString();
   }
 
+  // Update hover tooltip with pool breakdown
+  const tooltipGeneral = document.getElementById('tooltipGeneral');
+  const tooltipVideo = document.getElementById('tooltipVideo');
+  if (tooltipGeneral) {
+    tooltipGeneral.textContent = effectiveAvailable.toLocaleString();
+  }
+  if (tooltipVideo) {
+    tooltipVideo.textContent = creditsState.wallet.videoAvailable.toLocaleString();
+  }
+
   // Show/hide reserved indicator
   if (reservedIndicator) {
     if (hasReservations) {
@@ -1280,18 +1290,8 @@ export function updateCreditsUI() {
       });
     }
 
-    // Update tooltip based on balance and reservations
-    if (effectiveAvailable === 0 && hasReservations) {
-      creditsPill.setAttribute('title', `${creditsState.totalReserved} credits reserved for generation - click to buy more`);
-    } else if (effectiveAvailable === 0) {
-      creditsPill.setAttribute('title', 'No credits - click to buy');
-    } else if (hasReservations) {
-      creditsPill.setAttribute('title', `${effectiveAvailable} available (${creditsState.totalReserved} reserved)`);
-    } else if (effectiveAvailable < 30) {
-      creditsPill.setAttribute('title', `${effectiveAvailable} credits remaining - running low`);
-    } else {
-      creditsPill.setAttribute('title', `${effectiveAvailable} credits available`);
-    }
+    // Native title removed — hover tooltip shows pool breakdown instead
+    creditsPill.removeAttribute('title');
   }
 
   // Toggle syncing class on group and pill
