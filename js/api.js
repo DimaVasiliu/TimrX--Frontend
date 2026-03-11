@@ -2679,7 +2679,9 @@ export async function startVideoGeneration() {
   renderHistory();
 
   try {
-    prog.label(settings.provider === 'seedance' ? 'Generating video with Seedance...' : 'Generating video with Veo...');
+    prog.label(settings.provider === 'seedance'
+      ? `Sending to Seedance${settings.seedanceTier === 'preview' ? ' Preview' : ''}...`
+      : 'Sending to Veo...');
 
     // Build payload for Veo
     let endpoint;
@@ -2768,12 +2770,13 @@ export async function startVideoGeneration() {
       State.deleteHistoryItem(tempId, { skipRemote: true });
     }
 
+    const provName = settings.provider === 'seedance' ? 'Seedance' : 'Veo';
     const queuedPlaceholder = {
       ...placeholder,
       id: jobId,
       video_id: jobId,
       status: 'generating',
-      status_label: 'Generating video...'
+      status_label: `Generating with ${provName}...`
     };
 
     if (State.historyHasJobId(jobId)) {
@@ -2809,7 +2812,8 @@ export async function startVideoGeneration() {
       duration_sec: settings.durationSec,
       resolution: settings.resolution,
       aspect_ratio: settings.aspectRatio,
-      stage: 'video'
+      stage: 'video',
+      provider: settings.provider || 'vertex'
     });
 
   } catch (err) {
@@ -2845,17 +2849,37 @@ export async function startVideoGeneration() {
  */
 function _friendlyVideoError(errorCode, rawMsg) {
   const map = {
-    seedance_pending_timeout: 'Provider queue timed out',
-    seedance_processing_timeout: 'Render timed out',
-    seedance_poll_error: 'Lost connection to provider',
-    seedance_generation_failed: 'Provider rejected this generation',
+    // Normalized error categories (from video_errors.py)
+    pending_timeout: 'Provider queue timed out — job was not started',
+    processing_timeout: 'Render timed out — started but did not finish',
+    network: 'Lost connection to provider',
+    auth: 'Provider authentication failed',
+    no_output: 'Completed but no video was returned',
+    finalization_failed: 'Video completed but processing failed',
+    dispatch_failed: 'Could not reach provider — please retry',
+    max_retries: 'Exhausted retry attempts',
+    validation: 'Invalid request — check your settings',
+    quota: 'Provider quota reached — try again later',
+    // Seedance-specific (legacy)
+    seedance_pending_timeout: 'Seedance queue timed out',
+    seedance_processing_timeout: 'Seedance render timed out',
+    seedance_poll_error: 'Lost connection to Seedance',
+    seedance_generation_failed: 'Seedance rejected this generation',
     seedance_no_video_url: 'Completed but no video returned',
     seedance_auth_error: 'Provider authentication failed',
+    // Vertex-specific
+    vertex_no_result_url: 'Vertex completed but no video returned',
+    vertex_timeout: 'Vertex generation timed out',
+    vertex_auth_error: 'Vertex authentication failed',
+    vertex_quota: 'Vertex quota reached — try again later',
+    // Gemini (legacy)
     gemini_video_failed: 'Video generation failed',
     gemini_timeout: 'Generation timed out',
     gemini_poll_error: 'Lost connection to provider',
+    // Internal
     worker_limit_exceeded: 'Server busy — please retry',
     no_provider_available: 'No video providers available',
+    provider_filtered_third_party: 'Content blocked by provider safety filter',
   };
   return map[errorCode] || rawMsg || 'Video generation failed';
 }
@@ -3013,9 +3037,10 @@ async function watchVideoJob(jobId, reservationId, meta) {
       // Provider pending — job accepted but never started upstream
       if (status === 'provider_pending') {
         const pendSec = data.pending_seconds || 0;
+        const prov = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
         const ppLabel = pendSec > 120
-          ? 'Provider queue busy — please wait'
-          : 'Queued with provider';
+          ? `${prov} queue busy — please wait`
+          : `Queued with ${prov}`;
         State.updateHistoryItem(jobId, {
           status: 'generating',
           status_label: ppLabel
@@ -3039,9 +3064,10 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
       // Still processing - update progress (surgical DOM update to avoid flicker)
       if (data.progress !== undefined || status === 'processing') {
+        const provLabel = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
         const pLabel = data.progress !== undefined
-          ? `Generating... ${data.progress}%`
-          : (data.message || 'Rendering...');
+          ? `${provLabel} rendering... ${data.progress}%`
+          : (data.message || `${provLabel} rendering...`);
         State.updateHistoryItem(jobId, {
           status: 'generating',
           status_label: pLabel
@@ -3063,7 +3089,9 @@ async function watchVideoJob(jobId, reservationId, meta) {
       // Backend is still working — don't mark failed, just stop polling
       State.updateHistoryItem(jobId, {
         status: 'generating',
-        status_label: fs === 'provider_pending' ? 'Delayed — still queued with provider' : 'Still rendering — check back shortly',
+        status_label: fs === 'provider_pending'
+          ? `Delayed — still queued with ${meta.provider === 'seedance' ? 'Seedance' : 'Veo'}`
+          : 'Still rendering — check back shortly',
         video_id: jobId,
         type: 'video'
       });
@@ -3075,15 +3103,16 @@ async function watchVideoJob(jobId, reservationId, meta) {
   } catch (_) { /* final check failed, proceed with timeout */ }
 
   releaseCreditsReservation(reservationId);
+  const timeoutProv = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
   State.updateHistoryItem(jobId, {
     status: 'failed',
-    status_label: 'Video generation timed out',
-    error_message: 'Video generation timed out',
+    status_label: `${timeoutProv} generation timed out`,
+    error_message: `${timeoutProv} generation timed out`,
     video_id: jobId,
     type: 'video'
   });
   renderHistory();
-  UI.makeProgressDriver().fail('Video generation timed out');
+  UI.makeProgressDriver().fail(`${timeoutProv} generation timed out — credits have been released`);
   State.removeActiveJob(jobId);
 }
 
