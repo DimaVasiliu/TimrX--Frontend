@@ -39,6 +39,17 @@
   pointer-events: none;
 }
 
+/* Lift the active card above the history-menu backdrop while its menu is open */
+.history-thumb.is-menu-open,
+.expanded-thumb.is-menu-open {
+  z-index: 1302;
+}
+
+/* Video cards use extra clipping/stacking rules; disable clipping only while menu is open */
+.history-video-grid .history-thumb--video.is-menu-open {
+  overflow: visible;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    7. CONTEXT MENU
