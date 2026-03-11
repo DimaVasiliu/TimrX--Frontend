@@ -324,6 +324,11 @@ export function openHistoryMenu(menuBtn, menu) {
   activeHistoryMenu = menu;
   positionHistoryMenu(menuBtn, menu);
   document.body.classList.add('history-menu-open');
+  requestAnimationFrame(() => {
+    if (activeHistoryMenuBtn === menuBtn && activeHistoryMenu === menu) {
+      positionHistoryMenu(menuBtn, menu);
+    }
+  });
 }
 
 /**
