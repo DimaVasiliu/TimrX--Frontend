@@ -1,3 +1,4 @@
+
 /* ============================================================================
    RESPONSIVE TWEAKS — Viewer Controls
    - Tighten spacing on low-height viewports
@@ -3093,11 +3094,14 @@ body.has-modal {
 
 /* Video menu - override __menu-wrap base positioning (bottom-right → top-right) */
 .history-thumb--video .history-thumb__menu-wrap {
-  top: 0;
-  right: 0;
+  position: absolute;
+  top: 6px;
+  right: 6px;
   bottom: auto;
+  left: auto;
   z-index: 100;
-  padding: 6px;
+  padding: 0;
+  margin: 0;
 }
 
 .history-thumb--video .history-thumb__menu-btn {
