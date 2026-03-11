@@ -11,6 +11,7 @@ import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWallet
 // ============================================================================
 
 const CREDITS_CACHE_KEY = 'timrx_credits_last';
+const VIDEO_CREDITS_CACHE_KEY = 'timrx_video_credits_last';
 
 // ============================================================================
 // SINGLE-FLIGHT GUARD
@@ -145,6 +146,16 @@ function renderCachedCreditsEarly() {
     }
   }
 
+  // Also restore cached video credits (separate pool)
+  const cachedVideo = localStorage.getItem(VIDEO_CREDITS_CACHE_KEY);
+  if (cachedVideo !== null) {
+    const cachedVideoBalance = parseInt(cachedVideo, 10);
+    if (Number.isFinite(cachedVideoBalance) && cachedVideoBalance >= 0) {
+      creditsState.wallet.videoAvailable = cachedVideoBalance;
+      creditsState.wallet.videoBalance = cachedVideoBalance;
+    }
+  }
+
   if (!cacheSource) {
     log('[Credits] No cached balance, showing syncing placeholder');
   }
@@ -165,10 +176,13 @@ function renderCachedCreditsEarly() {
 /**
  * Save credits balance to localStorage for next page load
  */
-function cacheCreditsBalance(balance) {
+function cacheCreditsBalance(balance, videoBalance) {
   if (typeof balance === 'number' && Number.isFinite(balance) && balance >= 0) {
     localStorage.setItem(CREDITS_CACHE_KEY, balance.toString());
     log('[Credits] Cached balance to localStorage:', balance);
+  }
+  if (typeof videoBalance === 'number' && Number.isFinite(videoBalance) && videoBalance >= 0) {
+    localStorage.setItem(VIDEO_CREDITS_CACHE_KEY, videoBalance.toString());
   }
 }
 
@@ -267,7 +281,7 @@ export async function fetchWallet() {
         updateEmailBeaconUI();
 
         // Cache balance for next page load (perceived performance)
-        cacheCreditsBalance(available);
+        cacheCreditsBalance(available, videoAvailable);
 
         // Also write to cross-page wallet cache
         if (serverIdentityId) {
@@ -1694,7 +1708,7 @@ export async function refreshCredits() {
             videoBalance, videoReserved, videoAvailable);
 
         // Cache available for next page load (not raw balance)
-        cacheCreditsBalance(serverAvailable);
+        cacheCreditsBalance(serverAvailable, videoAvailable);
 
         // Also write to cross-page wallet cache
         if (data.identity_id) {
