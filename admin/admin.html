@@ -2725,7 +2725,7 @@
           });
           const uploadRes = await fetch(API + '/admin/ai/upload-images', {
             method: 'POST',
-            headers: { 'Authorization': headers()['Authorization'] },
+            headers: { 'X-Admin-Token': getToken() },
             body: formData
           });
           const uploadJson = await uploadRes.json();
