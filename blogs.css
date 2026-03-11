@@ -226,8 +226,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 100vh;
-    padding: 90px 40px 36px;
+    min-height: 100dvh;
+    padding: 72px 40px 28px;
     box-sizing: border-box;
   }
 
@@ -241,7 +241,7 @@
     display: flex;
     align-items: baseline;
     gap: 16px;
-    padding: 14px 0;
+    padding: 10px 0;
     text-decoration: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     opacity: 0;
@@ -272,7 +272,7 @@
 
   .bml-text {
     font-family: "Bebas Neue", sans-serif;
-    font-size: clamp(32px, 8vw, 48px);
+    font-size: clamp(28px, 7vw, 44px);
     color: rgba(255, 255, 255, 0.55);
     letter-spacing: 0.02em;
     line-height: 1;
@@ -298,11 +298,11 @@
 
   .blog-mobile-footer {
     margin-top: auto;
-    padding-top: 32px;
+    padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
 
   .blog-mobile-footer span {
