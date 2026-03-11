@@ -2597,7 +2597,7 @@ export async function startVideoGeneration() {
   // Resolution values: "720p", "1080p", "4k" (NOT "standard" or "high")
   const aspectVal = byId('videoAspectRatio')?.value || 'landscape';
   const settings = window.VideoJobControl?.getSettings?.() || {
-    provider: byId('videoAIProvider')?.value || 'veo',
+    provider: byId('videoAIProvider')?.value || 'vertex',
     durationSec: parseInt(byId('videoDuration')?.value || '4', 10),
     resolution: byId('videoQuality')?.value || '720p',
     aspect: aspectVal,
@@ -2606,9 +2606,9 @@ export async function startVideoGeneration() {
     mode: byId('videoModeValue')?.value || 'text2video'
   };
 
-  // Read provider from UI (veo or seedance)
-  if (!settings.provider || settings.provider === 'google') {
-    settings.provider = byId('videoAIProvider')?.value || 'veo';
+  // Read provider from UI (vertex or seedance)
+  if (!settings.provider || settings.provider === 'google' || settings.provider === 'veo') {
+    settings.provider = byId('videoAIProvider')?.value || 'vertex';
   }
 
   const motion = (byId('videoMotion')?.value || '').trim();
@@ -2667,8 +2667,8 @@ export async function startVideoGeneration() {
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
-    provider: settings.provider || 'veo',
-    provider_used: settings.provider || 'veo',
+    provider: settings.provider || 'vertex',
+    provider_used: settings.provider || 'vertex',
     credits_used: totalCredits,
     idempotency_key: idempotencyKey
   };
