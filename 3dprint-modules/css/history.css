@@ -3091,45 +3091,40 @@ body.has-modal {
   50% { opacity: 1; }
 }
 
-/* Video menu - Top right position (matches model cards) */
-.history-thumb__video-menu {
-  position: absolute;
+/* Video menu - override __menu-wrap base positioning (bottom-right → top-right) */
+.history-thumb--video .history-thumb__menu-wrap {
   top: 0;
   right: 0;
+  bottom: auto;
   z-index: 100;
   padding: 6px;
 }
 
-.history-thumb__video-menu-btn {
+.history-thumb--video .history-thumb__menu-btn {
   width: 32px;
   height: 32px;
   background: rgba(0, 0, 0, 0.75);
   border: none;
   border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: rgba(255, 255, 255, 0.9);
   transition: background 0.1s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.history-thumb__video-menu-btn:hover,
-.history-thumb__video-menu-btn.is-open {
+.history-thumb--video .history-thumb__menu-btn:hover,
+.history-thumb--video .history-thumb__menu-btn.is-open {
   background: rgba(0, 0, 0, 0.95);
   color: #fff;
 }
 
-.history-thumb__video-menu-btn:active {
+.history-thumb--video .history-thumb__menu-btn:active {
   background: rgba(80, 80, 80, 0.95);
 }
 
-.history-thumb__video-menu-btn svg {
+.history-thumb--video .history-thumb__menu-btn svg {
   width: 16px;
   height: 16px;
-  pointer-events: none;
 }
 
 /* Video card menu dropdown - faster animation */
