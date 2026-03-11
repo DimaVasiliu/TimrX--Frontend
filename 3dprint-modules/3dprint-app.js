@@ -458,7 +458,7 @@
 
       video: `
       <input type="hidden" id="videoModeValue" value="text2video" />
-      <input type="hidden" id="videoAIProvider" value="veo" />
+      <input type="hidden" id="videoAIProvider" value="vertex" />
       <input type="hidden" id="videoMotionPreset" value="" />
       <input type="hidden" id="seedanceTier" value="fast" />
 
@@ -466,7 +466,7 @@
       <div class="card video-header-card">
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
-            <button type="button" class="video-provider-btn is-active" data-provider="veo">Veo 3.1</button>
+            <button type="button" class="video-provider-btn is-active" data-provider="vertex">Veo 3.1</button>
             <button type="button" class="video-provider-btn" data-provider="seedance">Seedance 2.0</button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
@@ -636,7 +636,7 @@
           <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled>
             Preview
           </button>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="google" disabled>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="vertex" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -1225,7 +1225,7 @@
       // VIDEO_PROVIDER_CONFIG — single source of truth for provider-specific UI
       // ========================================
       const VIDEO_PROVIDER_CONFIG = {
-        veo: {
+        vertex: {
           label: 'Veo 3.1',
           durations: [
             { value: '4', text: '4 seconds', selected: true },
@@ -1288,7 +1288,7 @@
        * @returns {Object} Video settings object
        */
       function getVideoSettingsFromUI() {
-        const provider = videoAIProvider?.value || 'veo';
+        const provider = videoAIProvider?.value || 'vertex';
         const durationRaw = videoDuration?.value || (provider === 'seedance' ? '5' : '4');
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
@@ -1324,13 +1324,13 @@
       }
 
       /**
-       * Compute video credits for Veo based on resolution + duration
+       * Compute video credits for Vertex (Veo) based on resolution + duration
        * Uses backend-driven costs via WorkspaceCredits, falls back to hardcoded values
        * @param {Object} settings - Video settings from getVideoSettingsFromUI()
        * @returns {number} Total credits (integer)
        */
       function computeVideoCredits(settings) {
-        const provider = settings.provider || 'veo';
+        const provider = settings.provider || 'vertex';
         const resolution = settings.resolution || '720p';
         const duration = settings.durationSec || (provider === 'seedance' ? 5 : 4);
         const mode = settings.mode || 'text2video';
@@ -1346,7 +1346,7 @@
           source = `seedance-${tier}`;
         }
 
-        // Veo: Try to get cost from backend via WorkspaceCredits
+        // Vertex: Try to get cost from backend via WorkspaceCredits
         if (cost === null && window.WorkspaceCredits?.getVideoCreditCost) {
           cost = window.WorkspaceCredits.getVideoCreditCost(mode, duration, resolution);
           source = 'WorkspaceCredits';
@@ -1399,7 +1399,7 @@
         if (!videoDuration) return;
 
         // Seedance has no resolution-based duration constraints
-        const provider = videoAIProvider?.value || 'veo';
+        const provider = videoAIProvider?.value || 'vertex';
         if (provider === 'seedance') return;
 
         // Veo resolution-based constraints
@@ -1443,7 +1443,7 @@
        * Uses applyProviderConfig for a single code path.
        */
       function updateProviderUI() {
-        const provider = videoAIProvider?.value || 'veo';
+        const provider = videoAIProvider?.value || 'vertex';
         applyProviderConfig(provider);
         updateDurationOptions();
         updateVideoFooter();
@@ -1488,7 +1488,7 @@
         // Update button attributes
         generateVideoBtn.title = `${totalCredits} credits`;
         generateVideoBtn.dataset.baseCredits = totalCredits;
-        generateVideoBtn.dataset.provider = settings.provider || 'veo';
+        generateVideoBtn.dataset.provider = settings.provider || 'vertex';
         // Trigger workspace credits update if available
         if (window.WorkspaceCredits?.updateButtonCosts) {
           window.WorkspaceCredits.updateButtonCosts();
@@ -1745,7 +1745,7 @@
       // ========================================
       if (generateVideoBtn) {
         generateVideoBtn.addEventListener('click', function() {
-          const provider = videoAIProvider?.value || 'google';
+          const provider = videoAIProvider?.value || 'vertex';
           const settings = getVideoSettingsFromUI();
           const totalCredits = computeVideoCredits(settings);
           const available = window.WorkspaceCredits?.getCredits?.() || 0;
