@@ -1150,10 +1150,25 @@
               <select class="form-select" id="ai_images_mode">
                 <option value="ai_photoreal" selected>AI Photoreal (DALL-E)</option>
                 <option value="royalty_free">Royalty-Free (Unsplash/Pexels)</option>
+                <option value="user_upload">Upload Own Images</option>
                 <option value="none">No images</option>
               </select>
               <span class="form-hint">Royalty-free adds attribution automatically. "No images" means no inline article images.</span>
               <span class="form-hint">Cover image is handled separately in the modal.</span>
+            </div>
+            <!-- User Upload Zone (shown when images_mode == user_upload) -->
+            <div class="form-group" id="user_upload_zone" style="display:none;">
+              <label class="form-label">Upload Images</label>
+              <span class="form-hint" style="margin-bottom:8px;">First image is used as cover. The rest are placed inline by the AI.</span>
+              <div class="upload-dropzone" id="uploadDropzone">
+                <input type="file" id="uploadInput" multiple accept="image/jpeg,image/png,image/webp" style="display:none;"/>
+                <div class="upload-dropzone-inner">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4;margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>Drop images here or click to browse</span>
+                  <span class="upload-dropzone-hint">JPG, PNG, WebP — max 10 MB each, up to 10 files</span>
+                </div>
+              </div>
+              <div class="upload-file-list" id="uploadFileList"></div>
             </div>
             <div class="form-group" id="image_count_group">
               <label class="form-label">Images Count</label>
@@ -2557,26 +2572,117 @@
       };
     });
 
+    // === User Upload State ===
+    let pendingUploads = []; // Array of { file, dataUrl, description }
+
     // Dynamic UI: image mode controls inline image count only (cover is always handled separately)
     $('#ai_images_mode').onchange = function() {
       const imageCountGroup = $('#image_count_group');
       const imageCountSelect = $('#ai_image_count');
       const smartImageOptions = $('#smart_image_options');
+      const uploadZone = $('#user_upload_zone');
       const isRoyaltyFree = this.value === 'royalty_free';
       const isNone = this.value === 'none';
+      const isUpload = this.value === 'user_upload';
       if (imageCountGroup && imageCountSelect) {
-        imageCountGroup.style.display = 'block';
+        imageCountGroup.style.display = isUpload ? 'none' : 'block';
         imageCountSelect.disabled = isNone;
         imageCountGroup.style.opacity = isNone ? '0.65' : '1';
         if (isNone) imageCountSelect.value = '0';
       }
       if (smartImageOptions) {
-        // Only show smart image options for royalty-free mode
         smartImageOptions.style.display = isRoyaltyFree ? 'block' : 'none';
+      }
+      if (uploadZone) {
+        uploadZone.style.display = isUpload ? 'block' : 'none';
       }
     };
     // Trigger initial state
     $('#ai_images_mode').dispatchEvent(new Event('change'));
+
+    // === Upload Zone Logic ===
+    (function initUploadZone() {
+      const dropzone = $('#uploadDropzone');
+      const input = $('#uploadInput');
+      const fileList = $('#uploadFileList');
+      if (!dropzone || !input) return;
+
+      dropzone.addEventListener('click', () => input.click());
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+      });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+      });
+
+      input.addEventListener('change', () => {
+        handleFiles(input.files);
+        input.value = '';
+      });
+
+      function handleFiles(files) {
+        for (const file of files) {
+          if (pendingUploads.length >= 10) {
+            Toast.warning('Maximum 10 images allowed');
+            break;
+          }
+          if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+            Toast.warning(`${file.name}: unsupported format`);
+            continue;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            Toast.warning(`${file.name}: exceeds 10 MB`);
+            continue;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            pendingUploads.push({ file, dataUrl: e.target.result, description: '' });
+            renderUploadList();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function renderUploadList() {
+        fileList.innerHTML = '';
+        pendingUploads.forEach((item, i) => {
+          const isCover = i === 0;
+          const row = document.createElement('div');
+          row.className = 'upload-file-item' + (isCover ? ' is-cover' : '');
+          row.innerHTML = `
+            <img class="upload-file-thumb" src="${item.dataUrl}" alt=""/>
+            <div class="upload-file-info">
+              <span class="upload-file-name">${isCover ? '<span class="upload-file-badge">Cover</span> ' : ''}${item.file.name}</span>
+              <input class="upload-file-desc" type="text" placeholder="${isCover ? 'Cover description (optional)' : 'Describe this image (helps AI placement)'}" value="${item.description}" data-idx="${i}"/>
+            </div>
+            <button class="upload-file-remove" data-idx="${i}" title="Remove">&times;</button>
+          `;
+          fileList.appendChild(row);
+        });
+
+        // Bind description inputs
+        fileList.querySelectorAll('.upload-file-desc').forEach(inp => {
+          inp.addEventListener('input', (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            if (pendingUploads[idx]) pendingUploads[idx].description = e.target.value;
+          });
+        });
+
+        // Bind remove buttons
+        fileList.querySelectorAll('.upload-file-remove').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.dataset.idx);
+            pendingUploads.splice(idx, 1);
+            renderUploadList();
+          });
+        });
+      }
+    })();
 
     // Auto-enable fact-check for news style
     $('#ai_style').onchange = function() {
@@ -2599,31 +2705,71 @@
         const affiliateUrl = $('#ai_affiliate_url').value.trim();
         const productName = $('#ai_product_name').value.trim();
         const imagesMode = $('#ai_images_mode').value;
-        const selectedInlineCount = Math.max(0, parseInt($('#ai_image_count').value, 10) || 0);
+        const isUpload = imagesMode === 'user_upload';
+
+        // For user_upload: upload images first, then generate
+        let uploadedImages = [];
+        if (isUpload) {
+          if (pendingUploads.length === 0) {
+            Toast.warning('Please upload at least one image');
+            btn.disabled = false;
+            btn.textContent = 'Generate Blog Post';
+            return;
+          }
+          btn.innerHTML = '<span class="spinner"></span>Uploading images...';
+          const formData = new FormData();
+          pendingUploads.forEach((item, i) => {
+            formData.append('images', item.file);
+            formData.append('descriptions', item.description || '');
+            if (i === 0) formData.append('cover_index', '0');
+          });
+          const uploadRes = await fetch(API + '/admin/ai/upload-images', {
+            method: 'POST',
+            headers: { 'Authorization': headers()['Authorization'] },
+            body: formData
+          });
+          const uploadJson = await uploadRes.json();
+          if (!uploadJson.ok) {
+            throw new Error(uploadJson.error || 'Image upload failed');
+          }
+          uploadedImages = uploadJson.images;
+          btn.innerHTML = '<span class="spinner"></span>Generating...';
+        }
+
+        const selectedInlineCount = isUpload
+          ? Math.max(0, pendingUploads.length - 1) // subtract cover
+          : Math.max(0, parseInt($('#ai_image_count').value, 10) || 0);
         const articleImageCount = imagesMode === 'none' ? 0 : selectedInlineCount;
         const totalImagesNeeded = articleImageCount + 1; // Always reserve one slot for cover
+
+        const generatePayload = {
+          topic,
+          style: $('#ai_style').value,
+          length: $('#ai_length').value,
+          tone: $('#ai_tone').value,
+          image_count: articleImageCount,
+          article_image_count: articleImageCount,
+          reserved_cover_slot: 1,
+          total_images_needed: totalImagesNeeded,
+          images_mode: imagesMode,
+          strict_factcheck: $('#ai_strict_factcheck').checked,
+          smart_image_search: $('#ai_smart_image_search').checked,
+          strict_image_relevance: $('#ai_strict_image_relevance').checked,
+          affiliate_url: affiliateUrl || undefined,
+          product_name: productName || undefined,
+          affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
+          affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
+        };
+
+        // Attach uploaded images metadata for user_upload mode
+        if (isUpload && uploadedImages.length > 0) {
+          generatePayload.uploaded_images = uploadedImages;
+        }
 
         const j = await fetchJson(API + '/admin/ai/generate', {
           method: 'POST',
           headers: headers(),
-          body: JSON.stringify({
-            topic,
-            style: $('#ai_style').value,
-            length: $('#ai_length').value,
-            tone: $('#ai_tone').value,
-            image_count: articleImageCount,
-            article_image_count: articleImageCount,
-            reserved_cover_slot: 1,
-            total_images_needed: totalImagesNeeded,
-            images_mode: imagesMode,
-            strict_factcheck: $('#ai_strict_factcheck').checked,
-            smart_image_search: $('#ai_smart_image_search').checked,
-            strict_image_relevance: $('#ai_strict_image_relevance').checked,
-            affiliate_url: affiliateUrl || undefined,
-            product_name: productName || undefined,
-            affiliate_cta: affiliateUrl ? $('#ai_affiliate_cta').value : undefined,
-            affiliate_placement: affiliateUrl ? $('#ai_affiliate_placement').value : undefined,
-          })
+          body: JSON.stringify(generatePayload)
         }, 'Generate blog');
 
         if (j.ok) {
@@ -2660,10 +2806,23 @@
 
           // Reset cover section and globals
           CoverManager.reset();
-          CoverManager.setMode('royalty_free');  // Default to stock photos
           generatedCoverUrl = '';
           generatedCoverData = null;
           savedDraftSlug = null;
+
+          // For user_upload: cover is already uploaded (first image), apply it directly
+          if (isUpload && j.uploaded_cover) {
+            generatedCoverUrl = j.uploaded_cover.url;
+            generatedCoverData = {
+              url: j.uploaded_cover.url,
+              thumb_url: j.uploaded_cover.thumb_url || j.uploaded_cover.url,
+              licensing: { source: 'user_upload', license: 'User Upload' },
+              permanent: true
+            };
+            CoverManager.renderPreview(generatedCoverData);
+          } else {
+            CoverManager.setMode('royalty_free');  // Default to stock photos
+          }
 
           // Show modal
           $('#blogModal').classList.add('show');
