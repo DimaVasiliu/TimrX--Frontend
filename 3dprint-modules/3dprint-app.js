@@ -466,8 +466,8 @@
       <div class="card video-header-card">
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
-            <button type="button" class="video-provider-btn is-active" data-provider="vertex">Veo 3.1</button>
-            <button type="button" class="video-provider-btn" data-provider="seedance">Seedance 2.0</button>
+            <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
+            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -1278,8 +1278,8 @@
           showQuality: false,
           showMotion: false,
           showTier: true,
-          hint: 'Peak queue times may be longer during busy hours.',
-          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u201310 min (may queue)' : '~1\u20133 min',
+          hint: 'Queue times vary with demand. Preview tier may take longer.',
+          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u201310 min' : '~1\u20133 min',
         },
       };
 
@@ -1604,7 +1604,7 @@
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model</label><select id="seedanceTierSelect"><option value="fast" selected>Fast (~1\u20133 min)</option><option value="preview">Preview — experimental, may queue longer (~2\u20136 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model Tier</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — optimised for speed (~1\u20133 min)</option><option value="preview">Preview — higher quality, longer queue (~2\u20136 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
