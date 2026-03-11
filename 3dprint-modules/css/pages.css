@@ -65,13 +65,19 @@ body.history-menu-open::before {
   z-index: 1199;
 }
 
-/* Hide date strip, menu button, overlay, processing, and name on ALL thumbnails when menu is open */
-body.history-menu-open .history-thumb__status-bar,
-body.history-menu-open .history-thumb__menu-btn,
-body.history-menu-open .history-thumb__stage,
-body.history-menu-open .history-thumb__rig,
-body.history-menu-open .history-thumb__overlay,
-body.history-menu-open .history-thumb__name {
+/* Hide chrome on non-active thumbnails while menu is open */
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__status-bar,
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__menu-btn,
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__stage,
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__rig,
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__overlay,
+body.history-menu-open .history-thumb:not(.is-menu-open) .history-thumb__name,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__status-bar,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__menu-btn,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__stage,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__rig,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__overlay,
+body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__name {
   visibility: hidden;
   pointer-events: none;
 }
