@@ -1221,6 +1221,13 @@
   section.featured .featured-inner{
     margin: 0;
     max-width: 1600px;
+    grid-template-columns: 1.8fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  section.featured .blog-card.featured{
+    grid-column: 1;
+    grid-row: 1 / -1;
   }
 
   section.featured .blog-card.is-hidden{
