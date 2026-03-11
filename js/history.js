@@ -22,6 +22,10 @@ let activeHistoryMenu = null;
 let activeHistorySubmenuBtn = null;
 let activeHistorySubmenu = null;
 
+function getHistoryMenuHost(node) {
+  return node?.closest?.('.history-thumb, .expanded-thumb') || null;
+}
+
 // Export getters for menu state (needed by main.js)
 export function getActiveHistoryMenu() {
   return { btn: activeHistoryMenuBtn, menu: activeHistoryMenu };
@@ -292,6 +296,8 @@ export function closeActiveHistoryMenu() {
   if (activeHistoryMenuBtn) {
     activeHistoryMenuBtn.setAttribute('aria-expanded', 'false');
     activeHistoryMenuBtn.classList.remove('is-open');
+    const host = getHistoryMenuHost(activeHistoryMenuBtn);
+    if (host) host.classList.remove('is-menu-open');
   }
   if (activeHistoryMenu) {
     activeHistoryMenu.classList.remove('is-open');
@@ -311,6 +317,8 @@ export function openHistoryMenu(menuBtn, menu) {
   closeActiveHistoryMenu();
   menuBtn.setAttribute('aria-expanded', 'true');
   menuBtn.classList.add('is-open');
+  const host = getHistoryMenuHost(menuBtn);
+  if (host) host.classList.add('is-menu-open');
   menu.classList.add('is-open');
   activeHistoryMenuBtn = menuBtn;
   activeHistoryMenu = menu;
@@ -694,8 +702,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
         ` : ''}
         ${!isExpanded ? `
-        <div class="${thumbPrefix}__menu-wrap ${thumbPrefix}__video-menu">
-          <button class="${thumbPrefix}__menu-btn ${thumbPrefix}__video-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+        <div class="${thumbPrefix}__menu-wrap">
+          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
             <svg viewBox="0 0 24 24" fill="currentColor">
               <circle cx="5" cy="12" r="2"/>
               <circle cx="12" cy="12" r="2"/>
