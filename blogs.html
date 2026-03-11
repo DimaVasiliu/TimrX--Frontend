@@ -285,6 +285,8 @@
           <div class="inner">
             <h3 class="title">Loading…</h3>
             <p class="excerpt muted">—</p>
+            <p class="featured-preview muted" id="featuredPreview"></p>
+            <div class="featured-tags" id="featuredTags"></div>
             <div class="blog-footer">
               <div class="author-mini">
                 <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
@@ -678,6 +680,15 @@
       if (minutesEl) minutesEl.textContent = `${featuredReadTime(post)} min`;
       if (authorEl) authorEl.textContent = post.author || 'Dima V';
       if (authorAvatarEl) authorAvatarEl.src = post.author_avatar || '/img/dima.jpg';
+
+      // Populate featured tags for the primary featured card
+      const tagsEl = card.querySelector('.featured-tags');
+      if (tagsEl) {
+        const allTags = (post.tags || '').split(',').filter(Boolean);
+        if (allTags.length > 1) {
+          tagsEl.innerHTML = allTags.map(function(t){ return '<span class="featured-tag">'+t.trim()+'</span>'; }).join('');
+        }
+      }
     }
 
     // Render grid and featured posts
@@ -693,6 +704,28 @@
       applyFeaturedCard('#feat-0', top[0]);
       applyFeaturedCard('#feat-1', top[1]);
       applyFeaturedCard('#feat-2', top[2]);
+
+      // Fetch featured post detail for preview (non-critical)
+      if (top[0]) {
+        fetch(API+'/post/'+encodeURIComponent(top[0].slug))
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(full){
+            if (!full) return;
+            var el = document.getElementById('featuredPreview');
+            if (!el) return;
+            var txt = '';
+            var fmt = full.content_format || 'markdown';
+            if (fmt==='blocks' && full.content_blocks) {
+              try {
+                var blocks = typeof full.content_blocks==='string'?JSON.parse(full.content_blocks):full.content_blocks;
+                txt = (blocks.blocks||[]).filter(function(b){return b.type==='paragraph';}).map(function(b){return (b.data&&b.data.text)||'';}).join(' ').replace(/<[^>]+>/g,'');
+              } catch(e){}
+            } else if (full.content_md) {
+              txt = full.content_md.replace(/^#{1,6}\s+.*$/gm,'').replace(/!\[.*?\]\(.*?\)/g,'').replace(/\[([^\]]+)\]\(.*?\)/g,'$1').replace(/[*_~`>#\-]/g,'').replace(/\n{2,}/g,' ').replace(/\n/g,' ').trim();
+            }
+            if (txt.length>50) el.textContent = txt.length>480 ? txt.slice(0,480).replace(/\s\S*$/,'')+'...' : txt;
+          }).catch(function(){});
+      }
 
       // Update ItemList JSON-LD for SEO (limit to 20 items)
       updateItemListJsonLd(data.slice(0, 20));
