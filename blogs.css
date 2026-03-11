@@ -1211,18 +1211,18 @@
   }
 
   /* ===== FEATURED ===== */
-  .featured{
+  section.featured{
     padding: clamp(30px, 4.5vw, 56px) 0;
     background: #090909;
     border-top: 1px solid rgba(255,255,255,0.05);
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
 
-  .featured-inner{
+  section.featured .featured-inner{
     margin: 0;
   }
 
-  .featured .blog-card.is-hidden{
+  section.featured .blog-card.is-hidden{
     display: none;
   }
   
