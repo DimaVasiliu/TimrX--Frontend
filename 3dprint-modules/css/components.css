@@ -1176,10 +1176,9 @@ textarea {
 .vpb-tag { font-size: 9.5px; font-weight: 500; opacity: 0.55; letter-spacing: 0.03em; text-transform: uppercase; }
 .video-provider-btn.is-active .vpb-tag { opacity: 0.7; }
 
-.video-provider-btn.disabled {
+.video-provider-btn[disabled] {
   opacity: 0.35;
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 .video-provider-btn:hover:not(.is-active) {
