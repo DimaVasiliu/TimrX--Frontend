@@ -1176,6 +1176,12 @@ textarea {
 .vpb-tag { font-size: 9.5px; font-weight: 500; opacity: 0.55; letter-spacing: 0.03em; text-transform: uppercase; }
 .video-provider-btn.is-active .vpb-tag { opacity: 0.7; }
 
+.video-provider-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .video-provider-btn:hover:not(.is-active) {
   color: rgba(255, 255, 255, 0.75);
   background: rgba(255, 255, 255, 0.04);
@@ -2619,3 +2625,4 @@ body.print3d-page > .discord-share-overlay.show .discord-share-card {
 .video-gallery-btn:hover svg {
   opacity: 0.8;
 }
+
