@@ -2759,6 +2759,9 @@ export async function startVideoGeneration() {
 
     const data = result.data;
     const jobId = data.job_id || data.video_id;
+    // video_uuid is the real videos.id from the videos table (FK target for history_items).
+    // Falls back to jobId for backward compat with older backend responses.
+    const videoUuid = data.video_uuid || jobId;
 
     if (!jobId) {
       releaseCreditsReservation(reservation.reservationId);
@@ -2774,7 +2777,7 @@ export async function startVideoGeneration() {
     const queuedPlaceholder = {
       ...placeholder,
       id: jobId,
-      video_id: jobId,
+      video_id: videoUuid,
       status: 'generating',
       status_label: `Generating with ${provName}...`
     };
@@ -2813,7 +2816,8 @@ export async function startVideoGeneration() {
       resolution: settings.resolution,
       aspect_ratio: settings.aspectRatio,
       stage: 'video',
-      provider: settings.provider || 'vertex'
+      provider: settings.provider || 'vertex',
+      video_uuid: videoUuid
     });
 
   } catch (err) {
@@ -2888,6 +2892,10 @@ function _friendlyVideoError(errorCode, rawMsg) {
  * Watch a video generation job for completion
  */
 async function watchVideoJob(jobId, reservationId, meta) {
+  // Resolve the real videos.id for history_items FK.
+  // meta.video_uuid is set by the initial dispatch; falls back to jobId for recovery polls.
+  const videoUuid = meta.video_uuid || State.getHistory().find(x => x.id === jobId)?.video_id || jobId;
+
   // D2: Exponential backoff — start at 2s, cap at 15s
   // 55 min frontend budget — backend Seedance preview can take 30 min pending
   // + fallback to fast adds another 20 min worst case
@@ -2930,13 +2938,15 @@ async function watchVideoJob(jobId, reservationId, meta) {
         // Confirm credits reservation (converts to actual deduction)
         confirmCreditsReservation(reservationId, jobId);
 
-        // Update history with video_id for proper remote sync
+        // Update history with video_id (real videos.id) for proper remote sync.
+        // Prefer video_uuid from status response (authoritative) over local fallback.
+        const resolvedVideoId = data.video_uuid || videoUuid;
         State.updateHistoryItem(jobId, {
           status: 'finished',
           status_label: '',
           video_url: data.video_url,
           thumbnail_url: data.thumbnail_url || '',
-          video_id: jobId,
+          video_id: resolvedVideoId,
           stage: 'video',
           type: 'video',
           provider: 'google',
@@ -3018,7 +3028,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
           error_message: errorMsg,
           error_code: errorCode,
           provider_stalled: data.provider_stalled || false,
-          video_id: jobId,
+          video_id: videoUuid,
           type: 'video'
         });
         renderHistory();
@@ -3092,7 +3102,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
         status_label: fs === 'provider_pending'
           ? `Delayed — still queued with ${meta.provider === 'seedance' ? 'Seedance' : 'Veo'}`
           : 'Still rendering — check back shortly',
-        video_id: jobId,
+        video_id: videoUuid,
         type: 'video'
       });
       renderHistory();
@@ -3108,7 +3118,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
     status: 'failed',
     status_label: `${timeoutProv} generation timed out`,
     error_message: `${timeoutProv} generation timed out`,
-    video_id: jobId,
+    video_id: videoUuid,
     type: 'video'
   });
   renderHistory();
