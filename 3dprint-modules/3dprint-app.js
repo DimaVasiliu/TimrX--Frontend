@@ -467,7 +467,7 @@
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
             <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
-            <button type="button" class="video-provider-btn" data-provider="seedance" disabled title="Seedance 2.0 is temporarily unavailable"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">Unavailable</span></button>
+            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
