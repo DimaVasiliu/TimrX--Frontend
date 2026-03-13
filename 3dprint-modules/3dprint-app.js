@@ -533,14 +533,15 @@
 
         <!-- Image sub-mode switcher (hidden by default for Veo, shown for Seedance) -->
         <div class="video-img-mode-switcher hidden" id="videoImgModeSwitcher">
-          <button type="button" class="video-img-mode-btn is-active" data-img-mode="animate_image">Animate Image</button>
-          <button type="button" class="video-img-mode-btn" data-img-mode="image_transition">Image Transition</button>
+          <button type="button" class="video-img-mode-btn is-active" data-img-mode="animate_image">Animate from Image</button>
+          <button type="button" class="video-img-mode-btn" data-img-mode="image_transition">Transition Between Two Images</button>
+          <button type="button" class="video-img-mode-btn" data-img-mode="experimental_morph" id="experimentalMorphBtn" style="display:none">Morph (Beta)</button>
         </div>
         <input type="hidden" id="videoImgModeValue" value="animate_image" />
 
         <!-- ── MODE 1: Animate Image ── -->
         <div class="video-img-mode-content" id="animateImageContent">
-          <span class="field-hint" style="margin-bottom:8px">Bring one image to life with motion and camera direction.</span>
+          <span class="field-hint" style="margin-bottom:8px">Bring a single image to life with motion and camera direction.</span>
 
           <label for="videoSource" class="video-section-label">Reference Image</label>
           <div class="video-image-grid compact">
@@ -572,7 +573,7 @@ Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion
 
         <!-- ── MODE 2: Image Transition ── -->
         <div class="video-img-mode-content hidden" id="imageTransitionContent">
-          <span class="field-hint" style="margin-bottom:8px">Create a cinematic transition between two related images.</span>
+          <span class="field-hint" style="margin-bottom:8px">Create a cinematic transition between two images. The video smoothly interpolates from the first frame to the last frame. Available on Veo and Seedance.</span>
 
           <div class="video-transition-grid">
             <div class="video-transition-col">
@@ -628,6 +629,70 @@ Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion
             <label for="videoTransitionPrompt" class="vs-label">Transition Prompt</label>
             <textarea id="videoTransitionPrompt" rows="3" placeholder="Describe how image one should transform into image two.
 Example: The calm expression slowly turns into anger while the camera pushes in."></textarea>
+          </div>
+        </div>
+
+        <!-- ── MODE 3: Experimental Morph (Beta) ── -->
+        <div class="video-img-mode-content hidden" id="experimentalMorphContent">
+          <div class="field-hint" style="margin-bottom:8px;padding:8px 10px;background:rgba(255,190,60,0.12);border-radius:6px;border-left:3px solid #ffbe3c;font-size:12px;line-height:1.4">
+            <strong>Experimental Morph (Beta)</strong><br>
+            Uses two reference images where available. Results may not behave like exact first-to-last-frame interpolation. This feature is experimental and may produce unexpected results.
+          </div>
+
+          <div class="video-transition-grid">
+            <div class="video-transition-col">
+              <label class="video-section-label">Image 1</label>
+              <div id="morphStartImageDrop" class="video-drop-zone">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload</span>
+                <input type="file" id="morphStartImageSource" accept="image/*" hidden />
+              </div>
+              <div class="video-preview-wrap">
+                <img id="morphStartImagePreview" class="video-preview-img" alt="Image 1"/>
+                <div class="video-preview-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="video-transition-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </div>
+
+            <div class="video-transition-col">
+              <label class="video-section-label">Image 2</label>
+              <div id="morphEndImageDrop" class="video-drop-zone">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload</span>
+                <input type="file" id="morphEndImageSource" accept="image/*" hidden />
+              </div>
+              <div class="video-preview-wrap">
+                <img id="morphEndImagePreview" class="video-preview-img" alt="Image 2"/>
+                <div class="video-preview-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vs-section vs-animation-prompt-section">
+            <label for="morphPrompt" class="vs-label">Morph Prompt</label>
+            <textarea id="morphPrompt" rows="3" placeholder="Describe how the two images should blend or morph together.
+Example: Smooth morphing transition with cinematic camera movement."></textarea>
           </div>
         </div>
 
@@ -1264,13 +1329,14 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         });
       }
 
-      // ── Image sub-mode switcher (Animate / Transition) ──
+      // ── Image sub-mode switcher (Animate / Transition / Morph) ──
       const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
       if (imgModeSwitcher) {
         const imgModeBtns = imgModeSwitcher.querySelectorAll('.video-img-mode-btn');
         const imgModeValue = leftStack.querySelector('#videoImgModeValue');
         const animatePanel = leftStack.querySelector('#animateImageContent');
         const transitionPanel = leftStack.querySelector('#imageTransitionContent');
+        const morphPanel = leftStack.querySelector('#experimentalMorphContent');
 
         imgModeBtns.forEach(btn => {
           btn.addEventListener('click', function () {
@@ -1281,6 +1347,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
 
             if (animatePanel) animatePanel.classList.toggle('hidden', mode !== 'animate_image');
             if (transitionPanel) transitionPanel.classList.toggle('hidden', mode !== 'image_transition');
+            if (morphPanel) morphPanel.classList.toggle('hidden', mode !== 'experimental_morph');
 
             validateVideoForm();
           });
@@ -1316,11 +1383,19 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       }
       wireDropZone('videoStartImageDrop', 'videoStartImageSource', 'videoStartImagePreview');
       wireDropZone('videoEndImageDrop', 'videoEndImageSource', 'videoEndImagePreview');
+      // Experimental Morph drop zones
+      wireDropZone('morphStartImageDrop', 'morphStartImageSource', 'morphStartImagePreview');
+      wireDropZone('morphEndImageDrop', 'morphEndImageSource', 'morphEndImagePreview');
 
       // Transition prompt validation
       const transitionPromptEl = leftStack.querySelector('#videoTransitionPrompt');
       if (transitionPromptEl) {
         transitionPromptEl.addEventListener('input', validateVideoForm);
+      }
+      // Morph prompt validation
+      const morphPromptEl = leftStack.querySelector('#morphPrompt');
+      if (morphPromptEl) {
+        morphPromptEl.addEventListener('input', validateVideoForm);
       }
 
       // ========================================
@@ -1461,7 +1536,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         },
         seedance: {
           label: 'Seedance 2.0',
-          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, animationPrompt: true },
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, experimentalMorph: true, animationPrompt: true },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
@@ -1743,6 +1818,14 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
             const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
             const transPrompt = document.getElementById('videoTransitionPrompt')?.value?.trim() || '';
             isValid = hasStart && hasEnd && transPrompt.length > 0;
+          } else if (imgMode === 'experimental_morph') {
+            // Morph (Beta): require both images + morph prompt
+            const mStartSrc = document.getElementById('morphStartImagePreview')?.src || '';
+            const mEndSrc = document.getElementById('morphEndImagePreview')?.src || '';
+            const mHasStart = mStartSrc.startsWith('data:') || mStartSrc.startsWith('http');
+            const mHasEnd = mEndSrc.startsWith('data:') || mEndSrc.startsWith('http');
+            const mPrompt = document.getElementById('morphPrompt')?.value?.trim() || '';
+            isValid = mHasStart && mHasEnd && mPrompt.length > 0;
           } else {
             // Animate: require image + animation prompt (for Seedance)
             const hasFileUpload = videoSource && videoSource.files && videoSource.files.length > 0;
@@ -1871,31 +1954,37 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
         if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
-        // Capability-gated image features: sub-mode switcher, animation prompt, transition panel
+        // Capability-gated image features: sub-mode switcher, animation prompt, transition panel, morph panel
         const caps = cfg.capabilities || {};
         const hasTransition = !!caps.imageTransition;
+        const hasMorph = !!caps.experimentalMorph;
         const hasAnimPrompt = !!caps.animationPrompt;
         const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
         const animPromptSection = leftStack.querySelector('#animateImageContent .vs-animation-prompt-section');
         const animatePanel = leftStack.querySelector('#animateImageContent');
         const transitionPanel = leftStack.querySelector('#imageTransitionContent');
+        const morphPanel = leftStack.querySelector('#experimentalMorphContent');
         const imgModeValue = leftStack.querySelector('#videoImgModeValue');
+        const morphBtn = leftStack.querySelector('#experimentalMorphBtn');
+        const transitionBtn = imgModeSwitcher?.querySelector('[data-img-mode="image_transition"]');
 
-        // Show sub-mode switcher only when provider supports transition
-        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition);
+        // Show sub-mode switcher when provider supports transition OR morph
+        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition && !hasMorph);
+        // Show/hide individual mode buttons based on capability
+        if (transitionBtn) transitionBtn.style.display = hasTransition ? '' : 'none';
+        if (morphBtn) morphBtn.style.display = hasMorph ? '' : 'none';
         // Animation prompt available for providers that support it (Seedance variants)
         if (animPromptSection) animPromptSection.classList.toggle('hidden', !hasAnimPrompt);
 
-        // Reset to animate_image mode when provider lacks transition support
-        if (!hasTransition) {
-          if (imgModeValue) imgModeValue.value = 'animate_image';
-          if (animatePanel) animatePanel.classList.remove('hidden');
-          if (transitionPanel) transitionPanel.classList.add('hidden');
-          // Reset active state on sub-mode buttons
-          imgModeSwitcher?.querySelectorAll('.video-img-mode-btn').forEach(b => {
-            b.classList.toggle('is-active', b.dataset.imgMode === 'animate_image');
-          });
-        }
+        // Always reset to animate_image mode when switching providers
+        // This prevents stale two-image mode surviving a provider switch
+        if (imgModeValue) imgModeValue.value = 'animate_image';
+        if (animatePanel) animatePanel.classList.remove('hidden');
+        if (transitionPanel) transitionPanel.classList.add('hidden');
+        if (morphPanel) morphPanel.classList.add('hidden');
+        imgModeSwitcher?.querySelectorAll('.video-img-mode-btn').forEach(b => {
+          b.classList.toggle('is-active', b.dataset.imgMode === 'animate_image');
+        });
 
         // Custom motion textarea — shared by both providers
         const customMotionSection = leftStack.querySelector('.vs-custom-section');
