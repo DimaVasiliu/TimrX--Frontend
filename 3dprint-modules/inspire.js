@@ -539,7 +539,8 @@
                src="${thumbPreview}"
                alt="${prompt}"
                loading="lazy"
-               decoding="async"/>
+               decoding="async"
+               onerror="this.closest('.inspire-card').style.display='none'"/>
           ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
           ${hasRefine ? '<div class="inspire-card__refine-badge" title="Refined version available">&#10024;</div>' : ''}
         </div>
@@ -1643,6 +1644,15 @@
       } catch (e) {}
     }
   };
+
+  // Allow external cache invalidation (e.g. after history deletion)
+  window.addEventListener('inspire:invalidate', () => {
+    INSPIRE_POOL = null;
+    INSPIRE_POOL_TS = 0;
+    memoryCache = { promptOfTheDay: null, cards: [], timestamp: 0 };
+    try { localStorage.removeItem(CONFIG.CACHE_KEY); } catch (_) { /* ok */ }
+    console.log('[Inspire] Cache invalidated by external event');
+  });
 
   // Auto-initialize
   if (document.readyState === 'loading') {

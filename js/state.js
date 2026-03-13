@@ -535,6 +535,9 @@ export function deleteHistoryItem(jobId, options = {}) {
     // Delete from database
     apiFetch(`/api/_mod/history/item/${encodeURIComponent(jobId)}`, {
       method: 'DELETE'
+    }).then(() => {
+      // Invalidate Inspire cache so deleted items disappear on next open
+      window.dispatchEvent(new CustomEvent('inspire:invalidate'));
     }).catch(err => {
       console.warn('[History] Failed to delete item from DB:', err.message);
     });
