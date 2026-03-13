@@ -1,0 +1,11 @@
+{
+  "name": "Fluid Art",
+  "category": "abstract",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Flowing liquid colors and organic abstract motion, vivid pigments swirling and merging in slow hypnotic patterns. Camera captures the macro beauty of fluid dynamics as colors blend and separate. Backlit translucent layers reveal depth within the flowing medium.",
+  "variations": {
+    "camera": ["macro extreme close-up", "slow pull-back revealing pattern", "gentle drift across surface"],
+    "lighting": ["backlit translucent colors", "surface reflections", "self-luminous pigments"],
+    "environment": ["dark background for contrast", "white surface", "glass-like substrate"]
+  }
+}
