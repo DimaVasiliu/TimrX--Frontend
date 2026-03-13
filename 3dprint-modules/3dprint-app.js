@@ -513,29 +513,109 @@
         </div>
       </div>
 
-      <!-- Image-to-Video: Image upload -->
+      <!-- Image-to-Video: Dual-mode (Animate / Transition) -->
       <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
-        <label for="videoSource" class="video-section-label">Reference Image</label>
-        <div class="video-image-grid compact">
-          <div id="videoImageDrop" class="video-drop-zone">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Upload</span>
-            <input type="file" id="videoSource" accept="image/*" hidden />
-          </div>
-          <div class="video-preview-wrap">
-            <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
-            <div class="video-preview-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <path d="M21 15l-5-5L5 21"/>
+
+        <!-- Image sub-mode switcher -->
+        <div class="video-img-mode-switcher" id="videoImgModeSwitcher">
+          <button type="button" class="video-img-mode-btn is-active" data-img-mode="animate_image">Animate Image</button>
+          <button type="button" class="video-img-mode-btn" data-img-mode="image_transition">Image Transition</button>
+        </div>
+        <input type="hidden" id="videoImgModeValue" value="animate_image" />
+
+        <!-- ── MODE 1: Animate Image ── -->
+        <div class="video-img-mode-content" id="animateImageContent">
+          <span class="field-hint" style="margin-bottom:8px">Bring one image to life with motion and camera direction.</span>
+
+          <label for="videoSource" class="video-section-label">Reference Image</label>
+          <div class="video-image-grid compact">
+            <div id="videoImageDrop" class="video-drop-zone">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
+              <span>Upload</span>
+              <input type="file" id="videoSource" accept="image/*" hidden />
+            </div>
+            <div class="video-preview-wrap">
+              <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
+              <div class="video-preview-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+              </div>
             </div>
           </div>
+
+          <div class="vs-section vs-animation-prompt-section">
+            <label for="videoAnimationPrompt" class="vs-label">Animation Prompt</label>
+            <textarea id="videoAnimationPrompt" rows="3" placeholder="Describe what should happen in the scene.
+Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion."></textarea>
+          </div>
         </div>
-        <span class="field-hint">Upload an image to animate. Use motion settings below.</span>
+
+        <!-- ── MODE 2: Image Transition ── -->
+        <div class="video-img-mode-content hidden" id="imageTransitionContent">
+          <span class="field-hint" style="margin-bottom:8px">Create a cinematic transition between two related images.</span>
+
+          <div class="video-transition-grid">
+            <div class="video-transition-col">
+              <label class="video-section-label">Start Image</label>
+              <div id="videoStartImageDrop" class="video-drop-zone">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload</span>
+                <input type="file" id="videoStartImageSource" accept="image/*" hidden />
+              </div>
+              <div class="video-preview-wrap">
+                <img id="videoStartImagePreview" class="video-preview-img" alt="Start"/>
+                <div class="video-preview-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="video-transition-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </div>
+
+            <div class="video-transition-col">
+              <label class="video-section-label">End Image</label>
+              <div id="videoEndImageDrop" class="video-drop-zone">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload</span>
+                <input type="file" id="videoEndImageSource" accept="image/*" hidden />
+              </div>
+              <div class="video-preview-wrap">
+                <img id="videoEndImagePreview" class="video-preview-img" alt="End"/>
+                <div class="video-preview-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vs-section vs-animation-prompt-section">
+            <label for="videoTransitionPrompt" class="vs-label">Transition Prompt</label>
+            <textarea id="videoTransitionPrompt" rows="3" placeholder="Describe how image one should transform into image two.
+Example: The calm expression slowly turns into anger while the camera pushes in."></textarea>
+          </div>
+        </div>
+
       </div>
 
       <!-- Video Settings -->
@@ -597,10 +677,10 @@
           <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
         </div>
 
-        <!-- Custom Motion -->
+        <!-- Camera Motion (optional) -->
         <div class="vs-section vs-custom-section">
-          <span class="vs-label">Custom Motion <span class="vs-optional">(optional)</span></span>
-          <textarea id="videoMotion" rows="2" placeholder="Describe custom camera motion, e.g. 'slow zoom into the subject'"></textarea>
+          <span class="vs-label">Camera Motion <span class="vs-optional">(optional)</span></span>
+          <textarea id="videoMotion" rows="2" placeholder="slow cinematic zoom in, camera orbit around subject, handheld camera movement, dolly forward"></textarea>
         </div>
       </div>
 
@@ -1169,6 +1249,65 @@
         });
       }
 
+      // ── Image sub-mode switcher (Animate / Transition) ──
+      const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
+      if (imgModeSwitcher) {
+        const imgModeBtns = imgModeSwitcher.querySelectorAll('.video-img-mode-btn');
+        const imgModeValue = leftStack.querySelector('#videoImgModeValue');
+        const animatePanel = leftStack.querySelector('#animateImageContent');
+        const transitionPanel = leftStack.querySelector('#imageTransitionContent');
+
+        imgModeBtns.forEach(btn => {
+          btn.addEventListener('click', function () {
+            const mode = this.dataset.imgMode;
+            imgModeBtns.forEach(b => b.classList.remove('is-active'));
+            this.classList.add('is-active');
+            if (imgModeValue) imgModeValue.value = mode;
+
+            if (animatePanel) animatePanel.classList.toggle('hidden', mode !== 'animate_image');
+            if (transitionPanel) transitionPanel.classList.toggle('hidden', mode !== 'image_transition');
+
+            validateVideoForm();
+          });
+        });
+      }
+
+      // ── Transition mode: Start Image upload ──
+      function wireDropZone(dropId, sourceId, previewId) {
+        const drop = leftStack.querySelector('#' + dropId);
+        const source = leftStack.querySelector('#' + sourceId);
+        const preview = leftStack.querySelector('#' + previewId);
+        if (!drop || !source || !preview) return;
+
+        drop.addEventListener('click', () => source.click());
+        source.addEventListener('change', function () {
+          if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; };
+            reader.readAsDataURL(this.files[0]);
+            validateVideoForm();
+          }
+        });
+        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = 'rgba(255,255,255,.3)'; });
+        drop.addEventListener('dragleave', () => { drop.style.borderColor = 'rgba(255,255,255,.15)'; });
+        drop.addEventListener('drop', (e) => {
+          e.preventDefault();
+          drop.style.borderColor = 'rgba(255,255,255,.15)';
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            source.files = e.dataTransfer.files;
+            source.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+      wireDropZone('videoStartImageDrop', 'videoStartImageSource', 'videoStartImagePreview');
+      wireDropZone('videoEndImageDrop', 'videoEndImageSource', 'videoEndImagePreview');
+
+      // Transition prompt validation
+      const transitionPromptEl = leftStack.querySelector('#videoTransitionPrompt');
+      if (transitionPromptEl) {
+        transitionPromptEl.addEventListener('input', validateVideoForm);
+      }
+
       // ========================================
       // VIDEO: Mode Switching & Credits Logic
       // ========================================
@@ -1548,11 +1687,28 @@
           const prompt = videoTextPrompt?.value?.trim() || '';
           isValid = prompt.length > 0;
         } else {
-          // Image-to-Video: require uploaded image OR image loaded from history
-          const hasFileUpload = videoSource && videoSource.files && videoSource.files.length > 0;
-          const previewSrc = videoImagePreview?.src || '';
-          const hasPreviewImage = previewSrc.startsWith('data:') || previewSrc.startsWith('http');
-          isValid = hasFileUpload || hasPreviewImage;
+          // Image-to-Video: validate based on image sub-mode
+          const imgMode = document.getElementById('videoImgModeValue')?.value || 'animate_image';
+          const currentProvider = document.getElementById('videoAIProvider')?.value || '';
+          const isSeedance = currentProvider === 'seedance' || currentProvider === 'fal_seedance';
+
+          if (imgMode === 'image_transition') {
+            // Transition: require both images + transition prompt
+            const startSrc = document.getElementById('videoStartImagePreview')?.src || '';
+            const endSrc = document.getElementById('videoEndImagePreview')?.src || '';
+            const hasStart = startSrc.startsWith('data:') || startSrc.startsWith('http');
+            const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
+            const transPrompt = document.getElementById('videoTransitionPrompt')?.value?.trim() || '';
+            isValid = hasStart && hasEnd && transPrompt.length > 0;
+          } else {
+            // Animate: require image + animation prompt (for Seedance)
+            const hasFileUpload = videoSource && videoSource.files && videoSource.files.length > 0;
+            const previewSrc = videoImagePreview?.src || '';
+            const hasPreviewImage = previewSrc.startsWith('data:') || previewSrc.startsWith('http');
+            const hasImage = hasFileUpload || hasPreviewImage;
+            const animPrompt = document.getElementById('videoAnimationPrompt')?.value?.trim() || '';
+            isValid = isSeedance ? (hasImage && animPrompt.length > 0) : hasImage;
+          }
         }
 
         // Only manage disabled state for validation - don't override credits check
@@ -1670,6 +1826,33 @@
         const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
         if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
+        // Seedance-only image features: sub-mode switcher, animation prompt, transition panel
+        const isSeedanceProvider = provider === 'seedance' || provider === 'fal_seedance';
+        const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
+        const animPromptSection = leftStack.querySelector('#animateImageContent .vs-animation-prompt-section');
+        const animatePanel = leftStack.querySelector('#animateImageContent');
+        const transitionPanel = leftStack.querySelector('#imageTransitionContent');
+        const imgModeValue = leftStack.querySelector('#videoImgModeValue');
+
+        // Hide sub-mode switcher + animation prompt for non-Seedance (Veo)
+        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !isSeedanceProvider);
+        if (animPromptSection) animPromptSection.classList.toggle('hidden', !isSeedanceProvider);
+
+        // Reset to animate_image mode when switching away from Seedance
+        if (!isSeedanceProvider) {
+          if (imgModeValue) imgModeValue.value = 'animate_image';
+          if (animatePanel) animatePanel.classList.remove('hidden');
+          if (transitionPanel) transitionPanel.classList.add('hidden');
+          // Reset active state on sub-mode buttons
+          imgModeSwitcher?.querySelectorAll('.video-img-mode-btn').forEach(b => {
+            b.classList.toggle('is-active', b.dataset.imgMode === 'animate_image');
+          });
+        }
+
+        // Custom motion textarea — shared by both providers
+        const customMotionSection = leftStack.querySelector('.vs-custom-section');
+        if (customMotionSection) customMotionSection.classList.remove('hidden');
+
         // Hint text
         if (resolutionHint) resolutionHint.textContent = cfg.hint;
       }
@@ -1689,6 +1872,7 @@
             applyProviderConfig(provider);
             updateDurationOptions();
             updateVideoFooter();
+            validateVideoForm();
 
             console.log('[Video] Provider switched to:', provider);
           });
@@ -1737,6 +1921,10 @@
       }
       if (videoMotion) {
         videoMotion.addEventListener('input', validateVideoForm);
+      }
+      const videoAnimationPrompt = leftStack.querySelector('#videoAnimationPrompt');
+      if (videoAnimationPrompt) {
+        videoAnimationPrompt.addEventListener('input', validateVideoForm);
       }
 
       // Motion preset buttons — collapsible trigger + click toggles active state

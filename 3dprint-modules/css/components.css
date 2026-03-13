@@ -2248,6 +2248,132 @@ textarea {
   display: none;
 }
 
+/* ── Image sub-mode switcher (Animate / Transition) ── */
+.video-img-mode-switcher {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.video-img-mode-btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.video-img-mode-btn:hover:not(.is-active) {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.video-img-mode-btn.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.video-img-mode-content.hidden {
+  display: none;
+}
+
+/* ── Transition grid (start → end) ── */
+.video-transition-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.video-transition-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.video-transition-col .video-drop-zone {
+  width: 100%;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  padding: 12px 8px;
+}
+
+.video-transition-col .video-drop-zone:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.video-transition-col .video-drop-zone svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.4;
+}
+
+.video-transition-col .video-drop-zone span {
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.video-transition-col .video-preview-wrap {
+  margin-top: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.video-transition-col .video-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.video-transition-col .video-preview-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-transition-col .video-preview-placeholder svg {
+  width: 28px;
+  height: 28px;
+  opacity: 0.15;
+}
+
+.video-transition-col .video-preview-img[src]:not([src=""]) + .video-preview-placeholder {
+  display: none;
+}
+
+.video-transition-col .video-preview-img[src]:not([src=""]) {
+  display: block;
+}
+
+.video-transition-arrow {
+  display: flex;
+  align-items: center;
+  padding-top: 52px;
+  opacity: 0.25;
+  flex-shrink: 0;
+}
+
 /* Video Settings card */
 .video-settings-card {
   max-height: none;

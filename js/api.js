@@ -2688,8 +2688,8 @@ export async function startVideoGeneration() {
     status: 'generating',
     status_label: 'Generating video...',
     created_at: Date.now(),
-    prompt: prompt || motion || 'Video generation',
-    title: shortTitle(prompt || motion || 'Video'),
+    prompt: (byId('videoAnimationPrompt')?.value || '').trim() || (byId('videoTransitionPrompt')?.value || '').trim() || prompt || motion || 'Video generation',
+    title: shortTitle((byId('videoAnimationPrompt')?.value || '').trim() || (byId('videoTransitionPrompt')?.value || '').trim() || prompt || motion || 'Video'),
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
@@ -2712,33 +2712,90 @@ export async function startVideoGeneration() {
     let payload;
 
     if (settings.mode === 'image2video') {
-      // ── Veo: Image → video animation ──
-      const videoImagePreview = byId('videoImagePreview');
-      const imageData = videoImagePreview?.src;
-      const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
-
-      if (!isValidImage) {
-        startLock = false;
-        releaseCreditsReservation(reservation.reservationId);
-        UI.toast('Please upload a reference image for Image to Video mode', 'error');
-        return;
-      }
-
+      // ── Image → video (animate or transition) ──
+      const imgSubMode = byId('videoImgModeValue')?.value || 'animate_image';
       endpoint = '/api/video/animate';
-      payload = {
-        provider: settings.provider,
-        image_data: imageData,
-        prompt: _composeSeedancePrompt(motion || prompt, stylePreset, null, settings),
-        motion_preset: motionPreset || undefined,
-        duration_sec: settings.durationSec,
-        aspect_ratio: settings.aspectRatio,
-        resolution: settings.resolution,
-        loop: settings.loop,
-        seedance_variant: settings.seedanceVariant || undefined,
-      };
 
-      const isDataUrl = imageData.startsWith('data:');
-      console.log('[VIDEO] Image2Video mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
+      if (imgSubMode === 'image_transition') {
+        // ── Image Transition: two images + transition prompt ──
+        const startSrc = byId('videoStartImagePreview')?.src || '';
+        const endSrc = byId('videoEndImagePreview')?.src || '';
+        const hasStart = startSrc.startsWith('data:') || startSrc.startsWith('http');
+        const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
+
+        if (!hasStart || !hasEnd) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please upload both a start and end image', 'error');
+          return;
+        }
+
+        const transitionPrompt = (byId('videoTransitionPrompt')?.value || '').trim();
+        if (!transitionPrompt) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Describe how the first image should transition into the second', 'error');
+          return;
+        }
+
+        payload = {
+          provider: settings.provider,
+          mode: 'image_transition',
+          start_image: startSrc,
+          end_image: endSrc,
+          prompt: _composeSeedancePrompt(transitionPrompt, stylePreset, null, settings),
+          motion_prompt: motion || undefined,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          resolution: settings.resolution,
+          loop: settings.loop,
+          seedance_variant: settings.seedanceVariant || undefined,
+        };
+
+        console.log('[VIDEO] Image Transition mode - start:', Math.round(startSrc.length / 1024), 'KB, end:', Math.round(endSrc.length / 1024), 'KB');
+
+      } else {
+        // ── Animate Image: single image + animation prompt ──
+        const videoImagePreview = byId('videoImagePreview');
+        const imageData = videoImagePreview?.src;
+        const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
+
+        if (!isValidImage) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please upload a reference image for Image to Video mode', 'error');
+          return;
+        }
+
+        const animationPrompt = (byId('videoAnimationPrompt')?.value || '').trim();
+        if (_isSeedanceProvider(settings.provider) && !animationPrompt) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Describe how the image should animate', 'error');
+          return;
+        }
+
+        const effectivePrompt = _isSeedanceProvider(settings.provider)
+          ? animationPrompt
+          : (motion || prompt);
+
+        payload = {
+          provider: settings.provider,
+          mode: 'animate_image',
+          image_data: imageData,
+          prompt: _composeSeedancePrompt(effectivePrompt, stylePreset, null, settings),
+          motion_prompt: motion || undefined,
+          motion_preset: motionPreset || undefined,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          resolution: settings.resolution,
+          loop: settings.loop,
+          seedance_variant: settings.seedanceVariant || undefined,
+        };
+
+        const isDataUrl = imageData.startsWith('data:');
+        console.log('[VIDEO] Animate Image mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
+      }
 
     } else {
       // ── Text → cinematic clip ──
