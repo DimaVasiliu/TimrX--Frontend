@@ -1455,15 +1455,15 @@ function wireGallery() {
           videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
         }
 
-        // Update credits display (6s high = 45 * 1.5 = 68 credits)
+        // Update credits display — Veo image-to-video 6s 720p = 140 credits
         const videoCreditsDisplay = byId('videoCreditsDisplay');
         if (videoCreditsDisplay) {
-          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 68';
+          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 140';
         }
         const generateVideoBtn = byId('generateVideoBtn');
         if (generateVideoBtn) {
-          generateVideoBtn.title = '68 credits';
-          generateVideoBtn.dataset.baseCredits = '68';
+          generateVideoBtn.title = '140 credits';
+          generateVideoBtn.dataset.baseCredits = '140';
           // Enable button since we have a valid image loaded
           generateVideoBtn.disabled = false;
           generateVideoBtn.removeAttribute('data-disabled-reason');
