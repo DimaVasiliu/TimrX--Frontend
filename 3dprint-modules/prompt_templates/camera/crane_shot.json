@@ -1,0 +1,11 @@
+{
+  "name": "Crane Shot",
+  "category": "camera",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Dramatic vertical camera movement rising or descending through the scene with sweeping grandeur. The shifting elevation transforms perspective and reveals new layers of the composition. Cinematic crane motion with smooth, controlled ascent or descent.",
+  "variations": {
+    "camera": ["ascending from ground to bird's eye", "descending from sky to subject", "rising over obstacle to reveal vista"],
+    "lighting": ["looking up into bright sky", "descending into warm interior", "sunset horizon at peak height"],
+    "environment": ["city plaza", "natural canyon", "architectural interior"]
+  }
+}

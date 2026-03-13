@@ -1,0 +1,11 @@
+{
+  "name": "Time Lapse",
+  "category": "camera",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Accelerated passage of time captured from a steady vantage point, the world transforming rapidly before the lens. Light shifts dramatically as hours compress into seconds. The camera holds firm while the environment undergoes visible change.",
+  "variations": {
+    "camera": ["static tripod", "very slow pan", "gentle zoom out over time"],
+    "lighting": ["sunrise to sunset cycle", "clouds racing overhead", "city lights switching on"],
+    "environment": ["city skyline", "flower blooming", "construction progress"]
+  }
+}

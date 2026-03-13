@@ -1,0 +1,11 @@
+{
+  "name": "Camera Flythrough",
+  "category": "camera",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Smooth aerial camera flying through an expansive environment, gliding effortlessly past structures and terrain. Continuous forward motion creates an immersive journey through the scene. Atmospheric lighting adds depth and grandeur to the flythrough.",
+  "variations": {
+    "camera": ["slow forward glide through scene", "weaving between structures", "ascending reveal"],
+    "lighting": ["golden hour with long shadows", "misty diffused morning", "dramatic sunset"],
+    "environment": ["ancient temple ruins", "dense forest canopy", "futuristic cityscape"]
+  }
+}

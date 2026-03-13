@@ -1,0 +1,11 @@
+{
+  "name": "First Person POV",
+  "category": "camera",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Immersive first-person perspective moving through a scene, seeing the world through the eyes of the viewer. Natural head-height camera motion creates presence and engagement. Environmental lighting guides the eye forward through the space.",
+  "variations": {
+    "camera": ["walking pace forward movement", "running through environment", "slow cautious exploration"],
+    "lighting": ["natural environment lighting", "flashlight in darkness", "bright daylight entering from ahead"],
+    "environment": ["forest path", "urban street", "mysterious corridor"]
+  }
+}

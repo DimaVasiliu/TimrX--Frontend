@@ -1,0 +1,11 @@
+{
+  "name": "Drone Shot",
+  "category": "camera",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "High-altitude aerial perspective looking down on a vast landscape below. Drone camera moves smoothly across the terrain, revealing patterns and scale. Natural overhead lighting casts defined shadows that emphasize topography.",
+  "variations": {
+    "camera": ["slow descending approach", "lateral sweep across terrain", "spiraling downward"],
+    "lighting": ["midday overhead sun", "dramatic cloud shadows", "warm late afternoon"],
+    "environment": ["coastline and ocean", "rolling farmland", "mountain ridge"]
+  }
+}
