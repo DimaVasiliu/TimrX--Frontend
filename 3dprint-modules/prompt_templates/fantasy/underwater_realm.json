@@ -1,0 +1,11 @@
+{
+  "name": "Underwater Realm",
+  "category": "fantasy",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Deep underwater scene featuring {subject} immersed in aquatic atmosphere, light filtering down from the surface above. Camera glides through the water with gentle buoyancy and fluid motion. Caustic light patterns dance across submerged surfaces.",
+  "variations": {
+    "camera": ["slow gliding descent", "forward swim through reef", "gentle upward look toward surface light"],
+    "lighting": ["caustic light patterns from surface", "bioluminescent creature glow", "deep blue ambient"],
+    "environment": ["coral reef", "underwater ruins", "deep ocean trench"]
+  }
+}

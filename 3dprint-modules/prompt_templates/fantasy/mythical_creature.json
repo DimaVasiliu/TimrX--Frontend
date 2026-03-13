@@ -1,0 +1,11 @@
+{
+  "name": "Mythical Creature",
+  "category": "fantasy",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Majestic mythical creature {subject} revealed in its natural habitat, powerful and awe-inspiring. Camera slowly unveils the creature's full form from shadow into light. Atmospheric lighting and mist create a sense of ancient wonder.",
+  "variations": {
+    "camera": ["slow reveal from shadow", "wide establishing then zoom", "tracking alongside flight path"],
+    "lighting": ["ethereal backlight through mist", "dramatic storm light", "warm firelight"],
+    "environment": ["mountain peak above clouds", "dark forest den", "volcanic landscape"]
+  }
+}

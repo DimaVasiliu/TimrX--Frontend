@@ -1,0 +1,11 @@
+{
+  "name": "Dreamlike Environment",
+  "category": "fantasy",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Surreal dreamlike world with impossible geometry and gravity-defying structures. Camera floats weightlessly through the space, drifting past inverted landscapes and ethereal forms. Soft glowing light permeates from every direction in a haze of wonder.",
+  "variations": {
+    "camera": ["floating drift through space", "slow rotation in zero gravity", "gentle descent through layers"],
+    "lighting": ["soft ethereal glow everywhere", "prismatic light refractions", "warm golden haze"],
+    "environment": ["floating islands", "inverted architecture", "endless staircase"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Enchanted Forest",
+  "category": "fantasy",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Magical forest with supernatural elements, ancient trees towering overhead with glowing flora scattered throughout. Camera winds slowly through the enchanted woodland as soft light filters through the canopy. Fireflies and luminous particles drift through the misty air.",
+  "variations": {
+    "camera": ["slow winding path through trees", "ascending through canopy", "gentle pan across clearing"],
+    "lighting": ["dappled sunlight through leaves", "firefly and fairy light", "misty morning glow"],
+    "environment": ["ancient giant trees", "mushroom grove", "crystal stream"]
+  }
+}

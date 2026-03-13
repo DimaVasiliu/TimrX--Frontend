@@ -1,0 +1,11 @@
+{
+  "name": "Magic Scene",
+  "category": "fantasy",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Mystical magical moment featuring {subject} with ethereal visual energy swirling through the air. Arcane light emanates from the focal point, casting shifting colors across the scene. Camera orbits slowly as enchanted particles drift and glow.",
+  "variations": {
+    "camera": ["slow orbit around magical focal point", "rising with ascending energy", "gentle push into enchanted object"],
+    "lighting": ["glowing arcane energy", "bioluminescent ambient", "aurora-like shifting colors"],
+    "environment": ["ancient library", "enchanted forest clearing", "crystal cave"]
+  }
+}
