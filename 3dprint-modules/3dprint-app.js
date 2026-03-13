@@ -1352,6 +1352,12 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
         '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
       };
+
+      // Image-to-Video fallback costs (+50% premium over text-to-video)
+      const VIDEO_IMAGE_CREDIT_RULES_FALLBACK = {
+        '720p':  { 4: 105, 6: 135, 8: 165 },
+        '1080p': { 8: 195 }
+      };
       // Seedance credit costs: credits-per-second * duration
       // Fast (seedance-2-fast-preview): 14 credits/sec
       // Preview (seedance-2-preview):   24 credits/sec
@@ -1383,6 +1389,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       const VIDEO_PROVIDER_CONFIG = {
         vertex: {
           label: 'Veo 3.1',
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, animationPrompt: false },
           durations: [
             { value: '4', text: '4 seconds', selected: true },
             { value: '6', text: '6 seconds' },
@@ -1413,6 +1420,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         },
         fal_seedance: {
           label: 'Seedance',
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
@@ -1440,6 +1448,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         },
         seedance: {
           label: 'Seedance 2.0',
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, animationPrompt: true },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
@@ -1547,7 +1556,9 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
 
         // Fallback to hardcoded rules if WorkspaceCredits not available or returned null
         if (cost === null || cost === undefined) {
-          const resRules = VIDEO_CREDIT_RULES_FALLBACK[resolution];
+          const isImageMode = mode !== 'text2video';
+          const fallbackTable = isImageMode ? VIDEO_IMAGE_CREDIT_RULES_FALLBACK : VIDEO_CREDIT_RULES_FALLBACK;
+          const resRules = fallbackTable[resolution];
           if (resRules && resRules[duration] !== undefined) {
             cost = resRules[duration];
             source = 'fallback-exact';
@@ -1555,7 +1566,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
             cost = resRules[8];
             source = 'fallback-8s';
           } else {
-            cost = 70;
+            cost = isImageMode ? 105 : 70;
             source = 'fallback-default';
           }
         }
@@ -1841,20 +1852,23 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
         if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
-        // Seedance-only image features: sub-mode switcher, animation prompt, transition panel
-        const isSeedanceProvider = provider === 'seedance' || provider === 'fal_seedance';
+        // Capability-gated image features: sub-mode switcher, animation prompt, transition panel
+        const caps = cfg.capabilities || {};
+        const hasTransition = !!caps.imageTransition;
+        const hasAnimPrompt = !!caps.animationPrompt;
         const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
         const animPromptSection = leftStack.querySelector('#animateImageContent .vs-animation-prompt-section');
         const animatePanel = leftStack.querySelector('#animateImageContent');
         const transitionPanel = leftStack.querySelector('#imageTransitionContent');
         const imgModeValue = leftStack.querySelector('#videoImgModeValue');
 
-        // Hide sub-mode switcher + animation prompt for non-Seedance (Veo)
-        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !isSeedanceProvider);
-        if (animPromptSection) animPromptSection.classList.toggle('hidden', !isSeedanceProvider);
+        // Show sub-mode switcher only when provider supports transition
+        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition);
+        // Animation prompt available for providers that support it (Seedance variants)
+        if (animPromptSection) animPromptSection.classList.toggle('hidden', !hasAnimPrompt);
 
-        // Reset to animate_image mode when switching away from Seedance
-        if (!isSeedanceProvider) {
+        // Reset to animate_image mode when provider lacks transition support
+        if (!hasTransition) {
           if (imgModeValue) imgModeValue.value = 'animate_image';
           if (animatePanel) animatePanel.classList.remove('hidden');
           if (transitionPanel) transitionPanel.classList.add('hidden');

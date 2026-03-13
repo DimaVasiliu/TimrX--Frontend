@@ -2529,6 +2529,13 @@ const VIDEO_CREDIT_COSTS = {
   '4k':    { 8: 160 }
 };
 
+// Image-to-Video costs (+50% premium over text-to-video)
+const VIDEO_IMAGE_CREDIT_COSTS = {
+  '720p':  { 4: 105, 6: 135, 8: 165 },
+  '1080p': { 8: 195 },
+  '4k':    { 8: 240 }
+};
+
 // Seedance credits: tier * duration (fast=14 cps, preview=24 cps)
 const SEEDANCE_CPS = { fast: 14, preview: 24 };
 // fal Seedance 1.5 Pro: flat 14 cps
@@ -2576,11 +2583,13 @@ function getVideoCredits(settings) {
     return cps * (settings.durationSec || 5);
   }
 
-  // Veo fallback to local canonical costs
+  // Veo — use image costs (+50%) for image-to-video modes
   const resolution = settings.resolution || '720p';
   const duration = settings.durationSec || 4;
-  const resolutionCosts = VIDEO_CREDIT_COSTS[resolution] || VIDEO_CREDIT_COSTS['720p'];
-  return resolutionCosts[duration] || 70;
+  const isImageMode = settings.mode && settings.mode !== 'text2video';
+  const costTable = isImageMode ? VIDEO_IMAGE_CREDIT_COSTS : VIDEO_CREDIT_COSTS;
+  const resolutionCosts = costTable[resolution] || costTable['720p'];
+  return resolutionCosts[duration] || (isImageMode ? 105 : 70);
 }
 
 /**
