@@ -2114,6 +2114,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         });
       }
 
+      // Apply provider config for default provider on init (unhides sub-mode switcher etc.)
+      updateProviderUI();
       // Initial calculation and validation
       updateVideoFooter();
       validateVideoForm();
