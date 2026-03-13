@@ -1933,17 +1933,17 @@ export async function onGenerateClick() {
   }
 }
 
-// Image credits by quality tier (Standard 5c, 2K 7c)
-const IMAGE_CREDITS_BY_QUALITY = { standard: 5, high: 7 };
-const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k' };
+// Image credits by quality tier (Standard 10c, 2K 15c, 4K 20c)
+const IMAGE_CREDITS_BY_QUALITY = { standard: 10, high: 15, '4k': 20 };
+const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k', '4k': 'image_generate_4k' };
 
 /**
  * Get image credits for the current quality setting
- * @param {string} quality - 'standard' or 'high'
+ * @param {string} quality - 'standard', 'high', or '4k'
  * @returns {number}
  */
 function getImageCredits(quality = 'standard') {
-  return IMAGE_CREDITS_BY_QUALITY[quality] || 5;
+  return IMAGE_CREDITS_BY_QUALITY[quality] || 10;
 }
 
 /**
@@ -1993,7 +1993,7 @@ export async function startOpenAIImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 5c, 2K 7c)
+  // Get dynamic credits based on quality (Standard 10c, 2K 15c)
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -2027,7 +2027,7 @@ export async function startOpenAIImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c)
+  // Canonical action key varies by quality: image_generate (10c), image_generate_2k (15c)
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
@@ -2216,7 +2216,7 @@ export async function startGeminiImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 5c, 2K 7c)
+  // Get dynamic credits based on quality (Standard 10c, 2K 15c)
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -2250,7 +2250,7 @@ export async function startGeminiImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (5c), image_generate_2k (7c)
+  // Canonical action key varies by quality: image_generate (10c), image_generate_2k (15c)
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
@@ -2762,6 +2762,44 @@ export async function startVideoGeneration() {
         };
 
         console.log('[VIDEO] Image Transition mode - start:', Math.round(startSrc.length / 1024), 'KB, end:', Math.round(endSrc.length / 1024), 'KB');
+
+      } else if (imgSubMode === 'experimental_morph') {
+        // ── Experimental Morph (Beta): two images + morph prompt via Seedance ──
+        const mStartSrc = byId('morphStartImagePreview')?.src || '';
+        const mEndSrc = byId('morphEndImagePreview')?.src || '';
+        const mHasStart = mStartSrc.startsWith('data:') || mStartSrc.startsWith('http');
+        const mHasEnd = mEndSrc.startsWith('data:') || mEndSrc.startsWith('http');
+
+        if (!mHasStart || !mHasEnd) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Please upload both images for morph', 'error');
+          return;
+        }
+
+        const morphPrompt = (byId('morphPrompt')?.value || '').trim();
+        if (!morphPrompt) {
+          startLock = false;
+          releaseCreditsReservation(reservation.reservationId);
+          UI.toast('Describe how the two images should morph together', 'error');
+          return;
+        }
+
+        payload = {
+          provider: settings.provider,
+          mode: 'experimental_morph',
+          start_image: mStartSrc,
+          end_image: mEndSrc,
+          prompt: _composeSeedancePrompt(morphPrompt, stylePreset, null, settings),
+          motion_prompt: motion || undefined,
+          duration_sec: settings.durationSec,
+          aspect_ratio: settings.aspectRatio,
+          resolution: settings.resolution,
+          loop: settings.loop,
+          seedance_variant: settings.seedanceVariant || undefined,
+        };
+
+        console.log('[VIDEO] Experimental Morph (Beta) - img1:', Math.round(mStartSrc.length / 1024), 'KB, img2:', Math.round(mEndSrc.length / 1024), 'KB');
 
       } else {
         // ── Animate Image: single image + animation prompt ──

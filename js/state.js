@@ -637,8 +637,8 @@ export const PROVIDER_CAPABILITIES = {
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 5, // Default (standard), actual credits determined by creditsByQuality
-      creditsByQuality: { standard: 5, high: 7, '4k': 10 },
+      credits: 10, // Default (standard), actual credits determined by creditsByQuality
+      creditsByQuality: { standard: 10, high: 15, '4k': 20 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
       genTime: '30 sec', // Default for standard
       // Shape controls layout (aspect ratio), Quality controls detail level + resolution
@@ -653,8 +653,8 @@ export const PROVIDER_CAPABILITIES = {
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 5, // Default (standard), actual credits determined by creditsByQuality
-      creditsByQuality: { standard: 5, high: 7, '4k': 10 },
+      credits: 10, // Default (standard), actual credits determined by creditsByQuality
+      creditsByQuality: { standard: 10, high: 15, '4k': 20 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
       genTime: '30 sec', // Default for standard
       // Shape controls layout (aspect ratio), Quality controls imageSize
