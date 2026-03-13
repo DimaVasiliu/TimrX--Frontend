@@ -764,19 +764,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         </div>
       </div>
 
-      <!-- Video Templates (Part 14) -->
+      <!-- Video Templates (Part 14) — dynamically rendered from VIDEO_TEMPLATE_CATEGORIES -->
       <div class="card video-templates-card">
         <button type="button" class="vs-motion-trigger" id="videoTemplatesTrigger">
           <span class="vs-label">Prompt Templates</span>
           <svg class="vs-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
-        <div id="videoTemplatesPanel" class="vs-presets vs-presets--collapsed">
-          <button type="button" class="vs-preset video-template-btn" data-template="product">Product Reveal</button>
-          <button type="button" class="vs-preset video-template-btn" data-template="cinematic">Cinematic Orbit</button>
-          <button type="button" class="vs-preset video-template-btn" data-template="zoom">Zoom Intro</button>
-          <button type="button" class="vs-preset video-template-btn" data-template="anime">Anime Action</button>
-          <button type="button" class="vs-preset video-template-btn" data-template="flythrough">Camera Flythrough</button>
-        </div>
+        <div id="videoTemplatesPanel" class="vs-presets vs-presets--collapsed"></div>
       </div>
 
       <!-- Video Gallery shortcut -->
@@ -2162,17 +2156,176 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // ========================================
       // VIDEO: Prompt Templates (Part 14)
       // ========================================
-      const VIDEO_TEMPLATES = {
-        product: 'Smooth 360-degree product reveal on a clean studio backdrop, soft studio lighting, slow rotation, premium feel',
-        cinematic: 'Cinematic orbit shot around the subject, dramatic lighting, shallow depth of field, film grain, slow steady movement',
-        zoom: 'Extreme close-up slowly zooming out to reveal the full scene, shallow focus pulling to sharp, cinematic',
-        anime: 'Dynamic anime-style action sequence with speed lines, bold colors, fast camera movement, stylized motion blur',
-        flythrough: 'Smooth aerial camera flythrough over a sweeping landscape, golden hour lighting, parallax depth, slow forward motion',
+      // ── Video Prompt Templates with randomization ──────────────────
+      // Each template has variation pools. _pickRandom selects one from each
+      // pool so repeated clicks produce different prompts.
+      function _pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function _buildTemplatePrompt(tpl) {
+        let prompt = tpl.base;
+        if (tpl.camera) prompt += ' ' + _pickRandom(tpl.camera) + '.';
+        if (tpl.lighting) prompt += ' ' + _pickRandom(tpl.lighting) + '.';
+        if (tpl.environment) prompt += ' ' + _pickRandom(tpl.environment) + '.';
+        if (tpl.style) prompt += ' ' + _pickRandom(tpl.style) + '.';
+        return prompt;
+      }
+
+      const VIDEO_TEMPLATE_CATEGORIES = {
+        cinematic: {
+          label: 'Cinematic',
+          templates: {
+            orbit:       { name: 'Cinematic Orbit',   base: 'Cinematic orbit around the subject, camera circling slowly with shallow depth of field',
+                           camera: ['gentle clockwise orbit', 'slow counter-clockwise arc', 'sweeping half-circle tracking shot'],
+                           lighting: ['dramatic side-lighting with deep shadows', 'soft golden backlighting', 'moody contrast with rim light'] },
+            slow_reveal: { name: 'Slow Reveal',        base: 'Subject partially hidden, camera slowly reveals the full scene',
+                           camera: ['slow dolly forward', 'gentle upward crane', 'lateral tracking reveal'],
+                           lighting: ['soft diffused light building gradually', 'dramatic chiaroscuro', 'warm amber glow emerging'] },
+            hero_shot:   { name: 'Hero Shot',          base: 'Low-angle hero shot, powerful and commanding presence',
+                           camera: ['low-angle push-in', 'slight upward tilt with slow zoom', 'dramatic dutch angle approach'],
+                           lighting: ['bold rim lighting from behind', 'golden hour backlight', 'high-contrast studio spotlight'] },
+            tracking:    { name: 'Tracking Shot',      base: 'Camera tracks alongside the subject, smooth parallel movement',
+                           camera: ['lateral tracking at eye level', 'following behind at shoulder height', 'leading from front'],
+                           lighting: ['natural ambient daylight', 'streetlight pools at night', 'overcast soft light'] },
+            epic_wide:   { name: 'Epic Wide Shot',     base: 'Vast establishing shot, subject small in the frame against a grand landscape',
+                           camera: ['slow aerial descent', 'static wide with subtle drift', 'extremely slow zoom in'],
+                           lighting: ['golden hour warmth', 'dramatic storm light breaking through clouds', 'cold blue twilight'] },
+            dolly_zoom:  { name: 'Dolly Zoom',         base: 'Vertigo-style dolly zoom creating surreal depth distortion',
+                           camera: ['slow dolly back with zoom in', 'dolly forward with zoom out', 'subtle push-pull effect'],
+                           lighting: ['harsh direct spotlight', 'neon-tinged atmosphere', 'natural overcast'] },
+          }
+        },
+        product: {
+          label: 'Product',
+          templates: {
+            product_reveal: { name: 'Product Reveal',    base: 'Smooth 360-degree rotation on a clean backdrop, premium commercial quality',
+                              camera: ['slow full rotation', 'half-turn with pause on details', 'gentle rocking motion'],
+                              lighting: ['clean studio three-point lighting', 'soft gradient backdrop glow', 'dramatic single-source accent'] },
+            luxury_ad:      { name: 'Luxury Commercial', base: 'Premium luxury showcase with elegant motion and refined aesthetics',
+                              camera: ['ultra-slow gliding orbit', 'gentle rise revealing the product', 'smooth dolly across surface detail'],
+                              lighting: ['warm golden key light', 'cool metallic reflections', 'soft diffused editorial lighting'] },
+            minimal_studio: { name: 'Minimal Studio',   base: 'Clean minimalist shot, sharp focus, no distractions',
+                              camera: ['slow rotation on turntable', 'static with subtle breathing motion', 'gentle arc from front to profile'],
+                              lighting: ['even soft-box diffusion', 'single dramatic side light', 'bright high-key lighting'] },
+            tech_showcase:  { name: 'Tech Showcase',     base: 'Modern technology product with futuristic presentation',
+                              camera: ['dynamic orbit with speed ramp', 'macro detail pan then pull back', 'smooth 360 rotation'],
+                              lighting: ['cool blue LED accents', 'holographic rim glow', 'clean daylight balanced lighting'] },
+            unboxing:       { name: 'Unboxing Reveal',   base: 'Product emerging from packaging, sense of discovery',
+                              camera: ['overhead looking down', 'eye-level slow approach', 'gentle crane from box to product'],
+                              lighting: ['warm inviting glow', 'soft ambient with product spotlight', 'natural window light'] },
+          }
+        },
+        action: {
+          label: 'Action',
+          templates: {
+            cyberpunk:       { name: 'Cyberpunk Action',     base: 'High-energy scene in a neon-lit cyberpunk city',
+                               camera: ['fast tracking through neon streets', 'sweeping crane over rooftops', 'first-person dash through alley'],
+                               lighting: ['pulsing neon pink and blue', 'rain-reflected city lights', 'holographic advertisement glow'] },
+            anime_combat:    { name: 'Anime Combat',         base: 'Dynamic anime-style action with bold stylization and speed lines',
+                               camera: ['dramatic zoom with speed lines', 'rotating impact shot', 'sweeping arc around fighters'],
+                               lighting: ['vibrant saturated cel-shaded lighting', 'dramatic backlight silhouette', 'energy glow illumination'],
+                               style: ['anime cel-shaded aesthetic', 'bold graphic novel style', 'vivid manga-inspired colors'] },
+            scifi_chase:     { name: 'Sci-Fi Chase',         base: 'Fast pursuit through a science fiction environment',
+                               camera: ['side tracking alongside vehicles', 'overhead chase perspective', 'cockpit POV with motion blur'],
+                               lighting: ['engine thrust glow', 'passing starlight streaks', 'emergency red alert lighting'] },
+            slow_mo_impact:  { name: 'Slow Motion Impact',   base: 'Ultra slow-motion capture of a dramatic moment, fine details visible',
+                               camera: ['close-up tracking the action', 'wide shot with time dilation', 'macro detail of impact point'],
+                               lighting: ['flash-freeze strobe light', 'backlit particles suspended in air', 'natural light with motion blur dissolve'] },
+            martial_arts:    { name: 'Martial Arts',         base: 'Fluid martial arts movement with cinematic choreography',
+                               camera: ['circling the fighter slowly', 'low-angle upward during leap', 'over-shoulder tracking'],
+                               lighting: ['warm dojo lantern light', 'dramatic single spotlight', 'outdoor golden hour'] },
+          }
+        },
+        camera: {
+          label: 'Camera',
+          templates: {
+            flythrough:   { name: 'Camera Flythrough',  base: 'Smooth aerial camera flying through an expansive environment',
+                            camera: ['slow forward glide through scene', 'weaving between structures', 'ascending reveal'],
+                            lighting: ['golden hour with long shadows', 'misty diffused morning light', 'dramatic sunset'] },
+            drone:        { name: 'Drone Shot',          base: 'High-altitude aerial perspective sweeping across landscape',
+                            camera: ['slow descending approach', 'lateral sweep across terrain', 'spiraling downward reveal'],
+                            lighting: ['midday overhead sun', 'dramatic cloud shadows on ground', 'warm late afternoon light'] },
+            first_person: { name: 'First Person POV',    base: 'Immersive first-person perspective moving through a scene',
+                            camera: ['walking pace forward movement', 'running through environment', 'slow cautious exploration'],
+                            lighting: ['natural environment lighting', 'flashlight beam in darkness', 'bright daylight from ahead'] },
+            timelapse:    { name: 'Time Lapse',          base: 'Accelerated passage of time, fixed camera position',
+                            camera: ['static tripod', 'very slow pan across scene', 'gentle zoom out over time'],
+                            lighting: ['sunrise to sunset cycle', 'clouds racing overhead casting shadows', 'city lights switching on at dusk'] },
+            crane:        { name: 'Crane Shot',          base: 'Dramatic vertical camera movement rising or descending',
+                            camera: ['ascending from ground to bird\'s eye', 'descending from sky to subject', 'rising over obstacle to reveal vista'],
+                            lighting: ['looking up into bright sky', 'descending into warm interior', 'sunset horizon at peak height'] },
+          }
+        },
+        fantasy: {
+          label: 'Fantasy',
+          templates: {
+            magic_scene:  { name: 'Magic Scene',          base: 'Mystical magical moment with ethereal visual effects',
+                            camera: ['slow orbit around magical focal point', 'rising with ascending energy', 'gentle push into enchanted object'],
+                            lighting: ['glowing arcane energy', 'bioluminescent ambient light', 'aurora-like shifting colors'] },
+            mythical:     { name: 'Mythical Creature',    base: 'Majestic mythical creature in its natural habitat',
+                            camera: ['slow reveal from shadow', 'wide establishing then zoom', 'tracking alongside flight path'],
+                            lighting: ['ethereal backlight through mist', 'dramatic storm light', 'warm firelight from below'] },
+            dreamscape:   { name: 'Dreamlike World',      base: 'Surreal dreamlike environment with impossible geometry',
+                            camera: ['floating drift through space', 'slow rotation in zero gravity', 'gentle descent through layers'],
+                            lighting: ['soft ethereal glow', 'prismatic light refractions', 'warm golden haze throughout'] },
+            underwater:   { name: 'Underwater Realm',     base: 'Deep underwater scene with aquatic atmosphere',
+                            camera: ['slow gliding descent', 'forward swim through coral reef', 'gentle upward look toward surface light'],
+                            lighting: ['caustic light patterns from surface', 'bioluminescent creature glow', 'deep blue ambient'] },
+            enchanted:    { name: 'Enchanted Forest',     base: 'Magical forest with supernatural elements and ancient trees',
+                            camera: ['slow winding path through trees', 'ascending through canopy', 'gentle pan across clearing'],
+                            lighting: ['dappled sunlight through leaves', 'firefly and fairy light', 'misty morning glow'] },
+          }
+        },
+        nature: {
+          label: 'Nature',
+          templates: {
+            golden_hour:  { name: 'Golden Hour Landscape', base: 'Stunning landscape bathed in warm golden hour light',
+                            camera: ['slow panoramic sweep', 'gentle push toward horizon', 'rising drone reveal'],
+                            lighting: ['warm amber low sun', 'soft pink clouds', 'long golden shadows across terrain'] },
+            storm:        { name: 'Storm Drama',           base: 'Dramatic weather event with powerful atmosphere',
+                            camera: ['static wide with subtle shake', 'slow zoom into storm center', 'tracking along cloud front'],
+                            lighting: ['lightning flash illumination', 'dark brooding overcast', 'break in clouds with god rays'] },
+            ocean:        { name: 'Ocean Waves',           base: 'Mesmerizing ocean wave patterns and water motion',
+                            camera: ['eye-level at water surface', 'overhead looking down at wave patterns', 'slow tracking along shoreline'],
+                            lighting: ['sunset reflections on water', 'bright tropical midday', 'moody overcast grey'] },
+          }
+        },
+        abstract: {
+          label: 'Abstract',
+          templates: {
+            particles:    { name: 'Particle Flow',        base: 'Abstract flowing particles and energy visualization in dark space',
+                            camera: ['slow drift through particle cloud', 'orbiting the flow center', 'macro zoom into particle stream'],
+                            lighting: ['self-illuminated particles', 'gradient color shifting', 'pulsing rhythmic glow'] },
+            geometric:    { name: 'Geometric Motion',     base: 'Abstract geometric shapes in choreographed motion',
+                            camera: ['orbit around geometric assembly', 'slow zoom through structure', 'static with shapes in motion'],
+                            lighting: ['clean rim light on edges', 'prismatic refractions', 'monochromatic dramatic lighting'] },
+            fluid_art:    { name: 'Fluid Art',            base: 'Flowing liquid colors and organic abstract motion',
+                            camera: ['macro extreme close-up', 'slow pull-back revealing pattern', 'gentle drift across surface'],
+                            lighting: ['backlit translucent colors', 'surface reflections', 'self-luminous pigments'] },
+          }
+        },
       };
+
+      // Legacy flat lookup for backward compat
+      const VIDEO_TEMPLATES = {};
+      for (const [, cat] of Object.entries(VIDEO_TEMPLATE_CATEGORIES)) {
+        for (const [key, tpl] of Object.entries(cat.templates)) {
+          VIDEO_TEMPLATES[key] = tpl;
+        }
+      }
 
       const templatesTrigger = leftStack.querySelector('#videoTemplatesTrigger');
       const templatesPanel = leftStack.querySelector('#videoTemplatesPanel');
       if (templatesTrigger && templatesPanel) {
+        // Dynamically render categorized template buttons
+        let panelHTML = '';
+        for (const [, cat] of Object.entries(VIDEO_TEMPLATE_CATEGORIES)) {
+          panelHTML += `<div class="vs-preset-category-label">${cat.label}</div>`;
+          for (const [key, tpl] of Object.entries(cat.templates)) {
+            panelHTML += `<button type="button" class="vs-preset video-template-btn" data-template="${key}">${tpl.name}</button>`;
+          }
+        }
+        templatesPanel.innerHTML = panelHTML;
+
         templatesTrigger.addEventListener('click', () => {
           templatesPanel.classList.toggle('vs-presets--collapsed');
           templatesTrigger.classList.toggle('is-open');
@@ -2182,7 +2335,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             const key = btn.dataset.template;
             const tpl = VIDEO_TEMPLATES[key];
             if (tpl && videoTextPrompt) {
-              videoTextPrompt.value = tpl;
+              // _buildTemplatePrompt picks random variations each click
+              videoTextPrompt.value = _buildTemplatePrompt(tpl);
               videoTextPrompt.dispatchEvent(new Event('input', { bubbles: true }));
             }
             templatesPanel.classList.add('vs-presets--collapsed');
@@ -2811,11 +2965,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       setEnhanceButtonState(btn, 'loading');
       showEnhanceFeedback(feedbackEl, 'loading', 'Enhancing\u2026');
 
+      // Pass provider for video mode so enhance uses provider-specific rules
+      const enhanceBody = { prompt: raw, mode: mode };
+      if (mode === 'video') {
+        const providerSelect = leftStack.querySelector('#videoAIProvider');
+        enhanceBody.provider = providerSelect?.value || 'vertex';
+      }
+
       fetch(ENHANCE_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ prompt: raw, mode: mode }),
+        body: JSON.stringify(enhanceBody),
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {

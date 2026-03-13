@@ -1655,6 +1655,22 @@ textarea {
   color: #fff;
 }
 
+/* Template category labels */
+.vs-preset-category-label {
+  width: 100%;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 8px;
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
+.vs-preset-category-label:first-child {
+  margin-top: 0;
+}
+
 /* Output Settings Grid - 2x2 layout */
 .vs-settings-grid {
   display: grid;
