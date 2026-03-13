@@ -1,0 +1,11 @@
+{
+  "name": "Storm Drama",
+  "category": "nature",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Dramatic weather event with powerful atmosphere, dark clouds churning overhead as raw natural forces collide. Camera holds steady against the elements, capturing the scale and intensity of the storm. Intermittent light breaks through with striking contrast.",
+  "variations": {
+    "camera": ["static wide with subtle shake", "slow zoom into storm center", "tracking along cloud front"],
+    "lighting": ["lightning flash illumination", "dark brooding overcast", "break in clouds with god rays"],
+    "environment": ["open plains", "coastal waves", "mountain range"]
+  }
+}

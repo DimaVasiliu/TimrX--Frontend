@@ -1,0 +1,11 @@
+{
+  "name": "Ocean Waves",
+  "category": "nature",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Mesmerizing ocean wave patterns and water motion, rhythmic swells rising and breaking with hypnotic beauty. Camera captures the fluid power and texture of the sea surface. Light plays across the water creating shimmering reflections and translucent crests.",
+  "variations": {
+    "camera": ["eye-level at water surface", "overhead looking down", "slow tracking along shoreline"],
+    "lighting": ["sunset reflections on water", "bright tropical midday", "moody overcast grey"],
+    "environment": ["tropical beach", "rocky coastline", "open deep ocean"]
+  }
+}

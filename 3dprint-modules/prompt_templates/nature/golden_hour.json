@@ -1,0 +1,11 @@
+{
+  "name": "Golden Hour Landscape",
+  "category": "nature",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Stunning landscape bathed in warm golden hour light, long shadows stretching across the terrain. Camera sweeps slowly across the panorama as the low sun paints everything in amber and gold. Serene and breathtaking natural beauty.",
+  "variations": {
+    "camera": ["slow panoramic sweep", "gentle push toward horizon", "rising drone reveal"],
+    "lighting": ["warm amber low sun", "soft pink clouds", "long golden shadows"],
+    "environment": ["rolling hills", "lakeside reflection", "wheat field"]
+  }
+}
