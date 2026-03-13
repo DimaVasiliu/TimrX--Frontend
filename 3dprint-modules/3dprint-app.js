@@ -1253,6 +1253,7 @@
           showQuality: true,
           showMotion: true,
           showTier: false,
+          showLoop: true,
           hint: 'Higher quality uses more credits. Pro requires 8s duration.',
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
@@ -1279,6 +1280,7 @@
           showQuality: false,
           showMotion: false,
           showTier: false,
+          showLoop: false,
           hint: 'Fast generation with audio. 5s or 10s clips.',
           timeEstimate: () => '~1\u20133 min',
         },
@@ -1306,6 +1308,7 @@
           showQuality: false,
           showMotion: false,
           showTier: true,
+          showLoop: false,
           hint: 'Queue times vary with demand. Preview tier may take longer.',
           timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u201310 min' : '~1\u20133 min',
         },
@@ -1434,9 +1437,9 @@
       function updateDurationOptions() {
         if (!videoDuration) return;
 
-        // Seedance has no resolution-based duration constraints
+        // Seedance providers have no resolution-based duration constraints
         const provider = videoAIProvider?.value || 'vertex';
-        if (provider === 'seedance') return;
+        if (provider === 'seedance' || provider === 'fal_seedance') return;
 
         // Veo resolution-based constraints
         const resolution = videoQuality?.value || '720p';
@@ -1662,6 +1665,10 @@
         } else if (tierWrap) {
           tierWrap.classList.add('hidden');
         }
+
+        // Loop/Playback toggle (Veo only — Seedance doesn't support loop)
+        const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
+        if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
         // Hint text
         if (resolutionHint) resolutionHint.textContent = cfg.hint;
