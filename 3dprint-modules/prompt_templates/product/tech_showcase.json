@@ -1,0 +1,11 @@
+{
+  "name": "Tech Showcase",
+  "category": "product",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Modern technology product {subject} presented with a futuristic feel. Dynamic camera movement reveals design details and engineering precision. Cool-toned lighting with subtle tech accents creates a cutting-edge atmosphere.",
+  "variations": {
+    "camera": ["dynamic orbit with speed ramp", "exploded view rotation", "macro detail pan then zoom out"],
+    "lighting": ["cool blue LED accents", "holographic rim glow", "clean daylight balanced"],
+    "environment": ["dark tech void with grid lines", "floating in abstract space", "sleek desk surface"]
+  }
+}

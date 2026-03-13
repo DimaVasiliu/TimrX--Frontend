@@ -1,0 +1,11 @@
+{
+  "name": "Luxury Commercial",
+  "category": "product",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Premium luxury showcase of {subject} with elegant motion and refined aesthetics. Camera glides with ultra-smooth precision across surface details. High-end commercial feel with sophisticated lighting and tasteful composition.",
+  "variations": {
+    "camera": ["ultra-slow gliding orbit", "gentle rise revealing product", "smooth dolly across surface detail"],
+    "lighting": ["warm golden key light", "cool metallic reflections", "soft diffused editorial"],
+    "environment": ["marble surface", "brushed metal backdrop", "velvet draped setting"]
+  }
+}

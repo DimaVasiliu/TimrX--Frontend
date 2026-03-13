@@ -1,0 +1,11 @@
+{
+  "name": "Unboxing Reveal",
+  "category": "product",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Product {subject} emerging from packaging with a sense of discovery and anticipation. Camera captures the moment of reveal as the item comes into view. Warm inviting lighting enhances the feeling of a premium unboxing experience.",
+  "variations": {
+    "camera": ["overhead looking down", "eye-level slow approach", "gentle crane from box to product"],
+    "lighting": ["warm inviting glow from inside box", "soft ambient with product spotlight", "natural window light"],
+    "environment": ["wooden table surface", "clean desk", "lifestyle setting"]
+  }
+}

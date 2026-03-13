@@ -1,0 +1,11 @@
+{
+  "name": "Minimal Studio",
+  "category": "product",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Clean minimalist product shot of {subject} with sharp focus and zero distractions. Simple camera motion keeps attention entirely on the product form. Crisp studio lighting with controlled shadows on a pristine backdrop.",
+  "variations": {
+    "camera": ["slow rotation on turntable", "static with subtle breathing motion", "gentle arc from front to profile"],
+    "lighting": ["even soft-box diffusion", "single dramatic side light", "bright high-key"],
+    "environment": ["pure white void", "light grey gradient", "subtle shadow ground plane"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Product Reveal",
+  "category": "product",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Smooth 360-degree rotation of {subject} on a clean backdrop, premium commercial quality. Studio lighting highlights every surface detail and material texture. Professional product photography in motion with polished presentation.",
+  "variations": {
+    "camera": ["slow full rotation", "half-turn with pause", "gentle rocking motion"],
+    "lighting": ["clean studio three-point", "soft gradient backdrop glow", "dramatic single-source accent"],
+    "environment": ["white cyclorama", "dark matte surface", "gradient backdrop"]
+  }
+}
