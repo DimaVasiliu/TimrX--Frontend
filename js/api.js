@@ -2524,20 +2524,20 @@ const VIDEO_ASPECT_MAP = {
  * - 4k: 8s only
  */
 const VIDEO_CREDIT_COSTS = {
-  '720p':  { 4: 70, 6: 90, 8: 110 },
-  '1080p': { 8: 130 },
-  '4k':    { 8: 160 }
+  '720p':  { 4: 75, 6: 100, 8: 125 },
+  '1080p': { 8: 150 },
+  '4k':    { 8: 200 }
 };
 
-// Image-to-Video costs (+50% premium over text-to-video)
+// Image-to-Video costs (premium over text-to-video)
 const VIDEO_IMAGE_CREDIT_COSTS = {
-  '720p':  { 4: 105, 6: 135, 8: 165 },
-  '1080p': { 8: 195 },
-  '4k':    { 8: 240 }
+  '720p':  { 4: 110, 6: 140, 8: 170 },
+  '1080p': { 8: 200 },
+  '4k':    { 8: 250 }
 };
 
-// Seedance credits: tier * duration (fast=14 cps, preview=24 cps)
-const SEEDANCE_CPS = { fast: 14, preview: 24 };
+// Seedance credits: tier * duration (fast=16 cps, preview=25 cps)
+const SEEDANCE_CPS = { fast: 16, preview: 25 };
 // fal Seedance 1.5 Pro: flat 14 cps
 const FAL_SEEDANCE_CPS = 14;
 
@@ -2589,7 +2589,7 @@ function getVideoCredits(settings) {
   const isImageMode = settings.mode && settings.mode !== 'text2video';
   const costTable = isImageMode ? VIDEO_IMAGE_CREDIT_COSTS : VIDEO_CREDIT_COSTS;
   const resolutionCosts = costTable[resolution] || costTable['720p'];
-  return resolutionCosts[duration] || (isImageMode ? 105 : 70);
+  return resolutionCosts[duration] || (isImageMode ? 110 : 75);
 }
 
 /**

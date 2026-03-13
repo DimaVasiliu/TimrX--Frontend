@@ -689,7 +689,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
               <input type="hidden" id="videoLoop" value="true">
             </div>
           </div>
-          <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro requires 8s duration.</span>
+          <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro and 4K require 8s duration.</span>
         </div>
 
         <!-- Camera Motion (optional) -->
@@ -1350,13 +1350,15 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p
       const VIDEO_CREDIT_RULES_FALLBACK = {
         '720p':  { 4: 75, 6: 100, 8: 125 },  // Standard (HD)
-        '1080p': { 8: 150 }                   // Pro (Full HD) - requires 8s
+        '1080p': { 8: 150 },                  // Pro (Full HD) - requires 8s
+        '4k':    { 8: 200 }                   // Ultra (4K) - requires 8s
       };
 
       // Image-to-Video fallback costs (premium over text-to-video)
       const VIDEO_IMAGE_CREDIT_RULES_FALLBACK = {
         '720p':  { 4: 110, 6: 140, 8: 170 },
-        '1080p': { 8: 200 }
+        '1080p': { 8: 200 },
+        '4k':    { 8: 250 }
       };
       // Seedance credit costs — explicit lookup tables (DB is authoritative)
       const SEEDANCE_COSTS = {
@@ -1371,14 +1373,16 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
-        '1080p': [8]          // Pro: 8s only
+        '1080p': [8],         // Pro: 8s only
+        '4k':    [8]          // Ultra: 8s only
       };
       // Time estimates by quality tier
-      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min' };
+      const VIDEO_TIME_ESTIMATE = { '720p': '~2 min', '1080p': '~3 min', '4k': '~5 min' };
       // UI labels for resolution values
       const VIDEO_QUALITY_LABELS = {
         '720p': 'Standard (HD)',
-        '1080p': 'Pro (Full HD)'
+        '1080p': 'Pro (Full HD)',
+        '4k': 'Ultra (4K)'
       };
 
       // Map simplified aspect values to API format (no square/1:1 - not supported by Veo)
@@ -1415,11 +1419,16 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
             { value: 'slow_motion', text: 'Slow-Mo' },
             { value: 'noir', text: 'Noir' },
           ],
+          qualities: [
+            { value: '720p', text: 'Standard (HD)', selected: true },
+            { value: '1080p', text: 'Pro (Full HD)' },
+            { value: '4k', text: 'Ultra (4K)' },
+          ],
           showQuality: true,
           showMotion: true,
           showTier: false,
           showLoop: true,
-          hint: 'Higher quality uses more credits. Pro requires 8s duration.',
+          hint: 'Higher quality uses more credits. Pro and 4K require 8s duration.',
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
         fal_seedance: {
@@ -1636,7 +1645,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
 
           // Add visual hint for disabled options
           if (!isValid) {
-            opt.textContent = `${dur} sec (requires ${qualityLabel})`;
+            opt.textContent = `${dur} sec (${qualityLabel} requires 8s)`;
           } else {
             opt.textContent = `${dur} sec`;
           }
@@ -1814,9 +1823,11 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         if (styleRow) styleRow.classList.remove('hidden');
         if (stylePreset) stylePreset.innerHTML = buildOptionsHTML(cfg.styles);
 
-        // Quality wrap (Veo only)
+        // Quality wrap (Veo only) — rebuild from config like duration/aspect
         if (videoQualityWrap) videoQualityWrap.classList.toggle('hidden', !cfg.showQuality);
-        if (cfg.showQuality && videoQuality) {
+        if (cfg.showQuality && videoQuality && cfg.qualities) {
+          videoQuality.innerHTML = buildOptionsHTML(cfg.qualities);
+        } else if (cfg.showQuality && videoQuality) {
           videoQuality.querySelectorAll('option').forEach(opt => {
             opt.disabled = false;
             opt.style.display = '';
