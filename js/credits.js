@@ -194,19 +194,19 @@
   const PLAN_BULLETS = {
     one_time: {
       starter: [
-        'Up to 50 AI images',
+        'Up to 25 AI images',
         'Up to 12 3D models',
         'Refinements included',
         'GLB/GLTF downloads',
       ],
       creator: [
-        'Up to 180 AI images',
+        'Up to 90 AI images',
         'Up to 45 3D models',
         'Refinements included',
         'GLB/GLTF downloads',
       ],
       studio: [
-        'Up to 440 AI images',
+        'Up to 220 AI images',
         'Up to 110 3D models',
         'Refinements included',
         'Priority queue access',
@@ -214,19 +214,19 @@
     },
     monthly: {
       starter: [
-        'Up to 80 AI images/mo',
+        'Up to 40 AI images/mo',
         'Up to 20 3D models/mo',
         'Standard queue priority',
         'Cancel anytime',
       ],
       creator: [
-        'Up to 260 AI images/mo',
+        'Up to 130 AI images/mo',
         'Up to 65 3D models/mo',
         'Priority queue included',
         'Cancel anytime',
       ],
       studio: [
-        'Up to 640 AI images/mo',
+        'Up to 320 AI images/mo',
         'Up to 160 3D models/mo',
         'Pro priority queue',
         'Highest concurrency',
@@ -592,7 +592,7 @@
       if (modelPricingGrid) modelPricingGrid.style.display = '';
       if (videoPricingGrid) videoPricingGrid.style.display = 'none';
       // Simplified footer - no internal math explanations
-      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 5 credits · 3D Model = 20 credits · Video sold separately';
+      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 10 credits · 3D Model = 20 credits · Video sold separately';
     }
 
     // Update each pricing card

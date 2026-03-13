@@ -136,11 +136,11 @@
           <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
-              <option value="standard" selected>Standard (5c)</option>
-              <option value="high">2K (7c)</option>
+              <option value="standard" selected>Standard (10c)</option>
+              <option value="high">2K (15c)</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Standard 5c • 2K 7c</span>
+          <span class="field-hint" id="imageQualityHint">Standard 10c • 2K 15c</span>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
@@ -149,9 +149,9 @@
           <div class="gen-meta">
             <span class="gen-time" id="imageGenTime">30 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="5 credits" data-provider="openai">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits" data-provider="openai">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -1349,21 +1349,25 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       // Actual costs are fetched from backend via WorkspaceCredits
       // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p
       const VIDEO_CREDIT_RULES_FALLBACK = {
-        '720p':  { 4: 70, 6: 90, 8: 110 },   // Standard (HD)
-        '1080p': { 8: 130 }                   // Pro (Full HD) - requires 8s
+        '720p':  { 4: 75, 6: 100, 8: 125 },  // Standard (HD)
+        '1080p': { 8: 150 }                   // Pro (Full HD) - requires 8s
       };
 
-      // Image-to-Video fallback costs (+50% premium over text-to-video)
+      // Image-to-Video fallback costs (premium over text-to-video)
       const VIDEO_IMAGE_CREDIT_RULES_FALLBACK = {
-        '720p':  { 4: 105, 6: 135, 8: 165 },
-        '1080p': { 8: 195 }
+        '720p':  { 4: 110, 6: 140, 8: 170 },
+        '1080p': { 8: 200 }
       };
-      // Seedance credit costs: credits-per-second * duration
-      // Fast (seedance-2-fast-preview): 14 credits/sec
-      // Preview (seedance-2-preview):   24 credits/sec
-      const SEEDANCE_CPS = { fast: 14, preview: 24 };
-      // fal Seedance 1.5 Pro: flat 14 credits/sec
-      const FAL_SEEDANCE_CPS = 14;
+      // Seedance credit costs — explicit lookup tables (DB is authoritative)
+      const SEEDANCE_COSTS = {
+        fast:    { 5: 80, 10: 150, 15: 225 },
+        preview: { 5: 125, 10: 250, 15: 375 }
+      };
+      // Approximate CPS for fallback only (DB values are authoritative)
+      const SEEDANCE_CPS = { fast: 16, preview: 25 };
+      // fal Seedance 1.5 Pro — explicit lookup (DB is authoritative)
+      const FAL_SEEDANCE_COSTS = { 5: 80, 10: 150 };
+      const FAL_SEEDANCE_CPS = 16;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
@@ -1534,17 +1538,21 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
         let cost = null;
         let source = 'unknown';
 
-        // fal Seedance: flat 14 cps
+        // fal Seedance: prefer explicit lookup, then CPS fallback
         if (provider === 'fal_seedance') {
-          cost = FAL_SEEDANCE_CPS * duration;
+          cost = (FAL_SEEDANCE_COSTS[duration] !== undefined)
+            ? FAL_SEEDANCE_COSTS[duration]
+            : FAL_SEEDANCE_CPS * duration;
           source = 'fal_seedance';
         }
 
-        // Seedance (PiAPI): tier * duration credits
+        // Seedance (PiAPI): prefer explicit lookup, then CPS fallback
         if (provider === 'seedance') {
           const tier = settings.seedanceTier || 'fast';
-          const cps = SEEDANCE_CPS[tier] || 14;
-          cost = cps * duration;
+          const tierCosts = SEEDANCE_COSTS[tier] || {};
+          cost = (tierCosts[duration] !== undefined)
+            ? tierCosts[duration]
+            : (SEEDANCE_CPS[tier] || 16) * duration;
           source = `seedance-${tier}`;
         }
 
@@ -1566,7 +1574,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
             cost = resRules[8];
             source = 'fallback-8s';
           } else {
-            cost = isImageMode ? 105 : 70;
+            cost = isImageMode ? 110 : 75;
             source = 'fallback-default';
           }
         }

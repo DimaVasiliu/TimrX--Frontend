@@ -404,62 +404,65 @@ export async function fetchActionCosts() {
  * Default action costs (fallback if API unavailable)
  *
  * CANONICAL ACTION KEYS (use these in new code):
- * - image_generate       (5c)  - Standard AI image
- * - image_generate_2k    (7c)  - 2K resolution AI image
- * - image_generate_4k    (10c) - 4K resolution AI image
- * - text_to_3d_generate  (18c) - Text to 3D preview generation
- * - image_to_3d_generate (25c) - Image to 3D conversion
- * - refine               (8c)  - Refine/upscale 3D model
- * - remesh               (8c)  - Remesh 3D model (same cost as refine)
- * - retexture            (12c) - Apply new texture to 3D model
- * - video_generate       (70c) - Generic video generation (minimum, varies by duration/resolution)
- * - video_text_generate  (70c) - Text-to-video generation (minimum)
- * - video_image_animate  (70c) - Image-to-video animation (minimum)
+ * - image_generate       (10c) - Standard AI image
+ * - image_generate_2k    (15c) - 2K resolution AI image
+ * - image_generate_4k    (20c) - 4K resolution AI image
+ * - text_to_3d_generate  (20c) - Text to 3D preview generation
+ * - image_to_3d_generate (30c) - Image to 3D conversion
+ * - refine               (10c) - Refine/upscale 3D model
+ * - remesh               (10c) - Remesh 3D model (same cost as refine)
+ * - retexture            (15c) - Apply new texture to 3D model
+ * - video_generate       (75c) - Generic video generation (minimum, varies by duration/resolution)
+ * - video_text_generate  (75c) - Text-to-video generation (minimum)
+ * - video_image_animate  (110c) - Image-to-video animation (minimum)
  *
  * VIDEO PRICING (DB-driven via video_credit_rules):
- * - 720p:  4s=70, 6s=90, 8s=110
- * - 1080p: 8s=130 (requires 8s duration)
- * - 4K:    8s=160 (requires 8s duration)
+ * - 720p:  4s=75, 6s=100, 8s=125
+ * - 1080p: 8s=150 (requires 8s duration)
+ * - 4K:    8s=200 (requires 8s duration)
  */
 function getDefaultActionCosts() {
   return {
     // === CANONICAL ACTION KEYS ===
-    'image_generate': 5,          // Standard AI image
-    'image_generate_2k': 7,       // 2K resolution
-    'image_generate_4k': 10,      // 4K resolution
+    'image_generate': 10,         // Standard AI image
+    'image_generate_2k': 15,      // 2K resolution
+    'image_generate_4k': 20,      // 4K resolution
     'text_to_3d_generate': 20,    // Text to 3D preview
     'image_to_3d_generate': 30,   // Image to 3D
-    'refine': 8,                  // Refine 3D model
-    'remesh': 8,                  // Remesh 3D model
-    'retexture': 12,              // Retexture 3D model
-    'video_generate': 70,         // Video generation (minimum - actual cost from video_credit_rules)
-    'video_text_generate': 70,    // Text to video (minimum)
-    'video_image_animate': 70,    // Image to video (minimum)
+    'refine': 10,                 // Refine 3D model
+    'remesh': 10,                 // Remesh 3D model
+    'retexture': 15,              // Retexture 3D model
+    'video_generate': 75,         // Video generation (minimum - actual cost from video_credit_rules)
+    'video_text_generate': 75,    // Text to video (minimum)
+    'video_image_animate': 110,   // Image to video (minimum)
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
     'text-to-3d': 20,
     'image-to-3d': 30,
-    'text-to-image': 5,
+    'text-to-image': 10,
 
     // Old naming
     'preview': 20,                // -> text_to_3d_generate
-    'texture': 12,                // -> retexture
-    'upscale': 8,                 // -> refine
-    'video': 70,                  // -> video_generate (minimum)
-    'image_studio_generate': 5,   // -> image_generate
+    'texture': 15,                // -> retexture
+    'upscale': 10,                // -> refine
+    'video': 75,                  // -> video_generate (minimum)
+    'image_studio_generate': 10,  // -> image_generate
 
     // Backend DB action codes (for direct lookups)
     'MESHY_TEXT_TO_3D': 20,
     'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 12,
-    'MESHY_REFINE': 8,
-    'OPENAI_IMAGE': 5,
-    'OPENAI_IMAGE_2K': 7,
-    'OPENAI_IMAGE_4K': 10,
-    'VIDEO_GENERATE': 70,         // Minimum video cost
-    'VIDEO_TEXT_GENERATE': 70,
-    'VIDEO_IMAGE_ANIMATE': 70,
+    'MESHY_RETEXTURE': 15,
+    'MESHY_REFINE': 10,
+    'OPENAI_IMAGE': 10,
+    'OPENAI_IMAGE_2K': 15,
+    'OPENAI_IMAGE_4K': 20,
+    'GEMINI_IMAGE': 10,
+    'GEMINI_IMAGE_2K': 15,
+    'GEMINI_IMAGE_4K': 20,
+    'VIDEO_GENERATE': 75,         // Minimum video cost
+    'VIDEO_TEXT_GENERATE': 75,
+    'VIDEO_IMAGE_ANIMATE': 110,
   };
 }
 
@@ -701,24 +704,31 @@ export function getVideoCreditCost(task, durationSeconds, resolution) {
     return cost;
   }
 
-  // Fallback to hardcoded defaults (must match backend)
-  const FALLBACK_COSTS = {
-    '720p': { 4: 70, 6: 90, 8: 110 },
-    '1080p': { 8: 130 },
-    '4k': { 8: 160 },
+  // Fallback to hardcoded defaults (must match backend pricing_service.py)
+  const FALLBACK_TEXT = {
+    '720p': { 4: 75, 6: 100, 8: 125 },
+    '1080p': { 8: 150 },
+    '4k': { 8: 200 },
+  };
+  const FALLBACK_IMAGE = {
+    '720p': { 4: 110, 6: 140, 8: 170 },
+    '1080p': { 8: 200 },
+    '4k': { 8: 250 },
   };
 
+  const isImageTask = task && task.toLowerCase() !== 'text2video';
+  const fallback = isImageTask ? FALLBACK_IMAGE : FALLBACK_TEXT;
   const resLower = resolution.toLowerCase();
   const dur = parseInt(durationSeconds, 10);
 
-  if (FALLBACK_COSTS[resLower] && FALLBACK_COSTS[resLower][dur] !== undefined) {
-    console.warn(`[Credits] Using fallback cost for ${actionCode}: ${FALLBACK_COSTS[resLower][dur]}`);
-    return FALLBACK_COSTS[resLower][dur];
+  if (fallback[resLower] && fallback[resLower][dur] !== undefined) {
+    console.warn(`[Credits] Using fallback cost for ${actionCode}: ${fallback[resLower][dur]}`);
+    return fallback[resLower][dur];
   }
 
   // Ultimate fallback
-  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to 70`);
-  return 70;
+  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to ${isImageTask ? 110 : 75}`);
+  return isImageTask ? 110 : 75;
 }
 
 /**
@@ -1347,9 +1357,9 @@ export function updateCreditsUI() {
  * - refine               (10c) - Refine 3D model
  * - remesh               (10c) - Remesh 3D model
  * - retexture            (15c) - Retexture 3D model
- * - video_generate       (70-160c) - Video generation (varies by duration/resolution)
- * - video_text_generate  (70-160c) - Text to video
- * - video_image_animate  (70-160c) - Image to video
+ * - video_generate       (75-250c) - Video generation (varies by duration/resolution)
+ * - video_text_generate  (75-200c) - Text to video
+ * - video_image_animate  (110-250c) - Image to video
  */
 const BUTTON_CONFIG = {
   // Core generation buttons (canonical keys)
