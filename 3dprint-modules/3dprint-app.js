@@ -682,11 +682,11 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
             </div>
             <div class="vs-setting vs-setting-toggle">
               <label>Playback</label>
-              <button type="button" id="videoLoopBtn" class="vs-toggle-btn is-active" title="Loop playback">
+              <button type="button" id="videoLoopBtn" class="vs-toggle-btn" title="Loop playback">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
                 <span>Loop</span>
               </button>
-              <input type="hidden" id="videoLoop" value="true">
+              <input type="hidden" id="videoLoop" value="false">
             </div>
           </div>
           <span class="vs-hint" id="videoResolutionHint">Higher quality uses more credits. Pro and 4K require 8s duration.</span>

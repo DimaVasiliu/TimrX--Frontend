@@ -1429,15 +1429,15 @@ function wireGallery() {
         if (text2videoContent) text2videoContent.classList.add('hidden');
         if (image2videoContent) image2videoContent.classList.remove('hidden');
 
-        // Set duration to 6s, quality to high
+        // Set duration to 4s (default), quality to standard
         const videoDuration = byId('videoDuration');
         const videoQuality = byId('videoQuality');
         if (videoDuration) {
-          videoDuration.value = '6';
+          videoDuration.value = '4';
           videoDuration.dispatchEvent(new Event('change', { bubbles: true }));
         }
         if (videoQuality) {
-          videoQuality.value = 'high';
+          videoQuality.value = '720p';
           videoQuality.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
@@ -1455,15 +1455,15 @@ function wireGallery() {
           videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
         }
 
-        // Update credits display — Veo image-to-video 6s 720p = 140 credits
+        // Update credits display — Veo image-to-video 4s 720p = 110 credits
         const videoCreditsDisplay = byId('videoCreditsDisplay');
         if (videoCreditsDisplay) {
-          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 140';
+          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 110';
         }
         const generateVideoBtn = byId('generateVideoBtn');
         if (generateVideoBtn) {
-          generateVideoBtn.title = '140 credits';
-          generateVideoBtn.dataset.baseCredits = '140';
+          generateVideoBtn.title = '110 credits';
+          generateVideoBtn.dataset.baseCredits = '110';
           // Enable button since we have a valid image loaded
           generateVideoBtn.disabled = false;
           generateVideoBtn.removeAttribute('data-disabled-reason');
