@@ -531,8 +531,8 @@
       <!-- Image-to-Video: Dual-mode (Animate / Transition) -->
       <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
 
-        <!-- Image sub-mode switcher -->
-        <div class="video-img-mode-switcher" id="videoImgModeSwitcher">
+        <!-- Image sub-mode switcher (hidden by default for Veo, shown for Seedance) -->
+        <div class="video-img-mode-switcher hidden" id="videoImgModeSwitcher">
           <button type="button" class="video-img-mode-btn is-active" data-img-mode="animate_image">Animate Image</button>
           <button type="button" class="video-img-mode-btn" data-img-mode="image_transition">Image Transition</button>
         </div>
@@ -563,7 +563,7 @@
             </div>
           </div>
 
-          <div class="vs-section vs-animation-prompt-section">
+          <div class="vs-section vs-animation-prompt-section hidden">
             <label for="videoAnimationPrompt" class="vs-label">Animation Prompt</label>
             <textarea id="videoAnimationPrompt" rows="3" placeholder="Describe what should happen in the scene.
 Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion."></textarea>
