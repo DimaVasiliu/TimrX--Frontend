@@ -1,0 +1,11 @@
+{
+  "name": "Particle Flow",
+  "category": "abstract",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Abstract flowing particles and energy visualization, thousands of luminous points streaming through space in fluid patterns. Camera drifts through the particle cloud as colors shift and pulse. Self-illuminated elements create mesmerizing motion against a deep backdrop.",
+  "variations": {
+    "camera": ["slow drift through particle cloud", "orbiting the flow center", "macro zoom into particle stream"],
+    "lighting": ["self-illuminated particles", "gradient color shifting", "pulsing rhythmic glow"],
+    "environment": ["dark void", "color gradient backdrop", "nebula-like space"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Geometric Motion",
+  "category": "abstract",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Abstract geometric shapes in choreographed motion, clean forms rotating and interlocking with mathematical precision. Camera orbits the geometric assembly as shapes transform and reconfigure. Sharp lighting defines crisp edges and creates dramatic shadows.",
+  "variations": {
+    "camera": ["orbit around geometric assembly", "slow zoom through structure", "static with shapes in motion"],
+    "lighting": ["clean rim light on edges", "prismatic refractions", "monochromatic dramatic"],
+    "environment": ["infinite white void", "dark minimalist space", "gradient backdrop"]
+  }
+}
