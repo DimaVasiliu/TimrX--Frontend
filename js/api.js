@@ -2547,7 +2547,7 @@ function _isSeedanceProvider(provider) {
  */
 function _providerDisplayName(provider) {
   if (provider === 'fal_seedance') return 'Seedance';
-  if (provider === 'seedance') return 'Seedance';
+  if (provider === 'seedance') return 'Seedance 2.0';
   return 'Veo';
 }
 

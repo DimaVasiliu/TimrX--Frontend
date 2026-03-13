@@ -1213,6 +1213,74 @@ textarea {
   opacity: 1;
 }
 
+/* ── Experimental providers section ── */
+.video-experimental-section {
+  margin-top: 6px;
+}
+
+.video-experimental-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.video-experimental-trigger:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.video-experimental-chevron {
+  transition: transform 0.15s ease;
+}
+
+.video-experimental-trigger.is-open .video-experimental-chevron {
+  transform: rotate(180deg);
+}
+
+.video-experimental-panel.hidden {
+  display: none;
+}
+
+.video-experimental-panel {
+  margin-top: 4px;
+}
+
+.video-provider-switcher--experimental {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.video-provider-btn--legacy {
+  opacity: 0.65;
+}
+
+.video-provider-btn--legacy .vpb-tag {
+  color: rgba(255, 180, 80, 0.7);
+}
+
+.video-provider-btn--legacy.is-active {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(255, 180, 80, 0.15) 0%, rgba(200, 140, 60, 0.15) 100%);
+  border: 1px solid rgba(255, 180, 80, 0.2);
+}
+
+.video-experimental-hint {
+  display: block;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
 /* Video style preset - compact inline layout */
 .timrx-3dprint .card .inline-field.video-style-row {
   margin-top: 12px;
