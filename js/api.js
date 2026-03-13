@@ -2531,6 +2531,25 @@ const VIDEO_CREDIT_COSTS = {
 
 // Seedance credits: tier * duration (fast=14 cps, preview=24 cps)
 const SEEDANCE_CPS = { fast: 14, preview: 24 };
+// fal Seedance 1.5 Pro: flat 14 cps
+const FAL_SEEDANCE_CPS = 14;
+
+/**
+ * Check if a provider belongs to the Seedance family (fal or PiAPI).
+ * Use this instead of binary `=== 'seedance'` checks.
+ */
+function _isSeedanceProvider(provider) {
+  return provider === 'seedance' || provider === 'fal_seedance';
+}
+
+/**
+ * Get display name for a provider.
+ */
+function _providerDisplayName(provider) {
+  if (provider === 'fal_seedance') return 'Seedance';
+  if (provider === 'seedance') return 'Seedance';
+  return 'Veo';
+}
 
 /**
  * Get video credit cost based on provider, resolution and duration.
@@ -2545,7 +2564,12 @@ function getVideoCredits(settings) {
     return window.VideoJobControl.computeCredits(settings);
   }
 
-  // Seedance: tier * duration
+  // fal Seedance: flat 14 cps
+  if (settings.provider === 'fal_seedance') {
+    return FAL_SEEDANCE_CPS * (settings.durationSec || 5);
+  }
+
+  // Seedance (PiAPI): tier * duration
   if (settings.provider === 'seedance') {
     const tier = settings.seedanceTier || 'fast';
     const cps = SEEDANCE_CPS[tier] || 14;
@@ -2564,7 +2588,7 @@ function getVideoCredits(settings) {
  * For non-Seedance providers, returns the original prompt unchanged.
  */
 function _composeSeedancePrompt(mainPrompt, stylePreset, motionText, settings) {
-  if (!settings || settings.provider !== 'seedance') return mainPrompt;
+  if (!settings || !_isSeedanceProvider(settings.provider)) return mainPrompt;
   if (!mainPrompt) return mainPrompt;
 
   const SEEDANCE_STYLE_PHRASES = {
@@ -2679,8 +2703,8 @@ export async function startVideoGeneration() {
   renderHistory();
 
   try {
-    prog.label(settings.provider === 'seedance'
-      ? `Sending to Seedance${settings.seedanceTier === 'preview' ? ' Preview' : ''}...`
+    prog.label(_isSeedanceProvider(settings.provider)
+      ? `Sending to ${_providerDisplayName(settings.provider)}${settings.seedanceTier === 'preview' ? ' Preview' : ''}...`
       : 'Sending to Veo...');
 
     // Build payload for Veo
@@ -2733,7 +2757,7 @@ export async function startVideoGeneration() {
     }
 
     // Log action code for debugging (lowercase canonical format)
-    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution) ||
+    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution, settings.provider) ||
                  `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
     console.log('[VIDEO] Action code:', actionCode, '| Provider:', settings.provider, '| Expected cost:', totalCredits);
     console.log('[GEN] provider=' + settings.provider + ' mode=' + settings.mode + ' endpoint=' + endpoint +
@@ -2773,7 +2797,7 @@ export async function startVideoGeneration() {
       State.deleteHistoryItem(tempId, { skipRemote: true });
     }
 
-    const provName = settings.provider === 'seedance' ? 'Seedance' : 'Veo';
+    const provName = _providerDisplayName(settings.provider);
     const queuedPlaceholder = {
       ...placeholder,
       id: jobId,
@@ -2871,6 +2895,12 @@ function _friendlyVideoError(errorCode, rawMsg) {
     seedance_generation_failed: 'Seedance rejected this generation',
     seedance_no_video_url: 'Completed but no video returned',
     seedance_auth_error: 'Provider authentication failed',
+    // fal Seedance-specific
+    fal_seedance_auth_error: 'fal Seedance authentication failed',
+    fal_seedance_network_error: 'Lost connection to fal Seedance',
+    fal_seedance_no_request_id: 'fal Seedance completed but no video returned',
+    fal_seedance_api_error: 'fal Seedance rejected this generation',
+    fal_seedance_download_error: 'Failed to download from fal Seedance',
     // Vertex-specific
     vertex_no_result_url: 'Vertex completed but no video returned',
     vertex_timeout: 'Vertex generation timed out',
@@ -3047,7 +3077,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
       // Provider pending — job accepted but never started upstream
       if (status === 'provider_pending') {
         const pendSec = data.pending_seconds || 0;
-        const prov = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
+        const prov = _providerDisplayName(meta.provider);
         const ppLabel = pendSec > 120
           ? `${prov} queue busy — please wait`
           : `Queued with ${prov}`;
@@ -3074,7 +3104,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
 
       // Still processing - update progress (surgical DOM update to avoid flicker)
       if (data.progress !== undefined || status === 'processing') {
-        const provLabel = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
+        const provLabel = _providerDisplayName(meta.provider);
         const pLabel = data.progress !== undefined
           ? `${provLabel} rendering... ${data.progress}%`
           : (data.message || `${provLabel} rendering...`);
@@ -3100,7 +3130,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
       State.updateHistoryItem(jobId, {
         status: 'generating',
         status_label: fs === 'provider_pending'
-          ? `Delayed — still queued with ${meta.provider === 'seedance' ? 'Seedance' : 'Veo'}`
+          ? `Delayed — still queued with ${_providerDisplayName(meta.provider)}`
           : 'Still rendering — check back shortly',
         video_id: videoUuid,
         type: 'video'
@@ -3113,7 +3143,7 @@ async function watchVideoJob(jobId, reservationId, meta) {
   } catch (_) { /* final check failed, proceed with timeout */ }
 
   releaseCreditsReservation(reservationId);
-  const timeoutProv = meta.provider === 'seedance' ? 'Seedance' : 'Veo';
+  const timeoutProv = _providerDisplayName(meta.provider);
   State.updateHistoryItem(jobId, {
     status: 'failed',
     status_label: `${timeoutProv} generation timed out`,

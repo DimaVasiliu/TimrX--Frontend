@@ -666,10 +666,18 @@ export function isVideoAction(action) {
  * @param {string} resolution - "720p", "1080p", or "4k"
  * @returns {string} Action code
  */
-export function getVideoActionCode(task, durationSeconds, resolution) {
+export function getVideoActionCode(task, durationSeconds, resolution, provider) {
   // Use lowercase snake_case as canonical format
   const taskPart = task === 'text2video' ? 'text_generate' : 'image_animate';
   const durationPart = `${durationSeconds}s`;
+
+  // fal Seedance: fal_seedance_{task}_{duration}s
+  if (provider === 'fal_seedance') {
+    return `fal_seedance_${taskPart}_${durationPart}`;
+  }
+
+  // PiAPI Seedance: handled by caller with tier prefix (seedance_{tier}_{task}_{dur}s)
+  // Vertex/Veo: video_{task}_{dur}s_{res}
   const resPart = resolution.toLowerCase();
   return `video_${taskPart}_${durationPart}_${resPart}`;
 }

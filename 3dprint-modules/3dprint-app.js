@@ -467,7 +467,7 @@
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
             <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
-            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
+            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Seedance</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -1202,6 +1202,8 @@
       // Fast (seedance-2-fast-preview): 14 credits/sec
       // Preview (seedance-2-preview):   24 credits/sec
       const SEEDANCE_CPS = { fast: 14, preview: 24 };
+      // fal Seedance 1.5 Pro: flat 14 credits/sec
+      const FAL_SEEDANCE_CPS = 14;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
@@ -1254,6 +1256,32 @@
           hint: 'Higher quality uses more credits. Pro requires 8s duration.',
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
+        fal_seedance: {
+          label: 'Seedance',
+          durations: [
+            { value: '5', text: '5 sec', selected: true },
+            { value: '10', text: '10 sec' },
+          ],
+          aspects: [
+            { value: '16:9', text: '16:9 Landscape', selected: true },
+            { value: '9:16', text: '9:16 Portrait' },
+            { value: '1:1', text: '1:1 Square' },
+          ],
+          styles: [
+            { value: 'auto', text: 'Auto', selected: true },
+            { value: 'cinematic', text: 'Cinematic' },
+            { value: 'realistic', text: 'Realistic' },
+            { value: 'anime', text: 'Anime' },
+            { value: 'fantasy', text: 'Fantasy' },
+            { value: 'cyberpunk', text: 'Cyberpunk' },
+            { value: 'cartoon', text: 'Cartoon' },
+          ],
+          showQuality: false,
+          showMotion: false,
+          showTier: false,
+          hint: 'Fast generation with audio. 5s or 10s clips.',
+          timeEstimate: () => '~1\u20133 min',
+        },
         seedance: {
           label: 'Seedance 2.0',
           durations: [
@@ -1289,7 +1317,8 @@
        */
       function getVideoSettingsFromUI() {
         const provider = videoAIProvider?.value || 'vertex';
-        const durationRaw = videoDuration?.value || (provider === 'seedance' ? '5' : '4');
+        const isSeedanceFamily = (provider === 'seedance' || provider === 'fal_seedance');
+        const durationRaw = videoDuration?.value || (isSeedanceFamily ? '5' : '4');
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
@@ -1298,8 +1327,8 @@
 
         const settings = {
           provider: provider,
-          durationSec: parseInt(durationRaw, 10) || (provider === 'seedance' ? 5 : 4),
-          resolution: provider === 'seedance' ? '720p' : resolutionRaw,
+          durationSec: parseInt(durationRaw, 10) || (isSeedanceFamily ? 5 : 4),
+          resolution: isSeedanceFamily ? '720p' : resolutionRaw,
           quality: resolutionRaw,
           aspect: aspectRaw,
           aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || aspectRaw || '16:9',
@@ -1332,13 +1361,20 @@
       function computeVideoCredits(settings) {
         const provider = settings.provider || 'vertex';
         const resolution = settings.resolution || '720p';
-        const duration = settings.durationSec || (provider === 'seedance' ? 5 : 4);
+        const isSeedanceFamily = (provider === 'seedance' || provider === 'fal_seedance');
+        const duration = settings.durationSec || (isSeedanceFamily ? 5 : 4);
         const mode = settings.mode || 'text2video';
 
         let cost = null;
         let source = 'unknown';
 
-        // Seedance: tier * duration credits
+        // fal Seedance: flat 14 cps
+        if (provider === 'fal_seedance') {
+          cost = FAL_SEEDANCE_CPS * duration;
+          source = 'fal_seedance';
+        }
+
+        // Seedance (PiAPI): tier * duration credits
         if (provider === 'seedance') {
           const tier = settings.seedanceTier || 'fast';
           const cps = SEEDANCE_CPS[tier] || 14;
