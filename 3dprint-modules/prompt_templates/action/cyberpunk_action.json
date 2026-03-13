@@ -1,0 +1,11 @@
+{
+  "name": "Cyberpunk Action",
+  "category": "action",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "High-energy scene of {subject} in a neon-lit cyberpunk city, rain-slicked surfaces reflecting vibrant colors. Fast camera movement cuts through the urban chaos. Pulsing neon lighting and dense atmosphere create an electrifying mood.",
+  "variations": {
+    "camera": ["fast tracking through neon streets", "sweeping crane over rooftops", "first-person dash through alley"],
+    "lighting": ["pulsing neon pink and blue", "rain-reflected city lights", "holographic advertisement glow"],
+    "environment": ["rain-soaked alley", "elevated highway", "crowded night market"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Slow Motion Impact",
+  "category": "action",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Ultra slow-motion capture of {subject} in a dramatic moment of impact, every detail frozen in time. Suspended particles and rippling forces made visible at extreme frame rates. Cinematic slow motion reveals the raw power of the instant.",
+  "variations": {
+    "camera": ["close-up tracking the action", "wide shot with time dilation", "macro detail of impact point"],
+    "lighting": ["flash-freeze strobe", "backlit particles suspended", "natural light with motion blur dissolve"],
+    "environment": ["open arena", "rain frozen mid-air", "dust cloud suspension"]
+  }
+}

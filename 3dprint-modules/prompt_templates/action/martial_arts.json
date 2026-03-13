@@ -1,0 +1,11 @@
+{
+  "name": "Martial Arts",
+  "category": "action",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Fluid martial arts movement by {subject} with cinematic choreography and precise form. Camera follows the flow of combat with smooth dynamic angles. Dramatic lighting accentuates the grace and power of each technique.",
+  "variations": {
+    "camera": ["circling the fighter slowly", "low-angle upward during jump", "over-shoulder tracking"],
+    "lighting": ["warm dojo lantern light", "dramatic single spotlight", "outdoor golden hour"],
+    "environment": ["traditional dojo", "mountain training ground", "minimalist dark stage"]
+  }
+}

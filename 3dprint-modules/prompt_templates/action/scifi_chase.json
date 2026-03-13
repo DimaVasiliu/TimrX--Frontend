@@ -1,0 +1,11 @@
+{
+  "name": "Sci-Fi Chase",
+  "category": "action",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Fast pursuit of {subject} through a science fiction environment, high velocity and urgent momentum. Camera captures the speed and danger of the chase with dynamic angles. Engine glow and streaking lights convey breakneck velocity.",
+  "variations": {
+    "camera": ["first-person cockpit view", "side tracking alongside vehicles", "overhead chase perspective"],
+    "lighting": ["engine thrust glow", "passing starlight streaks", "emergency red alert lighting"],
+    "environment": ["space station corridor", "asteroid field", "futuristic city highway"]
+  }
+}
