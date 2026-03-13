@@ -1397,7 +1397,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
       const VIDEO_PROVIDER_CONFIG = {
         vertex: {
           label: 'Veo 3.1',
-          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, animationPrompt: false },
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: false },
           durations: [
             { value: '4', text: '4 seconds', selected: true },
             { value: '6', text: '6 seconds' },
