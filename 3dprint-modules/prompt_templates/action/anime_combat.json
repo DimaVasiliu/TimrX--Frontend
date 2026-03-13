@@ -1,0 +1,11 @@
+{
+  "name": "Anime Combat",
+  "category": "action",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Dynamic anime-style action featuring {subject} with bold stylization and exaggerated motion. Dramatic camera angles capture the intensity of combat with speed and impact. Vibrant saturated colors and sharp cel-shaded aesthetic.",
+  "variations": {
+    "camera": ["dramatic zoom with speed lines", "rotating impact shot", "sweeping arc around fighters"],
+    "lighting": ["vibrant saturated cel-shaded", "dramatic backlight silhouette", "energy glow illumination"],
+    "environment": ["rooftop at sunset", "cherry blossom battlefield", "abstract speed-line void"]
+  }
+}
