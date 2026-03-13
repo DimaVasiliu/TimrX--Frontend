@@ -1495,15 +1495,15 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             { value: 'noir', text: 'Noir' },
           ],
           qualities: [
-            { value: '720p', text: 'Standard (HD)', selected: true },
-            { value: '1080p', text: 'Pro (Full HD)' },
-            { value: '4k', text: 'Ultra (4K) \u2014 Experimental', experimental: true },
+            { value: '720p', text: 'Standard (HD) — Recommended', selected: true },
+            { value: '1080p', text: 'Pro (Full HD) — Slower', riskNote: 'Higher resolutions may take longer and can fail more often.' },
+            { value: '4k', text: 'Ultra (4K) — Experimental', experimental: true, riskNote: 'Higher resolutions may take longer and can fail more often.' },
           ],
           showQuality: true,
           showMotion: true,
           showTier: false,
           showLoop: true,
-          hint: 'Higher quality uses more credits. Pro and 4K require 8s duration. 4K is experimental and may time out.',
+          hint: '720p is the most reliable. Pro and 4K require 8s duration and are more likely to time out.',
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
         fal_seedance: {
@@ -1782,15 +1782,24 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           videoGenTime.textContent = cfg?.timeEstimate?.(settings) || '~2 min';
         }
 
-        // 4K experimental warning
+        // Resolution risk warnings for Vertex
         const resHint = leftStack.querySelector('#videoResolutionHint');
-        if (resHint && settings.provider === 'vertex' && settings.resolution === '4k') {
-          resHint.textContent = '4K is experimental and may time out. If it fails, retry at 1080p.';
-          resHint.style.color = '#f59e0b';
-        } else if (resHint && settings.provider === 'vertex') {
+        if (resHint && settings.provider === 'vertex') {
           const cfg = VIDEO_PROVIDER_CONFIG[settings.provider];
-          resHint.textContent = cfg?.hint || '';
-          resHint.style.color = '';
+          const mode = videoModeValue?.value || 'text2video';
+          const isTransition = mode === 'image_transition';
+
+          if (settings.resolution === '4k') {
+            resHint.textContent = '4K is experimental and may time out. If it fails, retry at 720p.';
+            resHint.style.color = '#f59e0b';
+          } else if (settings.resolution === '1080p') {
+            const extra = isTransition ? ' Image transitions at 1080p have higher timeout risk.' : '';
+            resHint.textContent = 'Higher resolutions may take longer and can fail more often.' + extra;
+            resHint.style.color = '#f59e0b';
+          } else {
+            resHint.textContent = cfg?.hint || '';
+            resHint.style.color = '';
+          }
         }
 
         // Update button attributes
