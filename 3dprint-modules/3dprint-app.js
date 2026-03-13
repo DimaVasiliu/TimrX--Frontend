@@ -1443,7 +1443,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Approximate CPS for fallback only (DB values are authoritative)
       const SEEDANCE_CPS = { fast: 16, preview: 25 };
       // fal Seedance 1.5 Pro — explicit lookup (DB is authoritative)
-      const FAL_SEEDANCE_COSTS = { 5: 80, 10: 150 };
+      const FAL_SEEDANCE_COSTS = { 5: 80, 10: 150, 12: 180 };
       const FAL_SEEDANCE_CPS = 16;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
@@ -1512,6 +1512,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
+            { value: '12', text: '12 sec' },
           ],
           aspects: [
             { value: '16:9', text: '16:9 Landscape', selected: true },
@@ -1531,7 +1532,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           showMotion: false,
           showTier: false,
           showLoop: false,
-          hint: 'Fast generation with audio. 5s or 10s clips.',
+          hint: 'Fast generation with audio. 5s, 10s, or 12s clips.',
           timeEstimate: () => '~1\u20133 min',
         },
         seedance: {
