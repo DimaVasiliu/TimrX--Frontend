@@ -628,6 +628,44 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       const errorCode = displayModel.error_code || '';
       const isStalled = displayModel.provider_stalled;
       const failBadge = isStalled ? 'Timed out' : 'Failed';
+
+      // Resolution-aware retry: if a high-res job failed (4K/1080p timeout),
+      // suggest retrying at a lower resolution instead of blind retry.
+      const failRes = displayModel.failure_resolution || displayModel.resolution || '';
+      const isTimeout = errorCode.includes('timeout') || errorCode.includes('deadline') ||
+                        errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('deadline');
+      const isHighRes = failRes === '4k' || failRes === '1080p';
+      const suggestLowerRes = isTimeout && isHighRes;
+
+      // Build retry menu items with fallback options
+      let retryMenuItems = `
+                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#8635;</span>
+                    <span>Retry Generation</span>
+                  </span>
+                </button>`;
+      if (suggestLowerRes) {
+        const fallbackRes = failRes === '4k' ? ['1080p', '720p'] : ['720p'];
+        fallbackRes.forEach(res => {
+          retryMenuItems += `
+                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}" data-retry-resolution="${res}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#8595;</span>
+                    <span>Retry at ${res}</span>
+                  </span>
+                </button>`;
+        });
+      }
+
+      // Main retry button label
+      const retryLabel = suggestLowerRes
+        ? `<span>&#8635;</span> Retry at ${failRes === '4k' ? '1080p' : '720p'}`
+        : '<span>&#8635;</span> Retry';
+      const retryResAttr = suggestLowerRes
+        ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
+        : '';
+
       return `
         <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''}">
           <div class="${thumbPrefix}__status-bar">
@@ -636,9 +674,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
           <div class="${thumbPrefix}__error-card">
             <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
-            <span class="${thumbPrefix}__error-text">${errorMsg.length > 60 ? errorMsg.slice(0, 60) + '...' : errorMsg}</span>
-            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
-              <span>&#8635;</span> Retry
+            <span class="${thumbPrefix}__error-text">${errorMsg.length > 80 ? errorMsg.slice(0, 80) + '...' : errorMsg}</span>
+            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}"${retryResAttr}>
+              ${retryLabel}
             </button>
           </div>
           <span class="${thumbPrefix}__name">${name}</span>
@@ -653,12 +691,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             </button>
             <div class="card-menu" role="menu" aria-label="Video actions">
               <div class="card-menu__list">
-                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
-                  <span class="card-menu__item-inner">
-                    <span class="card-menu__icon">&#8635;</span>
-                    <span>Retry Generation</span>
-                  </span>
-                </button>
+                ${retryMenuItems}
                 <div class="card-menu__divider"></div>
                 <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
                   <span class="card-menu__item-inner">

@@ -3006,10 +3006,16 @@ function _friendlyVideoError(errorCode, rawMsg) {
     fal_seedance_api_error: 'fal Seedance rejected this generation',
     fal_seedance_download_error: 'Failed to download from fal Seedance',
     // Vertex-specific
+    vertex_video_failed: 'Veo generation failed — try a lower resolution',
     vertex_no_result_url: 'Vertex completed but no video returned',
     vertex_timeout: 'Vertex generation timed out',
+    vertex_auth_failed: 'Vertex authentication failed',
     vertex_auth_error: 'Vertex authentication failed',
     vertex_quota: 'Vertex quota reached — try again later',
+    vertex_pending_timeout: 'Veo queue timed out — try again',
+    vertex_processing_timeout: 'Veo render timed out — try a lower resolution',
+    vertex_poll_error: 'Lost connection to Veo — try again',
+    provider_filtered_content: 'Content blocked by safety filters',
     // Gemini (legacy)
     gemini_video_failed: 'Video generation failed',
     gemini_timeout: 'Generation timed out',
@@ -3209,9 +3215,12 @@ async function watchVideoJob(jobId, reservationId, meta) {
       // Still processing - update progress (surgical DOM update to avoid flicker)
       if (data.progress !== undefined || status === 'processing') {
         const provLabel = _providerDisplayName(meta.provider);
-        const pLabel = data.progress !== undefined
+        // Use indeterminate state when progress is 0 or missing — avoids
+        // fake "0%" that stalls on screen while provider works in background.
+        const hasRealProgress = typeof data.progress === 'number' && data.progress > 0;
+        const pLabel = hasRealProgress
           ? `${provLabel} rendering... ${data.progress}%`
-          : (data.message || `${provLabel} rendering...`);
+          : (data.message || `${provLabel} processing...`);
         State.updateHistoryItem(jobId, {
           status: 'generating',
           status_label: pLabel

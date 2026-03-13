@@ -1497,13 +1497,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           qualities: [
             { value: '720p', text: 'Standard (HD)', selected: true },
             { value: '1080p', text: 'Pro (Full HD)' },
-            { value: '4k', text: 'Ultra (4K)' },
+            { value: '4k', text: 'Ultra (4K) \u2014 Experimental', experimental: true },
           ],
           showQuality: true,
           showMotion: true,
           showTier: false,
           showLoop: true,
-          hint: 'Higher quality uses more credits. Pro and 4K require 8s duration.',
+          hint: 'Higher quality uses more credits. Pro and 4K require 8s duration. 4K is experimental and may time out.',
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
         fal_seedance: {
@@ -1780,6 +1780,17 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (videoGenTime) {
           const cfg = VIDEO_PROVIDER_CONFIG[settings.provider];
           videoGenTime.textContent = cfg?.timeEstimate?.(settings) || '~2 min';
+        }
+
+        // 4K experimental warning
+        const resHint = leftStack.querySelector('#videoResolutionHint');
+        if (resHint && settings.provider === 'vertex' && settings.resolution === '4k') {
+          resHint.textContent = '4K is experimental and may time out. If it fails, retry at 1080p.';
+          resHint.style.color = '#f59e0b';
+        } else if (resHint && settings.provider === 'vertex') {
+          const cfg = VIDEO_PROVIDER_CONFIG[settings.provider];
+          resHint.textContent = cfg?.hint || '';
+          resHint.style.color = '';
         }
 
         // Update button attributes
