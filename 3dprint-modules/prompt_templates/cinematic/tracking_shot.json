@@ -1,0 +1,11 @@
+{
+  "name": "Tracking Shot",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Camera tracks alongside {subject} in smooth parallel movement, maintaining consistent framing. Natural lighting creates depth as the background flows past. Steady cinematic tracking with professional stabilization.",
+  "variations": {
+    "camera": ["lateral tracking at eye level", "following behind at shoulder height", "leading the subject from front"],
+    "lighting": ["natural ambient daylight", "streetlight pools at night", "overcast soft light"],
+    "environment": ["city sidewalk", "forest trail", "industrial corridor"]
+  }
+}

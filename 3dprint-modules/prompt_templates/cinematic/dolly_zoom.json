@@ -1,0 +1,11 @@
+{
+  "name": "Dolly Zoom",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Vertigo-style dolly zoom on {subject}, creating surreal depth distortion as the background warps. The subject remains fixed in frame while perspective dramatically shifts. Unsettling and visually striking cinematic effect.",
+  "variations": {
+    "camera": ["slow dolly back with zoom in", "dolly forward with zoom out", "subtle push-pull"],
+    "lighting": ["harsh direct spotlight", "neon-tinged atmosphere", "natural overcast"],
+    "environment": ["narrow hallway", "open field", "urban street"]
+  }
+}

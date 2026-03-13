@@ -1,0 +1,11 @@
+{
+  "name": "Cinematic Orbit",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Smooth cinematic orbit around {subject}, camera circling slowly with fluid motion. Rich atmospheric lighting enhances depth and dimension. Professional cinematography with steady, elegant camera movement.",
+  "variations": {
+    "camera": ["gentle clockwise orbit", "slow counter-clockwise arc", "sweeping half-circle tracking"],
+    "lighting": ["dramatic side-lighting with deep shadows", "soft golden backlighting", "moody contrast with rim light"],
+    "environment": ["dark studio void", "atmospheric haze", "blurred urban backdrop"]
+  }
+}

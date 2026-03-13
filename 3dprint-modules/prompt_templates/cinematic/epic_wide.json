@@ -1,0 +1,11 @@
+{
+  "name": "Epic Wide Shot",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Vast establishing shot with {subject} small in the frame, surrounded by an immense landscape. The camera drifts slowly, conveying grand scale and isolation. Sweeping cinematic composition with atmospheric depth.",
+  "variations": {
+    "camera": ["slow aerial descent", "static wide with subtle drift", "extremely slow zoom in"],
+    "lighting": ["golden hour warmth", "dramatic storm light", "cold blue twilight"],
+    "environment": ["mountain valley", "endless desert", "coastal cliffs"]
+  }
+}

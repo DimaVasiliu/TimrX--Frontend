@@ -1,0 +1,11 @@
+{
+  "name": "Hero Shot",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Low-angle hero shot of {subject}, powerful and commanding presence filling the frame. Bold lighting sculpts the form with dramatic intensity. Camera pushes in slowly, emphasizing scale and authority.",
+  "variations": {
+    "camera": ["low-angle push-in", "slight upward tilt with slow zoom", "dramatic dutch angle approach"],
+    "lighting": ["bold rim lighting from behind", "golden hour backlight with lens flare", "high-contrast studio spot"],
+    "environment": ["open sky backdrop", "minimalist void", "epic cloudscape"]
+  }
+}

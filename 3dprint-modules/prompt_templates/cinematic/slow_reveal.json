@@ -1,0 +1,11 @@
+{
+  "name": "Slow Reveal",
+  "category": "cinematic",
+  "provider_compatibility": ["vertex", "seedance", "fal_seedance"],
+  "prompt_structure": "Subject partially hidden, camera slowly reveals the full scene with building anticipation. Light gradually illuminates the composition as the perspective shifts. Cinematic pacing with a sense of mystery and discovery.",
+  "variations": {
+    "camera": ["slow dolly forward", "gentle upward crane", "lateral tracking reveal"],
+    "lighting": ["soft diffused light building gradually", "dramatic chiaroscuro", "warm amber glow"],
+    "environment": ["fog lifting", "curtain of light", "depth emerging from shadow"]
+  }
+}
