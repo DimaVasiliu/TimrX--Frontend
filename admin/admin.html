@@ -1376,6 +1376,7 @@
     }
     .ops-refund-history-filters select { min-width: 120px; }
     .ops-refund-history-filters input { min-width: 100px; max-width: 200px; }
+    .ops-refund-history-filters input[type="date"] { min-width: 130px; max-width: 160px; color-scheme: dark; }
     .ops-rh-card {
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
@@ -1848,6 +1849,13 @@
                 </div>
               </div>
 
+              <div class="ops-refund-history-filters" id="ledgerFilters">
+                <input id="ledgerFilterDateFrom" type="date" title="From date" />
+                <input id="ledgerFilterDateTo" type="date" title="To date" />
+                <button class="btn small" id="ledgerApplyFilters">Filter</button>
+                <button class="btn small" id="ledgerClearFilters" style="opacity:0.6;">Clear</button>
+              </div>
+
               <!-- Add entry form (hidden by default) -->
               <div class="ops-ledger-form" id="opsLedgerForm" style="display:none;">
                 <div class="ops-ledger-form-grid">
@@ -1937,6 +1945,8 @@
                   <option value="manual_review_required">Manual Review</option>
                 </select>
                 <input id="rhFilterEmail" placeholder="Email contains..." />
+                <input id="rhFilterDateFrom" type="date" title="From date" />
+                <input id="rhFilterDateTo" type="date" title="To date" />
                 <input id="rhFilterPurchase" placeholder="Purchase ID..." />
                 <input id="rhFilterIdentity" placeholder="Identity ID..." />
                 <button class="btn small" id="rhApplyFilters">Filter</button>
@@ -5696,14 +5706,20 @@
       const list = $('#opsLedgerList');
       list.innerHTML = '<div class="ops-loading">Loading ledger...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/provider-ledger?limit=20`, { headers: headers(), credentials: 'include' });
+        let ledgerUrl = `${BACKEND}/api/admin/provider-ledger?limit=20`;
+        const ldf = $('#ledgerFilterDateFrom')?.value;
+        const ldt = $('#ledgerFilterDateTo')?.value;
+        if (ldf) ledgerUrl += `&date_from=${encodeURIComponent(ldf)}`;
+        if (ldt) ledgerUrl += `&date_to=${encodeURIComponent(ldt)}`;
+        const r = await fetch(ledgerUrl, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
 
         const entries = j.entries || [];
         if (!entries.length) {
-          list.innerHTML = '<div class="ops-empty">No ledger entries yet</div>';
+          const hasLedgerFilters = ldf || ldt;
+          list.innerHTML = `<div class="ops-empty">${hasLedgerFilters ? 'No ledger entries found for the selected dates.' : 'No ledger entries yet.'}</div>`;
           return;
         }
 
@@ -5877,6 +5893,12 @@
 
     // Wire up refresh buttons
     if ($('#refreshOpsLedger')) $('#refreshOpsLedger').onclick = loadOpsLedger;
+    if ($('#ledgerApplyFilters')) $('#ledgerApplyFilters').onclick = loadOpsLedger;
+    if ($('#ledgerClearFilters')) $('#ledgerClearFilters').onclick = () => {
+      $('#ledgerFilterDateFrom').value = '';
+      $('#ledgerFilterDateTo').value = '';
+      loadOpsLedger();
+    };
     if ($('#refreshOpsMonthly')) $('#refreshOpsMonthly').onclick = loadOpsMonthly;
 
     // ========== CSV EXPORT HELPERS ==========
@@ -5909,17 +5931,26 @@
       let url = `${BACKEND}/api/admin/refunds/export.csv?limit=5000`;
       const s = $('#rhFilterStatus')?.value;
       const e = $('#rhFilterEmail')?.value?.trim();
+      const df = $('#rhFilterDateFrom')?.value;
+      const dt = $('#rhFilterDateTo')?.value;
       const p = $('#rhFilterPurchase')?.value?.trim();
       const i = $('#rhFilterIdentity')?.value?.trim();
       if (s) url += `&status=${encodeURIComponent(s)}`;
       if (e) url += `&email=${encodeURIComponent(e)}`;
+      if (df) url += `&date_from=${encodeURIComponent(df)}`;
+      if (dt) url += `&date_to=${encodeURIComponent(dt)}`;
       if (p) url += `&purchase_id=${encodeURIComponent(p)}`;
       if (i) url += `&identity_id=${encodeURIComponent(i)}`;
       downloadCsvExport(url, 'refund_history.csv', this);
     };
 
     if ($('#exportOpsLedger')) $('#exportOpsLedger').onclick = function() {
-      downloadCsvExport(`${BACKEND}/api/admin/provider-ledger/export.csv?limit=5000`, 'provider_ledger.csv', this);
+      let lUrl = `${BACKEND}/api/admin/provider-ledger/export.csv?limit=5000`;
+      const ldf = $('#ledgerFilterDateFrom')?.value;
+      const ldt = $('#ledgerFilterDateTo')?.value;
+      if (ldf) lUrl += `&date_from=${encodeURIComponent(ldf)}`;
+      if (ldt) lUrl += `&date_to=${encodeURIComponent(ldt)}`;
+      downloadCsvExport(lUrl, 'provider_ledger.csv', this);
     };
 
     if ($('#exportOpsMonthly')) $('#exportOpsMonthly').onclick = function() {
@@ -5998,12 +6029,16 @@
 
       const filterStatus = $('#rhFilterStatus').value;
       const filterEmail = $('#rhFilterEmail').value.trim();
+      const dateFrom = $('#rhFilterDateFrom').value;
+      const dateTo = $('#rhFilterDateTo').value;
       const purchaseId = $('#rhFilterPurchase').value.trim();
       const identityId = $('#rhFilterIdentity').value.trim();
 
       let url = `${BACKEND}/api/admin/refunds?limit=${_rhLimit}&offset=${_rhOffset}`;
       if (filterStatus) url += `&status=${encodeURIComponent(filterStatus)}`;
       if (filterEmail) url += `&email=${encodeURIComponent(filterEmail)}`;
+      if (dateFrom) url += `&date_from=${encodeURIComponent(dateFrom)}`;
+      if (dateTo) url += `&date_to=${encodeURIComponent(dateTo)}`;
       if (purchaseId) url += `&purchase_id=${encodeURIComponent(purchaseId)}`;
       if (identityId) url += `&identity_id=${encodeURIComponent(identityId)}`;
 
@@ -6017,7 +6052,7 @@
         const total = j.total || 0;
 
         if (!refunds.length) {
-          const hasFilters = filterStatus || filterEmail || purchaseId || identityId;
+          const hasFilters = filterStatus || filterEmail || dateFrom || dateTo || purchaseId || identityId;
           list.innerHTML = `<div class="ops-empty">${hasFilters ? 'No refunds found for the current filters.' : 'No refunds recorded yet.'}</div>`;
           return;
         }
@@ -6095,6 +6130,8 @@
     if ($('#rhClearFilters')) $('#rhClearFilters').onclick = () => {
       $('#rhFilterStatus').value = '';
       $('#rhFilterEmail').value = '';
+      $('#rhFilterDateFrom').value = '';
+      $('#rhFilterDateTo').value = '';
       $('#rhFilterPurchase').value = '';
       $('#rhFilterIdentity').value = '';
       loadOpsRefundHistory(0);
