@@ -1843,6 +1843,7 @@
                 <h4>Provider Ledger</h4>
                 <div style="display:flex;gap:6px;">
                   <button class="btn small" id="toggleLedgerForm">+ Entry</button>
+                  <button class="btn small" id="exportOpsLedger" title="Export CSV">Export</button>
                   <button class="btn small" id="refreshOpsLedger">Refresh</button>
                 </div>
               </div>
@@ -1908,7 +1909,10 @@
             <div class="ops-section">
               <div class="ops-section-header">
                 <h4>Monthly Spend Summary</h4>
-                <button class="btn small" id="refreshOpsMonthly">Refresh</button>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn small" id="exportOpsMonthly" title="Export CSV">Export</button>
+                  <button class="btn small" id="refreshOpsMonthly">Refresh</button>
+                </div>
               </div>
               <div class="ops-monthly-wrap" id="opsMonthlyWrap">
                 <div class="ops-loading">Loading monthly spend...</div>
@@ -1919,7 +1923,10 @@
             <div class="ops-section">
               <div class="ops-section-header">
                 <h4>Refund History</h4>
-                <button class="btn small" id="refreshOpsRefundHistory">Refresh</button>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn small" id="exportOpsRefunds" title="Export CSV">Export</button>
+                  <button class="btn small" id="refreshOpsRefundHistory">Refresh</button>
+                </div>
               </div>
               <div class="ops-refund-history-filters" id="refundHistoryFilters">
                 <select id="rhFilterStatus">
@@ -5871,6 +5878,53 @@
     // Wire up refresh buttons
     if ($('#refreshOpsLedger')) $('#refreshOpsLedger').onclick = loadOpsLedger;
     if ($('#refreshOpsMonthly')) $('#refreshOpsMonthly').onclick = loadOpsMonthly;
+
+    // ========== CSV EXPORT HELPERS ==========
+    async function downloadCsvExport(url, filename, btn) {
+      const origText = btn.textContent;
+      btn.textContent = 'Exporting...';
+      btn.disabled = true;
+      try {
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const blob = await r.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+      } catch (err) {
+        console.error('CSV export error:', err);
+        alert('Export failed: ' + err.message);
+      } finally {
+        btn.textContent = origText;
+        btn.disabled = false;
+      }
+    }
+
+    if ($('#exportOpsRefunds')) $('#exportOpsRefunds').onclick = function() {
+      let url = `${BACKEND}/api/admin/refunds/export.csv?limit=5000`;
+      const s = $('#rhFilterStatus')?.value;
+      const e = $('#rhFilterEmail')?.value?.trim();
+      const p = $('#rhFilterPurchase')?.value?.trim();
+      const i = $('#rhFilterIdentity')?.value?.trim();
+      if (s) url += `&status=${encodeURIComponent(s)}`;
+      if (e) url += `&email=${encodeURIComponent(e)}`;
+      if (p) url += `&purchase_id=${encodeURIComponent(p)}`;
+      if (i) url += `&identity_id=${encodeURIComponent(i)}`;
+      downloadCsvExport(url, 'refund_history.csv', this);
+    };
+
+    if ($('#exportOpsLedger')) $('#exportOpsLedger').onclick = function() {
+      downloadCsvExport(`${BACKEND}/api/admin/provider-ledger/export.csv?limit=5000`, 'provider_ledger.csv', this);
+    };
+
+    if ($('#exportOpsMonthly')) $('#exportOpsMonthly').onclick = function() {
+      downloadCsvExport(`${BACKEND}/api/admin/provider-spend/monthly/export.csv?months=6`, 'monthly_provider_spend.csv', this);
+    };
 
     // ========== OPS AUTO-REFRESH POLLING ==========
 
