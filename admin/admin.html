@@ -1929,9 +1929,11 @@
                   <option value="pending">Pending</option>
                   <option value="manual_review_required">Manual Review</option>
                 </select>
+                <input id="rhFilterEmail" placeholder="Email contains..." />
                 <input id="rhFilterPurchase" placeholder="Purchase ID..." />
                 <input id="rhFilterIdentity" placeholder="Identity ID..." />
                 <button class="btn small" id="rhApplyFilters">Filter</button>
+                <button class="btn small" id="rhClearFilters" style="opacity:0.6;">Clear</button>
               </div>
               <div id="opsRefundHistoryList">
                 <div class="ops-loading">Loading refund history...</div>
@@ -5941,11 +5943,13 @@
       list.innerHTML = '<div class="ops-loading">Loading refund history...</div>';
 
       const filterStatus = $('#rhFilterStatus').value;
+      const filterEmail = $('#rhFilterEmail').value.trim();
       const purchaseId = $('#rhFilterPurchase').value.trim();
       const identityId = $('#rhFilterIdentity').value.trim();
 
       let url = `${BACKEND}/api/admin/refunds?limit=${_rhLimit}&offset=${_rhOffset}`;
       if (filterStatus) url += `&status=${encodeURIComponent(filterStatus)}`;
+      if (filterEmail) url += `&email=${encodeURIComponent(filterEmail)}`;
       if (purchaseId) url += `&purchase_id=${encodeURIComponent(purchaseId)}`;
       if (identityId) url += `&identity_id=${encodeURIComponent(identityId)}`;
 
@@ -5959,7 +5963,8 @@
         const total = j.total || 0;
 
         if (!refunds.length) {
-          list.innerHTML = '<div class="ops-empty">No refunds found.</div>';
+          const hasFilters = filterStatus || filterEmail || purchaseId || identityId;
+          list.innerHTML = `<div class="ops-empty">${hasFilters ? 'No refunds found for the current filters.' : 'No refunds recorded yet.'}</div>`;
           return;
         }
 
@@ -6033,6 +6038,13 @@
     // Wire up refund history controls
     if ($('#refreshOpsRefundHistory')) $('#refreshOpsRefundHistory').onclick = () => loadOpsRefundHistory(0);
     if ($('#rhApplyFilters')) $('#rhApplyFilters').onclick = () => loadOpsRefundHistory(0);
+    if ($('#rhClearFilters')) $('#rhClearFilters').onclick = () => {
+      $('#rhFilterStatus').value = '';
+      $('#rhFilterEmail').value = '';
+      $('#rhFilterPurchase').value = '';
+      $('#rhFilterIdentity').value = '';
+      loadOpsRefundHistory(0);
+    };
 
     // Update loadAllOps to include new sections
     function loadAllOps() {
