@@ -2125,7 +2125,7 @@
                 <button class="btn small" id="pchClearFilters" style="opacity:0.6;">Clear</button>
               </div>
               <div id="opsPurchasesList">
-                <div class="ops-empty">Search by email or purchase ID to view purchases.</div>
+                <div class="ops-loading">Loading purchases...</div>
               </div>
             </div>
 
@@ -2196,6 +2196,41 @@
             <div style="display:flex;gap:8px;">
               <button class="action-btn" id="resolveConfirmBtn" style="flex:1;font-size:12px;">Resolve</button>
               <button class="btn" id="resolveCancelBtn" style="font-size:12px;" onclick="closeResolveModal()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Purchase Detail Modal -->
+        <div id="purchaseDetailModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:20px;max-width:600px;width:100%;margin:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h4 style="margin:0;font-size:15px;color:#eee;">Purchase Detail</h4>
+              <button class="btn small" style="font-size:10px;" onclick="closePurchaseDetail()">Close</button>
+            </div>
+            <div id="purchaseDetailContent">
+              <div class="ops-loading">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mark Dispute Modal -->
+        <div id="markDisputeModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:24px;max-width:420px;width:90%;">
+            <h4 style="margin:0 0 12px 0;font-size:16px;color:#eee;">Mark Dispute / Chargeback</h4>
+            <div id="disputeSummary" style="font-size:11px;color:#aaa;margin-bottom:14px;padding:8px 10px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.15);border-radius:4px;"></div>
+            <input type="hidden" id="disputePurchaseId" />
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Dispute reason</label>
+              <input id="disputeReason" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="e.g. Customer claims unauthorized payment" />
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Admin note (internal)</label>
+              <input id="disputeAdminNote" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="Internal note..." />
+            </div>
+            <p style="font-size:10px;color:#888;margin:0 0 14px 0;">This records the dispute internally. No purchase or refund changes are made automatically.</p>
+            <div style="display:flex;gap:8px;">
+              <button class="action-btn" id="disputeConfirmBtn" style="flex:1;font-size:12px;background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#f87171;">Record Dispute</button>
+              <button class="btn" style="font-size:12px;" onclick="closeMarkDisputeModal()">Cancel</button>
             </div>
           </div>
         </div>
@@ -6507,7 +6542,7 @@
     // ========== PURCHASES / TRANSACTIONS ==========
 
     let _pchOffset = 0;
-    const _PCH_LIMIT = 20;
+    const _PCH_LIMIT = 50;
 
     async function loadOpsPurchases(offset) {
       if (offset !== undefined) _pchOffset = offset;
@@ -6521,12 +6556,7 @@
         const df = $('#pchFilterDateFrom')?.value;
         const dt = $('#pchFilterDateTo')?.value;
 
-        // Don't load all purchases without a filter — require at least one
         const hasFilter = email || pid || status || df || dt;
-        if (!hasFilter) {
-          list.innerHTML = '<div class="ops-empty">Search by email, purchase ID, status, or date to view purchases.</div>';
-          return;
-        }
 
         if (email) url += `&email=${encodeURIComponent(email)}`;
         if (pid) url += `&purchase_id=${encodeURIComponent(pid)}`;
@@ -6543,14 +6573,25 @@
         const total = j.total || 0;
 
         if (!purchases.length) {
-          list.innerHTML = '<div class="ops-empty">No purchases found for the selected filters.</div>';
+          list.innerHTML = `<div class="ops-empty">${hasFilter ? 'No purchases found for the selected filters.' : 'No purchases yet.'}</div>`;
           return;
         }
 
-        list.innerHTML = purchases.map(p => {
+        // Label when showing default latest
+        let headerHtml = '';
+        if (!hasFilter) {
+          headerHtml = '<div style="font-size:10px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Showing latest purchases</div>';
+        }
+
+        list.innerHTML = headerHtml + purchases.map(p => {
           const statusClass = p.status || '';
           const amt = p.amount_gbp != null ? `\u00A3${p.amount_gbp.toFixed(2)}` : '--';
           const dateStr = formatDateUK(p.created_at);
+
+          // Risk badge
+          const risk = p.refund_risk || {};
+          const riskColors = { low: 'color:#4ade80;background:rgba(34,197,94,0.12)', medium: 'color:#facc15;background:rgba(234,179,8,0.12)', high: 'color:#f87171;background:rgba(239,68,68,0.12)' };
+          const riskBadge = risk.level ? `<span style="font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600;${riskColors[risk.level] || ''}" title="${escapeHtmlText(risk.reason || '')}">${risk.level} risk</span>` : '';
 
           // Refund action button
           let actionHtml = '';
@@ -6578,6 +6619,7 @@
                   <span class="ops-pch-email">${escapeHtmlText(p.email || 'Unknown')}</span>
                   <span class="ops-pch-badge ${statusClass}">${escapeHtmlText(p.status)}</span>
                   ${p.is_subscription_purchase ? '<span class="ops-pch-badge" style="background:rgba(168,85,247,0.15);color:#c084fc;">sub</span>' : ''}
+                  ${riskBadge}
                 </div>
                 <span style="font-size:11px;color:#888;">${escapeHtmlText(dateStr)}</span>
               </div>
@@ -6590,6 +6632,7 @@
                 <div class="ops-pch-field"><span class="lbl">Purchase</span><span class="val" style="font-size:9px;word-break:break-all;">${escapeHtmlText((p.id || '').slice(0, 8))}</span></div>
               </div>
               <div class="ops-pch-actions">
+                <button class="btn small" style="font-size:10px;" onclick="openPurchaseDetail('${escapeHtmlText(p.id)}')">Details</button>
                 ${actionHtml}
                 ${refundHint}
               </div>
@@ -6614,6 +6657,199 @@
       }
     }
 
+    // ========== PURCHASE DETAIL MODAL ==========
+
+    async function openPurchaseDetail(purchaseId) {
+      const modal = $('#purchaseDetailModal');
+      const content = $('#purchaseDetailContent');
+      modal.style.display = 'flex';
+      content.innerHTML = '<div class="ops-loading">Loading purchase details...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const p = j.purchase;
+        const risk = p.refund_risk || {};
+        const riskColors = { low: '#4ade80', medium: '#facc15', high: '#f87171' };
+
+        let html = `
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+              <strong style="font-size:14px;color:#eee;">${escapeHtmlText(p.email || 'Unknown')}</strong>
+              <span class="ops-pch-badge ${p.status}">${escapeHtmlText(p.status)}</span>
+            </div>
+            <div class="ops-pch-grid" style="margin-bottom:8px;">
+              <div class="ops-pch-field"><span class="lbl">Amount</span><span class="val">\u00A3${(p.amount_gbp || 0).toFixed(2)}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Credits granted</span><span class="val">${p.credits_granted || 0}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Credits used since</span><span class="val">${p.credits_used_since || 0}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Wallet remaining</span><span class="val">${p.credits_remaining || 0}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Provider</span><span class="val">${escapeHtmlText(p.payment_provider || '--')}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Plan</span><span class="val">${escapeHtmlText(p.plan_code || '--')}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Created</span><span class="val">${formatDateUK(p.created_at)}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Paid</span><span class="val">${p.paid_at ? formatDateUK(p.paid_at) : '--'}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Purchase ID</span><span class="val" style="font-size:9px;word-break:break-all;">${escapeHtmlText(p.id)}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Payment ref</span><span class="val" style="font-size:9px;word-break:break-all;">${escapeHtmlText(p.payment_reference || '--')}</span></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:600;color:${riskColors[risk.level] || '#888'};">Refund risk: ${risk.level || 'unknown'}</span>
+              <span style="font-size:10px;color:#888;">${escapeHtmlText(risk.reason || '')}</span>
+            </div>
+          </div>`;
+
+        // Disputes
+        if (j.disputes && j.disputes.length) {
+          html += '<div style="margin-bottom:14px;"><h5 style="font-size:11px;color:#f87171;text-transform:uppercase;margin:0 0 6px 0;">Disputes</h5>';
+          for (const d of j.disputes) {
+            html += `<div style="font-size:11px;padding:6px 8px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:4px;margin-bottom:4px;">
+              <strong>${escapeHtmlText(d.dispute_status)}</strong> &mdash; ${escapeHtmlText(d.dispute_reason || 'No reason')}
+              <span style="color:#888;margin-left:6px;">${formatDateUK(d.created_at)}</span>
+            </div>`;
+          }
+          html += '</div>';
+        }
+
+        // Refunds
+        html += '<div style="margin-bottom:14px;"><h5 style="font-size:11px;color:#fbbf24;text-transform:uppercase;margin:0 0 6px 0;">Refund Records</h5>';
+        if (j.refunds && j.refunds.length) {
+          for (const rf of j.refunds) {
+            html += `<div style="font-size:11px;padding:6px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;margin-bottom:4px;">
+              <strong>${escapeHtmlText(rf.refund_status)}</strong> &mdash; \u00A3${(rf.amount_gbp || 0).toFixed(2)}, ${rf.credits_reversed || 0} credits reversed
+              <span style="color:#888;margin-left:6px;">${formatDateUK(rf.created_at)}</span>
+              ${rf.reason ? `<br/><span style="color:#aaa;">${escapeHtmlText(rf.reason)}</span>` : ''}
+            </div>`;
+          }
+        } else {
+          html += '<div style="font-size:11px;color:#666;">No refund records</div>';
+        }
+        html += '</div>';
+
+        // Wallet effects
+        html += '<div style="margin-bottom:14px;"><h5 style="font-size:11px;color:#3b82f6;text-transform:uppercase;margin:0 0 6px 0;">Wallet / Ledger Effects</h5>';
+        if (j.wallet_effects && j.wallet_effects.length) {
+          for (const le of j.wallet_effects) {
+            const sign = le.amount_credits >= 0 ? '+' : '';
+            html += `<div style="font-size:11px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,0.04);">
+              ${escapeHtmlText(le.entry_type)} &mdash; <strong>${sign}${le.amount_credits}</strong> ${escapeHtmlText(le.credit_type || '')} credits
+              <span style="color:#888;margin-left:6px;">${formatDateUK(le.created_at)}</span>
+            </div>`;
+          }
+        } else {
+          html += '<div style="font-size:11px;color:#666;">No ledger entries linked to this purchase</div>';
+        }
+        html += '</div>';
+
+        // Jobs
+        html += '<div style="margin-bottom:14px;"><h5 style="font-size:11px;color:#a855f7;text-transform:uppercase;margin:0 0 6px 0;">Jobs Since Purchase</h5>';
+        if (j.jobs && j.jobs.length) {
+          html += '<div style="max-height:200px;overflow-y:auto;">';
+          for (const jb of j.jobs) {
+            const jbColor = jb.status === 'succeeded' || jb.status === 'ready' ? '#4ade80' : jb.status === 'failed' ? '#f87171' : '#888';
+            html += `<div style="font-size:10px;padding:3px 8px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;">
+              <span><span style="color:${jbColor};font-weight:600;">${escapeHtmlText(jb.status)}</span> ${escapeHtmlText(jb.provider)} / ${escapeHtmlText(jb.action_code)} (${jb.cost_credits} cr)</span>
+              <span style="color:#888;">${formatDateUK(jb.created_at)}</span>
+            </div>`;
+          }
+          html += '</div>';
+        } else {
+          html += '<div style="font-size:11px;color:#666;">No jobs since purchase</div>';
+        }
+        html += '</div>';
+
+        // Timeline
+        html += '<div><h5 style="font-size:11px;color:#ccc;text-transform:uppercase;margin:0 0 6px 0;">Timeline</h5>';
+        if (j.timeline && j.timeline.length) {
+          const typeColors = { purchase: '#22c55e', ledger: '#3b82f6', refund: '#fbbf24', job: '#a855f7', dispute: '#f87171' };
+          html += '<div style="max-height:300px;overflow-y:auto;">';
+          for (const ev of j.timeline) {
+            const dotColor = typeColors[ev.type] || '#888';
+            html += `<div style="font-size:10px;padding:4px 0 4px 16px;border-left:2px solid ${dotColor};margin-left:6px;margin-bottom:2px;">
+              <strong style="color:${dotColor};">${escapeHtmlText(ev.event)}</strong>
+              ${ev.detail ? `<span style="color:#aaa;margin-left:6px;">${escapeHtmlText(ev.detail)}</span>` : ''}
+              <span style="color:#666;margin-left:6px;">${formatDateUK(ev.timestamp)}</span>
+            </div>`;
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+
+        // Actions
+        html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-wrap:wrap;">`;
+        if (p.refund_action_state === 'eligible') {
+          html += `<button class="btn small" style="font-size:10px;background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);" onclick="closePurchaseDetail();openStartRefundModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '\u00A3${(p.amount_gbp || 0).toFixed(2)}', ${p.credits_granted || 0})">Start Refund</button>`;
+        }
+        if (!p.has_dispute) {
+          html += `<button class="btn small" style="font-size:10px;background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.25);" onclick="closePurchaseDetail();openMarkDisputeModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '\u00A3${(p.amount_gbp || 0).toFixed(2)}')">Mark Dispute</button>`;
+        }
+        html += `<button class="btn small" style="font-size:10px;" onclick="closePurchaseDetail()">Close</button>`;
+        html += '</div>';
+
+        content.innerHTML = html;
+
+      } catch (err) {
+        content.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    function closePurchaseDetail() {
+      $('#purchaseDetailModal').style.display = 'none';
+    }
+
+    // ========== MARK DISPUTE MODAL ==========
+
+    function openMarkDisputeModal(purchaseId, email, amount) {
+      $('#disputePurchaseId').value = purchaseId;
+      $('#disputeReason').value = '';
+      $('#disputeAdminNote').value = '';
+      $('#disputeSummary').innerHTML = `<strong>${escapeHtmlText(email)}</strong> &mdash; ${escapeHtmlText(amount)}`;
+      $('#markDisputeModal').style.display = 'flex';
+    }
+
+    function closeMarkDisputeModal() {
+      $('#markDisputeModal').style.display = 'none';
+    }
+
+    if ($('#disputeConfirmBtn')) {
+      $('#disputeConfirmBtn').onclick = async () => {
+        const btn = $('#disputeConfirmBtn');
+        const purchaseId = $('#disputePurchaseId').value;
+        if (!purchaseId) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Recording...';
+        try {
+          const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/mark-dispute`, {
+            method: 'POST',
+            headers: headers(),
+            credentials: 'include',
+            body: JSON.stringify({
+              dispute_reason: $('#disputeReason').value || null,
+              admin_note: $('#disputeAdminNote').value || null,
+            }),
+          });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || 'Failed');
+
+          if (j.already_exists) {
+            Toast.success(`Dispute already exists (${j.dispute_status})`);
+          } else {
+            Toast.success('Dispute recorded');
+          }
+
+          closeMarkDisputeModal();
+          loadOpsPurchases(_pchOffset);
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Record Dispute';
+        }
+      };
+    }
+
+    // ========== START REFUND + HELPERS ==========
+
     function openStartRefundModal(purchaseId, email, amount, credits) {
       $('#startRefundPurchaseId').value = purchaseId;
       $('#startRefundReason').value = '';
@@ -6622,8 +6858,7 @@
         <strong>${escapeHtmlText(email)}</strong><br/>
         Amount: ${escapeHtmlText(amount)} &middot; Credits granted: ${credits}
       `;
-      const modal = $('#startRefundModal');
-      modal.style.display = 'flex';
+      $('#startRefundModal').style.display = 'flex';
     }
 
     function closeStartRefundModal() {
@@ -6631,7 +6866,6 @@
     }
 
     function scrollToRefund(refundId) {
-      // Scroll to refund history section
       const historySection = $('#opsRefundHistoryList');
       if (historySection) historySection.scrollIntoView({ behavior: 'smooth' });
     }
@@ -6652,7 +6886,7 @@
         $('#pchFilterStatus').value = '';
         $('#pchFilterDateFrom').value = '';
         $('#pchFilterDateTo').value = '';
-        $('#opsPurchasesList').innerHTML = '<div class="ops-empty">Search by email, purchase ID, status, or date to view purchases.</div>';
+        loadOpsPurchases(0);
       };
     }
     if ($('#refreshOpsPurchases')) {
@@ -6877,6 +7111,7 @@
       loadOpsRefunds();
       loadOpsLedger();
       loadOpsMonthly();
+      loadOpsPurchases(0);
       loadOpsRefundHistory(0);
       // Remove old snapshot element if re-loading
       const oldSnap = $('#opsSnapshots');
