@@ -1356,6 +1356,113 @@
     }
     .ops-pstat-value.crit { color: #ef4444; }
 
+    /* Refund history */
+    .ops-refund-history-filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .ops-refund-history-filters select,
+    .ops-refund-history-filters input {
+      font-size: 11px;
+      padding: 5px 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #ccc;
+      font-family: inherit;
+    }
+    .ops-refund-history-filters select { min-width: 120px; }
+    .ops-refund-history-filters input { min-width: 100px; max-width: 200px; }
+    .ops-rh-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .ops-rh-card.status-executed  { border-left: 3px solid #22c55e; }
+    .ops-rh-card.status-failed    { border-left: 3px solid #ef4444; }
+    .ops-rh-card.status-pending   { border-left: 3px solid #3b82f6; }
+    .ops-rh-card.status-manual    { border-left: 3px solid #fbbf24; }
+    .ops-rh-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .ops-rh-top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ops-rh-email {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e5e5;
+    }
+    .ops-rh-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .ops-rh-badge.executed        { background: rgba(34,197,94,0.2);   color: #22c55e; }
+    .ops-rh-badge.failed          { background: rgba(239,68,68,0.2);   color: #ef4444; }
+    .ops-rh-badge.pending         { background: rgba(59,130,246,0.2);  color: #3b82f6; }
+    .ops-rh-badge.manual_review   { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .ops-rh-badge.ext-ok          { background: rgba(34,197,94,0.15);  color: #4ade80; }
+    .ops-rh-badge.ext-fail        { background: rgba(239,68,68,0.15);  color: #f87171; }
+    .ops-rh-badge.ext-skip        { background: rgba(255,255,255,0.06); color: #888; }
+    .ops-rh-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 4px 16px;
+      font-size: 11px;
+    }
+    .ops-rh-field {
+      display: flex;
+      justify-content: space-between;
+    }
+    .ops-rh-field .lbl { color: #888; }
+    .ops-rh-field .val { color: #ccc; font-weight: 500; }
+    .ops-rh-note {
+      font-size: 11px;
+      color: #888;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .ops-rh-note strong { color: #aaa; font-weight: 600; }
+    .ops-rh-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #888;
+    }
+    .ops-rh-pagination button {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #ccc;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .ops-rh-pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
+
     /* Refund confirm overlay */
     .ops-refund-confirm {
       position: fixed;
@@ -1805,6 +1912,29 @@
               </div>
               <div class="ops-monthly-wrap" id="opsMonthlyWrap">
                 <div class="ops-loading">Loading monthly spend...</div>
+              </div>
+            </div>
+
+            <!-- Refund History -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Refund History</h4>
+                <button class="btn small" id="refreshOpsRefundHistory">Refresh</button>
+              </div>
+              <div class="ops-refund-history-filters" id="refundHistoryFilters">
+                <select id="rhFilterStatus">
+                  <option value="">All statuses</option>
+                  <option value="executed">Executed</option>
+                  <option value="failed">Failed</option>
+                  <option value="pending">Pending</option>
+                  <option value="manual_review_required">Manual Review</option>
+                </select>
+                <input id="rhFilterPurchase" placeholder="Purchase ID..." />
+                <input id="rhFilterIdentity" placeholder="Identity ID..." />
+                <button class="btn small" id="rhApplyFilters">Filter</button>
+              </div>
+              <div id="opsRefundHistoryList">
+                <div class="ops-loading">Loading refund history...</div>
               </div>
             </div>
 
@@ -5437,7 +5567,7 @@
                 <div class="ops-refund-detail"><span class="lbl">Date</span><span class="val">${formatDateUK(item.created_at)}</span></div>
               </div>
               ${canRefund ? `<div class="ops-refund-actions">
-                <button class="ops-refund-btn" onclick="showRefundConfirm(this)" data-purchase-id="${escapeHtmlText(item.purchase_id)}" data-email="${escapeHtmlText(item.email || '')}" data-amount="${item.amount_gbp || 0}" data-credits="${item.credits_granted || 0}" data-used="${item.credits_used || 0}">Execute Refund</button>
+                <button class="ops-refund-btn" onclick="showRefundConfirm(this)" data-purchase-id="${escapeHtmlText(item.purchase_id)}" data-email="${escapeHtmlText(item.email || '')}" data-amount="${item.amount_gbp || 0}" data-credits="${item.credits_granted || 0}" data-used="${item.credits_used || 0}" data-provider="${escapeHtmlText(item.payment_provider || '')}">Execute Refund</button>
                 ${usedWarning ? '<span class="ops-refund-warn">Credits used — review required</span>' : ''}
               </div>` : (item.is_subscription ? '<div class="ops-refund-actions"><span class="ops-refund-warn">Subscription — manual refund only</span></div>' : '')}
             </div>`;
@@ -5462,7 +5592,9 @@
       const amount = parseFloat(btn.dataset.amount || 0);
       const credits = parseInt(btn.dataset.credits || 0);
       const used = parseInt(btn.dataset.used || 0);
+      const provider = btn.dataset.provider || '';
       const hasUsed = used > 0;
+      const isMollie = provider === 'mollie';
 
       const overlay = document.createElement('div');
       overlay.className = 'ops-refund-confirm';
@@ -5473,8 +5605,15 @@
           <div class="confirm-detail"><span class="lbl">Amount: </span>\u00A3${amount.toFixed(2)}</div>
           <div class="confirm-detail"><span class="lbl">Credits granted: </span>${credits}</div>
           <div class="confirm-detail"><span class="lbl">Credits used: </span>${used}</div>
+          <div class="confirm-detail"><span class="lbl">Provider: </span>${escapeHtmlText(provider || 'unknown')}</div>
           ${hasUsed ? `<div class="confirm-warn">Credits have been used (${used} of ${credits}). Automatic credit reversal may be blocked. Use "Record Only" to log the decision without altering credits.</div>` : ''}
-          <div class="confirm-note">External payment refund (Mollie/Stripe) will NOT be automatically executed. Process the payment refund manually in your payment provider dashboard after confirming.</div>
+          ${isMollie && !hasUsed ? `
+            <label style="display:flex;align-items:center;gap:6px;margin:10px 0 4px;font-size:11px;cursor:pointer;">
+              <input type="checkbox" id="refundMollie" style="width:14px;height:14px;cursor:pointer;"/>
+              <span>Also execute Mollie payment refund</span>
+            </label>
+            <div style="font-size:10px;color:#888;margin:0 0 6px 20px;">If checked, the payment refund will be submitted to Mollie automatically.</div>
+          ` : `<div class="confirm-note">${isMollie ? 'Mollie refund not available when credits have been used.' : 'External payment refund must be processed manually in your payment provider dashboard.'}</div>`}
           <label style="display:block;margin:8px 0 4px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Reason</label>
           <input id="refundReason" class="form-input" placeholder="Why is this being refunded?"/>
           <label style="display:block;margin:8px 0 4px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Admin Note</label>
@@ -5493,6 +5632,8 @@
       const overlay = btn.closest('.ops-refund-confirm');
       const reason = overlay.querySelector('#refundReason').value;
       const adminNote = overlay.querySelector('#refundNote').value;
+      const mollieCheckbox = overlay.querySelector('#refundMollie');
+      const executeExternal = mollieCheckbox ? mollieCheckbox.checked : false;
 
       // Disable all buttons in the confirm box
       overlay.querySelectorAll('button').forEach(b => b.disabled = true);
@@ -5510,6 +5651,7 @@
             admin_note: adminNote || null,
             allow_credit_reversal: true,
             manual_record_only: manualOnly,
+            execute_external_refund: executeExternal,
           }),
         });
 
@@ -5518,15 +5660,21 @@
 
         if (j.ok) {
           const s = j.summary || {};
-          Toast.success(
-            `Refund ${manualOnly ? 'recorded' : 'executed'}: \u00A3${(s.amount_gbp || 0).toFixed(2)}, ` +
-            `${j.refund?.credits_reversed || 0} credits reversed`
-          );
+          const ext = j.external_refund || {};
+          let msg = `Refund ${manualOnly ? 'recorded' : 'executed'}: \u00A3${(s.amount_gbp || 0).toFixed(2)}, ` +
+            `${j.refund?.credits_reversed || 0} credits reversed`;
+          if (ext.attempted && ext.executed) {
+            msg += ` | Mollie refund sent`;
+          } else if (ext.attempted && !ext.executed) {
+            msg += ` | Mollie refund FAILED — process manually`;
+          }
+          Toast.success(msg);
         } else {
           Toast.warning(j.message || j.error || 'Refund requires manual review');
         }
 
         loadOpsRefunds();
+        loadOpsRefundHistory(0);
       } catch (err) {
         overlay.remove();
         Toast.error('Refund failed: ' + err.message);
@@ -5757,6 +5905,132 @@
       }
     });
 
+    // ========== REFUND HISTORY ==========
+
+    let _rhOffset = 0;
+    const _rhLimit = 20;
+
+    function _rhStatusBadge(status) {
+      const map = {
+        executed: ['executed', 'Executed'],
+        failed: ['failed', 'Failed'],
+        pending: ['pending', 'Pending'],
+        manual_review_required: ['manual_review', 'Manual Review'],
+      };
+      const [cls, label] = map[status] || ['', status];
+      return `<span class="ops-rh-badge ${escapeHtmlText(cls)}">${escapeHtmlText(label)}</span>`;
+    }
+
+    function _rhExternalBadge(refund) {
+      const extId = refund.external_refund_id;
+      const meta = refund.metadata || {};
+      if (extId) {
+        return `<span class="ops-rh-badge ext-ok">Mollie refunded</span>`;
+      }
+      if (refund.refund_status === 'executed' && refund.payment_provider === 'mollie' && !extId) {
+        // Could be manual-only execution (no Mollie call), or failed
+        if (meta.external_refund_error) {
+          return `<span class="ops-rh-badge ext-fail">Mollie failed</span>`;
+        }
+        return `<span class="ops-rh-badge ext-skip">Mollie not attempted</span>`;
+      }
+      if (refund.refund_status === 'manual_review_required') {
+        return `<span class="ops-rh-badge ext-skip">Manual only</span>`;
+      }
+      return '';
+    }
+
+    async function loadOpsRefundHistory(offset) {
+      if (typeof offset === 'number') _rhOffset = offset;
+      const list = $('#opsRefundHistoryList');
+      list.innerHTML = '<div class="ops-loading">Loading refund history...</div>';
+
+      const status = $('#rhFilterStatus').value;
+      const purchaseId = $('#rhFilterPurchase').value.trim();
+      const identityId = $('#rhFilterIdentity').value.trim();
+
+      let url = `${BACKEND}/api/admin/refunds?limit=${_rhLimit}&offset=${_rhOffset}`;
+      if (status) url += `&status=${encodeURIComponent(status)}`;
+      if (purchaseId) url += `&purchase_id=${encodeURIComponent(purchaseId)}`;
+      if (identityId) url += `&identity_id=${encodeURIComponent(identityId)}`;
+
+      try {
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const refunds = j.refunds || [];
+        const total = j.total || 0;
+
+        if (!refunds.length) {
+          list.innerHTML = '<div class="ops-empty">No refunds found.</div>';
+          return;
+        }
+
+        let html = refunds.map(rf => {
+          const statusCls = rf.refund_status === 'executed' ? 'status-executed'
+            : rf.refund_status === 'failed' ? 'status-failed'
+            : rf.refund_status === 'pending' ? 'status-pending'
+            : 'status-manual';
+          const extBadge = _rhExternalBadge(rf);
+
+          // Truncate IDs for display
+          const shortPurchase = rf.purchase_id ? rf.purchase_id.substring(0, 8) + '...' : '—';
+          const shortIdentity = rf.identity_id ? rf.identity_id.substring(0, 8) + '...' : '—';
+
+          return `<div class="ops-rh-card ${statusCls}">
+            <div class="ops-rh-top">
+              <div class="ops-rh-top-left">
+                ${_rhStatusBadge(rf.refund_status)}
+                ${extBadge}
+                <span class="ops-rh-badge" style="background:rgba(255,255,255,0.06);color:#aaa;">${escapeHtmlText(rf.refund_type || '')}</span>
+              </div>
+              <span style="font-size:11px;color:#888;">${formatDateUK(rf.created_at)}</span>
+            </div>
+            <div class="ops-rh-grid">
+              <div class="ops-rh-field"><span class="lbl">Amount</span><span class="val">\u00A3${(rf.amount_gbp || 0).toFixed(2)}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Credits reversed</span><span class="val">${rf.credits_reversed || 0}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Credit type</span><span class="val">${escapeHtmlText(rf.credit_type || 'general')}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Provider</span><span class="val">${escapeHtmlText(rf.payment_provider || '—')}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Purchase</span><span class="val" title="${escapeHtmlText(rf.purchase_id || '')}">${escapeHtmlText(shortPurchase)}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Identity</span><span class="val" title="${escapeHtmlText(rf.identity_id || '')}">${escapeHtmlText(shortIdentity)}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Executed by</span><span class="val">${escapeHtmlText(rf.executed_by || '—')}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Executed at</span><span class="val">${rf.executed_at ? formatDateUK(rf.executed_at) : '—'}</span></div>
+            </div>
+            ${rf.reason || rf.admin_note ? `<div class="ops-rh-note">
+              ${rf.reason ? `<strong>Reason:</strong> ${escapeHtmlText(rf.reason)}` : ''}
+              ${rf.reason && rf.admin_note ? ' · ' : ''}
+              ${rf.admin_note ? `<strong>Note:</strong> ${escapeHtmlText(rf.admin_note)}` : ''}
+            </div>` : ''}
+            ${rf.external_refund_id ? `<div class="ops-rh-note"><strong>Mollie refund ID:</strong> ${escapeHtmlText(rf.external_refund_id)}</div>` : ''}
+          </div>`;
+        }).join('');
+
+        // Pagination
+        const pageStart = _rhOffset + 1;
+        const pageEnd = Math.min(_rhOffset + _rhLimit, total);
+        const hasPrev = _rhOffset > 0;
+        const hasNext = _rhOffset + _rhLimit < total;
+
+        html += `<div class="ops-rh-pagination">
+          <button ${hasPrev ? `onclick="loadOpsRefundHistory(${_rhOffset - _rhLimit})"` : 'disabled'}>Prev</button>
+          <span>${pageStart}–${pageEnd} of ${total}</span>
+          <button ${hasNext ? `onclick="loadOpsRefundHistory(${_rhOffset + _rhLimit})"` : 'disabled'}>Next</button>
+        </div>`;
+
+        list.innerHTML = html;
+
+      } catch (err) {
+        console.error('Refund history error:', err);
+        list.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    // Wire up refund history controls
+    if ($('#refreshOpsRefundHistory')) $('#refreshOpsRefundHistory').onclick = () => loadOpsRefundHistory(0);
+    if ($('#rhApplyFilters')) $('#rhApplyFilters').onclick = () => loadOpsRefundHistory(0);
+
     // Update loadAllOps to include new sections
     function loadAllOps() {
       loadOpsHealth();
@@ -5764,6 +6038,7 @@
       loadOpsRefunds();
       loadOpsLedger();
       loadOpsMonthly();
+      loadOpsRefundHistory(0);
       // Remove old snapshot element if re-loading
       const oldSnap = $('#opsSnapshots');
       if (oldSnap) oldSnap.remove();
