@@ -1327,6 +1327,142 @@
     .ops-refund-detail .lbl { color: #888; }
     .ops-refund-detail .val { color: #ccc; font-weight: 500; }
 
+    /* Ledger form */
+    .ops-ledger-form {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .ops-ledger-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .ops-form-field label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .ops-form-field .form-input,
+    .ops-form-field .form-select {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+
+    /* Ledger list items */
+    .ops-ledger-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      align-items: center;
+    }
+    .ops-ledger-type {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 60px;
+    }
+    .ops-ledger-type.topup      { color: #22c55e; }
+    .ops-ledger-type.invoice    { color: #f87171; }
+    .ops-ledger-type.balance_snapshot { color: #3b82f6; }
+    .ops-ledger-type.adjustment { color: #fbbf24; }
+    .ops-ledger-type.note       { color: #888; }
+    .ops-ledger-provider {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e5e5;
+      min-width: 80px;
+    }
+    .ops-ledger-amount {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      min-width: 60px;
+    }
+    .ops-ledger-desc {
+      flex: 1;
+      font-size: 12px;
+      color: #999;
+      min-width: 100px;
+    }
+    .ops-ledger-date {
+      font-size: 11px;
+      color: #666;
+    }
+
+    /* Monthly spend table */
+    .ops-monthly-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .ops-monthly-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #888;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .ops-monthly-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #ccc;
+    }
+    .ops-monthly-table tr:last-child td { border-bottom: none; }
+    .ops-monthly-table .month-header td {
+      background: rgba(255,255,255,0.04);
+      font-weight: 600;
+      color: #fff;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .ops-monthly-wrap {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .ops-monthly-snapshots {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ops-snapshot-card {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+    .ops-snapshot-card .snap-prov {
+      font-weight: 600;
+      color: #e5e5e5;
+    }
+    .ops-snapshot-card .snap-bal {
+      color: #3b82f6;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .ops-snapshot-card .snap-date {
+      color: #888;
+      margin-left: 6px;
+    }
+
     /* ====== OPS MOBILE RESPONSIVE ====== */
     @media (max-width: 720px) {
       .ops-summary-bar { padding: 70px 16px 14px; }
@@ -1349,6 +1485,9 @@
       .ops-spend-table-wrap { overflow-x: auto; }
 
       .ops-refund-details { grid-template-columns: 1fr 1fr; }
+      .ops-ledger-form-grid { grid-template-columns: 1fr; }
+      .ops-ledger-item { flex-direction: column; align-items: flex-start; }
+      .ops-monthly-wrap { overflow-x: auto; }
     }
     @media (max-width: 480px) {
       .ops-summary-cards { grid-template-columns: repeat(2, 1fr); }
@@ -1486,6 +1625,84 @@
               </div>
               <div class="ops-refund-list" id="opsRefundList">
                 <div class="ops-loading">Loading refund review...</div>
+              </div>
+            </div>
+
+            <!-- Provider Ledger -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Provider Ledger</h4>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn small" id="toggleLedgerForm">+ Entry</button>
+                  <button class="btn small" id="refreshOpsLedger">Refresh</button>
+                </div>
+              </div>
+
+              <!-- Add entry form (hidden by default) -->
+              <div class="ops-ledger-form" id="opsLedgerForm" style="display:none;">
+                <div class="ops-ledger-form-grid">
+                  <div class="ops-form-field">
+                    <label>Provider</label>
+                    <select id="ledgerProvider" class="form-select">
+                      <option value="">Select...</option>
+                      <option value="meshy">Meshy</option>
+                      <option value="openai">OpenAI</option>
+                      <option value="google">Google</option>
+                      <option value="vertex">Vertex</option>
+                      <option value="seedance">Seedance</option>
+                      <option value="fal_seedance">fal Seedance</option>
+                    </select>
+                  </div>
+                  <div class="ops-form-field">
+                    <label>Type</label>
+                    <select id="ledgerType" class="form-select">
+                      <option value="topup">Top-up</option>
+                      <option value="invoice">Invoice</option>
+                      <option value="balance_snapshot">Balance Snapshot</option>
+                      <option value="adjustment">Adjustment</option>
+                      <option value="note">Note</option>
+                    </select>
+                  </div>
+                  <div class="ops-form-field">
+                    <label>Amount (GBP)</label>
+                    <input id="ledgerAmount" type="number" step="0.01" class="form-input" placeholder="e.g. 50.00"/>
+                  </div>
+                  <div class="ops-form-field">
+                    <label>Balance Snapshot (GBP)</label>
+                    <input id="ledgerBalance" type="number" step="0.01" class="form-input" placeholder="Optional"/>
+                  </div>
+                  <div class="ops-form-field" style="grid-column:1/-1;">
+                    <label>Description</label>
+                    <input id="ledgerDesc" class="form-input" placeholder="e.g. PiAPI wallet top-up"/>
+                  </div>
+                  <div class="ops-form-field">
+                    <label>Reference</label>
+                    <input id="ledgerRef" class="form-input" placeholder="Invoice #, receipt..."/>
+                  </div>
+                  <div class="ops-form-field">
+                    <label>Period (YYYY-MM)</label>
+                    <input id="ledgerPeriod" class="form-input" placeholder="e.g. 2026-03"/>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                  <button class="action-btn" id="submitLedgerEntry" style="flex:1;">Save Entry</button>
+                  <button class="btn" id="cancelLedgerForm">Cancel</button>
+                </div>
+              </div>
+
+              <div class="ops-ledger-list" id="opsLedgerList">
+                <div class="ops-loading">Loading ledger...</div>
+              </div>
+            </div>
+
+            <!-- Monthly Spend Summary -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Monthly Spend Summary</h4>
+                <button class="btn small" id="refreshOpsMonthly">Refresh</button>
+              </div>
+              <div class="ops-monthly-wrap" id="opsMonthlyWrap">
+                <div class="ops-loading">Loading monthly spend...</div>
               </div>
             </div>
 
@@ -5124,25 +5341,260 @@
       }
     }
 
-    function loadAllOps() {
-      loadOpsHealth();
-      loadOpsAlerts();
-      loadOpsRefunds();
-    }
-
     // Wire up refresh buttons
     if ($('#refreshOpsHealth')) $('#refreshOpsHealth').onclick = loadOpsHealth;
     if ($('#refreshOpsAlerts')) $('#refreshOpsAlerts').onclick = loadOpsAlerts;
     if ($('#refreshOpsRefunds')) $('#refreshOpsRefunds').onclick = loadOpsRefunds;
 
-    // Load ops on tab click
-    $$('.tab').forEach(tab => {
-      if (tab.dataset.tab === 'ops') {
-        tab.addEventListener('click', loadAllOps);
+    // ========== PROVIDER LEDGER ==========
+
+    async function loadOpsLedger() {
+      const list = $('#opsLedgerList');
+      list.innerHTML = '<div class="ops-loading">Loading ledger...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/provider-ledger?limit=20`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const entries = j.entries || [];
+        if (!entries.length) {
+          list.innerHTML = '<div class="ops-empty">No ledger entries yet</div>';
+          return;
+        }
+
+        list.innerHTML = entries.map(e => {
+          const amtStr = e.amount_gbp != null ? `\u00A3${e.amount_gbp.toFixed(2)}` : '';
+          const snapStr = e.balance_snapshot_gbp != null ? `bal: \u00A3${e.balance_snapshot_gbp.toFixed(2)}` : '';
+          const display = amtStr || snapStr || '';
+          return `
+            <div class="ops-ledger-item">
+              <span class="ops-ledger-type ${e.entry_type}">${e.entry_type.replace('_', ' ')}</span>
+              <span class="ops-ledger-provider">${escapeHtmlText(e.provider)}</span>
+              <span class="ops-ledger-amount">${display}</span>
+              <span class="ops-ledger-desc">${escapeHtmlText(e.description || e.reference || '')}</span>
+              <span class="ops-ledger-date">${formatDateUK(e.created_at)}</span>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        console.error('Ops ledger error:', err);
+        list.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    // Ledger form toggle
+    if ($('#toggleLedgerForm')) {
+      $('#toggleLedgerForm').onclick = () => {
+        const form = $('#opsLedgerForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      };
+    }
+    if ($('#cancelLedgerForm')) {
+      $('#cancelLedgerForm').onclick = () => {
+        $('#opsLedgerForm').style.display = 'none';
+      };
+    }
+
+    // Submit ledger entry
+    if ($('#submitLedgerEntry')) {
+      $('#submitLedgerEntry').onclick = async () => {
+        const btn = $('#submitLedgerEntry');
+        const provider = $('#ledgerProvider').value;
+        const entry_type = $('#ledgerType').value;
+        const amountRaw = $('#ledgerAmount').value;
+        const balanceRaw = $('#ledgerBalance').value;
+
+        if (!provider) { Toast.error('Select a provider'); return; }
+
+        const body = {
+          provider,
+          entry_type,
+          description: $('#ledgerDesc').value || null,
+          reference: $('#ledgerRef').value || null,
+          period_month: $('#ledgerPeriod').value || null,
+        };
+        if (amountRaw !== '') body.amount_gbp = parseFloat(amountRaw);
+        if (balanceRaw !== '') body.balance_snapshot_gbp = parseFloat(balanceRaw);
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        try {
+          const r = await fetch(`${BACKEND}/api/admin/provider-ledger`, {
+            method: 'POST',
+            headers: headers(),
+            credentials: 'include',
+            body: JSON.stringify(body),
+          });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || 'Failed');
+          Toast.success('Ledger entry saved');
+          $('#opsLedgerForm').style.display = 'none';
+          // Clear form
+          $('#ledgerProvider').value = '';
+          $('#ledgerAmount').value = '';
+          $('#ledgerBalance').value = '';
+          $('#ledgerDesc').value = '';
+          $('#ledgerRef').value = '';
+          $('#ledgerPeriod').value = '';
+          loadOpsLedger();
+          loadOpsMonthly();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save Entry';
+        }
+      };
+    }
+
+    // ========== MONTHLY SPEND REPORT ==========
+
+    async function loadOpsMonthly() {
+      const wrap = $('#opsMonthlyWrap');
+      wrap.innerHTML = '<div class="ops-loading">Loading monthly spend...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/provider-spend/monthly?months=3`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const report = j.report || [];
+        const snapshots = j.latest_snapshots || {};
+
+        if (!report.length) {
+          wrap.innerHTML = '<div class="ops-empty">No spend data yet</div>';
+          return;
+        }
+
+        // Group by month
+        const byMonth = {};
+        for (const row of report) {
+          const m = row.month || 'Unknown';
+          if (!byMonth[m]) byMonth[m] = [];
+          byMonth[m].push(row);
+        }
+
+        let tableHtml = `<table class="ops-monthly-table">
+          <thead><tr>
+            <th>Provider</th><th>Est. Usage</th><th>Jobs</th>
+            <th>Top-ups</th><th>Invoices</th><th>Adjustments</th>
+          </tr></thead><tbody>`;
+
+        for (const month of Object.keys(byMonth).sort().reverse()) {
+          const monthLabel = formatMonthLabel(month);
+          tableHtml += `<tr class="month-header"><td colspan="6">${escapeHtmlText(monthLabel)}</td></tr>`;
+          for (const row of byMonth[month]) {
+            tableHtml += `<tr>
+              <td>${escapeHtmlText(row.provider)}</td>
+              <td>\u00A3${(row.estimated_usage_gbp || 0).toFixed(2)}</td>
+              <td>${row.job_count || 0}</td>
+              <td>${row.topup_count ? `\u00A3${(row.topups_gbp || 0).toFixed(2)} (${row.topup_count})` : '\u2014'}</td>
+              <td>${row.invoice_count ? `\u00A3${(row.invoices_gbp || 0).toFixed(2)} (${row.invoice_count})` : '\u2014'}</td>
+              <td>${row.adjustment_count ? `\u00A3${(row.adjustments_gbp || 0).toFixed(2)} (${row.adjustment_count})` : '\u2014'}</td>
+            </tr>`;
+          }
+        }
+
+        tableHtml += '</tbody></table>';
+        wrap.innerHTML = tableHtml;
+
+        // Show balance snapshots if any
+        const snapKeys = Object.keys(snapshots);
+        if (snapKeys.length) {
+          const snapHtml = snapKeys.map(prov => {
+            const s = snapshots[prov];
+            return `<div class="ops-snapshot-card">
+              <span class="snap-prov">${escapeHtmlText(prov)}</span>
+              <span class="snap-bal">\u00A3${s.balance_gbp.toFixed(2)}</span>
+              <span class="snap-date">${formatDateUK(s.recorded_at)}</span>
+            </div>`;
+          }).join('');
+          wrap.insertAdjacentHTML('afterend',
+            `<div class="ops-monthly-snapshots" id="opsSnapshots">
+              <span style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.04em;width:100%;">Latest Balance Snapshots</span>
+              ${snapHtml}
+            </div>`);
+        }
+
+      } catch (err) {
+        console.error('Ops monthly error:', err);
+        wrap.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    function formatMonthLabel(dateStr) {
+      if (!dateStr) return 'Unknown';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    }
+
+    // Wire up refresh buttons
+    if ($('#refreshOpsLedger')) $('#refreshOpsLedger').onclick = loadOpsLedger;
+    if ($('#refreshOpsMonthly')) $('#refreshOpsMonthly').onclick = loadOpsMonthly;
+
+    // ========== OPS AUTO-REFRESH POLLING ==========
+
+    let _opsPollingTimer = null;
+
+    function startOpsPolling() {
+      stopOpsPolling();
+      _opsPollingTimer = setInterval(() => {
+        // Only poll if Ops tab is active
+        const opsTab = $('[data-tab="ops"]');
+        if (opsTab && opsTab.classList.contains('active')) {
+          loadOpsHealth();
+          loadOpsAlerts();
+        }
+      }, 60000); // 60 seconds
+    }
+
+    function stopOpsPolling() {
+      if (_opsPollingTimer) {
+        clearInterval(_opsPollingTimer);
+        _opsPollingTimer = null;
+      }
+    }
+
+    // Start/stop polling based on page visibility
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopOpsPolling();
+      } else {
+        const opsTab = $('[data-tab="ops"]');
+        if (opsTab && opsTab.classList.contains('active')) {
+          startOpsPolling();
+        }
       }
     });
 
-    (async function(){ if(await ensureAuth()){ load(); checkAI(); loadAllOps(); } })();
+    // Update loadAllOps to include new sections
+    function loadAllOps() {
+      loadOpsHealth();
+      loadOpsAlerts();
+      loadOpsRefunds();
+      loadOpsLedger();
+      loadOpsMonthly();
+      // Remove old snapshot element if re-loading
+      const oldSnap = $('#opsSnapshots');
+      if (oldSnap) oldSnap.remove();
+    }
+
+    // Load ops on tab click + manage polling
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'ops') {
+        tab.addEventListener('click', () => {
+          loadAllOps();
+          startOpsPolling();
+        });
+      } else {
+        tab.addEventListener('click', stopOpsPolling);
+      }
+    });
+
+    (async function(){ if(await ensureAuth()){ load(); checkAI(); loadAllOps(); startOpsPolling(); } })();
   </script>
 </body>
 </html>
