@@ -475,6 +475,40 @@
       .docs-content { padding: 16px; }
       .docs-article h2 { font-size: 20px; }
     }
+
+    /* Back to top */
+    .docs-back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+
+    .docs-back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .docs-back-to-top:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      transform: translateY(-3px);
+    }
   </style>
 </head>
 <body>
@@ -1076,6 +1110,13 @@
     </div>
   </div>
 
+  <!-- Back to top -->
+  <button class="docs-back-to-top" id="docsBackToTop" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+  </button>
+
   <!-- Sidebar active link tracking -->
   <script>
     (function () {
@@ -1099,6 +1140,20 @@
       );
 
       articles.forEach((article) => observer.observe(article));
+    })();
+  </script>
+
+  <!-- Back to top logic -->
+  <script>
+    (function () {
+      const btn = document.getElementById('docsBackToTop');
+      if (!btn) return;
+      window.addEventListener('scroll', function () {
+        btn.classList.toggle('visible', window.scrollY > 400);
+      }, { passive: true });
+      btn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     })();
   </script>
 

@@ -2836,6 +2836,17 @@
   </section>
 
 
+  <!-- Back to top buttons for expanded views -->
+  <button class="expanded-back-to-top" data-for="tutorials" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <button class="expanded-back-to-top" data-for="docs" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <button class="expanded-back-to-top" data-for="converter" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
   <!-- ═══════════════════════════════════════════════════════════════════════
        ABOUT / OUR STORY & MISSION – Expanded View
        ═══════════════════════════════════════════════════════════════════════ -->
@@ -3207,6 +3218,23 @@
       document.getElementById('mobileNoticeClose').addEventListener('click', function(){
         el.style.display = 'none';
         sessionStorage.setItem('mobileNoticeDismissed3d','1');
+      });
+    })();
+  </script>
+
+  <!-- Back to top for expanded views -->
+  <script>
+    (function () {
+      var btns = document.querySelectorAll('.expanded-back-to-top');
+      if (!btns.length) return;
+      window.addEventListener('scroll', function () {
+        var show = window.scrollY > 400;
+        btns.forEach(function (b) { b.classList.toggle('visible', show); });
+      }, { passive: true });
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
       });
     })();
   </script>

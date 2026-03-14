@@ -531,3 +531,44 @@ body.docs-view .docs-expanded-view {
     font-size: 20px;
   }
 }
+
+/* ===== Back to top (expanded views) ===== */
+.expanded-back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 999;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.expanded-back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.expanded-back-to-top:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  transform: translateY(-3px);
+}
+
+/* Show only when parent expanded view is active */
+body.docs-view .expanded-back-to-top[data-for="docs"],
+body.tutorials-view .expanded-back-to-top[data-for="tutorials"],
+body.converter-view .expanded-back-to-top[data-for="converter"] {
+  display: flex;
+}
