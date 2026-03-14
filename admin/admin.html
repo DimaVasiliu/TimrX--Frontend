@@ -1679,6 +1679,92 @@
       margin-left: 6px;
     }
 
+    /* ====== PROVIDER BALANCE SUMMARY ====== */
+    .ops-balance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .ops-balance-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 11px;
+    }
+    .ops-balance-card.status-action_needed {
+      border-color: rgba(239,68,68,0.4);
+      background: rgba(239,68,68,0.06);
+    }
+    .ops-balance-card.status-warning {
+      border-color: rgba(234,179,8,0.4);
+      background: rgba(234,179,8,0.06);
+    }
+    .ops-balance-card.status-ok {
+      border-color: rgba(34,197,94,0.3);
+      background: rgba(34,197,94,0.04);
+    }
+    .ops-balance-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .ops-balance-prov {
+      font-weight: 600;
+      font-size: 13px;
+      color: #e5e5e5;
+    }
+    .ops-bal-status {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .ops-bal-status.action_needed { background: rgba(239,68,68,0.2); color: #f87171; }
+    .ops-bal-status.warning { background: rgba(234,179,8,0.2); color: #facc15; }
+    .ops-bal-status.ok { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .ops-bal-status.unknown { background: rgba(255,255,255,0.08); color: #888; }
+    .ops-balance-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      margin-bottom: 8px;
+    }
+    .ops-bstat { display: flex; justify-content: space-between; }
+    .ops-bstat-label { color: #888; }
+    .ops-bstat-value { color: #ccc; font-weight: 500; }
+    .ops-bstat-value.low { color: #f87171; }
+    .ops-bstat-value.med { color: #facc15; }
+    .ops-balance-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .ops-balance-footer .snap-age {
+      color: #888;
+      font-size: 10px;
+    }
+    .ops-balance-footer .snap-age.stale { color: #facc15; }
+    .ops-balance-footer .snap-age.very-stale { color: #f87171; }
+    .ops-bal-action-bar {
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     /* ====== OPS MOBILE RESPONSIVE ====== */
     @media (max-width: 720px) {
       .ops-summary-bar { padding: 70px 16px 14px; }
@@ -1694,6 +1780,7 @@
       .ops-card-label { font-size: 9px; }
 
       .ops-provider-grid { grid-template-columns: 1fr; }
+      .ops-balance-grid { grid-template-columns: 1fr; }
       .ops-provider-stats { grid-template-columns: 1fr; }
 
       .ops-alert-item { flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -1809,6 +1896,18 @@
               </div>
               <div class="ops-provider-grid" id="opsProviderGrid">
                 <div class="ops-loading">Loading provider health...</div>
+              </div>
+            </div>
+
+            <!-- Provider Balances -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Provider Balances</h4>
+                <button class="btn small" id="refreshOpsBalances">Refresh</button>
+              </div>
+              <div id="opsBalanceActionBar"></div>
+              <div class="ops-balance-grid" id="opsBalanceGrid">
+                <div class="ops-loading">Loading provider balances...</div>
               </div>
             </div>
 
@@ -5493,6 +5592,133 @@
       }
     }
 
+    // ========== PROVIDER BALANCE SUMMARY ==========
+
+    async function loadOpsBalances() {
+      const grid = $('#opsBalanceGrid');
+      const actionBar = $('#opsBalanceActionBar');
+      grid.innerHTML = '<div class="ops-loading">Loading provider balances...</div>';
+      actionBar.innerHTML = '';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/provider-balances`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const providers = j.providers || [];
+        const summary = j.summary || {};
+
+        // Action-needed banner
+        const actionCount = summary.action_needed_count || 0;
+        const warnCount = summary.warning_count || 0;
+        if (actionCount > 0) {
+          const names = providers.filter(p => p.balance_status === 'action_needed').map(p => p.provider).join(', ');
+          actionBar.innerHTML = `<div class="ops-bal-action-bar">
+            <strong>${actionCount} provider${actionCount > 1 ? 's' : ''} need attention:</strong>
+            ${escapeHtmlText(names)} — check balance / update snapshot
+          </div>`;
+        } else if (warnCount > 0) {
+          actionBar.innerHTML = `<div class="ops-bal-action-bar" style="border-color:rgba(234,179,8,0.25);background:rgba(234,179,8,0.06);color:#facc15;">
+            <strong>${warnCount} provider${warnCount > 1 ? 's' : ''} with warnings</strong> — snapshots may be stale or balances low
+          </div>`;
+        }
+
+        if (!providers.length) {
+          grid.innerHTML = '<div class="ops-empty">No provider data</div>';
+          return;
+        }
+
+        grid.innerHTML = providers.map(p => {
+          const st = p.balance_status || 'unknown';
+          const statusLabels = {
+            action_needed: 'action needed',
+            warning: 'warning',
+            ok: 'ok',
+            unknown: 'no snapshot',
+          };
+
+          const hasSnapshot = p.last_snapshot_gbp != null;
+          const balStr = hasSnapshot ? `\u00A3${p.last_snapshot_gbp.toFixed(2)}` : '--';
+          const estRemStr = p.estimated_remaining_gbp != null ? `\u00A3${p.estimated_remaining_gbp.toFixed(2)}` : '--';
+          const spendStr = `\u00A3${(p.estimated_spend_since_gbp || 0).toFixed(2)}`;
+
+          // Snapshot recorded date
+          const recordedStr = p.last_snapshot_at ? formatDateUK(p.last_snapshot_at) : 'never';
+
+          // Snapshot age label
+          let ageLabel = 'No snapshot recorded';
+          let ageClass = 'very-stale';
+          if (hasSnapshot && p.days_since_snapshot != null) {
+            if (p.days_since_snapshot === 0) { ageLabel = 'Recorded today'; ageClass = ''; }
+            else if (p.days_since_snapshot === 1) { ageLabel = 'Recorded 1 day ago'; ageClass = ''; }
+            else { ageLabel = `Recorded ${p.days_since_snapshot}d ago`; ageClass = p.days_since_snapshot >= 14 ? 'very-stale' : p.days_since_snapshot >= 7 ? 'stale' : ''; }
+          }
+
+          // Value color classes
+          const remClass = p.estimated_remaining_gbp != null
+            ? (p.estimated_remaining_gbp <= 3 ? ' low' : p.estimated_remaining_gbp <= 10 ? ' med' : '')
+            : '';
+
+          const walletBadge = p.wallet_alerts_7d > 0
+            ? `<span style="font-size:9px;background:rgba(239,68,68,0.2);color:#f87171;padding:1px 5px;border-radius:3px;margin-left:4px;">${p.wallet_alerts_7d} wallet alert${p.wallet_alerts_7d > 1 ? 's' : ''}</span>`
+            : '';
+
+          return `
+            <div class="ops-balance-card status-${st}">
+              <div class="ops-balance-top">
+                <span class="ops-balance-prov">${escapeHtmlText(p.provider)}${walletBadge}</span>
+                <span class="ops-bal-status ${st}">${statusLabels[st] || st}</span>
+              </div>
+              <div class="ops-balance-stats">
+                <div class="ops-bstat"><span class="ops-bstat-label">Manual snapshot</span><span class="ops-bstat-value">${balStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Recorded</span><span class="ops-bstat-value" style="font-size:10px;">${escapeHtmlText(recordedStr)}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Est. spend since</span><span class="ops-bstat-value">${spendStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Approx. remaining</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
+              </div>
+              <div class="ops-balance-footer">
+                <span class="snap-age ${ageClass}">${escapeHtmlText(ageLabel)}</span>
+                <button class="btn small" style="font-size:9px;padding:2px 8px;" onclick="updateProviderSnapshot('${escapeHtmlText(p.provider)}')">Update Snapshot</button>
+              </div>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        console.error('Ops balances error:', err);
+        grid.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    async function updateProviderSnapshot(provider) {
+      const balStr = prompt(`Enter current balance (GBP) for ${provider}:`);
+      if (balStr === null) return;
+      const balance = parseFloat(balStr);
+      if (isNaN(balance) || balance < 0) { Toast.error('Invalid balance amount'); return; }
+
+      const desc = prompt('Optional note (e.g. "checked dashboard"):') || `Manual snapshot update`;
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/provider-ledger`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+          body: JSON.stringify({
+            provider: provider,
+            entry_type: 'balance_snapshot',
+            balance_snapshot_gbp: balance,
+            description: desc,
+          }),
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+        Toast.success(`Snapshot updated: ${provider} \u00A3${balance.toFixed(2)}`);
+        loadOpsBalances();
+        loadOpsLedger();
+        loadOpsMonthly();
+      } catch (err) {
+        Toast.error(err.message);
+      }
+    }
+
     function renderOpsSpend(providers) {
       const wrap = $('#opsSpendWrap');
       const sorted = [...providers].sort((a, b) => (b.estimated_spend_today_gbp || 0) - (a.estimated_spend_today_gbp || 0));
@@ -5644,6 +5870,7 @@
 
     // Wire up refresh buttons
     if ($('#refreshOpsHealth')) $('#refreshOpsHealth').onclick = loadOpsHealth;
+    if ($('#refreshOpsBalances')) $('#refreshOpsBalances').onclick = loadOpsBalances;
     if ($('#refreshOpsAlerts')) $('#refreshOpsAlerts').onclick = loadOpsAlerts;
     if ($('#refreshOpsRefunds')) $('#refreshOpsRefunds').onclick = loadOpsRefunds;
 
@@ -5843,6 +6070,7 @@
           $('#ledgerPeriod').value = '';
           loadOpsLedger();
           loadOpsMonthly();
+          loadOpsBalances();
         } catch (err) {
           Toast.error(err.message);
         } finally {
@@ -6330,6 +6558,7 @@
     // Update loadAllOps to include new sections
     function loadAllOps() {
       loadOpsHealth();
+      loadOpsBalances();
       loadOpsAlerts();
       loadOpsRefunds();
       loadOpsLedger();
