@@ -1388,6 +1388,9 @@
     .ops-rh-card.status-failed    { border-left: 3px solid #ef4444; }
     .ops-rh-card.status-pending   { border-left: 3px solid #3b82f6; }
     .ops-rh-card.status-manual    { border-left: 3px solid #fbbf24; }
+    .ops-rh-card.status-approved  { border-left: 3px solid #4ade80; }
+    .ops-rh-card.status-denied    { border-left: 3px solid #ef4444; }
+    .ops-rh-card.status-closed    { border-left: 3px solid #666; }
     .ops-rh-top {
       display: flex;
       justify-content: space-between;
@@ -1420,6 +1423,9 @@
     .ops-rh-badge.failed          { background: rgba(239,68,68,0.2);   color: #ef4444; }
     .ops-rh-badge.pending         { background: rgba(59,130,246,0.2);  color: #3b82f6; }
     .ops-rh-badge.manual_review   { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .ops-rh-badge.approved        { background: rgba(34,197,94,0.2);   color: #4ade80; }
+    .ops-rh-badge.denied          { background: rgba(239,68,68,0.15);  color: #f87171; }
+    .ops-rh-badge.closed          { background: rgba(255,255,255,0.08); color: #888; }
     .ops-rh-badge.ext-ok          { background: rgba(34,197,94,0.15);  color: #4ade80; }
     .ops-rh-badge.ext-fail        { background: rgba(239,68,68,0.15);  color: #f87171; }
     .ops-rh-badge.ext-skip        { background: rgba(255,255,255,0.06); color: #888; }
@@ -1943,6 +1949,9 @@
                   <option value="failed">Failed</option>
                   <option value="pending">Pending</option>
                   <option value="manual_review_required">Manual Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="denied">Denied</option>
+                  <option value="closed">Closed</option>
                 </select>
                 <input id="rhFilterEmail" placeholder="Email contains..." />
                 <input id="rhFilterDateFrom" type="date" title="From date" />
@@ -1957,6 +1966,41 @@
               </div>
             </div>
 
+          </div>
+        </div>
+
+        <!-- Resolve Refund Modal -->
+        <div id="resolveRefundModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:24px;max-width:420px;width:90%;">
+            <h4 style="margin:0 0 16px 0;font-size:16px;color:#eee;">Resolve Refund</h4>
+            <input type="hidden" id="resolveRefundId" />
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Resolution</label>
+              <select id="resolveResolution" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;">
+                <option value="approved">Approved</option>
+                <option value="denied">Denied</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Reason (user-visible if email sent)</label>
+              <input id="resolveReason" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="e.g. Approved after manual review" />
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Admin note (internal only)</label>
+              <input id="resolveAdminNote" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="Internal note..." />
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:11px;color:#ccc;display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" id="resolveSendEmail" checked />
+                Send follow-up email to customer
+              </label>
+              <p style="margin:4px 0 0 22px;font-size:10px;color:#888;">Only for approved/denied. Not sent for closed.</p>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="action-btn" id="resolveConfirmBtn" style="flex:1;font-size:12px;">Resolve</button>
+              <button class="btn" id="resolveCancelBtn" style="font-size:12px;" onclick="closeResolveModal()">Cancel</button>
+            </div>
           </div>
         </div>
 
@@ -5992,6 +6036,127 @@
       }
     });
 
+    // ========== REFUND REVIEW EMAIL ==========
+
+    async function sendRefundReviewEmail(refundId, btn) {
+      if (!confirm('Send a "refund under review" email to the customer?')) return;
+      const origText = btn.textContent;
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/send-review-email`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        if (j.already_sent) {
+          Toast.info(j.message || 'Review email already sent');
+        } else {
+          Toast.success(j.message || 'Review email queued');
+        }
+        btn.textContent = 'Review Email Sent';
+        btn.style.opacity = '0.5';
+      } catch (err) {
+        console.error('Review email error:', err);
+        Toast.error('Failed: ' + err.message);
+        btn.textContent = origText;
+        btn.disabled = false;
+      }
+    }
+
+    // ========== EXECUTE APPROVED REFUND ==========
+
+    async function executeApprovedRefund(refundId, btn) {
+      if (!confirm('Execute this approved refund? This will reverse credits and update the purchase status.')) return;
+      const origText = btn.textContent;
+      btn.textContent = 'Executing...';
+      btn.disabled = true;
+      try {
+        const mollieCb = document.querySelector(`.exec-mollie-cb[data-refund-id="${refundId}"]`);
+        const executeExternal = mollieCb ? mollieCb.checked : false;
+
+        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/execute-approved`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+          body: JSON.stringify({ execute_external_refund: executeExternal }),
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Execution failed');
+
+        Toast.success('Refund executed successfully');
+        loadOpsRefundHistory(_rhOffset);
+      } catch (err) {
+        console.error('Execute approved refund error:', err);
+        Toast.error('Failed: ' + err.message);
+        btn.textContent = origText;
+        btn.disabled = false;
+      }
+    }
+
+    // ========== REFUND RESOLVE MODAL ==========
+
+    function openResolveModal(refundId) {
+      const modal = $('#resolveRefundModal');
+      $('#resolveRefundId').value = refundId;
+      $('#resolveResolution').value = 'approved';
+      $('#resolveReason').value = '';
+      $('#resolveAdminNote').value = '';
+      $('#resolveSendEmail').checked = true;
+      modal.style.display = 'flex';
+    }
+
+    function closeResolveModal() {
+      $('#resolveRefundModal').style.display = 'none';
+    }
+
+    if ($('#resolveConfirmBtn')) $('#resolveConfirmBtn').onclick = async function() {
+      const refundId = $('#resolveRefundId').value;
+      const resolution = $('#resolveResolution').value;
+      const reason = $('#resolveReason').value.trim();
+      const adminNote = $('#resolveAdminNote').value.trim();
+      const sendEmail = $('#resolveSendEmail').checked && resolution !== 'closed';
+
+      const label = resolution.charAt(0).toUpperCase() + resolution.slice(1);
+      if (!confirm(`${label} this refund?${sendEmail ? ' A follow-up email will be sent to the customer.' : ''}`)) return;
+
+      const btn = this;
+      const origText = btn.textContent;
+      btn.textContent = 'Resolving...';
+      btn.disabled = true;
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/resolve`, {
+          method: 'POST',
+          headers: { ...headers(), 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ resolution, reason: reason || undefined, admin_note: adminNote || undefined, send_email: sendEmail }),
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        Toast.success(`Refund ${label.toLowerCase()}`
+          + (j.email?.queued ? ' — follow-up email queued' : '')
+          + (j.email?.already_sent ? ' — follow-up email already sent' : ''));
+        closeResolveModal();
+        loadOpsRefundHistory(0);
+      } catch (err) {
+        console.error('Resolve error:', err);
+        Toast.error('Failed: ' + err.message);
+      } finally {
+        btn.textContent = origText;
+        btn.disabled = false;
+      }
+    };
+
+    // Close modal on backdrop click
+    if ($('#resolveRefundModal')) $('#resolveRefundModal').onclick = function(e) {
+      if (e.target === this) closeResolveModal();
+    };
+
     // ========== REFUND HISTORY ==========
 
     let _rhOffset = 0;
@@ -6003,15 +6168,19 @@
         failed: ['failed', 'Failed'],
         pending: ['pending', 'Pending'],
         manual_review_required: ['manual_review', 'Manual Review'],
+        approved: ['approved', 'Approved — awaiting execution'],
+        denied: ['denied', 'Denied'],
+        closed: ['closed', 'Closed'],
       };
       const [cls, label] = map[rfStatus] || ['', rfStatus];
       return `<span class="ops-rh-badge ${escapeHtmlText(cls)}">${escapeHtmlText(label)}</span>`;
     }
 
-    function _rhExternalBadge(ext) {
+    function _rhExternalBadge(ext, rfStatus) {
       if (!ext) return '';
       if (ext.executed) return `<span class="ops-rh-badge ext-ok">Mollie refunded</span>`;
-      if (ext.attempted && !ext.executed) return `<span class="ops-rh-badge ext-fail">Mollie failed</span>`;
+      if (ext.attempted && !ext.executed) return `<span class="ops-rh-badge ext-fail">Mollie failed — manual action</span>`;
+      if (rfStatus === 'executed' && ext.provider === 'mollie') return `<span class="ops-rh-badge ext-fail">Payment refund pending</span>`;
       if (ext.provider === 'mollie') return `<span class="ops-rh-badge ext-skip">Mollie not attempted</span>`;
       return '';
     }
@@ -6061,9 +6230,12 @@
           const statusCls = rf.refund_status === 'executed' ? 'status-executed'
             : rf.refund_status === 'failed' ? 'status-failed'
             : rf.refund_status === 'pending' ? 'status-pending'
+            : rf.refund_status === 'approved' ? 'status-approved'
+            : rf.refund_status === 'denied' ? 'status-denied'
+            : rf.refund_status === 'closed' ? 'status-closed'
             : 'status-manual';
           const ext = rf.external_refund || {};
-          const extBadge = _rhExternalBadge(ext);
+          const extBadge = _rhExternalBadge(ext, rf.refund_status);
           const ptypeBadge = _rhPurchaseTypeBadge(rf.purchase_type);
 
           // User display: email first, ID as fallback
@@ -6101,6 +6273,24 @@
             </div>` : ''}
             ${ext.external_refund_id ? `<div class="ops-rh-note"><strong>Mollie refund ID:</strong> ${escapeHtmlText(ext.external_refund_id)}</div>` : ''}
             ${ext.error ? `<div class="ops-rh-note" style="color:#f87171;"><strong>External error:</strong> ${escapeHtmlText(ext.error)}</div>` : ''}
+            ${rf.resolved_by ? `<div class="ops-rh-note"><strong>Resolved by:</strong> ${escapeHtmlText(rf.resolved_by)}${rf.resolved_at ? ` on ${formatDateUK(rf.resolved_at)}` : ''}${rf.follow_up_email_queued ? ' · email sent' : ''}</div>` : ''}
+            ${rf.refund_status === 'manual_review_required' ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              ${rf.review_email_sent
+                ? `<button class="btn small" disabled style="opacity:0.5;font-size:10px;">Review Email Sent</button>`
+                : `<button class="btn small" style="font-size:10px;" onclick="sendRefundReviewEmail('${escapeHtmlText(rf.id)}', this)">Send Review Email</button>`
+              }
+              <button class="btn small" style="font-size:10px;" onclick="openResolveModal('${escapeHtmlText(rf.id)}')">Resolve</button>
+            </div>` : ''}
+            ${rf.refund_status === 'approved' ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="btn small" style="font-size:10px;background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.3);" onclick="executeApprovedRefund('${escapeHtmlText(rf.id)}', this)">Execute Refund</button>
+              <label style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;">
+                <input type="checkbox" class="exec-mollie-cb" data-refund-id="${escapeHtmlText(rf.id)}" />
+                Also refund via Mollie
+              </label>
+            </div>` : ''}
+            ${rf.refund_status === 'failed' ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="btn small" style="font-size:10px;" onclick="openResolveModal('${escapeHtmlText(rf.id)}')">Re-resolve</button>
+            </div>` : ''}
           </div>`;
         }).join('');
 
