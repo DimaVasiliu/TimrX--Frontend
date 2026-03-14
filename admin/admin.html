@@ -1470,6 +1470,74 @@
     }
     .ops-rh-pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* ====== PURCHASE CARDS ====== */
+    .ops-pch-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .ops-pch-card.status-completed { border-left: 3px solid #22c55e; }
+    .ops-pch-card.status-refunded  { border-left: 3px solid #a855f7; }
+    .ops-pch-card.status-pending   { border-left: 3px solid #3b82f6; }
+    .ops-pch-card.status-failed    { border-left: 3px solid #ef4444; }
+    .ops-pch-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .ops-pch-top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ops-pch-email {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e5e5;
+    }
+    .ops-pch-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .ops-pch-badge.completed { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .ops-pch-badge.refunded  { background: rgba(168,85,247,0.2); color: #a855f7; }
+    .ops-pch-badge.pending   { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .ops-pch-badge.failed    { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .ops-pch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 4px 16px;
+      font-size: 11px;
+    }
+    .ops-pch-field { display: flex; justify-content: space-between; }
+    .ops-pch-field .lbl { color: #888; }
+    .ops-pch-field .val { color: #ccc; font-weight: 500; }
+    .ops-pch-actions {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ops-pch-refund-state {
+      font-size: 10px;
+      color: #888;
+      margin-left: auto;
+    }
+
     /* Refund confirm overlay */
     .ops-refund-confirm {
       position: fixed;
@@ -1788,6 +1856,9 @@
       .ops-spend-table-wrap { overflow-x: auto; }
 
       .ops-refund-details { grid-template-columns: 1fr 1fr; }
+      .ops-pch-grid { grid-template-columns: 1fr 1fr; }
+      .ops-pch-actions { flex-direction: column; align-items: stretch; }
+      .ops-pch-refund-state { margin-left: 0; }
       .ops-ledger-form-grid { grid-template-columns: 1fr; }
       .ops-ledger-item { flex-direction: column; align-items: flex-start; }
       .ops-monthly-wrap { overflow-x: auto; }
@@ -2032,6 +2103,32 @@
               </div>
             </div>
 
+            <!-- Purchases / Transactions -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Purchases</h4>
+                <button class="btn small" id="refreshOpsPurchases">Refresh</button>
+              </div>
+              <div class="ops-refund-history-filters" id="purchaseFilters">
+                <input id="pchFilterEmail" placeholder="Email..." />
+                <input id="pchFilterPurchaseId" placeholder="Purchase ID..." />
+                <select id="pchFilterStatus">
+                  <option value="">All statuses</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+                <input id="pchFilterDateFrom" type="date" title="From date" />
+                <input id="pchFilterDateTo" type="date" title="To date" />
+                <button class="btn small" id="pchApplyFilters">Filter</button>
+                <button class="btn small" id="pchClearFilters" style="opacity:0.6;">Clear</button>
+              </div>
+              <div id="opsPurchasesList">
+                <div class="ops-empty">Search by email or purchase ID to view purchases.</div>
+              </div>
+            </div>
+
             <!-- Refund History -->
             <div class="ops-section">
               <div class="ops-section-header">
@@ -2099,6 +2196,28 @@
             <div style="display:flex;gap:8px;">
               <button class="action-btn" id="resolveConfirmBtn" style="flex:1;font-size:12px;">Resolve</button>
               <button class="btn" id="resolveCancelBtn" style="font-size:12px;" onclick="closeResolveModal()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Refund Modal -->
+        <div id="startRefundModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:24px;max-width:420px;width:90%;">
+            <h4 style="margin:0 0 12px 0;font-size:16px;color:#eee;">Start Refund</h4>
+            <div id="startRefundSummary" style="font-size:11px;color:#aaa;margin-bottom:14px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:4px;"></div>
+            <input type="hidden" id="startRefundPurchaseId" />
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Reason</label>
+              <input id="startRefundReason" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="e.g. Customer requested refund" />
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Admin note (internal)</label>
+              <input id="startRefundAdminNote" style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#ccc;" placeholder="Internal note..." />
+            </div>
+            <p style="font-size:10px;color:#888;margin:0 0 14px 0;">This creates a refund record in <strong>manual review</strong> state. No credits are reversed yet.</p>
+            <div style="display:flex;gap:8px;">
+              <button class="action-btn" id="startRefundConfirmBtn" style="flex:1;font-size:12px;">Create Refund</button>
+              <button class="btn" style="font-size:12px;" onclick="closeStartRefundModal()">Cancel</button>
             </div>
           </div>
         </div>
@@ -6384,6 +6503,201 @@
     if ($('#resolveRefundModal')) $('#resolveRefundModal').onclick = function(e) {
       if (e.target === this) closeResolveModal();
     };
+
+    // ========== PURCHASES / TRANSACTIONS ==========
+
+    let _pchOffset = 0;
+    const _PCH_LIMIT = 20;
+
+    async function loadOpsPurchases(offset) {
+      if (offset !== undefined) _pchOffset = offset;
+      const list = $('#opsPurchasesList');
+      list.innerHTML = '<div class="ops-loading">Loading purchases...</div>';
+      try {
+        let url = `${BACKEND}/api/admin/purchases?limit=${_PCH_LIMIT}&offset=${_pchOffset}`;
+        const email = $('#pchFilterEmail')?.value;
+        const pid = $('#pchFilterPurchaseId')?.value;
+        const status = $('#pchFilterStatus')?.value;
+        const df = $('#pchFilterDateFrom')?.value;
+        const dt = $('#pchFilterDateTo')?.value;
+
+        // Don't load all purchases without a filter — require at least one
+        const hasFilter = email || pid || status || df || dt;
+        if (!hasFilter) {
+          list.innerHTML = '<div class="ops-empty">Search by email, purchase ID, status, or date to view purchases.</div>';
+          return;
+        }
+
+        if (email) url += `&email=${encodeURIComponent(email)}`;
+        if (pid) url += `&purchase_id=${encodeURIComponent(pid)}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
+        if (df) url += `&date_from=${encodeURIComponent(df)}`;
+        if (dt) url += `&date_to=${encodeURIComponent(dt)}`;
+
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const purchases = j.purchases || [];
+        const total = j.total || 0;
+
+        if (!purchases.length) {
+          list.innerHTML = '<div class="ops-empty">No purchases found for the selected filters.</div>';
+          return;
+        }
+
+        list.innerHTML = purchases.map(p => {
+          const statusClass = p.status || '';
+          const amt = p.amount_gbp != null ? `\u00A3${p.amount_gbp.toFixed(2)}` : '--';
+          const dateStr = formatDateUK(p.created_at);
+
+          // Refund action button
+          let actionHtml = '';
+          const as = p.refund_action_state;
+          if (as === 'eligible') {
+            actionHtml = `<button class="btn small" style="font-size:10px;background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);" onclick="openStartRefundModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '${escapeHtmlText(amt)}', ${p.credits_granted || 0})">Start Refund</button>`;
+          } else if (as === 'already_in_refund_flow') {
+            actionHtml = `<button class="btn small" style="font-size:10px;background:rgba(59,130,246,0.12);color:#60a5fa;border-color:rgba(59,130,246,0.3);" onclick="scrollToRefund('${escapeHtmlText(p.latest_refund_id || '')}')">View Refund</button>`;
+          } else if (as === 'already_refunded') {
+            actionHtml = `<span class="ops-pch-badge refunded" style="font-size:9px;">Refunded</span>`;
+          } else if (as === 'not_refundable') {
+            actionHtml = `<span style="font-size:10px;color:#666;">Not refundable</span>`;
+          }
+
+          // Refund state hint
+          let refundHint = '';
+          if (p.refund_exists && p.latest_refund_status) {
+            refundHint = `<span class="ops-pch-refund-state">Refund: ${escapeHtmlText(p.latest_refund_status.replace('_', ' '))}</span>`;
+          }
+
+          return `
+            <div class="ops-pch-card status-${statusClass}">
+              <div class="ops-pch-top">
+                <div class="ops-pch-top-left">
+                  <span class="ops-pch-email">${escapeHtmlText(p.email || 'Unknown')}</span>
+                  <span class="ops-pch-badge ${statusClass}">${escapeHtmlText(p.status)}</span>
+                  ${p.is_subscription_purchase ? '<span class="ops-pch-badge" style="background:rgba(168,85,247,0.15);color:#c084fc;">sub</span>' : ''}
+                </div>
+                <span style="font-size:11px;color:#888;">${escapeHtmlText(dateStr)}</span>
+              </div>
+              <div class="ops-pch-grid">
+                <div class="ops-pch-field"><span class="lbl">Amount</span><span class="val">${amt}</span></div>
+                <div class="ops-pch-field"><span class="lbl">Credits</span><span class="val">${p.credits_granted || 0}</span></div>
+                <div class="ops-pch-field"><span class="lbl">Remaining</span><span class="val">${p.credits_remaining || 0}</span></div>
+                <div class="ops-pch-field"><span class="lbl">Provider</span><span class="val">${escapeHtmlText(p.provider || '--')}</span></div>
+                <div class="ops-pch-field"><span class="lbl">Plan</span><span class="val">${escapeHtmlText(p.plan_code || '--')}</span></div>
+                <div class="ops-pch-field"><span class="lbl">Purchase</span><span class="val" style="font-size:9px;word-break:break-all;">${escapeHtmlText((p.id || '').slice(0, 8))}</span></div>
+              </div>
+              <div class="ops-pch-actions">
+                ${actionHtml}
+                ${refundHint}
+              </div>
+            </div>`;
+        }).join('');
+
+        // Pagination
+        if (total > _PCH_LIMIT) {
+          const page = Math.floor(_pchOffset / _PCH_LIMIT) + 1;
+          const pages = Math.ceil(total / _PCH_LIMIT);
+          list.insertAdjacentHTML('beforeend', `
+            <div class="ops-rh-pagination">
+              <button ${_pchOffset <= 0 ? 'disabled' : ''} onclick="loadOpsPurchases(${_pchOffset - _PCH_LIMIT})">Prev</button>
+              <span>Page ${page} / ${pages} (${total} total)</span>
+              <button ${_pchOffset + _PCH_LIMIT >= total ? 'disabled' : ''} onclick="loadOpsPurchases(${_pchOffset + _PCH_LIMIT})">Next</button>
+            </div>`);
+        }
+
+      } catch (err) {
+        console.error('Purchases load error:', err);
+        list.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    function openStartRefundModal(purchaseId, email, amount, credits) {
+      $('#startRefundPurchaseId').value = purchaseId;
+      $('#startRefundReason').value = '';
+      $('#startRefundAdminNote').value = '';
+      $('#startRefundSummary').innerHTML = `
+        <strong>${escapeHtmlText(email)}</strong><br/>
+        Amount: ${escapeHtmlText(amount)} &middot; Credits granted: ${credits}
+      `;
+      const modal = $('#startRefundModal');
+      modal.style.display = 'flex';
+    }
+
+    function closeStartRefundModal() {
+      $('#startRefundModal').style.display = 'none';
+    }
+
+    function scrollToRefund(refundId) {
+      // Scroll to refund history section
+      const historySection = $('#opsRefundHistoryList');
+      if (historySection) historySection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Wire up purchase filter buttons
+    if ($('#pchApplyFilters')) {
+      $('#pchApplyFilters').onclick = () => loadOpsPurchases(0);
+    }
+    // Enter key triggers purchase search
+    ['pchFilterEmail', 'pchFilterPurchaseId'].forEach(id => {
+      const el = $(`#${id}`);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') loadOpsPurchases(0); });
+    });
+    if ($('#pchClearFilters')) {
+      $('#pchClearFilters').onclick = () => {
+        $('#pchFilterEmail').value = '';
+        $('#pchFilterPurchaseId').value = '';
+        $('#pchFilterStatus').value = '';
+        $('#pchFilterDateFrom').value = '';
+        $('#pchFilterDateTo').value = '';
+        $('#opsPurchasesList').innerHTML = '<div class="ops-empty">Search by email, purchase ID, status, or date to view purchases.</div>';
+      };
+    }
+    if ($('#refreshOpsPurchases')) {
+      $('#refreshOpsPurchases').onclick = () => loadOpsPurchases(_pchOffset);
+    }
+
+    // Start Refund confirm handler
+    if ($('#startRefundConfirmBtn')) {
+      $('#startRefundConfirmBtn').onclick = async () => {
+        const btn = $('#startRefundConfirmBtn');
+        const purchaseId = $('#startRefundPurchaseId').value;
+        if (!purchaseId) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+        try {
+          const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/start-refund`, {
+            method: 'POST',
+            headers: headers(),
+            credentials: 'include',
+            body: JSON.stringify({
+              reason: $('#startRefundReason').value || null,
+              admin_note: $('#startRefundAdminNote').value || null,
+            }),
+          });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || 'Failed');
+
+          if (j.already_exists) {
+            Toast.success(`Refund already exists (${j.refund.refund_status})`);
+          } else {
+            Toast.success('Refund created — added to review workflow');
+          }
+
+          closeStartRefundModal();
+          loadOpsPurchases(_pchOffset);
+          loadOpsRefundHistory(0);
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Create Refund';
+        }
+      };
+    }
 
     // ========== REFUND HISTORY ==========
 
