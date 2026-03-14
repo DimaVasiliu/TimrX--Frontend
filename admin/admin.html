@@ -6569,18 +6569,23 @@
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
 
-        const purchases = j.purchases || [];
+        let purchases = j.purchases || [];
         const total = j.total || 0;
 
+        // When no filters are active, hide completed purchases to reduce clutter
+        if (!hasFilter) {
+          purchases = purchases.filter(p => p.status !== 'completed');
+        }
+
         if (!purchases.length) {
-          list.innerHTML = `<div class="ops-empty">${hasFilter ? 'No purchases found for the selected filters.' : 'No purchases yet.'}</div>`;
+          list.innerHTML = `<div class="ops-empty">${hasFilter ? 'No purchases found for the selected filters.' : 'No non-completed purchases. Use filters above to find completed purchases.'}</div>`;
           return;
         }
 
         // Label when showing default latest
         let headerHtml = '';
         if (!hasFilter) {
-          headerHtml = '<div style="font-size:10px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Showing latest purchases</div>';
+          headerHtml = '<div style="font-size:10px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Showing latest purchases (completed hidden — use filters to find them)</div>';
         }
 
         list.innerHTML = headerHtml + purchases.map(p => {
