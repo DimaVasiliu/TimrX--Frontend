@@ -492,6 +492,58 @@
     let posts=[], page=1, size=8, done=false;
     let currentTag='all', searchQ='', sorter='new';
 
+    function normalizeTagValue(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return 'all';
+
+      const normalized = raw
+        .replace(/^#/, '')
+        .replace(/^tag[:=]/i, '')
+        .toLowerCase()
+        .replace(/\+/g, ' ')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const match = qsa('#chipBar .chip').find(chip => (
+        (chip.dataset.tag || '')
+          .toLowerCase()
+          .replace(/[-_]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      ) === normalized);
+
+      return match ? match.dataset.tag : 'all';
+    }
+
+    function setActiveChip(tag) {
+      currentTag = normalizeTagValue(tag);
+      qsa('#chipBar .chip').forEach(chip => {
+        const isActive = chip.dataset.tag === currentTag;
+        chip.classList.toggle('active', isActive);
+        chip.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    }
+
+    function getInitialTagFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const rawHash = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : '';
+
+      return normalizeTagValue(
+        params.get('tag') ||
+        params.get('pill') ||
+        (rawHash.startsWith('tag=') ? rawHash.slice(4) : '') ||
+        (rawHash && rawHash !== 'filter-strip' ? rawHash : '')
+      );
+    }
+
+    function syncTagQueryParam() {
+      const url = new URL(window.location.href);
+      if (currentTag === 'all') url.searchParams.delete('tag');
+      else url.searchParams.set('tag', currentTag);
+      history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+
     // Cache configuration
     const CACHE_KEY = 'timrx_blogs_cache';
     const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
@@ -763,9 +815,8 @@
     // Event listeners for controls
     qs('#chipBar').addEventListener('click', e=>{
       const b = e.target.closest('.chip'); if (!b) return;
-      qsa('.chip').forEach(c=> c.classList.remove('active'));
-      b.classList.add('active');
-      currentTag = b.dataset.tag || 'all';
+      setActiveChip(b.dataset.tag || 'all');
+      syncTagQueryParam();
       render();
     });
     qs('#blogSearch').addEventListener('input', e=>{ searchQ = e.target.value.trim(); render(); });
@@ -781,6 +832,7 @@
 
     // Initialize with cache-first strategy
     (async function init(){
+      setActiveChip(getInitialTagFromUrl());
       const cached = getCachedPosts();
 
       if (cached && cached.data.length > 0) {
