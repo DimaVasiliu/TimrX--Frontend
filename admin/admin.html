@@ -1327,6 +1327,108 @@
     .ops-refund-detail .lbl { color: #888; }
     .ops-refund-detail .val { color: #ccc; font-weight: 500; }
 
+    /* Refund actions */
+    .ops-refund-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .ops-refund-btn {
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 4px;
+      color: #f87171;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .ops-refund-btn:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .ops-refund-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ops-refund-warn {
+      font-size: 10px;
+      color: #fbbf24;
+    }
+    .ops-pstat-value.crit { color: #ef4444; }
+
+    /* Refund confirm overlay */
+    .ops-refund-confirm {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.7);
+    }
+    .ops-refund-confirm-box {
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 24px;
+      max-width: 420px;
+      width: 90%;
+    }
+    .ops-refund-confirm-box h4 {
+      margin: 0 0 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .ops-refund-confirm-box .confirm-detail {
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+    .ops-refund-confirm-box .confirm-detail .lbl { color: #888; }
+    .ops-refund-confirm-box .confirm-warn {
+      font-size: 12px;
+      color: #fbbf24;
+      background: rgba(251,191,36,0.1);
+      border: 1px solid rgba(251,191,36,0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 10px 0;
+    }
+    .ops-refund-confirm-box .confirm-note {
+      font-size: 11px;
+      color: #888;
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+    .ops-refund-confirm-box .form-input,
+    .ops-refund-confirm-box .form-textarea {
+      font-size: 12px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .ops-refund-confirm-box .confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .ops-refund-confirm-box .confirm-actions .btn { flex: 1; }
+    .ops-refund-execute-btn {
+      padding: 10px 14px;
+      background: rgba(239,68,68,0.2);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 6px;
+      color: #f87171;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      flex: 1;
+      transition: all 0.15s;
+    }
+    .ops-refund-execute-btn:hover { background: rgba(239,68,68,0.3); }
+    .ops-refund-execute-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     /* Ledger form */
     .ops-ledger-form {
       background: rgba(255,255,255,0.03);
@@ -5316,6 +5418,8 @@
           const rec = item.refund_recommendation || 'review';
           const reasonLabel = (item.reason || '').replace(/_/g, ' ');
           const typeLabel = item.is_subscription ? 'Subscription' : 'One-time';
+          const canRefund = rec === 'review' && !item.is_subscription && item.purchase_id;
+          const usedWarning = (item.credits_used || 0) > 0;
           return `
             <div class="ops-refund-item">
               <div class="ops-refund-top">
@@ -5325,13 +5429,17 @@
               <div class="ops-refund-details">
                 <div class="ops-refund-detail"><span class="lbl">Amount</span><span class="val">\u00A3${(item.amount_gbp || 0).toFixed(2)}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Credits</span><span class="val">${item.credits_granted || 0}</span></div>
-                <div class="ops-refund-detail"><span class="lbl">Used</span><span class="val">${item.credits_used || 0}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Used</span><span class="val${usedWarning ? ' crit' : ''}">${item.credits_used || 0}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Remaining</span><span class="val">${item.credits_remaining || 0}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Type</span><span class="val">${typeLabel}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Reason</span><span class="val">${escapeHtmlText(reasonLabel)}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Failed jobs</span><span class="val">${item.related_failed_jobs_7d || 0}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Date</span><span class="val">${formatDateUK(item.created_at)}</span></div>
               </div>
+              ${canRefund ? `<div class="ops-refund-actions">
+                <button class="ops-refund-btn" onclick="showRefundConfirm(this)" data-purchase-id="${escapeHtmlText(item.purchase_id)}" data-email="${escapeHtmlText(item.email || '')}" data-amount="${item.amount_gbp || 0}" data-credits="${item.credits_granted || 0}" data-used="${item.credits_used || 0}">Execute Refund</button>
+                ${usedWarning ? '<span class="ops-refund-warn">Credits used — review required</span>' : ''}
+              </div>` : (item.is_subscription ? '<div class="ops-refund-actions"><span class="ops-refund-warn">Subscription — manual refund only</span></div>' : '')}
             </div>`;
         }).join('');
 
@@ -5345,6 +5453,85 @@
     if ($('#refreshOpsHealth')) $('#refreshOpsHealth').onclick = loadOpsHealth;
     if ($('#refreshOpsAlerts')) $('#refreshOpsAlerts').onclick = loadOpsAlerts;
     if ($('#refreshOpsRefunds')) $('#refreshOpsRefunds').onclick = loadOpsRefunds;
+
+    // ========== REFUND EXECUTION ==========
+
+    function showRefundConfirm(btn) {
+      const purchaseId = btn.dataset.purchaseId;
+      const email = btn.dataset.email;
+      const amount = parseFloat(btn.dataset.amount || 0);
+      const credits = parseInt(btn.dataset.credits || 0);
+      const used = parseInt(btn.dataset.used || 0);
+      const hasUsed = used > 0;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'ops-refund-confirm';
+      overlay.innerHTML = `
+        <div class="ops-refund-confirm-box">
+          <h4>Execute Refund</h4>
+          <div class="confirm-detail"><span class="lbl">User: </span>${escapeHtmlText(email)}</div>
+          <div class="confirm-detail"><span class="lbl">Amount: </span>\u00A3${amount.toFixed(2)}</div>
+          <div class="confirm-detail"><span class="lbl">Credits granted: </span>${credits}</div>
+          <div class="confirm-detail"><span class="lbl">Credits used: </span>${used}</div>
+          ${hasUsed ? `<div class="confirm-warn">Credits have been used (${used} of ${credits}). Automatic credit reversal may be blocked. Use "Record Only" to log the decision without altering credits.</div>` : ''}
+          <div class="confirm-note">External payment refund (Mollie/Stripe) will NOT be automatically executed. Process the payment refund manually in your payment provider dashboard after confirming.</div>
+          <label style="display:block;margin:8px 0 4px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Reason</label>
+          <input id="refundReason" class="form-input" placeholder="Why is this being refunded?"/>
+          <label style="display:block;margin:8px 0 4px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Admin Note</label>
+          <input id="refundNote" class="form-input" placeholder="Optional admin note"/>
+          <div class="confirm-actions">
+            <button class="btn" onclick="this.closest('.ops-refund-confirm').remove()">Cancel</button>
+            ${hasUsed ? `<button class="ops-refund-execute-btn" onclick="executeRefund('${escapeHtmlText(purchaseId)}', true, this)">Record Only</button>` : ''}
+            <button class="ops-refund-execute-btn" onclick="executeRefund('${escapeHtmlText(purchaseId)}', false, this)">Confirm Refund</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    async function executeRefund(purchaseId, manualOnly, btn) {
+      const overlay = btn.closest('.ops-refund-confirm');
+      const reason = overlay.querySelector('#refundReason').value;
+      const adminNote = overlay.querySelector('#refundNote').value;
+
+      // Disable all buttons in the confirm box
+      overlay.querySelectorAll('button').forEach(b => b.disabled = true);
+      btn.textContent = 'Processing...';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/refunds/execute`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+          body: JSON.stringify({
+            purchase_id: purchaseId,
+            refund_type: 'full_purchase_refund',
+            reason: reason || null,
+            admin_note: adminNote || null,
+            allow_credit_reversal: true,
+            manual_record_only: manualOnly,
+          }),
+        });
+
+        const j = await r.json();
+        overlay.remove();
+
+        if (j.ok) {
+          const s = j.summary || {};
+          Toast.success(
+            `Refund ${manualOnly ? 'recorded' : 'executed'}: \u00A3${(s.amount_gbp || 0).toFixed(2)}, ` +
+            `${j.refund?.credits_reversed || 0} credits reversed`
+          );
+        } else {
+          Toast.warning(j.message || j.error || 'Refund requires manual review');
+        }
+
+        loadOpsRefunds();
+      } catch (err) {
+        overlay.remove();
+        Toast.error('Refund failed: ' + err.message);
+      }
+    }
 
     // ========== PROVIDER LEDGER ==========
 
