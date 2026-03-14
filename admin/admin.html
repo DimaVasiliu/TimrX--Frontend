@@ -1025,6 +1025,335 @@
       background: rgba(255,255,255,0.08);
       margin: 24px 0;
     }
+
+    /* ====== OPS SUMMARY BAR ====== */
+    .ops-summary-bar {
+      padding: 80px 32px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .ops-summary-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .ops-summary-title {
+      flex-shrink: 0;
+      min-width: 140px;
+    }
+    .ops-eyebrow {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #666;
+    }
+    .ops-heading {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      margin: 2px 0 0;
+    }
+    .ops-summary-cards {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .ops-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px 16px;
+      text-align: center;
+      min-width: 90px;
+      flex: 1;
+    }
+    .ops-card-value {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      color: #e5e5e5;
+    }
+    .ops-card-label {
+      display: block;
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+    .ops-card-value.ops-healthy { color: #22c55e; }
+    .ops-card-value.ops-warning { color: #fbbf24; }
+    .ops-card-value.ops-critical { color: #ef4444; }
+
+    /* Pulse on nonzero warning/critical */
+    .ops-card.has-issue { border-color: rgba(239,68,68,0.35); }
+
+    /* ====== OPS DASHBOARD TAB ====== */
+    .ops-section { margin-bottom: 24px; }
+    .ops-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .ops-section-header h4 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ccc;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ops-loading {
+      color: #666;
+      font-size: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .ops-empty {
+      color: #555;
+      font-size: 12px;
+      padding: 16px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+    }
+    .ops-error {
+      color: #f87171;
+      font-size: 12px;
+      padding: 16px;
+      text-align: center;
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: 8px;
+    }
+
+    /* Provider Health Grid */
+    .ops-provider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .ops-provider-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .ops-provider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .ops-provider-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .ops-provider-feature {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 6px;
+    }
+    .ops-status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .ops-status-badge.healthy { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .ops-status-badge.warning { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .ops-status-badge.down    { background: rgba(239,68,68,0.2);  color: #ef4444; }
+    .ops-status-badge.unknown { background: rgba(255,255,255,0.08); color: #888; }
+    .ops-provider-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+    }
+    .ops-pstat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .ops-pstat-label { color: #888; }
+    .ops-pstat-value { color: #ccc; font-weight: 500; }
+    .ops-pstat-value.warn { color: #fbbf24; }
+    .ops-pstat-value.crit { color: #ef4444; }
+
+    /* Provider card border by status */
+    .ops-provider-card.status-warning { border-color: rgba(251,191,36,0.3); }
+    .ops-provider-card.status-down    { border-color: rgba(239,68,68,0.3); }
+
+    /* Alerts list */
+    .ops-alert-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+    }
+    .ops-alert-item.sev-critical { border-left: 3px solid #ef4444; }
+    .ops-alert-item.sev-warning  { border-left: 3px solid #fbbf24; }
+    .ops-alert-item.sev-info     { border-left: 3px solid #3b82f6; }
+    .ops-alert-severity {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 50px;
+    }
+    .ops-alert-severity.critical { color: #ef4444; }
+    .ops-alert-severity.warning  { color: #fbbf24; }
+    .ops-alert-severity.info     { color: #3b82f6; }
+    .ops-alert-subject {
+      flex: 1;
+      font-size: 13px;
+      color: #e5e5e5;
+      min-width: 120px;
+    }
+    .ops-alert-meta {
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ops-alert-meta span { white-space: nowrap; }
+    .ops-resolve-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #ccc;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .ops-resolve-btn:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+    .ops-resolve-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Spend table */
+    .ops-spend-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .ops-spend-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #888;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .ops-spend-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #ccc;
+    }
+    .ops-spend-table tr:last-child td { border-bottom: none; }
+    .ops-spend-table .spend-total td {
+      font-weight: 700;
+      color: #fff;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .ops-spend-table-wrap {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* Refund review items */
+    .ops-refund-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .ops-refund-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .ops-refund-email {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e5e5;
+    }
+    .ops-rec-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .ops-rec-badge.review          { background: rgba(251,191,36,0.2);  color: #fbbf24; }
+    .ops-rec-badge.manual_only     { background: rgba(59,130,246,0.2);  color: #3b82f6; }
+    .ops-rec-badge.likely_not_refundable { background: rgba(255,255,255,0.08); color: #888; }
+    .ops-refund-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 4px 16px;
+      font-size: 11px;
+    }
+    .ops-refund-detail {
+      display: flex;
+      justify-content: space-between;
+    }
+    .ops-refund-detail .lbl { color: #888; }
+    .ops-refund-detail .val { color: #ccc; font-weight: 500; }
+
+    /* ====== OPS MOBILE RESPONSIVE ====== */
+    @media (max-width: 720px) {
+      .ops-summary-bar { padding: 70px 16px 14px; }
+      .ops-summary-inner { flex-direction: column; gap: 12px; }
+      .ops-summary-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        width: 100%;
+      }
+      .ops-card { padding: 8px 10px; min-width: unset; }
+      .ops-card-value { font-size: 18px; }
+      .ops-card-label { font-size: 9px; }
+
+      .ops-provider-grid { grid-template-columns: 1fr; }
+      .ops-provider-stats { grid-template-columns: 1fr; }
+
+      .ops-alert-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+      .ops-spend-table-wrap { overflow-x: auto; }
+
+      .ops-refund-details { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .ops-summary-cards { grid-template-columns: repeat(2, 1fr); }
+      .ops-card-value { font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -1038,23 +1367,39 @@
     </nav>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-noise"></div>
-    <div class="hero-gradient"></div>
-    <div class="hero-watermark">ADMIN</div>
-    <div class="hero-arc"></div>
-    <div class="hero-content">
-      <div class="hero-eyebrow">
-        <span class="eyebrow-line"></span>
-        <span class="eyebrow-text">Dashboard</span>
+  <!-- Ops Summary Bar -->
+  <section class="ops-summary-bar">
+    <div class="ops-summary-inner">
+      <div class="ops-summary-title">
+        <span class="ops-eyebrow">Operations</span>
+        <h2 class="ops-heading">Admin Dashboard</h2>
       </div>
-      <h1 class="hero-title">
-        <span class="hero-word">Manage.</span>
-        <span class="hero-word">Create.</span>
-        <span class="hero-word hero-word--outline">Control.</span>
-      </h1>
-      <p class="hero-description">Manage posts and generate content with AI-powered tools.</p>
+      <div class="ops-summary-cards" id="opsSummaryCards">
+        <div class="ops-card" id="opsCardHealthy">
+          <span class="ops-card-value ops-healthy" id="opsHealthyCount">--</span>
+          <span class="ops-card-label">Healthy</span>
+        </div>
+        <div class="ops-card" id="opsCardWarning">
+          <span class="ops-card-value ops-warning" id="opsWarningCount">0</span>
+          <span class="ops-card-label">Warning/Down</span>
+        </div>
+        <div class="ops-card" id="opsCardAlerts">
+          <span class="ops-card-value ops-critical" id="opsCriticalCount">0</span>
+          <span class="ops-card-label">Active Alerts</span>
+        </div>
+        <div class="ops-card" id="opsCardSpend24h">
+          <span class="ops-card-value" id="opsSpend24h">--</span>
+          <span class="ops-card-label">Spend 24h</span>
+        </div>
+        <div class="ops-card" id="opsCardSpendMonth">
+          <span class="ops-card-value" id="opsSpendMonth">--</span>
+          <span class="ops-card-label">Spend MTD</span>
+        </div>
+        <div class="ops-card" id="opsCardRefunds">
+          <span class="ops-card-value" id="opsRefundCount">0</span>
+          <span class="ops-card-label">Refund Review</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1088,7 +1433,8 @@
         </div>
 
         <div class="tabs">
-          <button class="tab active" data-tab="generate">Generate</button>
+          <button class="tab active" data-tab="ops">Ops</button>
+          <button class="tab" data-tab="generate">Generate</button>
           <button class="tab" data-tab="assist">Assist</button>
           <button class="tab" data-tab="validate">Validate</button>
           <button class="tab" data-tab="subscribers">Subs</button>
@@ -1096,8 +1442,58 @@
           <button class="tab" data-tab="billing">Billing</button>
         </div>
 
+        <!-- Ops Tab -->
+        <div class="tab-content active" id="tab-ops">
+          <div class="ops-dashboard">
+
+            <!-- Provider Health -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Provider Health</h4>
+                <button class="btn small" id="refreshOpsHealth">Refresh</button>
+              </div>
+              <div class="ops-provider-grid" id="opsProviderGrid">
+                <div class="ops-loading">Loading provider health...</div>
+              </div>
+            </div>
+
+            <!-- Active Alerts -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Active Alerts</h4>
+                <button class="btn small" id="refreshOpsAlerts">Refresh</button>
+              </div>
+              <div class="ops-alerts-list" id="opsAlertsList">
+                <div class="ops-loading">Loading alerts...</div>
+              </div>
+            </div>
+
+            <!-- Spend Snapshot -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Spend Snapshot</h4>
+              </div>
+              <div class="ops-spend-table-wrap" id="opsSpendWrap">
+                <div class="ops-loading">Loading spend data...</div>
+              </div>
+            </div>
+
+            <!-- Refund Review -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Refund Review</h4>
+                <button class="btn small" id="refreshOpsRefunds">Refresh</button>
+              </div>
+              <div class="ops-refund-list" id="opsRefundList">
+                <div class="ops-loading">Loading refund review...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <!-- Generate Tab -->
-        <div class="tab-content active" id="tab-generate">
+        <div class="tab-content" id="tab-generate">
           <form id="generateForm">
             <div class="form-group">
               <label class="form-label">Topic / Idea</label>
@@ -4518,7 +4914,235 @@
       }
     });
 
-    (async function(){ if(await ensureAuth()){ load(); checkAI(); } })();
+    // ========== OPS DASHBOARD ==========
+
+    let _opsProviderData = null;  // cache for spend table reuse
+
+    async function loadOpsHealth() {
+      const grid = $('#opsProviderGrid');
+      grid.innerHTML = '<div class="ops-loading">Loading provider health...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/provider-health`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        _opsProviderData = j;
+
+        // Update summary cards
+        const s = j.summary || {};
+        $('#opsHealthyCount').textContent = s.healthy_count ?? '--';
+        const warnDown = (s.warning_count || 0) + (s.down_count || 0);
+        $('#opsWarningCount').textContent = warnDown;
+        $('#opsCriticalCount').textContent = s.alerts_active || 0;
+        $('#opsSpend24h').textContent = '\u00A3' + (s.estimated_spend_today_gbp || 0).toFixed(2);
+        $('#opsSpendMonth').textContent = '\u00A3' + (s.estimated_spend_month_gbp || 0).toFixed(2);
+
+        // Highlight cards with issues
+        const warnCard = $('#opsCardWarning');
+        const alertCard = $('#opsCardAlerts');
+        warnCard.classList.toggle('has-issue', warnDown > 0);
+        alertCard.classList.toggle('has-issue', (s.alerts_active || 0) > 0);
+
+        // Render provider cards
+        const providers = j.providers || [];
+        if (!providers.length) {
+          grid.innerHTML = '<div class="ops-empty">No provider data available</div>';
+          return;
+        }
+        grid.innerHTML = providers.map(p => {
+          const rate = p.success_rate_24h != null ? (p.success_rate_24h * 100).toFixed(0) + '%' : '--';
+          const statusClass = p.status || 'unknown';
+          const cardClass = (statusClass === 'warning' || statusClass === 'down') ? ` status-${statusClass}` : '';
+          return `
+            <div class="ops-provider-card${cardClass}">
+              <div class="ops-provider-top">
+                <span>
+                  <span class="ops-provider-name">${escapeHtmlText(p.provider)}</span>
+                  <span class="ops-provider-feature">${escapeHtmlText(p.feature_area)}</span>
+                </span>
+                <span class="ops-status-badge ${statusClass}">${statusClass}</span>
+              </div>
+              <div class="ops-provider-stats">
+                <div class="ops-pstat"><span class="ops-pstat-label">Jobs 24h</span><span class="ops-pstat-value">${p.jobs_24h || 0}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Success</span><span class="ops-pstat-value">${rate}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Spend 24h</span><span class="ops-pstat-value">\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Alerts</span><span class="ops-pstat-value${p.active_alerts > 0 ? ' crit' : ''}">${p.active_alerts || 0}</span></div>
+              </div>
+            </div>`;
+        }).join('');
+
+        // Also render spend table
+        renderOpsSpend(providers);
+
+      } catch (err) {
+        console.error('Ops health error:', err);
+        grid.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    function renderOpsSpend(providers) {
+      const wrap = $('#opsSpendWrap');
+      const sorted = [...providers].sort((a, b) => (b.estimated_spend_today_gbp || 0) - (a.estimated_spend_today_gbp || 0));
+      const totalDay = sorted.reduce((s, p) => s + (p.estimated_spend_today_gbp || 0), 0);
+      const totalMonth = sorted.reduce((s, p) => s + (p.estimated_spend_month_gbp || 0), 0);
+
+      if (!sorted.length) {
+        wrap.innerHTML = '<div class="ops-empty">No spend data</div>';
+        return;
+      }
+
+      wrap.innerHTML = `
+        <table class="ops-spend-table">
+          <thead><tr><th>Provider</th><th>Feature</th><th>Spend 24h</th><th>Spend MTD</th></tr></thead>
+          <tbody>
+            ${sorted.map(p => `<tr>
+              <td>${escapeHtmlText(p.provider)}</td>
+              <td style="color:#888;text-transform:uppercase;font-size:10px;">${escapeHtmlText(p.feature_area)}</td>
+              <td>\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</td>
+              <td>\u00A3${(p.estimated_spend_month_gbp || 0).toFixed(2)}</td>
+            </tr>`).join('')}
+            <tr class="spend-total">
+              <td colspan="2">Total</td>
+              <td>\u00A3${totalDay.toFixed(2)}</td>
+              <td>\u00A3${totalMonth.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    async function loadOpsAlerts() {
+      const list = $('#opsAlertsList');
+      list.innerHTML = '<div class="ops-loading">Loading alerts...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/alerts?active_only=true&limit=50`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const alerts = j.alerts || [];
+        if (!alerts.length) {
+          list.innerHTML = '<div class="ops-empty">No active alerts</div>';
+          return;
+        }
+
+        list.innerHTML = alerts.map(a => {
+          const sev = a.severity || 'info';
+          return `
+            <div class="ops-alert-item sev-${sev}">
+              <span class="ops-alert-severity ${sev}">${sev}</span>
+              <span class="ops-alert-subject">${escapeHtmlText(a.subject)}</span>
+              <span class="ops-alert-meta">
+                ${a.provider ? `<span>${escapeHtmlText(a.provider)}</span>` : ''}
+                <span>${escapeHtmlText(a.alert_type)}</span>
+                <span>x${a.occurrence_count || 1}</span>
+                <span>Last: ${formatDateUK(a.last_seen_at)}</span>
+              </span>
+              <button class="ops-resolve-btn" data-alert-id="${escapeHtmlText(a.id)}" onclick="resolveOpsAlert(this)">Resolve</button>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        console.error('Ops alerts error:', err);
+        list.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    async function resolveOpsAlert(btn) {
+      const id = btn.dataset.alertId;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/alerts/${encodeURIComponent(id)}/resolve`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+        });
+        const j = await r.json();
+        if (j.ok) {
+          Toast.success('Alert resolved');
+          loadOpsAlerts();
+          loadOpsHealth();
+        } else {
+          Toast.error(j.error || 'Failed to resolve');
+          btn.disabled = false;
+          btn.textContent = 'Resolve';
+        }
+      } catch (err) {
+        Toast.error('Network error');
+        btn.disabled = false;
+        btn.textContent = 'Resolve';
+      }
+    }
+
+    async function loadOpsRefunds() {
+      const list = $('#opsRefundList');
+      list.innerHTML = '<div class="ops-loading">Loading refund review...</div>';
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/refunds/review?days=30&limit=20`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const items = j.items || [];
+
+        // Update summary card
+        const reviewCount = (j.summary?.recommended_review_count || 0) + (j.summary?.recommended_manual_only_count || 0);
+        $('#opsRefundCount').textContent = reviewCount;
+
+        if (!items.length) {
+          list.innerHTML = '<div class="ops-empty">No refund review items</div>';
+          return;
+        }
+
+        list.innerHTML = items.map(item => {
+          const rec = item.refund_recommendation || 'review';
+          const reasonLabel = (item.reason || '').replace(/_/g, ' ');
+          const typeLabel = item.is_subscription ? 'Subscription' : 'One-time';
+          return `
+            <div class="ops-refund-item">
+              <div class="ops-refund-top">
+                <span class="ops-refund-email">${escapeHtmlText(item.email || 'Unknown')}</span>
+                <span class="ops-rec-badge ${rec}">${rec.replace(/_/g, ' ')}</span>
+              </div>
+              <div class="ops-refund-details">
+                <div class="ops-refund-detail"><span class="lbl">Amount</span><span class="val">\u00A3${(item.amount_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Credits</span><span class="val">${item.credits_granted || 0}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Used</span><span class="val">${item.credits_used || 0}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Remaining</span><span class="val">${item.credits_remaining || 0}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Type</span><span class="val">${typeLabel}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Reason</span><span class="val">${escapeHtmlText(reasonLabel)}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Failed jobs</span><span class="val">${item.related_failed_jobs_7d || 0}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Date</span><span class="val">${formatDateUK(item.created_at)}</span></div>
+              </div>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        console.error('Ops refunds error:', err);
+        list.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    function loadAllOps() {
+      loadOpsHealth();
+      loadOpsAlerts();
+      loadOpsRefunds();
+    }
+
+    // Wire up refresh buttons
+    if ($('#refreshOpsHealth')) $('#refreshOpsHealth').onclick = loadOpsHealth;
+    if ($('#refreshOpsAlerts')) $('#refreshOpsAlerts').onclick = loadOpsAlerts;
+    if ($('#refreshOpsRefunds')) $('#refreshOpsRefunds').onclick = loadOpsRefunds;
+
+    // Load ops on tab click
+    $$('.tab').forEach(tab => {
+      if (tab.dataset.tab === 'ops') {
+        tab.addEventListener('click', loadAllOps);
+      }
+    });
+
+    (async function(){ if(await ensureAuth()){ load(); checkAI(); loadAllOps(); } })();
   </script>
 </body>
 </html>
