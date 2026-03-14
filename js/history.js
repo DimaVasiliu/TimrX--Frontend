@@ -168,10 +168,14 @@ function groupByLineage(items = []) {
 
   items.forEach(item => {
     if (!item) return;
+    // Prefer explicit lineage_origin_id (set by backend for related stages).
+    // Only fall back to prompt fingerprint cohort for items with no lineage key.
+    const lineageKey = getLineageKey(item);
+    const hasExplicitLineage = item.lineage_origin_id && lineageKey;
     const fingerprint = itemPromptFingerprint(item);
-    const shouldUsePromptCohort = fingerprint && fingerprintCounts.get(fingerprint) >= 2;
+    const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 2;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
-    const rootKey = promptKey || getLineageKey(item) || String(item.id || '');
+    const rootKey = (hasExplicitLineage ? lineageKey : '') || promptKey || lineageKey || String(item.id || '');
 
     if (!lineages.has(rootKey)) {
       lineages.set(rootKey, {

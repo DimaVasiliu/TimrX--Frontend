@@ -357,7 +357,7 @@ export async function loadHistoryFromDB() {
 
       // Helper to attempt a single fetch
       const attemptFetch = async () => {
-        const result = await apiFetch('/api/_mod/history');
+        const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}`);
         if (!result.ok) {
           const err = new Error(result.error || `HTTP ${result.status}`);
           err.isTimeout = result.isTimeout;
