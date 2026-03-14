@@ -3618,7 +3618,7 @@ export async function onPostProcessFromHistory(item, type) {
 }
 
 // ============================================================================
-// PANEL-BASED OPERATIONS (Remesh, Texture, Rig)
+// PANEL-BASED OPERATIONS (Remesh, Texture)
 // ============================================================================
 
 /**

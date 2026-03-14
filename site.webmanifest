@@ -58,6 +58,13 @@
       "description": "Read AI and 3D tutorials",
       "url": "/blogs",
       "icons": [{ "src": "/img/favicon-logo-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Documentation",
+      "short_name": "Docs",
+      "description": "Platform docs, pricing, and credits",
+      "url": "/docs",
+      "icons": [{ "src": "/img/favicon-logo-192.png", "sizes": "192x192" }]
     }
   ],
   "screenshots": [

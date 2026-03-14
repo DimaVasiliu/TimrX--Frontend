@@ -221,7 +221,7 @@
           </div>
 
           <div class="field-row">
-            <span class="field-label-inline">A/T Pose <span class="info-dot" title="Generate in A-pose or T-pose for rigging">ⓘ</span></span>
+            <span class="field-label-inline">A/T Pose <span class="info-dot" title="Generate in A-pose or T-pose">ⓘ</span></span>
             <label class="toggle-switch">
               <input type="checkbox" id="modelPoseToggle">
               <span class="toggle-slider"></span>
@@ -502,13 +502,20 @@
         <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
         <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
         <div class="enhance-row">
-          <span class="field-hint">Keep prompts simple for best results.</span>
-          <button type="button" class="enhance-btn" data-enhance-mode="video" data-enhance-target="#videoTextPrompt" title="Make this prompt clearer and more detailed">
+          <span class="field-hint enhance-provider-hint" id="enhanceProviderHint">Keep prompts simple for best results.</span>
+          <button type="button" class="enhance-btn" data-enhance-mode="video" data-enhance-target="#videoTextPrompt" title="Instantly enhance with smart local engine">
             <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
             <span class="enhance-btn-label">Enhance</span>
           </button>
+          <button type="button" class="enhance-reroll-btn hidden" id="enhanceRerollBtn" title="Re-roll enhancement with new variation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
         </div>
         <div class="enhance-feedback hidden" data-enhance-feedback="video"></div>
+        <div class="enhance-score-bar hidden" id="enhanceScoreBar">
+          <div class="enhance-score-fill" id="enhanceScoreFill"></div>
+          <span class="enhance-score-label" id="enhanceScoreLabel"></span>
+        </div>
         <div class="video-input-footer">
           <div class="inline-field video-style-row">
             <label for="videoStylePreset">Style</label>
@@ -790,7 +797,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled>
             Preview
           </button>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="70 credits" data-base-credits="70" data-video-mode="text2video" data-provider="vertex" disabled>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="75 credits" data-base-credits="75" data-video-mode="text2video" data-provider="vertex" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -2961,16 +2968,76 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         return;
       }
 
-      // Set loading state
+      // ── Video mode: use LOCAL smart enhancer (no server call) ──
+      if (mode === 'video' && window.TimrxPromptEnhancer) {
+        setEnhanceButtonState(btn, 'loading');
+
+        const provider = leftStack.querySelector('#videoAIProvider')?.value || 'vertex';
+        const videoModeVal = leftStack.querySelector('#videoModeValue')?.value || 'text2video';
+
+        // Detect generation mode for mode-aware enhancement
+        var enhanceMode = 'text_to_video';
+        if (videoModeVal === 'image2video') {
+          // Check if end-image is present (= transition) or just single image (= animate)
+          const endPreview = document.getElementById('videoEndImagePreview');
+          const hasEndImage = endPreview && endPreview.src && !endPreview.src.endsWith('#');
+          enhanceMode = hasEndImage ? 'image_transition' : 'animate_image';
+        }
+
+        // Run local enhancement (instant, no network)
+        const result = window.TimrxPromptEnhancer.enhance(raw, {
+          provider: provider,
+          mode: enhanceMode,
+        });
+
+        if (result.enhanced) {
+          _enhanceUndoMap[mode] = raw;
+          textarea.value = result.enhanced;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.dispatchEvent(new Event('change', { bubbles: true }));
+          textarea.focus();
+
+          setEnhanceButtonState(btn, 'idle');
+
+          // Build feedback with score badge
+          var feedbackMsg = 'Enhanced';
+          if (result.score && result.score.grade) {
+            feedbackMsg += ' \u00B7 ' + result.scoreLabel;
+          }
+
+          // Show score bar and re-roll button
+          updateEnhanceScoreBar(result.score);
+          var rerollBtn = leftStack.querySelector('#enhanceRerollBtn');
+          if (rerollBtn) rerollBtn.classList.remove('hidden');
+
+          showEnhanceFeedback(feedbackEl, 'undo', feedbackMsg, function onUndo() {
+            textarea.value = _enhanceUndoMap[mode] || raw;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            textarea.focus();
+            delete _enhanceUndoMap[mode];
+            showEnhanceFeedback(feedbackEl, null);
+            // Hide score bar and re-roll on undo
+            updateEnhanceScoreBar(null);
+            if (rerollBtn) rerollBtn.classList.add('hidden');
+          });
+
+          // Show safety warnings if any
+          if (result.safety && result.safety.length > 0) {
+            console.log('[Enhance] Safety softening applied:', result.safety);
+          }
+        } else {
+          setEnhanceButtonState(btn, 'idle');
+          showEnhanceFeedback(feedbackEl, 'error', 'Enhancement failed.');
+        }
+        return;
+      }
+
+      // ── Non-video modes: use server-side LLM enhancement ──
       setEnhanceButtonState(btn, 'loading');
       showEnhanceFeedback(feedbackEl, 'loading', 'Enhancing\u2026');
 
-      // Pass provider for video mode so enhance uses provider-specific rules
       const enhanceBody = { prompt: raw, mode: mode };
-      if (mode === 'video') {
-        const providerSelect = leftStack.querySelector('#videoAIProvider');
-        enhanceBody.provider = providerSelect?.value || 'vertex';
-      }
 
       fetch(ENHANCE_API, {
         method: 'POST',
@@ -2981,10 +3048,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.ok && data.enhanced_prompt) {
-          // Store original for undo
           _enhanceUndoMap[mode] = raw;
-
-          // Update textarea
           textarea.value = data.enhanced_prompt;
           textarea.dispatchEvent(new Event('input', { bubbles: true }));
           textarea.dispatchEvent(new Event('change', { bubbles: true }));
@@ -3060,6 +3124,71 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           }, 4000);
         }
       }
+    }
+
+    // ========================================
+    // ENHANCE: Provider hints + score bar + re-roll
+    // ========================================
+
+    // Provider hint messages shown near the enhance button
+    var _PROVIDER_HINTS = {
+      vertex:       'Veo works best with clean, simple descriptions.',
+      seedance:     'Seedance handles dynamic action and bold prompts well.',
+      fal_seedance: 'fal works best with short, punchy prompts (1\u20132 sentences).',
+    };
+
+    function updateEnhanceProviderHint() {
+      var hint = leftStack.querySelector('#enhanceProviderHint');
+      if (!hint) return;
+      var provider = leftStack.querySelector('#videoAIProvider')?.value || 'vertex';
+      hint.textContent = _PROVIDER_HINTS[provider] || _PROVIDER_HINTS.vertex;
+    }
+
+    // Update hint when provider changes
+    var _providerSelect = leftStack.querySelector('#videoAIProvider');
+    if (_providerSelect) {
+      _providerSelect.addEventListener('change', updateEnhanceProviderHint);
+      // Set initial hint
+      updateEnhanceProviderHint();
+    }
+
+    // Score bar: show prompt quality after enhancement
+    function updateEnhanceScoreBar(scoreResult) {
+      var bar = leftStack.querySelector('#enhanceScoreBar');
+      var fill = leftStack.querySelector('#enhanceScoreFill');
+      var label = leftStack.querySelector('#enhanceScoreLabel');
+      if (!bar || !fill || !label) return;
+
+      if (!scoreResult || !scoreResult.score) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      bar.classList.remove('hidden');
+      var pct = Math.min(100, Math.max(0, scoreResult.score));
+      fill.style.width = pct + '%';
+
+      // Color based on grade
+      var color = '#888';
+      if (pct >= 80) color = '#4caf50';
+      else if (pct >= 60) color = '#8bc34a';
+      else if (pct >= 40) color = '#ffc107';
+      else if (pct >= 20) color = '#ff9800';
+      else color = '#f44336';
+      fill.style.backgroundColor = color;
+
+      label.textContent = scoreResult.grade ? (scoreResult.score + ' \u2014 ' + scoreResult.grade) : (scoreResult.score + '');
+    }
+
+    // Re-roll button: re-enhances with fresh randomization
+    var _rerollBtn = leftStack.querySelector('#enhanceRerollBtn');
+    if (_rerollBtn) {
+      _rerollBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Find the video enhance button and trigger enhance again
+        var enhanceBtn = leftStack.querySelector('.enhance-btn[data-enhance-mode="video"]');
+        if (enhanceBtn) enhanceBtn.click();
+      });
     }
 
     /**
