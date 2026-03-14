@@ -2211,7 +2211,10 @@
             <div class="ops-section">
               <div class="ops-section-header">
                 <h4>Purchases</h4>
-                <button class="btn small" id="refreshOpsPurchases">Refresh</button>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn small" id="exportOpsPurchases" title="Export CSV">Export</button>
+                  <button class="btn small" id="refreshOpsPurchases">Refresh</button>
+                </div>
               </div>
               <div class="ops-refund-history-filters" id="purchaseFilters">
                 <input id="pchFilterEmail" placeholder="Email..." />
@@ -6540,6 +6543,21 @@
 
     if ($('#exportOpsMonthly')) $('#exportOpsMonthly').onclick = function() {
       downloadCsvExport(`${BACKEND}/api/admin/provider-spend/monthly/export.csv?months=6`, 'monthly_provider_spend.csv', this);
+    };
+
+    if ($('#exportOpsPurchases')) $('#exportOpsPurchases').onclick = function() {
+      let url = `${BACKEND}/api/admin/purchases/export.csv?limit=5000`;
+      const e = $('#pchFilterEmail')?.value?.trim();
+      const pid = $('#pchFilterPurchaseId')?.value?.trim();
+      const s = $('#pchFilterStatus')?.value;
+      const df = $('#pchFilterDateFrom')?.value;
+      const dt = $('#pchFilterDateTo')?.value;
+      if (e) url += `&email=${encodeURIComponent(e)}`;
+      if (pid) url += `&purchase_id=${encodeURIComponent(pid)}`;
+      if (s) url += `&status=${encodeURIComponent(s)}`;
+      if (df) url += `&date_from=${encodeURIComponent(df)}`;
+      if (dt) url += `&date_to=${encodeURIComponent(dt)}`;
+      downloadCsvExport(url, 'purchases.csv', this);
     };
 
     // ========== OPS AUTO-REFRESH POLLING ==========
