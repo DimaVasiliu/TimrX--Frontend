@@ -1539,8 +1539,8 @@
                     <th>Email</th>
                     <th>Plan</th>
                     <th>Status</th>
-                    <th>Next Credit</th>
-                    <th>Period End</th>
+                    <th>Credits Refill</th>
+                    <th>Billing End</th>
                     <th>Created</th>
                   </tr>
                 </thead>
@@ -4209,15 +4209,16 @@
 
     /**
      * Format date in UK style: "1 Mar 2026"
+     * Uses UTC components so dates never shift by browser timezone.
      */
     function formatDateUK(dateStr) {
       if (!dateStr) return '—';
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return '—';
-      const day = d.getDate();
+      const day = d.getUTCDate();
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const month = months[d.getMonth()];
-      const year = d.getFullYear();
+      const month = months[d.getUTCMonth()];
+      const year = d.getUTCFullYear();
       return `${day} ${month} ${year}`;
     }
 

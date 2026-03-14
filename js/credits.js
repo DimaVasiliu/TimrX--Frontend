@@ -3602,7 +3602,7 @@
       return;
     }
 
-    const { plan_name, credits_per_month, status, current_period_end, cadence, pause_reason } = currentSubscription;
+    const { plan_name, credits_per_month, status, current_period_end, pause_reason } = currentSubscription;
 
     // Check if subscription is paused due to email verification
     const isPausedForEmail = pause_reason === 'email_unverified';
@@ -3642,9 +3642,12 @@
         }
       }
 
-      // Show next billing/renewal date
-      if (subscriptionNext && current_period_end) {
-        subscriptionNext.textContent = `${cadence === 'yearly' ? 'Renews' : 'Next billing'}: ${formatDate(current_period_end)}`;
+      // Show next credits refill date (prefer explicit field, fall back to period_end)
+      if (subscriptionNext) {
+        const refillDate = currentSubscription.credits_next_refill || current_period_end;
+        if (refillDate) {
+          subscriptionNext.textContent = `Next credits refill: ${formatDate(refillDate)}`;
+        }
       }
 
       // Show paused banner if applicable
@@ -3719,15 +3722,20 @@
   }
 
   /**
-   * Format date for display
+   * Format date for display (billing/subscription dates).
+   * Uses UTC components so the displayed calendar day never shifts
+   * due to the viewer's browser timezone.
    */
   function formatDate(dateStr) {
+    if (!dateStr) return '';
     try {
       const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
       return date.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
-        year: 'numeric'
+        year: 'numeric',
+        timeZone: 'UTC'
       });
     } catch {
       return dateStr;
@@ -3794,15 +3802,17 @@
 
   /**
    * Format date in UK style: "1 Mar 2026"
+   * Uses UTC components so billing/subscription dates never shift
+   * due to the viewer's browser timezone.
    */
   function formatDateUK(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '';
-    const day = d.getDate();
+    const day = d.getUTCDate();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
+    const month = months[d.getUTCMonth()];
+    const year = d.getUTCFullYear();
     return `${day} ${month} ${year}`;
   }
 
@@ -3865,8 +3875,8 @@
       // Build status text
       let statusText = '';
       if (status === 'active') {
-        const nextDate = formatDateUK(data.next_credit_date);
-        statusText = nextDate ? `Active — Next refill: ${nextDate}` : 'Active';
+        const nextDate = formatDateUK(data.credits_next_refill || data.next_credit_date);
+        statusText = nextDate ? `Active — Next credits refill: ${nextDate}` : 'Active';
       } else if (status === 'cancelled') {
         const endDate = formatDateUK(data.ends_at || data.current_period_end);
         statusText = endDate ? `Cancelled — Ends on: ${endDate}` : 'Cancelled';
