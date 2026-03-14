@@ -1923,7 +1923,7 @@
         <div class="docs-hero-text" id="docsFocus" data-docs-focus tabindex="-1">
           <span class="docs-pill">Documentation</span>
           <h1 class="docs-title" id="docsTitle">TimrX Docs</h1>
-          <p>Everything you need to know about the 3D Print Hub — features, tools, supported formats, and workflows.</p>
+          <p>Everything you need to know about TimrX — features, pricing, credits, subscriptions, and workflows.</p>
         </div>
         <button type="button" class="docs-exit-btn" id="docsExit" aria-label="Close docs">Exit Docs &#10005;</button>
         <span class="docs-watermark">DOCS</span>
@@ -1936,7 +1936,7 @@
         <nav class="docs-sidebar" aria-label="Documentation navigation">
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Getting Started</span>
-            <a href="#doc-overview" class="docs-sidebar-link is-active">Overview</a>
+            <a href="#doc-overview" class="docs-sidebar-link is-active">Platform Overview</a>
           </div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Generation</span>
@@ -1960,9 +1960,16 @@
             <a href="#doc-assets" class="docs-sidebar-link">My Assets</a>
           </div>
           <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Credits &amp; Billing</span>
+            <a href="#doc-credits-system" class="docs-sidebar-link">Credits System</a>
+            <a href="#doc-pricing" class="docs-sidebar-link">Generation Pricing</a>
+            <a href="#doc-video-pricing" class="docs-sidebar-link">Video Pricing</a>
+            <a href="#doc-subscriptions" class="docs-sidebar-link">Subscriptions</a>
+            <a href="#doc-billing" class="docs-sidebar-link">Billing</a>
+          </div>
+          <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Reference</span>
             <a href="#doc-formats" class="docs-sidebar-link">Formats</a>
-            <a href="#doc-credits" class="docs-sidebar-link">Credits</a>
             <a href="#doc-faq" class="docs-sidebar-link">FAQ</a>
           </div>
         </nav>
@@ -1970,10 +1977,21 @@
         <!-- Content -->
         <div class="docs-content">
 
-          <!-- Overview -->
+          <!-- Platform Overview -->
           <article class="docs-article" id="doc-overview">
-            <h2>Overview</h2>
-            <p>TimrX 3D Print Hub is a browser-based workspace for creating 3D models, textures, and videos using AI. Everything runs in the browser — no downloads, no installs. Generate a model from text or an image, refine it, add textures, and export it for 3D printing or game engines.</p>
+            <h2>Platform Overview</h2>
+            <p>TimrX is an AI creative platform for generating 3D models, images, and videos — all from your browser. No downloads, no installs. Create production-ready assets using text prompts or reference images, then export for 3D printing, game engines, or social media.</p>
+            <h3>Available tools</h3>
+            <ul>
+              <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
+              <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
+              <li><strong>AI Image</strong> — Generate 2D images via OpenAI or Google Imagen.</li>
+              <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0, or Seedance 1.5 Pro.</li>
+              <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
+              <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
+              <li><strong>3D Viewer</strong> — Real-time Three.js viewer with orbit, zoom, and pan.</li>
+              <li><strong>File Converter</strong> — Free client-side 3D format converter.</li>
+            </ul>
             <h3>Workspace layout</h3>
             <p>The workspace is split into three areas:</p>
             <ul>
@@ -2023,7 +2041,8 @@
             <h2>Image to 3D</h2>
             <p>Upload a reference image and get a 3D model based on it. Switch to the Image to 3D tab inside the Model panel, upload your image, optionally name the model, and generate.</p>
             <p>All the same options from Text to 3D apply — AI model, symmetry, art style, batch count, and license. The AI uses the image as a visual reference to construct the geometry.</p>
-            <div class="docs-tip"><strong>Best results:</strong> Use clean, well-lit images with a single subject on a simple background. Multiple angles of the same object are not needed — a single front-facing shot works.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 30 credits per generation. Estimated time ~1 minute.</div>
+            <div class="docs-tip"><strong>Best results:</strong> Use clean, well-lit images with a single subject on a simple background. A single front-facing shot works best.</div>
           </article>
 
           <!-- Remesh -->
@@ -2075,7 +2094,6 @@
             <div class="docs-tip"><strong>Cost:</strong> 15 credits. Estimated time ~1.5 minutes.</div>
           </article>
 
-
           <!-- AI Image -->
           <article class="docs-article" id="doc-image-gen">
             <h2>AI Image</h2>
@@ -2091,43 +2109,60 @@
               </dl>
               <dl class="docs-option-card">
                 <dt>Quality</dt>
-                <dd>Standard (10 credits) or 2K (15 credits)</dd>
+                <dd>Standard (10 credits), 2K (15 credits), or 4K (20 credits)</dd>
               </dl>
             </div>
-            <div class="docs-tip"><strong>Cost:</strong> 10-15 credits. Estimated time ~30 seconds.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 10–20 credits depending on resolution. Estimated time ~30 seconds.</div>
           </article>
 
           <!-- AI Video -->
           <article class="docs-article" id="doc-video">
             <h2>AI Video</h2>
-            <p>Generate AI videos using Veo 3.1. Select the Video panel, choose Text to Video or Image to Video, configure your settings, and generate.</p>
-            <h3>Text to Video</h3>
-            <p>Enter a text prompt and optionally select a style preset:</p>
+            <p>Generate AI videos from text prompts or reference images. Multiple providers are available, each with different strengths.</p>
+
+            <h3>Video providers</h3>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Veo 3.1</dt>
+                <dd>Google's video model. Supports 4s, 6s, and 8s durations at 720p, 1080p, or 4K resolution.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seedance 2.0</dt>
+                <dd>Fast and Preview tiers. Supports 5s, 10s, and 15s durations.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seedance 1.5 Pro</dt>
+                <dd>Via fal.ai. Supports 5s, 10s, and 12s durations.</dd>
+              </dl>
+            </div>
+
+            <h3>Generation modes</h3>
+            <ul>
+              <li><strong>Text to Video</strong> — Enter a text prompt to generate a video from scratch.</li>
+              <li><strong>Image to Video</strong> — Upload a reference image to animate into a video.</li>
+            </ul>
+
+            <h3>Style presets (Veo)</h3>
             <ul>
               <li>Auto, Cinematic Realism, Product Ad, Anime Motion, Documentary</li>
               <li>Dreamlike Surreal, Aerial, Timelapse, Slow-Mo, Noir</li>
             </ul>
-            <h3>Camera motion</h3>
-            <p>Choose from: None, Pan, Parallax, Zoom In, Zoom Out, Orbit, Dolly, or Tilt. You can also provide custom motion instructions.</p>
+
+            <h3>Camera motion (Veo)</h3>
+            <p>Choose from: None, Pan, Parallax, Zoom In, Zoom Out, Orbit, Dolly, or Tilt. Custom motion instructions also supported.</p>
+
             <div class="docs-option-grid">
-              <dl class="docs-option-card">
-                <dt>Duration</dt>
-                <dd>4s (default), 6s, or 8s</dd>
-              </dl>
               <dl class="docs-option-card">
                 <dt>Aspect Ratio</dt>
                 <dd>16:9 Landscape or 9:16 Portrait</dd>
-              </dl>
-              <dl class="docs-option-card">
-                <dt>Quality</dt>
-                <dd>Standard HD (720p) or Pro Full HD (1080p)</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Loop</dt>
                 <dd>Seamless loop playback (on by default)</dd>
               </dl>
             </div>
-            <div class="docs-tip"><strong>Cost:</strong> 70 credits (base). Estimated time ~2 minutes.</div>
+
+            <div class="docs-tip"><strong>Cost:</strong> 75–375 credits depending on provider, duration, resolution, and mode. See the Video Pricing section for full details.</div>
           </article>
 
           <!-- 3D Viewer -->
@@ -2186,6 +2221,239 @@
             <p>Right-click (or long-press on mobile) any asset for actions: Texture, Remesh, Rig, Refine Preview, Image to 3D, Download (GLB/PNG/MP4), Share, Print, Change License, or Delete.</p>
           </article>
 
+          <!-- Credits System -->
+          <article class="docs-article" id="doc-credits-system">
+            <h2>Credits System</h2>
+            <p>TimrX uses a credits-based system. Every generation action costs a fixed number of credits. Credits can be obtained through one-time purchases or monthly subscriptions.</p>
+
+            <h3>How credits work</h3>
+            <ul>
+              <li><strong>Reserved on submit</strong> — When you start a generation, the required credits are reserved from your balance immediately.</li>
+              <li><strong>Consumed on success</strong> — Once the generation completes successfully, the reserved credits are permanently deducted.</li>
+              <li><strong>Refunded on failure</strong> — If a generation fails or is cancelled, the reserved credits are returned to your balance automatically.</li>
+            </ul>
+
+            <h3>Credit sources</h3>
+            <ul>
+              <li><strong>One-time packs</strong> — Purchase a credit pack for immediate use. Credits never expire.</li>
+              <li><strong>Subscriptions</strong> — Receive a monthly credit allocation. Credits refresh each billing cycle.</li>
+            </ul>
+
+            <div class="docs-tip"><strong>Note:</strong> General credits and video credits come from the same balance. All credit types are interchangeable.</div>
+          </article>
+
+          <!-- Generation Pricing -->
+          <article class="docs-article" id="doc-pricing">
+            <h2>Generation Pricing</h2>
+            <p>Each action uses a fixed number of credits. All prices below are sourced from the backend pricing engine.</p>
+
+            <h3>3D generation</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Action</th><th>Credits</th><th>Est. Time</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Text to 3D</td><td>20</td><td>~1 min</td></tr>
+                  <tr><td>Image to 3D</td><td>30</td><td>~1 min</td></tr>
+                  <tr><td>Remesh</td><td>10</td><td>~2 min</td></tr>
+                  <tr><td>AI Texture (Retexture)</td><td>15</td><td>~1.5 min</td></tr>
+                  <tr><td>Refine / Upscale</td><td>10</td><td>~2 min</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Image generation</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Resolution</th><th>Credits</th><th>Providers</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Standard</td><td>10</td><td>OpenAI, Google Imagen</td></tr>
+                  <tr><td>2K</td><td>15</td><td>OpenAI, Google Imagen</td></tr>
+                  <tr><td>4K</td><td>20</td><td>OpenAI, Google Imagen</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>One-time credit packs</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Pack</th><th>Price</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;7.99</td><td>250</td></tr>
+                  <tr><td>Creator</td><td>&pound;19.99</td><td>900</td></tr>
+                  <tr><td>Studio</td><td>&pound;37.99</td><td>2,200</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Video credit packs</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Pack</th><th>Price</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Video Starter</td><td>&pound;9.99</td><td>300</td></tr>
+                  <tr><td>Video Creator</td><td>&pound;29.99</td><td>900</td></tr>
+                  <tr><td>Video Studio</td><td>&pound;59.99</td><td>2,000</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="docs-tip"><strong>Studio tier</strong> packs include priority queue access for faster generation times.</div>
+          </article>
+
+          <!-- Video Pricing -->
+          <article class="docs-article" id="doc-video-pricing">
+            <h2>Video Pricing</h2>
+            <p>Video credit costs vary by provider, duration, resolution, and generation mode (text-to-video vs image-to-video).</p>
+
+            <h3>Veo 3.1 — Text to Video</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>720p</th><th>1080p</th><th>4K</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>4 seconds</td><td>75</td><td>—</td><td>—</td></tr>
+                  <tr><td>6 seconds</td><td>100</td><td>—</td><td>—</td></tr>
+                  <tr><td>8 seconds</td><td>125</td><td>150</td><td>200</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Veo 3.1 — Image to Video</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>720p</th><th>1080p</th><th>4K</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>4 seconds</td><td>110</td><td>—</td><td>—</td></tr>
+                  <tr><td>6 seconds</td><td>140</td><td>—</td><td>—</td></tr>
+                  <tr><td>8 seconds</td><td>170</td><td>200</td><td>250</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 2.0 — Fast tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>80</td></tr>
+                  <tr><td>10 seconds</td><td>150</td></tr>
+                  <tr><td>15 seconds</td><td>225</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 2.0 — Preview tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>125</td></tr>
+                  <tr><td>10 seconds</td><td>250</td></tr>
+                  <tr><td>15 seconds</td><td>375</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 1.5 Pro (fal.ai)</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>80</td></tr>
+                  <tr><td>10 seconds</td><td>150</td></tr>
+                  <tr><td>12 seconds</td><td>180</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="docs-tip"><strong>Note:</strong> Image-to-video costs the same as text-to-video for Seedance providers. Veo image-to-video carries a premium over text-to-video.</div>
+          </article>
+
+          <!-- Subscriptions -->
+          <article class="docs-article" id="doc-subscriptions">
+            <h2>Subscriptions</h2>
+            <p>Monthly and yearly subscription plans provide a recurring credit allocation along with increased concurrency limits and queue priority.</p>
+
+            <h3>Monthly plans</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Plan</th><th>Price</th><th>Credits / Month</th><th>Concurrent Jobs</th><th>Priority</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;9.99/mo</td><td>400</td><td>5</td><td>Medium</td></tr>
+                  <tr><td>Creator</td><td>&pound;24.99/mo</td><td>1,300</td><td>10</td><td>High</td></tr>
+                  <tr><td>Studio</td><td>&pound;49.99/mo</td><td>3,200</td><td>20</td><td>Pro</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Yearly plans</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Plan</th><th>Price</th><th>Credits / Month</th><th>Total / Year</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;99.00/yr</td><td>400</td><td>4,800</td></tr>
+                  <tr><td>Creator</td><td>&pound;249.00/yr</td><td>1,300</td><td>15,600</td></tr>
+                  <tr><td>Studio</td><td>&pound;499.00/yr</td><td>3,200</td><td>38,400</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>How subscriptions work</h3>
+            <ul>
+              <li><strong>Monthly refill</strong> — Credits are granted once per billing cycle at the start of each period.</li>
+              <li><strong>Yearly billing</strong> — Billed annually, but credits are distributed monthly over 12 months.</li>
+              <li><strong>No rollover</strong> — Unused subscription credits do not carry over to the next billing period.</li>
+              <li><strong>Wallet credits</strong> — One-time purchased credits are separate and never expire. They are used after subscription credits are depleted.</li>
+            </ul>
+
+            <div class="docs-tip"><strong>Tip:</strong> Yearly plans save up to 17% compared to paying monthly.</div>
+          </article>
+
+          <!-- Billing -->
+          <article class="docs-article" id="doc-billing">
+            <h2>Billing</h2>
+            <p>All pricing is in GBP (&pound;). Payments are processed securely via Stripe.</p>
+
+            <h3>Purchase types</h3>
+            <ul>
+              <li><strong>One-time credit packs</strong> — Buy a pack of credits for immediate use. Credits never expire.</li>
+              <li><strong>Subscriptions</strong> — Recurring monthly or yearly plans with automatic credit refills.</li>
+            </ul>
+
+            <h3>Refunds</h3>
+            <ul>
+              <li><strong>Failed generations</strong> — Credits are automatically refunded if a generation fails or times out.</li>
+              <li><strong>Cancelled generations</strong> — Credits are returned if you cancel before completion.</li>
+              <li><strong>No refund after success</strong> — Once a generation completes and delivers a result, credits are not refundable.</li>
+            </ul>
+
+            <h3>Credit balance</h3>
+            <p>Your credit balance is displayed in the workspace header. It combines subscription credits and wallet credits into a single usable balance.</p>
+
+            <div class="docs-tip"><strong>Full ownership:</strong> All generated content belongs to you. No watermarks are added to outputs.</div>
+          </article>
+
           <!-- Supported Formats -->
           <article class="docs-article" id="doc-formats">
             <h2>Supported Formats</h2>
@@ -2206,29 +2474,6 @@
             </div>
           </article>
 
-          <!-- Credit Costs -->
-          <article class="docs-article" id="doc-credits">
-            <h2>Credit Costs</h2>
-            <p>Each feature uses a fixed number of credits per operation.</p>
-            <div class="docs-table-wrap">
-              <table class="docs-table">
-                <thead>
-                  <tr><th>Feature</th><th>Credits</th><th>Est. Time</th></tr>
-                </thead>
-                <tbody>
-                  <tr><td>AI Image (Standard)</td><td>10</td><td>~30s</td></tr>
-                  <tr><td>AI Image (2K)</td><td>15</td><td>~30s</td></tr>
-                  <tr><td>Text to 3D</td><td>20</td><td>~1 min</td></tr>
-                  <tr><td>Image to 3D</td><td>30</td><td>~1 min</td></tr>
-                  <tr><td>Remesh</td><td>10</td><td>~2 min</td></tr>
-                  <tr><td>AI Texture</td><td>15</td><td>~1.5 min</td></tr>
-                  <tr><td>AI Video</td><td>75–375</td><td>~2 min</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="docs-tip"><strong>Free retry:</strong> When generating multiple drafts, you get a free retry if none of the results match your expectation.</div>
-          </article>
-
           <!-- FAQ -->
           <article class="docs-article" id="doc-faq">
             <h2>FAQ</h2>
@@ -2240,13 +2485,22 @@
             <p>Generated models are suitable for most FDM and resin printers. For best results, run the Remesh tool with Feature Preserving or Adaptive mode to optimize the topology before slicing.</p>
 
             <h3>What is the difference between Refine and Remesh?</h3>
-            <p>Refine adds aesthetic detail and improves overall mesh quality. Remesh optimizes the topology (polygon structure) for printing or further editing. Use Refine for visual quality, Remesh for structural quality.</p>
+            <p>Refine adds aesthetic detail and improves overall mesh quality (10 credits). Remesh optimizes the topology (polygon structure) for printing or further editing (10 credits). Use Refine for visual quality, Remesh for structural quality.</p>
 
             <h3>Can I upload my own models?</h3>
             <p>Yes. Use the "New" button in the 3D viewer to upload a GLB or GLTF file (max 50MB). You can also upload models directly into the Remesh, Texture, and Rig panels for processing.</p>
 
             <h3>Is the File Converter free?</h3>
             <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
+
+            <h3>Which video provider should I use?</h3>
+            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Fast is the most affordable option. Seedance 2.0 Preview offers higher quality at a premium. Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
+
+            <h3>Do credits expire?</h3>
+            <p>One-time purchased credits never expire. Subscription credits refresh each billing cycle — unused subscription credits do not roll over.</p>
+
+            <h3>What happens if a generation fails?</h3>
+            <p>Credits are automatically refunded to your balance if a generation fails, times out, or is cancelled before completion.</p>
 
             <h3>How long do generations take?</h3>
             <p>Most 3D model generations complete in about 1 minute. Remesh and Rig take about 2 minutes. Video generation takes about 2 minutes. Times vary depending on server load.</p>

@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Primary Meta Tags -->
+  <title>TimrX Documentation — Platform Guide, Pricing & Credits</title>
+  <meta name="title" content="TimrX Documentation — Platform Guide, Pricing & Credits" />
+  <meta name="description" content="Complete documentation for TimrX — AI creative platform for 3D models, images, and videos. Pricing, credits, subscriptions, features, and supported formats." />
+  <meta name="keywords" content="TimrX docs, documentation, pricing, credits, subscriptions, AI 3D generator, text to 3D, image to 3D, AI video, AI image, Veo, Seedance" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://timrx.live/docs" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/docs" />
+  <meta property="og:title" content="TimrX Documentation — Platform Guide, Pricing & Credits" />
+  <meta property="og:description" content="Complete documentation for TimrX — AI creative platform for 3D models, images, and videos." />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===== Reset ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #999;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; text-decoration: none; }
+    strong { color: #ccc; }
+
+    /* ===== Container ===== */
+    .docs-page {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0;
+      min-height: 100vh;
+      animation: docsFadeInUp .6s ease-out;
+    }
+
+    @keyframes docsFadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Shell */
+    .docs-expanded-shell {
+      width: 100%;
+      max-width: 1800px;
+      margin: 0 auto;
+      background: #0a0a0a;
+      padding: 0;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+    }
+
+    /* ===== Hero ===== */
+    .docs-hero {
+      position: relative;
+      min-height: clamp(180px, 22vh, 240px);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding-top: 40px;
+      margin-bottom: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      animation: docsFadeInUp .8s ease-out .1s forwards;
+      opacity: 0;
+    }
+
+    .docs-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+
+    .docs-hero-text {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      min-width: 280px;
+      max-width: 100%;
+      padding: clamp(24px, 4vh, 40px) clamp(24px, 4vw, 60px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .docs-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .docs-pill::before {
+      content: "";
+      width: 36px;
+      height: 1px;
+      background: linear-gradient(90deg, #666, transparent);
+    }
+
+    .docs-hero h1,
+    .docs-title {
+      margin: 0;
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 600;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .docs-hero p {
+      margin: 0;
+      max-width: 500px;
+      font-size: clamp(13px, 0.95rem, 15px);
+      line-height: 1.6;
+      color: #999;
+    }
+
+    .docs-watermark {
+      position: absolute;
+      top: 55%;
+      right: 0;
+      transform: translateY(-50%);
+      font-family: Inter, system-ui, sans-serif;
+      font-size: clamp(80px, 12vw, 180px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: rgba(255, 255, 255, 0.03);
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+      user-select: none;
+      line-height: 0.8;
+      z-index: 1;
+      opacity: 0;
+      animation: docsWatermarkFade 1.5s ease forwards 0.5s;
+    }
+
+    @keyframes docsWatermarkFade {
+      to { opacity: 1; }
+    }
+
+    /* Back link */
+    .docs-back-link {
+      position: fixed;
+      top: 20px;
+      right: clamp(24px, 4vw, 60px);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 1000;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      text-decoration: none;
+    }
+
+    .docs-back-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    /* ===== Layout ===== */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 0;
+      min-height: 60vh;
+    }
+
+    /* ===== Sidebar ===== */
+    .docs-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 24px 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+
+    .docs-sidebar::-webkit-scrollbar { width: 4px; }
+    .docs-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .docs-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+
+    .docs-sidebar-group { margin-bottom: 20px; }
+
+    .docs-sidebar-label {
+      display: block;
+      padding: 0 20px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .docs-sidebar-link {
+      display: block;
+      padding: 7px 20px 7px 24px;
+      font-size: 13px;
+      color: #777;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .docs-sidebar-link:hover {
+      color: #bbb;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .docs-sidebar-link.is-active {
+      color: #fff;
+      border-left-color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* ===== Content ===== */
+    .docs-content {
+      padding: clamp(24px, 4vw, 48px);
+      max-width: 900px;
+    }
+
+    /* Article sections */
+    .docs-article {
+      padding-bottom: 40px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      animation: docsFadeInUp .6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .docs-article:last-child { border-bottom: none; }
+
+    .docs-article:nth-of-type(1)  { animation-delay: .15s; }
+    .docs-article:nth-of-type(2)  { animation-delay: .2s; }
+    .docs-article:nth-of-type(3)  { animation-delay: .25s; }
+    .docs-article:nth-of-type(4)  { animation-delay: .3s; }
+    .docs-article:nth-of-type(5)  { animation-delay: .35s; }
+    .docs-article:nth-of-type(6)  { animation-delay: .4s; }
+    .docs-article:nth-of-type(7)  { animation-delay: .45s; }
+    .docs-article:nth-of-type(8)  { animation-delay: .5s; }
+    .docs-article:nth-of-type(9)  { animation-delay: .55s; }
+    .docs-article:nth-of-type(10) { animation-delay: .6s; }
+    .docs-article:nth-of-type(11) { animation-delay: .65s; }
+    .docs-article:nth-of-type(12) { animation-delay: .7s; }
+    .docs-article:nth-of-type(13) { animation-delay: .75s; }
+    .docs-article:nth-of-type(14) { animation-delay: .8s; }
+    .docs-article:nth-of-type(15) { animation-delay: .85s; }
+    .docs-article:nth-of-type(16) { animation-delay: .9s; }
+    .docs-article:nth-of-type(17) { animation-delay: .95s; }
+
+    .docs-article h2 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 2.5vw, 28px);
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .docs-article h3 {
+      margin: 24px 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #ddd;
+    }
+
+    .docs-article p {
+      margin: 0 0 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #999;
+    }
+
+    .docs-article ul {
+      margin: 0 0 16px;
+      padding-left: 20px;
+      list-style: none;
+    }
+
+    .docs-article ul li {
+      position: relative;
+      padding: 4px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #999;
+    }
+
+    .docs-article ul li::before {
+      content: "\2013";
+      position: absolute;
+      left: -18px;
+      color: #555;
+    }
+
+    /* ===== Tip / Note box ===== */
+    .docs-tip {
+      padding: 14px 18px;
+      margin: 16px 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 3px solid #555;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #999;
+    }
+
+    .docs-tip strong { color: #ccc; }
+
+    /* ===== Option Grid ===== */
+    .docs-option-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .docs-option-card {
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .docs-option-card dt {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .docs-option-card dd {
+      margin: 0;
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    /* ===== Tables ===== */
+    .docs-table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .docs-table th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #666;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .docs-table td {
+      padding: 10px 16px;
+      color: #bbb;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .docs-table tr:last-child td { border-bottom: none; }
+    .docs-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .docs-page { max-width: 100%; padding: 0 clamp(16px, 3vw, 32px); }
+      .docs-layout { grid-template-columns: 220px 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .docs-layout { grid-template-columns: 1fr; }
+
+      .docs-sidebar {
+        position: static;
+        height: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 12px 0;
+        display: flex;
+        gap: 0;
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+
+      .docs-sidebar::-webkit-scrollbar { display: none; }
+      .docs-sidebar-group { display: flex; gap: 0; margin-bottom: 0; }
+      .docs-sidebar-label { display: none; }
+
+      .docs-sidebar-link {
+        padding: 6px 14px;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        font-size: 12px;
+      }
+
+      .docs-sidebar-link.is-active {
+        border-left-color: transparent;
+        border-bottom-color: #fff;
+      }
+
+      .docs-content { padding: clamp(20px, 4vw, 32px); }
+      .docs-hero h1, .docs-title { font-size: clamp(26px, 6vw, 36px); }
+
+      .docs-back-link {
+        top: 16px;
+        right: 16px;
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+
+      .docs-option-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .docs-sidebar { display: none; }
+      .docs-content { padding: 16px; }
+      .docs-article h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="docs-page">
+    <div class="docs-expanded-shell">
+
+      <!-- Hero -->
+      <header class="docs-hero">
+        <div class="docs-hero-text">
+          <span class="docs-pill">Documentation</span>
+          <h1 class="docs-title">TimrX Docs</h1>
+          <p>Everything you need to know about TimrX — features, pricing, credits, subscriptions, and workflows.</p>
+        </div>
+        <a href="/hub" class="docs-back-link">Back to Hub &#8592;</a>
+        <span class="docs-watermark">DOCS</span>
+      </header>
+
+      <!-- Layout: Sidebar + Content -->
+      <div class="docs-layout">
+
+        <!-- Sidebar Navigation -->
+        <nav class="docs-sidebar" aria-label="Documentation navigation">
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Getting Started</span>
+            <a href="#doc-overview" class="docs-sidebar-link is-active">Platform Overview</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Generation</span>
+            <a href="#doc-text-to-3d" class="docs-sidebar-link">Text to 3D</a>
+            <a href="#doc-image-to-3d" class="docs-sidebar-link">Image to 3D</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Post-Processing</span>
+            <a href="#doc-remesh" class="docs-sidebar-link">Remesh</a>
+            <a href="#doc-texture" class="docs-sidebar-link">AI Texture</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Media</span>
+            <a href="#doc-image-gen" class="docs-sidebar-link">AI Image</a>
+            <a href="#doc-video" class="docs-sidebar-link">AI Video</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Tools</span>
+            <a href="#doc-viewer" class="docs-sidebar-link">3D Viewer</a>
+            <a href="#doc-converter" class="docs-sidebar-link">File Converter</a>
+            <a href="#doc-assets" class="docs-sidebar-link">My Assets</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Credits &amp; Billing</span>
+            <a href="#doc-credits-system" class="docs-sidebar-link">Credits System</a>
+            <a href="#doc-pricing" class="docs-sidebar-link">Generation Pricing</a>
+            <a href="#doc-video-pricing" class="docs-sidebar-link">Video Pricing</a>
+            <a href="#doc-subscriptions" class="docs-sidebar-link">Subscriptions</a>
+            <a href="#doc-billing" class="docs-sidebar-link">Billing</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Reference</span>
+            <a href="#doc-formats" class="docs-sidebar-link">Formats</a>
+            <a href="#doc-faq" class="docs-sidebar-link">FAQ</a>
+          </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="docs-content">
+
+          <!-- Platform Overview -->
+          <article class="docs-article" id="doc-overview">
+            <h2>Platform Overview</h2>
+            <p>TimrX is an AI creative platform for generating 3D models, images, and videos — all from your browser. No downloads, no installs. Create production-ready assets using text prompts or reference images, then export for 3D printing, game engines, or social media.</p>
+            <h3>Available tools</h3>
+            <ul>
+              <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
+              <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
+              <li><strong>AI Image</strong> — Generate 2D images via OpenAI or Google Imagen.</li>
+              <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0, or Seedance 1.5 Pro.</li>
+              <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
+              <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
+              <li><strong>3D Viewer</strong> — Real-time Three.js viewer with orbit, zoom, and pan.</li>
+              <li><strong>File Converter</strong> — Free client-side 3D format converter.</li>
+            </ul>
+            <h3>Workspace layout</h3>
+            <p>The workspace is split into three areas:</p>
+            <ul>
+              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, and Video panels.</li>
+              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Remesh, Texture, Download, and Share.</li>
+              <li><strong>Right panel</strong> — Generation history. Browse, search, and filter all your past creations. Expand to a full gallery view.</li>
+            </ul>
+            <div class="docs-tip"><strong>Tip:</strong> Click any item in the history panel to load it into the 3D viewer instantly.</div>
+          </article>
+
+          <!-- Text to 3D -->
+          <article class="docs-article" id="doc-text-to-3d">
+            <h2>Text to 3D</h2>
+            <p>Describe what you want and get a 3D model. Select the Model panel from the left rail, choose the Text to 3D tab, enter your prompt, and hit Generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>AI Model</dt>
+                <dd>Meshy 6 Preview (latest), Meshy 5, Meshy 4</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Batch Count</dt>
+                <dd>1 to 4 models per generation</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Symmetry</dt>
+                <dd>Off, Auto, or On</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Art Style</dt>
+                <dd>Realistic or Sculpture</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>A/T Pose</dt>
+                <dd>Toggle on for rig-ready character models</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>License</dt>
+                <dd>CC BY 4.0 or Private</dd>
+              </dl>
+            </div>
+            <p>When generating more than one model, a draft selection grid appears. Pick your favorite, then continue to texture or export.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 20 credits per generation. Estimated time ~1 minute.</div>
+          </article>
+
+          <!-- Image to 3D -->
+          <article class="docs-article" id="doc-image-to-3d">
+            <h2>Image to 3D</h2>
+            <p>Upload a reference image and get a 3D model based on it. Switch to the Image to 3D tab inside the Model panel, upload your image, optionally name the model, and generate.</p>
+            <p>All the same options from Text to 3D apply — AI model, symmetry, art style, batch count, and license. The AI uses the image as a visual reference to construct the geometry.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 30 credits per generation. Estimated time ~1 minute.</div>
+            <div class="docs-tip"><strong>Best results:</strong> Use clean, well-lit images with a single subject on a simple background. A single front-facing shot works best.</div>
+          </article>
+
+          <!-- Remesh -->
+          <article class="docs-article" id="doc-remesh">
+            <h2>Remesh</h2>
+            <p>Optimize a model's topology for 3D printing or further editing. Select the Remesh panel from the left rail, choose the current model or upload a new one, set your options, and run.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Poly Count</dt>
+                <dd>Target polygon count (default 10,000)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Mode</dt>
+                <dd>Uniform, Adaptive, Feature Preserving, Quad Based</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Preserve UV</dt>
+                <dd>Keep UV mapping intact (on by default)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Preserve Boundaries</dt>
+                <dd>Maintain mesh edges (on by default)</dd>
+              </dl>
+            </div>
+            <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 10 credits. Estimated time ~2 minutes.</div>
+          </article>
+
+          <!-- AI Texture -->
+          <article class="docs-article" id="doc-texture">
+            <h2>AI Texture</h2>
+            <p>Generate PBR (physically-based rendering) textures for any 3D model using a text prompt. Select the Texture panel, choose the current model or upload a new one, describe the surface you want, and generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Resolution</dt>
+                <dd>512, 1024, 2048 (default), or 4096</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Map Type</dt>
+                <dd>PBR All Maps, Diffuse Only, Normal, Roughness, Metallic</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seamless Tiling</dt>
+                <dd>On by default for continuous surfaces</dd>
+              </dl>
+            </div>
+            <p>When using PBR All Maps, the following maps are generated: Albedo/Diffuse, Normal, Roughness, Metallic, and Ambient Occlusion.</p>
+            <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 15 credits. Estimated time ~1.5 minutes.</div>
+          </article>
+
+          <!-- AI Image -->
+          <article class="docs-article" id="doc-image-gen">
+            <h2>AI Image</h2>
+            <p>Generate 2D images using AI. Select the Image panel from the left rail, enter a text prompt, choose your provider and settings, and generate.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Provider</dt>
+                <dd>OpenAI or Google (Imagen)</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Shape</dt>
+                <dd>Square, Portrait, or Landscape</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Quality</dt>
+                <dd>Standard (10 credits), 2K (15 credits), or 4K (20 credits)</dd>
+              </dl>
+            </div>
+            <div class="docs-tip"><strong>Cost:</strong> 10–20 credits depending on resolution. Estimated time ~30 seconds.</div>
+          </article>
+
+          <!-- AI Video -->
+          <article class="docs-article" id="doc-video">
+            <h2>AI Video</h2>
+            <p>Generate AI videos from text prompts or reference images. Multiple providers are available, each with different strengths.</p>
+
+            <h3>Video providers</h3>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Veo 3.1</dt>
+                <dd>Google's video model. Supports 4s, 6s, and 8s durations at 720p, 1080p, or 4K resolution.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seedance 2.0</dt>
+                <dd>Fast and Preview tiers. Supports 5s, 10s, and 15s durations.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Seedance 1.5 Pro</dt>
+                <dd>Via fal.ai. Supports 5s, 10s, and 12s durations.</dd>
+              </dl>
+            </div>
+
+            <h3>Generation modes</h3>
+            <ul>
+              <li><strong>Text to Video</strong> — Enter a text prompt to generate a video from scratch.</li>
+              <li><strong>Image to Video</strong> — Upload a reference image to animate into a video.</li>
+            </ul>
+
+            <h3>Style presets (Veo)</h3>
+            <ul>
+              <li>Auto, Cinematic Realism, Product Ad, Anime Motion, Documentary</li>
+              <li>Dreamlike Surreal, Aerial, Timelapse, Slow-Mo, Noir</li>
+            </ul>
+
+            <h3>Camera motion (Veo)</h3>
+            <p>Choose from: None, Pan, Parallax, Zoom In, Zoom Out, Orbit, Dolly, or Tilt. Custom motion instructions also supported.</p>
+
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Aspect Ratio</dt>
+                <dd>16:9 Landscape or 9:16 Portrait</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Loop</dt>
+                <dd>Seamless loop playback (on by default)</dd>
+              </dl>
+            </div>
+
+            <div class="docs-tip"><strong>Cost:</strong> 75–375 credits depending on provider, duration, resolution, and mode. See the Video Pricing section for full details.</div>
+          </article>
+
+          <!-- 3D Viewer -->
+          <article class="docs-article" id="doc-viewer">
+            <h2>3D Viewer</h2>
+            <p>The center of the workspace is a real-time 3D viewer powered by Three.js. Any generated or uploaded model loads here automatically.</p>
+            <h3>Controls</h3>
+            <ul>
+              <li><strong>Orbit</strong> — Left-click and drag to rotate around the model.</li>
+              <li><strong>Zoom</strong> — Scroll wheel to zoom in and out.</li>
+              <li><strong>Pan</strong> — Right-click and drag to move the camera.</li>
+              <li><strong>Auto-rotate</strong> — Toggle via the settings gear icon.</li>
+            </ul>
+            <h3>Toolbar actions</h3>
+            <p>Below the viewer, quick actions let you: Retry the generation, jump to Remesh, Texture, or Rig panels, Download the model as GLB, Share a link, or send to a printer.</p>
+            <p>You can also upload your own model (GLB/GLTF, max 50MB) via the "New" button in the viewer header.</p>
+          </article>
+
+          <!-- File Converter -->
+          <article class="docs-article" id="doc-converter">
+            <h2>File Converter</h2>
+            <p>A free, client-side 3D file converter. No account required. Files never leave your device — all processing happens in the browser.</p>
+            <h3>Supported conversions</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Input Formats</th><th>Export Formats</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GLB, GLTF, OBJ, STL, FBX</td><td>GLB, GLTF, OBJ, STL</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Maximum file size: 100MB. After upload, the converter shows filename, format, file size, vertex count, and face count.</p>
+            <h3>Advanced options</h3>
+            <ul>
+              <li><strong>Include textures</strong> — Embed textures in GLB/GLTF output (on by default).</li>
+              <li><strong>Binary STL</strong> — Smaller file size for STL exports (on by default).</li>
+              <li><strong>Flip Y/Z axis</strong> — Swap vertical axis for compatibility with some applications.</li>
+            </ul>
+          </article>
+
+          <!-- My Assets -->
+          <article class="docs-article" id="doc-assets">
+            <h2>My Assets</h2>
+            <p>The right panel stores your full generation history — 3D models, images, and videos. Everything is synced to your account.</p>
+            <h3>Features</h3>
+            <ul>
+              <li><strong>Search</strong> — Find models by prompt text.</li>
+              <li><strong>Filter</strong> — Show all items, or only images, videos, or 3D models.</li>
+              <li><strong>Sort</strong> — Toggle between newest and oldest first.</li>
+              <li><strong>Pagination</strong> — 9, 12, 15, or 24 items per page.</li>
+              <li><strong>Expanded gallery</strong> — Open a full-screen gallery view from the nav or the expand button.</li>
+            </ul>
+            <h3>Context menu</h3>
+            <p>Right-click (or long-press on mobile) any asset for actions: Texture, Remesh, Rig, Refine Preview, Image to 3D, Download (GLB/PNG/MP4), Share, Print, Change License, or Delete.</p>
+          </article>
+
+          <!-- Credits System -->
+          <article class="docs-article" id="doc-credits-system">
+            <h2>Credits System</h2>
+            <p>TimrX uses a credits-based system. Every generation action costs a fixed number of credits. Credits can be obtained through one-time purchases or monthly subscriptions.</p>
+
+            <h3>How credits work</h3>
+            <ul>
+              <li><strong>Reserved on submit</strong> — When you start a generation, the required credits are reserved from your balance immediately.</li>
+              <li><strong>Consumed on success</strong> — Once the generation completes successfully, the reserved credits are permanently deducted.</li>
+              <li><strong>Refunded on failure</strong> — If a generation fails or is cancelled, the reserved credits are returned to your balance automatically.</li>
+            </ul>
+
+            <h3>Credit sources</h3>
+            <ul>
+              <li><strong>One-time packs</strong> — Purchase a credit pack for immediate use. Credits never expire.</li>
+              <li><strong>Subscriptions</strong> — Receive a monthly credit allocation. Credits refresh each billing cycle.</li>
+            </ul>
+
+            <div class="docs-tip"><strong>Note:</strong> General credits and video credits come from the same balance. All credit types are interchangeable.</div>
+          </article>
+
+          <!-- Generation Pricing -->
+          <article class="docs-article" id="doc-pricing">
+            <h2>Generation Pricing</h2>
+            <p>Each action uses a fixed number of credits. All prices below are sourced from the backend pricing engine.</p>
+
+            <h3>3D generation</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Action</th><th>Credits</th><th>Est. Time</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Text to 3D</td><td>20</td><td>~1 min</td></tr>
+                  <tr><td>Image to 3D</td><td>30</td><td>~1 min</td></tr>
+                  <tr><td>Remesh</td><td>10</td><td>~2 min</td></tr>
+                  <tr><td>AI Texture (Retexture)</td><td>15</td><td>~1.5 min</td></tr>
+                  <tr><td>Refine / Upscale</td><td>10</td><td>~2 min</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Image generation</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Resolution</th><th>Credits</th><th>Providers</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Standard</td><td>10</td><td>OpenAI, Google Imagen</td></tr>
+                  <tr><td>2K</td><td>15</td><td>OpenAI, Google Imagen</td></tr>
+                  <tr><td>4K</td><td>20</td><td>OpenAI, Google Imagen</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>One-time credit packs</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Pack</th><th>Price</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;7.99</td><td>250</td></tr>
+                  <tr><td>Creator</td><td>&pound;19.99</td><td>900</td></tr>
+                  <tr><td>Studio</td><td>&pound;37.99</td><td>2,200</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Video credit packs</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Pack</th><th>Price</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Video Starter</td><td>&pound;9.99</td><td>300</td></tr>
+                  <tr><td>Video Creator</td><td>&pound;29.99</td><td>900</td></tr>
+                  <tr><td>Video Studio</td><td>&pound;59.99</td><td>2,000</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="docs-tip"><strong>Studio tier</strong> packs include priority queue access for faster generation times.</div>
+          </article>
+
+          <!-- Video Pricing -->
+          <article class="docs-article" id="doc-video-pricing">
+            <h2>Video Pricing</h2>
+            <p>Video credit costs vary by provider, duration, resolution, and generation mode (text-to-video vs image-to-video).</p>
+
+            <h3>Veo 3.1 — Text to Video</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>720p</th><th>1080p</th><th>4K</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>4 seconds</td><td>75</td><td>—</td><td>—</td></tr>
+                  <tr><td>6 seconds</td><td>100</td><td>—</td><td>—</td></tr>
+                  <tr><td>8 seconds</td><td>125</td><td>150</td><td>200</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Veo 3.1 — Image to Video</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>720p</th><th>1080p</th><th>4K</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>4 seconds</td><td>110</td><td>—</td><td>—</td></tr>
+                  <tr><td>6 seconds</td><td>140</td><td>—</td><td>—</td></tr>
+                  <tr><td>8 seconds</td><td>170</td><td>200</td><td>250</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 2.0 — Fast tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>80</td></tr>
+                  <tr><td>10 seconds</td><td>150</td></tr>
+                  <tr><td>15 seconds</td><td>225</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 2.0 — Preview tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>125</td></tr>
+                  <tr><td>10 seconds</td><td>250</td></tr>
+                  <tr><td>15 seconds</td><td>375</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Seedance 1.5 Pro (fal.ai)</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>Credits</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>80</td></tr>
+                  <tr><td>10 seconds</td><td>150</td></tr>
+                  <tr><td>12 seconds</td><td>180</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="docs-tip"><strong>Note:</strong> Image-to-video costs the same as text-to-video for Seedance providers. Veo image-to-video carries a premium over text-to-video.</div>
+          </article>
+
+          <!-- Subscriptions -->
+          <article class="docs-article" id="doc-subscriptions">
+            <h2>Subscriptions</h2>
+            <p>Monthly and yearly subscription plans provide a recurring credit allocation along with increased concurrency limits and queue priority.</p>
+
+            <h3>Monthly plans</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Plan</th><th>Price</th><th>Credits / Month</th><th>Concurrent Jobs</th><th>Priority</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;9.99/mo</td><td>400</td><td>5</td><td>Medium</td></tr>
+                  <tr><td>Creator</td><td>&pound;24.99/mo</td><td>1,300</td><td>10</td><td>High</td></tr>
+                  <tr><td>Studio</td><td>&pound;49.99/mo</td><td>3,200</td><td>20</td><td>Pro</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Yearly plans</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Plan</th><th>Price</th><th>Credits / Month</th><th>Total / Year</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Starter</td><td>&pound;99.00/yr</td><td>400</td><td>4,800</td></tr>
+                  <tr><td>Creator</td><td>&pound;249.00/yr</td><td>1,300</td><td>15,600</td></tr>
+                  <tr><td>Studio</td><td>&pound;499.00/yr</td><td>3,200</td><td>38,400</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>How subscriptions work</h3>
+            <ul>
+              <li><strong>Monthly refill</strong> — Credits are granted once per billing cycle at the start of each period.</li>
+              <li><strong>Yearly billing</strong> — Billed annually, but credits are distributed monthly over 12 months.</li>
+              <li><strong>No rollover</strong> — Unused subscription credits do not carry over to the next billing period.</li>
+              <li><strong>Wallet credits</strong> — One-time purchased credits are separate and never expire. They are used after subscription credits are depleted.</li>
+            </ul>
+
+            <div class="docs-tip"><strong>Tip:</strong> Yearly plans save up to 17% compared to paying monthly.</div>
+          </article>
+
+          <!-- Billing -->
+          <article class="docs-article" id="doc-billing">
+            <h2>Billing</h2>
+            <p>All pricing is in GBP (&pound;). Payments are processed securely via Stripe.</p>
+
+            <h3>Purchase types</h3>
+            <ul>
+              <li><strong>One-time credit packs</strong> — Buy a pack of credits for immediate use. Credits never expire.</li>
+              <li><strong>Subscriptions</strong> — Recurring monthly or yearly plans with automatic credit refills.</li>
+            </ul>
+
+            <h3>Refunds</h3>
+            <ul>
+              <li><strong>Failed generations</strong> — Credits are automatically refunded if a generation fails or times out.</li>
+              <li><strong>Cancelled generations</strong> — Credits are returned if you cancel before completion.</li>
+              <li><strong>No refund after success</strong> — Once a generation completes and delivers a result, credits are not refundable.</li>
+            </ul>
+
+            <h3>Credit balance</h3>
+            <p>Your credit balance is displayed in the workspace header. It combines subscription credits and wallet credits into a single usable balance.</p>
+
+            <div class="docs-tip"><strong>Full ownership:</strong> All generated content belongs to you. No watermarks are added to outputs.</div>
+          </article>
+
+          <!-- Supported Formats -->
+          <article class="docs-article" id="doc-formats">
+            <h2>Supported Formats</h2>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Format</th><th>Import</th><th>Export</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GLB</td><td>Yes</td><td>Yes</td><td>Binary GLTF. Compact single file with embedded textures.</td></tr>
+                  <tr><td>GLTF</td><td>Yes</td><td>Yes</td><td>JSON-based. Separate asset files.</td></tr>
+                  <tr><td>OBJ</td><td>Yes</td><td>Yes</td><td>Universal format. No embedded textures.</td></tr>
+                  <tr><td>STL</td><td>Yes</td><td>Yes</td><td>3D printing standard. Geometry only.</td></tr>
+                  <tr><td>FBX</td><td>Yes</td><td>No</td><td>Import only. Widely used in game engines.</td></tr>
+                  <tr><td>USDZ</td><td>No</td><td>Yes</td><td>Available from generation API for AR Quick Look.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <!-- FAQ -->
+          <article class="docs-article" id="doc-faq">
+            <h2>FAQ</h2>
+
+            <h3>What file format do generated models use?</h3>
+            <p>All AI-generated 3D models are delivered as GLB files. You can convert them to OBJ, STL, or GLTF using the built-in File Converter.</p>
+
+            <h3>Are my models print-ready?</h3>
+            <p>Generated models are suitable for most FDM and resin printers. For best results, run the Remesh tool with Feature Preserving or Adaptive mode to optimize the topology before slicing.</p>
+
+            <h3>What is the difference between Refine and Remesh?</h3>
+            <p>Refine adds aesthetic detail and improves overall mesh quality (10 credits). Remesh optimizes the topology (polygon structure) for printing or further editing (10 credits). Use Refine for visual quality, Remesh for structural quality.</p>
+
+            <h3>Can I upload my own models?</h3>
+            <p>Yes. Use the "New" button in the 3D viewer to upload a GLB or GLTF file (max 50MB). You can also upload models directly into the Remesh, Texture, and Rig panels for processing.</p>
+
+            <h3>Is the File Converter free?</h3>
+            <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
+
+            <h3>Which video provider should I use?</h3>
+            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Fast is the most affordable option. Seedance 2.0 Preview offers higher quality at a premium. Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
+
+            <h3>Do credits expire?</h3>
+            <p>One-time purchased credits never expire. Subscription credits refresh each billing cycle — unused subscription credits do not roll over.</p>
+
+            <h3>What happens if a generation fails?</h3>
+            <p>Credits are automatically refunded to your balance if a generation fails, times out, or is cancelled before completion.</p>
+
+            <h3>How long do generations take?</h3>
+            <p>Most 3D model generations complete in about 1 minute. Remesh and Rig take about 2 minutes. Video generation takes about 2 minutes. Times vary depending on server load.</p>
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Sidebar active link tracking -->
+  <script>
+    (function () {
+      const links = document.querySelectorAll('.docs-sidebar-link');
+      const articles = document.querySelectorAll('.docs-article');
+
+      if (!articles.length) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              links.forEach((link) => {
+                link.classList.toggle('is-active', link.getAttribute('href') === '#' + id);
+              });
+            }
+          });
+        },
+        { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+      );
+
+      articles.forEach((article) => observer.observe(article));
+    })();
+  </script>
+
+</body>
+</html>
