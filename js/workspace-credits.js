@@ -4,7 +4,7 @@
  * Fetches wallet balance and action costs on load, provides helpers for credit checks.
  */
 
-import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWalletCache, clearWalletCache, setConfirmedIdentity } from './config.js';
+import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWalletCache, clearAllUserCaches, setConfirmedIdentity, checkAuthFreshness } from './config.js';
 
 // ============================================================================
 // CONSTANTS
@@ -77,10 +77,18 @@ function shouldForceRefresh() {
     log('[Credits] Force refresh requested via URL param');
     return true;
   }
-  // Force refresh if coming from hub (different origin purchase flow)
-  if (document.referrer && document.referrer.includes('timrx.live') && !document.referrer.includes('3d.timrx.live')) {
-    log('[Credits] Force refresh: navigated from hub');
-    return true;
+  // AUTH-6: Force refresh if arriving from a different timrx subdomain.
+  // Caches are origin-scoped, so cross-subdomain navigation means local
+  // caches may be stale (identity change, balance change on other origin).
+  if (document.referrer) {
+    try {
+      const refHost = new URL(document.referrer).hostname;
+      const curHost = location.hostname;
+      if (refHost !== curHost && refHost.endsWith('timrx.live') && curHost.endsWith('timrx.live')) {
+        log('[Credits] Force refresh: cross-subdomain navigation from', refHost);
+        return true;
+      }
+    } catch (_) { /* malformed referrer, ignore */ }
   }
   return false;
 }
@@ -234,13 +242,24 @@ export async function fetchWallet() {
         const videoReserved = data.video_reserved_credits ?? 0;
         const videoAvailable = data.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
 
-        // Check if identity differs from cross-page cache - if so, discard cache
-        const walletCache = readWalletCache();
-        if (walletCache && walletCache.identity_id && serverIdentityId && walletCache.identity_id !== serverIdentityId) {
-          log('[Credits] Identity mismatch - clearing cross-page cache');
-          log('[Credits]   Cached:', walletCache.identity_id?.slice(0, 8) + '...');
-          log('[Credits]   Server:', serverIdentityId?.slice(0, 8) + '...');
-          clearWalletCache();
+        // AUTH-6: Cross-subdomain freshness check.
+        // Compare server state against locally stored auth stamp.
+        // If identity changed OR an auth event happened on another origin,
+        // clear ALL user caches (not just wallet) so history/jobs/etc.
+        // don't show data for the wrong identity.
+        const authStale = checkAuthFreshness(serverIdentityId, data.last_active_at || null);
+        if (authStale) {
+          log('[Credits] AUTH-6: Auth state stale — clearing all user caches');
+          clearAllUserCaches();
+        } else {
+          // Even without a stamp change, check cross-page wallet cache identity
+          const walletCache = readWalletCache();
+          if (walletCache && walletCache.identity_id && serverIdentityId && walletCache.identity_id !== serverIdentityId) {
+            log('[Credits] Identity mismatch — clearing all user caches');
+            log('[Credits]   Cached:', walletCache.identity_id?.slice(0, 8) + '...');
+            log('[Credits]   Server:', serverIdentityId?.slice(0, 8) + '...');
+            clearAllUserCaches();
+          }
         }
 
         creditsState.wallet = {

@@ -1937,6 +1937,89 @@
       gap: 8px;
     }
 
+    /* ====== OPS PANEL MODALS ====== */
+    .ops-modal-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 8px;
+      width: 100%;
+      font-family: inherit;
+      color: inherit;
+    }
+    .ops-modal-trigger:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.14);
+    }
+    .ops-modal-trigger .trigger-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ops-modal-trigger .trigger-icon {
+      font-size: 14px;
+      color: #666;
+      width: 20px;
+      text-align: center;
+    }
+    .ops-modal-trigger .trigger-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ccc;
+    }
+    .ops-modal-trigger .trigger-badge {
+      font-size: 11px;
+      color: #888;
+      background: rgba(255,255,255,0.06);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .ops-modal-trigger .trigger-arrow {
+      font-size: 12px;
+      color: #555;
+      transition: transform 0.15s;
+    }
+    .ops-modal-trigger:hover .trigger-arrow {
+      color: #999;
+      transform: translateX(2px);
+    }
+
+    .modal-box.ops-panel {
+      max-width: 780px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-box.ops-panel .modal-header {
+      flex-shrink: 0;
+      margin-bottom: 14px;
+    }
+    .modal-box.ops-panel .modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .ops-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      padding-right: 4px;
+    }
+    .ops-modal-body::-webkit-scrollbar { width: 4px; }
+    .ops-modal-body::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 2px;
+    }
+
+    /* ====== STYLE FIXES — consistency ====== */
+    .ops-dsp-stat { border-radius: 8px; }
+    .ops-bal-status { border-radius: 4px; }
+
     /* ====== OPS MOBILE RESPONSIVE ====== */
     @media (max-width: 720px) {
       .ops-summary-bar { padding: 70px 16px 14px; }
@@ -2119,187 +2202,28 @@
               </div>
             </div>
 
-            <!-- Provider Ledger -->
+            <!-- Quick-access modal triggers -->
             <div class="ops-section">
-              <div class="ops-section-header">
-                <h4>Provider Ledger</h4>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn small" id="toggleLedgerForm">+ Entry</button>
-                  <button class="btn small" id="exportOpsLedger" title="Export CSV">Export</button>
-                  <button class="btn small" id="refreshOpsLedger">Refresh</button>
-                </div>
-              </div>
-
-              <div class="ops-refund-history-filters" id="ledgerFilters">
-                <input id="ledgerFilterDateFrom" type="date" title="From date" />
-                <input id="ledgerFilterDateTo" type="date" title="To date" />
-                <button class="btn small" id="ledgerApplyFilters">Filter</button>
-                <button class="btn small" id="ledgerClearFilters" style="opacity:0.6;">Clear</button>
-              </div>
-
-              <!-- Add entry form (hidden by default) -->
-              <div class="ops-ledger-form" id="opsLedgerForm" style="display:none;">
-                <div class="ops-ledger-form-grid">
-                  <div class="ops-form-field">
-                    <label>Provider</label>
-                    <select id="ledgerProvider" class="form-select">
-                      <option value="">Select...</option>
-                      <option value="meshy">Meshy</option>
-                      <option value="openai">OpenAI</option>
-                      <option value="google">Google</option>
-                      <option value="vertex">Vertex</option>
-                      <option value="seedance">Seedance</option>
-                      <option value="fal_seedance">fal Seedance</option>
-                    </select>
-                  </div>
-                  <div class="ops-form-field">
-                    <label>Type</label>
-                    <select id="ledgerType" class="form-select">
-                      <option value="topup">Top-up</option>
-                      <option value="invoice">Invoice</option>
-                      <option value="balance_snapshot">Balance Snapshot</option>
-                      <option value="adjustment">Adjustment</option>
-                      <option value="note">Note</option>
-                    </select>
-                  </div>
-                  <div class="ops-form-field">
-                    <label>Amount (GBP)</label>
-                    <input id="ledgerAmount" type="number" step="0.01" class="form-input" placeholder="e.g. 50.00"/>
-                  </div>
-                  <div class="ops-form-field">
-                    <label>Balance Snapshot (GBP)</label>
-                    <input id="ledgerBalance" type="number" step="0.01" class="form-input" placeholder="Optional"/>
-                  </div>
-                  <div class="ops-form-field" style="grid-column:1/-1;">
-                    <label>Description</label>
-                    <input id="ledgerDesc" class="form-input" placeholder="e.g. PiAPI wallet top-up"/>
-                  </div>
-                  <div class="ops-form-field">
-                    <label>Reference</label>
-                    <input id="ledgerRef" class="form-input" placeholder="Invoice #, receipt..."/>
-                  </div>
-                  <div class="ops-form-field">
-                    <label>Period (YYYY-MM)</label>
-                    <input id="ledgerPeriod" class="form-input" placeholder="e.g. 2026-03"/>
-                  </div>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:10px;">
-                  <button class="action-btn" id="submitLedgerEntry" style="flex:1;">Save Entry</button>
-                  <button class="btn" id="cancelLedgerForm">Cancel</button>
-                </div>
-              </div>
-
-              <div class="ops-ledger-list" id="opsLedgerList">
-                <div class="ops-loading">Loading ledger...</div>
-              </div>
-            </div>
-
-            <!-- Monthly Spend Summary -->
-            <div class="ops-section">
-              <div class="ops-section-header">
-                <h4>Monthly Spend Summary</h4>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn small" id="exportOpsMonthly" title="Export CSV">Export</button>
-                  <button class="btn small" id="refreshOpsMonthly">Refresh</button>
-                </div>
-              </div>
-              <div class="ops-monthly-wrap" id="opsMonthlyWrap">
-                <div class="ops-loading">Loading monthly spend...</div>
-              </div>
-            </div>
-
-            <!-- Purchases / Transactions -->
-            <div class="ops-section">
-              <div class="ops-section-header">
-                <h4>Purchases</h4>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn small" id="exportOpsPurchases" title="Export CSV">Export</button>
-                  <button class="btn small" id="refreshOpsPurchases">Refresh</button>
-                </div>
-              </div>
-              <div class="ops-refund-history-filters" id="purchaseFilters">
-                <input id="pchFilterEmail" placeholder="Email..." />
-                <input id="pchFilterPurchaseId" placeholder="Purchase ID..." />
-                <select id="pchFilterStatus">
-                  <option value="">All statuses</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                  <option value="refunded">Refunded</option>
-                </select>
-                <input id="pchFilterDateFrom" type="date" title="From date" />
-                <input id="pchFilterDateTo" type="date" title="To date" />
-                <button class="btn small" id="pchApplyFilters">Filter</button>
-                <button class="btn small" id="pchClearFilters" style="opacity:0.6;">Clear</button>
-              </div>
-              <div id="opsPurchasesList">
-                <div class="ops-loading">Loading purchases...</div>
-              </div>
-            </div>
-
-            <!-- Refund History -->
-            <div class="ops-section">
-              <div class="ops-section-header">
-                <h4>Refund History</h4>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn small" id="exportOpsRefunds" title="Export CSV">Export</button>
-                  <button class="btn small" id="refreshOpsRefundHistory">Refresh</button>
-                </div>
-              </div>
-              <div class="ops-refund-history-filters" id="refundHistoryFilters">
-                <select id="rhFilterStatus">
-                  <option value="">All statuses</option>
-                  <option value="executed">Executed</option>
-                  <option value="failed">Failed</option>
-                  <option value="pending">Pending</option>
-                  <option value="manual_review_required">Manual Review</option>
-                  <option value="approved">Approved</option>
-                  <option value="denied">Denied</option>
-                  <option value="closed">Closed</option>
-                </select>
-                <input id="rhFilterEmail" placeholder="Email contains..." />
-                <input id="rhFilterDateFrom" type="date" title="From date" />
-                <input id="rhFilterDateTo" type="date" title="To date" />
-                <input id="rhFilterPurchase" placeholder="Purchase ID..." />
-                <input id="rhFilterIdentity" placeholder="Identity ID..." />
-                <button class="btn small" id="rhApplyFilters">Filter</button>
-                <button class="btn small" id="rhClearFilters" style="opacity:0.6;">Clear</button>
-              </div>
-              <div id="opsRefundHistoryList">
-                <div class="ops-loading">Loading refund history...</div>
-              </div>
-            </div>
-
-            <!-- Disputes -->
-            <div class="ops-section">
-              <div class="ops-section-header">
-                <h4>Disputes</h4>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn small" id="exportOpsDisputes" title="Export CSV">Export</button>
-                  <button class="btn small" id="refreshOpsDisputes">Refresh</button>
-                </div>
-              </div>
-              <div id="opsDisputesSummary" class="ops-dsp-summary"></div>
-              <div class="ops-refund-history-filters" id="disputeFilters">
-                <select id="dspFilterStatus">
-                  <option value="">All statuses</option>
-                  <option value="open">Open</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="won">Won</option>
-                  <option value="lost">Lost</option>
-                  <option value="closed">Closed</option>
-                </select>
-                <input id="dspFilterEmail" placeholder="Email..." />
-                <input id="dspFilterPurchaseId" placeholder="Purchase ID..." />
-                <input id="dspFilterIdentityId" placeholder="Identity ID..." />
-                <input id="dspFilterDateFrom" type="date" title="From date" />
-                <input id="dspFilterDateTo" type="date" title="To date" />
-                <button class="btn small" id="dspApplyFilters">Filter</button>
-                <button class="btn small" id="dspClearFilters" style="opacity:0.6;">Clear</button>
-              </div>
-              <div id="opsDisputesList">
-                <div class="ops-loading">Loading disputes...</div>
-              </div>
+              <button class="ops-modal-trigger" id="openLedgerModal">
+                <span class="trigger-left"><span class="trigger-icon">&pound;</span><span class="trigger-label">Provider Ledger</span></span>
+                <span class="trigger-arrow">&rsaquo;</span>
+              </button>
+              <button class="ops-modal-trigger" id="openMonthlyModal">
+                <span class="trigger-left"><span class="trigger-icon">&para;</span><span class="trigger-label">Monthly Spend Summary</span></span>
+                <span class="trigger-arrow">&rsaquo;</span>
+              </button>
+              <button class="ops-modal-trigger" id="openPurchasesModal">
+                <span class="trigger-left"><span class="trigger-icon">&curren;</span><span class="trigger-label">Purchases</span></span>
+                <span class="trigger-arrow">&rsaquo;</span>
+              </button>
+              <button class="ops-modal-trigger" id="openRefundHistoryModal">
+                <span class="trigger-left"><span class="trigger-icon">&laquo;</span><span class="trigger-label">Refund History</span></span>
+                <span class="trigger-arrow">&rsaquo;</span>
+              </button>
+              <button class="ops-modal-trigger" id="openDisputesModal">
+                <span class="trigger-left"><span class="trigger-icon">&sect;</span><span class="trigger-label">Disputes</span></span>
+                <span class="trigger-arrow">&rsaquo;</span>
+              </button>
             </div>
 
           </div>
@@ -3006,6 +2930,212 @@
             </div>
             <pre class="repo-preview-code" id="repoPreviewCode"><code>No file selected</code></pre>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== OPS PANEL MODALS ========== -->
+
+  <!-- Provider Ledger Modal -->
+  <div class="modal" id="ledgerModal">
+    <div class="modal-box ops-panel">
+      <div class="modal-header">
+        <h3>Provider Ledger</h3>
+        <button class="modal-close" data-close-modal="ledgerModal">&times;</button>
+      </div>
+      <div class="ops-modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn small" id="toggleLedgerForm">+ Entry</button>
+          <button class="btn small" id="exportOpsLedger" title="Export CSV">Export</button>
+          <button class="btn small" id="refreshOpsLedger">Refresh</button>
+        </div>
+        <div class="ops-refund-history-filters" id="ledgerFilters">
+          <input id="ledgerFilterDateFrom" type="date" title="From date" />
+          <input id="ledgerFilterDateTo" type="date" title="To date" />
+          <button class="btn small" id="ledgerApplyFilters">Filter</button>
+          <button class="btn small" id="ledgerClearFilters" style="opacity:0.6;">Clear</button>
+        </div>
+        <div class="ops-ledger-form" id="opsLedgerForm" style="display:none;">
+          <div class="ops-ledger-form-grid">
+            <div class="ops-form-field">
+              <label>Provider</label>
+              <select id="ledgerProvider" class="form-select">
+                <option value="">Select...</option>
+                <option value="meshy">Meshy</option>
+                <option value="openai">OpenAI</option>
+                <option value="google">Google</option>
+                <option value="vertex">Vertex</option>
+                <option value="seedance">Seedance</option>
+                <option value="fal_seedance">fal Seedance</option>
+              </select>
+            </div>
+            <div class="ops-form-field">
+              <label>Type</label>
+              <select id="ledgerType" class="form-select">
+                <option value="topup">Top-up</option>
+                <option value="invoice">Invoice</option>
+                <option value="balance_snapshot">Balance Snapshot</option>
+                <option value="adjustment">Adjustment</option>
+                <option value="note">Note</option>
+              </select>
+            </div>
+            <div class="ops-form-field">
+              <label>Amount (GBP)</label>
+              <input id="ledgerAmount" type="number" step="0.01" class="form-input" placeholder="e.g. 50.00"/>
+            </div>
+            <div class="ops-form-field">
+              <label>Balance Snapshot (GBP)</label>
+              <input id="ledgerBalance" type="number" step="0.01" class="form-input" placeholder="Optional"/>
+            </div>
+            <div class="ops-form-field" style="grid-column:1/-1;">
+              <label>Description</label>
+              <input id="ledgerDesc" class="form-input" placeholder="e.g. PiAPI wallet top-up"/>
+            </div>
+            <div class="ops-form-field">
+              <label>Reference</label>
+              <input id="ledgerRef" class="form-input" placeholder="Invoice #, receipt..."/>
+            </div>
+            <div class="ops-form-field">
+              <label>Period (YYYY-MM)</label>
+              <input id="ledgerPeriod" class="form-input" placeholder="e.g. 2026-03"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="action-btn" id="submitLedgerEntry" style="flex:1;">Save Entry</button>
+            <button class="btn" id="cancelLedgerForm">Cancel</button>
+          </div>
+        </div>
+        <div class="ops-ledger-list" id="opsLedgerList">
+          <div class="ops-loading">Loading ledger...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Spend Summary Modal -->
+  <div class="modal" id="monthlyModal">
+    <div class="modal-box ops-panel">
+      <div class="modal-header">
+        <h3>Monthly Spend Summary</h3>
+        <button class="modal-close" data-close-modal="monthlyModal">&times;</button>
+      </div>
+      <div class="ops-modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn small" id="exportOpsMonthly" title="Export CSV">Export</button>
+          <button class="btn small" id="refreshOpsMonthly">Refresh</button>
+        </div>
+        <div class="ops-monthly-wrap" id="opsMonthlyWrap">
+          <div class="ops-loading">Loading monthly spend...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchases Modal -->
+  <div class="modal" id="purchasesModal">
+    <div class="modal-box ops-panel">
+      <div class="modal-header">
+        <h3>Purchases</h3>
+        <button class="modal-close" data-close-modal="purchasesModal">&times;</button>
+      </div>
+      <div class="ops-modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn small" id="exportOpsPurchases" title="Export CSV">Export</button>
+          <button class="btn small" id="refreshOpsPurchases">Refresh</button>
+        </div>
+        <div class="ops-refund-history-filters" id="purchaseFilters">
+          <input id="pchFilterEmail" placeholder="Email..." />
+          <input id="pchFilterPurchaseId" placeholder="Purchase ID..." />
+          <select id="pchFilterStatus">
+            <option value="">All statuses</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+          <input id="pchFilterDateFrom" type="date" title="From date" />
+          <input id="pchFilterDateTo" type="date" title="To date" />
+          <button class="btn small" id="pchApplyFilters">Filter</button>
+          <button class="btn small" id="pchClearFilters" style="opacity:0.6;">Clear</button>
+        </div>
+        <div id="opsPurchasesList">
+          <div class="ops-loading">Loading purchases...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund History Modal -->
+  <div class="modal" id="refundHistoryModal">
+    <div class="modal-box ops-panel">
+      <div class="modal-header">
+        <h3>Refund History</h3>
+        <button class="modal-close" data-close-modal="refundHistoryModal">&times;</button>
+      </div>
+      <div class="ops-modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn small" id="exportOpsRefunds" title="Export CSV">Export</button>
+          <button class="btn small" id="refreshOpsRefundHistory">Refresh</button>
+        </div>
+        <div class="ops-refund-history-filters" id="refundHistoryFilters">
+          <select id="rhFilterStatus">
+            <option value="">All statuses</option>
+            <option value="executed">Executed</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
+            <option value="manual_review_required">Manual Review</option>
+            <option value="approved">Approved</option>
+            <option value="denied">Denied</option>
+            <option value="closed">Closed</option>
+          </select>
+          <input id="rhFilterEmail" placeholder="Email contains..." />
+          <input id="rhFilterDateFrom" type="date" title="From date" />
+          <input id="rhFilterDateTo" type="date" title="To date" />
+          <input id="rhFilterPurchase" placeholder="Purchase ID..." />
+          <input id="rhFilterIdentity" placeholder="Identity ID..." />
+          <button class="btn small" id="rhApplyFilters">Filter</button>
+          <button class="btn small" id="rhClearFilters" style="opacity:0.6;">Clear</button>
+        </div>
+        <div id="opsRefundHistoryList">
+          <div class="ops-loading">Loading refund history...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disputes Modal -->
+  <div class="modal" id="disputesModal">
+    <div class="modal-box ops-panel">
+      <div class="modal-header">
+        <h3>Disputes</h3>
+        <button class="modal-close" data-close-modal="disputesModal">&times;</button>
+      </div>
+      <div class="ops-modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn small" id="exportOpsDisputes" title="Export CSV">Export</button>
+          <button class="btn small" id="refreshOpsDisputes">Refresh</button>
+        </div>
+        <div id="opsDisputesSummary" class="ops-dsp-summary"></div>
+        <div class="ops-refund-history-filters" id="disputeFilters">
+          <select id="dspFilterStatus">
+            <option value="">All statuses</option>
+            <option value="open">Open</option>
+            <option value="under_review">Under Review</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+            <option value="closed">Closed</option>
+          </select>
+          <input id="dspFilterEmail" placeholder="Email..." />
+          <input id="dspFilterPurchaseId" placeholder="Purchase ID..." />
+          <input id="dspFilterIdentityId" placeholder="Identity ID..." />
+          <input id="dspFilterDateFrom" type="date" title="From date" />
+          <input id="dspFilterDateTo" type="date" title="To date" />
+          <button class="btn small" id="dspApplyFilters">Filter</button>
+          <button class="btn small" id="dspClearFilters" style="opacity:0.6;">Clear</button>
+        </div>
+        <div id="opsDisputesList">
+          <div class="ops-loading">Loading disputes...</div>
         </div>
       </div>
     </div>
@@ -4605,7 +4735,34 @@
         $('#blogModal').classList.remove('show');
         $('#subsModal').classList.remove('show');
         $('#repoModal').classList.remove('show');
+        // Close ops panel modals
+        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
       }
+    });
+
+    // ========== OPS PANEL MODALS ==========
+    const opsModalMap = {
+      openLedgerModal: 'ledgerModal',
+      openMonthlyModal: 'monthlyModal',
+      openPurchasesModal: 'purchasesModal',
+      openRefundHistoryModal: 'refundHistoryModal',
+      openDisputesModal: 'disputesModal',
+    };
+    Object.entries(opsModalMap).forEach(([triggerId, modalId]) => {
+      const trigger = $('#' + triggerId);
+      const modal = $('#' + modalId);
+      if (!trigger || !modal) return;
+      trigger.onclick = () => modal.classList.add('show');
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    // Close buttons inside ops modals (data-close-modal attribute)
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.onclick = () => {
+        const modal = $('#' + btn.getAttribute('data-close-modal'));
+        if (modal) modal.classList.remove('show');
+      };
     });
 
     // Subscribers management

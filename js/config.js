@@ -454,6 +454,8 @@ export function clearConfirmedIdentity() {
 /**
  * All localStorage keys that hold user-specific data.
  * Site-wide settings (timrx_pricing_mode, tx_seen_modal_v1) are NOT cleared.
+ * NOTE: AUTH_STAMP_KEY is intentionally NOT in this list — it survives
+ * clearAllUserCaches() so the next /api/me can compare against it.
  */
 const USER_CACHE_KEYS = [
   'timrx_last_wallet',
@@ -465,6 +467,70 @@ const USER_CACHE_KEYS = [
   'pendingJobs_v1',
   'timrx_idempotency_keys',
 ];
+
+// ============================================================================
+// AUTH-6: Cross-subdomain auth freshness stamp
+// ============================================================================
+
+/**
+ * Stores {identity_id, auth_at} — written after every successful /api/me.
+ * On the next /api/me (possibly from a different subdomain), if the server's
+ * identity_id or last_active_at differs from the stamp, all user caches are
+ * stale and must be cleared.
+ *
+ * NOT included in USER_CACHE_KEYS because it must survive cache clears —
+ * it's the reference point, not a cache.
+ */
+const AUTH_STAMP_KEY = 'timrx_auth_stamp';
+
+/**
+ * Compare server-confirmed identity state against the locally stored stamp.
+ * Returns true if caches should be invalidated (identity changed, auth event
+ * happened on another origin, or no stamp exists yet).
+ *
+ * Always updates the stamp to the latest server values.
+ *
+ * @param {string} serverIdentityId
+ * @param {string|null} serverAuthAt - last_active_at from /api/me
+ * @returns {boolean} true if caches were stale and should be cleared
+ */
+export function checkAuthFreshness(serverIdentityId, serverAuthAt) {
+  if (!serverIdentityId) return false;
+
+  try {
+    const raw = localStorage.getItem(AUTH_STAMP_KEY);
+    const stamp = raw ? JSON.parse(raw) : null;
+
+    // Write/update stamp with latest server values
+    const newStamp = {
+      identity_id: serverIdentityId,
+      auth_at: serverAuthAt || null,
+      origin: location.origin,
+      written_at: new Date().toISOString(),
+    };
+    localStorage.setItem(AUTH_STAMP_KEY, JSON.stringify(newStamp));
+
+    // No previous stamp → first visit on this origin, nothing to invalidate
+    if (!stamp) return false;
+
+    // Identity changed → everything is stale
+    if (stamp.identity_id && stamp.identity_id !== serverIdentityId) {
+      log('[Auth] AUTH-6: Identity changed since last visit — was', stamp.identity_id?.slice(0, 8), 'now', serverIdentityId?.slice(0, 8));
+      return true;
+    }
+
+    // Same identity but auth event happened elsewhere (last_active_at moved forward)
+    if (serverAuthAt && stamp.auth_at && serverAuthAt !== stamp.auth_at) {
+      log('[Auth] AUTH-6: Auth state changed — last_active_at was', stamp.auth_at, 'now', serverAuthAt);
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    log('[Auth] AUTH-6: Stamp check error:', err.message);
+    return false;
+  }
+}
 
 /** Debounce timestamp — last time we fired timrx:auth-lost */
 let _lastAuthLostAt = 0;
