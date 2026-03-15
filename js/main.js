@@ -1600,6 +1600,58 @@ window.addEventListener('DOMContentLoaded', () => {
   log('Initializing TimrX 3D Print Hub...');
 
   // =========================================================================
+  // AUTH-LOSS HANDLER (AUTH-5) — listen for expired session, show banner + reload
+  // =========================================================================
+  window.addEventListener('timrx:auth-lost', () => {
+    log('[Auth] Session lost — showing reload banner');
+
+    // Don't stack multiple banners
+    if (document.getElementById('timrx-auth-lost-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'timrx-auth-lost-banner';
+    Object.assign(banner.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      zIndex: '99999',
+      background: '#1a1a2e',
+      color: '#e0e0e0',
+      padding: '14px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '14px',
+      borderBottom: '2px solid #e94560',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+    });
+
+    const msg = document.createElement('span');
+    msg.textContent = 'Your session has expired. Please refresh to continue.';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Refresh';
+    Object.assign(btn.style, {
+      background: '#e94560',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '6px',
+      padding: '6px 18px',
+      cursor: 'pointer',
+      fontWeight: '600',
+      fontSize: '13px',
+    });
+    btn.addEventListener('click', () => window.location.reload());
+
+    banner.appendChild(msg);
+    banner.appendChild(btn);
+    document.body.appendChild(banner);
+  });
+
+  // =========================================================================
   // CREDITS: Initialize IMMEDIATELY - must not depend on Three.js
   // =========================================================================
   const creditsPromise = Credits.initCredits().catch(e => {

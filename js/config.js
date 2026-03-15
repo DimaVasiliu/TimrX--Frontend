@@ -252,12 +252,19 @@ export async function apiFetch(url, options = {}) {
         };
       }
 
-      return {
+      const result = {
         ok: response.ok,
         status: response.status,
         data,
         error: response.ok ? null : (data?.error?.message || data?.message || `HTTP ${response.status}`),
       };
+
+      // AUTH-5: detect 401 and trigger global auth-loss handler
+      if (response.status === 401) {
+        _handleAuthLost(fullUrl);
+      }
+
+      return result;
     } catch (err) {
       clearTimeout(timeoutId);
 
@@ -408,6 +415,69 @@ export function onThreeReady(cb) {
   } else {
     window.addEventListener('three-ready', () => cb(), { once: true });
   }
+}
+
+// ============================================================================
+// AUTH-LOSS DETECTION (AUTH-5 hotfix)
+// Global 401 handler — clears user caches, dispatches event, debounces spam
+// ============================================================================
+
+/**
+ * All localStorage keys that hold user-specific data.
+ * Site-wide settings (timrx_pricing_mode, tx_seen_modal_v1) are NOT cleared.
+ */
+const USER_CACHE_KEYS = [
+  'timrx_last_wallet',
+  'timrx_credits_last',
+  'timrx_video_credits_last',
+  'meshy_history_cache',
+  'meshy_history_owner',
+  'activeJobs_v1',
+  'pendingJobs_v1',
+  'timrx_idempotency_keys',
+];
+
+/** Debounce timestamp — last time we fired timrx:auth-lost */
+let _lastAuthLostAt = 0;
+const AUTH_LOST_DEBOUNCE_MS = 5000;
+
+/**
+ * Clear all user-specific localStorage caches.
+ * Does NOT clear site-wide settings.
+ */
+export function clearAllUserCaches() {
+  for (const key of USER_CACHE_KEYS) {
+    try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
+  }
+  log('[Auth] All user caches cleared');
+}
+
+/**
+ * URLs excluded from auth-lost handling (restore flows intentionally use 401).
+ */
+const AUTH_LOST_EXCLUDE = [
+  '/api/auth/restore/',
+  '/api/auth/request-code',
+  '/api/auth/verify-code',
+];
+
+/**
+ * Handle a 401 response centrally: clear caches once, dispatch event once.
+ * Debounced so concurrent 401s from parallel requests only trigger once.
+ */
+function _handleAuthLost(url) {
+  // Skip excluded endpoints (restore flows)
+  if (AUTH_LOST_EXCLUDE.some(p => url.includes(p))) return;
+
+  const now = Date.now();
+  if (now - _lastAuthLostAt < AUTH_LOST_DEBOUNCE_MS) return;
+  _lastAuthLostAt = now;
+
+  console.warn(`[Auth] Session expired (401 from ${url}). Clearing user caches.`);
+  clearAllUserCaches();
+  window.dispatchEvent(new CustomEvent('timrx:auth-lost', {
+    detail: { url, timestamp: now },
+  }));
 }
 
 // ============================================================================
@@ -617,6 +687,7 @@ window.TimrXApi = {
   readWalletCache,
   writeWalletCache,
   clearWalletCache,
+  clearAllUserCaches,
   pollForCreditsUpdate,
   // S3 helpers
   isTimrxS3Url,
