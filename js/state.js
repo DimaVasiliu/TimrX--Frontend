@@ -228,6 +228,15 @@ function getHistoryCache() {
       return [];
     }
 
+    // AUTH-8: If we can't determine the current user (wallet cache expired) but
+    // the cache is tagged to a specific owner, don't trust it — it may belong
+    // to a previous identity. Clear defensively and let the next fetch repopulate.
+    if (!currentUser && cacheOwner) {
+      log('[History] Identity unknown (wallet cache expired), clearing owned cache defensively');
+      clearUserCaches();
+      return [];
+    }
+
     const cached = localStorage.getItem(HISTORY_CACHE_KEY);
     return cached ? JSON.parse(cached) : [];
   } catch {

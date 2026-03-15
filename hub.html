@@ -910,6 +910,54 @@
     </div>
   </div>
 
+  <!-- ====================== MANAGE SUBSCRIPTION MODAL ====================== -->
+  <div class="modal" id="manageSubModal" aria-hidden="true">
+    <div class="modal-content modal-sm">
+      <button type="button" class="modal-close" id="manageSubClose" aria-label="Close">&times;</button>
+      <div class="secure-icon"><i class="fa-solid fa-credit-card"></i></div>
+
+      <!-- Active state -->
+      <div id="manageSubActive" style="display:none">
+        <h3>Your Subscription</h3>
+        <p class="secure-subtitle"><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> <span id="manageSubPlan">--</span></p>
+        <div class="manage-sub-details">
+          <div class="manage-sub-row">
+            <span>Credits per month</span>
+            <strong id="manageSubCredits">--</strong>
+          </div>
+          <div class="manage-sub-row">
+            <span>Status</span>
+            <strong id="manageSubStatus" style="color:#4ade80">Active</strong>
+          </div>
+          <div class="manage-sub-row">
+            <span>Next refill</span>
+            <strong id="manageSubNext">--</strong>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost small" id="manageSubCancelBtn">Cancel Subscription</button>
+        </div>
+      </div>
+
+      <!-- Cancelled state -->
+      <div id="manageSubCancelled" style="display:none">
+        <h3>Subscription Ending</h3>
+        <p class="secure-subtitle" style="color:#fbbf24"><span id="manageSubCancelledPlan">--</span></p>
+        <p class="secure-subtitle">Access until: <strong id="manageSubEndDate">--</strong></p>
+        <p class="modal-note">You can still use your remaining credits until this date.</p>
+      </div>
+
+      <!-- No subscription -->
+      <div id="manageSubNone" style="display:none">
+        <h3>No Active Subscription</h3>
+        <p class="secure-subtitle">You don't have a subscription yet.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn" id="manageSubBrowseBtn">Browse Plans</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ====================== SECURE CREDITS MODAL ====================== -->
   <div id="secureModalBackdrop" class="secure-modal-backdrop"></div>
   <div id="secureCreditsCard" class="secure-credits-card collapsed" role="dialog" aria-modal="true" aria-labelledby="secureModalTitle">

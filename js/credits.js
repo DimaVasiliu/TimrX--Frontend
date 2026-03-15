@@ -1013,6 +1013,8 @@
 
         if (restoreResult.ok) {
           console.log('[Credits] Account restored, refreshing session...');
+          // NEW-1: Clear stale caches from previous identity before loading new state
+          if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
           showSubMessage('Account restored! Starting checkout...', true);
           await refreshIdentityAndCheckout();
           return;
@@ -3038,6 +3040,8 @@
       // The restore/redeem already executed successfully in step 3.
       // Refresh wallet and session state.
       console.log('[RestoreAccount] Account switch confirmed');
+      // NEW-1: Clear stale caches from previous identity before loading new state
+      if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
       userEmail = raPendingEmail;
       emailVerified = true;
       isRestoreMode = false;
@@ -3593,6 +3597,8 @@
           if (meResult.ok && meResult.data?.ok && meResult.data.email_verified && meResult.data.email === pendingEmail) {
             // Verification succeeded in background!
             console.log('[Credits] Verification confirmed via /api/me poll');
+            // NEW-1: Clear stale caches from previous identity before loading new state
+            if (isRestoreMode && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
             clearSecureMessages();  // Clear any error messages
             const wasRestoreMode = isRestoreMode;  // Capture before resetting
             userEmail = pendingEmail;
@@ -3668,6 +3674,8 @@
           });
           if (restoreResult.ok) {
             console.log('[Credits] Account restored successfully');
+            // NEW-1: Clear stale caches from previous identity before loading new state
+            if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
             clearSecureMessages();
             userEmail = pendingEmail;
             emailVerified = true;
@@ -3692,6 +3700,8 @@
                 const meCheck = await apiFetch('/api/me', { timeout: 15000 });
                 if (meCheck.ok && meCheck.data?.ok && meCheck.data.email === pendingEmail) {
                   console.log('[Credits] Restore confirmed via /api/me poll');
+                  // NEW-1: Clear stale caches from previous identity before loading new state
+                  if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
                   clearSecureMessages();
                   userEmail = pendingEmail;
                   emailVerified = true;
@@ -3726,6 +3736,8 @@
     // Success!
     console.log('[Credits] Email verified successfully');
     const wasRestoreMode = isRestoreMode; // Capture before resetting
+    // NEW-1: Clear stale caches from previous identity before loading new state
+    if (wasRestoreMode && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
     userEmail = pendingEmail;
     emailVerified = true;
     isRestoreMode = false;
@@ -4463,13 +4475,89 @@
   // Load subscription summary on page load (after wallet)
   setTimeout(() => loadSubscriptionSummary(), 500);
 
-  // Clicking the subscription pill opens the secure credits modal (subscription section)
-  subscriptionStatusPill?.addEventListener('click', () => {
-    if (emailVerified) {
-      openRestoreAccountModal();
-      return;
+  // ─────────────────────────────────────────────────────────────
+  // MANAGE SUBSCRIPTION MODAL (standalone, opened from pill)
+  // ─────────────────────────────────────────────────────────────
+  const manageSubModal = document.getElementById('manageSubModal');
+  const manageSubClose = document.getElementById('manageSubClose');
+  const manageSubActive = document.getElementById('manageSubActive');
+  const manageSubCancelled = document.getElementById('manageSubCancelled');
+  const manageSubNone = document.getElementById('manageSubNone');
+
+  function openManageSubModal() {
+    if (!manageSubModal) return;
+
+    // Fetch fresh data then show
+    fetchSubscription().then(() => {
+      // Reset states
+      if (manageSubActive) manageSubActive.style.display = 'none';
+      if (manageSubCancelled) manageSubCancelled.style.display = 'none';
+      if (manageSubNone) manageSubNone.style.display = 'none';
+
+      if (!currentSubscription) {
+        if (manageSubNone) manageSubNone.style.display = 'block';
+      } else if (currentSubscription.status === 'cancelled') {
+        if (manageSubCancelled) manageSubCancelled.style.display = 'block';
+        const cp = document.getElementById('manageSubCancelledPlan');
+        const ed = document.getElementById('manageSubEndDate');
+        if (cp) cp.textContent = currentSubscription.plan_name;
+        if (ed) ed.textContent = formatDate(currentSubscription.current_period_end);
+      } else {
+        if (manageSubActive) manageSubActive.style.display = 'block';
+        const mp = document.getElementById('manageSubPlan');
+        const mc = document.getElementById('manageSubCredits');
+        const ms = document.getElementById('manageSubStatus');
+        const mn = document.getElementById('manageSubNext');
+        if (mp) mp.textContent = currentSubscription.plan_name;
+        if (mc) mc.textContent = (currentSubscription.credits_per_month || 0).toLocaleString();
+        if (ms) {
+          ms.textContent = currentSubscription.status === 'past_due' ? 'Past Due' : 'Active';
+          ms.style.color = currentSubscription.status === 'past_due' ? '#fbbf24' : '#4ade80';
+        }
+        const refill = currentSubscription.credits_next_refill || currentSubscription.current_period_end;
+        if (mn) mn.textContent = refill ? formatDate(refill) : '--';
+      }
+    });
+
+    manageSubModal.classList.add('open');
+    manageSubModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeManageSubModal() {
+    if (!manageSubModal) return;
+    manageSubModal.classList.remove('open');
+    manageSubModal.setAttribute('aria-hidden', 'true');
+  }
+
+  manageSubClose?.addEventListener('click', closeManageSubModal);
+  manageSubModal?.addEventListener('click', (e) => {
+    if (e.target === manageSubModal) closeManageSubModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && manageSubModal?.classList.contains('open')) {
+      closeManageSubModal();
     }
-    openSecureCreditsModal();
+  });
+
+  // Cancel button inside manage modal
+  document.getElementById('manageSubCancelBtn')?.addEventListener('click', async () => {
+    await handleCancelSubscription();
+    // Refresh the modal to show cancelled state
+    if (currentSubscription) {
+      openManageSubModal();
+      loadSubscriptionSummary();
+    }
+  });
+
+  // Browse plans button
+  document.getElementById('manageSubBrowseBtn')?.addEventListener('click', () => {
+    closeManageSubModal();
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Clicking the subscription pill opens the manage subscription modal
+  subscriptionStatusPill?.addEventListener('click', () => {
+    openManageSubModal();
   });
 
   // Expose for external use
