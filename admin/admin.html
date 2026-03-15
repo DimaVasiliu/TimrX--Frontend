@@ -2057,6 +2057,7 @@
           <button class="tab" data-tab="subscribers">Subs</button>
           <button class="tab" data-tab="usage">Usage</button>
           <button class="tab" data-tab="billing">Billing</button>
+          <button class="tab" data-tab="merge">Merge</button>
         </div>
 
         <!-- Ops Tab -->
@@ -2919,6 +2920,58 @@
             </div>
           </div>
         </div>
+
+        <!-- Merge Tab -->
+        <div class="tab-content" id="tab-merge">
+          <div style="padding:8px 0;">
+
+            <!-- Merge Input -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Identity Merge</h4>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <label style="font-size:11px;color:#9ca3af;min-width:50px;">Source</label>
+                  <input id="mergeSourceId" placeholder="Source identity ID (will be merged away)" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:6px 8px;color:#fff;font-size:12px;font-family:monospace;" />
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <label style="font-size:11px;color:#9ca3af;min-width:50px;">Target</label>
+                  <input id="mergeTargetId" placeholder="Target identity ID (canonical, keeps data)" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:6px 8px;color:#fff;font-size:12px;font-family:monospace;" />
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <label style="font-size:11px;color:#9ca3af;min-width:50px;">Reason</label>
+                  <input id="mergeReason" placeholder="admin_manual" value="admin_manual" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:6px 8px;color:#fff;font-size:12px;" />
+                </div>
+                <div style="display:flex;gap:8px;margin-top:4px;">
+                  <button class="btn small" id="mergePreviewBtn">Preview</button>
+                  <button class="btn small" id="mergeExecuteBtn" disabled style="opacity:0.4;">Execute Merge</button>
+                  <button class="btn small" id="mergeHistoryBtn">History</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Result -->
+            <div class="ops-section" id="mergePreviewSection" style="display:none;margin-top:12px;">
+              <div class="ops-section-header"><h4>Preview Result</h4></div>
+              <div id="mergePreviewResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+            <!-- Execute Result -->
+            <div class="ops-section" id="mergeExecuteSection" style="display:none;margin-top:12px;">
+              <div class="ops-section-header"><h4>Merge Result</h4></div>
+              <div id="mergeExecuteResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+            <!-- History -->
+            <div class="ops-section" id="mergeHistorySection" style="display:none;margin-top:12px;">
+              <div class="ops-section-header"><h4>Merge History</h4></div>
+              <div id="mergeHistoryResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </aside>
   </div>
@@ -5697,6 +5750,215 @@
         loadBillingHealth();
       };
     }
+
+    // ========== IDENTITY MERGE PANEL ==========
+
+    let mergePreviewData = null; // Holds last preview for execute guard
+
+    function escMerge(s) { return typeof s === 'string' ? s.replace(/</g,'&lt;').replace(/>/g,'&gt;') : String(s ?? '—'); }
+
+    async function doMergePreview() {
+      const source = ($('#mergeSourceId')?.value || '').trim();
+      const target = ($('#mergeTargetId')?.value || '').trim();
+      if (!source || !target) { Toast.error('Source and target IDs required'); return; }
+      if (source === target) { Toast.error('Source and target must be different'); return; }
+
+      const out = $('#mergePreviewResult');
+      const section = $('#mergePreviewSection');
+      section.style.display = 'block';
+      out.innerHTML = '<span style="color:#9ca3af;">Loading preview...</span>';
+      $('#mergeExecuteBtn').disabled = true;
+      $('#mergeExecuteBtn').style.opacity = '0.4';
+      mergePreviewData = null;
+      $('#mergeExecuteSection').style.display = 'none';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/identity/merge-preview`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+          body: JSON.stringify({ source_id: source, target_id: target }),
+        });
+        const j = await r.json();
+        if (!j.ok) {
+          out.innerHTML = `<span style="color:#ef4444;">Error: ${escMerge(j.error)}</span>`;
+          return;
+        }
+
+        const p = j.merge_preview;
+        const eng = p.engine || {};
+        const safe = p.safe_to_merge;
+
+        let html = '';
+        // Source / Target summary
+        html += `<div style="margin-bottom:8px;">`;
+        html += `<div><strong>Source:</strong> <span style="font-family:monospace;font-size:10px;">${escMerge(p.source?.identity_id)}</span> ${escMerge(p.source?.email || 'no email')} ${p.source?.email_verified ? '(verified)' : '(unverified)'}</div>`;
+        html += `<div><strong>Target:</strong> <span style="font-family:monospace;font-size:10px;">${escMerge(p.target?.identity_id)}</span> ${escMerge(p.target?.email || 'no email')} ${p.target?.email_verified ? '(verified)' : '(unverified)'}</div>`;
+        html += `</div>`;
+
+        // Would transfer
+        const wt = p.would_transfer || {};
+        const nonZero = Object.entries(wt).filter(([,v]) => v > 0);
+        if (nonZero.length) {
+          html += `<div style="margin-bottom:8px;"><strong>Would transfer:</strong><br/>`;
+          nonZero.forEach(([k,v]) => { html += `&nbsp;&nbsp;${escMerge(k)}: ${v}<br/>`; });
+          html += `</div>`;
+        } else {
+          html += `<div style="margin-bottom:8px;color:#9ca3af;">Nothing to transfer (source is empty).</div>`;
+        }
+
+        // Wallet preview
+        const wp = eng.wallet_preview;
+        if (wp) {
+          html += `<div style="margin-bottom:8px;"><strong>Wallet:</strong><br/>`;
+          html += `&nbsp;&nbsp;Source: ${wp.source_general || 0} general, ${wp.source_video || 0} video<br/>`;
+          html += `&nbsp;&nbsp;Target: ${wp.target_general || 0} general, ${wp.target_video || 0} video<br/>`;
+          html += `</div>`;
+        }
+
+        // Conflicts
+        if (p.conflicts && p.conflicts.length) {
+          html += `<div style="margin-bottom:8px;"><strong>Conflicts:</strong><br/>`;
+          p.conflicts.forEach(c => {
+            const color = c.severity === 'BLOCKER' ? '#ef4444' : '#f59e0b';
+            html += `<div style="color:${color};">&nbsp;&nbsp;[${escMerge(c.severity)}] ${escMerge(c.type)}: ${escMerge(c.detail)}</div>`;
+          });
+          html += `</div>`;
+        }
+
+        // Engine blockers
+        if (eng.blocked_reason) {
+          html += `<div style="color:#ef4444;margin-bottom:8px;"><strong>Engine blocked:</strong> ${escMerge(eng.blocked_reason)}</div>`;
+        }
+        if (eng.inflight_block && (eng.inflight_block.has_held_reservations || eng.inflight_block.has_inflight_jobs)) {
+          html += `<div style="color:#f59e0b;margin-bottom:8px;"><strong>Inflight work:</strong> reservations=${eng.inflight_block.held_reservation_count || 0}, jobs=${eng.inflight_block.inflight_job_count || 0}</div>`;
+        }
+        if (eng.subscription_conflict) {
+          html += `<div style="color:#f59e0b;margin-bottom:8px;"><strong>Subscription conflict:</strong> Both identities have active subscriptions.</div>`;
+        }
+
+        // Verdict
+        html += `<div style="margin-top:8px;padding:6px 8px;border-radius:4px;background:${safe ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'};color:${safe ? '#22c55e' : '#ef4444'};font-weight:600;">`;
+        html += safe ? 'SAFE TO MERGE' : 'MERGE BLOCKED';
+        html += `</div>`;
+
+        out.innerHTML = html;
+
+        // Enable execute button only if safe
+        if (safe) {
+          mergePreviewData = { source, target };
+          $('#mergeExecuteBtn').disabled = false;
+          $('#mergeExecuteBtn').style.opacity = '1';
+        }
+
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escMerge(err.message)}</span>`;
+      }
+    }
+
+    async function doMergeExecute() {
+      if (!mergePreviewData) { Toast.error('Run preview first'); return; }
+      const { source, target } = mergePreviewData;
+      const reason = ($('#mergeReason')?.value || '').trim() || 'admin_manual';
+
+      if (!confirm(`Merge identity ${source.substring(0,8)}... INTO ${target.substring(0,8)}...?\n\nThis cannot be undone.`)) return;
+
+      const out = $('#mergeExecuteResult');
+      const section = $('#mergeExecuteSection');
+      section.style.display = 'block';
+      out.innerHTML = '<span style="color:#9ca3af;">Executing merge...</span>';
+      $('#mergeExecuteBtn').disabled = true;
+      $('#mergeExecuteBtn').style.opacity = '0.4';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/identity/merge-execute`, {
+          method: 'POST',
+          headers: headers(),
+          credentials: 'include',
+          body: JSON.stringify({ source_id: source, target_id: target, reason }),
+        });
+        const j = await r.json();
+
+        if (!j.ok) {
+          const blocked = j.blocked_reason || j.error || 'Unknown error';
+          const next = j.next_step || '';
+          out.innerHTML = `<div style="color:#ef4444;"><strong>Merge failed:</strong> ${escMerge(blocked)}</div>`
+            + (next ? `<div style="color:#f59e0b;margin-top:4px;">Suggested: ${escMerge(next)}</div>` : '');
+          return;
+        }
+
+        const mr = j.merge_result || {};
+        let html = `<div style="color:#22c55e;font-weight:600;margin-bottom:8px;">Merge completed successfully</div>`;
+        html += `<div><strong>Source:</strong> ${escMerge(mr.source_id)}</div>`;
+        html += `<div><strong>Target:</strong> ${escMerge(mr.target_id)}</div>`;
+
+        const tm = mr.tables_migrated || {};
+        const entries = Object.entries(tm).filter(([,v]) => v > 0);
+        if (entries.length) {
+          html += `<div style="margin-top:6px;"><strong>Rows migrated:</strong><br/>`;
+          entries.forEach(([k,v]) => { html += `&nbsp;&nbsp;${escMerge(k)}: ${v}<br/>`; });
+          html += `</div>`;
+        }
+        html += `<div><strong>Sessions revoked:</strong> ${mr.sessions_revoked || 0}</div>`;
+
+        if (mr.warnings && mr.warnings.length) {
+          html += `<div style="color:#f59e0b;margin-top:6px;"><strong>Warnings:</strong><br/>`;
+          mr.warnings.forEach(w => { html += `&nbsp;&nbsp;${escMerge(w)}<br/>`; });
+          html += `</div>`;
+        }
+
+        out.innerHTML = html;
+        mergePreviewData = null;
+        Toast.success('Merge completed');
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escMerge(err.message)}</span>`;
+      }
+    }
+
+    async function doMergeHistory() {
+      const section = $('#mergeHistorySection');
+      const out = $('#mergeHistoryResult');
+      section.style.display = 'block';
+      out.innerHTML = '<span style="color:#9ca3af;">Loading history...</span>';
+
+      try {
+        let url = `${BACKEND}/api/admin/identity/merge-history?limit=30`;
+        // If source or target field has a value, use it as filter
+        const filterId = ($('#mergeSourceId')?.value || '').trim() || ($('#mergeTargetId')?.value || '').trim();
+        if (filterId) url += `&identity_id=${encodeURIComponent(filterId)}`;
+
+        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const j = await r.json();
+        if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escMerge(j.error)}</span>`; return; }
+
+        if (!j.merges || j.merges.length === 0) {
+          out.innerHTML = `<span style="color:#9ca3af;">No merge history found.</span>`;
+          return;
+        }
+
+        let html = `<div style="color:#9ca3af;margin-bottom:6px;">${j.total} total merge(s)</div>`;
+        html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+        j.merges.forEach(m => {
+          const meta = m.metadata || {};
+          const rows = meta.total_rows_migrated || 0;
+          const date = m.created_at ? new Date(m.created_at).toLocaleString() : '—';
+          html += `<div style="background:rgba(0,0,0,0.2);border-radius:4px;padding:6px 8px;border:1px solid rgba(255,255,255,0.06);">`;
+          html += `<div style="font-size:10px;color:#9ca3af;">${escMerge(date)}</div>`;
+          html += `<div style="font-family:monospace;font-size:10px;">${escMerge(m.source_identity_id?.substring(0,8))}... &rarr; ${escMerge(m.target_identity_id?.substring(0,8))}...</div>`;
+          html += `<div style="font-size:10px;">by: ${escMerge(m.merged_by)} | reason: ${escMerge(m.merge_reason)} | rows: ${rows}</div>`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+        out.innerHTML = html;
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escMerge(err.message)}</span>`;
+      }
+    }
+
+    // Merge panel event listeners
+    if ($('#mergePreviewBtn')) $('#mergePreviewBtn').onclick = doMergePreview;
+    if ($('#mergeExecuteBtn')) $('#mergeExecuteBtn').onclick = doMergeExecute;
+    if ($('#mergeHistoryBtn')) $('#mergeHistoryBtn').onclick = doMergeHistory;
 
     // ========== CREDIT USAGE ANALYTICS ==========
     let analyticsPeriod = 30;
