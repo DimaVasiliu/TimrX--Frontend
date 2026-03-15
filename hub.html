@@ -1328,17 +1328,10 @@
     <!-- ====================== GUEST CHOOSER MODAL ====================== -->
     <div class="modal" id="guestChooserModal" aria-hidden="true">
       <div class="modal-content modal-sm">
-        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
         <button type="button" class="modal-close" id="guestChooserClose" aria-label="Close">&times;</button>
-        <div class="modal-hero">
-          <div class="hero-glow"></div>
-          <div class="hero-ring hero-ring-1"></div>
-          <div class="hero-ring hero-ring-2"></div>
-          <div class="hero-ring hero-ring-3"></div>
-          <div class="hero-core"><i class="fa-solid fa-shield-halved"></i></div>
-        </div>
-        <h2>Your Account</h2>
-        <p class="modal-subtitle">Choose how you'd like to proceed.</p>
+        <div class="secure-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>Your Account</h3>
+        <p class="secure-subtitle">Choose how you'd like to proceed.</p>
         <div class="guest-chooser-options">
           <button type="button" class="chooser-option" id="chooserSecure">
             <div class="chooser-option-icon"><i class="fa-solid fa-lock"></i></div>
@@ -1363,20 +1356,13 @@
     <!-- ====================== POST-PURCHASE SECURE PROMPT ====================== -->
     <div class="modal" id="postPurchaseModal" aria-hidden="true">
       <div class="modal-content modal-sm">
-        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
         <button type="button" class="modal-close" id="postPurchaseClose" aria-label="Close">&times;</button>
-        <div class="modal-hero">
-          <div class="hero-glow"></div>
-          <div class="hero-ring hero-ring-1"></div>
-          <div class="hero-ring hero-ring-2"></div>
-          <div class="hero-ring hero-ring-3"></div>
-          <div class="hero-core"><i class="fa-solid fa-shield-halved"></i></div>
-        </div>
-        <h2>Protect Your Credits</h2>
-        <p class="modal-subtitle">You now have credits on this device. Add an email so you can restore them anytime.</p>
+        <div class="secure-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>Protect Your Credits</h3>
+        <p class="secure-subtitle">You now have credits on this device. Add an email so you can restore them anytime.</p>
         <div class="modal-actions">
           <button type="button" class="btn" id="postPurchaseSecure">Secure My Credits</button>
-          <button type="button" class="btn btn-link" id="postPurchaseLater">Maybe Later</button>
+          <button type="button" class="btn ghost small" id="postPurchaseLater">Maybe Later</button>
         </div>
       </div>
     </div>
@@ -1384,26 +1370,19 @@
     <!-- ====================== RESTORE ACCOUNT MODAL (logged-in users) ====================== -->
     <div class="modal" id="restoreAccountModal" aria-hidden="true">
       <div class="modal-content modal-sm">
-        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
         <button type="button" class="modal-close" id="restoreAccountClose" aria-label="Close">&times;</button>
 
         <!-- Step 1: Intro / explanation -->
         <div id="raStep1" class="ra-step">
-          <div class="modal-hero">
-            <div class="hero-glow"></div>
-            <div class="hero-ring hero-ring-1"></div>
-            <div class="hero-ring hero-ring-2"></div>
-            <div class="hero-ring hero-ring-3"></div>
-            <div class="hero-core"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-          </div>
-          <h2>Restore Another Account</h2>
-          <p class="modal-subtitle">
+          <div class="secure-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          <h3>Restore Another Account</h3>
+          <p class="secure-subtitle">
             This will <strong>switch</strong> you to a different TimrX account.
             Your current credits and history will stay on your current account &mdash; they are <em>not</em> merged.
           </p>
           <div class="modal-actions">
             <button type="button" class="btn" id="raNextToEmail">Continue</button>
-            <button type="button" class="btn btn-link" id="raCancelStep1">Cancel</button>
+            <button type="button" class="btn ghost small" id="raCancelStep1">Cancel</button>
           </div>
           <div class="ra-logout-divider"><span>or</span></div>
           <button type="button" class="btn ghost small ra-logout-btn" id="raLogoutBtn">
@@ -1413,30 +1392,24 @@
 
         <!-- Step 2: Email entry -->
         <div id="raStep2" class="ra-step" style="display:none">
-          <div class="modal-hero modal-hero-sm">
-            <div class="hero-glow"></div>
-            <div class="hero-core"><i class="fa-solid fa-envelope"></i></div>
-          </div>
-          <h2>Enter Account Email</h2>
-          <p class="modal-subtitle">Enter the email linked to the account you want to restore.</p>
+          <div class="secure-icon"><i class="fa-solid fa-envelope"></i></div>
+          <h3>Enter Account Email</h3>
+          <p class="secure-subtitle">Enter the email linked to the account you want to restore.</p>
           <div class="ra-input-group">
             <input type="email" id="raEmailInput" placeholder="your@email.com" autocomplete="email">
           </div>
           <p id="raEmailError" class="secure-error"></p>
           <div class="modal-actions">
             <button type="button" class="btn" id="raSendCodeBtn">Send Code</button>
-            <button type="button" class="btn btn-link" id="raBackToIntro">Back</button>
+            <button type="button" class="btn ghost small" id="raBackToIntro">Back</button>
           </div>
         </div>
 
         <!-- Step 3: Code sent / verification -->
         <div id="raStep3" class="ra-step" style="display:none">
-          <div class="modal-hero modal-hero-sm">
-            <div class="hero-glow"></div>
-            <div class="hero-core"><i class="fa-solid fa-key"></i></div>
-          </div>
-          <h2>Enter Verification Code</h2>
-          <p class="modal-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
+          <div class="secure-icon"><i class="fa-solid fa-key"></i></div>
+          <h3>Enter Verification Code</h3>
+          <p class="secure-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
           <p id="raMergeNotice" class="modal-note" style="display:none"></p>
           <div class="ra-input-group">
             <input type="text" id="raCodeInput" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
@@ -1446,27 +1419,24 @@
           <div class="modal-actions">
             <button type="button" class="btn" id="raVerifyBtn">Verify</button>
             <div class="ra-code-actions">
-              <button type="button" class="btn btn-link" id="raResendBtn" disabled>Resend Code</button>
-              <button type="button" class="btn btn-link" id="raChangeEmail">Change Email</button>
+              <button type="button" class="btn ghost small" id="raResendBtn" disabled>Resend Code</button>
+              <button type="button" class="btn ghost small" id="raChangeEmail">Change Email</button>
             </div>
           </div>
         </div>
 
         <!-- Step 4: Final confirmation before switching -->
         <div id="raStep4" class="ra-step" style="display:none">
-          <div class="modal-hero modal-hero-sm">
-            <div class="hero-glow" style="--hero-accent: 255,180,60"></div>
-            <div class="hero-core"><i class="fa-solid fa-triangle-exclamation" style="color: #f0ad4e"></i></div>
-          </div>
-          <h2>Switch Account?</h2>
-          <p class="modal-subtitle" id="raConfirmMessage">
+          <div class="secure-icon" style="color: #f0ad4e"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h3>Switch Account?</h3>
+          <p class="secure-subtitle" id="raConfirmMessage">
             You are about to switch to the account linked to <strong id="raConfirmEmail">email</strong>.
           </p>
           <p class="modal-note" id="raConfirmCredits"></p>
           <p class="modal-note">Your current credits and history will remain on your current account. This action switches your active session.</p>
           <div class="modal-actions">
             <button type="button" class="btn" id="raConfirmSwitch">Switch Account</button>
-            <button type="button" class="btn btn-link" id="raCancelSwitch">Cancel</button>
+            <button type="button" class="btn ghost small" id="raCancelSwitch">Cancel</button>
           </div>
         </div>
       </div>
@@ -1475,16 +1445,12 @@
     <!-- ====================== GENERIC CONFIRM MODAL ====================== -->
     <div class="modal" id="confirmModal" aria-hidden="true">
       <div class="modal-content modal-sm">
-        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
-        <div class="modal-hero modal-hero-sm" id="confirmModalIcon">
-          <div class="hero-glow"></div>
-          <div class="hero-core"><i class="fa-solid fa-circle-question"></i></div>
-        </div>
-        <h2 id="confirmModalTitle">Confirm</h2>
-        <p class="modal-subtitle" id="confirmModalMessage">Are you sure?</p>
+        <div class="secure-icon" id="confirmModalIcon"><i class="fa-solid fa-circle-question"></i></div>
+        <h3 id="confirmModalTitle">Confirm</h3>
+        <p class="secure-subtitle" id="confirmModalMessage">Are you sure?</p>
         <div class="modal-actions">
           <button type="button" class="btn" id="confirmModalYes">Confirm</button>
-          <button type="button" class="btn btn-link" id="confirmModalNo">Cancel</button>
+          <button type="button" class="btn ghost small" id="confirmModalNo">Cancel</button>
         </div>
       </div>
     </div>

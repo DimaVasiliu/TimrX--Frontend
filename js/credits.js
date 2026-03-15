@@ -2689,8 +2689,7 @@
     confirmModalYes.textContent = confirmText;
     confirmModalNo.textContent = cancelText;
     if (confirmModalIcon) {
-      const core = confirmModalIcon.querySelector('.hero-core');
-      if (core) core.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+      confirmModalIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
     }
 
     confirmModal.classList.add('open');
