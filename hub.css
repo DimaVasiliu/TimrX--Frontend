@@ -699,9 +699,9 @@ transform: translateY(-1px);
 /* RESTORE SUCCESS MODAL                                                       */
 /* ========================================================================== */
 .restore-success-card {
-width: min(400px, 90vw);
+width: min(440px, 92vw) !important;
 text-align: center;
-padding: 52px 44px 44px;
+padding: 22px;
 position: relative;
 overflow: hidden;
 }
@@ -4967,12 +4967,14 @@ line-height: 1.55;
 .modal-content.modal-sm .modal-actions {
 display: flex;
 flex-direction: column;
+align-items: center;
 gap: 8px;
 margin-top: 16px;
 }
 
 .modal-content.modal-sm .modal-actions .btn {
-width: 100%;
+width: auto;
+min-width: 180px;
 justify-content: center;
 }
 
