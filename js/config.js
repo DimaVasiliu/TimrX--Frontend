@@ -422,6 +422,35 @@ export function onThreeReady(cb) {
 // Global 401 handler — clears user caches, dispatches event, debounces spam
 // ============================================================================
 
+// ============================================================================
+// AUTH-7: Identity trust gate
+// ============================================================================
+
+/**
+ * Lightweight identity trust store — shared across modules via config.js
+ * to avoid circular imports between workspace-credits.js and state.js.
+ *
+ * identityId is set ONLY after /api/me confirms the server identity.
+ * Before that, it is null — any code that checks identity ownership
+ * (e.g. history cache, wallet cache) should treat null as "unknown".
+ */
+const _identityTrust = { id: null };
+
+/** Mark identity as server-confirmed. Called by fetchWallet() after /api/me. */
+export function setConfirmedIdentity(id) {
+  _identityTrust.id = id || null;
+}
+
+/** Get the server-confirmed identity, or null if not yet confirmed. */
+export function getConfirmedIdentity() {
+  return _identityTrust.id;
+}
+
+/** Reset identity trust (called on logout/auth-loss/cache clear). */
+export function clearConfirmedIdentity() {
+  _identityTrust.id = null;
+}
+
 /**
  * All localStorage keys that hold user-specific data.
  * Site-wide settings (timrx_pricing_mode, tx_seen_modal_v1) are NOT cleared.
@@ -449,6 +478,7 @@ export function clearAllUserCaches() {
   for (const key of USER_CACHE_KEYS) {
     try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
   }
+  clearConfirmedIdentity();  // AUTH-7: reset identity trust
   log('[Auth] All user caches cleared');
 }
 

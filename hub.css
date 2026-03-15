@@ -2023,14 +2023,14 @@ margin-bottom: 0;
 .pricing-wrap{
   background:#0b0b0b;
   border-top:1px solid var(--line);
-  padding:clamp(48px,6vh,70px) 0;
+  padding:clamp(32px,4vh,50px) 0;
 }
 .pricing-head{
   text-align:center; margin-bottom:clamp(28px,4vh,44px);
   display:flex; flex-direction:column; align-items:center; gap:12px;
 }
 .pricing-secure{
-  display:inline-flex; align-items:center; gap:10px;
+  display:inline-flex; align-items:center; gap:14px;
 }
 .pricing-head h2{
   font-family:"Bebas Neue",sans-serif;
@@ -2042,47 +2042,60 @@ margin-bottom: 0;
 .pricing-head p{ margin:0; }
 .secure-toggle-btn.compact{
   width:auto; max-width:none; margin:0;
-  padding:6px 10px; gap:6px;
-  border-radius:999px; font-size:12px;
+  padding:9px 16px; gap:8px;
+  border-radius:999px; font-size:13px;
+  border-color:rgba(255,255,255,.15);
+  background:linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.03) 100%);
+  animation:secure-btn-glow 3s ease-in-out infinite;
 }
 .secure-toggle-btn.compact i:first-child{
-  font-size:14px;
+  font-size:17px;
 }
 .secure-toggle-btn.compact .toggle-chevron{
-  font-size:10px;
+  font-size:11px;
+}
+@keyframes secure-btn-glow{
+  0%, 100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
+  50%{ box-shadow:0 0 12px 2px rgba(255,255,255,.06); }
 }
 .secure-alert-wrap{
   position:relative;
 }
 .secure-info-btn{
-  width:28px; height:28px;
+  width:34px; height:34px;
   display:inline-flex; align-items:center; justify-content:center;
   border-radius:999px;
-  border:1px solid rgba(239,68,68,.55);
-  background:rgba(239,68,68,.12);
+  border:1.5px solid rgba(239,68,68,.55);
+  background:rgba(239,68,68,.14);
   color:#ffe5e5;
   padding:0;
   cursor:pointer;
   transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   position:relative;
+  animation:secure-alert-breathe 2.5s ease-in-out infinite;
 }
 .secure-info-btn:hover{
-  transform:translateY(-1px);
-  box-shadow:0 8px 20px rgba(239,68,68,.25);
+  transform:translateY(-2px) scale(1.08);
+  box-shadow:0 8px 24px rgba(239,68,68,.3);
   border-color:rgba(239,68,68,.85);
+  animation:none;
 }
 .secure-info-btn::after{
   content:"";
-  position:absolute; inset:-5px;
+  position:absolute; inset:-6px;
   border-radius:999px;
-  border:1px solid rgba(239,68,68,.4);
+  border:1.5px solid rgba(239,68,68,.4);
   opacity:.7;
-  animation:secure-alert-pulse 1.8s ease-out infinite;
+  animation:secure-alert-pulse 2s ease-out infinite;
   pointer-events:none;
 }
 .secure-alert-dot{
-  font-size:14px; font-weight:900; line-height:1;
-  transform:translateY(-1px);
+  font-size:16px; font-weight:900; line-height:1;
+  transform:translateY(-0.5px);
+}
+@keyframes secure-alert-breathe{
+  0%, 100%{ transform:scale(1); }
+  50%{ transform:scale(1.06); }
 }
 .secure-info-pop{
   position:absolute;
@@ -2121,9 +2134,9 @@ margin-bottom: 0;
   pointer-events:auto;
 }
 @keyframes secure-alert-pulse{
-  0%{ transform:scale(.9); opacity:.7; }
-  70%{ transform:scale(1.35); opacity:0; }
-  100%{ transform:scale(1.35); opacity:0; }
+  0%{ transform:scale(.9); opacity:.8; }
+  70%{ transform:scale(1.5); opacity:0; }
+  100%{ transform:scale(1.5); opacity:0; }
 }
 .pricing-grid{
   display:grid;

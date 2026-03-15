@@ -4,7 +4,7 @@
  * Falls back to localStorage for active jobs and as a cache.
  */
 
-import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, readWalletCache } from './config.js';
+import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getConfirmedIdentity } from './config.js';
 
 // ============================================================================
 // CONSTANTS
@@ -193,13 +193,17 @@ function shouldSkipRemoteHistoryItem(item = {}) {
 }
 
 /**
- * Get the current user's identity_id from wallet cache (best-effort, synchronous)
+ * Get the current user's identity_id.
+ * AUTH-7: Prefer the server-confirmed identity (set after /api/me).
+ * Falls back to wallet cache only if identity has been confirmed this session.
  */
 function getCurrentIdentityId() {
-  try {
-    const wallet = readWalletCache();
-    return wallet?.identity_id || null;
-  } catch { return null; }
+  // Prefer confirmed identity (set by fetchWallet after /api/me)
+  const confirmed = getConfirmedIdentity();
+  if (confirmed) return confirmed;
+  // Before /api/me returns, identity is unknown — return null to prevent
+  // stale cache from being trusted as belonging to the current user.
+  return null;
 }
 
 /**

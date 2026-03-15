@@ -4,7 +4,7 @@
  * Fetches wallet balance and action costs on load, provides helpers for credit checks.
  */
 
-import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWalletCache, clearWalletCache } from './config.js';
+import { BACKEND, log, apiFetch, updateSessionInfo, readWalletCache, writeWalletCache, clearWalletCache, setConfirmedIdentity } from './config.js';
 
 // ============================================================================
 // CONSTANTS
@@ -39,6 +39,7 @@ const creditsState = {
     videoAvailable: 0,
   },
   identityId: null,
+  identityConfirmed: false,  // AUTH-7: true only after /api/me confirms identity
   email: null,  // User's email (null if not attached)
   emailVerified: false,
   actionCosts: {},
@@ -117,47 +118,30 @@ function renderCachedCreditsEarly() {
     return;
   }
 
-  // Priority 1: Check cross-page wallet cache (fresher, from hub after purchase)
+  // AUTH-7: Only show cached credits early if we can trust the cache owner.
+  // The cross-page wallet cache includes identity_id (written by a confirmed
+  // /api/me call). We trust it for display ONLY — we do NOT pre-populate
+  // creditsState.identityId until /api/me confirms (prevents history cache
+  // from matching against an unverified identity).
   const walletCache = readWalletCache();
   let displayValue = '—';
   let cacheSource = null;
 
-  if (walletCache && typeof walletCache.available_credits === 'number') {
+  if (walletCache && typeof walletCache.available_credits === 'number' && walletCache.identity_id) {
     displayValue = walletCache.available_credits.toLocaleString();
-    // Pre-populate state so hasCreditsFor() works with cached value
+    // Pre-populate wallet amounts for hasCreditsFor() — but NOT identityId
     creditsState.wallet.available = walletCache.available_credits;
     creditsState.wallet.balance = walletCache.available_credits;
-    creditsState.identityId = walletCache.identity_id || null;
     cacheSource = 'cross-page';
-    log('[Credits] Early render from cross-page cache:', walletCache.available_credits);
-  } else {
-    // Priority 2: Fall back to local credits cache
-    const cached = localStorage.getItem(CREDITS_CACHE_KEY);
-    if (cached !== null) {
-      const cachedBalance = parseInt(cached, 10);
-      if (Number.isFinite(cachedBalance) && cachedBalance >= 0) {
-        displayValue = cachedBalance.toLocaleString();
-        // Pre-populate state so hasCreditsFor() works with cached value
-        creditsState.wallet.available = cachedBalance;
-        creditsState.wallet.balance = cachedBalance;
-        cacheSource = 'local';
-        log('[Credits] Early render from local cache:', cachedBalance);
-      }
-    }
+    log('[Credits] Early render from cross-page cache:', walletCache.available_credits,
+        '(owner:', walletCache.identity_id.slice(0, 8) + '..., unconfirmed)');
   }
-
-  // Also restore cached video credits (separate pool)
-  const cachedVideo = localStorage.getItem(VIDEO_CREDITS_CACHE_KEY);
-  if (cachedVideo !== null) {
-    const cachedVideoBalance = parseInt(cachedVideo, 10);
-    if (Number.isFinite(cachedVideoBalance) && cachedVideoBalance >= 0) {
-      creditsState.wallet.videoAvailable = cachedVideoBalance;
-      creditsState.wallet.videoBalance = cachedVideoBalance;
-    }
-  }
+  // NOTE: local credits cache (CREDITS_CACHE_KEY) has NO identity_id tag,
+  // so it is not trustworthy for early render. We skip it — /api/me will
+  // populate the real balance shortly.
 
   if (!cacheSource) {
-    log('[Credits] No cached balance, showing syncing placeholder');
+    log('[Credits] No trusted cache, showing syncing placeholder');
   }
 
   // Render immediately
@@ -269,6 +253,8 @@ export async function fetchWallet() {
           videoAvailable,
         };
         creditsState.identityId = serverIdentityId;
+        creditsState.identityConfirmed = true;  // AUTH-7: identity now server-confirmed
+        setConfirmedIdentity(serverIdentityId);  // AUTH-7: shared trust store
         creditsState.email = data.email || null;
         creditsState.emailVerified = data.email_verified || false;
 
