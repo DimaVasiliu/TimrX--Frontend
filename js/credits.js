@@ -969,6 +969,10 @@
       if (result.ok) {
         // Email verified/restored successfully
         console.log('[Credits] Email verified, refreshing session...');
+        // IDENT-1: If identity changed via cross-identity merge, clear stale caches
+        if (result.data?.identity_changed && window.TimrXApi?.clearAllUserCaches) {
+          window.TimrXApi.clearAllUserCaches();
+        }
         showSubMessage('Email verified! Starting checkout...', true);
 
         // Refresh session to get updated identity
@@ -985,6 +989,16 @@
         showSubError('Too many attempts. Please request a new code.', true);
       } else if (errorCode === 'CODE_EXPIRED') {
         showSubError('Code has expired. Please request a new one.', true);
+      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
+        // IDENT-1: Cross-identity merge was attempted but blocked
+        const nextStep = result.data?.error?.next_step;
+        if (nextStep === 'wait_for_jobs') {
+          showSubError('You have active jobs processing. Please wait for them to finish, then try again.', true);
+        } else if (nextStep === 'contact_support_subscription') {
+          showSubError('Both accounts have active subscriptions. Please contact support to merge them.', true);
+        } else {
+          showSubError('This email could not be verified automatically. Please contact support.', true);
+        }
       } else if (errorCode === 'ATTACH_CONFLICT' && !subIsRestoreMode) {
         // IDENT-3: Neutral handling — email could not be attached, suggest restore
         console.log('[Credits] Email attach conflict, switching to restore mode');
@@ -1023,7 +1037,19 @@
           await refreshIdentityAndCheckout();
           return;
         } else {
-          showSubError(restoreResult.error || 'Restore failed. Please try again.', true);
+          const restoreErrorCode = restoreResult.data?.error?.code;
+          if (restoreErrorCode === 'RESTORE_MERGE_BLOCKED') {
+            const nextStep = restoreResult.data?.error?.next_step;
+            if (nextStep === 'wait_for_jobs') {
+              showSubError('You have active jobs processing. Please wait for them to finish, then try again.', true);
+            } else if (nextStep === 'contact_support_subscription') {
+              showSubError('Both accounts have active subscriptions. Please contact support to merge them.', true);
+            } else {
+              showSubError('Accounts could not be merged automatically. Please contact support.', true);
+            }
+          } else {
+            showSubError(restoreResult.error || 'Restore failed. Please try again.', true);
+          }
         }
       } else {
         showSubError(result.error || 'Verification failed', true);
@@ -1069,8 +1095,12 @@
   }
 
   /**
-   * Execute the actual checkout API call
+   * Execute the actual checkout API call.
+   * Uses an in-flight guard to prevent double-submit even if the button
+   * loading state is somehow bypassed (e.g. rapid Enter key).
    */
+  let _subCheckoutInFlight = false;
+
   async function executeSubCheckout() {
     if (!selectedSubPlan) {
       showSubError('No plan selected');
@@ -1078,6 +1108,13 @@
       setSubBtnLoading(subVerifyBtn, false);
       return;
     }
+
+    // ── Double-submit guard ──────────────────────────────────────
+    if (_subCheckoutInFlight) {
+      console.warn('[Credits] Subscription checkout already in-flight, ignoring duplicate call');
+      return;
+    }
+    _subCheckoutInFlight = true;
 
     try {
       const result = await apiFetch('/api/billing/subscriptions/checkout', {
@@ -1127,6 +1164,7 @@
       showSubError(err.message || 'Failed to start checkout. Please try again.', isVerifyVisible);
       setSubBtnLoading(subCheckoutBtn, false);
       setSubBtnLoading(subVerifyBtn, false);
+      _subCheckoutInFlight = false;  // Reset guard on error so user can retry
     }
   }
 
@@ -2939,6 +2977,17 @@
           if (raCodeError) raCodeError.textContent = 'Too many attempts. Please request a new code.';
         } else if (errorCode === 'CODE_EXPIRED') {
           if (raCodeError) raCodeError.textContent = 'Code has expired. Please request a new one.';
+        } else if (errorCode === 'RESTORE_MERGE_BLOCKED') {
+          const nextStep = result.data?.error?.next_step;
+          if (nextStep === 'wait_for_jobs') {
+            if (raCodeError) raCodeError.textContent = 'You have active jobs processing. Please wait for them to finish, then try again.';
+          } else if (nextStep === 'contact_support_subscription') {
+            if (raCodeError) raCodeError.textContent = 'Both accounts have active subscriptions. Please contact support to merge them.';
+          } else {
+            if (raCodeError) raCodeError.textContent = 'Accounts could not be merged automatically. Please contact support.';
+          }
+        } else if (errorCode === 'RESTORE_BLOCKED_DATA_CONFLICT') {
+          if (raCodeError) raCodeError.textContent = 'Restore cannot complete automatically. Please contact support.';
         } else {
           if (raCodeError) raCodeError.textContent = result.error || 'Verification failed';
         }
@@ -3658,6 +3707,18 @@
         setVerifyError('Too many attempts. Please request a new code.');
       } else if (errorCode === 'CODE_EXPIRED') {
         setVerifyError('Code has expired. Please request a new one.');
+      } else if (errorCode === 'RESTORE_MERGE_BLOCKED') {
+        // IDENT-1: Merge was attempted but blocked — show specific guidance
+        const nextStep = result?.data?.error?.next_step;
+        if (nextStep === 'wait_for_jobs') {
+          setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
+        } else if (nextStep === 'contact_support_subscription') {
+          setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
+        } else {
+          setVerifyError('Accounts could not be merged automatically. Please contact support.');
+        }
+      } else if (errorCode === 'RESTORE_BLOCKED_DATA_CONFLICT') {
+        setVerifyError('Restore cannot complete automatically. Please contact support.');
       } else if (errorCode === 'ATTACH_CONFLICT') {
         // IDENT-3: Neutral handling — email could not be attached, suggest restore
         const currentCredits = walletAvailable || 0;
@@ -3737,7 +3798,20 @@
             }
             setVerifyError('Restore is taking too long. Please wait a moment and try again.');
           } else {
-            setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
+            // IDENT-1: Handle merge-blocked errors with specific guidance
+            const restoreErrorCode = restoreResult.data?.error?.code;
+            if (restoreErrorCode === 'RESTORE_MERGE_BLOCKED') {
+              const nextStep = restoreResult.data?.error?.next_step;
+              if (nextStep === 'wait_for_jobs') {
+                setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
+              } else if (nextStep === 'contact_support_subscription') {
+                setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
+              } else {
+                setVerifyError('Accounts could not be merged automatically. Please contact support.');
+              }
+            } else {
+              setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
+            }
           }
           verifyCodeBtn?.classList.remove('loading');
         }, 500);
@@ -3752,8 +3826,9 @@
     // Success!
     console.log('[Credits] Email verified successfully');
     const wasRestoreMode = isRestoreMode; // Capture before resetting
-    // NEW-1: Clear stale caches from previous identity before loading new state
-    if (wasRestoreMode && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
+    const identityChanged = result?.data?.identity_changed || false;
+    // NEW-1 / IDENT-1: Clear stale caches when identity changed (restore or cross-identity merge)
+    if ((wasRestoreMode || identityChanged) && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
     userEmail = pendingEmail;
     emailVerified = true;
     isRestoreMode = false;
