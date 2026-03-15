@@ -2918,11 +2918,27 @@
       // For all other cases (success, timeout, other errors), proceed to state 2
       // The backend returns generic success for anti-enumeration, and even on timeout
       // the request may have been processed server-side
-      if (sentToEmail) sentToEmail.textContent = email;
-      showSecureState(2);
 
-      // Show neutral message (anti-enumeration safe)
-      setVerifyMessage('If an account exists for this email, a code has been sent.');
+      // Check if backend resolved to a different (canonical) email via merge
+      const responseData = result.data || {};
+      const resolvedEmail = responseData.resolved_email;
+      const mergeRedirected = responseData.merge_redirected;
+
+      if (mergeRedirected && resolvedEmail) {
+        // Merged alias — show where the code was actually sent
+        if (sentToEmail) sentToEmail.textContent = resolvedEmail;
+        showSecureState(2);
+        setVerifyMessage(
+          'This email is linked to your merged TimrX account. ' +
+          `For security, the verification code was sent to: ${resolvedEmail}`
+        );
+        console.log(`[Credits] Merge redirect: ${email} → ${resolvedEmail}`);
+      } else {
+        if (sentToEmail) sentToEmail.textContent = email;
+        showSecureState(2);
+        // Show neutral message (anti-enumeration safe)
+        setVerifyMessage('If an account exists for this email, a code has been sent.');
+      }
 
       // Start resend cooldown
       startResendCooldown();
@@ -3278,8 +3294,14 @@
         return;
       }
 
-      // For all other cases (success, timeout, other errors), show optimistic message
-      setVerifyMessage('New code sent! Check your email.');
+      // Check for merge redirect on resend
+      const resendData = result.data || {};
+      if (resendData.merge_redirected && resendData.resolved_email) {
+        if (sentToEmail) sentToEmail.textContent = resendData.resolved_email;
+        setVerifyMessage(`New code sent to ${resendData.resolved_email}`);
+      } else {
+        setVerifyMessage('New code sent! Check your email.');
+      }
       startResendCooldown();
 
       // Clear code input
