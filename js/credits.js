@@ -2795,6 +2795,56 @@
   });
   document.getElementById('raCancelStep1')?.addEventListener('click', closeRestoreAccountModal);
 
+  // Logout from restore modal — two-click inline confirm (no stacked modal)
+  const raLogoutBtn = document.getElementById('raLogoutBtn');
+  let _logoutArmed = false;
+  let _logoutTimer = null;
+
+  raLogoutBtn?.addEventListener('click', async () => {
+    // First click: arm (change label to "Confirm Log Out?")
+    if (!_logoutArmed) {
+      _logoutArmed = true;
+      raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Confirm Log Out?';
+      raLogoutBtn.classList.add('armed');
+      // Auto-disarm after 3s
+      _logoutTimer = setTimeout(() => {
+        _logoutArmed = false;
+        raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Log Out';
+        raLogoutBtn.classList.remove('armed');
+      }, 3000);
+      return;
+    }
+
+    // Second click: execute logout
+    clearTimeout(_logoutTimer);
+    raLogoutBtn.classList.add('loading');
+    raLogoutBtn.disabled = true;
+
+    try {
+      await apiFetch('/api/me/logout', { method: 'POST' });
+
+      // Clear local state
+      emailVerified = false;
+      userEmail = '';
+      isRestoreMode = false;
+
+      // Clear stored session data
+      localStorage.removeItem('timrx_credits_last');
+      sessionStorage.removeItem('timrx_post_purchase_dismissed');
+
+      closeRestoreAccountModal();
+
+      // Reload to get a fresh anonymous session
+      window.location.reload();
+    } catch (err) {
+      console.error('[RestoreAccount] Logout error:', err);
+      _logoutArmed = false;
+      raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Log Out';
+      raLogoutBtn.classList.remove('loading', 'armed');
+      raLogoutBtn.disabled = false;
+    }
+  });
+
   // Step 2: Send code
   async function raSendCode() {
     const email = raEmailInput?.value?.trim().toLowerCase();
