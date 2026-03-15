@@ -3912,6 +3912,11 @@
   // Load subscription summary on page load (after wallet)
   setTimeout(() => loadSubscriptionSummary(), 500);
 
+  // Clicking the subscription pill opens the secure credits modal (subscription section)
+  subscriptionStatusPill?.addEventListener('click', () => {
+    openSecureCreditsModal();
+  });
+
   // Expose for external use
   window.TimrXCredits = {
     refresh: refreshCredits,

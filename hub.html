@@ -239,11 +239,16 @@
       border-radius: 20px;
       font-size: 12px;
       font-weight: 500;
+      font-family: inherit;
       background: rgba(34, 197, 94, 0.12);
       border: 1px solid rgba(34, 197, 94, 0.3);
       color: #22c55e;
+      cursor: pointer;
       transition: all 0.2s ease;
       margin-right: 8px;
+    }
+    .subscription-status-pill:hover {
+      filter: brightness(1.2);
     }
     .subscription-status-pill.hidden { display: none; }
     .subscription-status-pill.status-active {
@@ -334,10 +339,10 @@
           <span class="email-beacon-pulse"></span>
         </button>
         <!-- Subscription Status Pill - shown when user has subscription -->
-        <div class="subscription-status-pill hidden" id="subscriptionStatusPill">
+        <button type="button" class="subscription-status-pill hidden" id="subscriptionStatusPill" aria-label="Manage subscription">
           <i class="fa-solid fa-rotate subscription-icon" id="subscriptionIcon"></i>
           <span class="subscription-text" id="subscriptionText"></span>
-        </div>
+        </button>
         <!-- Credits Pill + Buy Button -->
         <div class="credits-group" id="creditsGroup">
           <span class="credits-pill" id="creditsPill">
