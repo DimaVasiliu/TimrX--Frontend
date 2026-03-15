@@ -4045,9 +4045,13 @@
   }
 
   /**
-   * Handle beacon click - open secure credits modal
+   * Handle beacon click - route through the same logic as the shield button
    */
   function handleBeaconClick() {
+    if (emailVerified) {
+      openRestoreAccountModal();
+      return;
+    }
     // Open the modal if not already open
     if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
       openSecureCreditsModal();
@@ -4461,6 +4465,10 @@
 
   // Clicking the subscription pill opens the secure credits modal (subscription section)
   subscriptionStatusPill?.addEventListener('click', () => {
+    if (emailVerified) {
+      openRestoreAccountModal();
+      return;
+    }
     openSecureCreditsModal();
   });
 
