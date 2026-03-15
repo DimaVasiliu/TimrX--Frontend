@@ -786,7 +786,7 @@
     }
     .cover-status.ready { color: #4ade80; }
     /* Billing Health Dashboard */
-    .billing-dashboard { padding: 0; }
+    .billing-dashboard { padding: 0; overflow: hidden; }
     .billing-header {
       display: flex;
       justify-content: space-between;
@@ -836,17 +836,18 @@
     }
     .billing-table th {
       text-align: left;
-      padding: 10px 12px;
+      padding: 8px 10px;
       background: rgba(0,0,0,0.3);
       border-bottom: 1px solid rgba(255,255,255,0.1);
       color: #888;
       font-weight: 600;
-      white-space: nowrap;
+      font-size: 11px;
     }
     .billing-table td {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       color: #ccc;
+      word-break: break-word;
     }
     .billing-table tr:last-child td { border-bottom: none; }
     .billing-table tr.row-green { background: rgba(34, 197, 94, 0.08); }
@@ -889,9 +890,9 @@
     }
     .analytics-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #ccc; }
     .analytics-controls { display: flex; gap: 8px; align-items: center; }
-    .analytics-stats { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    .billing-stat.large { min-width: 140px; padding: 16px 20px; }
-    .billing-stat.large .stat-value { font-size: 28px; }
+    .analytics-stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .billing-stat.large { flex: 1 1 0; min-width: 0; padding: 14px 16px; }
+    .billing-stat.large .stat-value { font-size: 24px; }
     .usage-progress-bar {
       margin-top: 8px;
       height: 6px;
@@ -2123,9 +2124,19 @@
       </div>
       <div id="list" class="posts"></div>
     </div>
+  </div>
 
-    <!-- AI Panel -->
-    <aside class="sidebar">
+  <!-- Panel Trigger Button -->
+  <button class="panel-trigger" id="openPanelBtn" title="Open AI Panel">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="trigger-dot" id="panelDot"></span>
+  </button>
+
+  <!-- AI Panel Modal -->
+  <div class="panel-modal" id="panelModal">
+    <div class="panel-modal-box">
+      <button class="panel-modal-close" id="closePanelBtn">&times;</button>
+
       <div class="panel">
         <div class="panel-header">
           <h3>AI Assistant</h3>
@@ -2141,6 +2152,7 @@
           <button class="tab" data-tab="usage">Usage</button>
           <button class="tab" data-tab="billing">Billing</button>
           <button class="tab" data-tab="merge">Merge</button>
+          <button class="tab" data-tab="orphans">Orphans</button>
         </div>
 
         <!-- Ops Tab -->
@@ -2896,8 +2908,40 @@
           </div>
         </div>
 
+        <!-- Orphans Tab -->
+        <div class="tab-content" id="tab-orphans">
+          <div style="padding:8px 0;">
+
+            <!-- Orphan Summary -->
+            <div class="ops-section">
+              <div class="ops-section-header">
+                <h4>Orphaned Assets</h4>
+                <button class="btn small" id="orphanSummaryBtn">Scan</button>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                <label style="font-size:11px;color:#9ca3af;">Age threshold (days):</label>
+                <input id="orphanAgeDays" type="number" value="30" min="1" max="365" style="width:60px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:4px 6px;color:#fff;font-size:12px;" />
+              </div>
+              <div id="orphanSummaryResult" style="font-size:11px;line-height:1.6;margin-top:8px;"></div>
+            </div>
+
+            <!-- Orphan Detail -->
+            <div class="ops-section" id="orphanDetailSection" style="display:none;margin-top:12px;">
+              <div class="ops-section-header"><h4>Detail View</h4></div>
+              <div id="orphanDetailResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+            <!-- Orphan Actions -->
+            <div class="ops-section" id="orphanActionSection" style="display:none;margin-top:12px;">
+              <div class="ops-section-header"><h4>Action Result</h4></div>
+              <div id="orphanActionResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
-    </aside>
+    </div>
   </div>
 
   <!-- Repo File Picker Modal -->
@@ -4735,8 +4779,8 @@
         $('#blogModal').classList.remove('show');
         $('#subsModal').classList.remove('show');
         $('#repoModal').classList.remove('show');
-        // Close ops panel modals
-        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+        // Close all modals (ops modals + panel modal)
+        document.querySelectorAll('.modal.show, .panel-modal.show').forEach(m => m.classList.remove('show'));
       }
     });
 
@@ -4764,6 +4808,18 @@
         if (modal) modal.classList.remove('show');
       };
     });
+
+    // ========== PANEL MODAL ==========
+    const panelModal = $('#panelModal');
+    const openPanelBtn = $('#openPanelBtn');
+    const closePanelBtn = $('#closePanelBtn');
+    if (openPanelBtn && panelModal) {
+      openPanelBtn.onclick = () => panelModal.classList.add('show');
+      closePanelBtn.onclick = () => panelModal.classList.remove('show');
+      panelModal.addEventListener('click', e => {
+        if (e.target === panelModal) panelModal.classList.remove('show');
+      });
+    }
 
     // Subscribers management
     async function loadSubscribers() {
@@ -6116,6 +6172,181 @@
     if ($('#mergePreviewBtn')) $('#mergePreviewBtn').onclick = doMergePreview;
     if ($('#mergeExecuteBtn')) $('#mergeExecuteBtn').onclick = doMergeExecute;
     if ($('#mergeHistoryBtn')) $('#mergeHistoryBtn').onclick = doMergeHistory;
+
+    // ========== IDENT-5: ORPHAN AUDIT PANEL ==========
+
+    function escOrphan(s) { return typeof s === 'string' ? s.replace(/</g,'&lt;').replace(/>/g,'&gt;') : String(s ?? '—'); }
+
+    async function doOrphanSummary() {
+      const out = $('#orphanSummaryResult');
+      const ageDays = parseInt($('#orphanAgeDays')?.value) || 30;
+      out.innerHTML = '<span style="color:#9ca3af;">Scanning...</span>';
+      $('#orphanDetailSection').style.display = 'none';
+      $('#orphanActionSection').style.display = 'none';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/orphans/summary?age_days=${ageDays}`, {
+          headers: headers(), credentials: 'include'
+        });
+        const j = await r.json();
+        if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escOrphan(j.error)}</span>`; return; }
+
+        const s = j.summary;
+        const types = ['models', 'images', 'videos'];
+        const cats = ['ownerless', 'merged_away', 'soft_deleted', 'unlinked', 'failed'];
+
+        let html = `<table style="width:100%;font-size:11px;border-collapse:collapse;">`;
+        html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">`;
+        html += `<th style="text-align:left;padding:4px;">Type</th>`;
+        cats.forEach(c => { html += `<th style="text-align:right;padding:4px;font-size:10px;">${c.replace('_',' ')}</th>`; });
+        html += `<th style="text-align:right;padding:4px;font-weight:600;">Total</th></tr>`;
+
+        let grandTotal = 0;
+        types.forEach(t => {
+          const d = s[t] || {};
+          const total = d.total || 0;
+          grandTotal += total;
+          html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">`;
+          html += `<td style="padding:4px;font-weight:500;">${t}</td>`;
+          cats.forEach(c => {
+            const val = d[c] || 0;
+            const color = val > 0 ? '#f59e0b' : '#6b7280';
+            const clickable = val > 0 ? `style="color:${color};cursor:pointer;padding:4px;text-align:right;" onclick="doOrphanDetail('${t}','${c}')"` : `style="color:${color};padding:4px;text-align:right;"`;
+            html += `<td ${clickable}>${val}</td>`;
+          });
+          const tColor = total > 0 ? '#ef4444' : '#22c55e';
+          html += `<td style="text-align:right;padding:4px;font-weight:600;color:${tColor};">${total}</td></tr>`;
+        });
+        html += `</table>`;
+
+        if (grandTotal === 0) {
+          html += `<div style="color:#22c55e;margin-top:8px;font-weight:500;">No orphans found (age > ${ageDays} days).</div>`;
+        } else {
+          html += `<div style="color:#9ca3af;margin-top:6px;font-size:10px;">Click a count to view details. Age threshold: ${ageDays} days.</div>`;
+        }
+
+        out.innerHTML = html;
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escOrphan(err.message)}</span>`;
+      }
+    }
+
+    // Make doOrphanDetail globally callable from onclick
+    window.doOrphanDetail = async function(assetType, category) {
+      const out = $('#orphanDetailResult');
+      const section = $('#orphanDetailSection');
+      section.style.display = 'block';
+      out.innerHTML = '<span style="color:#9ca3af;">Loading...</span>';
+
+      const ageDays = parseInt($('#orphanAgeDays')?.value) || 30;
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/orphans/audit?asset_type=${assetType}&category=${category}&age_days=${ageDays}&limit=50`, {
+          headers: headers(), credentials: 'include'
+        });
+        const j = await r.json();
+        if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escOrphan(j.error)}</span>`; return; }
+
+        if (!j.orphans || j.orphans.length === 0) {
+          out.innerHTML = '<span style="color:#9ca3af;">No orphans in this category.</span>';
+          return;
+        }
+
+        let html = `<div style="color:#9ca3af;margin-bottom:6px;">${j.count} ${assetType} (${category.replace('_',' ')})</div>`;
+        html += `<div style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;">`;
+
+        j.orphans.forEach(o => {
+          const keys = Object.entries(o.s3_keys || {}).filter(([,v]) => v).map(([k,v]) => `${k}: ${v}`).join(', ');
+          const safe = o.safe_to_quarantine;
+          const activeJob = o.has_active_job;
+          html += `<div style="background:rgba(0,0,0,0.2);border-radius:4px;padding:5px 8px;border:1px solid rgba(255,255,255,0.06);font-size:10px;">`;
+          html += `<div style="font-family:monospace;">${escOrphan(o.id?.substring(0,12))}...</div>`;
+          html += `<div>owner: ${o.identity_id ? escOrphan(o.identity_id.substring(0,8)) + '...' : '<em>none</em>'} | status: ${escOrphan(o.status)} | ${escOrphan(o.created_at?.substring(0,10))}</div>`;
+          if (keys) html += `<div style="color:#9ca3af;word-break:break-all;">${escOrphan(keys)}</div>`;
+          if (o.merged_into_id) html += `<div style="color:#f59e0b;">merged into: ${escOrphan(o.merged_into_id.substring(0,8))}...</div>`;
+          if (activeJob) html += `<div style="color:#ef4444;">HAS ACTIVE JOB — protected</div>`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+
+        // Action buttons for quarantinable categories
+        if (category === 'ownerless' || category === 'failed') {
+          html += `<div style="display:flex;gap:8px;margin-top:8px;">`;
+          html += `<button class="btn small" onclick="doOrphanQuarantine('${assetType}','${category}',true)">Dry Run</button>`;
+          html += `<button class="btn small" onclick="doOrphanQuarantine('${assetType}','${category}',false)">Quarantine</button>`;
+          html += `</div>`;
+        } else if (category === 'merged_away') {
+          html += `<div style="display:flex;gap:8px;margin-top:8px;">`;
+          html += `<button class="btn small" onclick="doOrphanFixMerged('${assetType}',true)">Dry Run Fix</button>`;
+          html += `<button class="btn small" onclick="doOrphanFixMerged('${assetType}',false)">Fix Merged</button>`;
+          html += `</div>`;
+        }
+
+        out.innerHTML = html;
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escOrphan(err.message)}</span>`;
+      }
+    };
+
+    window.doOrphanQuarantine = async function(assetType, category, dryRun) {
+      const out = $('#orphanActionResult');
+      const section = $('#orphanActionSection');
+      section.style.display = 'block';
+      const ageDays = parseInt($('#orphanAgeDays')?.value) || 30;
+
+      if (!dryRun && !confirm(`Quarantine ${category} ${assetType} older than ${ageDays} days?\n\nThis sets deleted_at on matching rows.`)) return;
+
+      out.innerHTML = '<span style="color:#9ca3af;">' + (dryRun ? 'Running dry run...' : 'Quarantining...') + '</span>';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/orphans/quarantine`, {
+          method: 'POST', headers: headers(), credentials: 'include',
+          body: JSON.stringify({ asset_type: assetType, category, age_days: ageDays, limit: 200, dry_run: dryRun }),
+        });
+        const j = await r.json();
+        if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escOrphan(j.error)}</span>`; return; }
+
+        const count = j.dry_run ? j.would_quarantine : j.quarantined;
+        const label = j.dry_run ? 'Would quarantine' : 'Quarantined';
+        const color = j.dry_run ? '#f59e0b' : '#22c55e';
+        out.innerHTML = `<div style="color:${color};font-weight:500;">${label}: ${count} ${assetType}</div>`;
+        if (j.ids && j.ids.length) {
+          out.innerHTML += `<div style="font-size:10px;color:#9ca3af;margin-top:4px;">${j.ids.map(id => id.substring(0,8)).join(', ')}...</div>`;
+        }
+        if (!dryRun && count > 0) Toast.success(`Quarantined ${count} ${assetType}`);
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escOrphan(err.message)}</span>`;
+      }
+    };
+
+    window.doOrphanFixMerged = async function(assetType, dryRun) {
+      const out = $('#orphanActionResult');
+      const section = $('#orphanActionSection');
+      section.style.display = 'block';
+
+      if (!dryRun && !confirm(`Re-migrate merged-away ${assetType} to canonical owners?\n\nThis updates identity_id on matching rows.`)) return;
+
+      out.innerHTML = '<span style="color:#9ca3af;">' + (dryRun ? 'Running dry run...' : 'Fixing...') + '</span>';
+
+      try {
+        const r = await fetch(`${BACKEND}/api/admin/orphans/fix-merged`, {
+          method: 'POST', headers: headers(), credentials: 'include',
+          body: JSON.stringify({ asset_type: assetType, limit: 500, dry_run: dryRun }),
+        });
+        const j = await r.json();
+        if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escOrphan(j.error)}</span>`; return; }
+
+        const count = j.dry_run ? j.would_fix : j.fixed;
+        const label = j.dry_run ? 'Would re-migrate' : 'Re-migrated';
+        const color = j.dry_run ? '#f59e0b' : '#22c55e';
+        out.innerHTML = `<div style="color:${color};font-weight:500;">${label}: ${count} ${assetType}</div>`;
+        if (!dryRun && count > 0) Toast.success(`Re-migrated ${count} ${assetType}`);
+      } catch (err) {
+        out.innerHTML = `<span style="color:#ef4444;">Fetch error: ${escOrphan(err.message)}</span>`;
+      }
+    };
+
+    if ($('#orphanSummaryBtn')) $('#orphanSummaryBtn').onclick = doOrphanSummary;
 
     // ========== CREDIT USAGE ANALYTICS ==========
     let analyticsPeriod = 30;

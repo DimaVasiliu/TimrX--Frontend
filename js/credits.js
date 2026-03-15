@@ -921,8 +921,8 @@
         body: { email }
       });
 
-      // Note: attach returns 200 even if email belongs to another identity (anti-enumeration)
-      // We'll find out during verify if it's ATTACH_CONFLICT
+      // Note: attach returns 200 even if email belongs to another identity (anti-enumeration).
+      // Cross-identity cases are handled server-side by IDENT-1 auto-merge during verify.
       if (result.ok || result.status === 200) {
         console.log('[Credits] Verification code sent to:', email);
         setSubBtnLoading(subCheckoutBtn, false);
@@ -998,58 +998,6 @@
           showSubError('Both accounts have active subscriptions. Please contact support to merge them.', true);
         } else {
           showSubError('This email could not be verified automatically. Please contact support.', true);
-        }
-      } else if (errorCode === 'ATTACH_CONFLICT' && !subIsRestoreMode) {
-        // IDENT-3: Neutral handling — email could not be attached, suggest restore
-        console.log('[Credits] Email attach conflict, switching to restore mode');
-        clearSubMessages(true);
-        showSubMessage('Restoring your account...', true);
-
-        // Warn if user has credits they might lose
-        const currentCredits = walletAvailable || 0;
-        if (currentCredits > 0 && !emailVerified) {
-          const shouldRestore = await showConfirm({
-            title: 'Try Restore Account?',
-            message: `This email could not be verified on this device.<br><br>If you've used it before, you can restore your account. You currently have <strong>${currentCredits.toLocaleString()}</strong> credits here.`,
-            confirmText: 'Restore Account',
-            cancelText: 'Cancel',
-            icon: 'fa-arrow-right-arrow-left'
-          });
-          if (!shouldRestore) {
-            showSubError('Restore cancelled.', true);
-            setSubBtnLoading(subVerifyBtn, false);
-            return;
-          }
-        }
-
-        // Retry with restore endpoint
-        subIsRestoreMode = true;
-        const restoreResult = await apiFetch('/api/auth/restore/redeem', {
-          method: 'POST',
-          body: { email: subPendingEmail, code }
-        });
-
-        if (restoreResult.ok) {
-          console.log('[Credits] Account restored, refreshing session...');
-          // NEW-1: Clear stale caches from previous identity before loading new state
-          if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
-          showSubMessage('Account restored! Starting checkout...', true);
-          await refreshIdentityAndCheckout();
-          return;
-        } else {
-          const restoreErrorCode = restoreResult.data?.error?.code;
-          if (restoreErrorCode === 'RESTORE_MERGE_BLOCKED') {
-            const nextStep = restoreResult.data?.error?.next_step;
-            if (nextStep === 'wait_for_jobs') {
-              showSubError('You have active jobs processing. Please wait for them to finish, then try again.', true);
-            } else if (nextStep === 'contact_support_subscription') {
-              showSubError('Both accounts have active subscriptions. Please contact support to merge them.', true);
-            } else {
-              showSubError('Accounts could not be merged automatically. Please contact support.', true);
-            }
-          } else {
-            showSubError(restoreResult.error || 'Restore failed. Please try again.', true);
-          }
         }
       } else {
         showSubError(result.error || 'Verification failed', true);
@@ -3719,103 +3667,16 @@
         }
       } else if (errorCode === 'RESTORE_BLOCKED_DATA_CONFLICT') {
         setVerifyError('Restore cannot complete automatically. Please contact support.');
-      } else if (errorCode === 'ATTACH_CONFLICT') {
-        // IDENT-3: Neutral handling — email could not be attached, suggest restore
-        const currentCredits = walletAvailable || 0;
-        let shouldRestore = true;
-
-        if (currentCredits > 0 && !emailVerified) {
-          shouldRestore = await showConfirm({
-            title: 'Try Restore Account?',
-            message: `This email could not be verified on this device.<br><br>If you've used it before, you can restore your account. You currently have <strong>${currentCredits.toLocaleString()}</strong> credits here.`,
-            confirmText: 'Restore Account',
-            cancelText: 'Cancel',
-            icon: 'fa-arrow-right-arrow-left'
-          });
+      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
+        // IDENT-4: Cross-identity merge was attempted server-side but blocked
+        const nextStep = result?.data?.error?.next_step;
+        if (nextStep === 'wait_for_jobs') {
+          setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
+        } else if (nextStep === 'contact_support_subscription') {
+          setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
+        } else {
+          setVerifyError('This email could not be verified automatically. Please contact support.');
         }
-
-        if (!shouldRestore) {
-          setVerifyError('Restore cancelled. Your current credits are preserved.');
-          verifyCodeBtn?.classList.remove('loading');
-          return;
-        }
-
-        // Auto-switch to restore mode and try again with the same code
-        clearSecureMessages();
-        setVerifyMessage('Restoring your account...');
-        isRestoreMode = true;
-        setTimeout(async () => {
-          const restoreResult = await apiFetch('/api/auth/restore/redeem', {
-            method: 'POST',
-            body: { email: pendingEmail, code }
-          });
-          if (restoreResult.ok) {
-            console.log('[Credits] Account restored successfully');
-            // NEW-1: Clear stale caches from previous identity before loading new state
-            if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
-            clearSecureMessages();
-            userEmail = pendingEmail;
-            emailVerified = true;
-            isRestoreMode = false;
-            const wallet = await fetchWallet();
-            if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-            showSecureState(3);
-            // Show restore success popup
-            const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-            openRestoreSuccessModal(restoredCredits);
-          } else if (restoreResult.isTimeout) {
-            // Poll /api/me multiple times for eventual success
-            setVerifyMessage('Restore taking longer, checking status...');
-            const pollMaxAttempts = 4;
-            const pollInterval = 3000;
-
-            for (let pollAttempt = 0; pollAttempt < pollMaxAttempts; pollAttempt++) {
-              if (pollAttempt > 0) {
-                await new Promise(r => setTimeout(r, pollInterval));
-              }
-              try {
-                const meCheck = await apiFetch('/api/me', { timeout: 15000 });
-                if (meCheck.ok && meCheck.data?.ok && meCheck.data.email === pendingEmail) {
-                  console.log('[Credits] Restore confirmed via /api/me poll');
-                  // NEW-1: Clear stale caches from previous identity before loading new state
-                  if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
-                  clearSecureMessages();
-                  userEmail = pendingEmail;
-                  emailVerified = true;
-                  isRestoreMode = false;
-                  const wallet = await fetchWallet();
-                  if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-                  showSecureState(3);
-                  verifyCodeBtn?.classList.remove('loading');
-                  // Show restore success popup
-                  const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-                  openRestoreSuccessModal(restoredCredits);
-                  return;
-                }
-              } catch (meErr) {
-                console.warn(`[Credits] /api/me poll ${pollAttempt + 1} failed:`, meErr);
-              }
-            }
-            setVerifyError('Restore is taking too long. Please wait a moment and try again.');
-          } else {
-            // IDENT-1: Handle merge-blocked errors with specific guidance
-            const restoreErrorCode = restoreResult.data?.error?.code;
-            if (restoreErrorCode === 'RESTORE_MERGE_BLOCKED') {
-              const nextStep = restoreResult.data?.error?.next_step;
-              if (nextStep === 'wait_for_jobs') {
-                setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
-              } else if (nextStep === 'contact_support_subscription') {
-                setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
-              } else {
-                setVerifyError('Accounts could not be merged automatically. Please contact support.');
-              }
-            } else {
-              setVerifyError(restoreResult.error || 'Restore failed. Please try again.');
-            }
-          }
-          verifyCodeBtn?.classList.remove('loading');
-        }, 500);
-        return; // Don't remove loading state here - async handler will do it
       } else {
         setVerifyError(result?.error || 'Verification failed');
       }
