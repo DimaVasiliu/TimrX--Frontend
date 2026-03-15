@@ -1651,8 +1651,16 @@
     }
     successModal.classList.remove('open');
     successModal.inert = true;
+
+    // After a successful purchase, prompt anonymous users to secure credits
+    const wasPurchaseSuccess = successModalState.isOpen && !successModalState.isPending
+      && !successModal.classList.contains('failed');
     successModalState.isOpen = false;
     successModalState.isPending = false;
+
+    if (wasPurchaseSuccess && !emailVerified && (walletAvailable > 0)) {
+      setTimeout(() => openPostPurchasePrompt(), 600);
+    }
   }
 
   /**
@@ -2680,7 +2688,10 @@
     confirmModalMessage.innerHTML = message;
     confirmModalYes.textContent = confirmText;
     confirmModalNo.textContent = cancelText;
-    if (confirmModalIcon) confirmModalIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+    if (confirmModalIcon) {
+      const core = confirmModalIcon.querySelector('.hero-core');
+      if (core) core.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+    }
 
     confirmModal.classList.add('open');
     confirmModal.setAttribute('aria-hidden', 'false');
@@ -3002,6 +3013,107 @@
 
   document.getElementById('raCancelSwitch')?.addEventListener('click', closeRestoreAccountModal);
 
+  // ─────────────────────────────────────────────────────────────
+  // GUEST CHOOSER MODAL (anonymous users)
+  // ─────────────────────────────────────────────────────────────
+  const guestChooserModal = document.getElementById('guestChooserModal');
+
+  function openGuestChooserModal() {
+    if (!guestChooserModal) return;
+    guestChooserModal.classList.add('open');
+    guestChooserModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeGuestChooserModal() {
+    if (!guestChooserModal) return;
+    guestChooserModal.classList.remove('open');
+    guestChooserModal.setAttribute('aria-hidden', 'true');
+  }
+
+  document.getElementById('guestChooserClose')?.addEventListener('click', closeGuestChooserModal);
+  guestChooserModal?.addEventListener('click', (e) => {
+    if (e.target === guestChooserModal) closeGuestChooserModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && guestChooserModal?.classList.contains('open')) {
+      closeGuestChooserModal();
+    }
+  });
+
+  // "Secure Your Credits" → open existing secure credits modal in attach mode
+  document.getElementById('chooserSecure')?.addEventListener('click', () => {
+    closeGuestChooserModal();
+    isRestoreMode = false;
+    resetToAttachMode();
+    openSecureCreditsModal();
+  });
+
+  // "I Already Have an Account" → open existing secure credits modal in restore mode
+  document.getElementById('chooserRestore')?.addEventListener('click', () => {
+    closeGuestChooserModal();
+    isRestoreMode = true;
+    if (secureState1) {
+      const h3 = secureState1.querySelector('h3');
+      const subtitle = secureState1.querySelector('.secure-subtitle');
+      if (h3) h3.textContent = 'Restore Your Account';
+      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing credits.';
+    }
+    openSecureCreditsModal();
+    secureEmailInput?.focus();
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // POST-PURCHASE SECURE PROMPT
+  // ─────────────────────────────────────────────────────────────
+  const postPurchaseModal = document.getElementById('postPurchaseModal');
+  let _postPurchaseShownThisSession = false;
+
+  function openPostPurchasePrompt() {
+    if (!postPurchaseModal) return;
+    if (_postPurchaseShownThisSession) return;
+    if (emailVerified) return; // already secured
+    if (sessionStorage.getItem('timrx_post_purchase_dismissed')) return;
+
+    _postPurchaseShownThisSession = true;
+    postPurchaseModal.classList.add('open');
+    postPurchaseModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePostPurchaseModal() {
+    if (!postPurchaseModal) return;
+    postPurchaseModal.classList.remove('open');
+    postPurchaseModal.setAttribute('aria-hidden', 'true');
+  }
+
+  document.getElementById('postPurchaseClose')?.addEventListener('click', () => {
+    sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
+    closePostPurchaseModal();
+  });
+  document.getElementById('postPurchaseLater')?.addEventListener('click', () => {
+    sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
+    closePostPurchaseModal();
+  });
+  postPurchaseModal?.addEventListener('click', (e) => {
+    if (e.target === postPurchaseModal) {
+      sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
+      closePostPurchaseModal();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && postPurchaseModal?.classList.contains('open')) {
+      sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
+      closePostPurchaseModal();
+    }
+  });
+
+  // "Secure My Credits" → open secure credits modal
+  document.getElementById('postPurchaseSecure')?.addEventListener('click', () => {
+    closePostPurchaseModal();
+    isRestoreMode = false;
+    resetToAttachMode();
+    openSecureCreditsModal();
+  });
+
   /**
    * Open the secure credits modal
    */
@@ -3060,24 +3172,25 @@
 
   /**
    * Toggle the secure credits modal visibility.
-   * When logged in (emailVerified), opens restore-account flow instead.
+   * Routes by user state:
+   *  - logged in → restore-account flow
+   *  - guest → two-option chooser modal
    */
   function toggleSecureCredits() {
-    // If already logged in, open restore-only flow
+    // Logged-in: restore-only flow
     if (emailVerified) {
       openRestoreAccountModal();
       return;
     }
 
-    if (!secureCreditsCard) return;
-
-    const isExpanded = secureCreditsCard.classList.contains('expanded');
-
-    if (isExpanded) {
+    // If secure credits modal is already open, close it
+    if (secureCreditsCard?.classList.contains('expanded')) {
       closeSecureCreditsModal();
-    } else {
-      openSecureCreditsModal();
+      return;
     }
+
+    // Guest: show chooser modal
+    openGuestChooserModal();
   }
 
   // Toggle button event listener
@@ -3106,7 +3219,8 @@
   if (window.location.hash === '#secure-credits') {
     // Small delay to ensure DOM is ready
     setTimeout(() => {
-      openSecureCreditsModal();
+      // Route through the same logic as the shield button
+      toggleSecureCredits();
       // Clear the hash without triggering a scroll
       history.replaceState(null, '', window.location.pathname + window.location.search);
     }, 100);

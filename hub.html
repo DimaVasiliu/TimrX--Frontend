@@ -638,7 +638,7 @@
     <div class="container">
       <div class="pricing-head">
         <div class="pricing-secure">
-          <button type="button" id="secureToggleBtn" class="secure-toggle-btn compact" aria-label="Secure your credits" aria-controls="secureCreditsCard" aria-expanded="false">
+          <button type="button" id="secureToggleBtn" class="secure-toggle-btn compact" aria-label="Account &amp; credits" aria-controls="secureCreditsCard" aria-expanded="false" title="Account &amp; credits">
             <i class="fa-solid fa-shield-halved"></i>
             <i class="fa-solid fa-chevron-down toggle-chevron" aria-hidden="true"></i>
           </button>
@@ -1325,14 +1325,77 @@
       </div>
     </div>
 
+    <!-- ====================== GUEST CHOOSER MODAL ====================== -->
+    <div class="modal" id="guestChooserModal" aria-hidden="true">
+      <div class="modal-content modal-sm">
+        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
+        <button type="button" class="modal-close" id="guestChooserClose" aria-label="Close">&times;</button>
+        <div class="modal-hero">
+          <div class="hero-glow"></div>
+          <div class="hero-ring hero-ring-1"></div>
+          <div class="hero-ring hero-ring-2"></div>
+          <div class="hero-ring hero-ring-3"></div>
+          <div class="hero-core"><i class="fa-solid fa-shield-halved"></i></div>
+        </div>
+        <h2>Your Account</h2>
+        <p class="modal-subtitle">Choose how you'd like to proceed.</p>
+        <div class="guest-chooser-options">
+          <button type="button" class="chooser-option" id="chooserSecure">
+            <div class="chooser-option-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="chooser-option-text">
+              <strong>Secure Your Credits</strong>
+              <span>Save your credits and creations so you can restore them on any device.</span>
+            </div>
+            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
+          </button>
+          <button type="button" class="chooser-option" id="chooserRestore">
+            <div class="chooser-option-icon"><i class="fa-solid fa-arrow-rotate-left"></i></div>
+            <div class="chooser-option-text">
+              <strong>I Already Have an Account</strong>
+              <span>Restore your existing TimrX account using your email.</span>
+            </div>
+            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== POST-PURCHASE SECURE PROMPT ====================== -->
+    <div class="modal" id="postPurchaseModal" aria-hidden="true">
+      <div class="modal-content modal-sm">
+        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
+        <button type="button" class="modal-close" id="postPurchaseClose" aria-label="Close">&times;</button>
+        <div class="modal-hero">
+          <div class="hero-glow"></div>
+          <div class="hero-ring hero-ring-1"></div>
+          <div class="hero-ring hero-ring-2"></div>
+          <div class="hero-ring hero-ring-3"></div>
+          <div class="hero-core"><i class="fa-solid fa-shield-halved"></i></div>
+        </div>
+        <h2>Protect Your Credits</h2>
+        <p class="modal-subtitle">You now have credits on this device. Add an email so you can restore them anytime.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn" id="postPurchaseSecure">Secure My Credits</button>
+          <button type="button" class="btn btn-link" id="postPurchaseLater">Maybe Later</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ====================== RESTORE ACCOUNT MODAL (logged-in users) ====================== -->
     <div class="modal" id="restoreAccountModal" aria-hidden="true">
       <div class="modal-content modal-sm">
+        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
         <button type="button" class="modal-close" id="restoreAccountClose" aria-label="Close">&times;</button>
 
         <!-- Step 1: Intro / explanation -->
         <div id="raStep1" class="ra-step">
-          <div class="modal-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          <div class="modal-hero">
+            <div class="hero-glow"></div>
+            <div class="hero-ring hero-ring-1"></div>
+            <div class="hero-ring hero-ring-2"></div>
+            <div class="hero-ring hero-ring-3"></div>
+            <div class="hero-core"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          </div>
           <h2>Restore Another Account</h2>
           <p class="modal-subtitle">
             This will <strong>switch</strong> you to a different TimrX account.
@@ -1346,7 +1409,10 @@
 
         <!-- Step 2: Email entry -->
         <div id="raStep2" class="ra-step" style="display:none">
-          <div class="modal-icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="modal-hero modal-hero-sm">
+            <div class="hero-glow"></div>
+            <div class="hero-core"><i class="fa-solid fa-envelope"></i></div>
+          </div>
           <h2>Enter Account Email</h2>
           <p class="modal-subtitle">Enter the email linked to the account you want to restore.</p>
           <div class="ra-input-group">
@@ -1361,7 +1427,10 @@
 
         <!-- Step 3: Code sent / verification -->
         <div id="raStep3" class="ra-step" style="display:none">
-          <div class="modal-icon"><i class="fa-solid fa-key"></i></div>
+          <div class="modal-hero modal-hero-sm">
+            <div class="hero-glow"></div>
+            <div class="hero-core"><i class="fa-solid fa-key"></i></div>
+          </div>
           <h2>Enter Verification Code</h2>
           <p class="modal-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
           <p id="raMergeNotice" class="modal-note" style="display:none"></p>
@@ -1381,7 +1450,10 @@
 
         <!-- Step 4: Final confirmation before switching -->
         <div id="raStep4" class="ra-step" style="display:none">
-          <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning, #f0ad4e)"></i></div>
+          <div class="modal-hero modal-hero-sm">
+            <div class="hero-glow" style="--hero-accent: 255,180,60"></div>
+            <div class="hero-core"><i class="fa-solid fa-triangle-exclamation" style="color: #f0ad4e"></i></div>
+          </div>
           <h2>Switch Account?</h2>
           <p class="modal-subtitle" id="raConfirmMessage">
             You are about to switch to the account linked to <strong id="raConfirmEmail">email</strong>.
@@ -1399,7 +1471,11 @@
     <!-- ====================== GENERIC CONFIRM MODAL ====================== -->
     <div class="modal" id="confirmModal" aria-hidden="true">
       <div class="modal-content modal-sm">
-        <div class="modal-icon" id="confirmModalIcon"><i class="fa-solid fa-circle-question"></i></div>
+        <div class="msm-bg" aria-hidden="true"><div class="msm-orb msm-orb-1"></div><div class="msm-orb msm-orb-2"></div><div class="msm-orb msm-orb-3"></div></div>
+        <div class="modal-hero modal-hero-sm" id="confirmModalIcon">
+          <div class="hero-glow"></div>
+          <div class="hero-core"><i class="fa-solid fa-circle-question"></i></div>
+        </div>
         <h2 id="confirmModalTitle">Confirm</h2>
         <p class="modal-subtitle" id="confirmModalMessage">Are you sure?</p>
         <div class="modal-actions">
