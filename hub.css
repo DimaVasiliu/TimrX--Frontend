@@ -5389,6 +5389,11 @@ justify-content: center;
 font-size: 0.8rem;
 }
 
+/* Confirm modal must stack above all other modals */
+#confirmModal {
+z-index: 10000;
+}
+
 /* Restore modal logout option */
 .ra-logout-divider {
 display: flex;
