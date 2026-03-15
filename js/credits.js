@@ -922,11 +922,15 @@
       });
 
       // Note: attach returns 200 even if email belongs to another identity (anti-enumeration)
-      // We'll find out during verify if it's EMAIL_IN_USE
+      // We'll find out during verify if it's ATTACH_CONFLICT
       if (result.ok || result.status === 200) {
         console.log('[Credits] Verification code sent to:', email);
         setSubBtnLoading(subCheckoutBtn, false);
         showSubVerifyState();
+        // IDENT-4: Show restore hint in sub-checkout verify state
+        if (result.data?.hint === 'restore_available') {
+          showSubMessage('Code sent! If you\'ve used this email before, try Restore Account.', true);
+        }
       } else {
         throw new Error(result.error || 'Failed to send verification code');
       }
@@ -981,18 +985,18 @@
         showSubError('Too many attempts. Please request a new code.', true);
       } else if (errorCode === 'CODE_EXPIRED') {
         showSubError('Code has expired. Please request a new one.', true);
-      } else if (errorCode === 'EMAIL_IN_USE' && !subIsRestoreMode) {
-        // Email belongs to another identity - auto-switch to restore mode
-        console.log('[Credits] Email belongs to another identity, switching to restore mode');
+      } else if (errorCode === 'ATTACH_CONFLICT' && !subIsRestoreMode) {
+        // IDENT-3: Neutral handling — email could not be attached, suggest restore
+        console.log('[Credits] Email attach conflict, switching to restore mode');
         clearSubMessages(true);
-        showSubMessage('This email is linked to another account. Restoring...', true);
+        showSubMessage('Restoring your account...', true);
 
         // Warn if user has credits they might lose
         const currentCredits = walletAvailable || 0;
         if (currentCredits > 0 && !emailVerified) {
           const shouldRestore = await showConfirm({
-            title: 'Switch Account?',
-            message: `This email is linked to another account.<br><br>You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device. Restoring will switch you to the other account's credits.`,
+            title: 'Try Restore Account?',
+            message: `This email could not be verified on this device.<br><br>If you've used it before, you can restore your account. You currently have <strong>${currentCredits.toLocaleString()}</strong> credits here.`,
             confirmText: 'Restore Account',
             cancelText: 'Cancel',
             icon: 'fa-arrow-right-arrow-left'
@@ -3353,6 +3357,9 @@
     if (secureMessage) secureMessage.textContent = '';
     if (verifyError) verifyError.textContent = '';
     if (verifyMessage) verifyMessage.textContent = '';
+    // IDENT-4: Clear restore hint
+    const hintEl = document.getElementById('verifyRestoreHint');
+    if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
   }
 
   function setSecureError(msg) {
@@ -3464,6 +3471,16 @@
         showSecureState(2);
         // Show neutral message (anti-enumeration safe)
         setVerifyMessage('If an account exists for this email, a code has been sent.');
+      }
+
+      // IDENT-4: Show restore hint (always, anti-enum safe — same regardless of
+      // whether email is taken). Helps users who already used this email elsewhere.
+      if (!isRestoreMode && responseData.hint === 'restore_available') {
+        const hintEl = document.getElementById('verifyRestoreHint');
+        if (hintEl) {
+          hintEl.textContent = "Used this email before on another device? Try Restore Account instead.";
+          hintEl.style.display = 'block';
+        }
       }
 
       // Start resend cooldown
@@ -3641,16 +3658,15 @@
         setVerifyError('Too many attempts. Please request a new code.');
       } else if (errorCode === 'CODE_EXPIRED') {
         setVerifyError('Code has expired. Please request a new one.');
-      } else if (errorCode === 'EMAIL_IN_USE') {
-        // Email belongs to another identity - prompt before switching to restore mode
+      } else if (errorCode === 'ATTACH_CONFLICT') {
+        // IDENT-3: Neutral handling — email could not be attached, suggest restore
         const currentCredits = walletAvailable || 0;
         let shouldRestore = true;
 
         if (currentCredits > 0 && !emailVerified) {
-          // Warn user about potential credit loss
           shouldRestore = await showConfirm({
-            title: 'Switch Account?',
-            message: `This email is linked to another account.<br><br>You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device. Restoring will switch you to the other account's credits.`,
+            title: 'Try Restore Account?',
+            message: `This email could not be verified on this device.<br><br>If you've used it before, you can restore your account. You currently have <strong>${currentCredits.toLocaleString()}</strong> credits here.`,
             confirmText: 'Restore Account',
             cancelText: 'Cancel',
             icon: 'fa-arrow-right-arrow-left'
@@ -3665,7 +3681,7 @@
 
         // Auto-switch to restore mode and try again with the same code
         clearSecureMessages();
-        setVerifyMessage('This email is linked to another account. Restoring...');
+        setVerifyMessage('Restoring your account...');
         isRestoreMode = true;
         setTimeout(async () => {
           const restoreResult = await apiFetch('/api/auth/restore/redeem', {
