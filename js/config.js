@@ -452,6 +452,21 @@ export function clearConfirmedIdentity() {
 }
 
 /**
+ * AUTH-8: Read identity_id from the auth stamp in localStorage.
+ * The stamp survives cache clears and page navigations, so it provides
+ * a fast synchronous identity hint before fetchWallet() completes.
+ * Returns null if no stamp exists or if the stamp is unparseable.
+ */
+export function getStampedIdentityId() {
+  try {
+    const raw = localStorage.getItem(AUTH_STAMP_KEY);
+    if (!raw) return null;
+    const stamp = JSON.parse(raw);
+    return (stamp && stamp.identity_id) || null;
+  } catch { return null; }
+}
+
+/**
  * All localStorage keys that hold user-specific data.
  * Site-wide settings (timrx_pricing_mode, tx_seen_modal_v1) are NOT cleared.
  * NOTE: AUTH_STAMP_KEY is intentionally NOT in this list — it survives

@@ -4,7 +4,7 @@
  * Falls back to localStorage for active jobs and as a cache.
  */
 
-import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getConfirmedIdentity } from './config.js';
+import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getConfirmedIdentity, getStampedIdentityId } from './config.js';
 
 // ============================================================================
 // CONSTANTS
@@ -195,14 +195,20 @@ function shouldSkipRemoteHistoryItem(item = {}) {
 /**
  * Get the current user's identity_id.
  * AUTH-7: Prefer the server-confirmed identity (set after /api/me).
- * Falls back to wallet cache only if identity has been confirmed this session.
+ * AUTH-8: Fall back to auth stamp (survives page loads) before returning null,
+ *         so history cache isn't defensively cleared on every cold navigation.
  */
 function getCurrentIdentityId() {
   // Prefer confirmed identity (set by fetchWallet after /api/me)
   const confirmed = getConfirmedIdentity();
   if (confirmed) return confirmed;
-  // Before /api/me returns, identity is unknown — return null to prevent
-  // stale cache from being trusted as belonging to the current user.
+  // AUTH-8: Auth stamp provides a fast synchronous identity hint written by
+  // the previous /api/me call. It survives cache clears and page navigations,
+  // preventing unnecessary defensive clears of the history cache while
+  // fetchWallet() is still in flight.
+  const stamped = getStampedIdentityId();
+  if (stamped) return stamped;
+  // Truly unknown — no server confirmation and no stamp from a prior page load.
   return null;
 }
 

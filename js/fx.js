@@ -145,13 +145,16 @@
         headers: { 'Accept': 'application/json' },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.ok && data.rates) {
-          setCachedRates(data.rates);
-          console.log('[FX] Fetched fresh rates:', data.rates);
-          return data.rates;
-        }
+      // AUTH-5: Log non-OK responses for diagnostics (public endpoint, 401 unlikely)
+      if (!response.ok) {
+        console.warn(`[FX] Non-OK response: ${response.status}`);
+        return null;
+      }
+      const data = await response.json();
+      if (data.ok && data.rates) {
+        setCachedRates(data.rates);
+        console.log('[FX] Fetched fresh rates:', data.rates);
+        return data.rates;
       }
     } catch (e) {
       console.warn('[FX] Fetch error:', e);

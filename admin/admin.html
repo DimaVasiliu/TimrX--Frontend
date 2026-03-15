@@ -3466,7 +3466,7 @@
     async function fetchJson(url, options = {}, contextLabel = 'Request') {
       let response;
       try {
-        response = await fetch(url, options);
+        response = await adminFetch(url, options);
       } catch (networkError) {
         throw new ApiRequestError(`${contextLabel} failed: network error`, {
           endpoint: url,
@@ -4112,9 +4112,24 @@
     function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
     function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
 
+    /**
+     * AUTH-5: Centralized admin fetch wrapper with 401 detection.
+     * On 401, clears the stored token and shows login with "token expired" message.
+     * Returns the fetch Response object (caller still handles .json() etc).
+     */
+    async function adminFetch(url, options = {}) {
+      const r = await fetch(url, options);
+      if (r.status === 401) {
+        setToken('');
+        $('#lmsg').textContent = 'Session expired — please re-enter your token';
+        $('#login').classList.add('show');
+      }
+      return r;
+    }
+
     async function ensureAuth(){
       if(!getToken()){ $('#login').classList.add('show'); return false; }
-      const r = await fetch(API+'/admin/auth', {headers: headers()});
+      const r = await adminFetch(API+'/admin/auth', {headers: headers()});
       if(!r.ok){ $('#login').classList.add('show'); return false; }
       return true;
     }
@@ -4135,7 +4150,7 @@
     // Check AI status
     async function checkAI() {
       try {
-        const r = await fetch(API + '/admin/ai/status', { headers: headers() });
+        const r = await adminFetch(API + '/admin/ai/status', { headers: headers() });
         const j = await r.json();
         const status = $('#aiStatus');
         if (j.configured) {
@@ -4314,7 +4329,7 @@
             formData.append('descriptions', item.description || '');
             if (i === 0) formData.append('cover_index', '0');
           });
-          const uploadRes = await fetch(API + '/admin/ai/upload-images', {
+          const uploadRes = await adminFetch(API + '/admin/ai/upload-images', {
             method: 'POST',
             headers: { 'X-Admin-Token': getToken() },
             body: formData
@@ -4545,7 +4560,7 @@
         btn.innerHTML = '<span class="spinner"></span>';
 
         try {
-          const r = await fetch(API + '/admin/ai/assist', {
+          const r = await adminFetch(API + '/admin/ai/assist', {
             method: 'POST',
             headers: headers(),
             body: JSON.stringify({
@@ -4600,7 +4615,7 @@
       const aff = $('#affFlt').value;
       let url = `${API}/posts?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&size=100`;
       if (aff) url += `&affiliate=${encodeURIComponent(aff)}`;
-      const r = await fetch(url, { headers: headers() });
+      const r = await adminFetch(url, { headers: headers() });
       if (!r.ok) {
         console.error('[Admin] Failed to load posts:', r.status, r.statusText);
         render([]);
@@ -4646,12 +4661,12 @@
       if(!b) return;
       const slug = b.dataset.edit || b.dataset.pub || b.dataset.unpub || b.dataset.del;
       if(b.dataset.edit){ location.href = `/admin/admin-edit.html?slug=${encodeURIComponent(slug)}`; return; }
-      if(b.dataset.pub){ await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
-      if(b.dataset.unpub){ await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.pub){ await adminFetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
+      if(b.dataset.unpub){ await adminFetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()}); return load(); }
       if(b.dataset.del){
         if(confirm('Delete this post permanently? This cannot be undone.')){
           try {
-            const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
+            const r = await adminFetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
             if(r.ok){
               const j = await r.json();
               if(j.ok){
@@ -4677,7 +4692,7 @@
     async function openEdit(slug){
       $('#e_msg').textContent = 'Loading…';
       $('#edit').classList.add('show');
-      const p = await (await fetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
+      const p = await (await adminFetch(`${API}/post/${encodeURIComponent(slug)}`)).json();
       $('#e_title').value = p.title||'';
       $('#e_slug').value = p.slug||'';
       $('#e_cover').value = p.cover_url||'';
@@ -4714,20 +4729,20 @@
         affiliate_placement: $('#e_affiliate_placement').value || null,
       };
       $('#e_msg').textContent = 'Saving…';
-      const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
+      const r = await adminFetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers(), body: JSON.stringify(body)});
       $('#e_msg').textContent = r.ok ? 'Saved' : 'Error';
       if(r.ok) load();
     };
 
     $('#pub').onclick = async ()=>{
       const slug = $('#e_slug').value;
-      await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      await adminFetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
       load();
     };
 
     $('#unpub').onclick = async ()=>{
       const slug = $('#e_slug').value;
-      await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
+      await adminFetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {method:'PATCH', headers: headers()});
       load();
     };
 
@@ -4735,7 +4750,7 @@
       const slug = $('#e_slug').value;
       if(confirm('Delete this post permanently? This cannot be undone.')){
         try {
-          const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
+          const r = await adminFetch(`${API}/post/${encodeURIComponent(slug)}`, {method:'DELETE', headers: {'X-Admin-Token': getToken()}});
           if(r.ok){
             const j = await r.json();
             if(j.ok){
@@ -4757,7 +4772,7 @@
 
     // New post
     $('#newPost').onclick = async ()=>{
-      await fetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'draft', author:'Dima V', author_avatar:'img/dima.jpg'})});
+      await adminFetch(API+'/post', {method:'POST', headers: headers(), body: JSON.stringify({title:'Untitled', content_md:'# New Post', status:'draft', author:'Dima V', author_avatar:'img/dima.jpg'})});
       load();
     };
 
@@ -4828,7 +4843,7 @@
       list.innerHTML = '<div class="muted">Loading...</div>';
 
       try {
-        const r = await fetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
+        const r = await adminFetch(`${API}/admin/subscribers?status=${filter}`, { headers: headers() });
         const j = await r.json();
 
         if (!j.ok) {
@@ -4840,7 +4855,7 @@
         $('#subsActiveCount').textContent = items.filter(s => s.status === 'active').length;
 
         // Get total count
-        const totalR = await fetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
+        const totalR = await adminFetch(`${API}/admin/subscribers?status=all`, { headers: headers() });
         const totalJ = await totalR.json();
         $('#subsTotalCount').textContent = (totalJ.items || []).length;
 
@@ -4886,7 +4901,7 @@
       content.innerHTML = '<span class="muted">Checking email configuration...</span>';
 
       try {
-        const r = await fetch(`${API}/admin/email-status`, { headers: headers() });
+        const r = await adminFetch(`${API}/admin/email-status`, { headers: headers() });
         const j = await r.json();
 
         if (!j.ok) {
@@ -5299,7 +5314,7 @@
 
       try {
         // Get current draft content
-        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const getRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
         const draft = await getRes.json();
 
         // Parse existing blocks
@@ -5335,7 +5350,7 @@
         }
 
         // Update the draft
-        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+        const updateRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
           method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
@@ -5683,7 +5698,7 @@
 
       try {
         // Get current draft
-        const getRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
+        const getRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
         const draft = await getRes.json();
         let blocks = draft.content_blocks?.blocks || [];
 
@@ -5735,7 +5750,7 @@
         });
 
         // Update draft
-        const updateRes = await fetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
+        const updateRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
           method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
@@ -5862,7 +5877,7 @@
           url += `&status=${billingStatusFilter}`;
         }
 
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
 
         // Handle non-OK HTTP responses (503, 502, etc.)
         if (!r.ok) {
@@ -5986,7 +6001,7 @@
       $('#mergeExecuteSection').style.display = 'none';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/identity/merge-preview`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/identity/merge-preview`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -6084,7 +6099,7 @@
       $('#mergeExecuteBtn').style.opacity = '0.4';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/identity/merge-execute`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/identity/merge-execute`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -6140,7 +6155,7 @@
         const filterId = ($('#mergeSourceId')?.value || '').trim() || ($('#mergeTargetId')?.value || '').trim();
         if (filterId) url += `&identity_id=${encodeURIComponent(filterId)}`;
 
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
         const j = await r.json();
         if (!j.ok) { out.innerHTML = `<span style="color:#ef4444;">Error: ${escMerge(j.error)}</span>`; return; }
 
@@ -6185,7 +6200,7 @@
       $('#orphanActionSection').style.display = 'none';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/orphans/summary?age_days=${ageDays}`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/orphans/summary?age_days=${ageDays}`, {
           headers: headers(), credentials: 'include'
         });
         const j = await r.json();
@@ -6241,7 +6256,7 @@
       const ageDays = parseInt($('#orphanAgeDays')?.value) || 30;
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/orphans/audit?asset_type=${assetType}&category=${category}&age_days=${ageDays}&limit=50`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/orphans/audit?asset_type=${assetType}&category=${category}&age_days=${ageDays}&limit=50`, {
           headers: headers(), credentials: 'include'
         });
         const j = await r.json();
@@ -6299,7 +6314,7 @@
       out.innerHTML = '<span style="color:#9ca3af;">' + (dryRun ? 'Running dry run...' : 'Quarantining...') + '</span>';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/orphans/quarantine`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/orphans/quarantine`, {
           method: 'POST', headers: headers(), credentials: 'include',
           body: JSON.stringify({ asset_type: assetType, category, age_days: ageDays, limit: 200, dry_run: dryRun }),
         });
@@ -6329,7 +6344,7 @@
       out.innerHTML = '<span style="color:#9ca3af;">' + (dryRun ? 'Running dry run...' : 'Fixing...') + '</span>';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/orphans/fix-merged`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/orphans/fix-merged`, {
           method: 'POST', headers: headers(), credentials: 'include',
           body: JSON.stringify({ asset_type: assetType, limit: 500, dry_run: dryRun }),
         });
@@ -6375,7 +6390,7 @@
 
       try {
         const url = `${BACKEND}/api/admin/billing/credit-analytics?days=${analyticsPeriod}`;
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
 
         if (!r.ok) {
           throw new Error(`HTTP ${r.status}: ${r.statusText}`);
@@ -6537,7 +6552,7 @@
       const grid = $('#opsProviderGrid');
       grid.innerHTML = '<div class="ops-loading">Loading provider health...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/provider-health`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/provider-health`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -6604,7 +6619,7 @@
       grid.innerHTML = '<div class="ops-loading">Loading provider balances...</div>';
       actionBar.innerHTML = '';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/provider-balances`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/provider-balances`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -6701,7 +6716,7 @@
       const desc = prompt('Optional note (e.g. "checked dashboard"):') || `Manual snapshot update`;
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/provider-ledger`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/provider-ledger`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -6757,7 +6772,7 @@
       const list = $('#opsAlertsList');
       list.innerHTML = '<div class="ops-loading">Loading alerts...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/alerts?active_only=true&limit=50`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/alerts?active_only=true&limit=50`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -6795,7 +6810,7 @@
       btn.disabled = true;
       btn.textContent = '...';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/alerts/${encodeURIComponent(id)}/resolve`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/alerts/${encodeURIComponent(id)}/resolve`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -6821,7 +6836,7 @@
       const list = $('#opsRefundList');
       list.innerHTML = '<div class="ops-loading">Loading refund review...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/refunds/review?days=30&limit=20`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/refunds/review?days=30&limit=20`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -6934,7 +6949,7 @@
       btn.textContent = 'Processing...';
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/refunds/execute`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/refunds/execute`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -6986,7 +7001,7 @@
         const ldt = $('#ledgerFilterDateTo')?.value;
         if (ldf) ledgerUrl += `&date_from=${encodeURIComponent(ldf)}`;
         if (ldt) ledgerUrl += `&date_to=${encodeURIComponent(ldt)}`;
-        const r = await fetch(ledgerUrl, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(ledgerUrl, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -7055,7 +7070,7 @@
         btn.disabled = true;
         btn.textContent = 'Saving...';
         try {
-          const r = await fetch(`${BACKEND}/api/admin/provider-ledger`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/provider-ledger`, {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
@@ -7090,7 +7105,7 @@
       const wrap = $('#opsMonthlyWrap');
       wrap.innerHTML = '<div class="ops-loading">Loading monthly spend...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/provider-spend/monthly?months=3`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/provider-spend/monthly?months=3`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -7183,7 +7198,7 @@
       btn.textContent = 'Exporting...';
       btn.disabled = true;
       try {
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const blob = await r.blob();
         const a = document.createElement('a');
@@ -7308,7 +7323,7 @@
       btn.textContent = 'Sending...';
       btn.disabled = true;
       try {
-        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/send-review-email`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/send-review-email`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -7342,7 +7357,7 @@
         const mollieCb = document.querySelector(`.exec-mollie-cb[data-refund-id="${refundId}"]`);
         const executeExternal = mollieCb ? mollieCb.checked : false;
 
-        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/execute-approved`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/execute-approved`, {
           method: 'POST',
           headers: headers(),
           credentials: 'include',
@@ -7393,7 +7408,7 @@
       btn.disabled = true;
 
       try {
-        const r = await fetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/resolve`, {
+        const r = await adminFetch(`${BACKEND}/api/admin/refunds/${encodeURIComponent(refundId)}/resolve`, {
           method: 'POST',
           headers: { ...headers(), 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -7446,7 +7461,7 @@
         if (df) url += `&date_from=${encodeURIComponent(df)}`;
         if (dt) url += `&date_to=${encodeURIComponent(dt)}`;
 
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -7552,7 +7567,7 @@
       modal.style.display = 'flex';
       content.innerHTML = '<div class="ops-loading">Loading purchase details...</div>';
       try {
-        const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}`, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}`, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -7712,7 +7727,7 @@
         btn.disabled = true;
         btn.textContent = 'Recording...';
         try {
-          const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/mark-dispute`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/mark-dispute`, {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
@@ -7768,7 +7783,7 @@
         if (df) url += `&date_from=${encodeURIComponent(df)}`;
         if (dt) url += `&date_to=${encodeURIComponent(dt)}`;
 
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
@@ -7884,7 +7899,7 @@
         btn.disabled = true;
         btn.textContent = 'Updating...';
         try {
-          const r = await fetch(`${BACKEND}/api/admin/disputes/${encodeURIComponent(disputeId)}/update`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/disputes/${encodeURIComponent(disputeId)}/update`, {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
@@ -7957,7 +7972,7 @@
       // Fetch purchase detail to infer flags (non-blocking)
       if (data.purchase_id) {
         try {
-          const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(data.purchase_id)}`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(data.purchase_id)}`, {
             headers: headers(), credentials: 'include'
           });
           const j = await r.json();
@@ -8009,7 +8024,7 @@
         btn.disabled = true;
         btn.textContent = 'Saving...';
         try {
-          const r = await fetch(`${BACKEND}/api/admin/disputes/${encodeURIComponent(disputeId)}/update`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/disputes/${encodeURIComponent(disputeId)}/update`, {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
@@ -8108,7 +8123,7 @@
         btn.disabled = true;
         btn.textContent = 'Creating...';
         try {
-          const r = await fetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/start-refund`, {
+          const r = await adminFetch(`${BACKEND}/api/admin/purchases/${encodeURIComponent(purchaseId)}/start-refund`, {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
@@ -8193,7 +8208,7 @@
       if (identityId) url += `&identity_id=${encodeURIComponent(identityId)}`;
 
       try {
-        const r = await fetch(url, { headers: headers(), credentials: 'include' });
+        const r = await adminFetch(url, { headers: headers(), credentials: 'include' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
