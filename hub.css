@@ -5389,6 +5389,46 @@ justify-content: center;
 font-size: 0.8rem;
 }
 
+/* Restore modal logout option */
+.ra-logout-divider {
+display: flex;
+align-items: center;
+gap: 12px;
+margin: 1.5rem 0 0.75rem;
+}
+
+.ra-logout-divider::before,
+.ra-logout-divider::after {
+content: '';
+flex: 1;
+height: 1px;
+background: rgba(255,255,255,.06);
+}
+
+.ra-logout-divider span {
+font-size: 0.72rem;
+color: rgba(255,255,255,.25);
+text-transform: uppercase;
+letter-spacing: 0.1em;
+}
+
+.ra-logout-btn {
+width: 100%;
+justify-content: center;
+gap: 6px;
+color: rgba(255,255,255,.4) !important;
+border-color: rgba(255,255,255,.06) !important;
+background: rgba(255,255,255,.02) !important;
+font-size: 0.82rem !important;
+transition: all 0.25s ease;
+}
+
+.ra-logout-btn:hover {
+color: rgba(255,120,120,.8) !important;
+border-color: rgba(255,120,120,.15) !important;
+background: rgba(255,120,120,.04) !important;
+}
+
 /* ==========================================================================
  Guest Chooser Modal
  ========================================================================== */
