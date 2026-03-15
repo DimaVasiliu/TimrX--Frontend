@@ -2669,6 +2669,9 @@
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
 
+    // Refresh subscription data so the section is visible
+    fetchSubscription();
+
     // Focus the first input or close button
     requestAnimationFrame(() => {
       const firstInput = secureCreditsCard.querySelector('input:not([style*="display: none"])');
