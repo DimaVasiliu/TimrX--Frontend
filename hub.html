@@ -1325,6 +1325,90 @@
       </div>
     </div>
 
+    <!-- ====================== RESTORE ACCOUNT MODAL (logged-in users) ====================== -->
+    <div class="modal" id="restoreAccountModal" aria-hidden="true">
+      <div class="modal-content modal-sm">
+        <button type="button" class="modal-close" id="restoreAccountClose" aria-label="Close">&times;</button>
+
+        <!-- Step 1: Intro / explanation -->
+        <div id="raStep1" class="ra-step">
+          <div class="modal-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          <h2>Restore Another Account</h2>
+          <p class="modal-subtitle">
+            This will <strong>switch</strong> you to a different TimrX account.
+            Your current credits and history will stay on your current account &mdash; they are <em>not</em> merged.
+          </p>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="raNextToEmail">Continue</button>
+            <button type="button" class="btn btn-link" id="raCancelStep1">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Email entry -->
+        <div id="raStep2" class="ra-step" style="display:none">
+          <div class="modal-icon"><i class="fa-solid fa-envelope"></i></div>
+          <h2>Enter Account Email</h2>
+          <p class="modal-subtitle">Enter the email linked to the account you want to restore.</p>
+          <div class="ra-input-group">
+            <input type="email" id="raEmailInput" placeholder="your@email.com" autocomplete="email">
+          </div>
+          <p id="raEmailError" class="secure-error"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="raSendCodeBtn">Send Code</button>
+            <button type="button" class="btn btn-link" id="raBackToIntro">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Code sent / verification -->
+        <div id="raStep3" class="ra-step" style="display:none">
+          <div class="modal-icon"><i class="fa-solid fa-key"></i></div>
+          <h2>Enter Verification Code</h2>
+          <p class="modal-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
+          <p id="raMergeNotice" class="modal-note" style="display:none"></p>
+          <div class="ra-input-group">
+            <input type="text" id="raCodeInput" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+          </div>
+          <p id="raCodeError" class="secure-error"></p>
+          <p id="raCodeMessage" class="secure-message"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="raVerifyBtn">Verify</button>
+            <div class="ra-code-actions">
+              <button type="button" class="btn btn-link" id="raResendBtn" disabled>Resend Code</button>
+              <button type="button" class="btn btn-link" id="raChangeEmail">Change Email</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Final confirmation before switching -->
+        <div id="raStep4" class="ra-step" style="display:none">
+          <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning, #f0ad4e)"></i></div>
+          <h2>Switch Account?</h2>
+          <p class="modal-subtitle" id="raConfirmMessage">
+            You are about to switch to the account linked to <strong id="raConfirmEmail">email</strong>.
+          </p>
+          <p class="modal-note" id="raConfirmCredits"></p>
+          <p class="modal-note">Your current credits and history will remain on your current account. This action switches your active session.</p>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="raConfirmSwitch">Switch Account</button>
+            <button type="button" class="btn btn-link" id="raCancelSwitch">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== GENERIC CONFIRM MODAL ====================== -->
+    <div class="modal" id="confirmModal" aria-hidden="true">
+      <div class="modal-content modal-sm">
+        <div class="modal-icon" id="confirmModalIcon"><i class="fa-solid fa-circle-question"></i></div>
+        <h2 id="confirmModalTitle">Confirm</h2>
+        <p class="modal-subtitle" id="confirmModalMessage">Are you sure?</p>
+        <div class="modal-actions">
+          <button type="button" class="btn" id="confirmModalYes">Confirm</button>
+          <button type="button" class="btn btn-link" id="confirmModalNo">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Prompt Tips Modal -->
     <div class="modal resource-modal" id="promptTipsModal" aria-hidden="true">
       <div class="card resource-modal-card">

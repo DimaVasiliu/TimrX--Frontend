@@ -990,12 +990,13 @@
         // Warn if user has credits they might lose
         const currentCredits = walletAvailable || 0;
         if (currentCredits > 0 && !emailVerified) {
-          const shouldRestore = window.confirm(
-            `This email is linked to another account.\n\n` +
-            `You currently have ${currentCredits} credits on this device. ` +
-            `Restoring will switch you to the other account's credits.\n\n` +
-            `Do you want to restore the other account?`
-          );
+          const shouldRestore = await showConfirm({
+            title: 'Switch Account?',
+            message: `This email is linked to another account.<br><br>You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device. Restoring will switch you to the other account's credits.`,
+            confirmText: 'Restore Account',
+            cancelText: 'Cancel',
+            icon: 'fa-arrow-right-arrow-left'
+          });
           if (!shouldRestore) {
             showSubError('Restore cancelled.', true);
             setSubBtnLoading(subVerifyBtn, false);
@@ -2650,6 +2651,357 @@
     }
   });
 
+  // ─────────────────────────────────────────────────────────────
+  // GENERIC CONFIRM MODAL (replaces window.confirm)
+  // ─────────────────────────────────────────────────────────────
+  const confirmModal = document.getElementById('confirmModal');
+  const confirmModalTitle = document.getElementById('confirmModalTitle');
+  const confirmModalMessage = document.getElementById('confirmModalMessage');
+  const confirmModalYes = document.getElementById('confirmModalYes');
+  const confirmModalNo = document.getElementById('confirmModalNo');
+  const confirmModalIcon = document.getElementById('confirmModalIcon');
+
+  let _confirmResolve = null;
+
+  /**
+   * Show a styled confirmation modal (replaces window.confirm)
+   * @param {Object} opts
+   * @param {string} opts.title
+   * @param {string} opts.message - supports HTML
+   * @param {string} [opts.confirmText='Confirm']
+   * @param {string} [opts.cancelText='Cancel']
+   * @param {string} [opts.icon='fa-circle-question']
+   * @returns {Promise<boolean>}
+   */
+  function showConfirm({ title, message, confirmText = 'Confirm', cancelText = 'Cancel', icon = 'fa-circle-question' }) {
+    if (!confirmModal) return Promise.resolve(true); // fallback if HTML missing
+
+    confirmModalTitle.textContent = title;
+    confirmModalMessage.innerHTML = message;
+    confirmModalYes.textContent = confirmText;
+    confirmModalNo.textContent = cancelText;
+    if (confirmModalIcon) confirmModalIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+
+    confirmModal.classList.add('open');
+    confirmModal.setAttribute('aria-hidden', 'false');
+    confirmModalYes?.focus();
+
+    return new Promise((resolve) => {
+      _confirmResolve = resolve;
+    });
+  }
+
+  function _closeConfirmModal(result) {
+    if (!confirmModal) return;
+    confirmModal.classList.remove('open');
+    confirmModal.setAttribute('aria-hidden', 'true');
+    if (_confirmResolve) {
+      _confirmResolve(result);
+      _confirmResolve = null;
+    }
+  }
+
+  confirmModalYes?.addEventListener('click', () => _closeConfirmModal(true));
+  confirmModalNo?.addEventListener('click', () => _closeConfirmModal(false));
+  confirmModal?.addEventListener('click', (e) => {
+    if (e.target === confirmModal) _closeConfirmModal(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && confirmModal?.classList.contains('open')) {
+      _closeConfirmModal(false);
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // RESTORE ACCOUNT MODAL (logged-in 4-step flow)
+  // ─────────────────────────────────────────────────────────────
+  const restoreAccountModal = document.getElementById('restoreAccountModal');
+  const restoreAccountClose = document.getElementById('restoreAccountClose');
+  // Step elements
+  const raStep1 = document.getElementById('raStep1');
+  const raStep2 = document.getElementById('raStep2');
+  const raStep3 = document.getElementById('raStep3');
+  const raStep4 = document.getElementById('raStep4');
+  const raEmailInput = document.getElementById('raEmailInput');
+  const raEmailError = document.getElementById('raEmailError');
+  const raSendCodeBtn = document.getElementById('raSendCodeBtn');
+  const raSentToEmail = document.getElementById('raSentToEmail');
+  const raMergeNotice = document.getElementById('raMergeNotice');
+  const raCodeInput = document.getElementById('raCodeInput');
+  const raCodeError = document.getElementById('raCodeError');
+  const raCodeMessage = document.getElementById('raCodeMessage');
+  const raVerifyBtn = document.getElementById('raVerifyBtn');
+  const raResendBtn = document.getElementById('raResendBtn');
+  const raConfirmEmail = document.getElementById('raConfirmEmail');
+  const raConfirmCredits = document.getElementById('raConfirmCredits');
+
+  let raPendingEmail = '';
+  let raResendCooldown = 0;
+  let raResendTimer = null;
+
+  function showRaStep(n) {
+    [raStep1, raStep2, raStep3, raStep4].forEach((el, i) => {
+      if (el) el.style.display = (i === n - 1) ? 'block' : 'none';
+    });
+    // Clear errors when switching steps
+    if (raEmailError) raEmailError.textContent = '';
+    if (raCodeError) raCodeError.textContent = '';
+    if (raCodeMessage) raCodeMessage.textContent = '';
+  }
+
+  function openRestoreAccountModal() {
+    if (!restoreAccountModal) return;
+    raPendingEmail = '';
+    if (raEmailInput) raEmailInput.value = '';
+    if (raCodeInput) raCodeInput.value = '';
+    showRaStep(1);
+    restoreAccountModal.classList.add('open');
+    restoreAccountModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeRestoreAccountModal() {
+    if (!restoreAccountModal) return;
+    restoreAccountModal.classList.remove('open');
+    restoreAccountModal.setAttribute('aria-hidden', 'true');
+    if (raResendTimer) { clearInterval(raResendTimer); raResendTimer = null; }
+  }
+
+  // Close handlers
+  restoreAccountClose?.addEventListener('click', closeRestoreAccountModal);
+  restoreAccountModal?.addEventListener('click', (e) => {
+    if (e.target === restoreAccountModal) closeRestoreAccountModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && restoreAccountModal?.classList.contains('open')) {
+      closeRestoreAccountModal();
+    }
+  });
+
+  // Step 1 → Step 2
+  document.getElementById('raNextToEmail')?.addEventListener('click', () => {
+    showRaStep(2);
+    raEmailInput?.focus();
+  });
+  document.getElementById('raCancelStep1')?.addEventListener('click', closeRestoreAccountModal);
+
+  // Step 2: Send code
+  async function raSendCode() {
+    const email = raEmailInput?.value?.trim().toLowerCase();
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      if (raEmailError) raEmailError.textContent = 'Please enter a valid email address';
+      return;
+    }
+
+    raPendingEmail = email;
+    raSendCodeBtn?.classList.add('loading');
+    if (raEmailError) raEmailError.textContent = '';
+
+    try {
+      const result = await apiFetch('/api/auth/restore/request', {
+        method: 'POST',
+        body: { email },
+        timeout: 15000
+      });
+
+      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
+        if (raEmailError) raEmailError.textContent = result.data.error.message || 'Please wait before requesting another code';
+        return;
+      }
+
+      const responseData = result.data || {};
+      const resolvedEmail = responseData.resolved_email;
+      const mergeRedirected = responseData.merge_redirected;
+
+      if (mergeRedirected && resolvedEmail) {
+        if (raSentToEmail) raSentToEmail.textContent = resolvedEmail;
+        if (raMergeNotice) {
+          raMergeNotice.textContent = `This email is linked to a merged account. The code was sent to: ${resolvedEmail}`;
+          raMergeNotice.style.display = 'block';
+        }
+      } else {
+        if (raSentToEmail) raSentToEmail.textContent = email;
+        if (raMergeNotice) raMergeNotice.style.display = 'none';
+      }
+
+      showRaStep(3);
+      raStartResendCooldown();
+      raCodeInput?.focus();
+
+    } catch (err) {
+      console.error('[RestoreAccount] sendCode error:', err);
+      if (raSentToEmail) raSentToEmail.textContent = email;
+      if (raMergeNotice) raMergeNotice.style.display = 'none';
+      showRaStep(3);
+      raStartResendCooldown();
+      raCodeInput?.focus();
+    } finally {
+      raSendCodeBtn?.classList.remove('loading');
+    }
+  }
+
+  raSendCodeBtn?.addEventListener('click', raSendCode);
+  raEmailInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); raSendCode(); }
+  });
+
+  // Step 2 back
+  document.getElementById('raBackToIntro')?.addEventListener('click', () => showRaStep(1));
+
+  // Step 3: Verify code → goes to Step 4 for final confirmation
+  async function raVerifyCode() {
+    const code = raCodeInput?.value?.trim();
+    if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
+      if (raCodeError) raCodeError.textContent = 'Code must be 6 digits';
+      return;
+    }
+
+    raVerifyBtn?.classList.add('loading');
+    if (raCodeError) raCodeError.textContent = '';
+    if (raCodeMessage) raCodeMessage.textContent = 'Verifying...';
+
+    try {
+      const result = await apiFetch('/api/auth/restore/redeem', {
+        method: 'POST',
+        body: { email: raPendingEmail, code }
+      });
+
+      if (!result.ok) {
+        const errorCode = result.data?.error?.code;
+        if (errorCode === 'INVALID_CODE') {
+          if (raCodeError) raCodeError.textContent = 'Invalid or expired code';
+        } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
+          if (raCodeError) raCodeError.textContent = 'Too many attempts. Please request a new code.';
+        } else if (errorCode === 'CODE_EXPIRED') {
+          if (raCodeError) raCodeError.textContent = 'Code has expired. Please request a new one.';
+        } else {
+          if (raCodeError) raCodeError.textContent = result.error || 'Verification failed';
+        }
+        if (raCodeMessage) raCodeMessage.textContent = '';
+        raVerifyBtn?.classList.remove('loading');
+        return;
+      }
+
+      // Success — code is valid. Show final confirmation (Step 4)
+      if (raConfirmEmail) raConfirmEmail.textContent = raPendingEmail;
+
+      // Show credit context in confirmation
+      const currentCredits = walletAvailable || 0;
+      if (raConfirmCredits && currentCredits > 0) {
+        raConfirmCredits.textContent = `You currently have ${currentCredits.toLocaleString()} credits. They will remain on your current account.`;
+        raConfirmCredits.style.display = 'block';
+      } else if (raConfirmCredits) {
+        raConfirmCredits.style.display = 'none';
+      }
+
+      if (raCodeMessage) raCodeMessage.textContent = '';
+      showRaStep(4);
+
+    } catch (err) {
+      console.error('[RestoreAccount] verifyCode error:', err);
+      if (raCodeError) raCodeError.textContent = 'Verification failed. Please try again.';
+      if (raCodeMessage) raCodeMessage.textContent = '';
+    } finally {
+      raVerifyBtn?.classList.remove('loading');
+    }
+  }
+
+  raVerifyBtn?.addEventListener('click', raVerifyCode);
+  raCodeInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); raVerifyCode(); }
+  });
+
+  // Step 3: Resend
+  function raStartResendCooldown() {
+    raResendCooldown = 60;
+    raUpdateResendBtn();
+    if (raResendTimer) clearInterval(raResendTimer);
+    raResendTimer = setInterval(() => {
+      raResendCooldown--;
+      raUpdateResendBtn();
+      if (raResendCooldown <= 0) { clearInterval(raResendTimer); raResendTimer = null; }
+    }, 1000);
+  }
+
+  function raUpdateResendBtn() {
+    if (!raResendBtn) return;
+    if (raResendCooldown > 0) {
+      raResendBtn.disabled = true;
+      raResendBtn.textContent = `Resend (${raResendCooldown}s)`;
+    } else {
+      raResendBtn.disabled = false;
+      raResendBtn.textContent = 'Resend Code';
+    }
+  }
+
+  raResendBtn?.addEventListener('click', async () => {
+    if (raResendCooldown > 0) return;
+    raResendBtn?.classList.add('loading');
+    try {
+      const result = await apiFetch('/api/auth/restore/request', {
+        method: 'POST',
+        body: { email: raPendingEmail },
+        timeout: 15000
+      });
+      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
+        if (raCodeError) raCodeError.textContent = result.data.error.message || 'Please wait before requesting another code';
+        return;
+      }
+      const resendData = result.data || {};
+      if (resendData.merge_redirected && resendData.resolved_email) {
+        if (raSentToEmail) raSentToEmail.textContent = resendData.resolved_email;
+        if (raCodeMessage) raCodeMessage.textContent = `New code sent to ${resendData.resolved_email}`;
+      } else {
+        if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
+      }
+      raStartResendCooldown();
+      if (raCodeInput) raCodeInput.value = '';
+    } catch (err) {
+      if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
+      raStartResendCooldown();
+    } finally {
+      raResendBtn?.classList.remove('loading');
+    }
+  });
+
+  // Step 3: Change email → back to step 2
+  document.getElementById('raChangeEmail')?.addEventListener('click', () => {
+    showRaStep(2);
+    raEmailInput?.focus();
+  });
+
+  // Step 4: Confirm switch
+  document.getElementById('raConfirmSwitch')?.addEventListener('click', async () => {
+    const confirmBtn = document.getElementById('raConfirmSwitch');
+    confirmBtn?.classList.add('loading');
+
+    try {
+      // The restore/redeem already executed successfully in step 3.
+      // Refresh wallet and session state.
+      console.log('[RestoreAccount] Account switch confirmed');
+      userEmail = raPendingEmail;
+      emailVerified = true;
+      isRestoreMode = false;
+
+      const wallet = await fetchWallet();
+      await fetchSubscription();
+
+      if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
+
+      closeRestoreAccountModal();
+
+      // Show restore success celebration
+      const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
+      openRestoreSuccessModal(restoredCredits);
+
+    } catch (err) {
+      console.error('[RestoreAccount] confirm switch error:', err);
+    } finally {
+      confirmBtn?.classList.remove('loading');
+    }
+  });
+
+  document.getElementById('raCancelSwitch')?.addEventListener('click', closeRestoreAccountModal);
+
   /**
    * Open the secure credits modal
    */
@@ -2707,9 +3059,16 @@
   }
 
   /**
-   * Toggle the secure credits modal visibility
+   * Toggle the secure credits modal visibility.
+   * When logged in (emailVerified), opens restore-account flow instead.
    */
   function toggleSecureCredits() {
+    // If already logged in, open restore-only flow
+    if (emailVerified) {
+      openRestoreAccountModal();
+      return;
+    }
+
     if (!secureCreditsCard) return;
 
     const isExpanded = secureCreditsCard.classList.contains('expanded');
@@ -3120,12 +3479,13 @@
 
         if (currentCredits > 0 && !emailVerified) {
           // Warn user about potential credit loss
-          shouldRestore = window.confirm(
-            `This email is linked to another account.\n\n` +
-            `You currently have ${currentCredits} credits on this device. ` +
-            `Restoring will switch you to the other account's credits.\n\n` +
-            `Do you want to restore the other account?`
-          );
+          shouldRestore = await showConfirm({
+            title: 'Switch Account?',
+            message: `This email is linked to another account.<br><br>You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device. Restoring will switch you to the other account's credits.`,
+            confirmText: 'Restore Account',
+            cancelText: 'Cancel',
+            icon: 'fa-arrow-right-arrow-left'
+          });
         }
 
         if (!shouldRestore) {
@@ -3338,17 +3698,19 @@
    * Switch to restore mode for existing account
    * Shows warning if user has credits on current identity
    */
-  function showRestoreMode() {
+  async function showRestoreMode() {
     // Check if user has credits on their current anonymous identity
     const currentCredits = walletAvailable || 0;
 
     if (currentCredits > 0 && !emailVerified) {
       // Warn user about potential credit loss
-      const confirmRestore = window.confirm(
-        `You currently have ${currentCredits} credits on this device.\n\n` +
-        `If you restore a different account, you'll switch to that account's credits instead.\n\n` +
-        `Do you want to continue with restore?`
-      );
+      const confirmRestore = await showConfirm({
+        title: 'Switch Account?',
+        message: `You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device.<br><br>If you restore a different account, you'll switch to that account's credits instead.`,
+        confirmText: 'Continue with Restore',
+        cancelText: 'Cancel',
+        icon: 'fa-arrow-right-arrow-left'
+      });
 
       if (!confirmRestore) {
         return; // User cancelled
