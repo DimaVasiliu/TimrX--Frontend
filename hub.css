@@ -185,39 +185,58 @@ background: rgba(125,211,252,.12);
 transform: translateY(-1px);
 }
 
-/* Hover panel — two-row breakdown of both credit pools */
-.credits-hover-panel {
-display: none;
+/* Floating hover tooltip — same visual as 3dprint's .ws-credits-tooltip */
+.credits-hover-tooltip {
 position: absolute;
-bottom: calc(100% + 8px);
+top: calc(100% + 8px);
 right: 0;
-min-width: 170px;
-padding: 10px 12px;
-background: rgba(12,12,18,0.97);
-border: 1px solid rgba(125,211,252,.22);
+min-width: 180px;
+padding: 10px 14px;
+background: rgba(20, 20, 24, 0.95);
+border: 1px solid rgba(255, 255, 255, 0.1);
 border-radius: 10px;
-box-shadow: 0 8px 28px rgba(0,0,0,0.55);
-z-index: 200;
+-webkit-backdrop-filter: blur(12px);
+backdrop-filter: blur(12px);
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+display: flex;
 flex-direction: column;
 gap: 6px;
+opacity: 0;
+visibility: hidden;
+transform: translateY(-4px);
+transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
 pointer-events: none;
+z-index: 200;
 white-space: nowrap;
 }
-.credits-pill:hover .credits-hover-panel {
-display: flex;
+.credits-pill:hover .credits-hover-tooltip {
+opacity: 1;
+visibility: visible;
+transform: translateY(0);
 }
-.credits-hover-row {
+.credits-hover-tooltip-row {
 display: flex;
 align-items: center;
 gap: 8px;
 font-size: 12px;
 font-weight: 500;
-color: #bfdbfe;
+color: rgba(255, 255, 255, 0.7);
+white-space: nowrap;
 }
-.credits-hover-row i { font-size: 11px; opacity: 0.7; min-width: 12px; }
-.credits-hover-row span:last-child { margin-left: auto; font-weight: 700; color: #e0f2fe; }
-.credits-hover-row:last-child { color: #ddd6fe; }
-.credits-hover-row:last-child span:last-child { color: #ede9fe; }
+.credits-hover-tooltip-row i {
+width: 14px;
+text-align: center;
+font-size: 11px;
+filter: none;
+}
+.credits-hover-tooltip-row:first-child i { color: #a78bfa; }
+.credits-hover-tooltip-row:last-child i { color: #60a5fa; }
+.credits-hover-tooltip-val {
+margin-left: auto;
+font-weight: 700;
+color: rgba(255, 255, 255, 0.95);
+font-variant-numeric: tabular-nums;
+}
 
 /* Low credits warning */
 .credits-pill.low {
