@@ -129,6 +129,24 @@ align-items: center;
 gap: 6px;
 }
 
+/* Video credits badge — appears next to general pill when user has video credits */
+.video-credits-pill {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+padding: 6px 10px;
+border-radius: 999px;
+border: 1px solid rgba(167,139,250,.35);
+background: rgba(139,92,246,.08);
+color: #c4b5fd;
+font-size: 12px;
+font-weight: 500;
+white-space: nowrap;
+cursor: default;
+transition: all 0.2s;
+}
+.video-credits-pill i { font-size: 10px; opacity: 0.8; }
+
 .credits-pill {
 position: relative;
 display: inline-flex;

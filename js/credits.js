@@ -260,6 +260,8 @@
   // DOM elements
   const creditsPill = document.getElementById('creditsPill');
   const creditsValue = document.getElementById('creditsValue');
+  const videoCreditsPill = document.getElementById('videoCreditsPill');
+  const videoCreditsValue = document.getElementById('videoCreditsValue');
   const buyCreditsBtn = document.getElementById('buyCreditsBtn');
   const buyCreditsModal = document.getElementById('buyCreditsModal');
   const buyCreditsClose = document.getElementById('buyCreditsClose');
@@ -297,6 +299,9 @@
       balance: 0,
       reserved: 0,
       available: 0,
+      videoBalance: 0,
+      videoReserved: 0,
+      videoAvailable: 0,
       identityId: null,
       email: null,
       emailVerified: false,
@@ -314,6 +319,9 @@
         available: this._state.available,
         balance: this._state.balance,
         reserved: this._state.reserved,
+        videoAvailable: this._state.videoAvailable,
+        videoBalance: this._state.videoBalance,
+        videoReserved: this._state.videoReserved,
         identityId: this._state.identityId,
         email: this._state.email,
         emailVerified: this._state.emailVerified,
@@ -330,6 +338,9 @@
       this._state.balance = data.balance ?? this._state.balance;
       this._state.reserved = data.reserved ?? this._state.reserved;
       this._state.available = data.available ?? this._state.available;
+      this._state.videoBalance = data.videoBalance ?? this._state.videoBalance;
+      this._state.videoReserved = data.videoReserved ?? this._state.videoReserved;
+      this._state.videoAvailable = data.videoAvailable ?? this._state.videoAvailable;
       this._state.identityId = data.identityId ?? this._state.identityId;
       this._state.email = data.email ?? this._state.email;
       this._state.emailVerified = data.emailVerified ?? this._state.emailVerified;
@@ -346,7 +357,8 @@
       // Broadcast wallet update event
       this.broadcast();
 
-      console.log('[WalletStore] Updated:', this._state.available, 'credits (was:', prev.available, ')');
+      console.log('[WalletStore] Updated: general=%d video=%d (was: %d/%d)',
+        this._state.available, this._state.videoAvailable, prev.available, prev.videoAvailable);
     },
 
     /**
@@ -428,12 +440,18 @@
       const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
       const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
       const id = data.identity_id || null;
+      const videoBalance = data.balance_video_credits ?? 0;
+      const videoReserved = data.reserved_video_credits ?? 0;
+      const videoAvailable = data.available_video_credits ?? Math.max(0, videoBalance - videoReserved);
 
       // Update WalletStore (this also broadcasts the event and updates module vars)
       WalletStore.update({
         balance,
         reserved,
         available,
+        videoBalance,
+        videoReserved,
+        videoAvailable,
         identityId: id,
         email: data.email || null,
         emailVerified: data.email_verified || false,
@@ -509,7 +527,7 @@
   function updateCreditsDisplay(available, total, reserved) {
     if (!creditsValue) return;
 
-    // Show available credits
+    // Show available general credits
     creditsValue.textContent = available.toLocaleString();
 
     // Add visual indicator if credits are low
@@ -520,7 +538,16 @@
       creditsPill.classList.toggle('has-credits', available > 0);
     }
 
-    console.log('[Credits] UI updated: available=' + available + ', total=' + total + ', reserved=' + reserved);
+    // Update video credits pill
+    const videoAvail = WalletStore._state.videoAvailable || 0;
+    if (videoCreditsPill) {
+      videoCreditsPill.style.display = videoAvail > 0 ? 'inline-flex' : 'none';
+    }
+    if (videoCreditsValue) {
+      videoCreditsValue.textContent = videoAvail.toLocaleString();
+    }
+
+    console.log('[Credits] UI updated: available=' + available + ', total=' + total + ', reserved=' + reserved + ', video=' + videoAvail);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1027,6 +1054,9 @@
           balance: meResult.data.balance_credits ?? 0,
           reserved: meResult.data.reserved_credits ?? 0,
           available: meResult.data.available_credits ?? 0,
+          videoBalance: meResult.data.balance_video_credits ?? 0,
+          videoReserved: meResult.data.reserved_video_credits ?? 0,
+          videoAvailable: meResult.data.available_video_credits ?? 0,
           identityId: meResult.data.identity_id,
           email: meResult.data.email,
           emailVerified: meResult.data.email_verified,
@@ -1494,11 +1524,13 @@
 
         // Store current balance BEFORE redirect
         sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
-        console.log('[Credits] Video: Stored pre-checkout balance:', walletAvailable || 0);
+        sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
+        console.log('[Credits] Video: Stored pre-checkout balance:', walletAvailable || 0, 'video:', WalletStore._state.videoAvailable || 0);
 
-        // Store the plan's credit grant for optimistic balance display
+        // Store the plan's credit grant and plan code for post-return type detection
         sessionStorage.setItem('timrx_pending_plan_credits', String(plan.credits));
-        console.log('[Credits] Video: Stored plan credits:', plan.credits);
+        sessionStorage.setItem('timrx_pending_plan_code', selectedVideoPlan);
+        console.log('[Credits] Video: Stored plan credits:', plan.credits, 'plan_code:', selectedVideoPlan);
 
         // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
@@ -1554,6 +1586,7 @@
     isOpen: false,
     isPending: true,
     preCheckoutBalance: 0,
+    isVideoPlan: false,
   };
 
   // Track focus before success modal opens
@@ -1705,14 +1738,20 @@
     const wallet = event.detail;
     if (!wallet || !successModalState.isOpen) return;
 
-    console.log('[Credits] Wallet event while modal open, pending:', successModalState.isPending, 'balance:', wallet.available);
+    // Use the correct pool balance depending on what was purchased
+    const relevantBalance = successModalState.isVideoPlan
+      ? (wallet.videoAvailable ?? 0)
+      : wallet.available;
+
+    console.log('[Credits] Wallet event while modal open, pending:', successModalState.isPending,
+      'balance:', relevantBalance, successModalState.isVideoPlan ? '(video)' : '(general)');
 
     // If modal is pending and balance increased, transition to complete
-    if (successModalState.isPending && wallet.available > successModalState.preCheckoutBalance) {
-      transitionSuccessModalToComplete(wallet.available);
+    if (successModalState.isPending && relevantBalance > successModalState.preCheckoutBalance) {
+      transitionSuccessModalToComplete(relevantBalance);
     } else if (!successModalState.isPending && successCreditsValue) {
       // Update balance display if modal is showing success
-      successCreditsValue.textContent = wallet.available.toLocaleString();
+      successCreditsValue.textContent = relevantBalance.toLocaleString();
     }
   });
 
@@ -2160,12 +2199,15 @@
         // Store current balance BEFORE redirect - used to detect balance change on return
         // This is critical: if webhook arrives before redirect, walletAvailable will already be updated
         sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+        sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
         console.log('[Credits] Stored pre-checkout balance:', walletAvailable || 0);
 
-        // Store the plan's credit grant for optimistic balance display on return
+        // Store the plan's credit grant and plan code for post-return type detection
         const planCredits = selectedPlan.credits || PLANS[selectedPlan.id]?.credits || 0;
+        const planCode = selectedPlan.plan_code || selectedPlan.id || '';
         sessionStorage.setItem('timrx_pending_plan_credits', String(planCredits));
-        console.log('[Credits] Stored plan credits:', planCredits);
+        sessionStorage.setItem('timrx_pending_plan_code', planCode);
+        console.log('[Credits] Stored plan credits:', planCredits, 'plan_code:', planCode);
 
         // Redirect to Mollie checkout
         window.location.href = data.checkout_url;
@@ -2382,35 +2424,51 @@
     // Clean URL immediately
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Get stored payment_id, pre-checkout balance, and plan credits from sessionStorage
+    // Get stored payment_id, pre-checkout balances, plan credits, and plan code from sessionStorage
     const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
     const preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
+    const preCheckoutVideoBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_video_balance') || '0', 10);
     const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+    const pendingPlanCode = sessionStorage.getItem('timrx_pending_plan_code') || '';
+    const isVideoPlan = pendingPlanCode.startsWith('video_');
 
-    // Calculate OPTIMISTIC balance immediately (don't wait for server)
-    const optimisticBalance = preCheckoutBalance + planCredits;
+    // Choose the right pre-checkout base depending on credit pool
+    const initialBalance = isVideoPlan ? preCheckoutVideoBalance : preCheckoutBalance;
+
+    // Calculate OPTIMISTIC balance for the correct pool
+    const optimisticBalance = initialBalance + planCredits;
     const displayBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
 
-    console.log('[Credits] Checkout success - pre:', preCheckoutBalance, 'plan credits:', planCredits, 'optimistic:', optimisticBalance);
+    console.log('[Credits] Checkout success - plan:', pendingPlanCode, 'isVideo:', isVideoPlan,
+      'pre:', initialBalance, 'credits:', planCredits, 'optimistic:', optimisticBalance);
 
     // Store pre-checkout balance in modal state for event listener comparison
-    successModalState.preCheckoutBalance = preCheckoutBalance;
+    successModalState.preCheckoutBalance = isVideoPlan ? preCheckoutVideoBalance : preCheckoutBalance;
+    successModalState.isVideoPlan = isVideoPlan;
 
     // IMMEDIATELY show success modal with OPTIMISTIC balance (not pending state)
     // This gives instant feedback - user sees expected new balance right away
     if (planCredits > 0) {
       // We know how many credits were purchased - show optimistic balance immediately
       openSuccessModal(optimisticBalance, false);  // false = not pending, show as complete
-      console.log('[Credits] Showing optimistic balance:', optimisticBalance);
+      console.log('[Credits] Showing optimistic balance:', optimisticBalance, isVideoPlan ? '(video pool)' : '(general pool)');
 
-      // Update local wallet state optimistically
-      walletAvailable = optimisticBalance;
-      walletBalance = optimisticBalance;
-      WalletStore.update({
-        balance: optimisticBalance,
-        reserved: 0,
-        available: optimisticBalance,
-      });
+      // Update local wallet state optimistically — only touch the correct credit pool
+      if (isVideoPlan) {
+        WalletStore.update({
+          videoBalance: optimisticBalance,
+          videoReserved: 0,
+          videoAvailable: optimisticBalance,
+        });
+      } else {
+        walletAvailable = optimisticBalance;
+        walletBalance = optimisticBalance;
+        WalletStore.update({
+          balance: optimisticBalance,
+          reserved: 0,
+          available: optimisticBalance,
+        });
+      }
     } else {
       // Fallback: no plan credits stored, show pending state
       openSuccessModal(displayBalance, true);
@@ -2418,11 +2476,12 @@
 
     // Clean up stored values
     sessionStorage.removeItem('timrx_pre_checkout_balance');
+    sessionStorage.removeItem('timrx_pre_checkout_video_balance');
     sessionStorage.removeItem('timrx_pending_plan_credits');
+    sessionStorage.removeItem('timrx_pending_plan_code');
 
     // Run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
-      const initialBalance = preCheckoutBalance;
 
       // Step 1: If we have payment_id, call confirm endpoint with longer timeout
       if (pendingPaymentId) {
@@ -2441,20 +2500,39 @@
             console.log('[Credits] Confirm response:', confirmData);
 
             if (confirmData.ok && confirmData.credits_granted) {
-              // Credits were granted - USE BALANCE FROM CONFIRM RESPONSE if available
-              const newBalance = confirmData.available_credits ?? confirmData.balance_credits ?? null;
+              // Pick the right balance field based on credit type in confirm response
+              const confirmedCreditType = confirmData.credit_type || (isVideoPlan ? 'video' : 'general');
+              const isVideoConfirm = confirmedCreditType === 'video';
+
+              const newBalance = isVideoConfirm
+                ? (confirmData.available_video_credits ?? confirmData.balance_video_credits ?? null)
+                : (confirmData.available_credits ?? confirmData.balance_credits ?? null);
 
               if (newBalance !== null && newBalance > initialBalance) {
                 // We have a valid balance from confirm response - update directly!
-                console.log('[Credits] Using balance from confirm response:', newBalance);
-                WalletStore.update({
-                  balance: confirmData.balance_credits ?? newBalance,
-                  reserved: confirmData.reserved_credits ?? 0,
-                  available: newBalance,
-                  identityId: confirmData.identity_id || identityId,
-                  email: confirmData.email || userEmail,
-                  emailVerified: confirmData.email_verified ?? emailVerified,
-                });
+                console.log('[Credits] Using balance from confirm response:', newBalance, isVideoConfirm ? '(video)' : '(general)');
+                if (isVideoConfirm) {
+                  WalletStore.update({
+                    videoBalance: confirmData.balance_video_credits ?? newBalance,
+                    videoReserved: confirmData.reserved_video_credits ?? 0,
+                    videoAvailable: newBalance,
+                    // Also store general pool values if present
+                    balance: confirmData.balance_credits ?? WalletStore._state.balance,
+                    reserved: confirmData.reserved_credits ?? WalletStore._state.reserved,
+                    available: confirmData.available_credits ?? WalletStore._state.available,
+                    identityId: confirmData.identity_id || identityId,
+                  });
+                } else {
+                  WalletStore.update({
+                    balance: confirmData.balance_credits ?? newBalance,
+                    reserved: confirmData.reserved_credits ?? 0,
+                    available: newBalance,
+                    videoBalance: confirmData.balance_video_credits ?? WalletStore._state.videoBalance,
+                    videoReserved: confirmData.reserved_video_credits ?? WalletStore._state.videoReserved,
+                    videoAvailable: confirmData.available_video_credits ?? WalletStore._state.videoAvailable,
+                    identityId: confirmData.identity_id || identityId,
+                  });
+                }
                 // Modal will auto-update via wallet event listener
                 return;
               }
@@ -2493,9 +2571,12 @@
 
         try {
           const wallet = await fetchWallet({ force: true, timeout: 8000 });
-          const serverBalance = wallet ? wallet.available : 0;
+          // Check the correct pool based on what was purchased
+          const serverBalance = wallet
+            ? (isVideoPlan ? (wallet.videoAvailable ?? 0) : wallet.available)
+            : 0;
 
-          console.log(`[Credits] Reconcile ${attempts}/${maxAttempts}: server=${serverBalance}, expected=${initialBalance + planCredits}`);
+          console.log(`[Credits] Reconcile ${attempts}/${maxAttempts}: server=${serverBalance} (${isVideoPlan ? 'video' : 'general'}), expected=${initialBalance + planCredits}`);
 
           // If server balance is what we expected (or higher), we're done
           if (serverBalance >= initialBalance + planCredits) {
