@@ -2659,6 +2659,8 @@
   // Restore success modal elements
   const restoreSuccessModal = document.getElementById('restoreSuccessModal');
   const restoreCreditsValue = document.getElementById('restoreCreditsValue');
+  const restoreVideoRow = document.getElementById('restoreVideoRow');
+  const restoreVideoValue = document.getElementById('restoreVideoValue');
   const restoreSuccessCloseBtn = document.getElementById('restoreSuccessCloseBtn');
 
   // Track focus before restore success modal opens
@@ -2666,18 +2668,24 @@
 
   /**
    * Open the restore success modal with animation
-   * @param {number} credits - The restored credits balance to display
+   * @param {number} credits - The restored general credits balance to display
+   * @param {number} [videoCredits] - The restored video credits balance (optional)
    */
-  function openRestoreSuccessModal(credits) {
+  function openRestoreSuccessModal(credits, videoCredits) {
     if (!restoreSuccessModal) return;
 
     // Store current focus before opening
     lastFocusBeforeRestoreModal = document.activeElement;
 
-    // Update credits display
+    // Update general credits display
     if (restoreCreditsValue) {
       restoreCreditsValue.textContent = credits != null ? credits.toLocaleString() : '--';
     }
+
+    // Show video credits row only when user has video credits
+    const videoAmt = Number(videoCredits) || 0;
+    if (restoreVideoRow) restoreVideoRow.style.display = videoAmt > 0 ? 'flex' : 'none';
+    if (restoreVideoValue) restoreVideoValue.textContent = videoAmt.toLocaleString();
 
     // Force reflow to restart animations
     restoreSuccessModal.classList.remove('open');
@@ -3133,7 +3141,8 @@
 
       // Show restore success celebration
       const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-      openRestoreSuccessModal(restoredCredits);
+      const restoredVideoCredits = wallet?.videoAvailable ?? 0;
+      openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
 
     } catch (err) {
       console.error('[RestoreAccount] confirm switch error:', err);
@@ -3709,7 +3718,8 @@
             verifyCodeBtn?.classList.remove('loading');
             // Show restore success popup if this was a restore operation
             if (wasRestoreMode) {
-              openRestoreSuccessModal(restoredCredits);
+              const restoredVideoCredits = meResult.data.available_video_credits ?? 0;
+              openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
             }
             return;
           }
@@ -3792,7 +3802,8 @@
     // Show restore success popup if this was a restore operation
     if (wasRestoreMode) {
       const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-      openRestoreSuccessModal(restoredCredits);
+      const restoredVideoCredits = wallet?.videoAvailable ?? 0;
+      openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
     } else if (subscriptionsResumed > 0) {
       // Show subscription resumed toast
       showToast('Email verified. Subscription resumed.', 'success');

@@ -945,6 +945,30 @@ position: relative;
 z-index: 1;
 }
 
+.restore-video-row {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+margin-top: 12px;
+padding: 7px 14px;
+background: rgba(139, 92, 246, 0.1);
+border: 1px solid rgba(139, 92, 246, 0.25);
+border-radius: 999px;
+color: #c4b5fd;
+font-size: 13px;
+font-weight: 600;
+position: relative;
+z-index: 1;
+align-self: center;
+}
+.restore-video-row i { font-size: 12px; opacity: 0.85; }
+.restore-video-row .restore-video-label {
+color: rgba(196, 181, 253, 0.7);
+font-weight: 500;
+font-size: 12px;
+}
+
 /* Action buttons */
 .restore-actions {
 display: flex;
