@@ -238,9 +238,12 @@ export async function fetchWallet() {
         const serverIdentityId = data.identity_id || null;
 
         // Video credits (separate pool)
-        const videoBalance = data.video_credits_balance ?? data.video_balance_credits ?? 0;
-        const videoReserved = data.video_reserved_credits ?? 0;
-        const videoAvailable = data.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+        // /api/me uses balance_video_credits / available_video_credits
+        // /api/credits/wallet uses video_credits_balance / video_available_credits
+        // Accept both naming conventions with proper priority order
+        const videoBalance = data.balance_video_credits ?? data.video_credits_balance ?? data.video_balance_credits ?? 0;
+        const videoReserved = data.reserved_video_credits ?? data.video_reserved_credits ?? 0;
+        const videoAvailable = data.available_video_credits ?? data.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
 
         // AUTH-6: Cross-subdomain freshness check.
         // Compare server state against locally stored auth stamp.
@@ -576,10 +579,13 @@ export function getActionCost(action) {
 }
 
 /**
- * Check if user has enough credits for an action
+ * Check if user has enough credits for an action (pool-aware)
  */
 export function hasCreditsFor(action) {
   const cost = getActionCost(action);
+  if (isVideoAction(action)) {
+    return creditsState.wallet.videoAvailable >= cost;
+  }
   return creditsState.wallet.available >= cost;
 }
 
@@ -1069,9 +1075,11 @@ export function reserveAmount({ action, amount, meta = {} }) {
     return { reservationId: null, amount: 0 };
   }
 
-  // Check if enough credits available (accounting for existing reservations)
-  const available = Number(creditsState.wallet.available) || 0;
-  const reserved = Number(creditsState.totalReserved) || 0;
+  // Pool-aware availability check: video actions use the video credits pool
+  const isVidAction = isVideoAction(action || '');
+  const available = Number(isVidAction ? creditsState.wallet.videoAvailable : creditsState.wallet.available) || 0;
+  // Video pool has no client-side reservation tracking (server deducts after generation)
+  const reserved = isVidAction ? 0 : Number(creditsState.totalReserved) || 0;
   const effectiveAvailable = available - reserved;
   const missing = Math.max(0, numAmount - effectiveAvailable);
   const shouldBlock = missing > 0;
@@ -1079,7 +1087,7 @@ export function reserveAmount({ action, amount, meta = {} }) {
   // Detailed logging for debugging credit issues
   console.log(`[CREDITS] ========================================`);
   console.log(`[CREDITS] RESERVE AMOUNT CHECK`);
-  console.log(`[CREDITS] action=${action}`);
+  console.log(`[CREDITS] action=${action} pool=${isVidAction ? 'video' : 'general'}`);
   console.log(`[CREDITS] cost=${numAmount}`);
   console.log(`[CREDITS] available=${available}`);
   console.log(`[CREDITS] reserved=${reserved}`);
@@ -1091,6 +1099,7 @@ export function reserveAmount({ action, amount, meta = {} }) {
   if (shouldBlock) {
     log('[Credits] reserveAmount failed: insufficient credits', {
       action,
+      pool: isVidAction ? 'video' : 'general',
       cost: numAmount,
       available,
       reserved,
@@ -1104,20 +1113,28 @@ export function reserveAmount({ action, amount, meta = {} }) {
   const reservation = {
     amount: numAmount,
     action,
+    isVideo: isVidAction,
     meta,
     timestamp: Date.now(),
   };
 
-  // Track reservation
+  // Track reservation — video reservations do NOT increment totalReserved
+  // (video pool deduction is tracked server-side; avoid double-deducting general display)
   creditsState.reservations.set(reservationId, reservation);
-  creditsState.totalReserved += numAmount;
+  if (!isVidAction) {
+    creditsState.totalReserved += numAmount;
+  } else {
+    // Optimistically reduce video available to prevent double-clicks
+    creditsState.wallet.videoAvailable = Math.max(0, creditsState.wallet.videoAvailable - numAmount);
+  }
 
   log('[Credits] reserveAmount succeeded:', {
     reservationId,
     action,
+    pool: isVidAction ? 'video' : 'general',
     amount: numAmount,
     totalReserved: creditsState.totalReserved,
-    effectiveAvailable: available - creditsState.totalReserved,
+    effectiveAvailable: available - (isVidAction ? numAmount : creditsState.totalReserved),
   });
 
   // Update UI to show reservation
@@ -1142,17 +1159,21 @@ export function confirmReservation(reservationId, jobId) {
 
   // Remove from reservations
   creditsState.reservations.delete(reservationId);
-  creditsState.totalReserved -= reservation.amount;
 
-  // Apply actual deduction
-  applyDelta(-reservation.amount, reservation.action, jobId);
-
-  log('[Credits] Reservation confirmed:', {
-    reservationId,
-    jobId,
-    amount: reservation.amount,
-    newBalance: creditsState.wallet.available,
-  });
+  if (reservation.isVideo) {
+    // Video pool: server deducts on completion; videoAvailable already optimistically reduced
+    // No applyDelta needed — next refreshCredits will reconcile
+    log('[Credits] Video reservation confirmed (server will deduct):', {
+      reservationId, jobId, amount: reservation.amount,
+    });
+  } else {
+    creditsState.totalReserved -= reservation.amount;
+    // Apply actual deduction to general pool
+    applyDelta(-reservation.amount, reservation.action, jobId);
+    log('[Credits] Reservation confirmed:', {
+      reservationId, jobId, amount: reservation.amount, newBalance: creditsState.wallet.available,
+    });
+  }
 }
 
 /**
@@ -1170,13 +1191,19 @@ export function releaseReservation(reservationId) {
 
   // Remove from reservations
   creditsState.reservations.delete(reservationId);
-  creditsState.totalReserved -= reservation.amount;
 
-  log('[Credits] Reservation released:', {
-    reservationId,
-    amount: reservation.amount,
-    totalReserved: creditsState.totalReserved,
-  });
+  if (reservation.isVideo) {
+    // Restore the optimistic video deduction
+    creditsState.wallet.videoAvailable += reservation.amount;
+    log('[Credits] Video reservation released:', {
+      reservationId, amount: reservation.amount, videoAvailable: creditsState.wallet.videoAvailable,
+    });
+  } else {
+    creditsState.totalReserved -= reservation.amount;
+    log('[Credits] Reservation released:', {
+      reservationId, amount: reservation.amount, totalReserved: creditsState.totalReserved,
+    });
+  }
 
   // Update UI
   updateCreditsUI();
@@ -1197,10 +1224,13 @@ export function getEffectiveAvailable() {
 }
 
 /**
- * Check if enough credits for action (accounting for reservations)
+ * Check if enough credits for action (pool-aware, accounting for reservations)
  */
 export function hasEffectiveCreditsFor(action, count = 1) {
   const cost = getActionCost(action) * count;
+  if (isVideoAction(action)) {
+    return creditsState.wallet.videoAvailable >= cost;
+  }
   return getEffectiveAvailable() >= cost;
 }
 
@@ -1399,7 +1429,7 @@ function getBatchCountForButton(btnId) {
  * Uses resolveCost() to show "—" for unknown costs instead of "0"
  */
 function updateGenerateButtonCosts() {
-  // Use effective available (accounting for reservations)
+  // Use effective available for general credits (accounting for reservations)
   const effectiveAvailable = getEffectiveAvailable();
 
   Object.entries(BUTTON_CONFIG).forEach(([btnId, config]) => {
@@ -1418,7 +1448,11 @@ function updateGenerateButtonCosts() {
     const costPerItem = dynamicCost !== null && !isNaN(dynamicCost) ? dynamicCost : resolveCost(action);
     const isUnknown = costPerItem === null;
     const totalCost = isUnknown ? 0 : costPerItem * batchCount;
-    const hasCreds = isUnknown ? false : effectiveAvailable >= totalCost;
+
+    // Pool-aware affordability check: video actions use the video credits pool
+    const isVideo = isVideoAction(action);
+    const balanceForCheck = isVideo ? creditsState.wallet.videoAvailable : effectiveAvailable;
+    const hasCreds = isUnknown ? false : balanceForCheck >= totalCost;
 
     // Find the .gen-credits span in the same footer card
     const footerCard = btn.closest('.gen-footer-card');
@@ -1464,9 +1498,10 @@ function updateGenerateButtonCosts() {
     if (isUnknown) {
       btn.setAttribute('title', `Cost unknown for action: ${action}`);
     } else if (!hasCreds) {
-      // Ensure missing is never negative
-      const missing = Math.max(0, totalCost - effectiveAvailable);
-      btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${missing} more needed)`);
+      // Ensure missing is never negative — use correct pool for message
+      const missing = Math.max(0, totalCost - balanceForCheck);
+      const poolLabel = isVideo ? 'video credits' : 'credits';
+      btn.setAttribute('title', `You need ${totalCost} ${poolLabel} to generate this. (${missing} more needed)`);
     } else {
       btn.setAttribute('title', `${totalCost} credits`);
     }

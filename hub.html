@@ -271,6 +271,11 @@
       border-color: rgba(239, 68, 68, 0.3);
       color: #ef4444;
     }
+    .subscription-status-pill.status-past_due {
+      background: rgba(251, 191, 36, 0.12);
+      border-color: rgba(251, 191, 36, 0.3);
+      color: #fbbf24;
+    }
     .subscription-status-pill .subscription-icon {
       font-size: 11px;
     }
@@ -349,11 +354,19 @@
             <i class="fa-solid fa-coins"></i>
             <span class="credits-value" id="creditsValue">0</span>
             <i class="fa-solid fa-plus credits-plus" id="creditsPlus"></i>
-          </span>
-          <!-- Video credits badge — shown only when user has video credits -->
-          <span class="video-credits-pill" id="videoCreditsPill" style="display:none;" title="Video credits">
-            <i class="fa-solid fa-video"></i>
-            <span id="videoCreditsValue">0</span>
+            <!-- Hover panel — renders via CSS :hover, values pre-populated by JS -->
+            <span class="credits-hover-panel" id="creditsHoverPanel">
+              <span class="credits-hover-row">
+                <i class="fa-solid fa-coins"></i>
+                <span>General</span>
+                <span class="credits-hover-val" id="hoverGeneralValue">0</span>
+              </span>
+              <span class="credits-hover-row">
+                <i class="fa-solid fa-video"></i>
+                <span>Video</span>
+                <span class="credits-hover-val" id="hoverVideoValue">0</span>
+              </span>
+            </span>
           </span>
           <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
         </div>
@@ -941,6 +954,30 @@
         </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost small" id="manageSubCancelBtn">Cancel Subscription</button>
+        </div>
+      </div>
+
+      <!-- Past Due state -->
+      <div id="manageSubPastDue" style="display:none">
+        <h3 style="color:#fbbf24">Payment Failed</h3>
+        <p class="secure-subtitle"><i class="fa-solid fa-exclamation-triangle" style="color:#fbbf24"></i> <span id="manageSubPastDuePlan">--</span></p>
+        <p class="modal-note" style="margin: 12px 0; line-height: 1.5;">
+          We couldn't process your subscription payment. We'll retry automatically.
+          Credits will resume after payment succeeds. Your existing credits and history are safe.
+        </p>
+        <div class="manage-sub-details">
+          <div class="manage-sub-row">
+            <span>Status</span>
+            <strong style="color:#fbbf24">Past Due</strong>
+          </div>
+          <div class="manage-sub-row">
+            <span>Credits per month</span>
+            <strong id="manageSubPastDueCredits">--</strong>
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 16px">
+          <button type="button" class="btn small" id="manageSubRetryBtn">Update Payment Method</button>
+          <button type="button" class="btn ghost small" id="manageSubPastDueCancelBtn">Cancel Subscription</button>
         </div>
       </div>
 

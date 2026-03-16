@@ -129,24 +129,6 @@ align-items: center;
 gap: 6px;
 }
 
-/* Video credits badge — appears next to general pill when user has video credits */
-.video-credits-pill {
-display: inline-flex;
-align-items: center;
-gap: 5px;
-padding: 6px 10px;
-border-radius: 999px;
-border: 1px solid rgba(167,139,250,.35);
-background: rgba(139,92,246,.08);
-color: #c4b5fd;
-font-size: 12px;
-font-weight: 500;
-white-space: nowrap;
-cursor: default;
-transition: all 0.2s;
-}
-.video-credits-pill i { font-size: 10px; opacity: 0.8; }
-
 .credits-pill {
 position: relative;
 display: inline-flex;
@@ -202,6 +184,40 @@ border-color: rgba(125,211,252,.55);
 background: rgba(125,211,252,.12);
 transform: translateY(-1px);
 }
+
+/* Hover panel — two-row breakdown of both credit pools */
+.credits-hover-panel {
+display: none;
+position: absolute;
+bottom: calc(100% + 8px);
+right: 0;
+min-width: 170px;
+padding: 10px 12px;
+background: rgba(12,12,18,0.97);
+border: 1px solid rgba(125,211,252,.22);
+border-radius: 10px;
+box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+z-index: 200;
+flex-direction: column;
+gap: 6px;
+pointer-events: none;
+white-space: nowrap;
+}
+.credits-pill:hover .credits-hover-panel {
+display: flex;
+}
+.credits-hover-row {
+display: flex;
+align-items: center;
+gap: 8px;
+font-size: 12px;
+font-weight: 500;
+color: #bfdbfe;
+}
+.credits-hover-row i { font-size: 11px; opacity: 0.7; min-width: 12px; }
+.credits-hover-row span:last-child { margin-left: auto; font-weight: 700; color: #e0f2fe; }
+.credits-hover-row:last-child { color: #ddd6fe; }
+.credits-hover-row:last-child span:last-child { color: #ede9fe; }
 
 /* Low credits warning */
 .credits-pill.low {
@@ -5393,6 +5409,18 @@ flex-shrink: 0;
   margin-top: 12px;
   justify-content: center;
 }
+}
+
+/* Payment failed banner (past_due) */
+.payment-failed-banner {
+background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(234, 88, 12, 0.05));
+border-color: rgba(251, 146, 60, 0.3);
+}
+.payment-failed-banner .paused-icon {
+color: #fb923c;
+}
+.payment-failed-banner .paused-text strong {
+color: #fb923c;
 }
 
 /* Subscription status paused state */

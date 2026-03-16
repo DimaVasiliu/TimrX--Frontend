@@ -868,6 +868,20 @@
     .billing-table .status-badge.suspended,
     .billing-table .status-badge.expired { background: rgba(239,68,68,0.2); color: #ef4444; }
     .billing-table .status-badge.pending_payment { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .billing-table .past-due-hint {
+      font-size: 10px;
+      color: #ef4444;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+    .billing-table .failure-count {
+      font-weight: 600;
+      color: #ef4444;
+    }
+    .billing-table .failure-date {
+      font-size: 11px;
+      color: #888;
+    }
     .billing-pagination {
       display: flex;
       justify-content: center;
@@ -2837,13 +2851,14 @@
                     <th>Email</th>
                     <th>Plan</th>
                     <th>Status</th>
+                    <th>Failures</th>
                     <th>Credits Refill</th>
                     <th>Billing End</th>
                     <th>Created</th>
                   </tr>
                 </thead>
                 <tbody id="billingTableBody">
-                  <tr><td colspan="6" class="muted">Loading...</td></tr>
+                  <tr><td colspan="7" class="muted">Loading...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -5869,7 +5884,7 @@
      */
     async function loadBillingHealth() {
       const tbody = $('#billingTableBody');
-      tbody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="muted">Loading...</td></tr>';
 
       try {
         let url = `${BACKEND}/api/admin/billing/health?limit=${billingLimit}&offset=${billingPage * billingLimit}`;
@@ -5888,7 +5903,7 @@
           } catch (e) {
             // Response wasn't JSON
           }
-          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${errorMsg}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${errorMsg}</td></tr>`;
           return;
         }
 
@@ -5896,7 +5911,7 @@
 
         if (!j.ok) {
           const errorMsg = typeof j.error === 'string' ? j.error : (j.error?.message || j.message || 'Failed to load');
-          tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${errorMsg}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${errorMsg}</td></tr>`;
           return;
         }
 
@@ -5909,16 +5924,31 @@
 
         // Render table
         if (!j.subscriptions || j.subscriptions.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="muted">No subscriptions found</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="muted">No subscriptions found</td></tr>';
         } else {
           tbody.innerHTML = j.subscriptions.map(sub => {
             const rowClass = sub.row_hint ? `row-${sub.row_hint}` : '';
             const statusClass = sub.status || 'unknown';
+            // Failures column: show count + last failure time for past_due/suspended
+            let failureCell = '—';
+            if (sub.failure_count > 0) {
+              const failedDate = sub.failed_at ? formatDateUK(sub.failed_at) : '';
+              failureCell = `<span class="failure-count">${sub.failure_count}x</span>`;
+              if (failedDate) failureCell += ` <span class="failure-date">${failedDate}</span>`;
+            }
+            // Warning badge for past_due
+            let statusHtml = `<span class="status-badge ${statusClass}">${sub.status || '—'}</span>`;
+            if (sub.is_past_due) {
+              statusHtml += '<div class="past-due-hint">Payment failed — awaiting retry</div>';
+            } else if (sub.status === 'suspended' && sub.suspend_reason) {
+              statusHtml += `<div class="past-due-hint">${sub.suspend_reason}</div>`;
+            }
             return `
               <tr class="${rowClass}">
                 <td title="${sub.identity_id}">${sub.email || sub.customer_email || '—'}</td>
                 <td>${sub.plan_code || '—'}</td>
-                <td><span class="status-badge ${statusClass}">${sub.status || '—'}</span></td>
+                <td>${statusHtml}</td>
+                <td>${failureCell}</td>
                 <td>${formatDateUK(sub.next_credit_date)}</td>
                 <td>${formatDateUK(sub.current_period_end)}</td>
                 <td>${formatDateUK(sub.created_at)}</td>

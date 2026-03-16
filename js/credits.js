@@ -260,8 +260,8 @@
   // DOM elements
   const creditsPill = document.getElementById('creditsPill');
   const creditsValue = document.getElementById('creditsValue');
-  const videoCreditsPill = document.getElementById('videoCreditsPill');
-  const videoCreditsValue = document.getElementById('videoCreditsValue');
+  const hoverGeneralValue = document.getElementById('hoverGeneralValue');
+  const hoverVideoValue = document.getElementById('hoverVideoValue');
   const buyCreditsBtn = document.getElementById('buyCreditsBtn');
   const buyCreditsModal = document.getElementById('buyCreditsModal');
   const buyCreditsClose = document.getElementById('buyCreditsClose');
@@ -538,14 +538,10 @@
       creditsPill.classList.toggle('has-credits', available > 0);
     }
 
-    // Update video credits pill
+    // Update hover panel with both pool balances (values are pre-populated so panel is instant on CSS :hover)
     const videoAvail = WalletStore._state.videoAvailable || 0;
-    if (videoCreditsPill) {
-      videoCreditsPill.style.display = videoAvail > 0 ? 'inline-flex' : 'none';
-    }
-    if (videoCreditsValue) {
-      videoCreditsValue.textContent = videoAvail.toLocaleString();
-    }
+    if (hoverGeneralValue) hoverGeneralValue.textContent = available.toLocaleString();
+    if (hoverVideoValue) hoverVideoValue.textContent = videoAvail.toLocaleString();
 
     console.log('[Credits] UI updated: available=' + available + ', total=' + total + ', reserved=' + reserved + ', video=' + videoAvail);
   }
@@ -4198,6 +4194,7 @@
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
       hideSubscriptionPausedBanner();
+      hidePaymentFailedBanner();
       return;
     }
 
@@ -4212,6 +4209,7 @@
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.remove('hidden');
       hideSubscriptionPausedBanner();
+      hidePaymentFailedBanner();
 
       if (cancelledPlanName) cancelledPlanName.textContent = plan_name;
       if (subscriptionEndDate && current_period_end) {
@@ -4243,17 +4241,26 @@
 
       // Show next credits refill date (prefer explicit field, fall back to period_end)
       if (subscriptionNext) {
-        const refillDate = currentSubscription.credits_next_refill || current_period_end;
-        if (refillDate) {
-          subscriptionNext.textContent = `Next credits refill: ${formatDate(refillDate)}`;
+        if (status === 'past_due') {
+          subscriptionNext.textContent = 'Credits paused — waiting for payment';
+        } else {
+          const refillDate = currentSubscription.credits_next_refill || current_period_end;
+          if (refillDate) {
+            subscriptionNext.textContent = `Next credits refill: ${formatDate(refillDate)}`;
+          }
         }
       }
 
       // Show paused banner if applicable
       if (isPausedForEmail) {
         showSubscriptionPausedBanner();
+        hidePaymentFailedBanner();
+      } else if (status === 'past_due') {
+        hideSubscriptionPausedBanner();
+        showPaymentFailedBanner();
       } else {
         hideSubscriptionPausedBanner();
+        hidePaymentFailedBanner();
       }
     } else {
       // Expired or other status - hide entire section
@@ -4261,6 +4268,7 @@
       subscriptionCard.classList.add('hidden');
       subscriptionCancelledCard.classList.add('hidden');
       hideSubscriptionPausedBanner();
+      hidePaymentFailedBanner();
     }
   }
 
@@ -4315,6 +4323,56 @@
    */
   function hideSubscriptionPausedBanner() {
     const banner = document.getElementById('subscriptionPausedBanner');
+    if (banner) {
+      banner.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Show the payment failed banner (past_due subscription)
+   */
+  function showPaymentFailedBanner() {
+    let banner = document.getElementById('paymentFailedBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'paymentFailedBanner';
+      banner.className = 'subscription-paused-banner payment-failed-banner';
+      banner.innerHTML = `
+        <div class="paused-banner-content">
+          <svg class="paused-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div class="paused-text">
+            <strong>Payment failed</strong>
+            <span>We couldn't process your subscription payment. We'll retry automatically. Credits will resume after payment succeeds.</span>
+          </div>
+          <button class="btn btn-sm btn-primary" id="paymentFailedActionBtn">Update Payment</button>
+        </div>
+      `;
+
+      // Insert after subscription card
+      if (subscriptionCard && subscriptionCard.parentNode) {
+        subscriptionCard.parentNode.insertBefore(banner, subscriptionCard.nextSibling);
+      } else {
+        subscriptionSection?.appendChild(banner);
+      }
+
+      // Action button opens manage subscription modal (closest to billing management)
+      document.getElementById('paymentFailedActionBtn')?.addEventListener('click', () => {
+        openManageSubModal();
+      });
+    }
+
+    banner.classList.remove('hidden');
+  }
+
+  /**
+   * Hide the payment failed banner
+   */
+  function hidePaymentFailedBanner() {
+    const banner = document.getElementById('paymentFailedBanner');
     if (banner) {
       banner.classList.add('hidden');
     }
@@ -4452,7 +4510,7 @@
       if (status === 'pending_payment') status = 'processing';
 
       // Update pill styling
-      subscriptionStatusPill.classList.remove('hidden', 'status-active', 'status-cancelled', 'status-processing', 'status-suspended');
+      subscriptionStatusPill.classList.remove('hidden', 'status-active', 'status-cancelled', 'status-processing', 'status-suspended', 'status-past_due');
       subscriptionStatusPill.classList.add(`status-${status}`);
 
       // Update icon
@@ -4464,6 +4522,8 @@
           subscriptionIcon.classList.add('fa-clock');
         } else if (status === 'processing') {
           subscriptionIcon.classList.add('fa-hourglass-half');
+        } else if (status === 'past_due') {
+          subscriptionIcon.classList.add('fa-exclamation-triangle');
         } else if (status === 'suspended') {
           subscriptionIcon.classList.add('fa-exclamation-triangle');
         } else {
@@ -4476,6 +4536,8 @@
       if (status === 'active') {
         const nextDate = formatDateUK(data.credits_next_refill || data.next_credit_date);
         statusText = nextDate ? `Active — Next credits refill: ${nextDate}` : 'Active';
+      } else if (status === 'past_due') {
+        statusText = 'Payment failed — credits paused';
       } else if (status === 'cancelled') {
         const endDate = formatDateUK(data.ends_at || data.current_period_end);
         statusText = endDate ? `Cancelled — Ends on: ${endDate}` : 'Cancelled';
@@ -4514,6 +4576,7 @@
   const manageSubModal = document.getElementById('manageSubModal');
   const manageSubClose = document.getElementById('manageSubClose');
   const manageSubActive = document.getElementById('manageSubActive');
+  const manageSubPastDue = document.getElementById('manageSubPastDue');
   const manageSubCancelled = document.getElementById('manageSubCancelled');
   const manageSubNone = document.getElementById('manageSubNone');
 
@@ -4522,8 +4585,9 @@
 
     // Fetch fresh data then show
     fetchSubscription().then(() => {
-      // Reset states
+      // Reset all states
       if (manageSubActive) manageSubActive.style.display = 'none';
+      if (manageSubPastDue) manageSubPastDue.style.display = 'none';
       if (manageSubCancelled) manageSubCancelled.style.display = 'none';
       if (manageSubNone) manageSubNone.style.display = 'none';
 
@@ -4535,6 +4599,13 @@
         const ed = document.getElementById('manageSubEndDate');
         if (cp) cp.textContent = currentSubscription.plan_name;
         if (ed) ed.textContent = formatDate(currentSubscription.current_period_end);
+      } else if (currentSubscription.status === 'past_due') {
+        // Show dedicated past_due panel
+        if (manageSubPastDue) manageSubPastDue.style.display = 'block';
+        const pdp = document.getElementById('manageSubPastDuePlan');
+        const pdc = document.getElementById('manageSubPastDueCredits');
+        if (pdp) pdp.textContent = currentSubscription.plan_name;
+        if (pdc) pdc.textContent = (currentSubscription.credits_per_month || 0).toLocaleString();
       } else {
         if (manageSubActive) manageSubActive.style.display = 'block';
         const mp = document.getElementById('manageSubPlan');
@@ -4544,8 +4615,8 @@
         if (mp) mp.textContent = currentSubscription.plan_name;
         if (mc) mc.textContent = (currentSubscription.credits_per_month || 0).toLocaleString();
         if (ms) {
-          ms.textContent = currentSubscription.status === 'past_due' ? 'Past Due' : 'Active';
-          ms.style.color = currentSubscription.status === 'past_due' ? '#fbbf24' : '#4ade80';
+          ms.textContent = 'Active';
+          ms.style.color = '#4ade80';
         }
         const refill = currentSubscription.credits_next_refill || currentSubscription.current_period_end;
         if (mn) mn.textContent = refill ? formatDate(refill) : '--';
@@ -4586,6 +4657,21 @@
   document.getElementById('manageSubBrowseBtn')?.addEventListener('click', () => {
     closeManageSubModal();
     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Past-due modal: "Update Payment" → scroll to pricing (re-subscribe is the Mollie-supported recovery path)
+  document.getElementById('manageSubRetryBtn')?.addEventListener('click', () => {
+    closeManageSubModal();
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Past-due modal: cancel button
+  document.getElementById('manageSubPastDueCancelBtn')?.addEventListener('click', async () => {
+    await handleCancelSubscription();
+    if (currentSubscription) {
+      openManageSubModal();
+      loadSubscriptionSummary();
+    }
   });
 
   // Clicking the subscription pill opens the manage subscription modal

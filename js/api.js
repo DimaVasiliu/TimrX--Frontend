@@ -206,13 +206,17 @@ function showInsufficientCreditsModal(cost, available, actionType = 'generation'
 function checkCreditsForGeneration(cost, mode = 'generation') {
   // Get wallet and ensure numeric conversion
   const wallet = window.WorkspaceCredits?.getWallet?.() || {};
-  const available = Number(wallet.available ?? wallet.available_credits ?? 0);
+  // Pool-aware: video generation checks the video credits pool
+  const isVideo = mode === 'video';
+  const available = isVideo
+    ? Number(wallet.videoAvailable ?? wallet.video_available_credits ?? 0)
+    : Number(wallet.available ?? wallet.available_credits ?? 0);
   const numCost = Number(cost) || 0;
   const missing = Math.max(0, numCost - available);
   const shouldBlock = missing > 0;
 
   // Debug log before block decision
-  console.log(`[CREDITS] available=${available}, cost=${numCost}, missing=${missing}, willBlock=${shouldBlock}`);
+  console.log(`[CREDITS] pool=${isVideo ? 'video' : 'general'} available=${available}, cost=${numCost}, missing=${missing}, willBlock=${shouldBlock}`);
 
   return { available, cost: numCost, missing, shouldBlock };
 }
