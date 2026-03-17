@@ -1762,10 +1762,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
        * Update the video footer UI (credits display, time estimate, button)
        */
       function updateVideoFooter() {
-        console.log('[VIDEO DEBUG] updateVideoFooter called');
-
         if (!videoCreditsDisplay || !generateVideoBtn) {
-          console.warn('[VIDEO DEBUG] Missing elements:', { videoCreditsDisplay, generateVideoBtn });
           return;
         }
 
