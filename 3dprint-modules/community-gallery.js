@@ -7,6 +7,7 @@
 (function () {
     'use strict';
   
+    const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
     const PAGE_SIZE = 16;
   
     // State
@@ -113,7 +114,7 @@
     async function fetchPage(filter, offset) {
       const params = new URLSearchParams({ limit: PAGE_SIZE, offset });
       if (filter && filter !== 'all') params.set('type', filter);
-      const res = await window.apiFetch(`/api/_mod/community/feed?${params}`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/_mod/community/feed?${params}`, { credentials: 'include' });
       if (!res.ok) throw new Error(`Feed error ${res.status}`);
       return res.json();
     }
@@ -305,7 +306,7 @@
         statusEl.textContent = '';
   
         try {
-          const res = await window.apiFetch('/api/_mod/community/share', {
+          const res = await fetch(`${API_BASE}/api/_mod/community/share`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
