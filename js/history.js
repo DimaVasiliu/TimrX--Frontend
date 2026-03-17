@@ -595,6 +595,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   <span>Download</span>
                 </span>
               </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#9651;</span>
+                  <span>Share to Community</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
               <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#128465;</span>
@@ -764,6 +772,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#128279;</span>
                   <span>Copy Link</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#9651;</span>
+                  <span>Share to Community</span>
                 </span>
               </button>
               <div class="card-menu__divider"></div>

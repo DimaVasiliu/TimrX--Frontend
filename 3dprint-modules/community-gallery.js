@@ -227,12 +227,8 @@
       document.getElementById('ccgShareModal')?.remove();
   
       const defaultName = getDisplayNameFromUser();
-      const assetType = item.item_type === 'video' ? 'history'
-        : item.item_type === 'image' ? 'image'
-        : item.model_id ? 'model'
-        : item.image_id ? 'image'
-        : 'history';
-  
+      // All history items are shared via history_item_id (the backend resolves the subtype)
+      const assetType = 'history';
       const assetId = item.id;
       const promptPreview = sanitize((item.prompt || '').slice(0, 200));
   
@@ -345,6 +341,14 @@
   
     // ─── Init ─────────────────────────────────────────────────────────────────
   
+    let _loaded = false;
+  
+    function loadOnce() {
+      if (_loaded) return;
+      _loaded = true;
+      load('all', 0, false);
+    }
+  
     function init() {
       grid = document.getElementById('ccgGrid');
       skeleton = document.getElementById('ccgSkeleton');
@@ -358,18 +362,18 @@
       wireFilters();
       wireLoadMore();
   
-      // Lazy-load: only fetch when community view becomes visible
-      const section = document.getElementById('communityCreationsSection');
-      if (section) {
-        const obs = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) {
-            obs.disconnect();
-            load('all', 0, false);
-          }
-        }, { threshold: 0.05 });
-        obs.observe(section);
+      // Load when community-view class is added to body (the nav system adds it when user opens Community)
+      // Using MutationObserver because the gallery container has hidden+inert so IntersectionObserver won't fire
+      if (document.body.classList.contains('community-view')) {
+        loadOnce();
       } else {
-        load('all', 0, false);
+        const mo = new MutationObserver(() => {
+          if (document.body.classList.contains('community-view')) {
+            mo.disconnect();
+            loadOnce();
+          }
+        });
+        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
       }
     }
   
