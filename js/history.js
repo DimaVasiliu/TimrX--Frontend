@@ -865,6 +865,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'remesh' ? 'Remeshed'
     : stageVal === 'texture' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
+    : stageVal === 'rig' ? 'Rigged'
+    : stageVal === 'animation' ? 'Animated'
     : '';
 
   return `
