@@ -1,6 +1,6 @@
 /* ============================================================================
    TimrX 3D Print Workspace
-   - Rail panel switching (Image / Model / Remesh / Texture / Video)
+   - Rail panel switching (Image / Model / Remesh / Texture / Rig / Video)
    - Left panel content injection (cards per tool)
    - Three.js viewer bootstrap + resize (model/remesh/texture)
    - Upload Modal (centered overlay, ESC/backdrop close, body scroll lock)
@@ -167,6 +167,9 @@
             <button type="button" class="tab-btn" data-tab="image3d" style="flex:1;background:transparent;border:none;border-radius:6px;padding:8px;color:#888;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s ease">
               Image to 3D
             </button>
+            <button type="button" class="tab-btn" data-tab="multiimage3d" style="flex:1;background:transparent;border:none;border-radius:6px;padding:8px;color:#888;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s ease">
+              Multi-Image
+            </button>
           </div>
 
           <div class="tab-content active" id="text3d">
@@ -208,24 +211,68 @@
               </div>
             </div>
           </div>
+
+          <div class="tab-content hidden" id="multiimage3d">
+            <div class="inline-field" style="margin-bottom:10px">
+              <label for="multiImageModelName" style="font-size:12px">Name</label>
+              <input type="text" id="multiImageModelName" placeholder="My Multi-View Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
+            </div>
+            <label class="video-section-label">Upload 1–4 Reference Images</label>
+            <div id="multiImageGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
+              <div class="multi-img-slot" data-slot="0">
+                <div class="video-drop-zone" id="multiImgDrop0" style="height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:11px;color:#888;margin-top:4px">Image 1</span>
+                  <input type="file" class="multi-img-input" accept="image/*" hidden />
+                </div>
+                <img class="multi-img-preview" style="display:none;width:100%;height:90px;object-fit:cover;border-radius:7px" />
+              </div>
+              <div class="multi-img-slot" data-slot="1">
+                <div class="video-drop-zone" id="multiImgDrop1" style="height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:11px;color:#888;margin-top:4px">Image 2</span>
+                  <input type="file" class="multi-img-input" accept="image/*" hidden />
+                </div>
+                <img class="multi-img-preview" style="display:none;width:100%;height:90px;object-fit:cover;border-radius:7px" />
+              </div>
+              <div class="multi-img-slot" data-slot="2">
+                <div class="video-drop-zone" id="multiImgDrop2" style="height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:11px;color:#888;margin-top:4px">Image 3</span>
+                  <input type="file" class="multi-img-input" accept="image/*" hidden />
+                </div>
+                <img class="multi-img-preview" style="display:none;width:100%;height:90px;object-fit:cover;border-radius:7px" />
+              </div>
+              <div class="multi-img-slot" data-slot="3">
+                <div class="video-drop-zone" id="multiImgDrop3" style="height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:11px;color:#888;margin-top:4px">Image 4</span>
+                  <input type="file" class="multi-img-input" accept="image/*" hidden />
+                </div>
+                <img class="multi-img-preview" style="display:none;width:100%;height:90px;object-fit:cover;border-radius:7px" />
+              </div>
+            </div>
+            <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
+            <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
+          </div>
         </div>
 
         <div class="card gen-options-card">
           <div class="field-row">
             <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
             <select id="modelAIModel" class="field-select-inline">
-              <option value="latest" selected>Meshy 6 Preview</option>
+              <option value="latest" selected>Meshy 6</option>
               <option value="meshy-5">Meshy 5</option>
-              <option value="meshy-4">Meshy 4</option>
             </select>
           </div>
 
           <div class="field-row">
-            <span class="field-label-inline">A/T Pose <span class="info-dot" title="Generate in A-pose or T-pose">ⓘ</span></span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="modelPoseToggle">
-              <span class="toggle-slider"></span>
-            </label>
+            <span class="field-label-inline">Pose Mode <span class="info-dot" title="Generate in a specific pose for rigging">ⓘ</span></span>
+            <select id="modelPoseMode" class="field-select-inline">
+              <option value="" selected>None</option>
+              <option value="a-pose">A-Pose</option>
+              <option value="t-pose">T-Pose</option>
+            </select>
           </div>
 
           <div class="field-row">
@@ -258,13 +305,29 @@
             <input type="hidden" id="modelSymmetry" value="auto">
           </div>
 
-          <div class="field-row" style="display:none">
-            <span class="field-label-inline">Art Style</span>
-            <select id="modelArtStyle" class="field-select-inline">
-              <option value="realistic" selected>Realistic</option>
-              <option value="sculpture">Sculpture</option>
+          <div class="field-row">
+            <span class="field-label-inline">Model Type <span class="info-dot" title="Standard for detailed models, Low Poly for simplified geometry">ⓘ</span></span>
+            <select id="modelModelType" class="field-select-inline">
+              <option value="" selected>Default</option>
+              <option value="standard">Standard</option>
+              <option value="lowpoly">Low Poly</option>
             </select>
           </div>
+
+          <details class="advanced-toggles" style="margin-top:8px">
+            <summary style="font-size:11px;color:#888;cursor:pointer;user-select:none">Advanced Options</summary>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#ccc;cursor:pointer">
+                <input type="checkbox" id="modelShouldRemesh" style="accent-color:#6366f1">
+                Auto-remesh output
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#ccc;cursor:pointer">
+                <input type="checkbox" id="modelShouldTexture" checked style="accent-color:#6366f1">
+                Generate textures
+              </label>
+            </div>
+          </details>
+
         </div>
 
         <div class="card gen-footer-card">
@@ -453,6 +516,95 @@
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
             Texture
           </button>
+        </div>
+      `,
+
+      rig: `
+        <div class="card">
+          <h3>Model Selection</h3>
+          <div class="inline-field">
+            <label for="rigModelSelect">Source</label>
+            <select id="rigModelSelect">
+              <option value="current" selected>Current Model</option>
+              <option value="upload">Upload New Model</option>
+            </select>
+          </div>
+
+          <div id="rigModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <label for="rigModelUpload" style="font-size:12px">Upload 3D Model</label>
+            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
+              <span style="font-size:11px;color:#666">OBJ, FBX, STL, GLTF, GLB</span>
+              <input type="file" id="rigModelUpload" accept=".obj,.fbx,.stl,.gltf,.glb" hidden />
+            </div>
+            <div id="rigModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Rigging Settings</h3>
+          <div class="inline-field">
+            <label for="rigHeight">Height (meters)</label>
+            <input type="number" id="rigHeight" value="1.7" min="0.1" max="5.0" step="0.1">
+          </div>
+          <span class="field-hint">Approximate height of the character model</span>
+        </div>
+
+        <div class="card gen-footer-card">
+          <div class="gen-meta">
+            <span class="gen-time">2 min</span>
+            <span class="gen-divider">|</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
+          </div>
+          <button type="button" id="startRigBtn" class="gen-btn" title="15 credits">
+            <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
+            Start Rigging
+          </button>
+        </div>
+
+        <div id="rigResultsSection" style="display:none">
+          <div class="card">
+            <h3>Rigged Model</h3>
+            <div id="rigDownloadLinks" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          </div>
+
+          <div class="card">
+            <h3>Built-in Animations</h3>
+            <div id="rigBuiltinAnimations" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+            <div class="inline-field">
+              <label for="rigAnimationAction">Animation</label>
+              <select id="rigAnimationAction">
+                <option value="walking">Walking</option>
+                <option value="running">Running</option>
+                <option value="idle">Idle</option>
+                <option value="jumping">Jumping</option>
+                <option value="waving">Waving</option>
+              </select>
+            </div>
+
+            <div class="gen-footer-card" style="margin-top:12px">
+              <div class="gen-meta">
+                <span class="gen-time">1 min</span>
+                <span class="gen-divider">|</span>
+                <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+              </div>
+              <button type="button" id="applyAnimationBtn" class="gen-btn" title="10 credits">
+                <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Apply Animation
+              </button>
+            </div>
+          </div>
+
+          <div id="animResultsSection" style="display:none">
+            <div class="card">
+              <h3>Animation Result</h3>
+              <div id="animDownloadLinks" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+            </div>
+          </div>
         </div>
       `,
 
@@ -1238,7 +1390,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           const modelCredits = leftStack.querySelector('#modelCreditsDisplay');
           const generateBtn = leftStack.querySelector('#generateModelBtn');
           const isImage3d = (targetTab === 'image3d');
-          const cost = isImage3d ? 30 : 20;
+          const isMultiImage = (targetTab === 'multiimage3d');
+          const cost = (isImage3d || isMultiImage) ? 30 : 20;
 
           if (modelCredits) {
             modelCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
@@ -1246,13 +1399,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
           if (generateBtn) {
             generateBtn.title = `${cost} credits`;
-            // Also update the cost badge if it exists
             let costBadge = generateBtn.querySelector('.btn-cost-badge');
             if (costBadge) {
               costBadge.textContent = cost;
             }
-            // Update data attribute for workspace-credits to know current action
-            generateBtn.dataset.currentAction = isImage3d ? 'image-to-3d' : 'text-to-3d';
+            generateBtn.dataset.currentAction = isMultiImage ? 'multi-image-to-3d' : isImage3d ? 'image-to-3d' : 'text-to-3d';
           }
 
           // Trigger workspace credits update if available
@@ -1291,6 +1442,56 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             modelImageUpload.files = e.dataTransfer.files;
             modelImageUpload.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+
+      // Multi-Image to 3D: slot uploads
+      const multiImageGrid = leftStack.querySelector('#multiImageGrid');
+      if (multiImageGrid) {
+        const slots = multiImageGrid.querySelectorAll('.multi-img-slot');
+        slots.forEach(slot => {
+          const dropZone = slot.querySelector('.video-drop-zone');
+          const fileInput = slot.querySelector('.multi-img-input');
+          const preview = slot.querySelector('.multi-img-preview');
+
+          if (dropZone && fileInput && preview) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', function () {
+              if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  preview.src = e.target.result;
+                  preview.style.display = 'block';
+                  dropZone.style.display = 'none';
+                  // Update count
+                  const count = multiImageGrid.querySelectorAll('.multi-img-preview[style*="display: block"], .multi-img-preview[style*="display:block"]').length;
+                  const countEl = leftStack.querySelector('#multiImageCount');
+                  if (countEl) countEl.textContent = `${count} / 4 images selected`;
+                };
+                reader.readAsDataURL(this.files[0]);
+              }
+            });
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(255,255,255,.3)'; });
+            dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+            dropZone.addEventListener('drop', (e) => {
+              e.preventDefault();
+              dropZone.style.borderColor = '';
+              if (e.dataTransfer.files?.[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+              }
+            });
+            // Click preview to remove
+            preview.addEventListener('click', () => {
+              preview.style.display = 'none';
+              preview.src = '';
+              dropZone.style.display = '';
+              fileInput.value = '';
+              const count = multiImageGrid.querySelectorAll('.multi-img-preview[style*="display: block"], .multi-img-preview[style*="display:block"]').length;
+              const countEl = leftStack.querySelector('#multiImageCount');
+              if (countEl) countEl.textContent = `${count} / 4 images selected`;
+            });
           }
         });
       }
@@ -2753,6 +2954,41 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         });
       }
 
+      // Rig upload toggle
+      const rigModelSelect   = leftStack.querySelector('#rigModelSelect');
+      const rigUploadSection = leftStack.querySelector('#rigModelUploadSection');
+      const rigModelDrop     = leftStack.querySelector('#rigModelDrop');
+      const rigModelUpload   = leftStack.querySelector('#rigModelUpload');
+      const rigModelFileName = leftStack.querySelector('#rigModelFileName');
+
+      if (rigModelSelect && rigUploadSection) {
+        rigModelSelect.addEventListener('change', function () {
+          const show = this.value === 'upload';
+          rigUploadSection.style.display = show ? 'block' : 'none';
+          if (!show && rigModelFileName) rigModelFileName.style.display = 'none';
+        });
+      }
+      if (rigModelDrop && rigModelUpload && rigModelFileName) {
+        rigModelDrop.addEventListener('click', () => rigModelUpload.click());
+        rigModelUpload.addEventListener('change', function () {
+          if (this.files && this.files[0]) {
+            const f = this.files[0];
+            rigModelFileName.textContent = `\u{1F4E6} ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
+            rigModelFileName.style.display = 'block';
+          }
+        });
+        rigModelDrop.addEventListener('dragover', (e) => { e.preventDefault(); rigModelDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
+        rigModelDrop.addEventListener('dragleave', () => { rigModelDrop.style.borderColor = 'rgba(255,255,255,.15)'; });
+        rigModelDrop.addEventListener('drop', (e) => {
+          e.preventDefault();
+          rigModelDrop.style.borderColor = 'rgba(255,255,255,.15)';
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            rigModelUpload.files = e.dataTransfer.files;
+            rigModelUpload.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+
       // Remesh preset cards
       const remeshPresetsWrap = leftStack.querySelector('#remeshPresets');
       const remeshAdvancedToggle = leftStack.querySelector('#remeshAdvancedToggle');
@@ -2899,7 +3135,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       if (aiModelSelect && modelCreditsDisplay) {
         aiModelSelect.addEventListener('change', function () {
           const value = this.value;
-          if (value === 'meshy-5' || value === 'meshy-4') {
+          if (value === 'meshy-5') {
             modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 10';
           } else {
             modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
@@ -3217,7 +3453,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
      * Applies the markup-defined active rail button on initial load.
      */
     function bootstrapInitialPanel() {
-      // Support ?panel=image|model|video|remesh|texture|animate from URL
+      // Support ?panel=image|model|video|remesh|texture|rig|animate from URL
       const urlPanel = new URLSearchParams(window.location.search).get('panel');
       let targetBtn;
       if (urlPanel) {

@@ -759,9 +759,12 @@ function buildMeshySourceFromItem(item = {}) {
   if (!item) return {};
   const taskId = item.id || item.preview_task_id || item.preview_task || item.source_task_id;
   const modelUrl = item.glb_url || item.glb_proxy;
-  if (modelUrl) return { model_url: modelUrl };
-  if (taskId) return { input_task_id: taskId };
-  return {};
+  // Send both when available — backend will prefer input_task_id (more reliable
+  // for Meshy-origin models) and fall back to model_url for uploaded/external models.
+  const result = {};
+  if (taskId) result.input_task_id = taskId;
+  if (modelUrl) result.model_url = modelUrl;
+  return Object.keys(result).length ? result : {};
 }
 
 /**
@@ -833,6 +836,8 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   const isRemesh = meta.status_label?.includes('Remesh');
   let statusType = isRefine ? 'refining' : isRemesh ? 'remeshing' : 'generating';
   if (meta.stage === 'texture') statusType = 'texturing';
+  if (meta.stage === 'rig') statusType = 'generating';
+  if (meta.stage === 'animation') statusType = 'generating';
   if (meta.type === 'image') statusType = 'generating';
   const stage = meta.stage || (isRefine ? 'refine' : isRemesh ? 'remesh' : 'preview');
 
@@ -845,7 +850,6 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
     prompt: meta.prompt || '',
     root_prompt: meta.root_prompt || meta.prompt || '',
     title: meta.prompt ? meta.prompt.slice(0, 50) + (meta.prompt.length > 50 ? '...' : '') : meta.status_label || 'Generating...',
-    art_style: meta.art_style || 'realistic',
     model: meta.model || 'latest',
     license: meta.license || 'private',
     batch_count: meta.batch_count || 1,
@@ -1006,11 +1010,10 @@ export function watchJob(job_id) {
           root_prompt: rootPrompt,
           prompt_fingerprint: promptHash,
           title,
-          art_style: meta.art_style || 'realistic',
           model: meta.model || 'latest',
           license: meta.license || 'private',
           symmetry_mode: meta.symmetry_mode || 'auto',
-          is_a_t_pose: !!meta.is_a_t_pose,
+          pose_mode: meta.pose_mode || '',
           batch_count: Math.max(1, parseInt(meta.batch_count, 10) || 1),
           batch_slot: meta.batch_slot || 1,
           batch_group_id: meta.batch_group_id || null,
@@ -1266,7 +1269,6 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           type: 'model',
           status: 'finished',
           created_at: normalizeEpochMs(st.created_at),
-          art_style: meta.art_style || 'realistic',
           model: meta.model || 'latest',
           license: meta.license || 'private',
           stage: kind,
@@ -1761,6 +1763,14 @@ async function beginMeshyTask(kind, payload, meta = {}) {
 export async function onGenerateClick() {
   if (startLock) return;
 
+  // Check if Multi-Image to 3D tab is active
+  const multiImage3dTab = byId('multiimage3d');
+  const isMultiImage3dMode = multiImage3dTab && !multiImage3dTab.classList.contains('hidden');
+
+  if (isMultiImage3dMode) {
+    return startMultiImageTo3D();
+  }
+
   // Check if Image to 3D tab is active
   const image3dTab = byId('image3d');
   const isImage3dMode = image3dTab && !image3dTab.classList.contains('hidden');
@@ -1800,14 +1810,13 @@ export async function onGenerateClick() {
       return;
     }
 
-    const art_style = byId('modelArtStyle')?.value || byId('artStyle')?.value || 'realistic';
     const model = byId('modelAIModel')?.value || byId('modelSelect')?.value || 'latest';
     const license = (byId('modelLicense')?.value || 'private').trim() || 'private';
     const symmetry = (byId('modelSymmetry')?.value || 'auto').trim() || 'auto';
-    const isPose = !!byId('modelPoseToggle')?.checked;
+    const poseMode = byId('modelPoseMode')?.value || '';
     const batchGroupId = createBatchGroupId();
 
-    log('Generating with:', { prompt, art_style, model, batchCount, symmetry, isPose, license });
+    log('Generating with:', { prompt, model, batchCount, symmetry, poseMode, license });
 
     const queueOne = async (slot) => {
       // Reserve credits for this job BEFORE API call
@@ -1830,12 +1839,11 @@ export async function onGenerateClick() {
       const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${Date.now()}-${slot}`);
       const tempMeta = {
         prompt,
-        art_style,
         model,
         root_prompt: prompt,
         license,
         symmetry_mode: symmetry,
-        is_a_t_pose: isPose,
+        pose_mode: poseMode,
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId,
@@ -1846,18 +1854,26 @@ export async function onGenerateClick() {
       addGeneratingPlaceholder(tempId, tempMeta);
       State.savePendingMeta(tempId, tempMeta);
 
+      // Collect advanced options
+      const modelType = byId('modelModelType')?.value || '';
+      const shouldRemesh = byId('modelShouldRemesh')?.checked || false;
+      const shouldTexture = byId('modelShouldTexture')?.checked ?? true;
+
       const payload = {
         prompt,
-        art_style,
         model,
         symmetry_mode: symmetry,
-        is_a_t_pose: isPose,
+        pose_mode: poseMode,
         license,
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId,
         refine: false
       };
+
+      if (modelType) payload.model_type = modelType;
+      if (shouldRemesh) payload.should_remesh = true;
+      if (!shouldTexture) payload.should_texture = false;
 
       // Include idempotency key in header for duplicate prevention
       const result = await apiFetch('/api/_mod/text-to-3d/start', {
@@ -1901,12 +1917,11 @@ export async function onGenerateClick() {
       State.addActiveJob(job_id);
       const jobMeta = {
         prompt,
-        art_style,
         model,
         root_prompt: prompt,
         license,
         symmetry_mode: symmetry,
-        is_a_t_pose: isPose,
+        pose_mode: poseMode,
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId
@@ -3302,7 +3317,6 @@ async function startImageTo3DFromUpload() {
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
-    art_style: 'realistic',
     model,
     stage: 'image3d',
     thumbnail_url: imageData.startsWith('http') ? imageData : ''
@@ -3410,7 +3424,6 @@ export async function startImageTo3DFromHistory(item) {
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
-    art_style: 'realistic',
     model: 'latest',
     stage: 'image3d',
     thumbnail_url: item.thumbnail_url || item.image_url || ''
@@ -3541,14 +3554,13 @@ export async function onPostProcessFromHistory(item, type) {
 
     const jobMeta = {
       prompt: `(${type}) ${item.prompt || item.title}`,
-      art_style: item.art_style || 'realistic',
       model: item.model || 'latest',
       preview_task_id: previewTaskId || previewTaskIdFromItem || null,
       root_prompt: item.root_prompt || item.prompt || item.title || '',
       lineage_origin_id: item.lineage_root_id || item.id || null,
       license: item.license || 'private',
       symmetry_mode: item.symmetry_mode || 'auto',
-      is_a_t_pose: !!item.is_a_t_pose,
+      pose_mode: item.pose_mode || '',
       batch_count: 1,
       batch_group_id: item.lineage_root_id || item.id
     };
@@ -3659,7 +3671,6 @@ export async function startRemeshFromPanel() {
   const meta = {
     prompt: labelPrompt || remeshValues.text_style_prompt || 'Remesh',
     root_prompt: baseItem?.root_prompt || baseItem?.prompt || '',
-    art_style: baseItem?.art_style || 'realistic',
     model: baseItem?.model || 'latest',
     license: baseItem?.license || 'private',
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
@@ -3712,7 +3723,6 @@ export async function startTextureFromPanel() {
   const meta = {
     prompt: texValues.text_style_prompt,
     root_prompt: baseItem?.root_prompt || baseItem?.prompt || texValues.text_style_prompt,
-    art_style: baseItem?.art_style || 'realistic',
     model: baseItem?.model || 'latest',
     license: baseItem?.license || 'private',
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
@@ -3726,6 +3736,573 @@ export async function startTextureFromPanel() {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
   }
+}
+
+// ============================================================================
+// MULTI-IMAGE TO 3D
+// ============================================================================
+
+/**
+ * Start multi-image-to-3D from the panel UI (1–4 images)
+ */
+async function startMultiImageTo3D() {
+  if (startLock) return;
+
+  // Collect image data URLs from the multi-image grid
+  const grid = byId('multiImageGrid');
+  if (!grid) { alert('Multi-image panel not found.'); return; }
+
+  const previews = grid.querySelectorAll('.multi-img-preview');
+  const imageUrls = [];
+  previews.forEach(img => {
+    if (img.style.display !== 'none' && img.src) {
+      imageUrls.push(img.src);
+    }
+  });
+
+  if (imageUrls.length < 1 || imageUrls.length > 4) {
+    alert(`Please upload 1–4 images. Currently ${imageUrls.length} selected.`);
+    return;
+  }
+
+  if (!checkCreditsFor('image-to-3d')) return;
+
+  startLock = true;
+  const allGenBtns = document.querySelectorAll('button[id*="generate"]');
+  allGenBtns.forEach(btn => btn.setAttribute('disabled', ''));
+
+  const nameInput = byId('multiImageModelName');
+  const prompt = (nameInput?.value || '').trim() || 'Multi-Image to 3D';
+  const model = byId('modelAIModel')?.value || 'latest';
+
+  const meta = {
+    prompt: `(multi-image) ${prompt}`,
+    root_prompt: prompt,
+    model,
+    stage: 'image3d',
+    thumbnail_url: ''
+  };
+
+  const prog = UI.makeProgressDriver();
+
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('image-to-3d', 1);
+  if (reservation.insufficient) {
+    startLock = false;
+    allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
+    return;
+  }
+
+  const idempotencyKey = State.generateIdempotencyKey();
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `multi-img-temp-${Date.now()}`);
+  const tempMeta = { ...meta, type: 'model', idempotency_key: idempotencyKey };
+  addGeneratingPlaceholder(tempId, { ...tempMeta, status_label: 'Starting multi-image to 3D...', type: 'model' });
+  State.savePendingMeta(tempId, tempMeta);
+
+  prog.label('Starting multi-image to 3D...');
+  try {
+    const result = await apiFetch('/api/_mod/multi-image-to-3d/start', {
+      method: 'POST',
+      body: { image_urls: imageUrls, prompt, model },
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
+
+    if (!result.ok) {
+      if (handleGenerationTimeout(result, 'multi-image-to-3d')) {
+        return;
+      }
+      if (handleApiError(result, 'multi-image-to-3d', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.deletePendingMeta(tempId);
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error(result.error || `HTTP ${result.status}`);
+    }
+
+    const data = result.data;
+    const { job_id } = data;
+
+    if (!job_id) {
+      releaseCreditsReservation(reservation.reservationId);
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.deletePendingMeta(tempId);
+      throw new Error('No job id returned');
+    }
+
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+
+    confirmCreditsReservation(reservation.reservationId, job_id);
+
+    State.addActiveJob(job_id);
+    State.savePendingMeta(job_id, { ...meta, type: 'model' });
+    addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from multiple images...', type: 'model' });
+    watchMeshyTask(job_id, 'image3d');
+
+    if (data.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+      window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'multi_image_to_3d_response');
+    }
+
+    prog.label('Generating 3D model from images...');
+  } catch (err) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+    prog.fail(err?.message || 'Multi-image to 3D failed');
+    alert(err?.message || 'Multi-image to 3D failed');
+  } finally {
+    startLock = false;
+    allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
+  }
+}
+
+
+// ============================================================================
+// RIGGING & ANIMATION
+// ============================================================================
+
+/**
+ * Start rigging from the panel UI
+ */
+export async function startRigFromPanel() {
+  if (startLock) return;
+
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'rig' } }));
+
+  const choice = byId('rigModelSelect')?.value || 'current';
+  const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
+
+  if (choice === 'current' && !baseItem) {
+    alert('Load or generate a model before rigging.');
+    return;
+  }
+
+  // Check credits
+  if (!checkCreditsFor('rig')) return;
+
+  const heightVal = parseFloat(byId('rigHeight')?.value) || 1.7;
+  const height_meters = Math.max(0.1, Math.min(5.0, heightVal));
+
+  let payload = { height_meters };
+  let labelPrompt = '';
+
+  if (choice === 'upload') {
+    const file = byId('rigModelUpload')?.files?.[0];
+    if (!file) { alert('Please choose a model to rig.'); return; }
+    const dataUrl = await fileToDataURL(file);
+    payload.model_url = dataUrl;
+    labelPrompt = `Rig ${file.name}`;
+  } else if (baseItem) {
+    const source = buildMeshySourceFromItem(baseItem);
+    if (source.input_task_id) payload.input_task_id = source.input_task_id;
+    else if (source.model_url) payload.model_url = source.model_url;
+    labelPrompt = `Rig ${shortTitle(baseItem)}`;
+  }
+
+  const prog = UI.makeProgressDriver();
+
+  // Reserve credits
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('rig', 1);
+  if (reservation.insufficient) return;
+
+  prog.label('Starting rigging...');
+
+  let result;
+  try {
+    result = await apiFetch('/api/_mod/rig/start', {
+      method: 'POST',
+      body: payload
+    });
+  } catch (err) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail('Rigging request failed');
+    throw err;
+  }
+
+  if (!result.ok) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail(result.error || 'Rigging failed');
+    alert(result.error || `Rigging failed (HTTP ${result.status})`);
+    return;
+  }
+
+  const { job_id } = result.data;
+  if (!job_id) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail('No job ID returned');
+    return;
+  }
+
+  confirmCreditsReservation(reservation.reservationId, job_id);
+
+  // Add to history timeline
+  const rigMeta = {
+    prompt: labelPrompt,
+    root_prompt: labelPrompt,
+    stage: 'rig',
+    status_label: 'Rigging...',
+    type: 'model'
+  };
+  addGeneratingPlaceholder(job_id, rigMeta);
+  State.savePendingMeta(job_id, rigMeta);
+  State.addActiveJob(job_id);
+
+  prog.label('Rigging in progress...');
+  watchRigJob(job_id);
+}
+
+/**
+ * Poll rigging job status until complete
+ */
+export function watchRigJob(job_id) {
+  const prog = UI.makeProgressDriver();
+  const MAX_POLL_ATTEMPTS = 120;
+  const MAX_CONSECUTIVE_ERRORS = 5;
+  const MAX_DELAY = 8000;
+  let pollAttempts = 0;
+  let consecutiveErrors = 0;
+
+  const poll = async (delay = 1500) => {
+    pollAttempts++;
+
+    if (pollAttempts > MAX_POLL_ATTEMPTS) {
+      prog.fail('Rigging timed out - please try again');
+      if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+      return;
+    }
+
+    try {
+      const result = await apiFetch(`/api/_mod/rig/status/${job_id}`);
+
+      if (result.status >= 500 || result.isHtml) {
+        consecutiveErrors++;
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          prog.fail('Rigging failed - server error');
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          return;
+        }
+        const nextDelay = Math.min(MAX_DELAY, delay * 2);
+        setTimeout(() => poll(nextDelay), nextDelay);
+        return;
+      }
+
+      if (result.status === 403 || result.status === 404) {
+        prog.fail('Rigging job not found');
+        return;
+      }
+
+      consecutiveErrors = 0;
+      const st = result.data;
+
+      const pct = st.progress ?? 0;
+      prog.pct(pct, `Rigging... ${pct}%`);
+
+      if (st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        prog.done('Rigging complete!');
+        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        State.removeActiveJob(job_id);
+
+        // Persist to history
+        const glbUrl = st.glb || st.model_urls?.glb || '';
+        const rigHistoryData = {
+          id: job_id,
+          type: 'model',
+          status: 'finished',
+          stage: 'rig',
+          created_at: Date.now(),
+          prompt: State.getPendingMeta(job_id)?.prompt || 'Rigged Model',
+          root_prompt: State.getPendingMeta(job_id)?.root_prompt || '',
+          title: State.getPendingMeta(job_id)?.prompt || 'Rigged Model',
+          glb_url: glbUrl,
+          thumbnail_url: st.thumbnail_url || '',
+          model: 'latest'
+        };
+        if (State.historyHasJobId(job_id)) {
+          State.updateHistoryItem(job_id, rigHistoryData);
+        } else {
+          State.addHistoryItem(rigHistoryData);
+        }
+        State.deletePendingMeta(job_id);
+        renderHistory();
+
+        // Show results section
+        const resultsSection = byId('rigResultsSection');
+        if (resultsSection) resultsSection.style.display = 'block';
+
+        // Populate download links
+        const linksDiv = byId('rigDownloadLinks');
+        if (linksDiv) {
+          linksDiv.innerHTML = '';
+          const formats = [
+            { key: 'glb', label: 'GLB' },
+            { key: 'fbx', label: 'FBX' }
+          ];
+          formats.forEach(fmt => {
+            const url = st[fmt.key] || st.model_urls?.[fmt.key];
+            if (url) {
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `rigged-model.${fmt.key}`;
+              a.className = 'gen-btn';
+              a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
+              a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
+              linksDiv.appendChild(a);
+            }
+          });
+        }
+
+        // Populate built-in animation links
+        const builtinDiv = byId('rigBuiltinAnimations');
+        if (builtinDiv && st.animations) {
+          builtinDiv.innerHTML = '';
+          st.animations.forEach(anim => {
+            const a = document.createElement('a');
+            a.href = anim.url || anim.glb || '#';
+            a.download = `${anim.name || anim.action || 'animation'}.glb`;
+            a.className = 'material-chip';
+            a.style.cssText = 'text-decoration:none;cursor:pointer';
+            a.textContent = anim.name || anim.action || 'Animation';
+            builtinDiv.appendChild(a);
+          });
+        }
+
+        // Store rigging task ID for animation
+        const animBtn = byId('applyAnimationBtn');
+        if (animBtn) {
+          animBtn.dataset.riggingTaskId = st.rigging_task_id || job_id;
+        }
+
+        return;
+      }
+
+      if (st.status === 'FAILED' || st.status === 'failed') {
+        prog.fail(st.error || 'Rigging failed');
+        State.removeActiveJob(job_id);
+        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.error || 'Rigging failed' });
+        State.deletePendingMeta(job_id);
+        renderHistory();
+        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        return;
+      }
+
+      // Still in progress — update history placeholder
+      State.updateHistoryItem(job_id, { status: 'generating', status_label: `Rigging... ${pct}%` });
+
+      setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
+    } catch (err) {
+      consecutiveErrors++;
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        prog.fail('Rigging failed - network error');
+        return;
+      }
+      setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
+    }
+  };
+
+  poll();
+}
+
+/**
+ * Start animation from rigged model
+ */
+export async function startAnimationFromPanel(riggingTaskId, animationAction) {
+  if (!riggingTaskId) {
+    alert('No rigged model available. Please complete rigging first.');
+    return;
+  }
+  if (!animationAction) {
+    alert('Please select an animation action.');
+    return;
+  }
+
+  if (!checkCreditsFor('animate')) return;
+
+  const prog = UI.makeProgressDriver();
+
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('animate', 1);
+  if (reservation.insufficient) return;
+
+  prog.label('Starting animation...');
+
+  let result;
+  try {
+    result = await apiFetch('/api/_mod/rig/animate', {
+      method: 'POST',
+      body: { rigging_task_id: riggingTaskId, animation_action: animationAction }
+    });
+  } catch (err) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail('Animation request failed');
+    throw err;
+  }
+
+  if (!result.ok) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail(result.error || 'Animation failed');
+    alert(result.error || `Animation failed (HTTP ${result.status})`);
+    return;
+  }
+
+  const { job_id } = result.data;
+  if (!job_id) {
+    releaseCreditsReservation(reservation.reservationId);
+    prog.fail('No job ID returned');
+    return;
+  }
+
+  confirmCreditsReservation(reservation.reservationId, job_id);
+
+  // Add to history timeline
+  const animMeta = {
+    prompt: `${animationAction} animation`,
+    root_prompt: `${animationAction} animation`,
+    stage: 'animation',
+    status_label: 'Animating...',
+    type: 'model'
+  };
+  addGeneratingPlaceholder(job_id, animMeta);
+  State.savePendingMeta(job_id, animMeta);
+  State.addActiveJob(job_id);
+
+  prog.label('Animating...');
+  watchAnimationJob(job_id);
+}
+
+/**
+ * Poll animation job status until complete
+ */
+export function watchAnimationJob(job_id) {
+  const prog = UI.makeProgressDriver();
+  const MAX_POLL_ATTEMPTS = 120;
+  const MAX_CONSECUTIVE_ERRORS = 5;
+  const MAX_DELAY = 8000;
+  let pollAttempts = 0;
+  let consecutiveErrors = 0;
+
+  const poll = async (delay = 1500) => {
+    pollAttempts++;
+
+    if (pollAttempts > MAX_POLL_ATTEMPTS) {
+      prog.fail('Animation timed out - please try again');
+      if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+      return;
+    }
+
+    try {
+      const result = await apiFetch(`/api/_mod/rig/animate/status/${job_id}`);
+
+      if (result.status >= 500 || result.isHtml) {
+        consecutiveErrors++;
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          prog.fail('Animation failed - server error');
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          return;
+        }
+        const nextDelay = Math.min(MAX_DELAY, delay * 2);
+        setTimeout(() => poll(nextDelay), nextDelay);
+        return;
+      }
+
+      if (result.status === 403 || result.status === 404) {
+        prog.fail('Animation job not found');
+        return;
+      }
+
+      consecutiveErrors = 0;
+      const st = result.data;
+
+      const pct = st.progress ?? 0;
+      prog.pct(pct, `Animating... ${pct}%`);
+
+      if (st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        prog.done('Animation complete!');
+        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        State.removeActiveJob(job_id);
+
+        // Persist to history
+        const animGlbUrl = st.glb || st.model_urls?.glb || '';
+        const animHistoryData = {
+          id: job_id,
+          type: 'model',
+          status: 'finished',
+          stage: 'animation',
+          created_at: Date.now(),
+          prompt: State.getPendingMeta(job_id)?.prompt || 'Animation',
+          root_prompt: State.getPendingMeta(job_id)?.root_prompt || '',
+          title: State.getPendingMeta(job_id)?.prompt || 'Animation',
+          glb_url: animGlbUrl,
+          thumbnail_url: st.thumbnail_url || '',
+          model: 'latest'
+        };
+        if (State.historyHasJobId(job_id)) {
+          State.updateHistoryItem(job_id, animHistoryData);
+        } else {
+          State.addHistoryItem(animHistoryData);
+        }
+        State.deletePendingMeta(job_id);
+        renderHistory();
+
+        // Show animation results
+        const animSection = byId('animResultsSection');
+        if (animSection) animSection.style.display = 'block';
+
+        const linksDiv = byId('animDownloadLinks');
+        if (linksDiv) {
+          linksDiv.innerHTML = '';
+          const formats = [
+            { key: 'glb', label: 'GLB' },
+            { key: 'fbx', label: 'FBX' },
+            { key: 'usdz', label: 'USDZ' },
+            { key: 'mp4', label: 'MP4 Preview' },
+            { key: 'processed_armature_fbx', label: 'Armature FBX' },
+            { key: 'processed_animation_fps_fbx', label: 'Animation FPS FBX' }
+          ];
+          formats.forEach(fmt => {
+            const url = st[fmt.key] || st.model_urls?.[fmt.key];
+            if (url) {
+              const a = document.createElement('a');
+              a.href = url;
+              const ext = fmt.key.includes('fbx') ? 'fbx' : fmt.key.includes('usdz') ? 'usdz' : fmt.key;
+              a.download = `animation.${ext}`;
+              a.className = 'gen-btn';
+              a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
+              a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
+              linksDiv.appendChild(a);
+            }
+          });
+        }
+        return;
+      }
+
+      if (st.status === 'FAILED' || st.status === 'failed') {
+        prog.fail(st.error || 'Animation failed');
+        State.removeActiveJob(job_id);
+        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.error || 'Animation failed' });
+        State.deletePendingMeta(job_id);
+        renderHistory();
+        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        return;
+      }
+
+      // Still in progress — update history placeholder
+      State.updateHistoryItem(job_id, { status: 'generating', status_label: `Animating... ${pct}%` });
+
+      setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
+    } catch (err) {
+      consecutiveErrors++;
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        prog.fail('Animation failed - network error');
+        return;
+      }
+      setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
+    }
+  };
+
+  poll();
 }
 
 // ============================================================================
@@ -3743,7 +4320,6 @@ export async function startRemeshFromHistory(item) {
   const meta = {
     prompt: `Remesh ${shortTitle(item)}`,
     root_prompt: item.root_prompt || item.prompt || '',
-    art_style: item.art_style || 'realistic',
     model: item.model || 'latest',
     license: item.license || 'private',
     lineage_origin_id: item.lineage_root_id || item.id,
@@ -3772,7 +4348,6 @@ export async function startTextureFromHistory(item) {
   const meta = {
     prompt: texValues.text_style_prompt || `Texture ${shortTitle(item)}`,
     root_prompt: item.root_prompt || item.prompt || texValues.text_style_prompt || '',
-    art_style: item.art_style || 'realistic',
     model: item.model || 'latest',
     license: item.license || 'private',
     lineage_origin_id: item.lineage_root_id || item.id,
@@ -3800,10 +4375,10 @@ export async function evolveFromHistory(item, count = 2) {
 
   if (!checkCreditsFor('text-to-3d', count)) return;
 
-  const art_style = item.art_style || 'realistic';
   const model = item.model || 'latest';
   const license = item.license || 'private';
   const symmetry = item.symmetry_mode || 'auto';
+  const poseMode = item.pose_mode || '';
   const batchGroupId = crypto?.randomUUID ? crypto.randomUUID() : `evolve-${Date.now()}`;
 
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'evolve' } }));
@@ -3817,8 +4392,9 @@ export async function evolveFromHistory(item, count = 2) {
       const idempotencyKey = State.generateIdempotencyKey();
       const tempId = crypto?.randomUUID ? crypto.randomUUID() : `evolve-${Date.now()}-${slot}`;
       const tempMeta = {
-        prompt, art_style, model, license,
+        prompt, model, license,
         symmetry_mode: symmetry,
+        pose_mode: poseMode,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId,
         stage: 'preview',
@@ -3829,8 +4405,10 @@ export async function evolveFromHistory(item, count = 2) {
       State.savePendingMeta(tempId, tempMeta);
 
       const payload = {
-        prompt, art_style, model,
-        symmetry_mode: symmetry, license,
+        prompt, model,
+        symmetry_mode: symmetry,
+        pose_mode: poseMode,
+        license,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId, refine: false
       };
@@ -3861,13 +4439,14 @@ export async function evolveFromHistory(item, count = 2) {
       confirmCreditsReservation(reservation.reservationId, job_id);
       State.addActiveJob(job_id);
       State.savePendingMeta(job_id, {
-        prompt, art_style, model, root_prompt: prompt, license,
+        prompt, model, root_prompt: prompt, license,
         symmetry_mode: symmetry,
+        pose_mode: poseMode,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId
       });
       addGeneratingPlaceholder(job_id, {
-        prompt, art_style, model, root_prompt: prompt,
+        prompt, model, root_prompt: prompt,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId, stage: 'preview',
         status_label: `Evolving ${slot + 1}/${count}...`
@@ -4283,6 +4862,10 @@ if (typeof document !== 'undefined') {
 // ============================================================================
 window.watchJob = watchJob;
 window.watchMeshyTask = watchMeshyTask;
+window.startRigFromPanel = startRigFromPanel;
+window.startAnimationFromPanel = startAnimationFromPanel;
+window.watchRigJob = watchRigJob;
+window.watchAnimationJob = watchAnimationJob;
 window.startTextureFromHistory = startTextureFromHistory;
 window.startRemeshFromHistory = startRemeshFromHistory;
 window.startImageTo3DFromHistory = startImageTo3DFromHistory;

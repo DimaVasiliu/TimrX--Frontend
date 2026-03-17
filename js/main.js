@@ -602,6 +602,16 @@ function setupGenerateButtonListeners() {
       API.startTextureFromPanel();
       return;
     }
+    if (btnId === 'startRigBtn') {
+      API.startRigFromPanel();
+      return;
+    }
+    if (btnId === 'applyAnimationBtn') {
+      const riggingTaskId = btn.dataset.riggingTaskId;
+      const action = document.getElementById('rigAnimationAction')?.value;
+      API.startAnimationFromPanel(riggingTaskId, action);
+      return;
+    }
     if (!btnId || !btnId.includes('generate')) return;
 
     if (btnId === 'generateModelBtn') {

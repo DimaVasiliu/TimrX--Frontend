@@ -78,9 +78,8 @@ function itemPromptFingerprint(item = {}) {
 function aiModelLabel(value = '') {
   const normalized = (value || '').toLowerCase().replace(/\s+/g, '');
   if (!normalized) return 'Meshy';
-  if (normalized === 'latest' || normalized === 'meshy6' || normalized === 'meshy6preview') return 'Meshy 6 Preview';
+  if (normalized === 'latest' || normalized === 'meshy6' || normalized === 'meshy6preview') return 'Meshy 6';
   if (normalized === 'meshy5') return 'Meshy 5';
-  if (normalized === 'meshy4') return 'Meshy 4';
   return value;
 }
 
@@ -467,12 +466,16 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : status === 'refining' ? 'status-refining'
     : status === 'remeshing' ? 'status-remeshing'
     : status === 'texturing' ? 'status-texturing'
+    : status === 'rigging' ? 'status-generating'
+    : status === 'animating' ? 'status-generating'
     : '';
 
-  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing'].includes(status);
+  const isProcessing = ['generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating'].includes(status);
   const processingLabel = status === 'refining' ? 'Refining...'
     : status === 'remeshing' ? 'Remeshing...'
     : status === 'texturing' ? 'Texturing...'
+    : status === 'rigging' ? 'Rigging...'
+    : status === 'animating' ? 'Animating...'
     : 'Generating...';
 
   let modelName = displayModel.title || displayModel.prompt?.slice(0, 30) || 'New Model';
@@ -1053,9 +1056,9 @@ export function getFilteredHistory() {
     const license = (it.license || '').toLowerCase();
     const symmetry = (it.symmetry_mode || '').toLowerCase();
     const batch = String(it.batch_count || '');
-    const poseFlag = it.is_a_t_pose ? 'pose' : '';
+    const pose = (it.pose_mode || '').toLowerCase();
     return title.includes(q) || prompt.includes(q) || model.includes(q) || stage.includes(q) ||
-           license.includes(q) || symmetry.includes(q) || batch.includes(q) || poseFlag.includes(q);
+           license.includes(q) || symmetry.includes(q) || batch.includes(q) || pose.includes(q);
   });
 }
 

@@ -1651,8 +1651,7 @@ const response = await fetch('https://3d.timrx.live/api/generate', {
   credentials: 'include',
   body: JSON.stringify({
     prompt: 'A futuristic robot with chrome armor',
-    art_style: 'realistic',
-    negative_prompt: 'blurry, low quality'
+    ai_model: 'latest'
   })
 });
 const { task_id } = await response.json();</code></pre>
