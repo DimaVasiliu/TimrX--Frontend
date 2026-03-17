@@ -1403,7 +1403,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             if (costBadge) {
               costBadge.textContent = cost;
             }
-            generateBtn.dataset.currentAction = isMultiImage ? 'multi-image-to-3d' : isImage3d ? 'image-to-3d' : 'text-to-3d';
+            // Multi-image uses same cost as image-to-3d (30c); tab detection in onGenerateClick routes to the correct endpoint
+            generateBtn.dataset.currentAction = (isMultiImage || isImage3d) ? 'image-to-3d' : 'text-to-3d';
           }
 
           // Trigger workspace credits update if available
