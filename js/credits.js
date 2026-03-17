@@ -995,6 +995,7 @@
         // IDENT-1: If identity changed via cross-identity merge, clear stale caches
         if (result.data?.identity_changed && window.TimrXApi?.clearAllUserCaches) {
           window.TimrXApi.clearAllUserCaches();
+          if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
         }
         showSubMessage('Email verified! Starting checkout...', true);
 
@@ -2904,8 +2905,13 @@
       userEmail = '';
       isRestoreMode = false;
 
-      // Clear stored session data
-      localStorage.removeItem('timrx_credits_last');
+      // Clear ALL user-scoped caches (history, wallet, jobs, credits, etc.)
+      // This prevents stale data from leaking to the next user session
+      if (window.TimrXApi?.clearAllUserCaches) {
+        window.TimrXApi.clearAllUserCaches();
+      }
+      // Also clear auth stamp so next session starts completely fresh
+      try { localStorage.removeItem('timrx_auth_stamp'); } catch (_) {}
       sessionStorage.removeItem('timrx_post_purchase_dismissed');
 
       closeRestoreAccountModal();
@@ -3128,6 +3134,8 @@
       console.log('[RestoreAccount] Account switch confirmed');
       // NEW-1: Clear stale caches from previous identity before loading new state
       if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
+      // Also clear in-memory history cache so stale items don't flash
+      if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
       userEmail = raPendingEmail;
       emailVerified = true;
       isRestoreMode = false;
@@ -3138,6 +3146,13 @@
       if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
 
       closeRestoreAccountModal();
+
+      // Reload history from DB for the new identity and re-render
+      if (window.loadHistoryFromDB) {
+        window.loadHistoryFromDB().then(() => {
+          if (window.renderHistory) window.renderHistory();
+        }).catch(() => {});
+      }
 
       // Show restore success celebration
       const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
@@ -3698,7 +3713,10 @@
             // Verification succeeded in background!
             console.log('[Credits] Verification confirmed via /api/me poll');
             // NEW-1: Clear stale caches from previous identity before loading new state
-            if (isRestoreMode && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
+            if (isRestoreMode && window.TimrXApi?.clearAllUserCaches) {
+              window.TimrXApi.clearAllUserCaches();
+              if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
+            }
             clearSecureMessages();  // Clear any error messages
             const wasRestoreMode = isRestoreMode;  // Capture before resetting
             userEmail = pendingEmail;
@@ -3716,6 +3734,12 @@
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
             verifyCodeBtn?.classList.remove('loading');
+            // Reload history for the (possibly new) identity
+            if (wasRestoreMode && window.loadHistoryFromDB) {
+              window.loadHistoryFromDB().then(() => {
+                if (window.renderHistory) window.renderHistory();
+              }).catch(() => {});
+            }
             // Show restore success popup if this was a restore operation
             if (wasRestoreMode) {
               const restoredVideoCredits = meResult.data.available_video_credits ?? 0;
@@ -3776,7 +3800,10 @@
     const wasRestoreMode = isRestoreMode; // Capture before resetting
     const identityChanged = result?.data?.identity_changed || false;
     // NEW-1 / IDENT-1: Clear stale caches when identity changed (restore or cross-identity merge)
-    if ((wasRestoreMode || identityChanged) && window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
+    if ((wasRestoreMode || identityChanged) && window.TimrXApi?.clearAllUserCaches) {
+      window.TimrXApi.clearAllUserCaches();
+      if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
+    }
     userEmail = pendingEmail;
     emailVerified = true;
     isRestoreMode = false;
@@ -3798,6 +3825,13 @@
     if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
     showSecureState(3);
     verifyCodeBtn?.classList.remove('loading');
+
+    // Reload history from DB for the (possibly new) identity and re-render
+    if ((wasRestoreMode || identityChanged) && window.loadHistoryFromDB) {
+      window.loadHistoryFromDB().then(() => {
+        if (window.renderHistory) window.renderHistory();
+      }).catch(() => {});
+    }
 
     // Show restore success popup if this was a restore operation
     if (wasRestoreMode) {
