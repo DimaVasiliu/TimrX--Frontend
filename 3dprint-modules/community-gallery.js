@@ -264,7 +264,8 @@
           <p class="ccg-share-modal__status" id="ccgShareStatus" aria-live="polite"></p>
         </div>`;
   
-      document.body.appendChild(modal);
+      // Append to <html> not <body> so position:fixed isn't broken by CSS transforms on body/workspace
+      document.documentElement.appendChild(modal);
   
       // Wire prompt preview toggle
       const showPromptCheck = modal.querySelector('#ccgShareShowPrompt');

@@ -830,7 +830,7 @@ body.community-view .community-expanded-view {
 .ccg-share-modal {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 2147483647; /* max int — above all workspace stacking contexts */
   display: flex;
   align-items: center;
   justify-content: center;
