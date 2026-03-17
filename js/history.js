@@ -960,6 +960,11 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <span class="card-menu__icon">&#9670;</span>
             Share on Discord
           </button>
+          <div class="card-submenu__divider"></div>
+          <button class="card-submenu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}" data-type="${displayModel.item_type || 'model'}" data-thumb="${displayModel.thumbnail_url || ''}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+            <span class="card-menu__icon">&#9651;</span>
+            Share to Community
+          </button>
         </div>
       </div>
       ` : ''}

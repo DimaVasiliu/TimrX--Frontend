@@ -1383,6 +1383,13 @@ function wireGallery() {
         return;
       }
 
+      if (act === 'share-community') {
+        if (window.CommunityGallery && window.CommunityGallery.openShareModal) {
+          window.CommunityGallery.openShareModal(item);
+        }
+        return;
+      }
+
       if (act === 'texture') {
         await API.startTextureFromHistory(item);
         return;
