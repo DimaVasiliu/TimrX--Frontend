@@ -3954,6 +3954,68 @@ export async function startRigFromPanel() {
   watchRigJob(job_id);
 }
 
+// ─── Estimated progress for tasks that report 0% until done ────────────
+//
+// Creates a smooth time-based progress curve that runs independently.
+// Real API progress (> 0) overrides the estimate instantly.
+// Never reaches 100% on its own — only real completion triggers that.
+//
+// Curve for rigging (~90s expected):
+//   0-10s → 0-15%   (queue / pending)
+//  10-40s → 15-60%  (processing ramp)
+//  40-70s → 60-85%  (slower phase)
+//  70s+   → 85-95%  (asymptotic hold, never 100%)
+//
+// Curve for animation (~45s expected):
+//   0-5s  → 0-15%
+//   5-20s → 15-60%
+//  20-35s → 60-85%
+//  35s+   → 85-95%
+
+function _createEstimatedProgress(type = 'rig') {
+  const startTime = Date.now();
+  const isRig = type === 'rig';
+
+  // Phase breakpoints: [endTimeSec, startPct, endPct]
+  const phases = isRig
+    ? [[10, 0, 15], [40, 15, 60], [70, 60, 85], [Infinity, 85, 95]]
+    : [[5, 0, 15],  [20, 15, 60], [35, 60, 85], [Infinity, 85, 95]];
+
+  let _stopped = false;
+  let _realPct = 0; // last real value from API
+
+  return {
+    /** Call with the real API pct on every poll/SSE event */
+    feedReal(pct) {
+      _realPct = pct;
+    },
+
+    /** Get the display percentage (real if > 0, else estimated) */
+    get() {
+      if (_stopped) return _realPct || 0;
+      // If API reports real progress, use it
+      if (_realPct > 0) return _realPct;
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      let prevEnd = 0;
+      for (const [endT, startP, endP] of phases) {
+        if (elapsed < endT) {
+          const phaseElapsed = elapsed - prevEnd;
+          const phaseDuration = Math.min(endT, 300) - prevEnd; // cap infinite
+          const t = Math.min(phaseElapsed / phaseDuration, 1);
+          // Ease-out for natural feel
+          const eased = 1 - Math.pow(1 - t, 2);
+          return Math.round(startP + (endP - startP) * eased);
+        }
+        prevEnd = endT === Infinity ? prevEnd + 60 : endT;
+      }
+      return 95;
+    },
+
+    stop() { _stopped = true; }
+  };
+}
+
 /**
  * Handle a completed rigging result — shared by SSE and polling paths.
  */
@@ -4054,87 +4116,74 @@ async function _handleRigComplete(job_id, st, prog) {
   }
 }
 
-/**
- * Watch rigging job — tries SSE first, falls back to polling.
- */
-export function watchRigJob(job_id) {
-  const prog = UI.makeProgressDriver();
+// ─── Stuck-job UX thresholds (seconds) ──────────────────────────────────
+const _RIG_THRESHOLDS  = { delayed: 90, warning: 180, stale: 300, abandon: 600 };
+const _ANIM_THRESHOLDS = { delayed: 60, warning: 120, stale: 240, abandon: 480 };
 
-  // Try SSE first
-  let sseWorked = false;
-  try {
-    const evtSource = new EventSource(`/api/_mod/rig/stream/${job_id}`);
-    let sseTimeout = setTimeout(() => {
-      // If no message in 15s, SSE isn't working — close and poll
-      if (!sseWorked) {
-        evtSource.close();
-        _pollRigJob(job_id, prog);
-      }
-    }, 15000);
+function _stuckLabel(type, elapsedSec, queuePos) {
+  const th = type === 'rig' ? _RIG_THRESHOLDS : _ANIM_THRESHOLDS;
+  const verb = type === 'rig' ? 'Rigging' : 'Animating';
+  const queueHint = (queuePos != null && queuePos > 0)
+    ? ` (${queuePos} job${queuePos > 1 ? 's' : ''} ahead in queue)`
+    : '';
 
-    evtSource.onmessage = (event) => {
-      sseWorked = true;
-      clearTimeout(sseTimeout);
-      try {
-        const st = JSON.parse(event.data);
-        const pct = st.progress ?? st.pct ?? 0;
-        prog.pct(pct, `Rigging... ${pct}%`);
-        State.updateHistoryItem(job_id, { status: 'generating', status_label: `Rigging... ${pct}%` });
-
-        const status = (st.status || '').toUpperCase();
-        if (status === 'SUCCEEDED') {
-          evtSource.close();
-          // Fetch full status to get all URLs
-          apiFetch(`/api/_mod/rig/status/${job_id}`).then(result => {
-            _handleRigComplete(job_id, result.data || st, prog);
-          }).catch(() => {
-            _handleRigComplete(job_id, st, prog);
-          });
-        } else if (status === 'FAILED' || status === 'CANCELED') {
-          evtSource.close();
-          prog.fail(st.task_error?.message || 'Rigging failed');
-          State.removeActiveJob(job_id);
-          State.updateHistoryItem(job_id, { status: 'failed', error_message: st.task_error?.message || 'Rigging failed' });
-          State.deletePendingMeta(job_id);
-          renderHistory();
-          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        }
-      } catch (e) {
-        console.warn('[Rig SSE] Parse error:', e);
-      }
-    };
-
-    evtSource.onerror = () => {
-      clearTimeout(sseTimeout);
-      evtSource.close();
-      if (!sseWorked) {
-        // SSE never worked — fall back to polling
-        _pollRigJob(job_id, prog);
-      }
-      // If SSE worked but then errored, task may have completed via onmessage
-    };
-  } catch (e) {
-    // EventSource not supported or URL issue — fall back to polling
-    _pollRigJob(job_id, prog);
-  }
+  if (elapsedSec >= th.stale)
+    return `${verb} is taking unusually long.${queueHint} You can close this and check history later.`;
+  if (elapsedSec >= th.warning)
+    return `${verb} is still running — Meshy may be under heavy load.${queueHint}`;
+  if (elapsedSec >= th.delayed)
+    return `${verb} is taking longer than usual...${queueHint}`;
+  return null; // no special message yet
 }
 
 /**
- * Polling fallback for rigging job status.
+ * Watch rigging job — polling with estimated progress and stuck-job UX.
+ *
+ * SSE is disabled: gunicorn sync workers buffer streaming responses,
+ * so EventSource never receives incremental data on the current infra.
  */
-function _pollRigJob(job_id, prog) {
-  const MAX_POLL_ATTEMPTS = 120;
+export function watchRigJob(job_id) {
+  const prog = UI.makeProgressDriver();
+  const est = _createEstimatedProgress('rig');
+  const startedAt = Date.now();
+  const shared = { queuePos: null }; // shared with poll loop
+
+  // Tick estimated progress every 500ms with stuck-job messaging
+  const estInterval = setInterval(() => {
+    const pct = est.get();
+    const elapsed = (Date.now() - startedAt) / 1000;
+    const stuck = _stuckLabel('rig', elapsed, shared.queuePos);
+    const label = stuck || `Rigging... ${pct}%`;
+    prog.pct(pct, label);
+    State.updateHistoryItem(job_id, { status: 'generating', status_label: label });
+  }, 500);
+
+  const cleanup = () => { est.stop(); clearInterval(estInterval); };
+
+  _pollRigJob(job_id, prog, est, cleanup, startedAt, shared);
+}
+
+/**
+ * Poll rigging job with timing, stuck-job thresholds, and abandon policy.
+ */
+function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
   const MAX_DELAY = 8000;
-  let pollAttempts = 0;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 1500) => {
-    pollAttempts++;
+  const poll = async (delay = 2000) => {
+    const elapsedSec = (Date.now() - startedAt) / 1000;
 
-    if (pollAttempts > MAX_POLL_ATTEMPTS) {
-      prog.fail('Rigging timed out - please try again');
-      if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+    // Abandon policy: stop active polling after threshold, move to background
+    if (elapsedSec > _RIG_THRESHOLDS.abandon) {
+      cleanup();
+      prog.pct(95, 'Rigging moved to background — check history for results.');
+      State.updateHistoryItem(job_id, {
+        status: 'generating',
+        status_label: 'Processing in background...'
+      });
+      // Keep job in active list so history shows it, but stop polling
+      console.warn(`[Rig] Abandoned active polling for ${job_id} after ${Math.round(elapsedSec)}s`);
       return;
     }
 
@@ -4144,16 +4193,17 @@ function _pollRigJob(job_id, prog) {
       if (result.status >= 500 || result.isHtml) {
         consecutiveErrors++;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          cleanup();
           prog.fail('Rigging failed - server error');
           if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
           return;
         }
-        const nextDelay = Math.min(MAX_DELAY, delay * 2);
-        setTimeout(() => poll(nextDelay), nextDelay);
+        setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
         return;
       }
 
       if (result.status === 403 || result.status === 404) {
+        cleanup();
         prog.fail('Rigging job not found');
         return;
       }
@@ -4161,15 +4211,21 @@ function _pollRigJob(job_id, prog) {
       consecutiveErrors = 0;
       const st = result.data;
 
-      const pct = st.pct ?? st.progress ?? 0;
-      prog.pct(pct, `Rigging... ${pct}%`);
+      // Feed real API progress — overrides estimate when > 0
+      const realPct = st.pct ?? st.progress ?? 0;
+      est.feedReal(realPct);
+
+      // Track queue position for UX messaging (shared with interval timer)
+      if (st.preceding_tasks != null) shared.queuePos = st.preceding_tasks;
 
       if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        cleanup();
         await _handleRigComplete(job_id, st, prog);
         return;
       }
 
       if (st.status === 'FAILED' || st.status === 'failed') {
+        cleanup();
         prog.fail(st.message || st.error || 'Rigging failed');
         State.removeActiveJob(job_id);
         State.updateHistoryItem(job_id, { status: 'failed', error_message: st.message || st.error || 'Rigging failed' });
@@ -4179,12 +4235,14 @@ function _pollRigJob(job_id, prog) {
         return;
       }
 
-      // Still in progress
-      State.updateHistoryItem(job_id, { status: 'generating', status_label: `Rigging... ${pct}%` });
-      setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
+      // Still in progress — adaptive poll interval
+      // Slow down slightly over time: base 2s, grows to 8s max
+      const nextDelay = Math.min(MAX_DELAY, delay + 500);
+      setTimeout(() => poll(nextDelay), delay);
     } catch (err) {
       consecutiveErrors++;
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        cleanup();
         prog.fail('Rigging failed - network error');
         return;
       }
@@ -4334,82 +4392,47 @@ function _handleAnimComplete(job_id, st, prog) {
 }
 
 /**
- * Watch animation job — tries SSE first, falls back to polling.
+ * Watch animation job — polling with estimated progress and stuck-job UX.
  */
 export function watchAnimationJob(job_id) {
   const prog = UI.makeProgressDriver();
+  const est = _createEstimatedProgress('animate');
+  const startedAt = Date.now();
+  const shared = { queuePos: null };
 
-  // Try SSE first
-  let sseWorked = false;
-  try {
-    const evtSource = new EventSource(`/api/_mod/rig/animate/stream/${job_id}`);
-    let sseTimeout = setTimeout(() => {
-      if (!sseWorked) {
-        evtSource.close();
-        _pollAnimJob(job_id, prog);
-      }
-    }, 15000);
+  const estInterval = setInterval(() => {
+    const pct = est.get();
+    const elapsed = (Date.now() - startedAt) / 1000;
+    const stuck = _stuckLabel('animate', elapsed, shared.queuePos);
+    const label = stuck || `Animating... ${pct}%`;
+    prog.pct(pct, label);
+    State.updateHistoryItem(job_id, { status: 'generating', status_label: label });
+  }, 500);
 
-    evtSource.onmessage = (event) => {
-      sseWorked = true;
-      clearTimeout(sseTimeout);
-      try {
-        const st = JSON.parse(event.data);
-        const pct = st.progress ?? st.pct ?? 0;
-        prog.pct(pct, `Animating... ${pct}%`);
-        State.updateHistoryItem(job_id, { status: 'generating', status_label: `Animating... ${pct}%` });
+  const cleanup = () => { est.stop(); clearInterval(estInterval); };
 
-        const status = (st.status || '').toUpperCase();
-        if (status === 'SUCCEEDED') {
-          evtSource.close();
-          // Fetch full status to get all URLs (including persisted S3 URLs)
-          apiFetch(`/api/_mod/rig/animate/status/${job_id}`).then(result => {
-            _handleAnimComplete(job_id, result.data || st, prog);
-          }).catch(() => {
-            _handleAnimComplete(job_id, st, prog);
-          });
-        } else if (status === 'FAILED' || status === 'CANCELED') {
-          evtSource.close();
-          prog.fail(st.task_error?.message || 'Animation failed');
-          State.removeActiveJob(job_id);
-          State.updateHistoryItem(job_id, { status: 'failed', error_message: st.task_error?.message || 'Animation failed' });
-          State.deletePendingMeta(job_id);
-          renderHistory();
-          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        }
-      } catch (e) {
-        console.warn('[Anim SSE] Parse error:', e);
-      }
-    };
-
-    evtSource.onerror = () => {
-      clearTimeout(sseTimeout);
-      evtSource.close();
-      if (!sseWorked) {
-        _pollAnimJob(job_id, prog);
-      }
-    };
-  } catch (e) {
-    _pollAnimJob(job_id, prog);
-  }
+  _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared);
 }
 
 /**
- * Polling fallback for animation job status.
+ * Poll animation job with stuck-job thresholds and abandon policy.
  */
-function _pollAnimJob(job_id, prog) {
-  const MAX_POLL_ATTEMPTS = 120;
+function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
   const MAX_DELAY = 8000;
-  let pollAttempts = 0;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 1500) => {
-    pollAttempts++;
+  const poll = async (delay = 2000) => {
+    const elapsedSec = (Date.now() - startedAt) / 1000;
 
-    if (pollAttempts > MAX_POLL_ATTEMPTS) {
-      prog.fail('Animation timed out - please try again');
-      if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+    if (elapsedSec > _ANIM_THRESHOLDS.abandon) {
+      cleanup();
+      prog.pct(95, 'Animation moved to background — check history for results.');
+      State.updateHistoryItem(job_id, {
+        status: 'generating',
+        status_label: 'Processing in background...'
+      });
+      console.warn(`[Anim] Abandoned active polling for ${job_id} after ${Math.round(elapsedSec)}s`);
       return;
     }
 
@@ -4419,16 +4442,17 @@ function _pollAnimJob(job_id, prog) {
       if (result.status >= 500 || result.isHtml) {
         consecutiveErrors++;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          cleanup();
           prog.fail('Animation failed - server error');
           if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
           return;
         }
-        const nextDelay = Math.min(MAX_DELAY, delay * 2);
-        setTimeout(() => poll(nextDelay), nextDelay);
+        setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
         return;
       }
 
       if (result.status === 403 || result.status === 404) {
+        cleanup();
         prog.fail('Animation job not found');
         return;
       }
@@ -4436,15 +4460,19 @@ function _pollAnimJob(job_id, prog) {
       consecutiveErrors = 0;
       const st = result.data;
 
-      const pct = st.pct ?? st.progress ?? 0;
-      prog.pct(pct, `Animating... ${pct}%`);
+      const realPct = st.pct ?? st.progress ?? 0;
+      est.feedReal(realPct);
+
+      if (st.preceding_tasks != null) shared.queuePos = st.preceding_tasks;
 
       if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        cleanup();
         _handleAnimComplete(job_id, st, prog);
         return;
       }
 
       if (st.status === 'FAILED' || st.status === 'failed') {
+        cleanup();
         prog.fail(st.message || st.error || 'Animation failed');
         State.removeActiveJob(job_id);
         State.updateHistoryItem(job_id, { status: 'failed', error_message: st.message || st.error || 'Animation failed' });
@@ -4454,12 +4482,12 @@ function _pollAnimJob(job_id, prog) {
         return;
       }
 
-      // Still in progress
-      State.updateHistoryItem(job_id, { status: 'generating', status_label: `Animating... ${pct}%` });
-      setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
+      const nextDelay = Math.min(MAX_DELAY, delay + 500);
+      setTimeout(() => poll(nextDelay), delay);
     } catch (err) {
       consecutiveErrors++;
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        cleanup();
         prog.fail('Animation failed - network error');
         return;
       }

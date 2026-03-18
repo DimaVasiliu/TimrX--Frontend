@@ -1210,29 +1210,89 @@
     <svg class="chat-ico chat-ico--close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
 
-<div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-modal="false">
+<div id="chatBackdrop" class="chat-backdrop" hidden></div>
+
+<div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-describedby="chatIntroCopy" aria-modal="true" aria-hidden="true" hidden>
+  <div class="chat-panel__aura chat-panel__aura--one" aria-hidden="true"></div>
+  <div class="chat-panel__aura chat-panel__aura--two" aria-hidden="true"></div>
   <header class="chat-head">
-    <img src="img/logo.png" alt="" class="chat-avatar" width="36" height="36">
-    <div class="chat-title">
-      <strong id="chatTitle">Ask TimrX</strong>
-      <span class="muted"><span class="chat-status"></span>Online now</span>
+    <div class="chat-head__brand">
+      <img src="img/logo.png" alt="" class="chat-avatar" width="42" height="42">
+      <div class="chat-title">
+        <span class="chat-kicker">TimrX Concierge</span>
+        <strong id="chatTitle">Ask TimrX</strong>
+        <span class="muted"><span class="chat-status"></span>Fast guidance on TimrX, 3D prints, file formats, pricing, and next steps</span>
+      </div>
     </div>
     <button id="chatClose" class="chat-x" aria-label="Close chat">✕</button>
   </header>
 
-  <div id="chatBody" class="chat-body" aria-live="polite">
-    <!-- messages injected here -->
-  </div>
+  <div class="chat-layout">
+    <aside class="chat-aside">
+      <div class="chat-spotlight">
+        <span class="chat-spotlight__eyebrow">Built for quick clarity</span>
+        <h3>Get sharp answers without leaving the page.</h3>
+        <p id="chatIntroCopy">Ask about TimrX, the 3D Print Hub, supported formats, pricing ranges, shipping, custom work, and what to do next.</p>
+      </div>
 
-  <div class="chat-quick">
-    <button class="q">What services do you offer?</button>
-    <button class="q">How do I start a 3D project?</button>
-    <button class="q">What’s the usual budget?</button>
-  </div>
+      <div class="chat-side-list">
+        <div class="chat-side-stat">
+          <span class="chat-side-stat__label">Best for</span>
+          <strong>3D workflows, TimrX features, printing questions, and project planning</strong>
+        </div>
+        <div class="chat-side-stat">
+          <span class="chat-side-stat__label">Reply style</span>
+          <strong>Fast, practical, and tailored to this site and your next step</strong>
+        </div>
+      </div>
 
-  <div class="chat-inputbar">
-    <textarea id="chatInput" rows="1" placeholder="Type a message…"></textarea>
-    <button id="chatSend" class="btn small">Send →</button>
+      <div class="chat-action-stack">
+        <span class="chat-section-label">Start with one of these</span>
+        <div class="chat-quick">
+          <button class="q" data-chat-prompt="What can TimrX help me with?">What can TimrX help me with?</button>
+          <button class="q" data-chat-prompt="How do I start a 3D project?">How do I start a 3D project?</button>
+          <button class="q" data-chat-prompt="What file formats can TimrX export?">What file formats can TimrX export?</button>
+          <button class="q" data-chat-prompt="What’s the usual budget?">What’s the usual budget?</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="chat-main">
+      <div id="chatBody" class="chat-body" aria-live="polite">
+        <div class="chat-welcome">
+          <span class="chat-welcome__eyebrow">Start here</span>
+          <h3>What do you want help with today?</h3>
+          <p>I can guide you through TimrX, the 3D Print Hub, supported files, design-to-print workflows, pricing ranges, and where to start.</p>
+          <div class="chat-welcome__grid">
+            <button class="chat-prompt-card" data-chat-prompt="What is TimrX and what does it offer?">
+              <span class="chat-prompt-card__title">What is TimrX?</span>
+              <span class="chat-prompt-card__copy">Get the short version of the platform and what it can do.</span>
+            </button>
+            <button class="chat-prompt-card" data-chat-prompt="Can this chat generate images, videos, or 3D files for me?">
+              <span class="chat-prompt-card__title">What can the chat do?</span>
+              <span class="chat-prompt-card__copy">See what it can answer directly and where platform tools take over.</span>
+            </button>
+            <button class="chat-prompt-card" data-chat-prompt="Who is behind TimrX?">
+              <span class="chat-prompt-card__title">Who is behind TimrX?</span>
+              <span class="chat-prompt-card__copy">Ask about Dima, the project vision, and how to work together.</span>
+            </button>
+            <button class="chat-prompt-card" data-chat-prompt="Do you work remote and how do I get started?">
+              <span class="chat-prompt-card__title">How do I start?</span>
+              <span class="chat-prompt-card__copy">Get a clean next-step path for custom work or TimrX usage.</span>
+            </button>
+          </div>
+        </div>
+        <!-- messages injected here -->
+      </div>
+
+      <div class="chat-inputbar">
+        <div class="chat-inputwrap">
+          <textarea id="chatInput" rows="1" placeholder="Ask about TimrX, printing, formats, pricing, or next steps..."></textarea>
+          <span class="chat-inputmeta">Press Enter to send. Shift+Enter for a new line.</span>
+        </div>
+        <button id="chatSend" class="btn small"><span>Send</span><span aria-hidden="true">→</span></button>
+      </div>
+    </section>
   </div>
 </div>
     

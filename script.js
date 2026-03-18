@@ -655,6 +655,7 @@
    ------------------------------ */
    (function chatNova(){
     const chatToggle = document.getElementById('chatToggle');
+    const chatBackdrop = document.getElementById('chatBackdrop');
     const chatPanel  = document.getElementById('chatPanel');
     const chatClose  = document.getElementById('chatClose');
     const chatSend   = document.getElementById('chatSend');
@@ -764,7 +765,9 @@
     });
   
     // --- Open/Close (Esc, safe outside, debounce)
-    const isOpen = () => chatPanel.style.display === 'grid';
+    let panelOpen = false;
+    let closeTimer = null;
+    const isOpen = () => panelOpen;
     const mobileChatQuery = window.matchMedia('(max-width:560px)');
     const syncMobileViewport = () => {
       if (!mobileChatQuery.matches || !window.visualViewport || !isOpen()) return;
@@ -779,10 +782,26 @@
         chatPanel.style.maxHeight = '';
       }
     };
+
+    function setExpandedState(expanded){
+      chatToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      chatToggle.setAttribute('aria-label', expanded ? 'Close chat' : 'Open chat');
+      chatPanel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+      document.documentElement.classList.toggle('chat-open', expanded);
+      document.body.classList.toggle('chat-open', expanded);
+    }
   
     function openChat(){
-      chatPanel.style.display = 'grid';
-      chatToggle.setAttribute('aria-expanded', 'true');
+      if (panelOpen) return;
+      panelOpen = true;
+      clearTimeout(closeTimer);
+      chatPanel.hidden = false;
+      if (chatBackdrop) chatBackdrop.hidden = false;
+      setExpandedState(true);
+      requestAnimationFrame(() => {
+        chatPanel.classList.add('is-open');
+        chatBackdrop?.classList.add('is-open');
+      });
       if (chatInput) {
         try { chatInput.focus({ preventScroll: true }); }
         catch (_) { chatInput.focus(); }
@@ -792,11 +811,20 @@
       scrollToBottom();
     }
     function closeChat(){
-      chatPanel.style.display = 'none';
-      chatToggle.setAttribute('aria-expanded', 'false');
+      if (!panelOpen && chatPanel.hidden) return;
+      panelOpen = false;
+      chatPanel.classList.remove('is-open');
+      chatBackdrop?.classList.remove('is-open');
+      setExpandedState(false);
       hideSuggest();
-      chatPanel.style.bottom = '';  // reset keyboard offset
+      chatPanel.style.bottom = '';
       chatPanel.style.maxHeight = '';
+      chatInput?.blur();
+      closeTimer = setTimeout(() => {
+        if (panelOpen) return;
+        chatPanel.hidden = true;
+        if (chatBackdrop) chatBackdrop.hidden = true;
+      }, 260);
     }
 
     // --- Mobile keyboard handler: lift panel above software keyboard
@@ -817,6 +845,7 @@
     chatToggle.addEventListener('click', (e) => { e.preventDefault(); safeToggle(); });
   
     chatClose?.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); });
+    chatBackdrop?.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); });
   
     document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeChat(); });
   
@@ -836,12 +865,12 @@
       chatPanel.addEventListener(evt, (e) => e.stopPropagation(), true);
     });
   
-    // --- Quick replies (single delegated listener + stopPropagation)
-    document.querySelector('.chat-quick')?.addEventListener('click', (e) => {
-      const btn = e.target.closest('.q'); if (!btn) return;
+    // --- Prompt buttons (hero cards + quick replies)
+    chatPanel.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-chat-prompt]'); if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
-      chatInput.value = btn.textContent.trim();
+      chatInput.value = (btn.getAttribute('data-chat-prompt') || btn.textContent || '').trim();
       sendMsg();
     });
   
@@ -878,6 +907,9 @@
       if (!v) return;
   
       hideSuggest();
+      if (!chatPanel.classList.contains('has-conversation')) {
+        chatPanel.classList.add('has-conversation');
+      }
       addBubble(v, true);
       convo.push({ role: 'user', content: v });
       chatInput.value = '';
@@ -915,7 +947,7 @@
   
     // Optional: open chat from [data-open-chat]
     document.querySelectorAll('[data-open-chat]').forEach(a=>{
-      a.addEventListener('click', (e)=>{ e.preventDefault(); safeToggle(); });
+      a.addEventListener('click', (e)=>{ e.preventDefault(); openChat(); });
     });
   
   })();
