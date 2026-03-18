@@ -3940,13 +3940,15 @@ export async function startRigFromPanel() {
 
   confirmCreditsReservation(reservation.reservationId, job_id);
 
-  // Add to history timeline
+  // Add to history timeline — preserve source thumbnail for the rigged model
+  const sourceThumbnail = baseItem?.thumbnail_url || '';
   const rigMeta = {
     prompt: labelPrompt,
     root_prompt: labelPrompt,
     stage: 'rig',
     status_label: 'Rigging...',
-    type: 'model'
+    type: 'model',
+    source_thumbnail_url: sourceThumbnail,
   };
   addGeneratingPlaceholder(job_id, rigMeta);
   State.savePendingMeta(job_id, rigMeta);
@@ -4026,19 +4028,21 @@ async function _handleRigComplete(job_id, st, prog) {
   if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
   State.removeActiveJob(job_id);
 
-  // Persist to history
+  // Persist to history — use source model's thumbnail if Meshy didn't provide one
+  const pendingMeta = State.getPendingMeta()[job_id] || {};
   const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
+  const thumbnail = st.thumbnail_url || pendingMeta.source_thumbnail_url || '';
   const rigHistoryData = {
     id: job_id,
     type: 'model',
     status: 'finished',
     stage: 'rig',
     created_at: Date.now(),
-    prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
-    root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
-    title: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
+    prompt: pendingMeta.prompt || 'Rigged Model',
+    root_prompt: pendingMeta.root_prompt || '',
+    title: pendingMeta.prompt || 'Rigged Model',
     glb_url: glbUrl,
-    thumbnail_url: st.thumbnail_url || '',
+    thumbnail_url: thumbnail,
     model: 'latest'
   };
   if (State.historyHasJobId(job_id)) {

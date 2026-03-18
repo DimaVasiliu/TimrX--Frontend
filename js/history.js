@@ -809,7 +809,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               data-id="${model.id}"
               aria-pressed="${isVariantActive ? 'true' : 'false'}"
               title="Open ${shortTitle(model)}">
-        <img src="${model.thumbnail_url || ''}" alt="${shortTitle(model)}" loading="lazy">
+        ${model.thumbnail_url ? `<img src="${model.thumbnail_url}" alt="${shortTitle(model)}" loading="lazy">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
       </button>
     `;
   };
@@ -824,7 +824,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 data-act="open"
                 data-id="${variant.id}"
                 aria-label="Open variation ${idx + 1}">
-          <img src="${variant.thumbnail_url || ''}" alt="${shortTitle(variant)}" loading="lazy">
+          ${variant.thumbnail_url ? `<img src="${variant.thumbnail_url}" alt="${shortTitle(variant)}" loading="lazy">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
         </button>
       `;
     }).join('');

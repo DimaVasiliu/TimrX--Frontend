@@ -18,16 +18,28 @@ let demoCube, grid;
  */
 function getVisualBounds(root) {
     const box = new THREE.Box3();
+    let hasSkinned = false;
     root.updateMatrixWorld(true);
     root.traverse(child => {
         if (!child.geometry) return;
         if (!child.visible) return;
+        // SkinnedMesh geometry.boundingBox is in bind-pose space, NOT deformed
+        // pose. Skip them from manual BB computation — we'll use setFromObject
+        // which handles skinning correctly.
+        if (child.isSkinnedMesh) {
+            hasSkinned = true;
+            return;
+        }
         child.geometry.computeBoundingBox();
         const b = child.geometry.boundingBox.clone();
         b.applyMatrix4(child.matrixWorld);
         if (!b.isEmpty()) box.union(b);
     });
-    return box.isEmpty() ? new THREE.Box3().setFromObject(root) : box;
+    // For rigged/skinned models, use THREE's built-in which accounts for bone transforms
+    if (hasSkinned || box.isEmpty()) {
+        return new THREE.Box3().setFromObject(root);
+    }
+    return box;
 }
 
 /**
@@ -232,7 +244,8 @@ export async function loadGlbFromUrl(url) {
 
 function fitCameraToObject(object, offset = 1.0) {
     const box = getVisualBounds(object);
-    const size = box.getSize(new THREE.Vector3()).length();
+    const boxSize = box.getSize(new THREE.Vector3());
+    const size = boxSize.length();
     const center = box.getCenter(new THREE.Vector3());
 
     if (controls) {
@@ -245,8 +258,12 @@ function fitCameraToObject(object, offset = 1.0) {
     camera.far = size * 100;
     camera.updateProjectionMatrix();
 
-    // Move camera to a nice angle
-    const direction = new THREE.Vector3(1, 1, 1).normalize();
+    // Detect humanoid-proportioned models (tall and narrow — height > 1.5x width)
+    // and use a front-facing slightly elevated angle for them
+    const isHumanoid = boxSize.y > boxSize.x * 1.5 && boxSize.y > boxSize.z * 1.5;
+    const direction = isHumanoid
+        ? new THREE.Vector3(0, 0.3, 1).normalize()   // front-facing, slightly above
+        : new THREE.Vector3(1, 1, 1).normalize();     // generic diagonal
     camera.position.copy(center).add(direction.multiplyScalar(size / offset));
 }
 
