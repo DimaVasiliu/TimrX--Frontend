@@ -5867,12 +5867,18 @@
 
     async function loadUsageDashboard() {
       try {
-        // Fetch all usage data in parallel from chat server (no auth required)
+        // Fetch all usage data in parallel from chat server using the stored admin token
+        const adminHeaders = { 'X-Admin-Token': getToken() };
         const [todayRes, weekRes, endpointsRes] = await Promise.all([
-          fetch(`${CHAT_API}/api/admin/usage/today`),
-          fetch(`${CHAT_API}/api/admin/usage/week`),
-          fetch(`${CHAT_API}/api/admin/usage/endpoints?days=7&limit=10`)
+          fetch(`${CHAT_API}/api/admin/usage/today`, { headers: adminHeaders }),
+          fetch(`${CHAT_API}/api/admin/usage/week`, { headers: adminHeaders }),
+          fetch(`${CHAT_API}/api/admin/usage/endpoints?days=7&limit=10`, { headers: adminHeaders })
         ]);
+
+        if ([todayRes, weekRes, endpointsRes].some(r => r.status === 401 || r.status === 403)) {
+          showLoginModal('token', 'Valid admin token required to view chat usage');
+          throw new Error('Chat usage access denied');
+        }
 
         if (!todayRes.ok || !weekRes.ok || !endpointsRes.ok) throw new Error('Failed to fetch usage');
 
