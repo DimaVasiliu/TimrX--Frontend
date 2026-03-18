@@ -3060,13 +3060,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       const loadAnimLibrary = async () => {
         if (_animLibraryLoaded) return;
+        console.log('[AnimLibrary] Loading animation library...');
         try {
-          const resp = await fetch('/api/_mod/rig/animations/library');
-          const data = await resp.json();
-          if (data.ok && data.items) {
-            _animLibrary = data.items;
+          // Use apiFetch (not bare fetch) so credentials are included and
+          // BACKEND base URL is prepended for cross-origin setups.
+          const result = await window.TimrXApi.apiFetch('/api/_mod/rig/animations/library');
+          console.log('[AnimLibrary] Fetch result: ok=' + result.ok + ' items=' + (result.data?.items?.length ?? 0));
+          if (result.ok && result.data?.items) {
+            _animLibrary = result.data.items;
             _animLibraryLoaded = true;
             renderAnimLibrary();
+          } else {
+            console.warn('[AnimLibrary] Bad response:', result.status, result.error);
           }
         } catch (e) {
           console.warn('[AnimLibrary] Failed to load:', e);
@@ -3074,11 +3079,15 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       };
 
       const renderAnimLibrary = () => {
-        if (!animGrid) return;
+        if (!animGrid) {
+          console.warn('[AnimLibrary] renderAnimLibrary: animGrid is null (panel not in DOM)');
+          return;
+        }
         const search = (animSearch?.value || '').toLowerCase();
         const cat = animCategory?.value || '';
         let items = _animLibrary.filter(a => a.enabled !== false);
         if (cat) items = items.filter(a => a.category === cat);
+        console.log('[AnimLibrary] Render: total=' + _animLibrary.length + ' category=' + (cat || 'all') + ' filtered=' + items.length + ' search=' + (search || 'none'));
         if (search) {
           items = items.filter(a =>
             (a.name || '').toLowerCase().includes(search) ||
