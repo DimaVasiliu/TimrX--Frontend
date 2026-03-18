@@ -2756,6 +2756,27 @@ body.print3d-page > .discord-share-overlay.show .discord-share-card {
   box-shadow: 0 6px 18px rgba(75, 85, 99, 0.4);
 }
 
+.gen-btn--rail {
+  background: linear-gradient(180deg, rgba(38, 38, 38, 0.96), rgba(24, 24, 24, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f1f1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.gen-btn--rail:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.gen-btn--rail:active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+.gen-btn--rail:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* ===== VIDEO GALLERY BUTTON ===== */
 .video-gallery-btn {
   display: flex;

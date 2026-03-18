@@ -630,9 +630,10 @@ function setupGenerateButtonListeners() {
       return;
     }
     if (btnId === 'applyAnimationBtn') {
-      const riggingTaskId = btn.dataset.riggingTaskId;
+      const riggingTaskId = btn.dataset.riggingTaskId || window._lastRigTaskId || '';
       const actionIdRaw = document.getElementById('rigAnimationActionId')?.value;
       const actionId = actionIdRaw ? parseInt(actionIdRaw, 10) : null;
+      console.log('[Anim] Apply clicked: rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
       API.startAnimationFromPanel(riggingTaskId, actionId);
       return;
     }

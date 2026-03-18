@@ -4150,7 +4150,7 @@ async function _handleRigComplete(job_id, st, prog) {
     });
   }
 
-  // Populate built-in animation download links (normalized array from backend)
+  // Populate built-in animation chips — click to preview in viewer, icon to download
   const builtinDiv = byId('rigBuiltinAnimations');
   const rigAnimations = st.basic_animations;
   if (builtinDiv && Array.isArray(rigAnimations) && rigAnimations.length > 0) {
@@ -4158,22 +4158,49 @@ async function _handleRigComplete(job_id, st, prog) {
     rigAnimations.forEach(anim => {
       const glb = anim.glb_url || anim.url || anim.glb;
       if (!glb) return;
-      const a = document.createElement('a');
-      a.href = glb;
-      a.download = `${anim.name || anim.action || 'animation'}.glb`;
-      a.className = 'material-chip';
-      a.style.cssText = 'text-decoration:none;cursor:pointer';
-      a.textContent = anim.name || anim.action || 'Animation';
-      builtinDiv.appendChild(a);
+      const chip = document.createElement('div');
+      chip.className = 'material-chip';
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:6px 10px;font-size:12px';
+      // Preview button (main click area)
+      const label = document.createElement('span');
+      label.textContent = anim.name || anim.action || 'Animation';
+      label.title = 'Click to preview in viewer';
+      label.style.cursor = 'pointer';
+      label.addEventListener('click', async () => {
+        try {
+          const proxy = getLoadableModelUrl(glb);
+          await Viewer.loadModelWithFallback(proxy || glb, glb);
+        } catch (err) {
+          console.warn('[Rig] Failed to load animation in viewer:', err);
+        }
+      });
+      // Download icon
+      const dl = document.createElement('a');
+      dl.href = glb;
+      dl.download = `${anim.name || anim.action || 'animation'}.glb`;
+      dl.title = 'Download';
+      dl.style.cssText = 'opacity:0.5;font-size:10px;margin-left:2px';
+      dl.innerHTML = '<i class="fa-solid fa-download"></i>';
+      dl.addEventListener('click', (e) => e.stopPropagation());
+      chip.appendChild(label);
+      chip.appendChild(dl);
+      builtinDiv.appendChild(chip);
     });
   } else if (builtinDiv) {
     builtinDiv.innerHTML = '<span style="font-size:11px;color:#666">No built-in animations included</span>';
   }
 
-  // Store rigging task ID for animation library
+  // Store rigging task ID for animation library — both on button and global fallback
+  const rigTaskId = st.id || job_id;
+  window._lastRigTaskId = rigTaskId;
   const animBtn = byId('applyAnimationBtn');
   if (animBtn) {
-    animBtn.dataset.riggingTaskId = st.id || job_id;
+    animBtn.dataset.riggingTaskId = rigTaskId;
+  }
+
+  // Trigger animation library load (exposed globally from 3dprint-app.js)
+  if (typeof window._loadAnimLibrary === 'function') {
+    window._loadAnimLibrary();
   }
 }
 
@@ -4321,11 +4348,14 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
  * @param {object} [postProcess] — optional post_process config
  */
 export async function startAnimationFromPanel(riggingTaskId, actionId, postProcess) {
+  console.log('[Anim] startAnimationFromPanel called: rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
   if (!riggingTaskId) {
+    console.warn('[Anim] No riggingTaskId — aborting');
     alert('No rigged model available. Please complete rigging first.');
     return;
   }
   if (actionId == null || isNaN(actionId)) {
+    console.warn('[Anim] No valid actionId — aborting. Raw value:', actionId);
     alert('Please select an animation from the library.');
     return;
   }

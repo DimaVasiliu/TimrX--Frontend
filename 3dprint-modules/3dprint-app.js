@@ -536,7 +536,7 @@
               Non-humanoid models (animals, vehicles, objects) are not supported for auto-rigging.
             </p>
           </div>
-          <button type="button" id="rigWizardNext1" class="gen-btn" style="margin-top:10px;width:100%">
+          <button type="button" id="rigWizardNext1" class="gen-btn gen-btn--rail" style="margin-top:10px;width:100%">
             My model is humanoid — Continue
           </button>
         </div>
@@ -557,8 +557,8 @@
             </p>
           </div>
           <div style="display:flex;gap:8px;margin-top:10px;width:100%">
-            <button type="button" id="rigWizardBack2" class="gen-btn" style="flex:0 0 60px;background:rgba(255,255,255,.06);padding:8px 12px;font-size:12px">Back</button>
-            <button type="button" id="rigWizardNext2" class="gen-btn" style="flex:1;min-width:0;padding:8px 12px;font-size:12px">Continue</button>
+            <button type="button" id="rigWizardBack2" class="gen-btn gen-btn--rail" style="flex:0 0 60px;padding:8px 12px;font-size:12px">Back</button>
+            <button type="button" id="rigWizardNext2" class="gen-btn gen-btn--rail" style="flex:1;min-width:0;padding:8px 12px;font-size:12px">Continue</button>
           </div>
         </div>
 
@@ -593,7 +593,7 @@
           <span class="field-hint">Approximate height of the character model (default 1.7m)</span>
 
           <div style="display:flex;gap:8px;margin-top:12px;width:100%">
-            <button type="button" id="rigWizardBack3" class="gen-btn" style="flex:0 0 60px;background:rgba(255,255,255,.06);padding:8px 12px;font-size:12px">Back</button>
+            <button type="button" id="rigWizardBack3" class="gen-btn gen-btn--rail" style="flex:0 0 60px;padding:8px 12px;font-size:12px">Back</button>
           </div>
         </div>
 
@@ -604,7 +604,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
           </div>
-          <button type="button" id="startRigBtn" class="gen-btn" title="15 credits">
+          <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="15 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
             Start Rigging
           </button>
@@ -647,7 +647,7 @@
                 <span class="gen-divider">|</span>
                 <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
               </div>
-              <button type="button" id="applyAnimationBtn" class="gen-btn" title="10 credits" disabled>
+              <button type="button" id="applyAnimationBtn" class="gen-btn gen-btn--rail" title="10 credits" disabled>
                 <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Apply Animation
               </button>
@@ -3134,14 +3134,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       if (animSearch) animSearch.addEventListener('input', renderAnimLibrary);
       if (animCategory) animCategory.addEventListener('change', renderAnimLibrary);
 
-      // Load animation library when rig results become visible
-      const rigResults = leftStack.querySelector('#rigResultsSection');
-      if (rigResults) {
-        const observer = new MutationObserver(() => {
-          if (rigResults.style.display !== 'none') loadAnimLibrary();
-        });
-        observer.observe(rigResults, { attributes: true, attributeFilter: ['style'] });
-      }
+      // Expose animation library loader globally so _handleRigComplete can trigger it.
+      // The MutationObserver approach breaks when tabs are switched (DOM is rebuilt,
+      // observer is orphaned on the old detached node).
+      window._loadAnimLibrary = loadAnimLibrary;
+      window._renderAnimLibrary = renderAnimLibrary;
 
       // Remesh preset cards
       const remeshPresetsWrap = leftStack.querySelector('#remeshPresets');
