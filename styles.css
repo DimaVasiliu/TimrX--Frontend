@@ -35,8 +35,10 @@ img{max-width:100%;display:block}
   border-bottom:1px solid rgba(255,255,255,0.06);
 }
 .nav .container{padding:0 16px}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
-.nav-links{display:flex;gap:8px;font-weight:500}
+.nav-inner{display:flex;align-items:center;height:64px;position:relative}
+.brand-group{margin-right:auto}
+.nav-links{display:flex;gap:8px;font-weight:500;position:absolute;left:50%;transform:translateX(-50%)}
+.nav-cta-desktop{margin-left:auto}
 .nav-links a{
   padding:8px 16px;
   font-size:13px;

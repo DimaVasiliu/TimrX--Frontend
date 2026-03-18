@@ -2742,20 +2742,23 @@
                   <button class="action-btn" id="refreshAnalytics">Refresh</button>
                 </div>
               </div>
+              <div class="muted" id="analyticsScopeNote" style="margin:0 0 12px 0;font-size:12px;">
+                Summary cards are all-time. Charts and top users use the selected period.
+              </div>
 
               <!-- Summary Stats Row -->
               <div class="analytics-stats" id="analyticsStats">
                 <div class="billing-stat large">
                   <span class="stat-value" id="statTotalPurchased">--</span>
-                  <span class="stat-label">Credits Purchased</span>
+                  <span class="stat-label">Credits Granted (All-time)</span>
                 </div>
                 <div class="billing-stat large">
                   <span class="stat-value" id="statTotalSpent">--</span>
-                  <span class="stat-label">Credits Spent</span>
+                  <span class="stat-label">Credits Spent (All-time)</span>
                 </div>
                 <div class="billing-stat large">
                   <span class="stat-value" id="statUsageRate">--%</span>
-                  <span class="stat-label">Usage Rate</span>
+                  <span class="stat-label">Usage Rate (All-time)</span>
                   <div class="usage-progress-bar">
                     <div class="usage-progress-fill" id="usageProgressFill"></div>
                   </div>
@@ -2817,6 +2820,9 @@
                 </select>
                 <button class="action-btn" id="refreshBilling">Refresh</button>
               </div>
+            </div>
+            <div class="muted" id="billingStatsScope" style="margin:0 0 12px 0;font-size:12px;">
+              Global status counts.
             </div>
 
             <!-- Stats Summary -->
@@ -6220,7 +6226,17 @@
         $('#statCancelled').textContent = j.stats?.cancelled || 0;
         $('#statPastDue').textContent = j.stats?.past_due || 0;
         $('#statSuspended').textContent = j.stats?.suspended || 0;
-        $('#statTotal').textContent = j.total || 0;
+        $('#statTotal').textContent = j.total_all ?? j.total ?? 0;
+
+        const billingStatsScope = $('#billingStatsScope');
+        if (billingStatsScope) {
+          if (j.filter_status) {
+            const statusLabel = $('#billingStatusFilter')?.selectedOptions?.[0]?.textContent || j.filter_status;
+            billingStatsScope.textContent = `Global status counts. Table filtered to ${statusLabel}.`;
+          } else {
+            billingStatsScope.textContent = 'Global status counts.';
+          }
+        }
 
         // Render table
         if (!j.subscriptions || j.subscriptions.length === 0) {
@@ -6265,7 +6281,7 @@
 
       } catch (err) {
         console.error('Billing fetch error:', err);
-        tbody.innerHTML = `<tr><td colspan="6" class="muted">Error: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${err.message}</td></tr>`;
       }
     }
 
@@ -6750,6 +6766,7 @@
         console.error('Analytics fetch error:', err);
         if (breakdownEl) breakdownEl.innerHTML = `<div class="analytics-loading">Error: ${err.message}</div>`;
         if (chartEl) chartEl.innerHTML = `<div class="analytics-loading">Error: ${err.message}</div>`;
+        if (topUsersBody) topUsersBody.innerHTML = `<tr><td colspan="4" class="muted">Error: ${err.message}</td></tr>`;
       }
     }
 
