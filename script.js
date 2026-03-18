@@ -758,9 +758,9 @@
   
     chatInput?.addEventListener('input', () => {
       const v = (chatInput.value || '').trim();
-      if (v.length < 3) return hideSuggest();
+      if (v.length < 5) return hideSuggest();
       clearTimeout(debounceId);
-      debounceId = setTimeout(() => querySuggest(v), 220);
+      debounceId = setTimeout(() => querySuggest(v), 380);
     });
   
     // --- Open/Close (Esc, safe outside, debounce)

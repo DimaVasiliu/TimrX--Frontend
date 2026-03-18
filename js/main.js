@@ -608,8 +608,9 @@ function setupGenerateButtonListeners() {
     }
     if (btnId === 'applyAnimationBtn') {
       const riggingTaskId = btn.dataset.riggingTaskId;
-      const action = document.getElementById('rigAnimationAction')?.value;
-      API.startAnimationFromPanel(riggingTaskId, action);
+      const actionIdRaw = document.getElementById('rigAnimationActionId')?.value;
+      const actionId = actionIdRaw ? parseInt(actionIdRaw, 10) : null;
+      API.startAnimationFromPanel(riggingTaskId, actionId);
       return;
     }
     if (!btnId || !btnId.includes('generate')) return;

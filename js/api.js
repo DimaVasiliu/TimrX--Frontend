@@ -3955,10 +3955,174 @@ export async function startRigFromPanel() {
 }
 
 /**
- * Poll rigging job status until complete
+ * Handle a completed rigging result — shared by SSE and polling paths.
+ */
+async function _handleRigComplete(job_id, st, prog) {
+  prog.done('Rigging complete!');
+  if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+  State.removeActiveJob(job_id);
+
+  // Persist to history
+  const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
+  const rigHistoryData = {
+    id: job_id,
+    type: 'model',
+    status: 'finished',
+    stage: 'rig',
+    created_at: Date.now(),
+    prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
+    root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
+    title: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
+    glb_url: glbUrl,
+    thumbnail_url: st.thumbnail_url || '',
+    model: 'latest'
+  };
+  if (State.historyHasJobId(job_id)) {
+    State.updateHistoryItem(job_id, rigHistoryData);
+  } else {
+    State.addHistoryItem(rigHistoryData);
+  }
+  State.deletePendingMeta(job_id);
+  State.setHistoryActiveModelId(job_id);
+  renderHistory();
+
+  // Load rigged model into 3D viewer
+  if (glbUrl) {
+    try {
+      prog.jump(99, 'Downloading model...');
+      const glbProxy = getLoadableModelUrl(glbUrl);
+      await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
+    } catch (err) {
+      console.warn('[Rig] Failed to load model in viewer:', err);
+    }
+  }
+
+  // Show results section + hide wizard steps
+  const resultsSection = byId('rigResultsSection');
+  if (resultsSection) resultsSection.style.display = 'block';
+  ['rigWizardStep1', 'rigWizardStep2', 'rigWizardStep3', 'rigWizardStep4'].forEach(id => {
+    const el = byId(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // Populate download links for rigged model
+  const linksDiv = byId('rigDownloadLinks');
+  if (linksDiv) {
+    linksDiv.innerHTML = '';
+    const formats = [
+      { key: 'rigged_character_glb_url', ext: 'glb', label: 'GLB' },
+      { key: 'rigged_character_fbx_url', ext: 'fbx', label: 'FBX' }
+    ];
+    formats.forEach(fmt => {
+      const url = st[fmt.key];
+      if (url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rigged-model.${fmt.ext}`;
+        a.className = 'gen-btn';
+        a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
+        a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
+        linksDiv.appendChild(a);
+      }
+    });
+  }
+
+  // Populate built-in animation download links (normalized array from backend)
+  const builtinDiv = byId('rigBuiltinAnimations');
+  const rigAnimations = st.basic_animations;
+  if (builtinDiv && Array.isArray(rigAnimations) && rigAnimations.length > 0) {
+    builtinDiv.innerHTML = '';
+    rigAnimations.forEach(anim => {
+      const glb = anim.glb_url || anim.url || anim.glb;
+      if (!glb) return;
+      const a = document.createElement('a');
+      a.href = glb;
+      a.download = `${anim.name || anim.action || 'animation'}.glb`;
+      a.className = 'material-chip';
+      a.style.cssText = 'text-decoration:none;cursor:pointer';
+      a.textContent = anim.name || anim.action || 'Animation';
+      builtinDiv.appendChild(a);
+    });
+  } else if (builtinDiv) {
+    builtinDiv.innerHTML = '<span style="font-size:11px;color:#666">No built-in animations included</span>';
+  }
+
+  // Store rigging task ID for animation library
+  const animBtn = byId('applyAnimationBtn');
+  if (animBtn) {
+    animBtn.dataset.riggingTaskId = st.id || job_id;
+  }
+}
+
+/**
+ * Watch rigging job — tries SSE first, falls back to polling.
  */
 export function watchRigJob(job_id) {
   const prog = UI.makeProgressDriver();
+
+  // Try SSE first
+  let sseWorked = false;
+  try {
+    const evtSource = new EventSource(`/api/_mod/rig/stream/${job_id}`);
+    let sseTimeout = setTimeout(() => {
+      // If no message in 15s, SSE isn't working — close and poll
+      if (!sseWorked) {
+        evtSource.close();
+        _pollRigJob(job_id, prog);
+      }
+    }, 15000);
+
+    evtSource.onmessage = (event) => {
+      sseWorked = true;
+      clearTimeout(sseTimeout);
+      try {
+        const st = JSON.parse(event.data);
+        const pct = st.progress ?? st.pct ?? 0;
+        prog.pct(pct, `Rigging... ${pct}%`);
+        State.updateHistoryItem(job_id, { status: 'generating', status_label: `Rigging... ${pct}%` });
+
+        const status = (st.status || '').toUpperCase();
+        if (status === 'SUCCEEDED') {
+          evtSource.close();
+          // Fetch full status to get all URLs
+          apiFetch(`/api/_mod/rig/status/${job_id}`).then(result => {
+            _handleRigComplete(job_id, result.data || st, prog);
+          }).catch(() => {
+            _handleRigComplete(job_id, st, prog);
+          });
+        } else if (status === 'FAILED' || status === 'CANCELED') {
+          evtSource.close();
+          prog.fail(st.task_error?.message || 'Rigging failed');
+          State.removeActiveJob(job_id);
+          State.updateHistoryItem(job_id, { status: 'failed', error_message: st.task_error?.message || 'Rigging failed' });
+          State.deletePendingMeta(job_id);
+          renderHistory();
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        }
+      } catch (e) {
+        console.warn('[Rig SSE] Parse error:', e);
+      }
+    };
+
+    evtSource.onerror = () => {
+      clearTimeout(sseTimeout);
+      evtSource.close();
+      if (!sseWorked) {
+        // SSE never worked — fall back to polling
+        _pollRigJob(job_id, prog);
+      }
+      // If SSE worked but then errored, task may have completed via onmessage
+    };
+  } catch (e) {
+    // EventSource not supported or URL issue — fall back to polling
+    _pollRigJob(job_id, prog);
+  }
+}
+
+/**
+ * Polling fallback for rigging job status.
+ */
+function _pollRigJob(job_id, prog) {
   const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
   const MAX_DELAY = 8000;
@@ -4000,110 +4164,23 @@ export function watchRigJob(job_id) {
       const pct = st.pct ?? st.progress ?? 0;
       prog.pct(pct, `Rigging... ${pct}%`);
 
-      if (st.status === 'SUCCEEDED' || st.status === 'succeeded') {
-        prog.done('Rigging complete!');
-        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        State.removeActiveJob(job_id);
-
-        // Persist to history
-        const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
-        const rigHistoryData = {
-          id: job_id,
-          type: 'model',
-          status: 'finished',
-          stage: 'rig',
-          created_at: Date.now(),
-          prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
-          root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
-          title: (State.getPendingMeta()[job_id] || {}).prompt || 'Rigged Model',
-          glb_url: glbUrl,
-          thumbnail_url: st.thumbnail_url || '',
-          model: 'latest'
-        };
-        if (State.historyHasJobId(job_id)) {
-          State.updateHistoryItem(job_id, rigHistoryData);
-        } else {
-          State.addHistoryItem(rigHistoryData);
-        }
-        State.deletePendingMeta(job_id);
-        State.setHistoryActiveModelId(job_id);
-        renderHistory();
-
-        // Load rigged model into 3D viewer
-        if (glbUrl) {
-          try {
-            prog.jump(99, 'Downloading model...');
-            const glbProxy = getLoadableModelUrl(glbUrl);
-            await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
-          } catch (err) {
-            console.warn('[Rig] Failed to load model in viewer:', err);
-          }
-        }
-
-        // Show results section
-        const resultsSection = byId('rigResultsSection');
-        if (resultsSection) resultsSection.style.display = 'block';
-
-        // Populate download links
-        const linksDiv = byId('rigDownloadLinks');
-        if (linksDiv) {
-          linksDiv.innerHTML = '';
-          const formats = [
-            { key: 'rigged_character_glb_url', fallback: 'glb', label: 'GLB' },
-            { key: 'rigged_character_fbx_url', fallback: 'fbx', label: 'FBX' }
-          ];
-          formats.forEach(fmt => {
-            const url = st[fmt.key] || st[fmt.fallback] || st.model_urls?.[fmt.fallback];
-            if (url) {
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `rigged-model.${fmt.key}`;
-              a.className = 'gen-btn';
-              a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
-              a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
-              linksDiv.appendChild(a);
-            }
-          });
-        }
-
-        // Populate built-in animation links
-        const builtinDiv = byId('rigBuiltinAnimations');
-        const rigAnimations = st.basic_animations || st.animations;
-        if (builtinDiv && rigAnimations) {
-          builtinDiv.innerHTML = '';
-          rigAnimations.forEach(anim => {
-            const a = document.createElement('a');
-            a.href = anim.url || anim.glb || '#';
-            a.download = `${anim.name || anim.action || 'animation'}.glb`;
-            a.className = 'material-chip';
-            a.style.cssText = 'text-decoration:none;cursor:pointer';
-            a.textContent = anim.name || anim.action || 'Animation';
-            builtinDiv.appendChild(a);
-          });
-        }
-
-        // Store rigging task ID for animation
-        const animBtn = byId('applyAnimationBtn');
-        if (animBtn) {
-          animBtn.dataset.riggingTaskId = st.rigging_task_id || job_id;
-        }
-
+      if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        await _handleRigComplete(job_id, st, prog);
         return;
       }
 
       if (st.status === 'FAILED' || st.status === 'failed') {
-        prog.fail(st.error || 'Rigging failed');
+        prog.fail(st.message || st.error || 'Rigging failed');
         State.removeActiveJob(job_id);
-        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.error || 'Rigging failed' });
+        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.message || st.error || 'Rigging failed' });
         State.deletePendingMeta(job_id);
         renderHistory();
         if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
         return;
       }
 
-      // Still in progress — update history placeholder
+      // Still in progress
       State.updateHistoryItem(job_id, { status: 'generating', status_label: `Rigging... ${pct}%` });
-
       setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
     } catch (err) {
       consecutiveErrors++;
@@ -4119,15 +4196,18 @@ export function watchRigJob(job_id) {
 }
 
 /**
- * Start animation from rigged model
+ * Start animation from rigged model.
+ * @param {string} riggingTaskId — completed rig task ID
+ * @param {number} actionId — integer action_id from Meshy animation library
+ * @param {object} [postProcess] — optional post_process config
  */
-export async function startAnimationFromPanel(riggingTaskId, animationAction) {
+export async function startAnimationFromPanel(riggingTaskId, actionId, postProcess) {
   if (!riggingTaskId) {
     alert('No rigged model available. Please complete rigging first.');
     return;
   }
-  if (!animationAction) {
-    alert('Please select an animation action.');
+  if (actionId == null || isNaN(actionId)) {
+    alert('Please select an animation from the library.');
     return;
   }
 
@@ -4141,11 +4221,17 @@ export async function startAnimationFromPanel(riggingTaskId, animationAction) {
 
   prog.label('Starting animation...');
 
+  const payload = {
+    rig_task_id: riggingTaskId,
+    action_id: parseInt(actionId, 10)
+  };
+  if (postProcess) payload.post_process = postProcess;
+
   let result;
   try {
     result = await apiFetch('/api/_mod/rig/animate', {
       method: 'POST',
-      body: { rigging_task_id: riggingTaskId, animation_action: animationAction }
+      body: payload
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
@@ -4170,9 +4256,10 @@ export async function startAnimationFromPanel(riggingTaskId, animationAction) {
   confirmCreditsReservation(reservation.reservationId, job_id);
 
   // Add to history timeline
+  const animLabel = `Animation #${actionId}`;
   const animMeta = {
-    prompt: `${animationAction} animation`,
-    root_prompt: `${animationAction} animation`,
+    prompt: animLabel,
+    root_prompt: animLabel,
     stage: 'animation',
     status_label: 'Animating...',
     type: 'model'
@@ -4186,10 +4273,131 @@ export async function startAnimationFromPanel(riggingTaskId, animationAction) {
 }
 
 /**
- * Poll animation job status until complete
+ * Handle a completed animation result — shared by SSE and polling paths.
+ */
+function _handleAnimComplete(job_id, st, prog) {
+  prog.done('Animation complete!');
+  if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+  State.removeActiveJob(job_id);
+
+  // Persist to history
+  const animGlbUrl = st.animation_glb_url || st.glb_url || '';
+  const animHistoryData = {
+    id: job_id,
+    type: 'model',
+    status: 'finished',
+    stage: 'animation',
+    created_at: Date.now(),
+    prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
+    root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
+    title: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
+    glb_url: animGlbUrl,
+    thumbnail_url: st.thumbnail_url || '',
+    model: 'latest'
+  };
+  if (State.historyHasJobId(job_id)) {
+    State.updateHistoryItem(job_id, animHistoryData);
+  } else {
+    State.addHistoryItem(animHistoryData);
+  }
+  State.deletePendingMeta(job_id);
+  renderHistory();
+
+  // Show animation results section
+  const animSection = byId('animResultsSection');
+  if (animSection) animSection.style.display = 'block';
+
+  // Render all download links — core outputs + post-processed variants
+  const linksDiv = byId('animDownloadLinks');
+  if (linksDiv) {
+    linksDiv.innerHTML = '';
+    const formats = [
+      { key: 'animation_glb_url', ext: 'glb', label: 'GLB' },
+      { key: 'animation_fbx_url', ext: 'fbx', label: 'FBX' },
+      { key: 'processed_usdz_url', ext: 'usdz', label: 'USDZ' },
+      { key: 'processed_armature_fbx_url', ext: 'fbx', label: 'Armature FBX' },
+      { key: 'processed_animation_fps_fbx_url', ext: 'fbx', label: 'FPS FBX' }
+    ];
+    formats.forEach(fmt => {
+      const url = st[fmt.key];
+      if (url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `animation.${fmt.ext}`;
+        a.className = 'gen-btn';
+        a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
+        a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
+        linksDiv.appendChild(a);
+      }
+    });
+  }
+}
+
+/**
+ * Watch animation job — tries SSE first, falls back to polling.
  */
 export function watchAnimationJob(job_id) {
   const prog = UI.makeProgressDriver();
+
+  // Try SSE first
+  let sseWorked = false;
+  try {
+    const evtSource = new EventSource(`/api/_mod/rig/animate/stream/${job_id}`);
+    let sseTimeout = setTimeout(() => {
+      if (!sseWorked) {
+        evtSource.close();
+        _pollAnimJob(job_id, prog);
+      }
+    }, 15000);
+
+    evtSource.onmessage = (event) => {
+      sseWorked = true;
+      clearTimeout(sseTimeout);
+      try {
+        const st = JSON.parse(event.data);
+        const pct = st.progress ?? st.pct ?? 0;
+        prog.pct(pct, `Animating... ${pct}%`);
+        State.updateHistoryItem(job_id, { status: 'generating', status_label: `Animating... ${pct}%` });
+
+        const status = (st.status || '').toUpperCase();
+        if (status === 'SUCCEEDED') {
+          evtSource.close();
+          // Fetch full status to get all URLs (including persisted S3 URLs)
+          apiFetch(`/api/_mod/rig/animate/status/${job_id}`).then(result => {
+            _handleAnimComplete(job_id, result.data || st, prog);
+          }).catch(() => {
+            _handleAnimComplete(job_id, st, prog);
+          });
+        } else if (status === 'FAILED' || status === 'CANCELED') {
+          evtSource.close();
+          prog.fail(st.task_error?.message || 'Animation failed');
+          State.removeActiveJob(job_id);
+          State.updateHistoryItem(job_id, { status: 'failed', error_message: st.task_error?.message || 'Animation failed' });
+          State.deletePendingMeta(job_id);
+          renderHistory();
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+        }
+      } catch (e) {
+        console.warn('[Anim SSE] Parse error:', e);
+      }
+    };
+
+    evtSource.onerror = () => {
+      clearTimeout(sseTimeout);
+      evtSource.close();
+      if (!sseWorked) {
+        _pollAnimJob(job_id, prog);
+      }
+    };
+  } catch (e) {
+    _pollAnimJob(job_id, prog);
+  }
+}
+
+/**
+ * Polling fallback for animation job status.
+ */
+function _pollAnimJob(job_id, prog) {
   const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
   const MAX_DELAY = 8000;
@@ -4228,82 +4436,26 @@ export function watchAnimationJob(job_id) {
       consecutiveErrors = 0;
       const st = result.data;
 
-      const pct = st.progress ?? 0;
+      const pct = st.pct ?? st.progress ?? 0;
       prog.pct(pct, `Animating... ${pct}%`);
 
-      if (st.status === 'SUCCEEDED' || st.status === 'succeeded') {
-        prog.done('Animation complete!');
-        if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        State.removeActiveJob(job_id);
-
-        // Persist to history
-        const animGlbUrl = st.glb || st.model_urls?.glb || '';
-        const animHistoryData = {
-          id: job_id,
-          type: 'model',
-          status: 'finished',
-          stage: 'animation',
-          created_at: Date.now(),
-          prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
-          root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
-          title: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
-          glb_url: animGlbUrl,
-          thumbnail_url: st.thumbnail_url || '',
-          model: 'latest'
-        };
-        if (State.historyHasJobId(job_id)) {
-          State.updateHistoryItem(job_id, animHistoryData);
-        } else {
-          State.addHistoryItem(animHistoryData);
-        }
-        State.deletePendingMeta(job_id);
-        renderHistory();
-
-        // Show animation results
-        const animSection = byId('animResultsSection');
-        if (animSection) animSection.style.display = 'block';
-
-        const linksDiv = byId('animDownloadLinks');
-        if (linksDiv) {
-          linksDiv.innerHTML = '';
-          const formats = [
-            { key: 'glb', label: 'GLB' },
-            { key: 'fbx', label: 'FBX' },
-            { key: 'usdz', label: 'USDZ' },
-            { key: 'mp4', label: 'MP4 Preview' },
-            { key: 'processed_armature_fbx', label: 'Armature FBX' },
-            { key: 'processed_animation_fps_fbx', label: 'Animation FPS FBX' }
-          ];
-          formats.forEach(fmt => {
-            const url = st[fmt.key] || st.model_urls?.[fmt.key];
-            if (url) {
-              const a = document.createElement('a');
-              a.href = url;
-              const ext = fmt.key.includes('fbx') ? 'fbx' : fmt.key.includes('usdz') ? 'usdz' : fmt.key;
-              a.download = `animation.${ext}`;
-              a.className = 'gen-btn';
-              a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;text-decoration:none';
-              a.innerHTML = `<i class="fa-solid fa-download"></i> ${fmt.label}`;
-              linksDiv.appendChild(a);
-            }
-          });
-        }
+      if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
+        _handleAnimComplete(job_id, st, prog);
         return;
       }
 
       if (st.status === 'FAILED' || st.status === 'failed') {
-        prog.fail(st.error || 'Animation failed');
+        prog.fail(st.message || st.error || 'Animation failed');
         State.removeActiveJob(job_id);
-        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.error || 'Animation failed' });
+        State.updateHistoryItem(job_id, { status: 'failed', error_message: st.message || st.error || 'Animation failed' });
         State.deletePendingMeta(job_id);
         renderHistory();
         if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
         return;
       }
 
-      // Still in progress — update history placeholder
+      // Still in progress
       State.updateHistoryItem(job_id, { status: 'generating', status_label: `Animating... ${pct}%` });
-
       setTimeout(() => poll(Math.min(MAX_DELAY, delay + 500)), delay);
     } catch (err) {
       consecutiveErrors++;

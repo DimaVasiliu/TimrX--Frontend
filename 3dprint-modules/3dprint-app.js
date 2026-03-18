@@ -253,6 +253,7 @@
               </div>
             </div>
             <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
+            <span class="field-hint" style="color:#b08a3e;font-size:10px;margin-top:2px">Images are sent as data URLs — keep each file under 5 MB for reliable uploads</span>
             <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
           </div>
         </div>
@@ -520,8 +521,50 @@
       `,
 
       rig: `
-        <div class="card">
-          <h3>Model Selection</h3>
+        <!-- Rig Wizard: Step 1 — Eligibility -->
+        <div id="rigWizardStep1" class="card">
+          <h3>Humanoid Rig Wizard</h3>
+          <div style="padding:8px 0;font-size:12px;color:#aaa;line-height:1.6">
+            <p style="margin:0 0 8px;color:#e0e0e0;font-weight:500">Before rigging, confirm your model meets these requirements:</p>
+            <ul style="margin:0;padding-left:18px;list-style:disc">
+              <li><strong>Humanoid / bipedal</strong> — standard body with head, torso, 2 arms, 2 legs</li>
+              <li><strong>Clear limbs</strong> — arms and legs clearly separated from body</li>
+              <li><strong>Textured preferred</strong> — untextured meshes may produce lower quality rigs</li>
+              <li><strong>Under 300K faces</strong> — use Remesh first if your model exceeds this</li>
+            </ul>
+            <p style="margin:10px 0 0;padding:8px 10px;background:rgba(255,200,50,.08);border-radius:6px;border-left:3px solid rgba(255,200,50,.4);font-size:11px;color:#cca030">
+              Non-humanoid models (animals, vehicles, objects) are not supported for auto-rigging.
+            </p>
+          </div>
+          <button type="button" id="rigWizardNext1" class="gen-btn" style="margin-top:10px;width:100%">
+            My model is humanoid — Continue
+          </button>
+        </div>
+
+        <!-- Rig Wizard: Step 2 — Alignment guidance (UI only) -->
+        <div id="rigWizardStep2" class="card" style="display:none">
+          <h3>Alignment Guidance</h3>
+          <div style="padding:8px 0;font-size:12px;color:#aaa;line-height:1.6">
+            <p style="margin:0 0 8px;color:#e0e0e0;font-weight:500">For best results, ensure your model is:</p>
+            <ul style="margin:0;padding-left:18px;list-style:disc">
+              <li><strong>Centered</strong> at origin (0,0,0)</li>
+              <li><strong>Facing forward</strong> along the default axis (typically -Z or +Z)</li>
+              <li><strong>Standing upright</strong> in a neutral T-pose or A-pose</li>
+              <li><strong>Feet on ground plane</strong> (Y=0)</li>
+            </ul>
+            <p style="margin:10px 0 0;font-size:11px;color:#888">
+              These are visual guidelines — no alignment data is sent to the rigging service.
+            </p>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button type="button" id="rigWizardBack2" class="gen-btn" style="flex:0 0 auto;background:rgba(255,255,255,.06)">Back</button>
+            <button type="button" id="rigWizardNext2" class="gen-btn" style="flex:1">Continue</button>
+          </div>
+        </div>
+
+        <!-- Rig Wizard: Step 3 — Source + Height -->
+        <div id="rigWizardStep3" class="card" style="display:none">
+          <h3>Model & Settings</h3>
           <div class="inline-field">
             <label for="rigModelSelect">Source</label>
             <select id="rigModelSelect">
@@ -531,29 +574,31 @@
           </div>
 
           <div id="rigModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
-            <label for="rigModelUpload" style="font-size:12px">Upload 3D Model</label>
+            <label for="rigModelUpload" style="font-size:12px">Upload 3D Model (GLB only)</label>
             <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
               <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-              <span style="font-size:11px;color:#666">OBJ, FBX, STL, GLTF, GLB</span>
-              <input type="file" id="rigModelUpload" accept=".obj,.fbx,.stl,.gltf,.glb" hidden />
+              <span style="font-size:11px;color:#666">GLB format (required by Meshy)</span>
+              <input type="file" id="rigModelUpload" accept=".glb" hidden />
             </div>
             <div id="rigModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
-        </div>
 
-        <div class="card">
-          <h3>Rigging Settings</h3>
-          <div class="inline-field">
+          <div class="inline-field" style="margin-top:12px">
             <label for="rigHeight">Height (meters)</label>
             <input type="number" id="rigHeight" value="1.7" min="0.1" max="5.0" step="0.1">
           </div>
-          <span class="field-hint">Approximate height of the character model</span>
+          <span class="field-hint">Approximate height of the character model (default 1.7m)</span>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button type="button" id="rigWizardBack3" class="gen-btn" style="flex:0 0 auto;background:rgba(255,255,255,.06)">Back</button>
+          </div>
         </div>
 
-        <div class="card gen-footer-card">
+        <!-- Rig Wizard: Step 4 — Submit -->
+        <div id="rigWizardStep4" class="card gen-footer-card" style="display:none">
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
@@ -565,6 +610,7 @@
           </button>
         </div>
 
+        <!-- Rig Results (shown after successful rig) -->
         <div id="rigResultsSection" style="display:none">
           <div class="card">
             <h3>Rigged Model</h3>
@@ -574,17 +620,26 @@
           <div class="card">
             <h3>Built-in Animations</h3>
             <div id="rigBuiltinAnimations" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+          </div>
 
-            <div class="inline-field">
-              <label for="rigAnimationAction">Animation</label>
-              <select id="rigAnimationAction">
-                <option value="walking">Walking</option>
-                <option value="running">Running</option>
-                <option value="idle">Idle</option>
-                <option value="jumping">Jumping</option>
-                <option value="waving">Waving</option>
+          <!-- Animation Library -->
+          <div class="card">
+            <h3>Animation Library</h3>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <input type="text" id="animLibrarySearch" placeholder="Search animations..." style="flex:1;min-width:140px;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+              <select id="animLibraryCategory" style="padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                <option value="">All Categories</option>
+                <option value="DailyActions">Daily Actions</option>
+                <option value="WalkAndRun">Walk & Run</option>
+                <option value="Dancing">Dancing</option>
+                <option value="BodyMovements">Body Movements</option>
+                <option value="Fighting">Fighting</option>
               </select>
             </div>
+            <div id="animLibraryGrid" style="max-height:280px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;padding-right:4px"></div>
+            <div id="animLibraryEmpty" style="display:none;text-align:center;padding:20px;color:#666;font-size:12px">No animations found</div>
+
+            <input type="hidden" id="rigAnimationActionId" value="">
 
             <div class="gen-footer-card" style="margin-top:12px">
               <div class="gen-meta">
@@ -592,7 +647,7 @@
                 <span class="gen-divider">|</span>
                 <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
               </div>
-              <button type="button" id="applyAnimationBtn" class="gen-btn" title="10 credits">
+              <button type="button" id="applyAnimationBtn" class="gen-btn" title="10 credits" disabled>
                 <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Apply Animation
               </button>
@@ -2955,6 +3010,29 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         });
       }
 
+      // ─── Rig Wizard step navigation ───
+      const rigStep1 = leftStack.querySelector('#rigWizardStep1');
+      const rigStep2 = leftStack.querySelector('#rigWizardStep2');
+      const rigStep3 = leftStack.querySelector('#rigWizardStep3');
+      const rigStep4 = leftStack.querySelector('#rigWizardStep4');
+
+      const showRigStep = (step) => {
+        [rigStep1, rigStep2, rigStep3, rigStep4].forEach(s => { if (s) s.style.display = 'none'; });
+        if (step) step.style.display = '';
+        // Show submit button alongside step 3
+        if (step === rigStep3 && rigStep4) rigStep4.style.display = '';
+      };
+
+      const rigNext1 = leftStack.querySelector('#rigWizardNext1');
+      const rigBack2 = leftStack.querySelector('#rigWizardBack2');
+      const rigNext2 = leftStack.querySelector('#rigWizardNext2');
+      const rigBack3 = leftStack.querySelector('#rigWizardBack3');
+
+      if (rigNext1) rigNext1.addEventListener('click', () => showRigStep(rigStep2));
+      if (rigBack2) rigBack2.addEventListener('click', () => showRigStep(rigStep1));
+      if (rigNext2) rigNext2.addEventListener('click', () => showRigStep(rigStep3));
+      if (rigBack3) rigBack3.addEventListener('click', () => showRigStep(rigStep2));
+
       // Rig upload toggle
       const rigModelSelect   = leftStack.querySelector('#rigModelSelect');
       const rigUploadSection = leftStack.querySelector('#rigModelUploadSection');
@@ -2988,6 +3066,103 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             rigModelUpload.dispatchEvent(new Event('change'));
           }
         });
+      }
+
+      // ─── Animation Library: search, filter, selection ───
+      const animSearch = leftStack.querySelector('#animLibrarySearch');
+      const animCategory = leftStack.querySelector('#animLibraryCategory');
+      const animGrid = leftStack.querySelector('#animLibraryGrid');
+      const animEmpty = leftStack.querySelector('#animLibraryEmpty');
+      const animActionIdInput = leftStack.querySelector('#rigAnimationActionId');
+      const applyAnimBtn = leftStack.querySelector('#applyAnimationBtn');
+
+      // Animation library state
+      let _animLibrary = [];
+      let _animLibraryLoaded = false;
+
+      const loadAnimLibrary = async () => {
+        if (_animLibraryLoaded) return;
+        try {
+          const resp = await fetch('/api/_mod/rig/animations/library');
+          const data = await resp.json();
+          if (data.ok && data.items) {
+            _animLibrary = data.items;
+            _animLibraryLoaded = true;
+            renderAnimLibrary();
+          }
+        } catch (e) {
+          console.warn('[AnimLibrary] Failed to load:', e);
+        }
+      };
+
+      const renderAnimLibrary = () => {
+        if (!animGrid) return;
+        const search = (animSearch?.value || '').toLowerCase();
+        const cat = animCategory?.value || '';
+        let items = _animLibrary.filter(a => a.enabled !== false);
+        if (cat) items = items.filter(a => a.category === cat);
+        if (search) {
+          items = items.filter(a =>
+            (a.name || '').toLowerCase().includes(search) ||
+            (a.category || '').toLowerCase().includes(search) ||
+            (a.subcategory || '').toLowerCase().includes(search) ||
+            (a.tags || []).some(t => t.toLowerCase().includes(search))
+          );
+        }
+        items.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+        animGrid.innerHTML = '';
+        if (items.length === 0) {
+          if (animEmpty) animEmpty.style.display = 'block';
+          return;
+        }
+        if (animEmpty) animEmpty.style.display = 'none';
+
+        items.forEach(anim => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'material-chip anim-lib-card';
+          card.dataset.actionId = anim.action_id;
+          card.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s;text-align:center;font-size:11px;color:#ccc;min-height:48px;justify-content:center';
+          card.innerHTML = '<span style="font-weight:500;color:#e0e0e0;font-size:11px;line-height:1.3">' + (anim.name || 'Animation') + '</span>'
+            + '<span style="font-size:10px;color:#666;margin-top:2px">' + (anim.subcategory || anim.category || '') + '</span>';
+
+          const selectedId = animActionIdInput?.value;
+          if (selectedId && String(anim.action_id) === selectedId) {
+            card.style.borderColor = 'rgba(100,180,255,.5)';
+            card.style.background = 'rgba(100,180,255,.08)';
+          }
+
+          card.addEventListener('click', () => {
+            // Deselect all
+            animGrid.querySelectorAll('.anim-lib-card').forEach(c => {
+              c.style.borderColor = 'rgba(255,255,255,.08)';
+              c.style.background = 'rgba(255,255,255,.03)';
+            });
+            // Select this one
+            card.style.borderColor = 'rgba(100,180,255,.5)';
+            card.style.background = 'rgba(100,180,255,.08)';
+            if (animActionIdInput) animActionIdInput.value = anim.action_id;
+            if (applyAnimBtn) {
+              applyAnimBtn.disabled = false;
+              applyAnimBtn.dataset.riggingTaskId = applyAnimBtn.dataset.riggingTaskId || '';
+            }
+          });
+
+          animGrid.appendChild(card);
+        });
+      };
+
+      if (animSearch) animSearch.addEventListener('input', renderAnimLibrary);
+      if (animCategory) animCategory.addEventListener('change', renderAnimLibrary);
+
+      // Load animation library when rig results become visible
+      const rigResults = leftStack.querySelector('#rigResultsSection');
+      if (rigResults) {
+        const observer = new MutationObserver(() => {
+          if (rigResults.style.display !== 'none') loadAnimLibrary();
+        });
+        observer.observe(rigResults, { attributes: true, attributeFilter: ['style'] });
       }
 
       // Remesh preset cards
