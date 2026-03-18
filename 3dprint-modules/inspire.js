@@ -528,19 +528,34 @@
 
     // Pure thumbnail-based cards - NO WebGL, NO Three.js
     // Store both thumbnail URLs in data attributes for hover swap
+    const videoUrl = card.video_url || '';
+
+    // Model cards with refined: second <img> behind the main one for crossfade
+    const refinedLayer = (card.type === 'model' && hasRefine && thumbRefined)
+      ? `<img class="inspire-card__image-refined" src="${thumbRefined}" alt="" loading="lazy" decoding="async"/>`
+      : '';
+
+    // Video cards: inline <video> element for autoplay
+    const videoLayer = (card.type === 'video' && videoUrl)
+      ? `<video class="inspire-card__video" src="${videoUrl}" muted loop playsinline preload="none"></video>`
+      : '';
+
     return `
       <article class="inspire-card ${aspect}${hasRefine ? ' has-refine' : ''}"
                data-id="${card.id}"
                data-type="${card.type}"
                data-thumb-preview="${thumbPreview}"
-               data-thumb-refined="${thumbRefined}">
+               data-thumb-refined="${thumbRefined}"
+               data-video-url="${videoUrl}">
         <div class="inspire-card__media">
+          ${refinedLayer}
           <img class="inspire-card__image"
                src="${thumbPreview}"
                alt="${prompt}"
                loading="lazy"
                decoding="async"
                onerror="this.closest('.inspire-card').style.display='none'"/>
+          ${videoLayer}
           ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
           ${hasRefine ? '<div class="inspire-card__refine-badge" title="Refined version available">&#10024;</div>' : ''}
         </div>
@@ -569,6 +584,41 @@
     return filters.map(f => `
       <button class="inspire-filter-btn ${f.id === state.activeFilter ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>
     `).join('');
+  }
+
+  // =========================================================================
+  // CARD VIDEO AUTOPLAY (IntersectionObserver-based, lazy)
+  // =========================================================================
+
+  let videoObserver = null;
+
+  function initCardVideos(container) {
+    // Clean up previous observer
+    if (videoObserver) videoObserver.disconnect();
+
+    const videos = container.querySelectorAll('.inspire-card__video');
+    if (videos.length === 0) return;
+
+    videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          // Start loading and playing when visible
+          video.preload = 'auto';
+          video.play().then(() => {
+            video.classList.add('is-playing');
+          }).catch(() => {
+            // Autoplay blocked — keep thumbnail visible
+          });
+        } else {
+          // Pause when scrolled out of view to save resources
+          video.pause();
+          video.classList.remove('is-playing');
+        }
+      });
+    }, { root: container.closest('.inspire-content'), threshold: 0.3 });
+
+    videos.forEach(v => videoObserver.observe(v));
   }
 
   function renderGrid() {
@@ -603,6 +653,9 @@
 
     // Store references to card elements for in-place updates
     cardElements = Array.from(grid.querySelectorAll('.inspire-card'));
+
+    // Initialize video autoplay for visible cards
+    initCardVideos(grid);
   }
 
   /**
@@ -662,6 +715,7 @@
       el.dataset.type = card.type;
       el.dataset.thumbPreview = card.thumb_preview || card.thumbnail || card.thumb_url || '';
       el.dataset.thumbRefined = card.thumb_refined || '';
+      el.dataset.videoUrl = card.video_url || '';
 
       // Update class for aspect ratio and refine badge
       const aspect = card.aspect || 'square';
@@ -699,6 +753,43 @@
         ).join('');
       }
 
+      // Update video layer
+      let videoEl = el.querySelector('.inspire-card__video');
+      if (card.type === 'video' && card.video_url) {
+        if (!videoEl) {
+          videoEl = document.createElement('video');
+          videoEl.className = 'inspire-card__video';
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.preload = 'none';
+          el.querySelector('.inspire-card__media').appendChild(videoEl);
+        }
+        if (videoEl.src !== card.video_url) {
+          videoEl.classList.remove('is-playing');
+          videoEl.src = card.video_url;
+        }
+      } else if (videoEl) {
+        videoEl.pause();
+        videoEl.remove();
+      }
+
+      // Update refined image layer (for model crossfade)
+      let refinedImg = el.querySelector('.inspire-card__image-refined');
+      const thumbRefined = card.thumb_refined || '';
+      if (card.type === 'model' && hasRefine && thumbRefined) {
+        if (!refinedImg) {
+          refinedImg = document.createElement('img');
+          refinedImg.className = 'inspire-card__image-refined';
+          refinedImg.loading = 'lazy';
+          refinedImg.decoding = 'async';
+          el.querySelector('.inspire-card__media').prepend(refinedImg);
+        }
+        if (refinedImg.src !== thumbRefined) refinedImg.src = thumbRefined;
+      } else if (refinedImg) {
+        refinedImg.remove();
+      }
+
       // Update video badge visibility
       const videoBadge = el.querySelector('.inspire-card__video-badge');
       if (videoBadge) {
@@ -720,6 +811,9 @@
         el.style.transform = 'scale(1)';
       });
     }
+
+    // Re-initialize video autoplay after shuffle
+    initCardVideos(grid);
   }
 
   // =========================================================================
@@ -757,6 +851,10 @@
       overlayEl.querySelector('#inspireCloseBtn')?.focus();
     });
 
+    // Re-initialize video autoplay when panel opens
+    const grid = overlayEl.querySelector('#inspireGrid');
+    if (grid) initCardVideos(grid);
+
     window.dispatchEvent(new CustomEvent('inspire:open'));
   }
 
@@ -785,6 +883,13 @@
     document.body.classList.remove('inspire-open');
     overlayEl.classList.remove('is-open');
     overlayEl.inert = true;
+
+    // Pause all card videos and disconnect observer to free resources
+    if (videoObserver) videoObserver.disconnect();
+    overlayEl.querySelectorAll('.inspire-card__video').forEach(v => {
+      v.pause();
+      v.classList.remove('is-playing');
+    });
 
     // Hide after transition
     setTimeout(() => {

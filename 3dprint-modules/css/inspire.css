@@ -815,6 +815,67 @@ body.inspire-open .ws-right {
 .inspire-overlay.is-open .inspire-card:nth-child(8) { animation-delay: 0.26s; }
 .inspire-overlay.is-open .inspire-card:nth-child(n+9) { animation-delay: 0.29s; }
 
+/* ===== CARD MEDIA ANIMATIONS ===== */
+
+/* --- Video autoplay inside card --- */
+.inspire-card__video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.inspire-card__video.is-playing {
+  opacity: 1;
+}
+
+/* Hide play badge when video is playing */
+.inspire-card:has(.inspire-card__video.is-playing) .inspire-card__video-badge {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* --- Model crossfade carousel --- */
+.inspire-card[data-type="model"].has-refine .inspire-card__image {
+  animation: modelCrossfade 4s ease-in-out infinite;
+}
+
+@keyframes modelCrossfade {
+  0%, 40%  { opacity: 1; }
+  50%, 90% { opacity: 0; }
+  100%     { opacity: 1; }
+}
+
+.inspire-card__image-refined {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* --- Image Ken Burns --- */
+.inspire-card[data-type="image"] .inspire-card__image {
+  animation: kenBurns 12s ease-in-out infinite alternate;
+}
+
+@keyframes kenBurns {
+  0%   { transform: scale(1)   translate(0, 0); }
+  100% { transform: scale(1.08) translate(-1.5%, -1%); }
+}
+
+/* Pause animations when card is hovered (let hover scale take over) */
+.inspire-card:hover .inspire-card__image {
+  animation-play-state: paused;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1100px) {
   .inspire-grid {

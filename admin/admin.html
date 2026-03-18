@@ -3246,8 +3246,8 @@
       <h3>Admin Login</h3>
       <p id="login-session-msg" class="muted" style="display:none;padding:8px 0;font-size:13px;line-height:1.5;"></p>
       <label id="token-group">
-        <span>Token</span>
-        <input id="token" type="password" placeholder="Enter admin token" autocomplete="off"/>
+        <span>Shared Admin Token</span>
+        <input id="token" type="password" placeholder="Enter the token used for blog, usage, and repo tools" autocomplete="off"/>
       </label>
       <div class="modal-actions">
         <span id="lmsg" class="muted"></span>
@@ -3414,8 +3414,19 @@
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';
+    const SHARED_ADMIN_TOKEN_PROMPT = 'Enter your admin token once to unlock blog, usage, and repo tools';
+    const CHAT_ADMIN_STATE = {
+      UNKNOWN: 'unknown',
+      READY: 'ready',
+      TOKEN_REQUIRED: 'token_required',
+      INVALID_TOKEN: 'invalid_token',
+      DISABLED: 'disabled',
+      UNAVAILABLE: 'unavailable'
+    };
     let pendingTokenAction = null;
     let pendingTokenScope = null;
+    let chatAdminState = CHAT_ADMIN_STATE.UNKNOWN;
+    let chatAdminMessage = '';
 
     let generatedBlog = null;
     let generatedCoverUrl = null;
@@ -4131,32 +4142,108 @@
     function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
     function chatAdminHeaders(){ return { 'X-Admin-Token': getToken() }; }
 
+    function setChatAdminAccess(state, message = '') {
+      chatAdminState = state;
+      chatAdminMessage = message || '';
+    }
+
+    function chatAdminNeedsToken(state = chatAdminState) {
+      return state === CHAT_ADMIN_STATE.TOKEN_REQUIRED || state === CHAT_ADMIN_STATE.INVALID_TOKEN;
+    }
+
+    async function readResponseDetail(response, fallback = '') {
+      try {
+        const data = await response.clone().json();
+        const detail = data?.detail || data?.error || data?.message;
+        if (typeof detail === 'string' && detail.trim()) return detail.trim();
+      } catch (err) {}
+
+      try {
+        const text = await response.clone().text();
+        if (text && text.trim()) return text.trim();
+      } catch (err) {}
+
+      return fallback;
+    }
+
+    async function parseChatAdminResponse(response) {
+      const detail = await readResponseDetail(response, 'Chat admin tools are unavailable right now');
+
+      if (response.ok) {
+        return { ok: true, state: CHAT_ADMIN_STATE.READY, message: '' };
+      }
+      if (response.status === 401) {
+        return {
+          ok: false,
+          state: CHAT_ADMIN_STATE.TOKEN_REQUIRED,
+          message: SHARED_ADMIN_TOKEN_PROMPT
+        };
+      }
+      if (response.status === 403 && /invalid admin token/i.test(detail)) {
+        return {
+          ok: false,
+          state: CHAT_ADMIN_STATE.INVALID_TOKEN,
+          message: 'This token does not unlock chat admin tools. Use the same shared admin token on the chat service.'
+        };
+      }
+      if (response.status === 403 && /admin access is disabled/i.test(detail)) {
+        return {
+          ok: false,
+          state: CHAT_ADMIN_STATE.DISABLED,
+          message: 'Chat admin tools are disabled on the chat server. Set CHAT_ADMIN_TOKEN there to enable Usage and Repo tools.'
+        };
+      }
+      return {
+        ok: false,
+        state: CHAT_ADMIN_STATE.UNAVAILABLE,
+        message: 'Chat admin tools are unavailable right now. Please try again later.'
+      };
+    }
+
     async function verifyChatAdminToken() {
+      if (!getToken()) {
+        const result = {
+          ok: false,
+          state: CHAT_ADMIN_STATE.TOKEN_REQUIRED,
+          message: SHARED_ADMIN_TOKEN_PROMPT
+        };
+        setChatAdminAccess(result.state, result.message);
+        return result;
+      }
+
       try {
         const r = await fetch(`${CHAT_API}/api/admin/usage/today`, { headers: chatAdminHeaders() });
-        if (r.status === 401 || r.status === 403) {
-          return { ok: false, message: 'Invalid token for chat admin tools' };
-        }
-        if (!r.ok) {
-          return { ok: false, message: 'Chat admin tools are unavailable right now' };
-        }
-        return { ok: true };
+        const result = await parseChatAdminResponse(r);
+        setChatAdminAccess(result.state, result.message);
+        return result;
       } catch (err) {
-        return { ok: false, message: 'Cannot reach chat admin tools right now' };
+        const result = {
+          ok: false,
+          state: CHAT_ADMIN_STATE.UNAVAILABLE,
+          message: 'Cannot reach chat admin tools right now'
+        };
+        setChatAdminAccess(result.state, result.message);
+        return result;
       }
     }
 
-    async function chatAdminFetch(url, onAuthSuccess = null, authMessage = 'Valid admin token required for chat admin tools') {
+    async function chatAdminFetch(url, onAuthSuccess = null, authMessage = SHARED_ADMIN_TOKEN_PROMPT) {
       if (!getToken()) {
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, authMessage);
         showLoginModal('token', authMessage, onAuthSuccess, 'chat');
         throw new Error('Chat admin token required');
       }
       const r = await fetch(url, { headers: chatAdminHeaders() });
       if (r.status === 401 || r.status === 403) {
-        setToken('');
-        showLoginModal('token', authMessage, onAuthSuccess, 'chat');
-        throw new Error('Chat admin access denied');
+        const result = await parseChatAdminResponse(r);
+        setChatAdminAccess(result.state, result.message);
+        if (chatAdminNeedsToken(result.state)) {
+          setToken('');
+          showLoginModal('token', result.message || authMessage, onAuthSuccess, 'chat');
+        }
+        throw new Error(result.message || 'Chat admin access denied');
       }
+      setChatAdminAccess(CHAT_ADMIN_STATE.READY, '');
       return r;
     }
 
@@ -4216,6 +4303,10 @@
         lmsg.textContent = message || '';
       }
       $('#login').classList.add('show');
+      if (mode === 'token') {
+        $('#token').focus();
+        $('#token').select();
+      }
     }
 
     async function ensureAuth(){
@@ -4247,39 +4338,68 @@
       }
 
       // Step 2: Verify blog API token
-      if(!getToken()){ showLoginModal('token', ''); return false; }
+      if(!getToken()){
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
+        showLoginModal('token', SHARED_ADMIN_TOKEN_PROMPT);
+        return false;
+      }
       const r = await fetch(API+'/admin/auth', {
         headers: {'Content-Type':'application/json', 'X-Admin-Token': getToken()}
       });
-      if(!r.ok){ showLoginModal('token', 'Invalid token'); setToken(''); return false; }
+      if(!r.ok){
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
+        showLoginModal('token', 'Invalid admin token');
+        setToken('');
+        return false;
+      }
+
+      // Step 3: Verify the same token also unlocks chat admin tools
+      const chatAuth = await verifyChatAdminToken();
+      if (!chatAuth.ok) {
+        if (chatAdminNeedsToken(chatAuth.state)) {
+          showLoginModal('token', chatAuth.message || SHARED_ADMIN_TOKEN_PROMPT);
+          setToken('');
+          return false;
+        }
+        Toast.warning(chatAuth.message);
+      }
       return true;
+    }
+
+    async function bootstrapAdminPage() {
+      await load();
+      await checkAI();
+      loadAllOps();
+      startOpsPolling();
     }
 
     $('#enter').onclick = async ()=>{
       const t = $('#token').value.trim(); if(!t) return;
+      const enterBtn = $('#enter');
+      const originalLabel = enterBtn.textContent;
+      enterBtn.disabled = true;
+      enterBtn.textContent = 'Checking...';
       setToken(t);
       const resumeAction = pendingTokenAction;
-      const tokenScope = pendingTokenScope;
-      if(await ensureAuth()){
-        if (tokenScope === 'chat') {
-          const chatAuth = await verifyChatAdminToken();
-          if (!chatAuth.ok) {
-            setToken('');
-            showLoginModal('token', chatAuth.message, resumeAction, 'chat');
-            return;
+      try {
+        if(await ensureAuth()){
+          $('#login').classList.remove('show');
+          pendingTokenAction = null;
+          pendingTokenScope = null;
+          $('#search').value = '';
+          await bootstrapAdminPage();
+          if (typeof resumeAction === 'function') {
+            await resumeAction();
           }
         }
-        $('#login').classList.remove('show');
-        pendingTokenAction = null;
-        pendingTokenScope = null;
-        $('#search').value = '';
-        load();
-        checkAI();
-        if (typeof resumeAction === 'function') {
-          await resumeAction();
-        }
+      } finally {
+        enterBtn.disabled = false;
+        enterBtn.textContent = originalLabel;
       }
     };
+    $('#token').addEventListener('keydown', e => {
+      if (e.key === 'Enter') $('#enter').click();
+    });
     $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
 
     // Check AI status
@@ -5930,15 +6050,41 @@
       $('#endpointsBody').innerHTML = `<tr><td colspan="3" class="muted">${message}</td></tr>`;
     }
 
+    function resetUsageDashboard(statusMessage = 'Loading...') {
+      $('#todayChatTokens').textContent = '--';
+      $('#todayChatLimit').textContent = '/ --';
+      $('#todayChatBar').style.width = '0%';
+      $('#todayEmbedTokens').textContent = '--';
+      $('#todayEmbedLimit').textContent = '/ --';
+      $('#todayEmbedBar').style.width = '0%';
+      $('#todayImages').textContent = '--';
+      $('#todayImagesLimit').textContent = '/ --';
+      $('#todayImagesBar').style.width = '0%';
+      $('#todayVideo').textContent = '--';
+      $('#todayVideoLimit').textContent = '/ --';
+      $('#todayVideoBar').style.width = '0%';
+      $('#weekChatTokens').textContent = '--';
+      $('#weekEmbedTokens').textContent = '--';
+      $('#weekImages').textContent = '--';
+      $('#weekVideo').textContent = '--';
+      setUsageStatus(statusMessage);
+    }
+
     async function loadUsageDashboard() {
       if (!getToken()) {
-        setUsageStatus('Admin token required');
-        showLoginModal('token', 'Valid admin token required to view chat usage', loadUsageDashboard, 'chat');
+        resetUsageDashboard('Admin token required');
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
+        showLoginModal('token', SHARED_ADMIN_TOKEN_PROMPT, loadUsageDashboard, 'chat');
+        return;
+      }
+
+      if (chatAdminState === CHAT_ADMIN_STATE.DISABLED || chatAdminState === CHAT_ADMIN_STATE.UNAVAILABLE) {
+        resetUsageDashboard(chatAdminMessage || 'Chat admin tools are unavailable right now');
         return;
       }
 
       try {
-        setUsageStatus('Loading...');
+        resetUsageDashboard('Loading...');
 
         // Fetch all usage data in parallel from chat server using the stored admin token
         const [todayRes, weekRes, endpointsRes] = await Promise.all([
@@ -5948,9 +6094,14 @@
         ]);
 
         if ([todayRes, weekRes, endpointsRes].some(r => r.status === 401 || r.status === 403)) {
-          setToken('');
-          setUsageStatus('Admin token required');
-          showLoginModal('token', 'Valid admin token required to view chat usage', loadUsageDashboard, 'chat');
+          const chatAuth = await verifyChatAdminToken();
+          if (chatAdminNeedsToken(chatAuth.state)) {
+            setToken('');
+            resetUsageDashboard('Admin token required');
+            showLoginModal('token', chatAuth.message || SHARED_ADMIN_TOKEN_PROMPT, loadUsageDashboard, 'chat');
+          } else {
+            resetUsageDashboard(chatAuth.message || 'Chat admin tools are unavailable right now');
+          }
           return;
         }
 
@@ -5994,7 +6145,7 @@
         }
       } catch (err) {
         console.error('Usage fetch error:', err);
-        setUsageStatus('Failed to load usage data');
+        resetUsageDashboard(chatAdminMessage || 'Failed to load usage data');
       }
     }
 
@@ -8530,7 +8681,7 @@
       }
     });
 
-    (async function(){ if(await ensureAuth()){ load(); checkAI(); loadAllOps(); startOpsPolling(); } })();
+    (async function(){ if(await ensureAuth()){ await bootstrapAdminPage(); } })();
   </script>
 </body>
 </html>
