@@ -4076,10 +4076,28 @@ async function _handleRigComplete(job_id, st, prog) {
   if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
   State.removeActiveJob(job_id);
 
-  // Persist to history — use source model's thumbnail if Meshy didn't provide one
   const pendingMeta = State.getPendingMeta()[job_id] || {};
   const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
-  const thumbnail = st.thumbnail_url || pendingMeta.source_thumbnail_url || '';
+
+  // Load rigged model into 3D viewer FIRST so we can capture a thumbnail
+  let viewerLoaded = false;
+  if (glbUrl) {
+    try {
+      prog.jump(99, 'Downloading model...');
+      const glbProxy = getLoadableModelUrl(glbUrl);
+      await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
+      viewerLoaded = true;
+    } catch (err) {
+      console.warn('[Rig] Failed to load model in viewer:', err);
+    }
+  }
+
+  // Thumbnail priority: Meshy response > source model > viewer screenshot > empty
+  let thumbnail = st.thumbnail_url || pendingMeta.source_thumbnail_url || '';
+  if (!thumbnail && viewerLoaded) {
+    thumbnail = Viewer.captureViewerThumbnail(256) || '';
+  }
+
   const rigHistoryData = {
     id: job_id,
     type: 'model',
@@ -4101,17 +4119,6 @@ async function _handleRigComplete(job_id, st, prog) {
   State.deletePendingMeta(job_id);
   State.setHistoryActiveModelId(job_id);
   renderHistory();
-
-  // Load rigged model into 3D viewer
-  if (glbUrl) {
-    try {
-      prog.jump(99, 'Downloading model...');
-      const glbProxy = getLoadableModelUrl(glbUrl);
-      await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
-    } catch (err) {
-      console.warn('[Rig] Failed to load model in viewer:', err);
-    }
-  }
 
   // Show results section + hide wizard steps
   const resultsSection = byId('rigResultsSection');

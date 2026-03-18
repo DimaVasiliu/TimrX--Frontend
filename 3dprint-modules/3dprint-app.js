@@ -1123,7 +1123,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Try to create renderer with error handling
       let renderer;
       try {
-        renderer = new THREE.WebGLRenderer({ canvas: viewerCanvas, antialias: true });
+        renderer = new THREE.WebGLRenderer({ canvas: viewerCanvas, antialias: true, preserveDrawingBuffer: true });
       } catch (err) {
         console.error('[Viewer] Failed to create WebGLRenderer:', err.message);
         window.timrxViewerAvailable = false;

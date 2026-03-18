@@ -299,6 +299,38 @@ export function showImageInViewer(url) {
 }
 
 /**
+ * Capture a thumbnail screenshot from the current 3D viewer state.
+ * Returns a data URL (image/png) or null if capture fails.
+ * @param {number} [size=256] — output image dimension (square)
+ */
+export function captureViewerThumbnail(size = 256) {
+    if (!isViewerReady() || !renderer || !scene || !camera) return null;
+    try {
+        // Force a render to ensure current frame is fresh
+        renderer.render(scene, camera);
+        // Read from the WebGL canvas
+        const srcCanvas = renderer.domElement;
+        // Scale down to thumbnail size
+        const thumb = document.createElement('canvas');
+        thumb.width = size;
+        thumb.height = size;
+        const ctx = thumb.getContext('2d');
+        if (!ctx) return null;
+        // Center-crop: take the largest square from the source
+        const srcW = srcCanvas.width;
+        const srcH = srcCanvas.height;
+        const cropSize = Math.min(srcW, srcH);
+        const sx = (srcW - cropSize) / 2;
+        const sy = (srcH - cropSize) / 2;
+        ctx.drawImage(srcCanvas, sx, sy, cropSize, cropSize, 0, 0, size, size);
+        return thumb.toDataURL('image/png');
+    } catch (e) {
+        console.warn('[Viewer] Thumbnail capture failed:', e);
+        return null;
+    }
+}
+
+/**
  * Initialize the image Fit/Fill toggle
  */
 export function initImageFitToggle() {
