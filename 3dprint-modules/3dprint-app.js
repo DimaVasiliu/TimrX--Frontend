@@ -675,21 +675,10 @@
           <div class="video-provider-switcher" id="videoProviderSwitcher">
             <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
             <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Seedance</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
-          </div>
-          <div class="video-experimental-section" id="videoExperimentalSection">
-            <button type="button" class="video-experimental-trigger" id="videoExperimentalTrigger">
-              <span>More providers</span>
-              <svg class="video-experimental-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M6 9l6 6 6-6"/></svg>
+            <button type="button" class="video-provider-btn video-provider-btn--legacy video-provider-btn--stacked" data-provider="seedance">
+              <span class="vpb-name">Seedance 2.0</span>
+              <span class="vpb-tag">PiAPI &middot; Fast / Preview</span>
             </button>
-            <div class="video-experimental-panel hidden" id="videoExperimentalPanel">
-              <div class="video-provider-switcher video-provider-switcher--experimental" id="videoProviderSwitcherExp">
-                <button type="button" class="video-provider-btn video-provider-btn--legacy" data-provider="seedance">
-                  <span class="vpb-name">Seedance 2.0</span>
-                  <span class="vpb-tag">Legacy &middot; Experimental</span>
-                </button>
-              </div>
-              <span class="video-experimental-hint">Older route. May queue longer or fail more often.</span>
-            </div>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -2272,8 +2261,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       // Video provider switcher (main + experimental — mutually exclusive)
       const videoProviderSwitcher = leftStack.querySelector('#videoProviderSwitcher');
-      const videoProviderSwitcherExp = leftStack.querySelector('#videoProviderSwitcherExp');
-      const allProviderBtns = leftStack.querySelectorAll('#videoProviderSwitcher .video-provider-btn, #videoProviderSwitcherExp .video-provider-btn');
+      const allProviderBtns = leftStack.querySelectorAll('#videoProviderSwitcher .video-provider-btn');
 
       function selectProvider(provider, clickedBtn) {
         allProviderBtns.forEach(b => b.classList.remove('is-active'));
@@ -2293,16 +2281,6 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           selectProvider(this.dataset.provider, this);
         });
       });
-
-      // Experimental section toggle
-      const expTrigger = leftStack.querySelector('#videoExperimentalTrigger');
-      const expPanel = leftStack.querySelector('#videoExperimentalPanel');
-      if (expTrigger && expPanel) {
-        expTrigger.addEventListener('click', () => {
-          expPanel.classList.toggle('hidden');
-          expTrigger.classList.toggle('is-open');
-        });
-      }
 
       // Wire up video credits calculation on any option change
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
