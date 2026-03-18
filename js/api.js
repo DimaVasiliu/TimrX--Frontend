@@ -3997,7 +3997,7 @@ export function watchRigJob(job_id) {
       consecutiveErrors = 0;
       const st = result.data;
 
-      const pct = st.progress ?? 0;
+      const pct = st.pct ?? st.progress ?? 0;
       prog.pct(pct, `Rigging... ${pct}%`);
 
       if (st.status === 'SUCCEEDED' || st.status === 'succeeded') {
@@ -4006,7 +4006,7 @@ export function watchRigJob(job_id) {
         State.removeActiveJob(job_id);
 
         // Persist to history
-        const glbUrl = st.glb || st.model_urls?.glb || '';
+        const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
         const rigHistoryData = {
           id: job_id,
           type: 'model',
@@ -4026,7 +4026,19 @@ export function watchRigJob(job_id) {
           State.addHistoryItem(rigHistoryData);
         }
         State.deletePendingMeta(job_id);
+        State.setHistoryActiveModelId(job_id);
         renderHistory();
+
+        // Load rigged model into 3D viewer
+        if (glbUrl) {
+          try {
+            prog.jump(99, 'Downloading model...');
+            const glbProxy = getLoadableModelUrl(glbUrl);
+            await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
+          } catch (err) {
+            console.warn('[Rig] Failed to load model in viewer:', err);
+          }
+        }
 
         // Show results section
         const resultsSection = byId('rigResultsSection');
@@ -4037,11 +4049,11 @@ export function watchRigJob(job_id) {
         if (linksDiv) {
           linksDiv.innerHTML = '';
           const formats = [
-            { key: 'glb', label: 'GLB' },
-            { key: 'fbx', label: 'FBX' }
+            { key: 'rigged_character_glb_url', fallback: 'glb', label: 'GLB' },
+            { key: 'rigged_character_fbx_url', fallback: 'fbx', label: 'FBX' }
           ];
           formats.forEach(fmt => {
-            const url = st[fmt.key] || st.model_urls?.[fmt.key];
+            const url = st[fmt.key] || st[fmt.fallback] || st.model_urls?.[fmt.fallback];
             if (url) {
               const a = document.createElement('a');
               a.href = url;
@@ -4056,9 +4068,10 @@ export function watchRigJob(job_id) {
 
         // Populate built-in animation links
         const builtinDiv = byId('rigBuiltinAnimations');
-        if (builtinDiv && st.animations) {
+        const rigAnimations = st.basic_animations || st.animations;
+        if (builtinDiv && rigAnimations) {
           builtinDiv.innerHTML = '';
-          st.animations.forEach(anim => {
+          rigAnimations.forEach(anim => {
             const a = document.createElement('a');
             a.href = anim.url || anim.glb || '#';
             a.download = `${anim.name || anim.action || 'animation'}.glb`;
