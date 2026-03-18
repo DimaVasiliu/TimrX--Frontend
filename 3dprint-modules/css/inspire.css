@@ -452,8 +452,10 @@ body.inspire-open .ws-right {
   background: #0d0d0d;
 }
 
-.inspire-card:hover .inspire-card__image {
-  transform: scale(1.05);
+@media (hover: hover) {
+  .inspire-card:hover .inspire-card__image {
+    transform: scale(1.05);
+  }
 }
 
 /* Refine badge - indicates hover will show refined/textured version */
@@ -871,9 +873,11 @@ body.inspire-open .ws-right {
   100% { transform: scale(1.08) translate(-1.5%, -1%); }
 }
 
-/* Pause animations when card is hovered (let hover scale take over) */
-.inspire-card:hover .inspire-card__image {
-  animation-play-state: paused;
+/* Pause animations when card is hovered on devices that support hover */
+@media (hover: hover) {
+  .inspire-card:hover .inspire-card__image {
+    animation-play-state: paused;
+  }
 }
 
 /* ===== RESPONSIVE ===== */

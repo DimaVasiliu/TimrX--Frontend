@@ -1503,9 +1503,10 @@
       if (btn) applyFilter(btn.dataset.filter);
     });
 
-    // Hover thumbnail swap (desktop only - no hover on touch)
+    // Hover thumbnail swap (all devices - animations run by default,
+    // hover swap is additive for desktop users)
     const grid = overlayEl.querySelector('#inspireGrid');
-    if (grid && !('ontouchstart' in window)) {
+    if (grid) {
       grid.addEventListener('mouseenter', handleCardHoverIn, true);
       grid.addEventListener('mouseleave', handleCardHoverOut, true);
     }

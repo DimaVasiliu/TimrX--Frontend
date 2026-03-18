@@ -1337,61 +1337,6 @@
 /* ====================================================== */
 /* Mobile notice popup                                     */
 /* ====================================================== */
-.mobile-notice {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 200000;
-  background: rgba(0,0,0,0.7);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  place-items: center;
-}
-.mobile-notice.visible {
-  display: grid;
-  animation: mnFadeIn 0.3s ease;
-}
-.mobile-notice-card {
-  width: min(80vw, 280px);
-  background: #161618;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 22px 18px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.mobile-notice-ico {
-  font-size: 30px;
-  line-height: 1;
-}
-.mobile-notice-msg {
-  font-size: 13px;
-  line-height: 1.45;
-  color: #b0b0b0;
-  margin: 0;
-}
-.mobile-notice-btn {
-  margin-top: 2px;
-  padding: 8px 28px;
-  border: none;
-  border-radius: 8px;
-  background: #0ea5e9;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.mobile-notice-btn:hover {
-  background: #0284c7;
-}
-@keyframes mnFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
 
 /* ==========================================================================
    PROMPT ENHANCE
@@ -1491,6 +1436,68 @@
 .enhance-undo-btn:hover {
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.85);
+}
+
+/* Re-roll button (re-enhance with new variation) */
+.enhance-reroll-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px;
+  background: rgba(255,255,255,.03);
+  color: rgba(255,255,255,.4);
+  cursor: pointer;
+  transition: all .2s ease;
+  flex-shrink: 0;
+}
+.enhance-reroll-btn:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.75);
+}
+.enhance-reroll-btn:active {
+  transform: scale(.93);
+}
+.enhance-reroll-btn.hidden {
+  display: none;
+}
+
+/* Score bar */
+.enhance-score-bar {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,.06);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: visible;
+}
+.enhance-score-bar.hidden {
+  display: none;
+}
+.enhance-score-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .4s ease, background-color .4s ease;
+  width: 0;
+}
+.enhance-score-label {
+  position: absolute;
+  right: 0;
+  top: -16px;
+  font-size: 10px;
+  color: rgba(255,255,255,.4);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Provider hint styling */
+.enhance-provider-hint {
+  font-style: italic;
+  color: rgba(255,255,255,.35);
 }
 
 @keyframes enhanceFadeIn {

@@ -1887,25 +1887,5 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
     <script src="js/cookie-consent.js" defer></script>
 
-    <!-- Mobile notice popup -->
-    <div class="mobile-notice" id="mobileNotice">
-      <div class="mobile-notice-card">
-        <span class="mobile-notice-ico">&#128421;</span>
-        <p class="mobile-notice-msg">This page is best experienced on a desktop or laptop for the full 3D experience.</p>
-        <button class="mobile-notice-btn" id="mobileNoticeClose">Got it</button>
-      </div>
-    </div>
-    <script>
-      (function(){
-        if(window.innerWidth > 768) return;
-        var el = document.getElementById('mobileNotice');
-        if(!el || sessionStorage.getItem('mobileNoticeDismissed')) return;
-        el.classList.add('visible');
-        document.getElementById('mobileNoticeClose').addEventListener('click', function(){
-          el.classList.remove('visible');
-          sessionStorage.setItem('mobileNoticeDismissed','1');
-        });
-      })();
-    </script>
 </body>
 </html>

@@ -3244,26 +3244,6 @@
   </script>
   <script src="js/cookie-consent.js" defer></script>
 
-  <!-- Mobile notice popup -->
-  <div id="mobileNotice" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200000;background:rgba(0,0,0,0.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);place-items:center;">
-    <div class="mobile-notice-card">
-      <span class="mobile-notice-ico">&#128421;</span>
-      <p class="mobile-notice-msg">This workspace is optimized for desktop. For the best 3D editing experience, switch to a larger screen.</p>
-      <button class="mobile-notice-btn" id="mobileNoticeClose">Got it</button>
-    </div>
-  </div>
-  <script>
-    (function(){
-      if(window.innerWidth > 768) return;
-      var el = document.getElementById('mobileNotice');
-      if(!el || sessionStorage.getItem('mobileNoticeDismissed3d')) return;
-      el.style.display = 'grid';
-      document.getElementById('mobileNoticeClose').addEventListener('click', function(){
-        el.style.display = 'none';
-        sessionStorage.setItem('mobileNoticeDismissed3d','1');
-      });
-    })();
-  </script>
 
   <!-- Back to top for expanded views -->
   <script>
