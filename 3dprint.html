@@ -153,6 +153,12 @@
       overflow: hidden;
       -webkit-mask-image: linear-gradient(to right, transparent 0, black 10%, black 90%, transparent 100%);
       mask-image: linear-gradient(to right, transparent 0, black 10%, black 90%, transparent 100%);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .ticker-header.nav-hidden {
+      transform: translateY(calc(-50% - 20px));
+      opacity: 0;
+      pointer-events: none;
     }
     .ticker-header-track {
       display: flex;
@@ -3200,7 +3206,8 @@
       const nav = document.querySelector('.ws-nav');
       const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
-      const hideableElements = [nav, headerLeft, creditsGroup].filter(Boolean);
+      const tickerHeader = document.querySelector('.ticker-header');
+      const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader].filter(Boolean);
 
       if (hideableElements.length > 0) {
         let lastScrollY = 0;

@@ -965,11 +965,15 @@ body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__name 
 /* ===== Global Layout ===== */
 body.tutorials-view,
 body.community-view,
+body.converter-view,
+body.about-view,
 body.docs-view {
   min-height: 100vh;
   overflow: auto;
   background: var(--bg);
   position: relative;
+  padding-top: 84px;
+  scroll-padding-top: 120px;
 }
 
 body.tutorials-view::before,
@@ -3979,6 +3983,14 @@ body.about-view .about-expanded-view {
    Tutorials, Stories, Converter, About
    ========================================================================== */
 @media (max-width: 768px) {
+  body.tutorials-view,
+  body.community-view,
+  body.converter-view,
+  body.about-view,
+  body.docs-view {
+    padding-top: 72px;
+    scroll-padding-top: 98px;
+  }
 
   /* --- Containers — prevent overflow --- */
   .tutorials-expanded-view,

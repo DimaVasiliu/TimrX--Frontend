@@ -753,18 +753,64 @@ export function getActiveHistoryItem() {
 }
 
 /**
- * Build source object for Meshy API from a history item
+ * Build source object for Meshy API from a history item.
+ * Used by remesh, rig, and other non-retexture operations.
  */
 function buildMeshySourceFromItem(item = {}) {
   if (!item) return {};
   const taskId = item.id || item.preview_task_id || item.preview_task || item.source_task_id;
   const modelUrl = item.glb_url || item.glb_proxy;
-  // Send both when available — backend will prefer input_task_id (more reliable
-  // for Meshy-origin models) and fall back to model_url for uploaded/external models.
   const result = {};
   if (taskId) result.input_task_id = taskId;
   if (modelUrl) result.model_url = modelUrl;
   return Object.keys(result).length ? result : {};
+}
+
+/**
+ * Build canonical source for Meshy retexture.
+ *
+ * ALL retexture entry points (rail panel, viewer toolbar, history dropdown)
+ * MUST call this for consistent behavior.
+ *
+ * Source priority (enforced by backend, communicated here):
+ *   1. Valid upstream Meshy task ID  →  backend sends ONLY input_task_id
+ *   2. Model URL (S3 / public)      →  backend sends ONLY model_url
+ *   3. Neither                       →  returns null (caller must block)
+ *
+ * Both fields are sent to the backend so it can resolve the upstream ID and
+ * fall back to model_url if the task ID is stale/invalid.  The backend will
+ * NEVER forward both to Meshy (Meshy silently prefers input_task_id, and a
+ * stale one causes async failure even when model_url is valid).
+ *
+ * @param {object} item  History item / active viewer model
+ * @param {string} origin  Caller label for diagnostics: "rail" | "viewer" | "history"
+ * @returns {object|null}  {input_task_id?, model_url?} or null
+ */
+function buildCanonicalRetextureSource(item, origin = 'unknown') {
+  if (!item) return null;
+
+  const upstreamTaskId = item.id || item.preview_task_id || item.source_task_id;
+  const modelUrl = item.glb_url || item.glb_proxy;
+
+  if (!upstreamTaskId && !modelUrl) {
+    console.warn('[Retexture:SRC] No valid source for item', item.id, 'origin=' + origin);
+    return null;
+  }
+
+  const source = {};
+  if (upstreamTaskId) source.input_task_id = upstreamTaskId;
+  if (modelUrl) source.model_url = modelUrl;
+
+  // Dev-only diagnostic — visible in browser console, never in prod alerts
+  console.debug('[Retexture:SRC]', {
+    origin,
+    source_mode: upstreamTaskId ? (modelUrl ? 'task+fallback' : 'task') : 'model_url',
+    upstream_task_id: upstreamTaskId || null,
+    model_url_preview: modelUrl ? modelUrl.substring(0, 80) : null,
+    history_item_id: item.id,
+  });
+
+  return source;
 }
 
 /**
@@ -3704,7 +3750,12 @@ export async function startTextureFromPanel() {
     source = { model_url: dataUrl };
     labelPrompt = `Texture ${file.name}`;
   } else if (baseItem) {
-    source = buildMeshySourceFromItem(baseItem);
+    // Canonical retexture source — shared logic across all entry points
+    source = buildCanonicalRetextureSource(baseItem, 'rail');
+    if (!source) {
+      alert('This model has no valid source for retexturing. Try generating a new model first.');
+      return;
+    }
     labelPrompt = `Texture ${shortTitle(baseItem)}`;
   }
 
@@ -4529,10 +4580,17 @@ export async function startRemeshFromHistory(item) {
 /**
  * Start texture from a history item
  */
-export async function startTextureFromHistory(item) {
+export async function startTextureFromHistory(item, origin = 'history') {
   if (!item) return;
   State.setHistoryActiveModelId(item.id);
-  const source = buildMeshySourceFromItem(item);
+
+  // Canonical retexture source — same helper as rail panel and viewer toolbar
+  const source = buildCanonicalRetextureSource(item, origin);
+  if (!source) {
+    alert('This model has no valid source for retexturing. Try generating a new model first.');
+    return;
+  }
+
   const texValues = getTextureFormValues();
   if (!texValues.text_style_prompt) {
     texValues.text_style_prompt = item.prompt || `Texture ${shortTitle(item)}`;

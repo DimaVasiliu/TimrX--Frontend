@@ -743,7 +743,7 @@ function initViewerToolbar() {
     }
 
     if (action === 'texture' && activeItem) {
-      API.startTextureFromHistory(activeItem);
+      API.startTextureFromHistory(activeItem, 'viewer');
     }
 
     if (action === 'remesh' && activeItem) {
@@ -1431,7 +1431,7 @@ function wireGallery() {
       }
 
       if (act === 'texture') {
-        await API.startTextureFromHistory(item);
+        await API.startTextureFromHistory(item, 'history');
         return;
       }
 
