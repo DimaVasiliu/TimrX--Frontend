@@ -3244,7 +3244,8 @@
   <div class="modal" id="login">
     <div class="modal-box">
       <h3>Admin Login</h3>
-      <label>
+      <p id="login-session-msg" class="muted" style="display:none;padding:8px 0;font-size:13px;line-height:1.5;"></p>
+      <label id="token-group">
         <span>Token</span>
         <input id="token" type="password" placeholder="Enter admin token" autocomplete="off"/>
       </label>
@@ -4129,23 +4130,91 @@
 
     /**
      * AUTH-5: Centralized admin fetch wrapper with 401 detection.
-     * On 401, clears the stored token and shows login with "token expired" message.
-     * Returns the fetch Response object (caller still handles .json() etc).
+     * - 3D backend (BACKEND) calls: uses session cookie auth, strips X-Admin-Token
+     * - Blog API calls: uses X-Admin-Token header as before
+     * On 401, clears the stored token and shows login modal.
      */
     async function adminFetch(url, options = {}) {
+      // 3D backend: use session cookie auth, strip admin token header
+      if (url.startsWith(BACKEND)) {
+        options.credentials = 'include';
+        if (options.headers) {
+          const h = {...options.headers};
+          delete h['X-Admin-Token'];
+          options.headers = h;
+        }
+      }
       const r = await fetch(url, options);
       if (r.status === 401) {
         setToken('');
-        $('#lmsg').textContent = 'Session expired — please re-enter your token';
-        $('#login').classList.add('show');
+        showLoginModal('session', 'Session expired — please log in to TimrX again');
+      }
+      if (r.status === 403 && url.startsWith(BACKEND)) {
+        showLoginModal('session', 'Your account does not have admin access');
       }
       return r;
     }
 
+    /**
+     * Show login modal in one of two modes:
+     * - 'session': no valid admin session on 3D backend (hide token input)
+     * - 'token': session OK but blog token needed/invalid (show token input)
+     */
+    function showLoginModal(mode, message) {
+      const sessionMsg = $('#login-session-msg');
+      const tokenGroup = $('#token-group');
+      const enterBtn = $('#enter');
+      const lmsg = $('#lmsg');
+
+      if (mode === 'session') {
+        sessionMsg.textContent = message || 'Please log in to TimrX with your admin email first';
+        sessionMsg.style.display = '';
+        tokenGroup.style.display = 'none';
+        enterBtn.style.display = 'none';
+        lmsg.textContent = '';
+      } else {
+        sessionMsg.style.display = 'none';
+        tokenGroup.style.display = '';
+        enterBtn.style.display = '';
+        lmsg.textContent = message || '';
+      }
+      $('#login').classList.add('show');
+    }
+
     async function ensureAuth(){
-      if(!getToken()){ $('#login').classList.add('show'); return false; }
-      const r = await adminFetch(API+'/admin/auth', {headers: headers()});
-      if(!r.ok){ $('#login').classList.add('show'); return false; }
+      // Step 1: Verify admin session on 3D backend (session/email auth)
+      try {
+        const sr = await fetch(BACKEND + '/api/admin/alerts?active_only=true&limit=1', {
+          credentials: 'include'
+        });
+        if (sr.status === 401) {
+          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
+          return false;
+        }
+        if (sr.status === 403) {
+          showLoginModal('session', 'Your account does not have admin access');
+          return false;
+        }
+        if (sr.status === 503) {
+          showLoginModal('session', 'Admin authentication is not configured on the server');
+          return false;
+        }
+        if (!sr.ok) {
+          showLoginModal('session', 'Cannot verify admin session — please try again');
+          return false;
+        }
+      } catch(err) {
+        console.error('[ADMIN-AUTH] Backend unreachable:', err);
+        showLoginModal('session', 'Cannot reach the backend — please try again later');
+        return false;
+      }
+
+      // Step 2: Verify blog API token
+      if(!getToken()){ showLoginModal('token', ''); return false; }
+      const r = await fetch(API+'/admin/auth', {
+        headers: {'Content-Type':'application/json', 'X-Admin-Token': getToken()}
+      });
+      if(!r.ok){ showLoginModal('token', 'Invalid token'); setToken(''); return false; }
       return true;
     }
 
@@ -4158,7 +4227,6 @@
         load();
         checkAI();
       }
-      else { $('#lmsg').textContent = 'Invalid token'; setToken(''); }
     };
     $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
 

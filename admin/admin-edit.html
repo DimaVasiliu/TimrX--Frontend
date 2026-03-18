@@ -1,4 +1,3 @@
-
 <!-- admin-edit.html — Full-page post editor for admins -->
 <!DOCTYPE html>
 <html lang="en" class="write-page">
@@ -32,8 +31,9 @@
   <div class="modal" id="login">
     <div class="modal-panel">
       <h3>Admin Login</h3>
-      <p class="modal-desc">Enter your admin token to continue editing.</p>
-      <div class="form-field">
+      <p id="login-session-msg" class="modal-msg" style="display:none;padding:8px 0;font-size:13px;line-height:1.5;"></p>
+      <p id="login-desc" class="modal-desc">Enter your admin token to continue editing.</p>
+      <div id="token-group" class="form-field">
         <input id="token" type="password" placeholder="Admin Token"/>
       </div>
       <div class="modal-actions">
@@ -236,6 +236,7 @@
 
   <script>
     const API = '/api';
+    const BACKEND = 'https://3d.timrx.live';
     const $ = s => document.querySelector(s);
 
     // API warmup
@@ -260,11 +261,62 @@
     let currentPost = null;
     let isBlockFormat = true;
 
-    // Auth check
+    // Show login modal in session or token mode
+    function showLoginModal(mode, message) {
+      const sessionMsg = $('#login-session-msg');
+      const loginDesc = $('#login-desc');
+      const tokenGroup = $('#token-group');
+      const enterBtn = $('#enter');
+      const lmsg = $('#lmsg');
+
+      if (mode === 'session') {
+        sessionMsg.textContent = message || 'Please log in to TimrX with your admin email first';
+        sessionMsg.style.display = '';
+        loginDesc.style.display = 'none';
+        tokenGroup.style.display = 'none';
+        enterBtn.style.display = 'none';
+        lmsg.textContent = '';
+      } else {
+        sessionMsg.style.display = 'none';
+        loginDesc.style.display = '';
+        tokenGroup.style.display = '';
+        enterBtn.style.display = '';
+        lmsg.textContent = message || '';
+      }
+      $('#login').classList.add('show');
+    }
+
+    // Auth check: verify admin session on 3D backend, then blog token
     async function ensureAuth() {
-      if (!getToken()) { $('#login').classList.add('show'); return false; }
-      const r = await fetch(API + '/admin/auth', { headers: headers() });
-      if (!r.ok) { $('#login').classList.add('show'); return false; }
+      // Step 1: Verify admin session on 3D backend
+      try {
+        const sr = await fetch(BACKEND + '/api/admin/alerts?active_only=true&limit=1', {
+          credentials: 'include'
+        });
+        if (sr.status === 401) {
+          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
+          return false;
+        }
+        if (sr.status === 403) {
+          showLoginModal('session', 'Your account does not have admin access');
+          return false;
+        }
+        if (!sr.ok) {
+          showLoginModal('session', 'Cannot verify admin session — please try again');
+          return false;
+        }
+      } catch(err) {
+        console.error('[ADMIN-AUTH] Backend unreachable:', err);
+        showLoginModal('session', 'Cannot reach the backend — please try again later');
+        return false;
+      }
+
+      // Step 2: Verify blog API token
+      if (!getToken()) { showLoginModal('token', ''); return false; }
+      const r = await fetch(API + '/admin/auth', {
+        headers: {'Content-Type':'application/json', 'X-Admin-Token': getToken()}
+      });
+      if (!r.ok) { showLoginModal('token', 'Invalid token'); setToken(''); return false; }
       return true;
     }
 
@@ -275,10 +327,6 @@
       if (await ensureAuth()) {
         $('#login').classList.remove('show');
         loadPost();
-      } else {
-        $('#lmsg').textContent = 'Invalid token';
-        $('#lmsg').classList.add('error');
-        setToken('');
       }
     };
 
