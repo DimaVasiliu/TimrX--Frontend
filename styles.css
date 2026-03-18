@@ -3882,11 +3882,6 @@ img{max-width:100%;display:block}
    TimrX Chat — centered modal, richer guidance, stronger UX
    ========================================================= */
 
-html.chat-open,
-body.chat-open{
-  overflow: hidden;
-}
-
 /* =========================================
    Chat Toggle — high-contrast launcher
    ========================================= */
@@ -4693,6 +4688,13 @@ body.chat-open{
 }
 
 @media (max-width: 640px){
+  html.chat-open,
+  body.chat-open{
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
   :root{
     --chat-offset: 24px;
   }

@@ -767,8 +767,10 @@
     // --- Open/Close (Esc, safe outside, debounce)
     let panelOpen = false;
     let closeTimer = null;
+    let mobileScrollY = 0;
     const isOpen = () => panelOpen;
     const mobileChatQuery = window.matchMedia('(max-width:560px)');
+    const mobileScrollLockQuery = window.matchMedia('(max-width:640px)');
     const syncMobileViewport = () => {
       if (!mobileChatQuery.matches || !window.visualViewport || !isOpen()) return;
       const vv = window.visualViewport;
@@ -789,6 +791,31 @@
       chatPanel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
       document.documentElement.classList.toggle('chat-open', expanded);
       document.body.classList.toggle('chat-open', expanded);
+
+      if (mobileScrollLockQuery.matches) {
+        if (expanded) {
+          mobileScrollY = window.scrollY || window.pageYOffset || 0;
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${mobileScrollY}px`;
+          document.body.style.left = '0';
+          document.body.style.right = '0';
+          document.body.style.width = '100%';
+        } else {
+          const restoreY = mobileScrollY;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.width = '';
+          window.scrollTo(0, restoreY);
+        }
+      } else if (!expanded) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+      }
     }
   
     function openChat(){
