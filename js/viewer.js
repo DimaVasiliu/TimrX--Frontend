@@ -242,14 +242,14 @@ export async function loadGlbFromUrl(url) {
     });
 }
 
-function fitCameraToObject(object, offset = 1.0) {
+function fitCameraToObject(object, offset = 0.78) {
     const box = getVisualBounds(object);
     const boxSize = box.getSize(new THREE.Vector3());
     const size = boxSize.length();
     const center = box.getCenter(new THREE.Vector3());
 
     if (controls) {
-        controls.maxDistance = size * 10;
+        controls.maxDistance = size * 12;
         controls.target.copy(center);
         controls.update();
     }
