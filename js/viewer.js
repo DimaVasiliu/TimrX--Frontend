@@ -13,6 +13,10 @@ let viewerPlaceholder = null;
 let currentModel = null;
 let demoCube, grid;
 
+// Animation playback state
+let _mixer = null;       // THREE.AnimationMixer for the current model
+let _clock = null;       // THREE.Clock for delta time
+
 /**
  * Compute bounding box from visible mesh geometry only.
  */
@@ -121,6 +125,14 @@ export function clearModel() {
         currentModel = null;
         return;
     }
+
+    // Stop any playing animation
+    if (_mixer) {
+        _mixer.stopAllAction();
+        _mixer.uncacheRoot(_mixer.getRoot());
+        _mixer = null;
+    }
+    window._timrxMixer = null;
 
     // Clear viewer.js's own model
     if (currentModel) {
@@ -233,6 +245,23 @@ export async function loadGlbFromUrl(url) {
             currentModel.position.y += -min.y;
 
             if (demoCube) demoCube.visible = false;
+
+            // Play animation clips if present (rigged/animated GLBs from Meshy)
+            if (gltf.animations && gltf.animations.length > 0) {
+                _mixer = new THREE.AnimationMixer(currentModel);
+                _clock = _clock || new THREE.Clock();
+                _clock.start();
+                gltf.animations.forEach(clip => {
+                    const action = _mixer.clipAction(clip);
+                    action.play();
+                });
+                // Expose mixer globally so the render loop in 3dprint-app.js can update it
+                window._timrxMixer = _mixer;
+                window._timrxClock = _clock;
+                log('[Viewer] Playing', gltf.animations.length, 'animation clip(s)');
+            } else {
+                window._timrxMixer = null;
+            }
 
             fitCameraToObject(currentModel);
             currentModel.updateMatrixWorld(true);

@@ -1216,6 +1216,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (rotationState.enabled && placeholderCube && placeholderCube.visible) {
           placeholderCube.rotation.y += rotationState.speed;
         }
+        // Update animation mixer for rigged/animated models
+        if (window._timrxMixer && window._timrxClock) {
+          window._timrxMixer.update(window._timrxClock.getDelta());
+        }
         if (window.timrxControls) window.timrxControls.update();
         renderer.render(scene, camera);
       }
