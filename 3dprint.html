@@ -3260,15 +3260,61 @@
     (function () {
       var btns = document.querySelectorAll('.expanded-back-to-top');
       if (!btns.length) return;
-      window.addEventListener('scroll', function () {
-        var show = window.scrollY > 400;
+      var desktopViewport = window.matchMedia('(min-width: 769px)');
+      var shellMap = {
+        tutorials: '.tutorials-expanded-shell',
+        docs: '.docs-expanded-shell',
+        converter: '.converter-expanded-shell'
+      };
+
+      function getActiveButton() {
+        return Array.from(btns).find(function (btn) {
+          var page = btn.getAttribute('data-for');
+          return document.body.classList.contains(page + '-view');
+        }) || null;
+      }
+
+      function positionBackToTopButtons() {
+        btns.forEach(function (btn) {
+          btn.style.left = '';
+          btn.style.right = '';
+        });
+
+        if (!desktopViewport.matches) return;
+
+        var activeBtn = getActiveButton();
+        if (!activeBtn) return;
+
+        var selector = shellMap[activeBtn.getAttribute('data-for')];
+        if (!selector) return;
+
+        var shell = document.querySelector(selector);
+        if (!shell) return;
+
+        var rect = shell.getBoundingClientRect();
+        var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        var right = Math.max(18, Math.round(viewportWidth - rect.right + 18));
+        activeBtn.style.left = 'auto';
+        activeBtn.style.right = right + 'px';
+      }
+
+      function updateBackToTopButtons() {
+        var show = window.scrollY > 160;
         btns.forEach(function (b) { b.classList.toggle('visible', show); });
+        positionBackToTopButtons();
+      }
+
+      window.addEventListener('scroll', function () {
+        updateBackToTopButtons();
       }, { passive: true });
+      window.addEventListener('resize', positionBackToTopButtons, { passive: true });
       btns.forEach(function (b) {
         b.addEventListener('click', function () {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
       });
+      positionBackToTopButtons();
+      updateBackToTopButtons();
     })();
   </script>
 </body>

@@ -17,7 +17,7 @@
   --accent-neo: #d4ff4f;
 
   /* Layout */
-  --navH: 56px;
+  --navH: 0px;
   --maxw: 1600px;
   --gutter: clamp(16px, 4vw, 48px);
 

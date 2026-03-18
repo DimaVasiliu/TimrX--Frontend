@@ -574,9 +574,7 @@ body.docs-view .docs-expanded-view {
   position: fixed;
   bottom: 32px;
   right: 18px !important;
-  left: unset !important;
-  inset-inline-end: 18px !important;
-  inset-inline-start: auto !important;
+  left: auto !important;
   margin: 0 !important;
   width: 44px;
   height: 44px;
@@ -594,13 +592,13 @@ body.docs-view .docs-expanded-view {
   z-index: 999;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 768px) {
   .expanded-back-to-top {
-    right: 10px !important;
-    inset-inline-end: 10px !important;
-    bottom: 18px;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    bottom: max(18px, env(safe-area-inset-bottom));
   }
 }
 
