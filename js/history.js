@@ -1101,7 +1101,22 @@ function _videoGridIdsMatch(gridEl, cards) {
   return true;
 }
 
+// ─── Microtask debounce ─────────────────────────────────────────────────
+// Multiple synchronous renderHistory() calls within the same microtask
+// (e.g. filter switch + addItem + setActive) collapse into a single render.
+// The render runs before the next paint via queueMicrotask, so the UI never
+// shows a stale intermediate state.
+let _renderQueued = false;
 export function renderHistory() {
+  if (_renderQueued) return;
+  _renderQueued = true;
+  queueMicrotask(() => {
+    _renderQueued = false;
+    _renderHistoryImpl();
+  });
+}
+
+function _renderHistoryImpl() {
   const grid = document.getElementById('historyGrid');
   const pageLabel = document.getElementById('historyPageLabel');
   const sizeSel = document.getElementById('historyPageSize');
