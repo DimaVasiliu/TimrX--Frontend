@@ -3924,8 +3924,10 @@ export async function startRigFromPanel() {
 
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
-    prog.fail(result.error || 'Rigging failed');
-    alert(result.error || `Rigging failed (HTTP ${result.status})`);
+    // Prefer the human-readable message from backend, fall back to error code
+    const errMsg = result.data?.message || result.error || 'Rigging failed';
+    prog.fail(errMsg);
+    alert(errMsg);
     return;
   }
 

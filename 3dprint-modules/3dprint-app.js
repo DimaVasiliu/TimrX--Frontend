@@ -556,9 +556,9 @@
               These are visual guidelines — no alignment data is sent to the rigging service.
             </p>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button type="button" id="rigWizardBack2" class="gen-btn" style="flex:0 0 auto;background:rgba(255,255,255,.06)">Back</button>
-            <button type="button" id="rigWizardNext2" class="gen-btn" style="flex:1">Continue</button>
+          <div style="display:flex;gap:8px;margin-top:10px;width:100%">
+            <button type="button" id="rigWizardBack2" class="gen-btn" style="flex:0 0 60px;background:rgba(255,255,255,.06);padding:8px 12px;font-size:12px">Back</button>
+            <button type="button" id="rigWizardNext2" class="gen-btn" style="flex:1;min-width:0;padding:8px 12px;font-size:12px">Continue</button>
           </div>
         </div>
 
@@ -592,8 +592,8 @@
           </div>
           <span class="field-hint">Approximate height of the character model (default 1.7m)</span>
 
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button type="button" id="rigWizardBack3" class="gen-btn" style="flex:0 0 auto;background:rgba(255,255,255,.06)">Back</button>
+          <div style="display:flex;gap:8px;margin-top:12px;width:100%">
+            <button type="button" id="rigWizardBack3" class="gen-btn" style="flex:0 0 60px;background:rgba(255,255,255,.06);padding:8px 12px;font-size:12px">Back</button>
           </div>
         </div>
 
