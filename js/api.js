@@ -2120,8 +2120,7 @@ export async function startOpenAIImageGeneration() {
       }
       if (handleApiError(result, 'image_generate', reservation.reservationId)) {
         // Clean up placeholder on credits error
-        const arr = State.getHistory().filter((x) => x.id !== tempId);
-        State.saveHistory(arr);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
         renderHistory();
         return;
       }
@@ -2180,8 +2179,7 @@ export async function startOpenAIImageGeneration() {
     prog.fail(err?.message || 'Image generation failed');
     alert(err?.message || 'Image generation failed.');
     // Clean up placeholder on error
-    const arr = State.getHistory().filter((x) => x.id !== activeHistoryId);
-    State.saveHistory(arr);
+    State.deleteHistoryItem(activeHistoryId, { skipRemote: true });
     renderHistory();
     // Unlock UI on error
     if (window.ImageJobControl?.unlock) {
@@ -2354,8 +2352,7 @@ export async function startGeminiImageGeneration() {
         return;
       }
       if (handleApiError(result, 'image_generate', reservation.reservationId)) {
-        const arr = State.getHistory().filter((x) => x.id !== tempId);
-        State.saveHistory(arr);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
         renderHistory();
         return;
       }
@@ -2469,8 +2466,7 @@ export async function startGeminiImageGeneration() {
     prog.fail(err?.message || 'Gemini image generation failed');
     alert(err?.message || 'Gemini image generation failed.');
     // Clean up placeholder on error
-    const arr = State.getHistory().filter((x) => x.id !== tempId);
-    State.saveHistory(arr);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
     startLock = false;
@@ -2895,8 +2891,7 @@ export async function startVideoGeneration() {
 
     if (!result.ok) {
       if (handleApiError(result, 'video', reservation.reservationId)) {
-        const arr = State.getHistory().filter((x) => x.id !== tempId);
-        State.saveHistory(arr);
+        State.deleteHistoryItem(tempId, { skipRemote: true });
         renderHistory();
         return;
       }
@@ -2986,8 +2981,7 @@ export async function startVideoGeneration() {
       alert(errorMsg);
     }
 
-    const arr = State.getHistory().filter((x) => x.id !== tempId);
-    State.saveHistory(arr);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
     startLock = false;

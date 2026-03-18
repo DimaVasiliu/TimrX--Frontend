@@ -975,9 +975,15 @@ function initUi() {
     if (e.key === 'Escape' && uploadModal?.classList.contains('show')) showModal(false);
   });
 
-  // Migrate history data
-  migrateHistoryTitles();
-  migrateHistoryDates();
+  // Migrate history data (one-time, skips if already done)
+  if (!localStorage.getItem('timrx_history_titles_migrated')) {
+    migrateHistoryTitles();
+    localStorage.setItem('timrx_history_titles_migrated', '1');
+  }
+  if (!localStorage.getItem('timrx_history_dates_migrated')) {
+    migrateHistoryDates();
+    localStorage.setItem('timrx_history_dates_migrated', '1');
+  }
 
   // Initialize custom selects
   UI.initNiceSelects();
