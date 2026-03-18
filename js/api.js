@@ -4078,13 +4078,13 @@ async function _handleRigComplete(job_id, st, prog) {
 
   const pendingMeta = State.getPendingMeta()[job_id] || {};
   const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
+  const glbProxy = getLoadableModelUrl(glbUrl);
 
   // Load rigged model into 3D viewer FIRST so we can capture a thumbnail
   let viewerLoaded = false;
   if (glbUrl) {
     try {
       prog.jump(99, 'Downloading model...');
-      const glbProxy = getLoadableModelUrl(glbUrl);
       await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
       viewerLoaded = true;
     } catch (err) {
@@ -4092,11 +4092,17 @@ async function _handleRigComplete(job_id, st, prog) {
     }
   }
 
-  // Thumbnail priority: Meshy response > source model > viewer screenshot > empty
-  let thumbnail = st.thumbnail_url || pendingMeta.source_thumbnail_url || '';
-  if (!thumbnail && viewerLoaded) {
-    thumbnail = Viewer.captureViewerThumbnail(256) || '';
+  // Prefer a fresh screenshot of the rigged result so My Assets reflects the
+  // actual post-rig pose/framing, not the pre-rig source card.
+  let thumbnail = st.thumbnail_url || '';
+  if (viewerLoaded) {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const viewerThumbnail = Viewer.captureViewerThumbnail(256) || '';
+    if (viewerThumbnail) {
+      thumbnail = viewerThumbnail;
+    }
   }
+  if (!thumbnail) thumbnail = pendingMeta.source_thumbnail_url || '';
 
   const rigHistoryData = {
     id: job_id,
@@ -4108,6 +4114,7 @@ async function _handleRigComplete(job_id, st, prog) {
     root_prompt: pendingMeta.root_prompt || '',
     title: pendingMeta.prompt || 'Rigged Model',
     glb_url: glbUrl,
+    glb_proxy: glbProxy || '',
     thumbnail_url: thumbnail,
     model: 'latest'
   };

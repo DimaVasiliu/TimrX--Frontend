@@ -235,6 +235,9 @@ export async function loadGlbFromUrl(url) {
             if (demoCube) demoCube.visible = false;
 
             fitCameraToObject(currentModel);
+            currentModel.updateMatrixWorld(true);
+            controls?.update?.();
+            renderer?.render?.(scene, camera);
             byId('viewerToolbar')?.classList.add('visible');
             updatePlaceholder();
             resolve();
@@ -247,10 +250,17 @@ function fitCameraToObject(object, offset = 0.78) {
     const boxSize = box.getSize(new THREE.Vector3());
     const size = boxSize.length();
     const center = box.getCenter(new THREE.Vector3());
+    const target = center.clone();
+
+    // Bias the target slightly upward so tall rigged characters keep their head
+    // and shoulders comfortably in frame when the camera is fitted.
+    if (boxSize.y > 0) {
+        target.y += boxSize.y * 0.06;
+    }
 
     if (controls) {
         controls.maxDistance = size * 12;
-        controls.target.copy(center);
+        controls.target.copy(target);
         controls.update();
     }
 
@@ -259,12 +269,13 @@ function fitCameraToObject(object, offset = 0.78) {
     camera.updateProjectionMatrix();
 
     // Detect humanoid-proportioned models (tall and narrow — height > 1.5x width)
-    // and use a front-facing slightly elevated angle for them
+    // and use a front-facing slightly elevated angle for them. Rigged characters
+    // generally face -Z in this workspace, so prefer that direction.
     const isHumanoid = boxSize.y > boxSize.x * 1.5 && boxSize.y > boxSize.z * 1.5;
     const direction = isHumanoid
-        ? new THREE.Vector3(0, 0.3, 1).normalize()   // front-facing, slightly above
+        ? new THREE.Vector3(0.08, 0.22, -1).normalize() // front-facing, slightly above
         : new THREE.Vector3(1, 1, 1).normalize();     // generic diagonal
-    camera.position.copy(center).add(direction.multiplyScalar(size / offset));
+    camera.position.copy(target).add(direction.multiplyScalar(size / offset));
 }
 
 export function showImageInViewer(url) {
