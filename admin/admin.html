@@ -3414,6 +3414,8 @@
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';
+    let pendingTokenAction = null;
+    let pendingTokenScope = null;
 
     let generatedBlog = null;
     let generatedCoverUrl = null;
@@ -4129,10 +4131,31 @@
     function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
     function chatAdminHeaders(){ return { 'X-Admin-Token': getToken() }; }
 
-    async function chatAdminFetch(url) {
+    async function verifyChatAdminToken() {
+      try {
+        const r = await fetch(`${CHAT_API}/api/admin/usage/today`, { headers: chatAdminHeaders() });
+        if (r.status === 401 || r.status === 403) {
+          return { ok: false, message: 'Invalid token for chat admin tools' };
+        }
+        if (!r.ok) {
+          return { ok: false, message: 'Chat admin tools are unavailable right now' };
+        }
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, message: 'Cannot reach chat admin tools right now' };
+      }
+    }
+
+    async function chatAdminFetch(url, onAuthSuccess = null, authMessage = 'Valid admin token required for chat admin tools') {
+      if (!getToken()) {
+        showLoginModal('token', authMessage, onAuthSuccess, 'chat');
+        throw new Error('Chat admin token required');
+      }
       const r = await fetch(url, { headers: chatAdminHeaders() });
       if (r.status === 401 || r.status === 403) {
-        showLoginModal('token', 'Valid admin token required for chat admin tools');
+        setToken('');
+        showLoginModal('token', authMessage, onAuthSuccess, 'chat');
+        throw new Error('Chat admin access denied');
       }
       return r;
     }
@@ -4169,11 +4192,16 @@
      * - 'session': no valid admin session on 3D backend (hide token input)
      * - 'token': session OK but blog token needed/invalid (show token input)
      */
-    function showLoginModal(mode, message) {
+    function showLoginModal(mode, message, onSuccess = null, scope = null) {
       const sessionMsg = $('#login-session-msg');
       const tokenGroup = $('#token-group');
       const enterBtn = $('#enter');
       const lmsg = $('#lmsg');
+
+      if (mode === 'token') {
+        if (typeof onSuccess === 'function') pendingTokenAction = onSuccess;
+        if (scope) pendingTokenScope = scope;
+      }
 
       if (mode === 'session') {
         sessionMsg.textContent = message || 'Please log in to TimrX with your admin email first';
@@ -4230,11 +4258,26 @@
     $('#enter').onclick = async ()=>{
       const t = $('#token').value.trim(); if(!t) return;
       setToken(t);
+      const resumeAction = pendingTokenAction;
+      const tokenScope = pendingTokenScope;
       if(await ensureAuth()){
+        if (tokenScope === 'chat') {
+          const chatAuth = await verifyChatAdminToken();
+          if (!chatAuth.ok) {
+            setToken('');
+            showLoginModal('token', chatAuth.message, resumeAction, 'chat');
+            return;
+          }
+        }
         $('#login').classList.remove('show');
+        pendingTokenAction = null;
+        pendingTokenScope = null;
         $('#search').value = '';
         load();
         checkAI();
+        if (typeof resumeAction === 'function') {
+          await resumeAction();
+        }
       }
     };
     $('#logout').onclick = ()=>{ setToken(''); location.reload(); };
@@ -5106,7 +5149,7 @@
     // Load repo file tree
     async function loadRepoTree() {
       try {
-        const r = await chatAdminFetch(`${CHAT_API}/api/repo/files`);
+        const r = await chatAdminFetch(`${CHAT_API}/api/repo/files`, loadRepoTree);
         const j = await r.json();
         if (j.ok) {
           repoTree = j.tree;
@@ -5180,7 +5223,10 @@
       $(`.repo-tree-item[data-path="${path}"]`)?.classList.add('selected');
 
       try {
-        const r = await chatAdminFetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&limit=500`);
+        const r = await chatAdminFetch(
+          `${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&limit=500`,
+          () => previewFile(path)
+        );
         const j = await r.json();
         if (j.ok) {
           $('#repoPreviewCode code').textContent = j.content;
@@ -5204,7 +5250,10 @@
       }
       searchTimeout = setTimeout(async () => {
         try {
-          const r = await chatAdminFetch(`${CHAT_API}/api/repo/search?q=${encodeURIComponent(q)}`);
+          const r = await chatAdminFetch(
+            `${CHAT_API}/api/repo/search?q=${encodeURIComponent(q)}`,
+            () => $('#repoSearchInput').dispatchEvent(new Event('input'))
+          );
           const j = await r.json();
           if (j.ok && j.results.length > 0) {
             const tree = $('#repoTree');
@@ -5242,7 +5291,10 @@
     // Add context snippet
     async function addContextSnippet(path, start, end) {
       try {
-        const r = await chatAdminFetch(`${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&start=${start}&limit=${end - start + 1}`);
+        const r = await chatAdminFetch(
+          `${CHAT_API}/api/repo/file?path=${encodeURIComponent(path)}&start=${start}&limit=${end - start + 1}`,
+          () => addContextSnippet(path, start, end)
+        );
         const j = await r.json();
         if (j.ok) {
           const name = path.split('/').pop();
@@ -5874,16 +5926,33 @@
       return n.toString();
     }
 
+    function setUsageStatus(message) {
+      $('#endpointsBody').innerHTML = `<tr><td colspan="3" class="muted">${message}</td></tr>`;
+    }
+
     async function loadUsageDashboard() {
+      if (!getToken()) {
+        setUsageStatus('Admin token required');
+        showLoginModal('token', 'Valid admin token required to view chat usage', loadUsageDashboard, 'chat');
+        return;
+      }
+
       try {
+        setUsageStatus('Loading...');
+
         // Fetch all usage data in parallel from chat server using the stored admin token
         const [todayRes, weekRes, endpointsRes] = await Promise.all([
-          chatAdminFetch(`${CHAT_API}/api/admin/usage/today`),
-          chatAdminFetch(`${CHAT_API}/api/admin/usage/week`),
-          chatAdminFetch(`${CHAT_API}/api/admin/usage/endpoints?days=7&limit=10`)
+          fetch(`${CHAT_API}/api/admin/usage/today`, { headers: chatAdminHeaders() }),
+          fetch(`${CHAT_API}/api/admin/usage/week`, { headers: chatAdminHeaders() }),
+          fetch(`${CHAT_API}/api/admin/usage/endpoints?days=7&limit=10`, { headers: chatAdminHeaders() })
         ]);
 
-        if ([todayRes, weekRes, endpointsRes].some(r => r.status === 401 || r.status === 403)) throw new Error('Chat usage access denied');
+        if ([todayRes, weekRes, endpointsRes].some(r => r.status === 401 || r.status === 403)) {
+          setToken('');
+          setUsageStatus('Admin token required');
+          showLoginModal('token', 'Valid admin token required to view chat usage', loadUsageDashboard, 'chat');
+          return;
+        }
 
         if (!todayRes.ok || !weekRes.ok || !endpointsRes.ok) throw new Error('Failed to fetch usage');
 
@@ -5925,6 +5994,7 @@
         }
       } catch (err) {
         console.error('Usage fetch error:', err);
+        setUsageStatus('Failed to load usage data');
       }
     }
 
