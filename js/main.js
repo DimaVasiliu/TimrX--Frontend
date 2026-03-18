@@ -34,6 +34,29 @@ let uploadModal, openUpload, closeUpload, cancelUpload, continueUpload;
 let modelDrop, modelInput, modelFileHint, historyUploadBtn;
 let genHint;
 
+function isMobileWorkspaceLayout() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function setMobileWorkspaceTab(target = 'controls') {
+  if (!isMobileWorkspaceLayout()) return;
+
+  const wsLeft = document.getElementById('ws-left-panel');
+  const wsRight = document.getElementById('ws-right-panel');
+  const tabs = document.querySelectorAll('.ws-mobile-tab');
+  if (!wsLeft || !wsRight || tabs.length === 0) return;
+
+  tabs.forEach((tab) => {
+    const isActive = tab.dataset.tab === target;
+    tab.classList.toggle('is-active', isActive);
+    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+
+  const showHistory = target === 'history';
+  wsLeft.classList.toggle('mob-hidden', showHistory);
+  wsRight.classList.toggle('mob-active', showHistory);
+}
+
 // ============================================================================
 // HISTORY FILTER SWITCHING
 // ============================================================================
@@ -1736,6 +1759,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-open-assets]').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        setMobileWorkspaceTab('history');
         State.historyState.galleryExpanded = true;
         State.historyState.filter = 'all';
         State.historyState.page = 1;

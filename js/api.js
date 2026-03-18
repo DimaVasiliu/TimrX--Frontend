@@ -3890,8 +3890,7 @@ export async function startRigFromPanel() {
     labelPrompt = `Rig ${file.name}`;
   } else if (baseItem) {
     const source = buildMeshySourceFromItem(baseItem);
-    if (source.input_task_id) payload.input_task_id = source.input_task_id;
-    else if (source.model_url) payload.model_url = source.model_url;
+    Object.assign(payload, source);
     labelPrompt = `Rig ${shortTitle(baseItem)}`;
   }
 
