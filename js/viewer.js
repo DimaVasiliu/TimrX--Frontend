@@ -188,7 +188,7 @@ export async function loadGlbFromUrl(url) {
 
     // Defensive check: pre-validate URL returns binary/model data, not HTML
     try {
-        const headRes = await fetch(url, { method: 'HEAD', mode: 'cors' });
+        const headRes = await fetch(url, { method: 'HEAD', mode: 'cors', credentials: 'include' });
         const contentType = headRes.headers.get('content-type') || '';
         if (contentType.includes('text/html')) {
             const err = new Error(`Model URL returned HTML (likely 404 or redirect): ${url}`);
