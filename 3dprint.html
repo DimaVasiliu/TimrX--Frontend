@@ -1156,7 +1156,11 @@
           link.addEventListener('click', (e) => {
             e.preventDefault();
             const target = docsEl.querySelector(link.getAttribute('href'));
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (target) {
+              const headerOffset = window.innerWidth <= 768 ? 98 : 120;
+              const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+              window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+            }
           });
         });
 

@@ -1028,6 +1028,14 @@ body.docs-view .timrx-3dprint.workspace {
   display: none;
 }
 
+.tutorials-section,
+.community-section,
+.converter-section,
+.about-section,
+.docs-article {
+  scroll-margin-top: 120px;
+}
+
 /* Scroll progress bar */
 body.tutorials-view::after,
 body.community-view::after,
@@ -3990,6 +3998,14 @@ body.about-view .about-expanded-view {
   body.docs-view {
     padding-top: 72px;
     scroll-padding-top: 98px;
+  }
+
+  .tutorials-section,
+  .community-section,
+  .converter-section,
+  .about-section,
+  .docs-article {
+    scroll-margin-top: 98px;
   }
 
   /* --- Containers — prevent overflow --- */
