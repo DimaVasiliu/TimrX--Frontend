@@ -3988,6 +3988,69 @@
       width: 100%;
     }
   
+    body.history-expanded .timrx-3dprint .history-head {
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-head-top {
+      gap: 6px;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-head-row-top {
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-head-center {
+      order: 2;
+      width: 100%;
+      min-width: 0;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-head-right {
+      order: 1;
+      width: 100%;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-head-row-bottom {
+      display: none;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-refresh-btn {
+      display: none;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-sort-btn {
+      padding: 5px 8px;
+      min-width: 0;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-sort-btn__label {
+      display: none;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-exit-btn {
+      margin-left: auto;
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0;
+      gap: 0;
+      flex: 0 0 30px;
+    }
+  
+    body.history-expanded .timrx-3dprint .history-exit-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+  
     .history .history-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
@@ -4031,6 +4094,29 @@
   
     .timrx-3dprint .history-pager {
       padding: 6px 0;
+    }
+  
+    body.history-expanded .expanded-thumbs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px 0 6px;
+    }
+  
+    body.history-expanded .expanded-thumb {
+      --expanded-thumb-size: auto;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      border-radius: 8px;
+    }
+  
+    body.history-expanded .expanded-thumb__status {
+      left: 5px;
+      right: 5px;
+      bottom: 5px;
+      padding: 3px 6px;
+      font-size: 9px;
     }
   }
   
