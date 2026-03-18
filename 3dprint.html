@@ -3214,10 +3214,10 @@
       const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader].filter(Boolean);
 
       if (hideableElements.length > 0) {
-        let lastScrollY = 0;
         let ticking = false;
 
         const handleScroll = () => {
+          const revealThreshold = window.innerWidth <= 768 ? 12 : 18;
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
                                   document.body.classList.contains('converter-view') ||
                                   document.body.classList.contains('community-view') ||
@@ -3232,15 +3232,12 @@
 
           const currentScrollY = window.scrollY;
 
-          if (currentScrollY > lastScrollY && currentScrollY > 80) {
-            // Scrolling down & past threshold
-            hideableElements.forEach(el => el.classList.add('nav-hidden'));
-          } else {
-            // Scrolling up
+          if (currentScrollY <= revealThreshold) {
             hideableElements.forEach(el => el.classList.remove('nav-hidden'));
+          } else {
+            hideableElements.forEach(el => el.classList.add('nav-hidden'));
           }
 
-          lastScrollY = currentScrollY;
           ticking = false;
         };
 
@@ -3250,6 +3247,8 @@
             ticking = true;
           }
         }, { passive: true });
+
+        handleScroll();
       }
     });
   </script>

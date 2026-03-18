@@ -851,12 +851,16 @@ function getTextureFormValues() {
   const prompt = (byId('texturePrompt')?.value || '').trim();
   const textureType = (byId('textureType')?.value || 'pbr-all').toLowerCase();
   const seamlessInput = byId('seamless');
-  const seamless = seamlessInput ? !!seamlessInput.checked : true;
+  // Default to false when the texture panel isn't rendered (viewer/history
+  // entry points).  enable_original_uv=true on models without user-designed
+  // UVs (e.g. text-to-3d previews) causes Meshy async failures.  The backend
+  // also overrides to false for preview/imported models as a safety net.
+  const enable_original_uv = seamlessInput ? !!seamlessInput.checked : false;
   const enable_pbr = textureType === 'pbr-all';
   return {
     text_style_prompt: prompt,
     enable_pbr,
-    enable_original_uv: seamless,
+    enable_original_uv,
     ai_model: 'latest'
   };
 }
@@ -4593,7 +4597,18 @@ export async function startTextureFromHistory(item, origin = 'history') {
 
   const texValues = getTextureFormValues();
   if (!texValues.text_style_prompt) {
-    texValues.text_style_prompt = item.prompt || `Texture ${shortTitle(item)}`;
+    // Fallback: derive a short texture-appropriate prompt from the model title.
+    // Do NOT use item.prompt — that's the model generation prompt which can be
+    // 600+ chars (enhanced) and describes geometry, not texture style.  Meshy's
+    // text_style_prompt has a 600-char limit and expects texture descriptions.
+    const title = shortTitle(item);
+    texValues.text_style_prompt = title && title !== '(untitled)'
+      ? `High quality realistic texture for ${title}`
+      : 'High quality realistic PBR texture';
+  }
+  // Enforce Meshy's 600-char limit for text_style_prompt
+  if (texValues.text_style_prompt.length > 600) {
+    texValues.text_style_prompt = texValues.text_style_prompt.substring(0, 597) + '...';
   }
   const meta = {
     prompt: texValues.text_style_prompt || `Texture ${shortTitle(item)}`,

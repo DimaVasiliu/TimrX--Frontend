@@ -58,7 +58,7 @@ body.tutorials-view::before {
   z-index: 0;
 }
 
-body.tutorials-view > * {
+body.tutorials-view > :not(.expanded-back-to-top) {
   position: relative;
   z-index: 1;
 }

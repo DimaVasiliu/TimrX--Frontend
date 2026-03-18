@@ -987,11 +987,11 @@ body.docs-view::before {
   z-index: 0;
 }
 
-body.tutorials-view > *,
-body.community-view > *,
-body.converter-view > *,
-body.about-view > *,
-body.docs-view > * {
+body.tutorials-view > :not(.expanded-back-to-top),
+body.community-view > :not(.expanded-back-to-top),
+body.converter-view > :not(.expanded-back-to-top),
+body.about-view > :not(.expanded-back-to-top),
+body.docs-view > :not(.expanded-back-to-top) {
   position: relative;
   z-index: 1;
 }
