@@ -1107,7 +1107,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       scene.background = new THREE.Color(0x2a2a2e);
 
       const camera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
-      camera.position.set(2.5, 2.2, 3.5);
+      camera.position.set(3.1, 2.7, 4.4);
 
       // Try to create renderer with error handling
       let renderer;
@@ -1384,7 +1384,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           const scale  = 2 / maxDim;
           model.scale.set(scale, scale, scale);
   
-          camera.position.set(2.5, 2.2, 3.5);
+          camera.position.set(3.1, 2.7, 4.4);
           camera.lookAt(0, 0, 0);
   
           if (window.timrxControls) {
