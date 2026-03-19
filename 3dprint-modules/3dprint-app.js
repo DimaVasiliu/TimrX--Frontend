@@ -53,8 +53,42 @@
     let placeholderCube = null;
     let selectedFile = null;
 
+    // ── Persistent rig state (survives tab switches) ──
+    // Single source of truth for the RIG panel.
+    // Populated by preflight checks, wizard steps, and rig completion.
+    const _timrxRigState = {
+      // Source model
+      source_type: null,          // 'current' | 'upload' | 'history'
+      source_model_id: null,      // History item ID of source model
+      source_task_id: null,       // Upstream Meshy task ID of source
+      source_url: null,           // Model URL (S3 or Meshy)
+      source_title: '',           // Display name of source
+      source_thumbnail: null,     // Thumbnail URL
+
+      // Preflight results
+      preflight_done: false,      // Whether preflight was run
+      face_count: null,           // Face count from preflight
+      vertex_count: null,         // Vertex count from preflight
+      is_riggable: null,          // true/false/null (unknown)
+      preflight_reason: null,     // Why not riggable (human-readable)
+      recommended_action: null,   // 'proceed' | 'remesh_first' | 'unsupported'
+      needs_remesh: false,        // Shorthand: face count exceeds limit
+
+      // Wizard
+      height_meters: 1.7,        // Character height
+
+      // Rig result
+      rig_task_id: null,          // Meshy rig task ID after completion
+      rig_glb_url: null,          // Rigged model GLB URL
+      rig_fbx_url: null,          // Rigged model FBX URL
+      rig_thumbnail: null,        // Rigged model thumbnail
+      basic_animations: null,     // Array of built-in animation objects
+      rig_complete: false,        // Whether rig is done
+    };
+    window._timrxRigState = _timrxRigState;
+
     // ── Persistent animation state (survives tab switches) ──
-    // This is the single source of truth for the ANIMATE panel.
+    // Single source of truth for the ANIMATE panel.
     // Populated by _handleRigComplete, history selection, or upload.
     const _timrxAnimState = {
       source_type: null,      // 'rig' | 'history' | 'upload'
@@ -537,51 +571,70 @@
       `,
 
       rig: `
-        <!-- Rig Wizard: Step 1 — Eligibility -->
-        <div id="rigWizardStep1" class="card">
-          <h3>Humanoid Rig Wizard</h3>
-          <div style="padding:8px 0;font-size:12px;color:#aaa;line-height:1.6">
-            <p style="margin:0 0 8px;color:#e0e0e0;font-weight:500">Before rigging, confirm your model meets these requirements:</p>
-            <ul style="margin:0;padding-left:18px;list-style:disc">
-              <li><strong>Humanoid / bipedal</strong> — standard body with head, torso, 2 arms, 2 legs</li>
-              <li><strong>Clear limbs</strong> — arms and legs clearly separated from body</li>
-              <li><strong>Textured preferred</strong> — untextured meshes may produce lower quality rigs</li>
-              <li><strong>Under 300K faces</strong> — use Remesh first if your model exceeds this</li>
-            </ul>
-            <p style="margin:10px 0 0;padding:8px 10px;background:rgba(255,200,50,.08);border-radius:6px;border-left:3px solid rgba(255,200,50,.4);font-size:11px;color:#cca030">
-              Non-humanoid models (animals, vehicles, objects) are not supported for auto-rigging.
-            </p>
+        <!-- Preflight: Model readiness check -->
+        <div id="rigPreflightCard" class="card">
+          <h3>Humanoid Rig</h3>
+
+          <!-- Preflight status area (shown after check runs) -->
+          <div id="rigPreflightResult" style="display:none">
+            <div id="rigPreflightInfo" style="padding:8px 10px;border-radius:6px;font-size:12px;margin-bottom:10px"></div>
           </div>
-          <button type="button" id="rigWizardNext1" class="gen-btn gen-btn--rail" style="margin-top:10px;width:100%">
-            My model is humanoid — Continue
+
+          <!-- Face count warning + remesh CTA -->
+          <div id="rigFaceCountWarning" style="display:none;margin-bottom:10px">
+            <div style="padding:10px;background:rgba(255,80,80,.08);border-radius:6px;border-left:3px solid rgba(255,80,80,.5)">
+              <p id="rigFaceCountMsg" style="margin:0 0 8px;font-size:12px;color:#ff6b6b;font-weight:500"></p>
+              <button type="button" id="rigRemeshCTA" class="gen-btn gen-btn--rail" style="width:100%;font-size:12px;padding:8px">
+                <i class="fa-solid fa-cubes" style="font-size:10px;margin-right:4px"></i> Optimize for Rigging (Remesh)
+              </button>
+            </div>
+          </div>
+
+          <!-- Already rigged notice -->
+          <div id="rigAlreadyRiggedNotice" style="display:none;padding:8px 10px;background:rgba(100,180,255,.08);border-radius:6px;border-left:3px solid rgba(100,180,255,.4);font-size:11px;color:#88b8ff;margin-bottom:10px">
+            This model appears to be already rigged. You can still re-rig if needed.
+          </div>
+
+          <!-- Requirements checklist -->
+          <div style="padding:8px 0;font-size:12px;color:#aaa;line-height:1.6">
+            <p style="margin:0 0 6px;color:#e0e0e0;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.05em;opacity:.7">Requirements</p>
+            <ul style="margin:0;padding-left:18px;list-style:disc;font-size:11px">
+              <li>Humanoid / bipedal character</li>
+              <li>Clear limbs separated from body</li>
+              <li>Textured preferred for quality</li>
+              <li>Under 300K faces</li>
+            </ul>
+          </div>
+
+          <button type="button" id="rigPreflightBtn" class="gen-btn gen-btn--rail" style="margin-top:8px;width:100%;font-size:12px">
+            <i class="fa-solid fa-magnifying-glass-chart" style="font-size:10px;margin-right:4px"></i> Check Model Readiness
           </button>
         </div>
 
-        <!-- Rig Wizard: Step 2 — Alignment guidance (UI only) -->
-        <div id="rigWizardStep2" class="card" style="display:none">
+        <!-- Step 1 — Alignment guidance -->
+        <div id="rigWizardStep1" class="card" style="display:none">
           <h3>Alignment Guidance</h3>
-          <div style="padding:8px 0;font-size:12px;color:#aaa;line-height:1.6">
-            <p style="margin:0 0 8px;color:#e0e0e0;font-weight:500">For best results, ensure your model is:</p>
+          <div style="padding:8px 10px;background:rgba(100,180,255,.06);border-radius:6px;border-left:3px solid rgba(100,180,255,.3);margin-bottom:10px">
+            <p style="margin:0;font-size:11px;color:#88b8ff;line-height:1.5">
+              For best results, center your character, face them to the front, and adjust to appropriate height.
+            </p>
+          </div>
+          <div style="font-size:12px;color:#aaa;line-height:1.6">
             <ul style="margin:0;padding-left:18px;list-style:disc">
               <li><strong>Centered</strong> at origin (0,0,0)</li>
-              <li><strong>Facing forward</strong> along the default axis (typically -Z or +Z)</li>
+              <li><strong>Facing forward</strong> along the default axis</li>
               <li><strong>Standing upright</strong> in a neutral T-pose or A-pose</li>
               <li><strong>Feet on ground plane</strong> (Y=0)</li>
             </ul>
-            <p style="margin:10px 0 0;font-size:11px;color:#888">
-              These are visual guidelines — no alignment data is sent to the rigging service.
-            </p>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px;width:100%">
-            <button type="button" id="rigWizardBack2" class="gen-btn gen-btn--rail" style="flex:0 0 60px;padding:8px 12px;font-size:12px">Back</button>
-            <button type="button" id="rigWizardNext2" class="gen-btn gen-btn--rail" style="flex:1;min-width:0;padding:8px 12px;font-size:12px">Continue</button>
-          </div>
-        </div>
 
-        <!-- Rig Wizard: Step 3 — Source + Height -->
-        <div id="rigWizardStep3" class="card" style="display:none">
-          <h3>Model & Settings</h3>
-          <div class="inline-field">
+          <div class="inline-field" style="margin-top:12px">
+            <label for="rigHeight">Height (meters)</label>
+            <input type="number" id="rigHeight" value="1.7" min="0.1" max="5.0" step="0.1">
+          </div>
+          <span class="field-hint">Approximate height of the character (default 1.7m)</span>
+
+          <div class="inline-field" style="margin-top:10px">
             <label for="rigModelSelect">Source</label>
             <select id="rigModelSelect">
               <option value="current" selected>Current Model</option>
@@ -589,32 +642,22 @@
             </select>
           </div>
 
-          <div id="rigModelUploadSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+          <div id="rigModelUploadSection" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
             <label for="rigModelUpload" style="font-size:12px">Upload 3D Model (GLB only)</label>
-            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
-              <svg style="width:30px;height:30px;margin:0 auto 8px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div id="rigModelDrop" style="border:2px dashed rgba(255,255,255,.15);border-radius:7px;padding:14px;text-align:center;cursor:pointer;transition:border-color .2s ease;margin-top:5px">
+              <svg style="width:24px;height:24px;margin:0 auto 6px;opacity:.3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-              <span style="font-size:11px;color:#666">GLB format (required by Meshy)</span>
+              <p style="margin:0;font-size:11px;color:#ccc">Click or drop GLB file</p>
               <input type="file" id="rigModelUpload" accept=".glb" hidden />
             </div>
-            <div id="rigModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
-          </div>
-
-          <div class="inline-field" style="margin-top:12px">
-            <label for="rigHeight">Height (meters)</label>
-            <input type="number" id="rigHeight" value="1.7" min="0.1" max="5.0" step="0.1">
-          </div>
-          <span class="field-hint">Approximate height of the character model (default 1.7m)</span>
-
-          <div style="display:flex;gap:8px;margin-top:12px;width:100%">
-            <button type="button" id="rigWizardBack3" class="gen-btn gen-btn--rail" style="flex:0 0 60px;padding:8px 12px;font-size:12px">Back</button>
+            <div id="rigModelFileName" style="display:none;margin-top:8px;padding:8px;background:rgba(255,255,255,.05);border-radius:6px;font-size:11px;color:#ccc"></div>
           </div>
         </div>
 
-        <!-- Rig Wizard: Step 4 — Submit -->
-        <div id="rigWizardStep4" class="card gen-footer-card" style="display:none">
+        <!-- Step 2 — Submit -->
+        <div id="rigWizardStep2" class="card gen-footer-card" style="display:none">
+          <div id="rigPreflightSummary" style="display:none;margin-bottom:10px;padding:8px 10px;border-radius:6px;font-size:11px"></div>
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
@@ -3072,28 +3115,41 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         });
       }
 
-      // ─── Rig Wizard step navigation ───
+      // ─── Rig Wizard: preflight → alignment → submit ───
+      const rigPreflightCard = leftStack.querySelector('#rigPreflightCard');
       const rigStep1 = leftStack.querySelector('#rigWizardStep1');
       const rigStep2 = leftStack.querySelector('#rigWizardStep2');
-      const rigStep3 = leftStack.querySelector('#rigWizardStep3');
-      const rigStep4 = leftStack.querySelector('#rigWizardStep4');
 
-      const showRigStep = (step) => {
-        [rigStep1, rigStep2, rigStep3, rigStep4].forEach(s => { if (s) s.style.display = 'none'; });
-        if (step) step.style.display = '';
-        // Show submit button alongside step 3
-        if (step === rigStep3 && rigStep4) rigStep4.style.display = '';
-      };
+      // Preflight button — runs backend check, then shows alignment step
+      const rigPreflightBtn = leftStack.querySelector('#rigPreflightBtn');
+      if (rigPreflightBtn) {
+        rigPreflightBtn.addEventListener('click', async () => {
+          rigPreflightBtn.disabled = true;
+          rigPreflightBtn.textContent = 'Checking...';
+          try {
+            await window._runRigPreflight?.();
+          } finally {
+            rigPreflightBtn.disabled = false;
+            rigPreflightBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart" style="font-size:10px;margin-right:4px"></i> Check Model Readiness';
+          }
+        });
+      }
 
-      const rigNext1 = leftStack.querySelector('#rigWizardNext1');
-      const rigBack2 = leftStack.querySelector('#rigWizardBack2');
-      const rigNext2 = leftStack.querySelector('#rigWizardNext2');
-      const rigBack3 = leftStack.querySelector('#rigWizardBack3');
+      // Remesh CTA in preflight card
+      const rigRemeshCTA = leftStack.querySelector('#rigRemeshCTA');
+      if (rigRemeshCTA) {
+        rigRemeshCTA.addEventListener('click', () => {
+          // Switch to remesh panel
+          const remeshBtn = workspaceRoot.querySelector('.rail-btn[data-panel="remesh"]');
+          if (remeshBtn) remeshBtn.click();
+        });
+      }
 
-      if (rigNext1) rigNext1.addEventListener('click', () => showRigStep(rigStep2));
-      if (rigBack2) rigBack2.addEventListener('click', () => showRigStep(rigStep1));
-      if (rigNext2) rigNext2.addEventListener('click', () => showRigStep(rigStep3));
-      if (rigBack3) rigBack3.addEventListener('click', () => showRigStep(rigStep2));
+      // If rig state says preflight was already done and passed, show steps
+      if (_timrxRigState.preflight_done && _timrxRigState.is_riggable !== false) {
+        if (rigStep1) rigStep1.style.display = '';
+        if (rigStep2) rigStep2.style.display = '';
+      }
 
       // Rig upload toggle
       const rigModelSelect   = leftStack.querySelector('#rigModelSelect');

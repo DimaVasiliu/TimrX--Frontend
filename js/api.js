@@ -3913,6 +3913,116 @@ async function startMultiImageTo3D() {
 // ============================================================================
 
 /**
+ * Run preflight check before rigging — validates face count, source availability,
+ * and whether model is already rigged. Updates _timrxRigState and UI.
+ */
+export async function runRigPreflight() {
+  const choice = byId('rigModelSelect')?.value || 'current';
+  const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
+
+  if (choice === 'current' && !baseItem) {
+    if (window.showToast) window.showToast('Load or generate a model before checking.', 'info');
+    return;
+  }
+
+  let payload = {};
+  if (choice === 'upload') {
+    // Can't preflight an upload without sending it — skip backend check
+    const rigState = window._timrxRigState;
+    if (rigState) {
+      rigState.preflight_done = true;
+      rigState.is_riggable = true;
+      rigState.recommended_action = 'proceed';
+      rigState.source_type = 'upload';
+    }
+    _showRigPreflightResult({ riggable: true, reason: null, face_count: null, recommended_action: 'proceed' });
+    return;
+  }
+
+  if (baseItem) {
+    const source = buildMeshySourceFromItem(baseItem);
+    Object.assign(payload, source);
+  }
+
+  try {
+    const result = await apiFetch('/api/_mod/rig/preflight', { method: 'POST', body: payload });
+    if (!result.ok) {
+      console.warn('[RigPreflight] API error:', result.error);
+      // Non-fatal: let user proceed anyway
+      _showRigPreflightResult({ riggable: true, reason: 'Preflight check unavailable — you can still proceed.', face_count: null, recommended_action: 'proceed' });
+      return;
+    }
+
+    const data = result.data;
+    const rigState = window._timrxRigState;
+    if (rigState) {
+      rigState.preflight_done = true;
+      rigState.face_count = data.face_count;
+      rigState.vertex_count = data.vertex_count;
+      rigState.is_riggable = data.riggable;
+      rigState.preflight_reason = data.reason;
+      rigState.recommended_action = data.recommended_action;
+      rigState.needs_remesh = data.recommended_action === 'remesh_first';
+      rigState.source_type = 'current';
+      rigState.source_model_id = baseItem?.id || null;
+      rigState.source_title = shortTitle(baseItem) || '';
+    }
+
+    _showRigPreflightResult(data);
+  } catch (err) {
+    console.warn('[RigPreflight] Failed:', err);
+    _showRigPreflightResult({ riggable: true, reason: 'Preflight check failed — you can still proceed.', face_count: null, recommended_action: 'proceed' });
+  }
+}
+
+/** Update the rig panel UI with preflight results */
+function _showRigPreflightResult(data) {
+  const resultDiv = byId('rigPreflightResult');
+  const infoDiv = byId('rigPreflightInfo');
+  const faceWarning = byId('rigFaceCountWarning');
+  const faceMsg = byId('rigFaceCountMsg');
+  const alreadyRigged = byId('rigAlreadyRiggedNotice');
+  const step1 = byId('rigWizardStep1');
+  const step2 = byId('rigWizardStep2');
+
+  if (resultDiv) resultDiv.style.display = '';
+
+  if (data.riggable) {
+    if (infoDiv) {
+      let info = '<span style="color:#50c878;font-weight:500">Model is ready for rigging</span>';
+      if (data.face_count) info += `<br><span style="color:#888">${data.face_count.toLocaleString()} faces</span>`;
+      infoDiv.innerHTML = info;
+      infoDiv.style.background = 'rgba(80,200,120,.06)';
+      infoDiv.style.borderLeft = '3px solid rgba(80,200,120,.4)';
+    }
+    if (faceWarning) faceWarning.style.display = 'none';
+    // Show alignment and submit steps
+    if (step1) step1.style.display = '';
+    if (step2) step2.style.display = '';
+  } else {
+    if (infoDiv) {
+      infoDiv.innerHTML = '<span style="color:#ff6b6b;font-weight:500">Model cannot be rigged</span>';
+      infoDiv.style.background = 'rgba(255,80,80,.06)';
+      infoDiv.style.borderLeft = '3px solid rgba(255,80,80,.4)';
+    }
+    if (data.recommended_action === 'remesh_first' && faceWarning && faceMsg) {
+      faceWarning.style.display = '';
+      faceMsg.textContent = data.reason || `Model has too many faces (limit: 300,000).`;
+    }
+    // Keep steps hidden
+    if (step1) step1.style.display = 'none';
+    if (step2) step2.style.display = 'none';
+  }
+
+  if (data.already_rigged && alreadyRigged) {
+    alreadyRigged.style.display = '';
+  }
+}
+
+// Expose for 3dprint-app.js (IIFE)
+window._runRigPreflight = runRigPreflight;
+
+/**
  * Start rigging from the panel UI
  */
 export async function startRigFromPanel() {
@@ -4130,7 +4240,7 @@ async function _handleRigComplete(job_id, st, prog) {
   // Show results section + hide wizard steps
   const resultsSection = byId('rigResultsSection');
   if (resultsSection) resultsSection.style.display = 'block';
-  ['rigWizardStep1', 'rigWizardStep2', 'rigWizardStep3', 'rigWizardStep4'].forEach(id => {
+  ['rigPreflightCard', 'rigWizardStep1', 'rigWizardStep2'].forEach(id => {
     const el = byId(id);
     if (el) el.style.display = 'none';
   });
@@ -4199,10 +4309,23 @@ async function _handleRigComplete(job_id, st, prog) {
 
   // Store rigging task ID globally for animate panel
   const rigTaskId = st.id || job_id;
+  const fbxUrl = st.rigged_character_fbx_url || '';
   window._lastRigTaskId = rigTaskId;
   window._lastRigTitle = pendingMeta.prompt || 'Rigged Model';
   window._lastRigGlbUrl = glbUrl;
   window._lastRigThumbnail = thumbnail;
+
+  // Populate persistent rig state
+  if (window._timrxRigState) {
+    Object.assign(window._timrxRigState, {
+      rig_task_id: rigTaskId,
+      rig_glb_url: glbUrl,
+      rig_fbx_url: fbxUrl,
+      rig_thumbnail: thumbnail,
+      basic_animations: st.basic_animations || null,
+      rig_complete: true,
+    });
+  }
 
   // Populate persistent animation state for the ANIMATE panel
   if (window._timrxAnimState) {
