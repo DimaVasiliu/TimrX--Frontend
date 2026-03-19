@@ -3825,6 +3825,129 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       }
     }
 
+    /** Simple toast/alert fallback — uses showToast if available, else alert */
+    function _toast(msg) {
+      if (window.showToast) { window.showToast(msg, 'info'); return; }
+      // Inline toast: create a temporary notification div
+      const el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);color:#e0e0e0;padding:10px 20px;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:400px;text-align:center;animation:fadeIn .2s ease';
+      document.body.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 400); }, 3500);
+    }
+
+    /** Find the most recent rigged model from localStorage history */
+    function _findLatestRiggedFromHistory() {
+      try {
+        const raw = localStorage.getItem('timrx_history');
+        if (!raw) return null;
+        const items = JSON.parse(raw);
+        if (!Array.isArray(items)) return null;
+        // Sort by created_at descending, find first with stage='rig'
+        return items
+          .filter(it => it.status === 'finished' && (it.stage === 'rig' || (it.payload && it.payload.stage === 'rig')))
+          .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))[0] || null;
+      } catch (e) {
+        console.warn('[Animate] Failed to read history:', e);
+        return null;
+      }
+    }
+
+    /** Find ALL rigged models from localStorage history */
+    function _findAllRiggedFromHistory() {
+      try {
+        const raw = localStorage.getItem('timrx_history');
+        if (!raw) return [];
+        const items = JSON.parse(raw);
+        if (!Array.isArray(items)) return [];
+        return items
+          .filter(it => it.status === 'finished' && (it.stage === 'rig' || (it.payload && it.payload.stage === 'rig')))
+          .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+      } catch (e) {
+        console.warn('[Animate] Failed to read history:', e);
+        return [];
+      }
+    }
+
+    /** Show a picker modal/dropdown for rigged models from history */
+    function _showRiggedModelPicker(items) {
+      // Remove existing picker if any
+      const existing = document.getElementById('riggedModelPicker');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = 'riggedModelPicker';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99998;display:flex;align-items:center;justify-content:center';
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+      const panel = document.createElement('div');
+      panel.style.cssText = 'background:#1a1a1a;border-radius:12px;padding:20px;max-width:400px;width:90%;max-height:60vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.5)';
+
+      const title = document.createElement('h3');
+      title.textContent = 'Select Rigged Model';
+      title.style.cssText = 'margin:0 0 12px;font-size:14px;color:#e0e0e0';
+      panel.appendChild(title);
+
+      items.slice(0, 20).forEach(item => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.03);color:#ccc;font-size:12px;cursor:pointer;margin-bottom:6px;text-align:left;transition:background .15s';
+        row.addEventListener('mouseenter', () => { row.style.background = 'rgba(100,180,255,.08)'; });
+        row.addEventListener('mouseleave', () => { row.style.background = 'rgba(255,255,255,.03)'; });
+
+        if (item.thumbnail_url) {
+          const thumb = document.createElement('img');
+          thumb.src = item.thumbnail_url;
+          thumb.style.cssText = 'width:40px;height:40px;border-radius:6px;object-fit:cover;background:#222;flex-shrink:0';
+          thumb.onerror = () => { thumb.style.display = 'none'; };
+          row.appendChild(thumb);
+        }
+
+        const info = document.createElement('div');
+        info.style.cssText = 'flex:1;min-width:0;overflow:hidden';
+        const nameEl = document.createElement('div');
+        nameEl.textContent = item.title || item.prompt || 'Rigged Model';
+        nameEl.style.cssText = 'font-weight:500;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+        const dateEl = document.createElement('div');
+        const d = item.created_at ? new Date(item.created_at) : null;
+        dateEl.textContent = d ? d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+        dateEl.style.cssText = 'font-size:10px;color:#666;margin-top:2px';
+        info.appendChild(nameEl);
+        info.appendChild(dateEl);
+        row.appendChild(info);
+
+        row.addEventListener('click', () => {
+          _timrxAnimState.source_type = 'history';
+          _timrxAnimState.rig_task_id = item.id;
+          _timrxAnimState.model_id = item.id;
+          _timrxAnimState.is_rigged = true;
+          _timrxAnimState.title = item.title || item.prompt || 'Rigged Model';
+          _timrxAnimState.model_url = item.glb_url || item.glb_proxy || null;
+          _timrxAnimState.thumbnail_url = item.thumbnail_url || null;
+          overlay.remove();
+          _syncAnimatePanelUI();
+          _loadAnimLibraryGlobal();
+          // Load in viewer
+          if (_timrxAnimState.model_url && window.TimrXViewer?.loadModelWithFallback) {
+            const proxy = window.TimrXApi?.getLoadableModelUrl?.(_timrxAnimState.model_url) || _timrxAnimState.model_url;
+            window.TimrXViewer.loadModelWithFallback(proxy, _timrxAnimState.model_url).catch(() => {});
+          }
+        });
+
+        panel.appendChild(row);
+      });
+
+      if (items.length === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'No rigged models found in history.';
+        empty.style.cssText = 'color:#666;font-size:12px;text-align:center;padding:20px 0';
+        panel.appendChild(empty);
+      }
+
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+    }
+
     /** Wire all interactive elements inside the animate panel */
     function _wireAnimatePanel() {
       // Model card buttons
@@ -3859,7 +3982,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       if (loadLatestBtn) {
         loadLatestBtn.addEventListener('click', () => {
-          // Use _lastRigTaskId from the most recent rig completion
+          // Try session-level state first (set by _handleRigComplete)
           if (window._lastRigTaskId) {
             _timrxAnimState.source_type = 'rig';
             _timrxAnimState.rig_task_id = window._lastRigTaskId;
@@ -3868,21 +3991,41 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             _timrxAnimState.model_url = window._lastRigGlbUrl || null;
             _timrxAnimState.thumbnail_url = window._lastRigThumbnail || null;
             _syncAnimatePanelUI();
-            // Load library if not already loaded
             _loadAnimLibraryGlobal();
-          } else {
-            if (window.showToast) window.showToast('No rigged model found. Please rig a model first.', 'info');
+            return;
           }
+          // Fallback: scan localStorage history for most recent rigged model
+          const riggedItem = _findLatestRiggedFromHistory();
+          if (riggedItem) {
+            _timrxAnimState.source_type = 'history';
+            _timrxAnimState.rig_task_id = riggedItem.id;
+            _timrxAnimState.model_id = riggedItem.id;
+            _timrxAnimState.is_rigged = true;
+            _timrxAnimState.title = riggedItem.title || riggedItem.prompt || 'Rigged Model';
+            _timrxAnimState.model_url = riggedItem.glb_url || riggedItem.glb_proxy || null;
+            _timrxAnimState.thumbnail_url = riggedItem.thumbnail_url || null;
+            _syncAnimatePanelUI();
+            _loadAnimLibraryGlobal();
+            // Also load in viewer if possible
+            if (_timrxAnimState.model_url && window.TimrXViewer?.loadModelWithFallback) {
+              const proxy = window.TimrXApi?.getLoadableModelUrl?.(_timrxAnimState.model_url) || _timrxAnimState.model_url;
+              window.TimrXViewer.loadModelWithFallback(proxy, _timrxAnimState.model_url).catch(() => {});
+            }
+            return;
+          }
+          _toast('No rigged model found. Please rig a model first using the RIG panel.');
         });
       }
 
       if (fromHistoryBtn) {
         fromHistoryBtn.addEventListener('click', () => {
-          // Switch to history panel on mobile, or show toast
-          if (window.showToast) window.showToast('Select a rigged model from the history panel on the right.', 'info');
-          // On mobile, switch to history tab
-          const histTab = document.querySelector('.ws-mobile-tab[data-tab="history"]');
-          if (histTab) histTab.click();
+          // Build a picker of rigged models from history
+          const riggedItems = _findAllRiggedFromHistory();
+          if (riggedItems.length === 0) {
+            _toast('No rigged models in history. Rig a model first using the RIG panel.');
+            return;
+          }
+          _showRiggedModelPicker(riggedItems);
         });
       }
 
