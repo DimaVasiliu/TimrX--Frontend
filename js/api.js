@@ -4197,12 +4197,31 @@ async function _handleRigComplete(job_id, st, prog) {
     builtinDiv.innerHTML = '<span style="font-size:11px;color:#666">No built-in animations included</span>';
   }
 
-  // Store rigging task ID for animation library — both on button and global fallback
+  // Store rigging task ID globally for animate panel
   const rigTaskId = st.id || job_id;
   window._lastRigTaskId = rigTaskId;
-  const animBtn = byId('applyAnimationBtn');
-  if (animBtn) {
-    animBtn.dataset.riggingTaskId = rigTaskId;
+  window._lastRigTitle = pendingMeta.prompt || 'Rigged Model';
+  window._lastRigGlbUrl = glbUrl;
+  window._lastRigThumbnail = thumbnail;
+
+  // Populate persistent animation state for the ANIMATE panel
+  if (window._timrxAnimState) {
+    Object.assign(window._timrxAnimState, {
+      source_type: 'rig',
+      model_id: job_id,
+      rig_task_id: rigTaskId,
+      model_url: glbUrl,
+      title: pendingMeta.prompt || 'Rigged Model',
+      thumbnail_url: thumbnail,
+      is_rigged: true,
+      selected_action_id: null,
+      selected_animation: null,
+    });
+  }
+
+  // Sync animate panel UI if it's currently mounted
+  if (typeof window._syncAnimatePanelUI === 'function') {
+    window._syncAnimatePanelUI();
   }
 
   // Trigger animation library load (exposed globally from 3dprint-app.js)
@@ -4431,7 +4450,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 /**
  * Handle a completed animation result — shared by SSE and polling paths.
  */
-function _handleAnimComplete(job_id, st, prog) {
+async function _handleAnimComplete(job_id, st, prog) {
   prog.done('Animation complete!');
   if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
   State.removeActiveJob(job_id);
@@ -4459,12 +4478,23 @@ function _handleAnimComplete(job_id, st, prog) {
   State.deletePendingMeta(job_id);
   renderHistory();
 
-  // Show animation results section
-  const animSection = byId('animResultsSection');
+  // Load animated model into viewer
+  const animGlb = st.animation_glb_url || st.glb_url || '';
+  if (animGlb) {
+    try {
+      const proxy = getLoadableModelUrl(animGlb);
+      await Viewer.loadModelWithFallback(proxy || animGlb, animGlb);
+    } catch (err) {
+      console.warn('[Anim] Failed to load animation in viewer:', err);
+    }
+  }
+
+  // Show animation results — try animate panel (animResultsSection2) first, then legacy
+  const animSection = byId('animResultsSection2') || byId('animResultsSection');
   if (animSection) animSection.style.display = 'block';
 
   // Render all download links — core outputs + post-processed variants
-  const linksDiv = byId('animDownloadLinks');
+  const linksDiv = byId('animDownloadLinks2') || byId('animDownloadLinks');
   if (linksDiv) {
     linksDiv.innerHTML = '';
     const formats = [
@@ -4565,7 +4595,7 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
 
       if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
         cleanup();
-        _handleAnimComplete(job_id, st, prog);
+        await _handleAnimComplete(job_id, st, prog);
         return;
       }
 

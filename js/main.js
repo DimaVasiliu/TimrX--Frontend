@@ -535,6 +535,14 @@ function showContentFilteredPopup(userMessage) {
 // Expose globally for api.js
 window.showContentFilteredPopup = showContentFilteredPopup;
 
+// Expose viewer for 3dprint-app.js (IIFE can't import ES modules)
+window.TimrXViewer = {
+  loadModelWithFallback: Viewer.loadModelWithFallback,
+  loadGlbFromUrl: Viewer.loadGlbFromUrl,
+  clearModel: Viewer.clearModel,
+  checkViewerAvailable: Viewer.checkViewerAvailable,
+};
+
 // ============================================================================
 // FILE HANDLERS
 // ============================================================================
@@ -629,11 +637,13 @@ function setupGenerateButtonListeners() {
       API.startRigFromPanel();
       return;
     }
-    if (btnId === 'applyAnimationBtn') {
-      const riggingTaskId = btn.dataset.riggingTaskId || window._lastRigTaskId || '';
-      const actionIdRaw = document.getElementById('rigAnimationActionId')?.value;
+    if (btnId === 'applyAnimationBtn2') {
+      // ANIMATE panel: read from persistent state (not DOM dataset)
+      const animState = window._timrxAnimState || {};
+      const riggingTaskId = animState.rig_task_id || window._lastRigTaskId || '';
+      const actionIdRaw = document.getElementById('animActionId2')?.value;
       const actionId = actionIdRaw ? parseInt(actionIdRaw, 10) : null;
-      console.log('[Anim] Apply clicked: rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
+      console.log('[Anim] Apply clicked (animate panel): rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
       API.startAnimationFromPanel(riggingTaskId, actionId);
       return;
     }

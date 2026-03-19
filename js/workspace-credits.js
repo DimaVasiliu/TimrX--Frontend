@@ -1411,6 +1411,7 @@ const BUTTON_CONFIG = {
   'generateVideoBtn': { action: 'video_generate', batchInput: null },
   'startRigBtn': { action: 'rig', batchInput: null },
   'applyAnimationBtn': { action: 'animate', batchInput: null },
+  'applyAnimationBtn2': { action: 'animate', batchInput: null },
 };
 
 /**

@@ -1,6 +1,6 @@
 /* ============================================================================
    TimrX 3D Print Workspace
-   - Rail panel switching (Image / Model / Remesh / Texture / Rig / Video)
+   - Rail panel switching (Image / Model / Remesh / Texture / Rig / Animate / Video)
    - Left panel content injection (cards per tool)
    - Three.js viewer bootstrap + resize (model/remesh/texture)
    - Upload Modal (centered overlay, ESC/backdrop close, body scroll lock)
@@ -52,6 +52,22 @@
     let threeBooted = false;
     let placeholderCube = null;
     let selectedFile = null;
+
+    // ── Persistent animation state (survives tab switches) ──
+    // This is the single source of truth for the ANIMATE panel.
+    // Populated by _handleRigComplete, history selection, or upload.
+    const _timrxAnimState = {
+      source_type: null,      // 'rig' | 'history' | 'upload'
+      model_id: null,         // DB model ID (for history items)
+      rig_task_id: null,      // Meshy rig task ID (required for animation API)
+      model_url: null,        // GLB URL for preview
+      title: '',              // Display name
+      thumbnail_url: null,    // Thumbnail data URL or remote URL
+      is_rigged: false,       // Whether model has a rig
+      selected_action_id: null,      // Currently selected animation action_id
+      selected_animation: null,      // Full animation object from library
+    };
+    window._timrxAnimState = _timrxAnimState;
 
     /* -------------------------------------------------------------------------
      * WEBGL DETECTION
@@ -622,43 +638,99 @@
             <div id="rigBuiltinAnimations" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
           </div>
 
-          <!-- Animation Library -->
-          <div class="card">
-            <h3>Animation Library</h3>
-            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-              <input type="text" id="animLibrarySearch" placeholder="Search animations..." style="flex:1;min-width:140px;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
-              <select id="animLibraryCategory" style="padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
-                <option value="">All Categories</option>
-                <option value="DailyActions">Daily Actions</option>
-                <option value="WalkAndRun">Walk & Run</option>
-                <option value="Dancing">Dancing</option>
-                <option value="BodyMovements">Body Movements</option>
-                <option value="Fighting">Fighting</option>
-              </select>
-            </div>
-            <div id="animLibraryGrid" style="max-height:280px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;padding-right:4px"></div>
-            <div id="animLibraryEmpty" style="display:none;text-align:center;padding:20px;color:#666;font-size:12px">No animations found</div>
+          <div class="card" style="text-align:center;padding:16px">
+            <p style="margin:0 0 12px;font-size:12px;color:#aaa">Apply custom animations from the full library</p>
+            <button type="button" id="goToAnimateBtn" class="gen-btn gen-btn--rail" style="width:100%">
+              <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Go to Animate
+            </button>
+          </div>
+        </div>
+      `,
 
-            <input type="hidden" id="rigAnimationActionId" value="">
-
-            <div class="gen-footer-card" style="margin-top:12px">
-              <div class="gen-meta">
-                <span class="gen-time">1 min</span>
-                <span class="gen-divider">|</span>
-                <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+      animate: `
+        <!-- Selected Model Card -->
+        <div class="card" id="animModelCard">
+          <h3>Animate Model</h3>
+          <div id="animModelInfo" style="display:none">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+              <img id="animModelThumb" src="" alt="" style="width:48px;height:48px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.05);display:none">
+              <div style="flex:1;min-width:0">
+                <div id="animModelTitle" style="font-size:13px;font-weight:600;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rigged Model</div>
+                <div id="animModelBadge" style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(80,200,120,.12);color:#50c878">Rigged model loaded</div>
               </div>
-              <button type="button" id="applyAnimationBtn" class="gen-btn gen-btn--rail" title="10 credits" disabled>
-                <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Apply Animation
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button type="button" id="animPreviewBtn" class="gen-btn gen-btn--rail" style="flex:1;padding:6px 10px;font-size:11px" title="Preview in viewer">
+                <i class="fa-solid fa-eye" style="font-size:10px"></i> Preview
+              </button>
+              <button type="button" id="animClearBtn" class="gen-btn gen-btn--rail" style="flex:0;padding:6px 10px;font-size:11px;opacity:.7" title="Clear selection">
+                <i class="fa-solid fa-xmark" style="font-size:10px"></i>
               </button>
             </div>
           </div>
-
-          <div id="animResultsSection" style="display:none">
-            <div class="card">
-              <h3>Animation Result</h3>
-              <div id="animDownloadLinks" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          <div id="animModelEmpty">
+            <p style="font-size:12px;color:#888;margin:0 0 12px;line-height:1.5">No rigged model selected. Choose a source:</p>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button type="button" id="animLoadLatestBtn" class="gen-btn gen-btn--rail" style="width:100%;font-size:12px;padding:8px 12px">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size:10px;margin-right:4px"></i> Load Latest Rigged Model
+              </button>
+              <button type="button" id="animFromHistoryBtn" class="gen-btn gen-btn--rail" style="width:100%;font-size:12px;padding:8px 12px">
+                <i class="fa-solid fa-list" style="font-size:10px;margin-right:4px"></i> Choose from History
+              </button>
             </div>
+          </div>
+          <div id="animNotRiggedWarning" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(255,200,50,.08);border-radius:6px;border-left:3px solid rgba(255,200,50,.4);font-size:11px;color:#cca030">
+            This model does not appear to contain a rig. Please rig it first.
+          </div>
+        </div>
+
+        <!-- Quick Animations -->
+        <div class="card" id="animQuickSection" style="display:none">
+          <h3>Quick Animations</h3>
+          <div id="animQuickChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Animation Library -->
+        <div class="card" id="animLibrarySection" style="display:none">
+          <h3>Animation Library</h3>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <input type="text" id="animLibrarySearch2" placeholder="Search animations..." style="flex:1;min-width:140px;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+            <select id="animLibraryCategory2" style="padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+              <option value="">All Categories</option>
+              <option value="DailyActions">Daily Actions</option>
+              <option value="WalkAndRun">Walk & Run</option>
+              <option value="Dancing">Dancing</option>
+              <option value="BodyMovements">Body Movements</option>
+              <option value="Fighting">Fighting</option>
+            </select>
+          </div>
+          <div id="animLibraryGrid2" style="max-height:320px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;padding-right:4px"></div>
+          <div id="animLibraryEmpty2" style="display:none;text-align:center;padding:20px;color:#666;font-size:12px">No animations found</div>
+
+          <input type="hidden" id="animActionId2" value="">
+
+          <div class="gen-footer-card" style="margin-top:12px">
+            <div class="gen-meta">
+              <span class="gen-time">1 min</span>
+              <span class="gen-divider">|</span>
+              <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+            </div>
+            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail" title="10 credits" disabled>
+              <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Apply Animation
+            </button>
+          </div>
+        </div>
+
+        <!-- Animation Results -->
+        <div id="animResultsSection2" style="display:none">
+          <div class="card">
+            <h3>Animation Result</h3>
+            <div id="animDownloadLinks2" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+            <button type="button" id="animReanimateBtn" class="gen-btn gen-btn--rail" style="width:100%;margin-top:10px;font-size:12px">
+              <i class="fa-solid fa-rotate" style="font-size:10px;margin-right:4px"></i> Apply Another Animation
+            </button>
           </div>
         </div>
       `,
@@ -1319,10 +1391,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         viewerTitle.textContent = 'Video Preview';
         genHint.textContent = 'Your generated video will appear here.';
       } else {
-        // model / remesh / texture use the 3D viewer
+        // model / remesh / texture / rig / animate use the 3D viewer
         model3dWrap.classList.remove('hidden');
-        viewerTitle.textContent = '3D Preview';
-        genHint.textContent = 'Your 3D model will appear here.';
+        if (panelType === 'rig') {
+          viewerTitle.textContent = 'Rig Preview';
+          genHint.textContent = 'Your rigged model will appear here.';
+        } else if (panelType === 'animate') {
+          viewerTitle.textContent = 'Animation Preview';
+          genHint.textContent = 'Your animated model will appear here.';
+        } else {
+          viewerTitle.textContent = '3D Preview';
+          genHint.textContent = 'Your 3D model will appear here.';
+        }
         ensureThreeViewer();              // ensure canvas has a real size & renderer exists
         setTimeout(ensureThreeViewer, 0); // safety after layout paint
       }
@@ -3050,108 +3130,21 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         });
       }
 
-      // ─── Animation Library: search, filter, selection ───
-      const animSearch = leftStack.querySelector('#animLibrarySearch');
-      const animCategory = leftStack.querySelector('#animLibraryCategory');
-      const animGrid = leftStack.querySelector('#animLibraryGrid');
-      const animEmpty = leftStack.querySelector('#animLibraryEmpty');
-      const animActionIdInput = leftStack.querySelector('#rigAnimationActionId');
-      const applyAnimBtn = leftStack.querySelector('#applyAnimationBtn');
-
-      // Animation library state
-      let _animLibrary = [];
-      let _animLibraryLoaded = false;
-
-      const loadAnimLibrary = async () => {
-        if (_animLibraryLoaded) return;
-        console.log('[AnimLibrary] Loading animation library...');
-        try {
-          // Use apiFetch (not bare fetch) so credentials are included and
-          // BACKEND base URL is prepended for cross-origin setups.
-          const result = await window.TimrXApi.apiFetch('/api/_mod/rig/animations/library');
-          console.log('[AnimLibrary] Fetch result: ok=' + result.ok + ' items=' + (result.data?.items?.length ?? 0));
-          if (result.ok && result.data?.items) {
-            _animLibrary = result.data.items;
-            _animLibraryLoaded = true;
-            renderAnimLibrary();
-          } else {
-            console.warn('[AnimLibrary] Bad response:', result.status, result.error);
-          }
-        } catch (e) {
-          console.warn('[AnimLibrary] Failed to load:', e);
-        }
-      };
-
-      const renderAnimLibrary = () => {
-        if (!animGrid) {
-          console.warn('[AnimLibrary] renderAnimLibrary: animGrid is null (panel not in DOM)');
-          return;
-        }
-        const search = (animSearch?.value || '').toLowerCase();
-        const cat = animCategory?.value || '';
-        let items = _animLibrary.filter(a => a.enabled !== false);
-        if (cat) items = items.filter(a => a.category === cat);
-        console.log('[AnimLibrary] Render: total=' + _animLibrary.length + ' category=' + (cat || 'all') + ' filtered=' + items.length + ' search=' + (search || 'none'));
-        if (search) {
-          items = items.filter(a =>
-            (a.name || '').toLowerCase().includes(search) ||
-            (a.category || '').toLowerCase().includes(search) ||
-            (a.subcategory || '').toLowerCase().includes(search) ||
-            (a.tags || []).some(t => t.toLowerCase().includes(search))
-          );
-        }
-        items.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
-        animGrid.innerHTML = '';
-        if (items.length === 0) {
-          if (animEmpty) animEmpty.style.display = 'block';
-          return;
-        }
-        if (animEmpty) animEmpty.style.display = 'none';
-
-        items.forEach(anim => {
-          const card = document.createElement('button');
-          card.type = 'button';
-          card.className = 'material-chip anim-lib-card';
-          card.dataset.actionId = anim.action_id;
-          card.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s;text-align:center;font-size:11px;color:#ccc;min-height:48px;justify-content:center';
-          card.innerHTML = '<span style="font-weight:500;color:#e0e0e0;font-size:11px;line-height:1.3">' + (anim.name || 'Animation') + '</span>'
-            + '<span style="font-size:10px;color:#666;margin-top:2px">' + (anim.subcategory || anim.category || '') + '</span>';
-
-          const selectedId = animActionIdInput?.value;
-          if (selectedId && String(anim.action_id) === selectedId) {
-            card.style.borderColor = 'rgba(100,180,255,.5)';
-            card.style.background = 'rgba(100,180,255,.08)';
-          }
-
-          card.addEventListener('click', () => {
-            // Deselect all
-            animGrid.querySelectorAll('.anim-lib-card').forEach(c => {
-              c.style.borderColor = 'rgba(255,255,255,.08)';
-              c.style.background = 'rgba(255,255,255,.03)';
-            });
-            // Select this one
-            card.style.borderColor = 'rgba(100,180,255,.5)';
-            card.style.background = 'rgba(100,180,255,.08)';
-            if (animActionIdInput) animActionIdInput.value = anim.action_id;
-            if (applyAnimBtn) {
-              applyAnimBtn.disabled = false;
-              applyAnimBtn.dataset.riggingTaskId = applyAnimBtn.dataset.riggingTaskId || '';
-            }
-          });
-
-          animGrid.appendChild(card);
+      // ─── "Go to Animate" button in rig results ───
+      const goToAnimateBtn = leftStack.querySelector('#goToAnimateBtn');
+      if (goToAnimateBtn) {
+        goToAnimateBtn.addEventListener('click', () => {
+          // Switch to animate panel via rail button click
+          const animRailBtn = workspaceRoot.querySelector('.rail-btn[data-panel="animate"]');
+          if (animRailBtn) animRailBtn.click();
         });
-      };
+      }
 
-      if (animSearch) animSearch.addEventListener('input', renderAnimLibrary);
-      if (animCategory) animCategory.addEventListener('change', renderAnimLibrary);
-
+      // ─── ANIMATE panel: model card, library, apply ───
+      _wireAnimatePanel();
       // Expose animation library loader globally so _handleRigComplete can trigger it.
-      // The MutationObserver approach breaks when tabs are switched (DOM is rebuilt,
-      // observer is orphaned on the old detached node).
-      window._loadAnimLibrary = loadAnimLibrary;
-      window._renderAnimLibrary = renderAnimLibrary;
+      window._loadAnimLibrary = _loadAnimLibraryGlobal;
+      window._renderAnimLibrary = _renderAnimLibraryInPanel;
 
       // Remesh preset cards
       const remeshPresetsWrap = leftStack.querySelector('#remeshPresets');
@@ -3587,6 +3580,290 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (enhanceBtn) enhanceBtn.click();
       });
     }
+
+    /* -----------------------------------------------------------------------
+     * ANIMATE PANEL: persistent library + model card wiring
+     * The animation library is loaded ONCE and cached in module scope so it
+     * survives tab switches (the DOM is rebuilt each time, but data persists).
+     * --------------------------------------------------------------------- */
+    let _animLibrary = [];
+    let _animLibraryLoaded = false;
+
+    // Quick-animation presets (subset of library for one-click access)
+    const QUICK_ANIMS = [
+      { label: 'Idle', search: 'idle' },
+      { label: 'Walk', search: 'walk' },
+      { label: 'Run', search: 'run' },
+      { label: 'Jump', search: 'jump' },
+      { label: 'Punch', search: 'punch' },
+      { label: 'Dance', search: 'dance' },
+    ];
+
+    async function _loadAnimLibraryGlobal() {
+      if (_animLibraryLoaded) return;
+      console.log('[AnimLibrary] Loading animation library...');
+      try {
+        const result = await window.TimrXApi.apiFetch('/api/_mod/rig/animations/library');
+        console.log('[AnimLibrary] Fetch result: ok=' + result.ok + ' items=' + (result.data?.items?.length ?? 0));
+        if (result.ok && result.data?.items) {
+          _animLibrary = result.data.items;
+          _animLibraryLoaded = true;
+          _renderAnimLibraryInPanel();
+          _renderQuickAnims();
+        } else {
+          console.warn('[AnimLibrary] Bad response:', result.status, result.error);
+        }
+      } catch (e) {
+        console.warn('[AnimLibrary] Failed to load:', e);
+      }
+    }
+
+    function _renderAnimLibraryInPanel() {
+      const animGrid = leftStack.querySelector('#animLibraryGrid2');
+      if (!animGrid) return; // animate panel not currently mounted
+      const animSearch = leftStack.querySelector('#animLibrarySearch2');
+      const animCategory = leftStack.querySelector('#animLibraryCategory2');
+      const animEmpty = leftStack.querySelector('#animLibraryEmpty2');
+      const animActionIdInput = leftStack.querySelector('#animActionId2');
+      const applyAnimBtn = leftStack.querySelector('#applyAnimationBtn2');
+
+      const search = (animSearch?.value || '').toLowerCase();
+      const cat = animCategory?.value || '';
+      let items = _animLibrary.filter(a => a.enabled !== false);
+      if (cat) items = items.filter(a => a.category === cat);
+      if (search) {
+        items = items.filter(a =>
+          (a.name || '').toLowerCase().includes(search) ||
+          (a.category || '').toLowerCase().includes(search) ||
+          (a.subcategory || '').toLowerCase().includes(search) ||
+          (a.tags || []).some(t => t.toLowerCase().includes(search))
+        );
+      }
+      items.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+      animGrid.innerHTML = '';
+      if (items.length === 0) {
+        if (animEmpty) animEmpty.style.display = 'block';
+        return;
+      }
+      if (animEmpty) animEmpty.style.display = 'none';
+
+      items.forEach(anim => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'material-chip anim-lib-card';
+        card.dataset.actionId = anim.action_id;
+        card.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s;text-align:center;font-size:11px;color:#ccc;min-height:48px;justify-content:center';
+        card.innerHTML = '<span style="font-weight:500;color:#e0e0e0;font-size:11px;line-height:1.3">' + (anim.name || 'Animation') + '</span>'
+          + '<span style="font-size:10px;color:#666;margin-top:2px">' + (anim.subcategory || anim.category || '') + '</span>';
+
+        // Restore selection from persistent state
+        const selectedId = _timrxAnimState.selected_action_id;
+        if (selectedId != null && String(anim.action_id) === String(selectedId)) {
+          card.style.borderColor = 'rgba(100,180,255,.5)';
+          card.style.background = 'rgba(100,180,255,.08)';
+        }
+
+        card.addEventListener('click', () => {
+          animGrid.querySelectorAll('.anim-lib-card').forEach(c => {
+            c.style.borderColor = 'rgba(255,255,255,.08)';
+            c.style.background = 'rgba(255,255,255,.03)';
+          });
+          card.style.borderColor = 'rgba(100,180,255,.5)';
+          card.style.background = 'rgba(100,180,255,.08)';
+          if (animActionIdInput) animActionIdInput.value = anim.action_id;
+          // Persist in state
+          _timrxAnimState.selected_action_id = anim.action_id;
+          _timrxAnimState.selected_animation = anim;
+          if (applyAnimBtn && _timrxAnimState.is_rigged) {
+            applyAnimBtn.disabled = false;
+          }
+        });
+
+        animGrid.appendChild(card);
+      });
+    }
+
+    function _renderQuickAnims() {
+      const container = leftStack.querySelector('#animQuickChips');
+      if (!container) return;
+      container.innerHTML = '';
+      QUICK_ANIMS.forEach(qa => {
+        const match = _animLibrary.find(a =>
+          a.enabled !== false && (a.name || '').toLowerCase().includes(qa.search)
+        );
+        if (!match) return;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'material-chip';
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;font-size:12px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#ccc;transition:all .15s';
+        chip.textContent = qa.label;
+        chip.dataset.actionId = match.action_id;
+        chip.addEventListener('click', () => {
+          // Select this animation in state
+          _timrxAnimState.selected_action_id = match.action_id;
+          _timrxAnimState.selected_animation = match;
+          // Update hidden input + enable button
+          const actionInput = leftStack.querySelector('#animActionId2');
+          const applyBtn = leftStack.querySelector('#applyAnimationBtn2');
+          if (actionInput) actionInput.value = match.action_id;
+          if (applyBtn && _timrxAnimState.is_rigged) applyBtn.disabled = false;
+          // Visual feedback on quick chips
+          container.querySelectorAll('.material-chip').forEach(c => {
+            c.style.borderColor = 'rgba(255,255,255,.1)';
+            c.style.background = 'rgba(255,255,255,.04)';
+          });
+          chip.style.borderColor = 'rgba(100,180,255,.5)';
+          chip.style.background = 'rgba(100,180,255,.08)';
+          // Also highlight in library grid if visible
+          _renderAnimLibraryInPanel();
+        });
+        container.appendChild(chip);
+      });
+    }
+
+    /** Sync the animate panel UI with current _timrxAnimState */
+    function _syncAnimatePanelUI() {
+      const modelInfo = leftStack.querySelector('#animModelInfo');
+      const modelEmpty = leftStack.querySelector('#animModelEmpty');
+      const notRiggedWarning = leftStack.querySelector('#animNotRiggedWarning');
+      const quickSection = leftStack.querySelector('#animQuickSection');
+      const librarySection = leftStack.querySelector('#animLibrarySection');
+      const applyBtn = leftStack.querySelector('#applyAnimationBtn2');
+      const thumbEl = leftStack.querySelector('#animModelThumb');
+      const titleEl = leftStack.querySelector('#animModelTitle');
+      const badgeEl = leftStack.querySelector('#animModelBadge');
+
+      const hasModel = !!(_timrxAnimState.rig_task_id || _timrxAnimState.model_url);
+
+      if (hasModel) {
+        if (modelInfo) modelInfo.style.display = '';
+        if (modelEmpty) modelEmpty.style.display = 'none';
+        if (titleEl) titleEl.textContent = _timrxAnimState.title || 'Rigged Model';
+        if (thumbEl && _timrxAnimState.thumbnail_url) {
+          thumbEl.src = _timrxAnimState.thumbnail_url;
+          thumbEl.style.display = '';
+        } else if (thumbEl) {
+          thumbEl.style.display = 'none';
+        }
+        if (_timrxAnimState.is_rigged) {
+          if (badgeEl) { badgeEl.textContent = 'Rigged model loaded'; badgeEl.style.color = '#50c878'; badgeEl.style.background = 'rgba(80,200,120,.12)'; }
+          if (notRiggedWarning) notRiggedWarning.style.display = 'none';
+          if (quickSection) quickSection.style.display = '';
+          if (librarySection) librarySection.style.display = '';
+          if (applyBtn) applyBtn.disabled = !_timrxAnimState.selected_action_id;
+        } else {
+          if (badgeEl) { badgeEl.textContent = 'Not rigged'; badgeEl.style.color = '#cca030'; badgeEl.style.background = 'rgba(255,200,50,.08)'; }
+          if (notRiggedWarning) notRiggedWarning.style.display = '';
+          if (quickSection) quickSection.style.display = 'none';
+          if (librarySection) librarySection.style.display = 'none';
+          if (applyBtn) applyBtn.disabled = true;
+        }
+      } else {
+        if (modelInfo) modelInfo.style.display = 'none';
+        if (modelEmpty) modelEmpty.style.display = '';
+        if (notRiggedWarning) notRiggedWarning.style.display = 'none';
+        if (quickSection) quickSection.style.display = 'none';
+        if (librarySection) librarySection.style.display = 'none';
+        if (applyBtn) applyBtn.disabled = true;
+      }
+    }
+
+    /** Wire all interactive elements inside the animate panel */
+    function _wireAnimatePanel() {
+      // Model card buttons
+      const previewBtn = leftStack.querySelector('#animPreviewBtn');
+      const clearBtn = leftStack.querySelector('#animClearBtn');
+      const loadLatestBtn = leftStack.querySelector('#animLoadLatestBtn');
+      const fromHistoryBtn = leftStack.querySelector('#animFromHistoryBtn');
+      const reanimateBtn = leftStack.querySelector('#animReanimateBtn');
+
+      if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+          const url = _timrxAnimState.model_url;
+          if (url && window.TimrXViewer?.loadModelWithFallback) {
+            const proxy = window.TimrXApi?.getLoadableModelUrl?.(url) || url;
+            window.TimrXViewer.loadModelWithFallback(proxy, url).catch(err => {
+              console.warn('[Animate] Preview failed:', err);
+            });
+          }
+        });
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          Object.assign(_timrxAnimState, {
+            source_type: null, model_id: null, rig_task_id: null,
+            model_url: null, title: '', thumbnail_url: null,
+            is_rigged: false, selected_action_id: null, selected_animation: null,
+          });
+          _syncAnimatePanelUI();
+        });
+      }
+
+      if (loadLatestBtn) {
+        loadLatestBtn.addEventListener('click', () => {
+          // Use _lastRigTaskId from the most recent rig completion
+          if (window._lastRigTaskId) {
+            _timrxAnimState.source_type = 'rig';
+            _timrxAnimState.rig_task_id = window._lastRigTaskId;
+            _timrxAnimState.is_rigged = true;
+            _timrxAnimState.title = window._lastRigTitle || 'Latest Rigged Model';
+            _timrxAnimState.model_url = window._lastRigGlbUrl || null;
+            _timrxAnimState.thumbnail_url = window._lastRigThumbnail || null;
+            _syncAnimatePanelUI();
+            // Load library if not already loaded
+            _loadAnimLibraryGlobal();
+          } else {
+            if (window.showToast) window.showToast('No rigged model found. Please rig a model first.', 'info');
+          }
+        });
+      }
+
+      if (fromHistoryBtn) {
+        fromHistoryBtn.addEventListener('click', () => {
+          // Switch to history panel on mobile, or show toast
+          if (window.showToast) window.showToast('Select a rigged model from the history panel on the right.', 'info');
+          // On mobile, switch to history tab
+          const histTab = document.querySelector('.ws-mobile-tab[data-tab="history"]');
+          if (histTab) histTab.click();
+        });
+      }
+
+      if (reanimateBtn) {
+        reanimateBtn.addEventListener('click', () => {
+          // Hide results, reset selection
+          const resultsSection = leftStack.querySelector('#animResultsSection2');
+          if (resultsSection) resultsSection.style.display = 'none';
+          _timrxAnimState.selected_action_id = null;
+          _timrxAnimState.selected_animation = null;
+          _syncAnimatePanelUI();
+          _renderAnimLibraryInPanel();
+          _renderQuickAnims();
+        });
+      }
+
+      // Library search/filter
+      const animSearch = leftStack.querySelector('#animLibrarySearch2');
+      const animCategory = leftStack.querySelector('#animLibraryCategory2');
+      if (animSearch) animSearch.addEventListener('input', _renderAnimLibraryInPanel);
+      if (animCategory) animCategory.addEventListener('change', _renderAnimLibraryInPanel);
+
+      // Sync UI with current state (survives tab switch)
+      _syncAnimatePanelUI();
+
+      // Render library if already loaded
+      if (_animLibraryLoaded) {
+        _renderAnimLibraryInPanel();
+        _renderQuickAnims();
+      } else if (_timrxAnimState.is_rigged) {
+        // Auto-load library when animate panel opened with a rigged model
+        _loadAnimLibraryGlobal();
+      }
+    }
+
+    // Expose _syncAnimatePanelUI globally for api.js to call after state updates
+    window._syncAnimatePanelUI = _syncAnimatePanelUI;
 
     /**
      * Registers click handlers for the rail buttons.
