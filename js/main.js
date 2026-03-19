@@ -1681,21 +1681,21 @@ window.addEventListener('DOMContentLoaded', () => {
     banner.id = 'timrx-auth-lost-banner';
     Object.assign(banner.style, {
       position: 'fixed',
-      top: '0',
+      top: '56px',
       left: '0',
       right: '0',
-      zIndex: '99999',
+      zIndex: '100001',
       background: '#1a1a2e',
       color: '#e0e0e0',
-      padding: '14px 20px',
+      padding: '10px 20px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '16px',
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontSize: '14px',
+      fontSize: '13px',
       borderBottom: '2px solid #e94560',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
     });
 
     const msg = document.createElement('span');
