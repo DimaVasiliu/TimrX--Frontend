@@ -871,7 +871,7 @@ function getTextureFormValues() {
 function addGeneratingPlaceholder(jobId, meta = {}) {
   if (State.historyHasJobId(jobId)) {
     State.updateHistoryItem(jobId, {
-      status: meta.status_label?.includes('Refin') ? 'refining' : meta.status_label?.includes('Remesh') ? 'remeshing' : meta.stage === 'texture' ? 'texturing' : meta.type === 'image' ? 'generating' : 'generating',
+      status: meta.status_label?.includes('Refin') ? 'refining' : meta.status_label?.includes('Remesh') ? 'remeshing' : meta.stage === 'texture' ? 'texturing' : meta.stage === 'rig' ? 'rigging' : (meta.stage === 'animation' || meta.stage === 'animate') ? 'animating' : 'generating',
       status_label: meta.status_label || 'Generating...',
       stage: meta.stage || 'preview',
       prompt: meta.prompt || '',
@@ -886,8 +886,8 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   const isRemesh = meta.status_label?.includes('Remesh');
   let statusType = isRefine ? 'refining' : isRemesh ? 'remeshing' : 'generating';
   if (meta.stage === 'texture') statusType = 'texturing';
-  if (meta.stage === 'rig') statusType = 'generating';
-  if (meta.stage === 'animation') statusType = 'generating';
+  if (meta.stage === 'rig') statusType = 'rigging';
+  if (meta.stage === 'animation' || meta.stage === 'animate') statusType = 'animating';
   if (meta.type === 'image') statusType = 'generating';
   const stage = meta.stage || (isRefine ? 'refine' : isRemesh ? 'remesh' : 'preview');
 
@@ -4437,9 +4437,11 @@ export function watchRigJob(job_id) {
     const pct = est.get();
     const elapsed = (Date.now() - startedAt) / 1000;
     const stuck = _stuckLabel('rig', elapsed, shared.queuePos);
-    const label = stuck || `Rigging... ${pct}%`;
+    const label = stuck || `Rigging...`;
     prog.pct(pct, label);
-    State.updateHistoryItem(job_id, { status: 'generating', status_label: label });
+    State.updateHistoryItem(job_id, { status: 'generating', status_label: `${label} ${pct}%` });
+    // Update the history card in-place (no full re-render)
+    updateJobStatusInPlace(job_id, label, pct);
   }, 500);
 
   const cleanup = () => { est.stop(); clearInterval(estInterval); };
@@ -4755,9 +4757,10 @@ export function watchAnimationJob(job_id) {
     const pct = est.get();
     const elapsed = (Date.now() - startedAt) / 1000;
     const stuck = _stuckLabel('animate', elapsed, shared.queuePos);
-    const label = stuck || `Animating... ${pct}%`;
+    const label = stuck || `Animating...`;
     prog.pct(pct, label);
-    State.updateHistoryItem(job_id, { status: 'generating', status_label: label });
+    State.updateHistoryItem(job_id, { status: 'generating', status_label: `${label} ${pct}%` });
+    updateJobStatusInPlace(job_id, label, pct);
   }, 500);
 
   const cleanup = () => { est.stop(); clearInterval(estInterval); };

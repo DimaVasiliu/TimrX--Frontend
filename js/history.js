@@ -1073,14 +1073,28 @@ export function getFilteredHistory() {
  * Avoids full DOM rebuild (renderHistory) to prevent flicker during polling.
  * Returns true if the card was found and updated, false otherwise.
  */
-export function updateJobStatusInPlace(jobId, statusLabel) {
+export function updateJobStatusInPlace(jobId, statusLabel, pct) {
   const card = document.querySelector(`[data-job-id="${jobId}"]`);
   if (!card) return false;
+
+  // Video cards: update __video-status
   const statusEl = card.querySelector('[class*="__video-status"]');
   if (statusEl) {
     statusEl.textContent = statusLabel;
     return true;
   }
+
+  // Model/rig/animate cards: update __processing-label, __processing-pct, __progress-fill
+  const labelEl = card.querySelector('[class*="__processing-label"]');
+  const pctEl = card.querySelector('[class*="__processing-pct"]');
+  const fillEl = card.querySelector('[class*="__progress-fill"]');
+  if (labelEl || pctEl) {
+    if (labelEl && statusLabel) labelEl.textContent = statusLabel;
+    if (pctEl && pct != null) pctEl.textContent = `${pct}%`;
+    if (fillEl && pct != null) fillEl.style.width = `${Math.min(100, pct)}%`;
+    return true;
+  }
+
   return false;
 }
 
