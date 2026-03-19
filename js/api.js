@@ -4558,6 +4558,22 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   if (!checkCreditsFor('animate')) return;
 
+  // Build title BEFORE payload so it's available for the request
+  const animState = window._timrxAnimState || {};
+  const sourceTitle = animState.title || window._lastRigTitle || '';
+  const animName = animState.selected_animation?.name || '';
+  let animLabel;
+  if (sourceTitle && animName) {
+    animLabel = `${sourceTitle} — ${animName}`;
+  } else if (sourceTitle) {
+    animLabel = `${sourceTitle} — Animated`;
+  } else if (animName) {
+    animLabel = animName;
+  } else {
+    animLabel = `Animation #${actionId}`;
+  }
+  console.log(`[Anim] Title resolved: source="${sourceTitle}" action="${animName}" final="${animLabel}"`);
+
   const prog = UI.makeProgressDriver();
 
   prog.label('Reserving credits...');
@@ -4569,7 +4585,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   const payload = {
     rig_task_id: riggingTaskId,
     action_id: parseInt(actionId, 10),
-    prompt: animLabel,  // Send title to backend for DB persistence
+    prompt: animLabel,
   };
   if (postProcess) payload.post_process = postProcess;
 
@@ -4600,24 +4616,6 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   }
 
   confirmCreditsReservation(reservation.reservationId, job_id);
-
-  // Build a meaningful title from the source model + animation name.
-  // Priority: animState.title > _lastRigTitle > 'Model'
-  // Combined with animation name from animState.selected_animation or action ID
-  const animState = window._timrxAnimState || {};
-  const sourceTitle = animState.title || window._lastRigTitle || '';
-  const animName = animState.selected_animation?.name || '';
-  let animLabel;
-  if (sourceTitle && animName) {
-    animLabel = `${sourceTitle} — ${animName}`;
-  } else if (sourceTitle) {
-    animLabel = `${sourceTitle} — Animated`;
-  } else if (animName) {
-    animLabel = animName;
-  } else {
-    animLabel = `Animation #${actionId}`;
-  }
-  console.log(`[Anim] Title resolved: source="${sourceTitle}" action="${animName}" final="${animLabel}"`);
 
   const animMeta = {
     prompt: animLabel,
