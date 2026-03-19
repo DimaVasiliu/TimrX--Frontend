@@ -929,9 +929,10 @@
       const bodyViewClasses = new Set();
 
       const closeDropdowns = () => {
-        document.querySelectorAll('.nav-dropdown.open').forEach(dropdown => {
+        document.querySelectorAll('.nav-dropdown.open, .ws-dropdown.open').forEach(dropdown => {
           dropdown.classList.remove('open');
-          dropdown.querySelector('.nav-dropdown-toggle')?.setAttribute('aria-expanded', 'false');
+          const toggle = dropdown.querySelector('.nav-dropdown-toggle') || dropdown.querySelector('.ws-dropdown-toggle');
+          toggle?.setAttribute('aria-expanded', 'false');
         });
       };
 
@@ -1015,6 +1016,9 @@
           if (!skipHash) {
             setHash(config.hash);
           }
+
+          // Clear nav-hidden so header is fully interactive in the new view
+          document.querySelectorAll('.nav-hidden').forEach(el => el.classList.remove('nav-hidden'));
 
           // Focus after element is visible and interactive
           requestAnimationFrame(() => {

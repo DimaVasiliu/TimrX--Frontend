@@ -4334,13 +4334,29 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
   const menu = dropdown.querySelector('.ws-dropdown-menu');
   if (!toggle || !menu) return;
 
+  // Move menu to body so it escapes the header stacking context
+  // and always renders above expansion views.
+  document.body.appendChild(menu);
+
+  function positionMenu() {
+    const rect = toggle.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 10) + 'px';
+    menu.style.left = (rect.left + rect.width / 2) + 'px';
+    menu.style.transform = 'translateX(-50%)';
+    menu.style.zIndex = '200000';
+  }
+
   function open() {
+    positionMenu();
     dropdown.classList.add('open');
+    menu.style.display = 'block';
     toggle.setAttribute('aria-expanded', 'true');
   }
 
   function close() {
     dropdown.classList.remove('open');
+    menu.style.display = '';
     toggle.setAttribute('aria-expanded', 'false');
   }
 
@@ -4353,7 +4369,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
   // Close on outside click
   document.addEventListener('click', (e) => {
-    if (!dropdown.contains(e.target)) {
+    if (!dropdown.contains(e.target) && !menu.contains(e.target)) {
       close();
     }
   });

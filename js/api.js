@@ -4216,6 +4216,11 @@ async function _handleRigComplete(job_id, st, prog) {
   if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
   State.removeActiveJob(job_id);
 
+  // Check if backend persistence succeeded
+  if (st.db_ok === false) {
+    console.error(`[Rig] Backend persistence failed for ${job_id}:`, st.db_errors);
+  }
+
   const pendingMeta = State.getPendingMeta()[job_id] || {};
   const glbUrl = st.rigged_character_glb_url || st.glb_url || st.glb || st.model_urls?.glb || '';
   const glbProxy = getLoadableModelUrl(glbUrl);
