@@ -4068,6 +4068,9 @@ export async function startRigFromPanel() {
 
   prog.label('Starting rigging...');
 
+  // Send title to backend so DB persistence has a proper title
+  if (labelPrompt) payload.prompt = labelPrompt;
+
   let result;
   try {
     result = await apiFetch('/api/_mod/rig/start', {
@@ -4526,7 +4529,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   const payload = {
     rig_task_id: riggingTaskId,
-    action_id: parseInt(actionId, 10)
+    action_id: parseInt(actionId, 10),
+    prompt: animLabel,  // Send title to backend for DB persistence
   };
   if (postProcess) payload.post_process = postProcess;
 
