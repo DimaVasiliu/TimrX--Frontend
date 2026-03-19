@@ -772,6 +772,19 @@ body.community-view .community-expanded-view {
 .ccg-card__type-badge.model { color: #fbbf24; }
 .ccg-card__type-badge.image { color: #c084fc; }
 .ccg-card__type-badge.video { color: #f87171; }
+.ccg-card__type-badge.animated { color: #34d399; }
+
+/* ── Animated 3D model-viewer inside cards ── */
+.ccg-card__model-viewer {
+  width: 100%;
+  height: 100%;
+  display: block;
+  --poster-color: transparent;
+  background: #0d0d0d;
+}
+/* Hide model-viewer default UI chrome */
+.ccg-card__model-viewer::part(default-progress-bar) { display: none; }
+.ccg-card__model-viewer::part(default-ar-button) { display: none; }
 
 /* ── Card footer ── */
 .ccg-card__footer {
