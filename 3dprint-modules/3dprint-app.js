@@ -3792,6 +3792,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       const hasModel = !!(_timrxAnimState.rig_task_id || _timrxAnimState.model_url);
 
+      console.log('[Animate] syncUI: hasModel=' + hasModel + ' is_rigged=' + _timrxAnimState.is_rigged + ' rig_task_id=' + (_timrxAnimState.rig_task_id || 'none') + ' selected_action=' + (_timrxAnimState.selected_action_id || 'none') + ' applyBtn=' + (applyBtn ? 'found' : 'missing'));
+
       if (hasModel) {
         if (modelInfo) modelInfo.style.display = '';
         if (modelEmpty) modelEmpty.style.display = 'none';
@@ -4056,6 +4058,21 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const animCategory = leftStack.querySelector('#animLibraryCategory2');
       if (animSearch) animSearch.addEventListener('input', _renderAnimLibraryInPanel);
       if (animCategory) animCategory.addEventListener('change', _renderAnimLibraryInPanel);
+
+      // Explain why Apply button is disabled when user tries to click it.
+      // Disabled buttons don't fire 'click', but pointerdown on the container does.
+      const applyBtnEl = leftStack.querySelector('#applyAnimationBtn2');
+      if (applyBtnEl) {
+        applyBtnEl.addEventListener('pointerdown', (e) => {
+          if (!applyBtnEl.disabled) return; // let normal click flow handle it
+          e.stopPropagation();
+          if (!_timrxAnimState.rig_task_id && !window._lastRigTaskId) {
+            _toast('Load a rigged model first before applying an animation.');
+          } else if (!_timrxAnimState.selected_action_id) {
+            _toast('Select an animation from the library or quick picks first.');
+          }
+        });
+      }
 
       // Sync UI with current state (survives tab switch)
       _syncAnimatePanelUI();

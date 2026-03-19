@@ -3913,6 +3913,33 @@ async function startMultiImageTo3D() {
 // ============================================================================
 
 /**
+ * Persist a data URL thumbnail to S3 via the backend.
+ * Called after rig/animate completion captures a viewer screenshot.
+ * Fire-and-forget — failure is non-fatal (localStorage still has it).
+ */
+async function _persistThumbnailToS3(jobId, dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return;
+  try {
+    const result = await apiFetch(`/api/_mod/rig/thumbnail/${jobId}`, {
+      method: 'PATCH',
+      body: { thumbnail_url: dataUrl }
+    });
+    if (result.ok) {
+      const s3Url = result.data?.thumbnail_url;
+      console.log(`[Thumb] Persisted to S3: job=${jobId} url=${s3Url?.substring(0, 60)}...`);
+      // Update local history item with S3 URL so it survives reload
+      if (s3Url) {
+        State.updateHistoryItem(jobId, { thumbnail_url: s3Url });
+      }
+    } else {
+      console.warn(`[Thumb] S3 persist failed: job=${jobId} error=${result.error}`);
+    }
+  } catch (err) {
+    console.warn(`[Thumb] S3 persist error: job=${jobId}`, err.message);
+  }
+}
+
+/**
  * Run preflight check before rigging — validates face count, source availability,
  * and whether model is already rigged. Updates _timrxRigState and UI.
  */
@@ -4221,6 +4248,13 @@ async function _handleRigComplete(job_id, st, prog) {
     thumbSource = 'inherited';
   }
   console.log(`[Rig] Thumbnail resolved: source=${thumbSource} hasUrl=${!!thumbnail}`);
+
+  // Persist data URL thumbnail to S3 via backend (fire-and-forget)
+  if (thumbnail && thumbnail.startsWith('data:')) {
+    _persistThumbnailToS3(job_id, thumbnail).catch(err => {
+      console.warn('[Rig] Thumbnail S3 persist failed (non-fatal):', err.message);
+    });
+  }
 
   const rigHistoryData = {
     id: job_id,
@@ -4633,6 +4667,13 @@ async function _handleAnimComplete(job_id, st, prog) {
   if (!thumbnail && window._timrxAnimState?.thumbnail_url) {
     thumbnail = window._timrxAnimState.thumbnail_url;
     console.log('[Anim] Thumbnail inherited from rig state');
+  }
+
+  // Persist data URL thumbnail to S3 via backend (fire-and-forget)
+  if (thumbnail && thumbnail.startsWith('data:')) {
+    _persistThumbnailToS3(job_id, thumbnail).catch(err => {
+      console.warn('[Anim] Thumbnail S3 persist failed (non-fatal):', err.message);
+    });
   }
 
   // Resolve title — prefer the label set at submission (which includes source + action name)
