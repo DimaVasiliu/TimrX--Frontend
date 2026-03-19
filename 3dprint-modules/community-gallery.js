@@ -90,7 +90,7 @@
     if (isAnimated) {
       thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(asset.animation_glb_url)}" autoplay animation-name="" camera-controls interaction-prompt="none" auto-rotate auto-rotate-delay="0" rotation-per-second="0deg" shadow-intensity="0.4" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" loading="lazy" reveal="auto"></model-viewer>`;
     } else if (isVideo) {
-      thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline preload="none" poster="${sanitize(thumb)}"></video>`;
+      thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline autoplay preload="metadata" poster="${sanitize(thumb)}"></video>`;
     } else if (thumb) {
       thumbEl = `<img class="ccg-card__image" src="${sanitize(thumb)}" alt="" loading="lazy" decoding="async">`;
     } else {
@@ -129,13 +129,32 @@
       </article>`;
   }
 
-  // ─── Video hover play ─────────────────────────────────────────────────────
+  // ─── Video autoplay on visibility ────────────────────────────────────────
 
-  function wireVideoHover(container) {
-    container.querySelectorAll('.ccg-card__image').forEach(vid => {
-      if (vid.tagName !== 'VIDEO') return;
-      vid.addEventListener('mouseenter', () => vid.play().catch(() => {}));
-      vid.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
+  const videoObserver = ('IntersectionObserver' in window)
+    ? new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const vid = entry.target;
+          if (entry.isIntersecting) {
+            vid.play().catch(() => {});
+          } else {
+            vid.pause();
+          }
+        });
+      }, { threshold: 0.25 })
+    : null;
+
+  function wireVideoAutoplay(container) {
+    container.querySelectorAll('video.ccg-card__image').forEach(vid => {
+      if (vid.dataset.ccgObserved) return;
+      vid.dataset.ccgObserved = '1';
+      if (videoObserver) {
+        videoObserver.observe(vid);
+      } else {
+        // Fallback: hover play for browsers without IntersectionObserver
+        vid.addEventListener('mouseenter', () => vid.play().catch(() => {}));
+        vid.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
+      }
     });
   }
 
@@ -288,7 +307,22 @@
       frag.appendChild(wrap.firstElementChild);
     });
     grid.appendChild(frag);
-    wireVideoHover(grid);
+    wireVideoAutoplay(grid);
+    wireImageReveal(grid);
+  }
+
+  /** Fade in images once loaded (adds .ccg-loaded class) */
+  function wireImageReveal(container) {
+    container.querySelectorAll('img.ccg-card__image').forEach(img => {
+      if (img.dataset.ccgRevealed) return;
+      img.dataset.ccgRevealed = '1';
+      if (img.complete && img.naturalWidth) {
+        img.classList.add('ccg-loaded');
+      } else {
+        img.addEventListener('load', () => img.classList.add('ccg-loaded'), { once: true });
+        img.addEventListener('error', () => img.classList.add('ccg-loaded'), { once: true });
+      }
+    });
   }
 
   async function load(filter, offset, append) {
