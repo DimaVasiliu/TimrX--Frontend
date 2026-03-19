@@ -4202,17 +4202,22 @@ async function _handleRigComplete(job_id, st, prog) {
     }
   }
 
-  // Prefer a fresh screenshot of the rigged result so My Assets reflects the
-  // actual post-rig pose/framing, not the pre-rig source card.
+  // Thumbnail resolution chain: viewer capture > Meshy thumbnail > source thumbnail
   let thumbnail = st.thumbnail_url || '';
+  let thumbSource = thumbnail ? 'meshy' : 'none';
   if (viewerLoaded) {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const viewerThumbnail = Viewer.captureViewerThumbnail(256) || '';
     if (viewerThumbnail) {
       thumbnail = viewerThumbnail;
+      thumbSource = 'viewer';
     }
   }
-  if (!thumbnail) thumbnail = pendingMeta.source_thumbnail_url || '';
+  if (!thumbnail && pendingMeta.source_thumbnail_url) {
+    thumbnail = pendingMeta.source_thumbnail_url;
+    thumbSource = 'inherited';
+  }
+  console.log(`[Rig] Thumbnail resolved: source=${thumbSource} hasUrl=${!!thumbnail}`);
 
   const rigHistoryData = {
     id: job_id,
@@ -4553,11 +4558,27 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   confirmCreditsReservation(reservation.reservationId, job_id);
 
-  // Add to history timeline
-  const animLabel = `Animation #${actionId}`;
+  // Build a meaningful title from the source model + animation name.
+  // Priority: animState.title > _lastRigTitle > 'Model'
+  // Combined with animation name from animState.selected_animation or action ID
+  const animState = window._timrxAnimState || {};
+  const sourceTitle = animState.title || window._lastRigTitle || '';
+  const animName = animState.selected_animation?.name || '';
+  let animLabel;
+  if (sourceTitle && animName) {
+    animLabel = `${sourceTitle} — ${animName}`;
+  } else if (sourceTitle) {
+    animLabel = `${sourceTitle} — Animated`;
+  } else if (animName) {
+    animLabel = animName;
+  } else {
+    animLabel = `Animation #${actionId}`;
+  }
+  console.log(`[Anim] Title resolved: source="${sourceTitle}" action="${animName}" final="${animLabel}"`);
+
   const animMeta = {
     prompt: animLabel,
-    root_prompt: animLabel,
+    root_prompt: sourceTitle || animLabel,
     stage: 'animation',
     status_label: 'Animating...',
     type: 'model'
@@ -4578,19 +4599,60 @@ async function _handleAnimComplete(job_id, st, prog) {
   if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
   State.removeActiveJob(job_id);
 
-  // Persist to history
+  const pendingMeta = State.getPendingMeta()[job_id] || {};
   const animGlbUrl = st.animation_glb_url || st.glb_url || '';
+  const glbProxy = getLoadableModelUrl(animGlbUrl);
+
+  // Load animated model into viewer FIRST so we can capture a thumbnail
+  let viewerLoaded = false;
+  if (animGlbUrl) {
+    try {
+      prog.jump(99, 'Loading animation...');
+      await Viewer.loadModelWithFallback(glbProxy || animGlbUrl, animGlbUrl);
+      viewerLoaded = true;
+    } catch (err) {
+      console.warn('[Anim] Failed to load animation in viewer:', err);
+    }
+  }
+
+  // Capture fresh thumbnail from the animated model in the viewer
+  let thumbnail = st.thumbnail_url || '';
+  if (viewerLoaded) {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const viewerThumbnail = Viewer.captureViewerThumbnail(256) || '';
+    if (viewerThumbnail) {
+      thumbnail = viewerThumbnail;
+      console.log('[Anim] Thumbnail captured from viewer');
+    }
+  }
+  // Fallback: inherit from parent rig state
+  if (!thumbnail && window._timrxAnimState?.thumbnail_url) {
+    thumbnail = window._timrxAnimState.thumbnail_url;
+    console.log('[Anim] Thumbnail inherited from rig state');
+  }
+
+  // Resolve title — prefer the label set at submission (which includes source + action name)
+  // Fallback through animState title, then generic
+  const animTitle = pendingMeta.prompt && pendingMeta.prompt !== 'Animation'
+    ? pendingMeta.prompt
+    : (window._timrxAnimState?.title
+        ? `${window._timrxAnimState.title} — Animated`
+        : 'Animation');
+  console.log(`[Anim] Final title for history: "${animTitle}"`);
+
+  // Persist to history
   const animHistoryData = {
     id: job_id,
     type: 'model',
     status: 'finished',
     stage: 'animation',
     created_at: Date.now(),
-    prompt: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
-    root_prompt: (State.getPendingMeta()[job_id] || {}).root_prompt || '',
-    title: (State.getPendingMeta()[job_id] || {}).prompt || 'Animation',
+    prompt: animTitle,
+    root_prompt: pendingMeta.root_prompt || animTitle,
+    title: animTitle,
     glb_url: animGlbUrl,
-    thumbnail_url: st.thumbnail_url || '',
+    glb_proxy: glbProxy || '',
+    thumbnail_url: thumbnail,
     model: 'latest'
   };
   if (State.historyHasJobId(job_id)) {
@@ -4599,18 +4661,8 @@ async function _handleAnimComplete(job_id, st, prog) {
     State.addHistoryItem(animHistoryData);
   }
   State.deletePendingMeta(job_id);
+  State.setHistoryActiveModelId(job_id);
   renderHistory();
-
-  // Load animated model into viewer
-  const animGlb = st.animation_glb_url || st.glb_url || '';
-  if (animGlb) {
-    try {
-      const proxy = getLoadableModelUrl(animGlb);
-      await Viewer.loadModelWithFallback(proxy || animGlb, animGlb);
-    } catch (err) {
-      console.warn('[Anim] Failed to load animation in viewer:', err);
-    }
-  }
 
   // Show animation results — try animate panel (animResultsSection2) first, then legacy
   const animSection = byId('animResultsSection2') || byId('animResultsSection');

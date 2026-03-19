@@ -298,13 +298,16 @@ function fitCameraToObject(object, offset = 0.78) {
     camera.updateProjectionMatrix();
 
     // Detect humanoid-proportioned models (tall and narrow — height > 1.5x width)
-    // and use a front-facing slightly elevated angle for them. Rigged characters
-    // generally face -Z in this workspace, so prefer that direction.
+    // and position the camera in FRONT of the model, slightly elevated.
+    // glTF/Meshy convention: characters face -Z. Camera at +Z looks at the front.
     const isHumanoid = boxSize.y > boxSize.x * 1.5 && boxSize.y > boxSize.z * 1.5;
     const direction = isHumanoid
-        ? new THREE.Vector3(0.08, 0.22, -1).normalize() // front-facing, slightly above
+        ? new THREE.Vector3(0, 0.22, 1).normalize()   // +Z = front of -Z-facing model
         : new THREE.Vector3(1, 1, 1).normalize();     // generic diagonal
     camera.position.copy(target).add(direction.multiplyScalar(size / offset));
+    if (isHumanoid) {
+        log('[Viewer] Humanoid camera: front-facing +Z');
+    }
 }
 
 export function showImageInViewer(url) {

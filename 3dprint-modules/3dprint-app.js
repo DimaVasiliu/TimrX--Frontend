@@ -3836,37 +3836,46 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 400); }, 3500);
     }
 
-    /** Find the most recent rigged model from localStorage history */
-    function _findLatestRiggedFromHistory() {
+    /** Read history items from the canonical localStorage cache.
+     *  state.js uses 'meshy_history_cache' — must match exactly. */
+    function _getHistoryFromCache() {
       try {
-        const raw = localStorage.getItem('timrx_history');
-        if (!raw) return null;
+        const raw = localStorage.getItem('meshy_history_cache');
+        if (!raw) return [];
         const items = JSON.parse(raw);
-        if (!Array.isArray(items)) return null;
-        // Sort by created_at descending, find first with stage='rig'
-        return items
-          .filter(it => it.status === 'finished' && (it.stage === 'rig' || (it.payload && it.payload.stage === 'rig')))
-          .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))[0] || null;
+        return Array.isArray(items) ? items : [];
       } catch (e) {
-        console.warn('[Animate] Failed to read history:', e);
-        return null;
+        console.warn('[Animate] Failed to read history cache:', e);
+        return [];
       }
     }
 
-    /** Find ALL rigged models from localStorage history */
+    /** Check if a history item is a finished rigged model */
+    function _isRiggedItem(it) {
+      if (it.status !== 'finished') return false;
+      const stage = (it.stage || '').toLowerCase();
+      if (stage === 'rig') return true;
+      // Also check payload.stage for DB-synced items
+      const payloadStage = (it.payload?.stage || '').toLowerCase();
+      return payloadStage === 'rig';
+    }
+
+    /** Find the most recent rigged model from history */
+    function _findLatestRiggedFromHistory() {
+      const items = _getHistoryFromCache();
+      const rigged = items.filter(_isRiggedItem)
+        .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+      console.log('[Animate] findLatest: total=' + items.length + ' rigged=' + rigged.length);
+      return rigged[0] || null;
+    }
+
+    /** Find ALL rigged models from history */
     function _findAllRiggedFromHistory() {
-      try {
-        const raw = localStorage.getItem('timrx_history');
-        if (!raw) return [];
-        const items = JSON.parse(raw);
-        if (!Array.isArray(items)) return [];
-        return items
-          .filter(it => it.status === 'finished' && (it.stage === 'rig' || (it.payload && it.payload.stage === 'rig')))
-          .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-      } catch (e) {
-        console.warn('[Animate] Failed to read history:', e);
-        return [];
-      }
+      const items = _getHistoryFromCache();
+      const rigged = items.filter(_isRiggedItem)
+        .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+      console.log('[Animate] findAll: total=' + items.length + ' rigged=' + rigged.length);
+      return rigged;
     }
 
     /** Show a picker modal/dropdown for rigged models from history */
