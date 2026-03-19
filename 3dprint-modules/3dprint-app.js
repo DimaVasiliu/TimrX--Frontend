@@ -759,7 +759,7 @@
               <span class="gen-divider">|</span>
               <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
             </div>
-            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail" title="10 credits" disabled>
+            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="10 credits">
               <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Apply Animation
             </button>
@@ -3732,7 +3732,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           _timrxAnimState.selected_action_id = anim.action_id;
           _timrxAnimState.selected_animation = anim;
           if (applyAnimBtn && _timrxAnimState.is_rigged) {
-            applyAnimBtn.disabled = false;
+            applyAnimBtn.classList.remove('anim-btn-inactive');
           }
         });
 
@@ -3763,7 +3763,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           const actionInput = leftStack.querySelector('#animActionId2');
           const applyBtn = leftStack.querySelector('#applyAnimationBtn2');
           if (actionInput) actionInput.value = match.action_id;
-          if (applyBtn && _timrxAnimState.is_rigged) applyBtn.disabled = false;
+          if (applyBtn && _timrxAnimState.is_rigged) applyBtn.classList.remove('anim-btn-inactive');
           // Visual feedback on quick chips
           container.querySelectorAll('.material-chip').forEach(c => {
             c.style.borderColor = 'rgba(255,255,255,.1)';
@@ -3809,13 +3809,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           if (notRiggedWarning) notRiggedWarning.style.display = 'none';
           if (quickSection) quickSection.style.display = '';
           if (librarySection) librarySection.style.display = '';
-          if (applyBtn) applyBtn.disabled = !_timrxAnimState.selected_action_id;
+          if (applyBtn) applyBtn.classList.toggle('anim-btn-inactive', !_timrxAnimState.selected_action_id);
         } else {
           if (badgeEl) { badgeEl.textContent = 'Not rigged'; badgeEl.style.color = '#cca030'; badgeEl.style.background = 'rgba(255,200,50,.08)'; }
           if (notRiggedWarning) notRiggedWarning.style.display = '';
           if (quickSection) quickSection.style.display = 'none';
           if (librarySection) librarySection.style.display = 'none';
-          if (applyBtn) applyBtn.disabled = true;
+          if (applyBtn) applyBtn.classList.add('anim-btn-inactive');
         }
       } else {
         if (modelInfo) modelInfo.style.display = 'none';
@@ -3823,7 +3823,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (notRiggedWarning) notRiggedWarning.style.display = 'none';
         if (quickSection) quickSection.style.display = 'none';
         if (librarySection) librarySection.style.display = 'none';
-        if (applyBtn) applyBtn.disabled = true;
+        if (applyBtn) applyBtn.classList.add('anim-btn-inactive');
       }
     }
 
@@ -4058,21 +4058,6 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const animCategory = leftStack.querySelector('#animLibraryCategory2');
       if (animSearch) animSearch.addEventListener('input', _renderAnimLibraryInPanel);
       if (animCategory) animCategory.addEventListener('change', _renderAnimLibraryInPanel);
-
-      // Explain why Apply button is disabled when user tries to click it.
-      // Disabled buttons don't fire 'click', but pointerdown on the container does.
-      const applyBtnEl = leftStack.querySelector('#applyAnimationBtn2');
-      if (applyBtnEl) {
-        applyBtnEl.addEventListener('pointerdown', (e) => {
-          if (!applyBtnEl.disabled) return; // let normal click flow handle it
-          e.stopPropagation();
-          if (!_timrxAnimState.rig_task_id && !window._lastRigTaskId) {
-            _toast('Load a rigged model first before applying an animation.');
-          } else if (!_timrxAnimState.selected_action_id) {
-            _toast('Select an animation from the library or quick picks first.');
-          }
-        });
-      }
 
       // Sync UI with current state (survives tab switch)
       _syncAnimatePanelUI();

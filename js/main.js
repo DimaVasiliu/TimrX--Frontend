@@ -638,14 +638,23 @@ function setupGenerateButtonListeners() {
       return;
     }
     if (btnId === 'applyAnimationBtn2') {
-      // ANIMATE panel: read from persistent state + DOM hidden input as fallback
       const animState = window._timrxAnimState || {};
       const riggingTaskId = animState.rig_task_id || window._lastRigTaskId || '';
       const stateActionId = animState.selected_action_id;
       const domActionIdRaw = document.getElementById('animActionId2')?.value;
       const actionId = stateActionId != null ? parseInt(stateActionId, 10)
         : (domActionIdRaw ? parseInt(domActionIdRaw, 10) : null);
-      console.log('[Anim] Apply clicked: rigTaskId=' + riggingTaskId + ' actionId=' + actionId + ' (state=' + stateActionId + ' dom=' + domActionIdRaw + ' is_rigged=' + animState.is_rigged + ')');
+      console.log('[Anim] Apply clicked: rigTaskId=' + riggingTaskId + ' actionId=' + actionId + ' state=' + JSON.stringify({selected: stateActionId, dom: domActionIdRaw, is_rigged: animState.is_rigged}));
+
+      // Pre-validate and give helpful feedback instead of silent failure
+      if (!riggingTaskId) {
+        alert('No rigged model loaded. Please rig a model first, or load one from history.');
+        return;
+      }
+      if (actionId == null || isNaN(actionId)) {
+        alert('Please select an animation from the library or quick picks before clicking Apply.');
+        return;
+      }
       API.startAnimationFromPanel(riggingTaskId, actionId);
       return;
     }
