@@ -1963,7 +1963,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           aspects: [
             { value: '16:9', text: '16:9 Landscape', selected: true },
             { value: '9:16', text: '9:16 Portrait' },
-            { value: '1:1', text: '1:1 Square' },
+            { value: '4:3', text: '4:3 Standard' },
+            { value: '3:4', text: '3:4 Tall' },
           ],
           styles: [
             { value: 'auto', text: 'Auto', selected: true },
