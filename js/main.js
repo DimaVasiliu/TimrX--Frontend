@@ -30,8 +30,6 @@ import * as Credits from './workspace-credits.js';
 
 // DOM references
 let imageDrop, imageInput, imagePreview, imageModelName;
-let uploadModal, openUpload, closeUpload, cancelUpload, continueUpload;
-let modelDrop, modelInput, modelFileHint, historyUploadBtn;
 let genHint;
 
 function isMobileWorkspaceLayout() {
@@ -79,35 +77,7 @@ function switchHistoryFilter(filter = 'all') {
 // ============================================================================
 
 // Track last focused element before modal opens
-let lastFocusedBeforeModal = null;
-
-function showModal(show) {
-  const on = !!show;
-
-  if (on) {
-    // Opening: store current focus, then show modal
-    lastFocusedBeforeModal = document.activeElement;
-    uploadModal?.classList.add('show');
-    if (uploadModal) {
-      uploadModal.inert = false;
-      // Focus the first focusable element in the modal
-      const firstFocusable = uploadModal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      requestAnimationFrame(() => firstFocusable?.focus());
-    }
-  } else {
-    // Closing: move focus OUT before hiding
-    if (uploadModal?.contains(document.activeElement)) {
-      (lastFocusedBeforeModal || document.body).focus();
-    }
-    uploadModal?.classList.remove('show');
-    if (uploadModal) {
-      uploadModal.inert = true;
-    }
-  }
-
-  document.body.classList.toggle('modal-open', on);
-  if (window.viewerControls) window.viewerControls.enabled = !on;
-}
+// Upload modal removed — handled entirely by 3dprint-app.js
 
 function showErrorToast(message) {
   if (!document.body) {
@@ -886,15 +856,6 @@ function initUi() {
   imagePreview = byId('imagePreview');
   imageModelName = byId('imageModelName');
 
-  uploadModal = byId('uploadModal');
-  openUpload = byId('openUpload');
-  closeUpload = byId('closeUpload');
-  cancelUpload = byId('cancelUpload');
-  continueUpload = byId('continueUpload');
-  modelDrop = byId('modelDrop');
-  modelInput = byId('customModelUpload');
-  modelFileHint = byId('modelFileHint');
-  historyUploadBtn = byId('historyUploadBtn');
   genHint = byId('genHint');
 
   // Set initial tab
@@ -926,65 +887,7 @@ function initUi() {
     });
   });
 
-  // Upload modal
-  safe(openUpload, () => {
-    openUpload.addEventListener('click', (e) => { e.preventDefault(); showModal(true); });
-  });
-  safe(historyUploadBtn, () => {
-    historyUploadBtn.addEventListener('click', (e) => { e.preventDefault(); showModal(true); });
-  });
-  safe(closeUpload, () => closeUpload.addEventListener('click', () => showModal(false)));
-  safe(cancelUpload, () => cancelUpload.addEventListener('click', () => showModal(false)));
-  safe(uploadModal, () => {
-    uploadModal.addEventListener('click', (e) => {
-      if (e.target === uploadModal) showModal(false);
-    });
-  });
-
-  const uploadDialog = uploadModal?.querySelector('.upload-modal-content');
-  if (uploadDialog) {
-    uploadDialog.addEventListener('click', (e) => e.stopPropagation());
-  }
-
-  // Model drop zone
-  safe(modelDrop, () => {
-    const hl = (on) => modelDrop.classList.toggle('dragover', !!on);
-    ['dragenter', 'dragover'].forEach(evt =>
-      modelDrop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); hl(true); })
-    );
-    ['dragleave', 'drop'].forEach(evt =>
-      modelDrop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); hl(false); })
-    );
-    modelDrop.addEventListener('drop', (e) => {
-      const f = e.dataTransfer?.files?.[0];
-      if (f) handleModelFile(f);
-    });
-    modelDrop.addEventListener('click', () => modelInput?.click());
-    modelDrop.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); modelInput?.click(); }
-    });
-  });
-
-  safe(modelInput, () => {
-    modelInput.addEventListener('change', () => {
-      const f = modelInput.files?.[0];
-      if (f) handleModelFile(f);
-    });
-  });
-
-  safe(continueUpload, () => {
-    continueUpload.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!UI.state.modelFile) {
-        alert('Please choose a .glb or .gltf file.');
-        return;
-      }
-      if (typeof loadLocalGLB === 'function') {
-        loadLocalGLB(UI.state.modelFile);
-      }
-      showModal(false);
-    });
-  });
+  // Upload modal + model drop zone — handled entirely by 3dprint-app.js
 
   // Enter key triggers Generate from prompt textareas
   const promptTextareas = ['modelPrompt', 'imagePrompt', 'texturePrompt', 'videoMotion'];
@@ -1015,10 +918,7 @@ function initUi() {
     }
   });
 
-  // ESC to close modal
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && uploadModal?.classList.contains('show')) showModal(false);
-  });
+  // ESC to close modal — handled by 3dprint-app.js
 
   // Migrate history data (one-time, skips if already done)
   if (!localStorage.getItem('timrx_history_titles_migrated')) {
@@ -1815,5 +1715,4 @@ window.addEventListener('DOMContentLoaded', () => {
 // ============================================================================
 window.renderHistory = renderHistory;
 window.switchHistoryFilter = switchHistoryFilter;
-window.showModal = showModal;
 window.showQuotaExceededPopup = showQuotaExceededPopup;

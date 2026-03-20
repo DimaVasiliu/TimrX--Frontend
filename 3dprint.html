@@ -474,10 +474,6 @@
 
     <!-- Left Panel -->
     <aside class="ws-left ws-pane" id="ws-left-panel" aria-label="Tool controls">
-      <header class="pane-head">
-        <h2>3D Workspace</h2>
-        <p class="pane-sub">Switch tools without disturbing the layout.</p>
-      </header>
       <div class="pane-stack" id="leftStack">
         <!-- Cards injected here -->
       </div>
@@ -485,14 +481,14 @@
 
     <!-- Viewer -->
     <main class="ws-viewer ws-pane">
-      <header class="pane-head">
-        <div class="pane-head-row">
+
+      <!-- 3D viewer (shown for model/remesh/texture) -->
+      <div class="viewer-wrap" id="model3dViewer">
+        <header class="viewer-overlay-head">
           <div class="pane-head-titles">
             <h2 id="viewerTitle">3D Preview</h2>
-            <p class="pane-sub" id="genHint">Your 3D model will appear here.</p>
+            <p class="pane-sub" id="genHint">Enter a descriptive prompt, then Generate.</p>
           </div>
-      
-          <!-- New model icon button (opens upload modal) -->
           <div class="pane-head-actions">
             <button type="button" id="openUploadModalTop" class="icon-btn" aria-label="Upload new model">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -503,11 +499,7 @@
               <span>New</span>
             </button>
           </div>
-        </div>
-      </header>
-
-      <!-- 3D viewer (shown for model/remesh/texture) -->
-      <div class="viewer-wrap" id="model3dViewer">
+        </header>
         <canvas id="viewerCanvas" aria-label="3D model preview canvas"></canvas>
         <div class="viewer-empty" id="viewerPlaceholder">
           <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -692,10 +684,6 @@
 
     <!-- Right Panel -->
     <aside class="ws-right ws-pane" id="ws-right-panel" aria-label="Generation history">
-      <header class="pane-head">
-        <h2>Generation History</h2>
-        <p class="pane-sub">Browse and manage your past creations.</p>
-      </header>
 
       <div class="card history" id="my-assets">
         <div class="history-head">

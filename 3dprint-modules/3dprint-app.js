@@ -156,10 +156,8 @@
             </button>
           </div>
           <div class="enhance-feedback hidden" data-enhance-feedback="image"></div>
-        </div>
 
-        <div class="card">
-          <h3>Options</h3>
+          <div class="card-divider"></div>
           <div class="inline-field">
             <label for="imageAIProvider">Provider</label>
             <select id="imageAIProvider">
@@ -306,9 +304,9 @@
             <span class="field-hint" style="color:#b08a3e;font-size:10px;margin-top:2px">Images are sent as data URLs — keep each file under 5 MB for reliable uploads</span>
             <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
           </div>
-        </div>
 
-        <div class="card gen-options-card">
+          <div class="card-divider"></div>
+
           <div class="field-row">
             <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
             <select id="modelAIModel" class="field-select-inline">
@@ -417,10 +415,8 @@
             </div>
             <div id="remeshModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
-        </div>
 
-        <div class="card">
-          <h3>Remesh Preset</h3>
+          <div class="card-divider"></div>
           <div class="remesh-presets" id="remeshPresets">
             <button type="button" class="remesh-preset is-active" data-preset="print-ready" data-poly="50000" data-topo="triangle">
               <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.72 13.829a5.25 5.25 0 01-.905-2.578L4.5 10.5l1.315-.751A5.25 5.25 0 016.72 7.171L8 6l.754 1.321a5.25 5.25 0 012.578.905L12.5 9.5l-1.168.674a5.25 5.25 0 01-.905 2.578L9.5 14l-.754-1.321a5.25 5.25 0 01-2.026.15z"/><path d="M15 4l.5 1a3.5 3.5 0 001.5 1.5l1 .5-1 .5a3.5 3.5 0 00-1.5 1.5L15 10l-.5-1a3.5 3.5 0 00-1.5-1.5L12 7l1-.5a3.5 3.5 0 001.5-1.5L15 4z"/><path d="M6 14v4a2 2 0 002 2h8a2 2 0 002-2v-4"/></svg>
@@ -501,10 +497,8 @@
             </div>
             <div id="textureModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
-        </div>
 
-        <div class="card">
-          <h3>Texture Description</h3>
+          <div class="card-divider"></div>
           <textarea id="texturePrompt" placeholder="Rusty metal with scratches and weathering..."></textarea>
           <div class="enhance-row">
             <span class="field-hint">Describe material, surface, and color</span>
@@ -525,9 +519,9 @@
             <button type="button" class="material-chip" data-material="Matte carbon fiber weave with subtle reflective highlights">Carbon Fiber</button>
             <button type="button" class="material-chip" data-material="Glazed ceramic with smooth finish and subtle crackle pattern">Ceramic</button>
           </div>
-        </div>
 
-        <div class="card">
+          <div class="card-divider"></div>
+
           <div class="field-row">
             <span class="field-label-inline">PBR Maps</span>
             <label class="toggle-switch">
@@ -808,8 +802,11 @@
         </div>
       </div>
 
+      <!-- Main video card: input + settings + templates + gallery -->
+      <div class="card video-main-card">
+
       <!-- Text-to-Video: Prompt input -->
-      <div class="card video-mode-content video-input-card" id="text2videoContent">
+      <div class="video-mode-content video-input-section" id="text2videoContent">
         <label for="videoTextPrompt" class="video-section-label">Describe your video scene</label>
         <textarea id="videoTextPrompt" rows="3" placeholder="A serene forest with sunlight filtering through the trees..."></textarea>
         <div class="enhance-row">
@@ -847,7 +844,7 @@
       </div>
 
       <!-- Image-to-Video: Dual-mode (Animate / Transition) -->
-      <div class="card video-mode-content video-input-card hidden" id="image2videoContent">
+      <div class="video-mode-content video-input-section hidden" id="image2videoContent">
 
         <!-- Image sub-mode switcher (hidden by default for Veo, shown for Seedance) -->
         <div class="video-img-mode-switcher hidden" id="videoImgModeSwitcher">
@@ -1016,8 +1013,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       </div>
 
+      <div class="card-divider"></div>
+
       <!-- Video Settings -->
-      <div class="card video-settings-card compact">
+      <div class="video-settings-section">
         <!-- Motion Presets (collapsible) -->
         <div class="vs-section vs-motion-section">
           <button type="button" class="vs-motion-trigger" id="vsMotionTrigger">
@@ -1082,20 +1081,22 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         </div>
       </div>
 
-      <!-- Video Templates (Part 14) — dynamically rendered from VIDEO_TEMPLATE_CATEGORIES -->
-      <div class="card video-templates-card">
-        <button type="button" class="vs-motion-trigger" id="videoTemplatesTrigger">
-          <span class="vs-label">Prompt Templates</span>
-          <svg class="vs-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      <!-- Compact utility row: Templates + Gallery -->
+      <div class="video-utils-row">
+        <div class="video-templates-section">
+          <button type="button" class="vs-motion-trigger" id="videoTemplatesTrigger">
+            <span class="vs-label">Prompt Templates</span>
+            <svg class="vs-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="videoTemplatesPanel" class="vs-presets vs-presets--collapsed"></div>
+        </div>
+        <button type="button" class="video-gallery-btn video-gallery-btn--compact" id="videoGalleryBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M10 8l6 4-6 4V8z"/></svg>
+          Gallery
         </button>
-        <div id="videoTemplatesPanel" class="vs-presets vs-presets--collapsed"></div>
       </div>
 
-      <!-- Video Gallery shortcut -->
-      <button type="button" class="video-gallery-btn" id="videoGalleryBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M10 8l6 4-6 4V8z"/></svg>
-        Browse Video Gallery
-      </button>
+      </div><!-- /video-main-card -->
 
       <!-- Credit Estimate + Generate Buttons -->
       <div class="card gen-footer-card video-gen-footer">
@@ -1252,6 +1253,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
+      grid.position.y = -0.8;
       grid.material.opacity = 0.4;
       grid.material.transparent = true;
       grid.isGridHelper = true;
@@ -1297,7 +1299,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         new THREE.BoxGeometry(1, 1, 1),
         new THREE.MeshStandardMaterial({ color: 0x88c6ff, roughness: 0.6, metalness: 0.0 })
       );
-      placeholderCube.position.y = 0.5; // Lift cube above the grid
+      placeholderCube.position.y = -0.3; // Sit cube on top of the grid (grid is at -0.8, cube half-height is 0.5)
       placeholderCube.userData.isPlaceholder = true;
       placeholderCube.userData.keepAlive = true;
       scene.add(placeholderCube);
@@ -4156,17 +4158,19 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
      */
     function openModal() {
       if (!uploadModal) return;
+      uploadModal.inert = false;
       uploadModal.classList.add('open');
       document.body.classList.add('has-modal');
       uploadModal.querySelector('.modal-content')?.focus();
     }
-  
+
     /**
      * Closes the modal and resets any temporary state.
      */
     function closeModal() {
       if (!uploadModal) return;
       uploadModal.classList.remove('open');
+      uploadModal.inert = true;
       document.body.classList.remove('has-modal');
       resetModal();
     }

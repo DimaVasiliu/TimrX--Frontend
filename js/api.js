@@ -4054,6 +4054,7 @@ window._runRigPreflight = runRigPreflight;
  */
 export async function startRigFromPanel() {
   if (startLock) return;
+  startLock = true;
 
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'rig' } }));
 
@@ -4062,11 +4063,11 @@ export async function startRigFromPanel() {
 
   if (choice === 'current' && !baseItem) {
     alert('Load or generate a model before rigging.');
+    startLock = false;
     return;
   }
 
-  // Check credits
-  if (!checkCreditsFor('rig')) return;
+  if (!checkCreditsFor('rig')) { startLock = false; return; }
 
   const heightVal = parseFloat(byId('rigHeight')?.value) || 1.7;
   const height_meters = Math.max(0.1, Math.min(5.0, heightVal));
@@ -4076,7 +4077,7 @@ export async function startRigFromPanel() {
 
   if (choice === 'upload') {
     const file = byId('rigModelUpload')?.files?.[0];
-    if (!file) { alert('Please choose a model to rig.'); return; }
+    if (!file) { alert('Please choose a model to rig.'); startLock = false; return; }
     const dataUrl = await fileToDataURL(file);
     payload.model_url = dataUrl;
     labelPrompt = `Rig ${file.name}`;
@@ -4087,15 +4088,33 @@ export async function startRigFromPanel() {
   }
 
   const prog = UI.makeProgressDriver();
+  const sourceThumbnail = baseItem?.thumbnail_url || '';
 
-  // Reserve credits
+  // Show placeholder card in history IMMEDIATELY (before API call)
+  const tempId = `rig-temp-${Date.now()}`;
+  const rigMeta = {
+    prompt: labelPrompt,
+    root_prompt: labelPrompt,
+    stage: 'rig',
+    status_label: 'Starting rigging...',
+    type: 'model',
+    source_thumbnail_url: sourceThumbnail,
+    thumbnail_url: sourceThumbnail,
+  };
+  addGeneratingPlaceholder(tempId, rigMeta);
+  State.savePendingMeta(tempId, rigMeta);
+  renderHistory();
+
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('rig', 1);
-  if (reservation.insufficient) return;
+  if (reservation.insufficient) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    startLock = false;
+    return;
+  }
 
   prog.label('Starting rigging...');
-
-  // Send title to backend so DB persistence has a proper title
   if (labelPrompt) payload.prompt = labelPrompt;
 
   let result;
@@ -4106,42 +4125,46 @@ export async function startRigFromPanel() {
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     prog.fail('Rigging request failed');
+    startLock = false;
     throw err;
   }
 
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
-    // Prefer the human-readable message from backend, fall back to error code
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     const errMsg = result.data?.message || result.error || 'Rigging failed';
     prog.fail(errMsg);
     alert(errMsg);
+    startLock = false;
     return;
   }
 
   const { job_id } = result.data;
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     prog.fail('No job ID returned');
+    startLock = false;
     return;
   }
 
   confirmCreditsReservation(reservation.reservationId, job_id);
 
-  // Add to history timeline — preserve source thumbnail for the rigged model
-  const sourceThumbnail = baseItem?.thumbnail_url || '';
-  const rigMeta = {
-    prompt: labelPrompt,
-    root_prompt: labelPrompt,
-    stage: 'rig',
-    status_label: 'Rigging...',
-    type: 'model',
-    source_thumbnail_url: sourceThumbnail,
-  };
+  // Replace temp placeholder with real job_id
+  State.removeHistoryItem(tempId);
+  State.deletePendingMeta(tempId);
+  rigMeta.status_label = 'Rigging...';
   addGeneratingPlaceholder(job_id, rigMeta);
-  State.savePendingMeta(job_id, rigMeta);
+  State.savePendingMeta(job_id, { ...rigMeta, source_thumbnail_url: sourceThumbnail });
   State.addActiveJob(job_id);
+  renderHistory();
 
+  startLock = false;
   prog.label('Rigging in progress...');
   watchRigJob(job_id);
 }
@@ -4546,21 +4569,24 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
  * @param {object} [postProcess] — optional post_process config
  */
 export async function startAnimationFromPanel(riggingTaskId, actionId, postProcess) {
+  if (startLock) return;
+  startLock = true;
+
   console.log('[Anim] startAnimationFromPanel called: rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
   if (!riggingTaskId) {
-    console.warn('[Anim] No riggingTaskId — aborting');
     alert('No rigged model available. Please complete rigging first.');
+    startLock = false;
     return;
   }
   if (actionId == null || isNaN(actionId)) {
-    console.warn('[Anim] No valid actionId — aborting. Raw value:', actionId);
     alert('Please select an animation from the library.');
+    startLock = false;
     return;
   }
 
-  if (!checkCreditsFor('animate')) return;
+  if (!checkCreditsFor('animate')) { startLock = false; return; }
 
-  // Build title BEFORE payload so it's available for the request
+  // Build title BEFORE payload
   const animState = window._timrxAnimState || {};
   const sourceTitle = animState.title || window._lastRigTitle || '';
   const animName = animState.selected_animation?.name || '';
@@ -4578,9 +4604,28 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   const prog = UI.makeProgressDriver();
 
+  // Show placeholder card in history IMMEDIATELY
+  const tempId = `anim-temp-${Date.now()}`;
+  const animMeta = {
+    prompt: animLabel,
+    root_prompt: sourceTitle || animLabel,
+    stage: 'animation',
+    status_label: 'Starting animation...',
+    type: 'model',
+    thumbnail_url: animState.thumbnail_url || '',
+  };
+  addGeneratingPlaceholder(tempId, animMeta);
+  State.savePendingMeta(tempId, animMeta);
+  renderHistory();
+
   prog.label('Reserving credits...');
   const reservation = reserveCreditsForAction('animate', 1);
-  if (reservation.insufficient) return;
+  if (reservation.insufficient) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    startLock = false;
+    return;
+  }
 
   prog.label('Starting animation...');
 
@@ -4599,37 +4644,45 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     prog.fail('Animation request failed');
+    startLock = false;
     throw err;
   }
 
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     prog.fail(result.error || 'Animation failed');
     alert(result.error || `Animation failed (HTTP ${result.status})`);
+    startLock = false;
     return;
   }
 
   const { job_id } = result.data;
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
     prog.fail('No job ID returned');
+    startLock = false;
     return;
   }
 
   confirmCreditsReservation(reservation.reservationId, job_id);
 
-  const animMeta = {
-    prompt: animLabel,
-    root_prompt: sourceTitle || animLabel,
-    stage: 'animation',
-    status_label: 'Animating...',
-    type: 'model'
-  };
+  // Replace temp placeholder with real job_id
+  State.removeHistoryItem(tempId);
+  State.deletePendingMeta(tempId);
+  animMeta.status_label = 'Animating...';
   addGeneratingPlaceholder(job_id, animMeta);
   State.savePendingMeta(job_id, animMeta);
   State.addActiveJob(job_id);
+  renderHistory();
 
+  startLock = false;
   prog.label('Animating...');
   watchAnimationJob(job_id);
 }

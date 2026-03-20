@@ -31,7 +31,7 @@
 /* Workspace root container (wraps the whole 3D workspace section) ---------- */
 .timrx-3dprint {
   /* Layout tokens */
-  --ws-navH: 65px;                    /* Reserved height for minimal header */
+  --ws-navH: 70px;                    /* Reserved height for minimal header */
   --ws-gap: 20px;                          /* Base gutter between columns */
 
   /* Card tokens */

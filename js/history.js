@@ -144,13 +144,19 @@ function getLineageKey(item = {}) {
   if (!item || typeof item !== 'object') return '';
   // Priority: lineage_origin_id is the primary grouping key (set by backend)
   if (item.lineage_origin_id) return String(item.lineage_origin_id);
-  // Fallback candidates for backward compatibility with older records
-  const candidates = [
-    'lineage_root_id', 'preview_task_id', 'root_lineage_id', 'origin_id',
-    'source_job_id', 'parent_job_id', 'root_id', 'parent_id', 'job_id'
+  // Fallback: check payload for lineage/source fields (older records)
+  const payload = item.payload || {};
+  const fallbackCandidates = [
+    payload.lineage_origin_id,
+    payload.source_task_id,
+    payload.preview_task_id,
+    payload.parent_job_id,
+    item.preview_task_id,
+    item.source_job_id,
+    item.parent_job_id,
   ];
-  for (const key of candidates) {
-    if (item[key]) return String(item[key]);
+  for (const val of fallbackCandidates) {
+    if (val) return String(val);
   }
   return String(item.id || '');
 }
