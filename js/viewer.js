@@ -237,12 +237,12 @@ export async function loadGlbFromUrl(url) {
             scene.add(currentModel);
 
             // Center model using mesh-only bounds (avoids skeleton distortion)
+            // Ground on grid (grid y = -0.5)
             const box = getVisualBounds(currentModel);
             const center = box.getCenter(new THREE.Vector3());
-            const min = box.min;
             currentModel.position.x += -center.x;
             currentModel.position.z += -center.z;
-            currentModel.position.y += -min.y;
+            currentModel.position.y += -box.min.y - 0.5;
 
             if (demoCube) demoCube.visible = false;
 

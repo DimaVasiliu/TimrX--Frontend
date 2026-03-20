@@ -1253,7 +1253,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
-      grid.position.y = -0.8;
+      grid.position.y = -0.5;
       grid.material.opacity = 0.4;
       grid.material.transparent = true;
       grid.isGridHelper = true;
@@ -1299,7 +1299,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         new THREE.BoxGeometry(1, 1, 1),
         new THREE.MeshStandardMaterial({ color: 0x88c6ff, roughness: 0.6, metalness: 0.0 })
       );
-      placeholderCube.position.y = -0.3; // Sit cube on top of the grid (grid is at -0.8, cube half-height is 0.5)
+      placeholderCube.position.y = 0; // Sit cube on top of the grid (grid is at -0.5, cube half-height is 0.5)
       placeholderCube.userData.isPlaceholder = true;
       placeholderCube.userData.keepAlive = true;
       scene.add(placeholderCube);
@@ -1505,19 +1505,26 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           const center = box.getCenter(new THREE.Vector3());
           const size   = box.getSize(new THREE.Vector3());
   
-          model.position.x = -center.x;
-          model.position.y = -center.y;
-          model.position.z = -center.z;
-  
+          // Scale to fit
           const maxDim = Math.max(size.x, size.y, size.z) || 1;
           const scale  = 2 / maxDim;
           model.scale.set(scale, scale, scale);
-  
-          camera.position.set(3.1, 2.7, 4.4);
-          camera.lookAt(0, 0, 0);
-  
+
+          // Recalculate after scaling
+          const sBox = new THREE.Box3().setFromObject(model);
+          const sCenter = sBox.getCenter(new THREE.Vector3());
+
+          // Center XZ, ground on grid (grid y = -0.5)
+          model.position.x = -sCenter.x;
+          model.position.z = -sCenter.z;
+          model.position.y = -sBox.min.y - 0.5;
+
+          const lookY = (sBox.max.y - sBox.min.y) * scale * 0.4 - 0.5;
+          camera.position.set(3.1, 2.2, 4.4);
+          camera.lookAt(0, lookY, 0);
+
           if (window.timrxControls) {
-            window.timrxControls.target.set(0, 0, 0);
+            window.timrxControls.target.set(0, lookY, 0);
             window.timrxControls.update();
           }
   

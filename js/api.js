@@ -5320,13 +5320,13 @@ export function updateJobsIndicator() {
       // Click handler to show jobs panel
       indicator.addEventListener('click', showJobsPanel);
 
-      // Insert into pane-head-actions before the upload button
-      const actionsContainer = document.querySelector('.pane-head-actions');
-      if (actionsContainer) {
-        actionsContainer.insertBefore(indicator, actionsContainer.firstChild);
+      // Insert centered inside the viewer
+      const viewerWrap = document.querySelector('.viewer-wrap') || document.getElementById('model3dViewer');
+      if (viewerWrap) {
+        indicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
+        viewerWrap.appendChild(indicator);
       } else {
-        // Fallback to fixed position
-        indicator.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #e0e0e0; cursor: pointer;';
+        indicator.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
         document.body.appendChild(indicator);
       }
     }
