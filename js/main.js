@@ -1509,14 +1509,21 @@ function wireGallery() {
           const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
             method: 'DELETE'
           });
-          if (!result.ok) {
+          if (!result.ok && result.status !== 404) {
             throw new Error(result.error || `HTTP ${result.status}`);
           }
+          // Remove from local state even on 404 (item already gone from DB)
           State.deleteHistoryItem(id, { skipRemote: true });
           renderHistory();
         } catch (err) {
           console.warn('[History] Delete failed:', err?.message || err);
-          showErrorToast('Delete failed. Please try again.');
+          // Still remove locally if server says not found
+          if (err?.message?.includes('404')) {
+            State.deleteHistoryItem(id, { skipRemote: true });
+            renderHistory();
+          } else {
+            showErrorToast('Delete failed. Please try again.');
+          }
         }
         return;
       }
