@@ -1295,16 +1295,50 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       bottomLight.userData.keepAlive = true;
       scene.add(bottomLight);
   
-      placeholderCube = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({ color: 0x88c6ff, roughness: 0.6, metalness: 0.0 })
-      );
-      placeholderCube.position.y = 0; // Sit cube on top of the grid (grid is at -0.5, cube half-height is 0.5)
+      // Placeholder: Rubik's Cube style 3x3x3 grid
+      placeholderCube = new THREE.Group();
       placeholderCube.userData.isPlaceholder = true;
       placeholderCube.userData.keepAlive = true;
-      scene.add(placeholderCube);
 
-      // Expose globally so 3dscript.js can find it
+      const cubeSize = 0.28;
+      const gap = 0.03;
+      const step = cubeSize + gap;
+      const offset = -step; // center the 3x3x3 grid
+
+      const rubikColors = [
+        0xe84040, // red
+        0xf5a623, // orange
+        0x2d8cf0, // blue
+        0x4caf50, // green
+        0xf5df4d, // yellow
+        0xffffff, // white
+      ];
+
+      for (let x = 0; x < 3; x++) {
+        for (let y = 0; y < 3; y++) {
+          for (let z = 0; z < 3; z++) {
+            const geo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+            const materials = [
+              new THREE.MeshStandardMaterial({ color: x === 2 ? rubikColors[0] : 0x111111, roughness: 0.4, metalness: 0.1 }), // +X red
+              new THREE.MeshStandardMaterial({ color: x === 0 ? rubikColors[1] : 0x111111, roughness: 0.4, metalness: 0.1 }), // -X orange
+              new THREE.MeshStandardMaterial({ color: y === 2 ? rubikColors[5] : 0x111111, roughness: 0.4, metalness: 0.1 }), // +Y white
+              new THREE.MeshStandardMaterial({ color: y === 0 ? rubikColors[4] : 0x111111, roughness: 0.4, metalness: 0.1 }), // -Y yellow
+              new THREE.MeshStandardMaterial({ color: z === 2 ? rubikColors[2] : 0x111111, roughness: 0.4, metalness: 0.1 }), // +Z blue
+              new THREE.MeshStandardMaterial({ color: z === 0 ? rubikColors[3] : 0x111111, roughness: 0.4, metalness: 0.1 }), // -Z green
+            ];
+            const mini = new THREE.Mesh(geo, materials);
+            mini.position.set(
+              offset + x * step,
+              offset + y * step,
+              offset + z * step
+            );
+            placeholderCube.add(mini);
+          }
+        }
+      }
+
+      placeholderCube.position.y = 0.1;
+      scene.add(placeholderCube);
       window.placeholderCube = placeholderCube;
   
       if (THREE.OrbitControls) {
