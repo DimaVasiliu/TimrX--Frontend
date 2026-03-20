@@ -84,6 +84,16 @@ body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__name 
   z-index: 0 !important;
 }
 
+/* Also hide status bar + stage on the active thumb so they don't show through the menu */
+body.history-menu-open .expanded-thumb.is-menu-open .expanded-thumb__status-bar,
+body.history-menu-open .expanded-thumb.is-menu-open .expanded-thumb__stage,
+body.history-menu-open .history-thumb.is-menu-open .history-thumb__status-bar,
+body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
    .card-menu {
     position: fixed;
     top: -9999px;
