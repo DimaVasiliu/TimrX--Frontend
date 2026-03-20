@@ -311,6 +311,16 @@ function handleApiError(response, action, reservationId = null) {
     return true;
   }
 
+  // Handle 451/422 prompt safety block/warn
+  if (response.status === 451 || response.status === 422) {
+    const safetyData = response.data?.safety;
+    if (safetyData && safetyData.decision) {
+      log('[Safety]', safetyData.decision, 'for:', action, safetyData.categories);
+      showPromptSafetyModal(safetyData, reservationId);
+      return true;
+    }
+  }
+
   // Handle 429 rate limit / video limit errors — use toast, never alert()
   if (response.status === 429) {
     log('[Quota] 429 Rate limit exceeded for:', action);
@@ -534,6 +544,161 @@ function showInsufficientVideoCreditsModal(required, available) {
   // Focus the CTA button
   document.getElementById('insuffVideoCreditsCtaBtn')?.focus();
 }
+
+
+// ============================================================================
+// PROMPT SAFETY MODAL
+// ============================================================================
+
+/**
+ * Show a safety modal when the backend blocks or warns about a prompt.
+ * @param {object} safety - The safety object from the backend response
+ * @param {string} reservationId - Optional reservation to release
+ */
+function showPromptSafetyModal(safety, reservationId = null) {
+  if (reservationId) {
+    releaseCreditsReservation(reservationId);
+  }
+
+  const isBlock = safety.decision === 'block';
+  const categories = (safety.categories || []).join(', ') || 'content policy';
+
+  // Close helper
+  const closeSafetyModal = () => {
+    const modal = document.getElementById('promptSafetyModal');
+    if (modal) modal.remove();
+    document.removeEventListener('keydown', safetyEscHandler);
+  };
+  window.closePromptSafetyModal = closeSafetyModal;
+
+  // Remove existing
+  const existing = document.getElementById('promptSafetyModal');
+  if (existing) existing.remove();
+
+  // Accent colors
+  const accentColor = isBlock ? '#ef4444' : '#f59e0b';
+  const accentBg = isBlock ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)';
+  const accentBorder = isBlock ? 'rgba(239, 68, 68, 0.25)' : 'rgba(245, 158, 11, 0.25)';
+  const iconClass = isBlock ? 'fa-shield-halved' : 'fa-triangle-exclamation';
+  const title = isBlock ? 'Generation Blocked for Safety' : 'Prompt Needs Adjustment';
+
+  // Penalty notice
+  let penaltyHtml = '';
+  if (safety.credit_penalty > 0) {
+    penaltyHtml = `
+      <div style="margin: 12px 0 0; padding: 10px 14px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px;">
+        <span style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+          <i class="fa-solid fa-coins" style="color: ${accentColor}; margin-right: 6px;"></i>
+          A <strong style="color: #f0f0f0;">${safety.credit_penalty}-credit</strong> penalty has been applied.
+        </span>
+      </div>`;
+  } else if (safety.penalty_notice) {
+    penaltyHtml = `
+      <p style="margin: 12px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.45); font-style: italic;">
+        ${safety.penalty_notice}
+      </p>`;
+  }
+
+  // Strike count badge
+  let strikeHtml = '';
+  if (safety.strike_count_24h > 0) {
+    strikeHtml = `
+      <span style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; font-size: 11px; color: rgba(255,255,255,0.5);">
+        ${safety.strike_count_24h} flagged today
+      </span>`;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'promptSafetyModal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-labelledby', 'promptSafetyTitle');
+  modal.setAttribute('aria-modal', 'true');
+
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 999999; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(1200px 700px at 50% 10%, ${accentBg}, transparent 60%), rgba(0,0,0,0.75);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    margin: 0; padding: 20px;
+  `;
+
+  modal.innerHTML = `
+    <div style="max-width: 480px; width: 100%; text-align: center; padding: 32px; position: relative;
+                background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)), #0f0f0f;
+                border: 1px solid ${accentBorder}; border-radius: 20px;
+                box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);">
+      <button onclick="window.closePromptSafetyModal()" aria-label="Close"
+              style="position: absolute; top: 12px; right: 12px; background: transparent; border: 0;
+                     color: #cfcfcf; font-size: 22px; line-height: 1; cursor: pointer; padding: 6px;
+                     border-radius: 10px;">&times;</button>
+
+      <div style="width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%;
+                  display: flex; align-items: center; justify-content: center;
+                  background: ${accentBg}; border: 1px solid ${accentBorder};">
+        <i class="fa-solid ${iconClass}" style="font-size: 28px; color: ${accentColor};" aria-hidden="true"></i>
+      </div>
+
+      <h4 id="promptSafetyTitle" style="margin: 0 0 6px;
+          font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 26px;
+          letter-spacing: 0.5px; color: #f5f5f5;">
+        ${title}${strikeHtml}
+      </h4>
+
+      <p style="margin: 0 0 16px; color: rgba(255,255,255,0.65); font-size: 13px;">
+        Flagged categories: <strong style="color: ${accentColor};">${categories}</strong>
+      </p>
+
+      <div style="text-align: left; margin: 0 0 16px; padding: 16px;
+                  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+                  border-radius: 12px;">
+        <p style="margin: 0 0 12px; color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.6;">
+          ${safety.message || 'This prompt may violate provider safety rules.'}
+        </p>
+        ${safety.rewrite_hint ? `
+        <div style="padding: 10px 14px; background: rgba(59, 130, 246, 0.06);
+                    border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 10px;">
+          <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">
+            <i class="fa-solid fa-lightbulb" style="color: #3b82f6; margin-right: 6px;"></i>
+            <strong style="color: rgba(255,255,255,0.8);">Suggestion:</strong>
+            ${safety.rewrite_hint}
+          </p>
+        </div>` : ''}
+      </div>
+
+      ${penaltyHtml}
+
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
+        <button onclick="window.closePromptSafetyModal()"
+                style="padding: 14px 28px; background: transparent;
+                       border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.72);
+                       border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;">
+          ${isBlock ? 'Got It' : 'Edit Prompt'}
+        </button>
+      </div>
+
+      <p style="margin: 16px 0 0; font-size: 11px; color: rgba(255,255,255,0.35);">
+        Safety checks protect your account from provider moderation penalties.
+      </p>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeSafetyModal();
+  });
+
+  // ESC key
+  const safetyEscHandler = (e) => {
+    if (e.key === 'Escape') {
+      closeSafetyModal();
+    }
+  };
+  document.addEventListener('keydown', safetyEscHandler);
+}
+
 
 /**
  * Check if API result is a timeout error
