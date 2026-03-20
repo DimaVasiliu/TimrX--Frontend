@@ -79,7 +79,9 @@ body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__rig,
 body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__overlay,
 body.history-menu-open .expanded-thumb:not(.is-menu-open) .expanded-thumb__name {
   visibility: hidden;
+  opacity: 0;
   pointer-events: none;
+  z-index: 0 !important;
 }
 
    .card-menu {
