@@ -247,7 +247,65 @@
     const tokenKey = 'TX_ADMIN_TOKEN';
     function getToken() { return sessionStorage.getItem(tokenKey) || ''; }
     function setToken(v) { sessionStorage.setItem(tokenKey, v || ''); }
-    function headers() { return { 'Content-Type': 'application/json', 'X-Admin-Token': getToken() }; }
+    /**
+     * Cross-service admin contract map:
+     * - Blog API (`API`): `X-Admin-Token` for admin auth and draft CRUD.
+     * - 3D backend (`BACKEND`): TimrX admin session cookie for session verification.
+     */
+    function blogAdminHeaders() { return { 'Content-Type': 'application/json', 'X-Admin-Token': getToken() }; }
+    function headers() { return blogAdminHeaders(); } // Legacy alias used by editor actions
+
+    async function blogAdminFetch(url, options = {}) {
+      const nextOptions = { ...options };
+      nextOptions.headers = { ...blogAdminHeaders(), ...(options.headers || {}) };
+      const r = await fetch(url, nextOptions);
+      if (r.status === 401) {
+        setToken('');
+        showLoginModal('token', 'Invalid token');
+      }
+      return r;
+    }
+
+    async function verifyMeshAdminSession() {
+      try {
+        const sr = await fetch(`${BACKEND}/api/admin/alerts?active_only=true&limit=1`, {
+          credentials: 'include'
+        });
+        if (sr.status === 401) {
+          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
+          return false;
+        }
+        if (sr.status === 403) {
+          showLoginModal('session', 'Your account does not have admin access');
+          return false;
+        }
+        if (!sr.ok) {
+          showLoginModal('session', 'Cannot verify admin session — please try again');
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error('[ADMIN-AUTH] Backend unreachable:', err);
+        showLoginModal('session', 'Cannot reach the backend — please try again later');
+        return false;
+      }
+    }
+
+    async function verifyBlogAdminToken() {
+      if (!getToken()) {
+        showLoginModal('token', '');
+        return false;
+      }
+      const r = await fetch(`${API}/admin/auth`, {
+        headers: blogAdminHeaders()
+      });
+      if (!r.ok) {
+        showLoginModal('token', 'Invalid token');
+        setToken('');
+        return false;
+      }
+      return true;
+    }
 
     // Get slug from URL
     const params = new URLSearchParams(window.location.search);
@@ -289,35 +347,12 @@
     // Auth check: verify admin session on 3D backend, then blog token
     async function ensureAuth() {
       // Step 1: Verify admin session on 3D backend
-      try {
-        const sr = await fetch(BACKEND + '/api/admin/alerts?active_only=true&limit=1', {
-          credentials: 'include'
-        });
-        if (sr.status === 401) {
-          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
-          return false;
-        }
-        if (sr.status === 403) {
-          showLoginModal('session', 'Your account does not have admin access');
-          return false;
-        }
-        if (!sr.ok) {
-          showLoginModal('session', 'Cannot verify admin session — please try again');
-          return false;
-        }
-      } catch(err) {
-        console.error('[ADMIN-AUTH] Backend unreachable:', err);
-        showLoginModal('session', 'Cannot reach the backend — please try again later');
+      if (!(await verifyMeshAdminSession())) {
         return false;
       }
 
       // Step 2: Verify blog API token
-      if (!getToken()) { showLoginModal('token', ''); return false; }
-      const r = await fetch(API + '/admin/auth', {
-        headers: {'Content-Type':'application/json', 'X-Admin-Token': getToken()}
-      });
-      if (!r.ok) { showLoginModal('token', 'Invalid token'); setToken(''); return false; }
-      return true;
+      return verifyBlogAdminToken();
     }
 
     $('#enter').onclick = async () => {
@@ -376,7 +411,7 @@
     // Load post data
     async function loadPost() {
       try {
-        const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`);
+        const r = await blogAdminFetch(`${API}/post/${encodeURIComponent(slug)}`);
         if (!r.ok) throw new Error('Post not found');
         currentPost = await r.json();
 
@@ -486,9 +521,8 @@
 
       setMsg('Saving...', true);
       try {
-        const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {
+        const r = await blogAdminFetch(`${API}/post/${encodeURIComponent(slug)}`, {
           method: 'PATCH',
-          headers: headers(),
           body: JSON.stringify(body)
         });
         if (!r.ok) throw new Error('Save failed');
@@ -501,10 +535,7 @@
     // Publish
     $('#pub').onclick = async () => {
       try {
-        const r = await fetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, {
-          method: 'PATCH',
-          headers: headers()
-        });
+        const r = await blogAdminFetch(`${API}/admin/publish/${encodeURIComponent(slug)}`, { method: 'PATCH' });
         if (!r.ok) throw new Error('Publish failed');
         updateStatusBadge('published');
         setMsg('Published!', true);
@@ -516,10 +547,7 @@
     // Unpublish
     $('#unpub').onclick = async () => {
       try {
-        const r = await fetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, {
-          method: 'PATCH',
-          headers: headers()
-        });
+        const r = await blogAdminFetch(`${API}/admin/unpublish/${encodeURIComponent(slug)}`, { method: 'PATCH' });
         if (!r.ok) throw new Error('Unpublish failed');
         updateStatusBadge('draft');
         setMsg('Unpublished', true);
@@ -532,10 +560,7 @@
     $('#del').onclick = async () => {
       if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
       try {
-        const r = await fetch(`${API}/post/${encodeURIComponent(slug)}`, {
-          method: 'DELETE',
-          headers: headers()
-        });
+        const r = await blogAdminFetch(`${API}/post/${encodeURIComponent(slug)}`, { method: 'DELETE' });
         if (!r.ok) throw new Error('Delete failed');
         location.href = '/admin';
       } catch (err) {

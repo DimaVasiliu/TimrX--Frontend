@@ -167,19 +167,19 @@
   // Tier benefits for UI display (must match backend TIER_PERKS)
   const TIER_BENEFITS = {
     starter: {
-      images: 80,       // 400 credits ÷ 5 per image
+      images: 40,       // 400 credits ÷ 10 per image (OpenAI/Gemini tier)
       models: 20,       // 400 credits ÷ 20 per model
-      perks: ['Up to 80 AI Images', 'Up to 20 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
+      perks: ['Up to 40 AI Images', 'Up to 20 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
     },
     creator: {
-      images: 260,      // 1300 credits ÷ 5 per image
+      images: 130,      // 1300 credits ÷ 10 per image
       models: 65,       // 1300 credits ÷ 20 per model
-      perks: ['Up to 260 AI Images', 'Up to 65 3D Models', 'Priority queue', 'Faster processing'],
+      perks: ['Up to 130 AI Images', 'Up to 65 3D Models', 'Priority queue', 'Faster processing'],
     },
     studio: {
-      images: 640,      // 3200 credits ÷ 5 per image
+      images: 320,      // 3200 credits ÷ 10 per image
       models: 160,      // 3200 credits ÷ 20 per model
-      perks: ['Up to 640 AI Images', 'Up to 160 3D Models', 'Pro priority queue', 'Highest concurrency'],
+      perks: ['Up to 320 AI Images', 'Up to 160 3D Models', 'Pro priority queue', 'Highest concurrency'],
     },
   };
 

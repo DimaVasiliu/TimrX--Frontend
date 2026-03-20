@@ -1996,6 +1996,38 @@ textarea {
   display: none;
 }
 
+/* ===== PREMIUM QUALITY HINT (Nano Banana 4K) ===== */
+.premium-quality-hint {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.06));
+  border-radius: 6px;
+  border-left: 2px solid rgba(139, 92, 246, 0.4);
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(216, 180, 254, 0.8);
+}
+
+.premium-quality-hint:empty {
+  display: none;
+}
+
+.premium-quality-hint i {
+  color: rgba(192, 132, 252, 0.9);
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+/* Subtle glow on credits badge when 4K is selected */
+.gen-credits.premium-glow {
+  color: #c084fc;
+}
+
+.gen-credits.premium-glow i {
+  color: #c084fc;
+  filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.5));
+}
+
 /* ===== DISABLED STATE FOR OPTIONS ===== */
 .timrx-3dprint .card select option:disabled {
   color: rgba(255, 255, 255, 0.3);
@@ -2520,7 +2552,7 @@ textarea {
 
 /* ===== SELECT INPUTS - Cleaner styling ===== */
 .timrx-3dprint .card select {
-  padding: 10px 28px 10px 12px;
+  padding: 10px 34px 10px 12px;
   font-size: 12px;
   font-weight: 500;
   background-color: rgba(255, 255, 255, 0.05);
@@ -2534,6 +2566,18 @@ textarea {
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 10px 6px;
+}
+
+/* Page-size select is a compact square — no arrow, no right padding */
+.timrx-3dprint .card select.page-size-select {
+  background-image: none !important;
+  padding: 0 !important;
+}
+
+/* Image quality select needs extra width for the 4K Ultra label */
+.timrx-3dprint .card #imageQuality {
+  min-width: 170px !important;
+  max-width: 220px !important;
 }
 
 .timrx-3dprint .card select:hover:not(:disabled) {

@@ -4145,7 +4145,16 @@
 
     function getToken(){ return sessionStorage.getItem(tokenKey) || ''; }
     function setToken(v){ sessionStorage.setItem(tokenKey, v || ''); }
-    function headers(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+
+    /**
+     * Cross-service admin contract map:
+     * - Blog API (`API`): `X-Admin-Token` for `/api/admin/*`, draft CRUD, uploads, and AI helper routes.
+     * - 3D backend (`BACKEND`): TimrX admin session cookie for `/api/admin/*`.
+     * - Chat API (`CHAT_API`): `X-Admin-Token` for `/api/admin/usage/*` and `/api/repo/*`.
+     * Public chat routes (`/api/chat`, `/api/chat/stream`, `/api/faq/search`) intentionally stay public.
+     */
+    function blogAdminHeaders(){ return {'Content-Type':'application/json','X-Admin-Token': getToken()}; }
+    function headers(){ return blogAdminHeaders(); } // Legacy alias for blog admin calls
     function chatAdminHeaders(){ return { 'X-Admin-Token': getToken() }; }
 
     function setChatAdminAccess(state, message = '') {
@@ -4253,6 +4262,83 @@
       return r;
     }
 
+    async function verifyMeshAdminSession() {
+      try {
+        const sr = await fetch(`${BACKEND}/api/admin/alerts?active_only=true&limit=1`, {
+          credentials: 'include'
+        });
+        if (sr.status === 401) {
+          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
+          return false;
+        }
+        if (sr.status === 403) {
+          showLoginModal('session', 'Your account does not have admin access');
+          return false;
+        }
+        if (sr.status === 503) {
+          showLoginModal('session', 'Admin authentication is not configured on the server');
+          return false;
+        }
+        if (!sr.ok) {
+          showLoginModal('session', 'Cannot verify admin session — please try again');
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error('[ADMIN-AUTH] Backend unreachable:', err);
+        showLoginModal('session', 'Cannot reach the backend — please try again later');
+        return false;
+      }
+    }
+
+    async function verifyBlogAdminToken() {
+      if (!getToken()) {
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
+        showLoginModal('token', SHARED_ADMIN_TOKEN_PROMPT);
+        return false;
+      }
+
+      const r = await fetch(`${API}/admin/auth`, {
+        headers: blogAdminHeaders()
+      });
+      if (!r.ok) {
+        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
+        showLoginModal('token', 'Invalid admin token');
+        setToken('');
+        return false;
+      }
+      return true;
+    }
+
+    async function blogAdminFetch(url, options = {}) {
+      const nextOptions = { ...options };
+      nextOptions.headers = { ...blogAdminHeaders(), ...(options.headers || {}) };
+      const r = await fetch(url, nextOptions);
+      if (r.status === 401) {
+        setToken('');
+        showLoginModal('token', 'Invalid admin token');
+      }
+      return r;
+    }
+
+    async function meshAdminFetch(url, options = {}) {
+      const nextOptions = { ...options, credentials: 'include' };
+      if (options.headers) {
+        const h = { ...options.headers };
+        delete h['X-Admin-Token'];
+        nextOptions.headers = h;
+      }
+      const r = await fetch(url, nextOptions);
+      if (r.status === 401) {
+        setToken('');
+        showLoginModal('session', 'Session expired — please log in to TimrX again');
+      }
+      if (r.status === 403) {
+        showLoginModal('session', 'Your account does not have admin access');
+      }
+      return r;
+    }
+
     /**
      * AUTH-5: Centralized admin fetch wrapper with 401 detection.
      * - 3D backend (BACKEND) calls: uses session cookie auth, strips X-Admin-Token
@@ -4260,24 +4346,10 @@
      * On 401, clears the stored token and shows login modal.
      */
     async function adminFetch(url, options = {}) {
-      // 3D backend: use session cookie auth, strip admin token header
       if (url.startsWith(BACKEND)) {
-        options.credentials = 'include';
-        if (options.headers) {
-          const h = {...options.headers};
-          delete h['X-Admin-Token'];
-          options.headers = h;
-        }
+        return meshAdminFetch(url, options);
       }
-      const r = await fetch(url, options);
-      if (r.status === 401) {
-        setToken('');
-        showLoginModal('session', 'Session expired — please log in to TimrX again');
-      }
-      if (r.status === 403 && url.startsWith(BACKEND)) {
-        showLoginModal('session', 'Your account does not have admin access');
-      }
-      return r;
+      return blogAdminFetch(url, options);
     }
 
     /**
@@ -4317,45 +4389,12 @@
 
     async function ensureAuth(){
       // Step 1: Verify admin session on 3D backend (session/email auth)
-      try {
-        const sr = await fetch(BACKEND + '/api/admin/alerts?active_only=true&limit=1', {
-          credentials: 'include'
-        });
-        if (sr.status === 401) {
-          showLoginModal('session', 'Please log in to TimrX with your admin email, then return here');
-          return false;
-        }
-        if (sr.status === 403) {
-          showLoginModal('session', 'Your account does not have admin access');
-          return false;
-        }
-        if (sr.status === 503) {
-          showLoginModal('session', 'Admin authentication is not configured on the server');
-          return false;
-        }
-        if (!sr.ok) {
-          showLoginModal('session', 'Cannot verify admin session — please try again');
-          return false;
-        }
-      } catch(err) {
-        console.error('[ADMIN-AUTH] Backend unreachable:', err);
-        showLoginModal('session', 'Cannot reach the backend — please try again later');
+      if (!(await verifyMeshAdminSession())) {
         return false;
       }
 
       // Step 2: Verify blog API token
-      if(!getToken()){
-        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
-        showLoginModal('token', SHARED_ADMIN_TOKEN_PROMPT);
-        return false;
-      }
-      const r = await fetch(API+'/admin/auth', {
-        headers: {'Content-Type':'application/json', 'X-Admin-Token': getToken()}
-      });
-      if(!r.ok){
-        setChatAdminAccess(CHAT_ADMIN_STATE.TOKEN_REQUIRED, SHARED_ADMIN_TOKEN_PROMPT);
-        showLoginModal('token', 'Invalid admin token');
-        setToken('');
+      if (!(await verifyBlogAdminToken())) {
         return false;
       }
 

@@ -161,7 +161,8 @@
           <div class="inline-field">
             <label for="imageAIProvider">Provider</label>
             <select id="imageAIProvider">
-              <option value="openai" selected>OpenAI</option>
+              <option value="nano_banana" selected>Nano Banana</option>
+              <option value="openai">OpenAI</option>
               <option value="google">Google (Imagen)</option>
             </select>
           </div>
@@ -184,22 +185,23 @@
           <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
-              <option value="standard" selected>Standard (10c)</option>
-              <option value="high">2K (15c)</option>
+              <option value="standard" selected>Standard (15c)</option>
+              <option value="high">2K (20c)</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Standard 10c • 2K 15c</span>
+          <span class="field-hint" id="imageQualityHint">Standard 15c · 2K 20c</span>
+          <div class="premium-quality-hint" id="premiumQualityHint"></div>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
 
         <div class="card gen-footer-card">
           <div class="gen-meta">
-            <span class="gen-time" id="imageGenTime">30 sec</span>
+            <span class="gen-time" id="imageGenTime">45 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 15</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="10 credits" data-provider="openai">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="15 credits" data-provider="nano_banana">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -2924,9 +2926,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       function updateImageCreditsDisplay() {
         const snapshot = window.GenerationState.getGenerationSnapshot('image');
         const caps = snapshot.capabilities;
+        const currentQuality = snapshot.settings?.quality || 'standard';
 
         if (imageCreditsDisplay) {
           imageCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${snapshot.credits}`;
+          // Premium glow on credits badge when 4K is selected
+          imageCreditsDisplay.classList.toggle('premium-glow', currentQuality === '4k');
         }
         if (imageGenTime) {
           imageGenTime.textContent = caps?.genTime || '30 sec';
@@ -2934,7 +2939,59 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (generateImageBtn) {
           generateImageBtn.title = `${snapshot.credits} credits`;
           generateImageBtn.dataset.provider = snapshot.provider;
-          generateImageBtn.dataset.baseCredits = snapshot.credits;  // Enable dynamic credits like video
+          generateImageBtn.dataset.baseCredits = snapshot.credits;
+        }
+
+        // Update quality dropdown — rebuild options based on provider capabilities
+        if (caps?.creditsByQuality && imageQuality) {
+          const supportedQualities = caps.qualities || ['standard', 'high'];
+          const currentVal = imageQuality.value;
+          const cbq = caps.creditsByQuality;
+
+          // Update or add Standard option
+          let stdOpt = imageQuality.querySelector('option[value="standard"]');
+          if (!stdOpt) { stdOpt = document.createElement('option'); stdOpt.value = 'standard'; imageQuality.appendChild(stdOpt); }
+          stdOpt.textContent = `Standard (${cbq.standard ?? 10}c)`;
+
+          // Update or add 2K option
+          let highOpt = imageQuality.querySelector('option[value="high"]');
+          if (!highOpt) { highOpt = document.createElement('option'); highOpt.value = 'high'; imageQuality.appendChild(highOpt); }
+          highOpt.textContent = `2K (${cbq.high ?? 15}c)`;
+
+          // 4K option — only for providers that support it (Nano Banana exclusive)
+          let fourKOpt = imageQuality.querySelector('option[value="4k"]');
+          if (supportedQualities.includes('4k')) {
+            if (!fourKOpt) { fourKOpt = document.createElement('option'); fourKOpt.value = '4k'; imageQuality.appendChild(fourKOpt); }
+            fourKOpt.textContent = `\u2728 4K Ultra (${cbq['4k'] ?? 30}c)`;
+          } else {
+            // Remove 4K option if provider doesn't support it
+            if (fourKOpt) fourKOpt.remove();
+            // If user had 4K selected, fall back to high (2K)
+            if (currentVal === '4k') {
+              imageQuality.value = 'high';
+              window.GenerationState.setSetting('image', 'quality', 'high');
+            }
+          }
+
+          // Update hint text
+          const hintEl = document.getElementById('imageQualityHint');
+          if (hintEl) {
+            let hint = `Standard ${cbq.standard ?? 10}c \u00b7 2K ${cbq.high ?? 15}c`;
+            if (supportedQualities.includes('4k')) hint += ` \u00b7 4K ${cbq['4k'] ?? 30}c`;
+            hintEl.textContent = hint;
+          }
+
+          // Premium helper text — only visible for Nano Banana
+          const premiumHint = document.getElementById('premiumQualityHint');
+          if (premiumHint) {
+            if (supportedQualities.includes('4k')) {
+              premiumHint.innerHTML = '<i class="fa-solid fa-gem"></i> 4K Ultra offers the highest detail and best final image quality.';
+              premiumHint.style.display = '';
+            } else {
+              premiumHint.innerHTML = '';
+              premiumHint.style.display = 'none';
+            }
+          }
         }
 
         // Trigger workspace credits update if available
@@ -2951,7 +3008,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       function updateImageProviderOptions(source = 'user') {
         if (!imageAIProvider) return;
 
-        const provider = imageAIProvider.value || 'openai';
+        const provider = imageAIProvider.value || 'nano_banana';
         const previousProvider = window.GenerationState?.getProvider?.('image');
 
         // Log dropdown changes for debugging provider conflicts
@@ -2968,11 +3025,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         if (!success && source === 'user') {
           // Revert dropdown if state change was blocked (e.g., during generation)
-          imageAIProvider.value = previousProvider || 'openai';
+          imageAIProvider.value = previousProvider || 'nano_banana';
           console.warn('[Provider UI] Reverted dropdown - provider change was blocked');
         }
 
-        // Google (Imagen) shows hint that style is via prompt
+        // Provider-specific hints
         const currentProvider = window.GenerationState?.getProvider?.('image') || provider;
         const hint = currentProvider === 'google' ? 'Style is controlled via prompt text.' : '';
         if (imageProviderHint) {

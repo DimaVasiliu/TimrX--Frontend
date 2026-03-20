@@ -2001,17 +2001,23 @@ export async function onGenerateClick() {
   }
 }
 
-// Image credits by quality tier (Standard 10c, 2K 15c, 4K 20c)
-const IMAGE_CREDITS_BY_QUALITY = { standard: 10, high: 15, '4k': 20 };
+// Image credits — provider-specific (reads from GenerationState capabilities)
+// Nano Banana (premium): standard 15c, high 20c, 4k 30c (EXCLUSIVE)
+// OpenAI / Google:       standard 10c, high 15c (no 4K)
 const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k', '4k': 'image_generate_4k' };
 
 /**
- * Get image credits for the current quality setting
- * @param {string} quality - 'standard', 'high', or '4k'
+ * Get image credits for the current quality + provider from GenerationState
+ * @param {string} quality - 'standard' or 'high'
  * @returns {number}
  */
 function getImageCredits(quality = 'standard') {
-  return IMAGE_CREDITS_BY_QUALITY[quality] || 10;
+  const snapshot = window.GenerationState?.getGenerationSnapshot?.('image');
+  if (snapshot?.capabilities?.creditsByQuality) {
+    return snapshot.capabilities.creditsByQuality[quality] ?? snapshot.capabilities.credits ?? 10;
+  }
+  // Fallback: cheapest tier (OpenAI/Gemini)
+  return quality === 'high' ? 15 : 10;
 }
 
 /**
@@ -2061,7 +2067,7 @@ export async function startOpenAIImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 10c, 2K 15c)
+  // Get dynamic credits based on quality + provider
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -2095,7 +2101,7 @@ export async function startOpenAIImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (10c), image_generate_2k (15c)
+  // Canonical action key varies by quality — cost depends on provider
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
@@ -2280,7 +2286,7 @@ export async function startGeminiImageGeneration() {
     quality: stateSettings.quality || 'standard'
   };
 
-  // Get dynamic credits based on quality (Standard 10c, 2K 15c)
+  // Get dynamic credits based on quality + provider
   const imageCredits = getImageCredits(settings.quality);
   const imageActionKey = getImageActionKey(settings.quality);
 
@@ -2314,7 +2320,7 @@ export async function startGeminiImageGeneration() {
   };
 
   // Reserve EXACT credits BEFORE API call (not multiplied by action cost)
-  // Canonical action key varies by quality: image_generate (10c), image_generate_2k (15c)
+  // Canonical action key varies by quality — cost depends on provider
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
@@ -2523,6 +2529,453 @@ export async function startGeminiImageGeneration() {
   }
 }
 
+// Map shape to Nano Banana aspect ratio (same as Google format)
+const NANO_BANANA_SHAPE_MAP = {
+  square: '1:1',
+  portrait: '9:16',
+  landscape: '16:9',
+};
+
+// Map quality to Nano Banana resolution
+const NANO_BANANA_QUALITY_MAP = {
+  standard: '1K',
+  high: '2K'
+};
+
+/**
+ * Start Nano Banana (PiAPI) image generation
+ * IMPORTANT: Provider must be 'nano_banana' in GenerationState before calling this.
+ */
+export async function startNanoBananaImageGeneration() {
+  // Verify provider is actually nano_banana (defensive check)
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'nano_banana') {
+    console.error(`[Nano Banana] BLOCKED: State provider is '${stateProvider}', not 'nano_banana'`);
+    return;
+  }
+
+  console.log('[Image] Nano Banana generation started (provider=nano_banana, state=' + stateProvider + ')');
+
+  if (startLock) return;
+
+  // Check if already generating (job state lock)
+  if (window.ImageJobControl?.isGenerating?.()) {
+    console.warn('[Nano Banana] Generation already in progress');
+    return;
+  }
+
+  // Get settings from State first to determine credit cost
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const settings = {
+    provider: 'nano_banana',
+    shape: stateSettings.shape || 'square',
+    quality: stateSettings.quality || 'standard'
+  };
+
+  // Get dynamic credits based on quality + provider
+  const imageCredits = getImageCredits(settings.quality);
+  const imageActionKey = getImageActionKey(settings.quality);
+
+  // Unified credit check with proper numeric conversion
+  const creditCheck = checkCreditsForGeneration(imageCredits, 'image');
+  if (creditCheck.shouldBlock) {
+    showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
+    return;
+  }
+
+  startLock = true;
+
+  const prog = UI.makeProgressDriver();
+  let promptRaw = (byId('imagePrompt')?.value || '').trim();
+  if (!promptRaw) promptRaw = 'Generated image';
+
+  console.log('[Nano Banana] Using settings from State:', JSON.stringify(settings), 'credits:', imageCredits);
+
+  // Map shape to aspect ratio, quality to resolution
+  const aspectRatio = NANO_BANANA_SHAPE_MAP[settings.shape] || '1:1';
+  const imageSize = NANO_BANANA_QUALITY_MAP[settings.quality] || '1K';
+
+  // Snapshot settings for this job
+  const settingsSnapshot = {
+    prompt: promptRaw,
+    shape: settings.shape,
+    quality: settings.quality,
+    aspectRatio,
+    imageSize,
+    credits: imageCredits
+  };
+
+  // Reserve EXACT credits BEFORE API call
+  prog.label('Reserving credits...');
+  const reservation = reserveExactAmount(imageActionKey, imageCredits);
+  if (reservation.insufficient) {
+    startLock = false;
+    showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
+    return;
+  }
+
+  // Generate idempotency key
+  const idempotencyKey = State.generateIdempotencyKey();
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `nb-temp-${Date.now()}`);
+
+  // Lock UI with provider and settings snapshot
+  if (window.ImageJobControl?.lock) {
+    window.ImageJobControl.lock('nano_banana', settingsSnapshot, tempId, reservation.reservationId);
+  }
+
+  renderHistory();
+
+  const placeholder = {
+    id: tempId,
+    type: 'image',
+    status: 'generating',
+    status_label: 'Generating image with Nano Banana...',
+    created_at: Date.now(),
+    prompt: promptRaw,
+    title: shortTitle(promptRaw),
+    image_url: '',
+    thumbnail_url: '',
+    stage: 'image',
+    provider: 'nano_banana',
+    provider_used: 'nano_banana',
+    idempotency_key: idempotencyKey
+  };
+  State.addHistoryItem(placeholder);
+  State.setHistoryActiveModelId(tempId);
+  renderHistory();
+
+  try {
+    prog.label('Generating image with Nano Banana...');
+
+    const payload = {
+      provider: 'nano_banana',
+      prompt: promptRaw,
+      aspect_ratio: aspectRatio,
+      image_size: imageSize,
+      client_id: tempId
+    };
+    console.log('[GEN] mode=image provider=nano_banana cost=' + imageCredits +
+                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
+
+    // Call unified endpoint with provider=nano_banana and idempotency key
+    const result = await apiFetch('/api/image/generate', {
+      method: 'POST',
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
+
+    if (!result.ok) {
+      // Handle timeout gracefully
+      if (handleGenerationTimeout(result, 'image_generate')) {
+        console.log('[Nano Banana] Timeout - showing inline status and starting poll');
+        State.updateHistoryItem(tempId, {
+          status: 'generating',
+          status_label: 'Still generating... (checking server)'
+        });
+        renderHistory();
+        prog.label('Still generating...');
+
+        watchNanoBananaImageJob(tempId, reservation.reservationId, {
+          prompt: promptRaw,
+          provider_used: 'nano_banana',
+          isTimeoutRecovery: true
+        });
+
+        startLock = false;
+        return;
+      }
+      if (handleApiError(result, 'image_generate', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        renderHistory();
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error(result.error?.message || result.error || `Nano Banana image failed: HTTP ${result.status}`);
+    }
+
+    const data = result.data;
+    const imageId = data.image_id || data.job_id;
+    const imageUrl = data.image_url;
+    const jobStatus = data.status;
+
+    // Handle async response (status: "queued") - start polling
+    if (jobStatus === 'queued' && imageId) {
+      console.log('[Nano Banana] Job queued, starting watcher:', imageId);
+
+      // Update placeholder with real job ID
+      if (imageId !== tempId) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        State.addHistoryItem({
+          id: imageId,
+          type: 'image',
+          status: 'generating',
+          status_label: 'Generating image with Nano Banana...',
+          created_at: Date.now(),
+          prompt: promptRaw,
+          title: shortTitle(promptRaw),
+          image_url: '',
+          thumbnail_url: '',
+          stage: 'image',
+          provider: 'nano_banana',
+          provider_used: 'nano_banana',
+          model: 'nano-banana-2'
+        });
+        State.setHistoryActiveModelId(imageId);
+        renderHistory();
+      }
+
+      const backendReservationId = data.reservation_id || reservation.reservationId;
+
+      if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+        window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'nano_banana_image_queued');
+      }
+
+      State.addActiveJob(imageId);
+      State.savePendingMeta(imageId, {
+        prompt: promptRaw,
+        stage: 'image',
+        type: 'image',
+        provider: 'nano_banana'
+      });
+
+      // Start polling
+      watchNanoBananaImageJob(imageId, backendReservationId, {
+        prompt: promptRaw,
+        provider_used: 'nano_banana'
+      });
+
+      startLock = false;
+      return;
+    }
+
+    // Handle sync response (unlikely for PiAPI but keep for safety)
+    if (!imageUrl) {
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error('No image returned from Nano Banana');
+    }
+
+    const finalItem = {
+      id: imageId || tempId,
+      type: 'image',
+      status: 'finished',
+      status_label: '',
+      created_at: Date.now(),
+      prompt: promptRaw,
+      title: shortTitle(promptRaw),
+      image_url: imageUrl,
+      thumbnail_url: imageUrl,
+      stage: 'image',
+      provider: 'nano_banana',
+      provider_used: 'nano_banana',
+      model: 'nano-banana-2'
+    };
+
+    if (imageId && imageId !== tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.addHistoryItem(finalItem);
+      State.setHistoryActiveModelId(imageId);
+    } else {
+      State.updateHistoryItem(tempId, finalItem);
+    }
+
+    renderHistory();
+    prog.done('Image generated!');
+
+    if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+      window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'nano_banana_image_response');
+    } else if (window.WorkspaceCredits?.syncWithBackend) {
+      window.WorkspaceCredits.syncWithBackend();
+    }
+
+  } catch (err) {
+    console.error('[Nano Banana] Error:', err);
+    prog.fail(err?.message || 'Nano Banana image generation failed');
+    alert(err?.message || 'Nano Banana image generation failed.');
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+  } finally {
+    startLock = false;
+    if (window.ImageJobControl?.unlock) {
+      window.ImageJobControl.unlock();
+    }
+  }
+}
+
+/**
+ * Watch a Nano Banana (PiAPI) image generation job until completion
+ * Polls /api/_mod/image/piapi/status/<job_id> until ready/failed (max 180s)
+ */
+export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
+  if (State.watchers.has(jobId)) return;
+  let aborted = false;
+  const ctl = { abort() { aborted = true; } };
+  State.watchers.set(jobId, ctl);
+
+  const prog = UI.makeProgressDriver();
+  const startTime = Date.now();
+  const estimatedDuration = 45000; // ~45s typical for PiAPI
+  const maxPollingDuration = 180000; // 180s max (PiAPI can be slower)
+  let notFoundCount = 0;
+  const maxNotFoundRetries = meta.isTimeoutRecovery ? 10 : 5;
+
+  const poll = async (delay = 2000) => {
+    if (aborted) return;
+
+    const elapsed = Date.now() - startTime;
+    if (elapsed > maxPollingDuration) {
+      console.log('[Nano Banana] Max polling duration exceeded');
+      prog.fail('Generation timed out. Your credits will be refunded if generation failed.');
+      State.updateHistoryItem(jobId, {
+        status: 'failed',
+        status_label: 'Generation timed out'
+      });
+      renderHistory();
+      if (window.WorkspaceCredits?.syncWithBackend) {
+        window.WorkspaceCredits.syncWithBackend();
+      }
+      if (window.ImageJobControl?.unlock) {
+        window.ImageJobControl.unlock();
+      }
+      State.watchers.delete(jobId);
+      State.removeActiveJob(jobId);
+      return;
+    }
+
+    try {
+      const result = await apiFetch(`/api/_mod/image/piapi/status/${jobId}`);
+
+      if (result.status === 404) {
+        notFoundCount++;
+        console.log(`[Nano Banana] Job not found (attempt ${notFoundCount}/${maxNotFoundRetries})`);
+
+        const pct = Math.min(90, Math.floor(90 * (elapsed / estimatedDuration)));
+        prog.jump(pct);
+        prog.label('Still generating...');
+        updateThumbnailProgress(jobId, pct);
+
+        if (notFoundCount >= maxNotFoundRetries) {
+          console.log('[Nano Banana] Job not found after retries, cleaning up');
+          prog.fail('Generation failed - job not found on server');
+          State.updateHistoryItem(jobId, {
+            status: 'failed',
+            status_label: 'Job not found'
+          });
+          renderHistory();
+          releaseCreditsReservation(reservationId);
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          }
+          if (window.ImageJobControl?.unlock) {
+            window.ImageJobControl.unlock();
+          }
+          State.watchers.delete(jobId);
+          State.removeActiveJob(jobId);
+          return;
+        }
+
+        setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+        return;
+      }
+
+      notFoundCount = 0;
+
+      const st = result.data || {};
+      if (st.message) prog.label(st.message);
+
+      if (st.status !== 'done' && st.status !== 'failed') {
+        const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
+        prog.jump(pct);
+        prog.label('Generating image...');
+        updateThumbnailProgress(jobId, pct);
+      }
+
+      if (st.status === 'done') {
+        let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
+        if (!imageUrl) {
+          throw new Error('Nano Banana did not return an image URL');
+        }
+
+        const historyData = {
+          id: jobId,
+          type: 'image',
+          status: 'finished',
+          status_label: '',
+          created_at: Date.now(),
+          prompt: meta.prompt || '',
+          title: shortTitle(meta.prompt || 'Generated image'),
+          image_url: imageUrl,
+          thumbnail_url: imageUrl,
+          stage: 'image',
+          provider: 'nano_banana',
+          provider_used: meta.provider_used || 'nano_banana',
+          model: st.model || 'nano-banana-2'
+        };
+
+        if (State.historyHasJobId(jobId)) {
+          State.updateHistoryItem(jobId, historyData);
+        } else {
+          State.addHistoryItem(historyData);
+        }
+
+        State.setHistoryActiveModelId(jobId);
+        renderHistory();
+        Viewer.showImageInViewer(imageUrl);
+        prog.done('Image ready.');
+
+        confirmCreditsReservation(reservationId, jobId);
+
+        if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'nano_banana_image_done');
+        } else if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
+
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
+        State.watchers.delete(jobId);
+        State.removeActiveJob(jobId);
+        return;
+      }
+
+      if (st.status === 'failed') {
+        releaseCreditsReservation(reservationId);
+        if (window.WorkspaceCredits?.syncWithBackend) {
+          window.WorkspaceCredits.syncWithBackend();
+        } else {
+          refreshCreditsInBackground();
+        }
+
+        const errorMsg = st.error || 'Image generation failed';
+        prog.fail(errorMsg);
+
+        State.updateHistoryItem(jobId, {
+          status: 'failed',
+          status_label: errorMsg
+        });
+        renderHistory();
+
+        if (window.ImageJobControl?.unlock) {
+          window.ImageJobControl.unlock();
+        }
+        State.watchers.delete(jobId);
+        State.removeActiveJob(jobId);
+        return;
+      }
+
+      // Still processing - continue polling
+      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
+    } catch (err) {
+      console.error('[Nano Banana] Poll error:', err);
+      setTimeout(() => poll(2000), 2000);
+    }
+  };
+
+  poll();
+}
+
 /**
  * Start image generation by selected provider
  * IMPORTANT: Uses GenerationState as the SINGLE source of truth for provider.
@@ -2553,14 +3006,16 @@ export async function startImageGenerationByProvider() {
 
   renderHistory();
 
-  if (provider === 'openai') {
+  if (provider === 'nano_banana') {
+    await startNanoBananaImageGeneration();
+  } else if (provider === 'openai') {
     await startOpenAIImageGeneration();
   } else if (provider === 'google') {
     await startGeminiImageGeneration();
   } else {
     // NO FALLBACK - show error and stop
     console.error(`[Image] Unknown provider: ${provider} - NO FALLBACK`);
-    alert(`Image provider "${provider}" is not available. Please select OpenAI or Google.`);
+    alert(`Image provider "${provider}" is not available. Please select Nano Banana, OpenAI, or Google.`);
   }
 }
 

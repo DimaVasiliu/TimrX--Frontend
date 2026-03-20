@@ -412,9 +412,11 @@ export async function fetchActionCosts() {
  * Default action costs (fallback if API unavailable)
  *
  * CANONICAL ACTION KEYS (use these in new code):
- * - image_generate       (10c) - Standard AI image
- * - image_generate_2k    (15c) - 2K resolution AI image
- * - image_generate_4k    (20c) - 4K resolution AI image
+ * - image_generate          (10c) - OpenAI standard image (1K)
+ * - image_generate_2k       (15c) - OpenAI 2K image
+ * - gemini_image_generate   (10c) - Gemini standard image
+ * - piapi_image_generate    (15c) - Nano Banana standard (premium)
+ * - piapi_image_generate_2k (20c) - Nano Banana 2K (premium)
  * - text_to_3d_generate  (20c) - Text to 3D preview generation
  * - image_to_3d_generate (30c) - Image to 3D conversion
  * - refine               (10c) - Refine/upscale 3D model
@@ -432,9 +434,16 @@ export async function fetchActionCosts() {
 function getDefaultActionCosts() {
   return {
     // === CANONICAL ACTION KEYS ===
-    'image_generate': 10,         // Standard AI image
-    'image_generate_2k': 15,      // 2K resolution
-    'image_generate_4k': 20,      // 4K resolution
+    // Image — OpenAI tier (10c / 15c)
+    'image_generate': 10,
+    'image_generate_2k': 15,
+    // Image — Gemini tier (10c / 15c)
+    'gemini_image_generate': 10,
+    'gemini_image_generate_2k': 15,
+    // Image — Nano Banana premium tier (15c / 20c / 30c)
+    'piapi_image_generate': 15,
+    'piapi_image_generate_2k': 20,
+    'piapi_image_generate_4k': 30,
     'text_to_3d_generate': 20,    // Text to 3D preview
     'image_to_3d_generate': 30,   // Image to 3D
     'refine': 10,                 // Refine 3D model
@@ -450,14 +459,14 @@ function getDefaultActionCosts() {
     // Hyphenated variants
     'text-to-3d': 20,
     'image-to-3d': 30,
-    'text-to-image': 10,
+    'text-to-image': 10,           // -> image_generate (OpenAI tier)
 
     // Old naming
     'preview': 20,                // -> text_to_3d_generate
     'texture': 15,                // -> retexture
     'upscale': 10,                // -> refine
     'video': 75,                  // -> video_generate (minimum)
-    'image_studio_generate': 10,  // -> image_generate
+    'image_studio_generate': 10,  // -> image_generate (OpenAI tier)
 
     // Backend DB action codes (for direct lookups)
     'MESHY_TEXT_TO_3D': 20,
@@ -466,10 +475,11 @@ function getDefaultActionCosts() {
     'MESHY_REFINE': 10,
     'OPENAI_IMAGE': 10,
     'OPENAI_IMAGE_2K': 15,
-    'OPENAI_IMAGE_4K': 20,
     'GEMINI_IMAGE': 10,
     'GEMINI_IMAGE_2K': 15,
-    'GEMINI_IMAGE_4K': 20,
+    'PIAPI_IMAGE': 15,
+    'PIAPI_IMAGE_2K': 20,
+    'PIAPI_IMAGE_4K': 30,
     'VIDEO_GENERATE': 75,         // Minimum video cost
     'VIDEO_TEXT_GENERATE': 75,
     'VIDEO_IMAGE_ANIMATE': 110,
@@ -1388,7 +1398,7 @@ export function updateCreditsUI() {
  * Button to action mapping with associated batch count inputs.
  *
  * CANONICAL ACTION KEYS (use these):
- * - image_generate       (10c) - All 2D image providers
+ * - image_generate       (10c) - OpenAI/Gemini; piapi_image_generate (15c) - Nano Banana
  * - text_to_3d_generate  (20c) - Text to 3D preview
  * - image_to_3d_generate (30c) - Image to 3D
  * - refine               (10c) - Refine 3D model

@@ -650,35 +650,45 @@ export const historyState = {
 // ============================================================================
 export const PROVIDER_CAPABILITIES = {
   image: {
-    openai: {
-      name: 'OpenAI',
+    nano_banana: {
+      name: 'Nano Banana',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10, // Default (standard), actual credits determined by creditsByQuality
-      creditsByQuality: { standard: 10, high: 15, '4k': 20 },
-      genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
-      genTime: '30 sec', // Default for standard
-      // Shape controls layout (aspect ratio), Quality controls detail level + resolution
-      // gpt-image-1 sizes: 1024x1024 (square), 1024x1536 (portrait), 1536x1024 (landscape)
+      credits: 15,  // PREMIUM provider
+      creditsByQuality: { standard: 15, high: 20, '4k': 30 },
+      genTimeByQuality: { standard: '45 sec', high: '60 sec', '4k': '90 sec' },
+      genTime: '45 sec',
+      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
+      qualityMap: { standard: '1K', high: '2K', '4k': '4K' }
+    },
+    openai: {
+      name: 'OpenAI',
+      shapes: ['square', 'portrait', 'landscape'],
+      qualities: ['standard', 'high'],
+      defaultShape: 'square',
+      defaultQuality: 'standard',
+      credits: 10,
+      creditsByQuality: { standard: 10, high: 15 },
+      genTimeByQuality: { standard: '30 sec', high: '45 sec' },
+      genTime: '30 sec',
       shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
-      qualityMap: { standard: 'standard', high: 'hd', '4k': 'hd' }, // 4K uses HD quality
-      sizeMap: { standard: '1024x1024', high: '1792x1024', '4k': '2048x2048' }
+      qualityMap: { standard: 'standard', high: 'hd' },
+      sizeMap: { standard: '1024x1024', high: '1792x1024' }
     },
     google: {
       name: 'Google (Imagen)',
       shapes: ['square', 'portrait', 'landscape'],
-      qualities: ['standard', 'high', '4k'],
+      qualities: ['standard', 'high'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10, // Default (standard), actual credits determined by creditsByQuality
-      creditsByQuality: { standard: 10, high: 15, '4k': 20 },
-      genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '60 sec' },
-      genTime: '30 sec', // Default for standard
-      // Shape controls layout (aspect ratio), Quality controls imageSize
+      credits: 10,
+      creditsByQuality: { standard: 10, high: 15 },
+      genTimeByQuality: { standard: '30 sec', high: '45 sec' },
+      genTime: '30 sec',
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
-      qualityMap: { standard: '1K', high: '2K', '4k': '4K' }
+      qualityMap: { standard: '1K', high: '2K' }
     }
   },
   video: {
@@ -719,7 +729,7 @@ export const generation = {
 
   // Provider (per mode)
   provider: {
-    image: 'openai',
+    image: 'nano_banana',
     video: 'google',
     model: 'meshy'
   },
@@ -773,7 +783,7 @@ export function getProviderCapabilities(mode, provider) {
  * @returns {string}
  */
 export function getProvider(mode) {
-  return generation.provider[mode] || 'openai';
+  return generation.provider[mode] || 'nano_banana';
 }
 
 // Track who is allowed to change providers
@@ -943,9 +953,9 @@ export function getGenerationSnapshot(mode) {
   let genTime = caps?.genTime || '30 sec';
 
   if (mode === 'image' && caps) {
-    // Image: tiered pricing by quality (Standard 5c, High/2K 7c, 4K 10c)
+    // Image: provider-specific pricing (OpenAI/Gemini: 10/15, Nano Banana: 15/20)
     const quality = settings.quality || 'standard';
-    credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 5;
+    credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 10;
     genTime = caps.genTimeByQuality?.[quality] ?? caps.genTime ?? '30 sec';
   } else if (mode === 'video' && caps) {
     // Video: pricing by duration and quality multiplier
