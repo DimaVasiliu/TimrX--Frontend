@@ -575,26 +575,26 @@ function showPromptSafetyModal(safety, reservationId = null) {
   const existing = document.getElementById('promptSafetyModal');
   if (existing) existing.remove();
 
-  // Accent colors
-  const accentColor = isBlock ? '#ef4444' : '#f59e0b';
-  const accentBg = isBlock ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)';
-  const accentBorder = isBlock ? 'rgba(239, 68, 68, 0.25)' : 'rgba(245, 158, 11, 0.25)';
+  // Muted accent — dark-red tint that blends with the page's dark theme
+  // Block: muted rose/red.  Warn: muted warm amber.  Both very subdued.
+  const accentColor = isBlock ? '#c47070' : '#c9a35a';
   const iconClass = isBlock ? 'fa-shield-halved' : 'fa-triangle-exclamation';
-  const title = isBlock ? 'Generation Blocked for Safety' : 'Prompt Needs Adjustment';
+  const title = isBlock ? 'Generation Blocked' : 'Prompt Needs Adjustment';
 
   // Penalty notice
   let penaltyHtml = '';
   if (safety.credit_penalty > 0) {
     penaltyHtml = `
-      <div style="margin: 12px 0 0; padding: 10px 14px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px;">
-        <span style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+      <div style="margin: 14px 0 0; padding: 10px 14px; background: rgba(255,255,255,0.025);
+                  border: 1px solid rgba(255,255,255,0.07); border-radius: 10px;">
+        <span style="font-size: 13px; color: rgba(255, 255, 255, 0.6);">
           <i class="fa-solid fa-coins" style="color: ${accentColor}; margin-right: 6px;"></i>
-          A <strong style="color: #f0f0f0;">${safety.credit_penalty}-credit</strong> penalty has been applied.
+          A <strong style="color: rgba(255,255,255,0.85);">${safety.credit_penalty}-credit</strong> penalty has been applied.
         </span>
       </div>`;
   } else if (safety.penalty_notice) {
     penaltyHtml = `
-      <p style="margin: 12px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.45); font-style: italic;">
+      <p style="margin: 14px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.35); font-style: italic;">
         ${safety.penalty_notice}
       </p>`;
   }
@@ -603,7 +603,11 @@ function showPromptSafetyModal(safety, reservationId = null) {
   let strikeHtml = '';
   if (safety.strike_count_24h > 0) {
     strikeHtml = `
-      <span style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; font-size: 11px; color: rgba(255,255,255,0.5);">
+      <span style="display: inline-block; margin-left: 10px; padding: 2px 10px;
+                   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+                   border-radius: 20px; font-size: 10px; color: rgba(255,255,255,0.4);
+                   font-family: Inter, system-ui, sans-serif; font-weight: 500;
+                   letter-spacing: 0.02em; text-transform: none; vertical-align: middle;">
         ${safety.strike_count_24h} flagged today
       </span>`;
   }
@@ -617,50 +621,54 @@ function showPromptSafetyModal(safety, reservationId = null) {
   modal.style.cssText = `
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: 999999; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(1200px 700px at 50% 10%, ${accentBg}, transparent 60%), rgba(0,0,0,0.75);
-    backdrop-filter: blur(10px) saturate(120%);
-    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     margin: 0; padding: 20px;
   `;
 
   modal.innerHTML = `
-    <div style="max-width: 480px; width: 100%; text-align: center; padding: 32px; position: relative;
-                background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)), #0f0f0f;
-                border: 1px solid ${accentBorder}; border-radius: 20px;
-                box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);">
-      <button onclick="window.closePromptSafetyModal()" aria-label="Close"
-              style="position: absolute; top: 12px; right: 12px; background: transparent; border: 0;
-                     color: #cfcfcf; font-size: 22px; line-height: 1; cursor: pointer; padding: 6px;
-                     border-radius: 10px;">&times;</button>
+    <div style="max-width: 460px; width: 100%; text-align: center; padding: 28px 32px; position: relative;
+                background: linear-gradient(135deg, #1a1a1a 0%, #151515 100%);
+                border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+                box-shadow: 0 24px 60px rgba(0,0,0,0.6);">
 
-      <div style="width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%;
+      <button onclick="window.closePromptSafetyModal()" aria-label="Close"
+              style="position: absolute; top: 14px; right: 14px; width: 32px; height: 32px;
+                     display: grid; place-items: center; background: rgba(0,0,0,0.3);
+                     border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+                     color: #999; font-size: 16px; line-height: 1; cursor: pointer;
+                     transition: all 0.15s ease;"
+              onmouseenter="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.18)';this.style.color='#fff'"
+              onmouseleave="this.style.background='rgba(0,0,0,0.3)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#999'">&times;</button>
+
+      <div style="width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%;
                   display: flex; align-items: center; justify-content: center;
-                  background: ${accentBg}; border: 1px solid ${accentBorder};">
-        <i class="fa-solid ${iconClass}" style="font-size: 28px; color: ${accentColor};" aria-hidden="true"></i>
+                  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+        <i class="fa-solid ${iconClass}" style="font-size: 22px; color: ${accentColor};" aria-hidden="true"></i>
       </div>
 
       <h4 id="promptSafetyTitle" style="margin: 0 0 6px;
-          font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 26px;
-          letter-spacing: 0.5px; color: #f5f5f5;">
+          font-size: 20px; font-weight: 900; letter-spacing: -0.01em; color: #fff;">
         ${title}${strikeHtml}
       </h4>
 
-      <p style="margin: 0 0 16px; color: rgba(255,255,255,0.65); font-size: 13px;">
-        Flagged categories: <strong style="color: ${accentColor};">${categories}</strong>
+      <p style="margin: 0 0 18px; color: rgba(255,255,255,0.45); font-size: 12px; letter-spacing: 0.01em;">
+        Flagged: <span style="color: ${accentColor}; font-weight: 600;">${categories}</span>
       </p>
 
       <div style="text-align: left; margin: 0 0 16px; padding: 16px;
-                  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+                  background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);
                   border-radius: 12px;">
-        <p style="margin: 0 0 12px; color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.6;">
+        <p style="margin: 0 0 ${safety.rewrite_hint ? '12px' : '0'}; color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.65;">
           ${safety.message || 'This prompt may violate provider safety rules.'}
         </p>
         ${safety.rewrite_hint ? `
-        <div style="padding: 10px 14px; background: rgba(59, 130, 246, 0.06);
-                    border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 10px;">
-          <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">
-            <i class="fa-solid fa-lightbulb" style="color: #3b82f6; margin-right: 6px;"></i>
-            <strong style="color: rgba(255,255,255,0.8);">Suggestion:</strong>
+        <div style="padding: 10px 14px; background: rgba(255,255,255,0.025);
+                    border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;">
+          <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.55;">
+            <i class="fa-regular fa-lightbulb" style="color: rgba(255,255,255,0.3); margin-right: 6px;"></i>
+            <strong style="color: rgba(255,255,255,0.65);">Tip:</strong>
             ${safety.rewrite_hint}
           </p>
         </div>` : ''}
@@ -670,14 +678,17 @@ function showPromptSafetyModal(safety, reservationId = null) {
 
       <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
         <button onclick="window.closePromptSafetyModal()"
-                style="padding: 14px 28px; background: transparent;
-                       border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.72);
-                       border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                style="padding: 12px 28px; background: rgba(255,255,255,0.04);
+                       border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7);
+                       border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+                       transition: all 0.15s ease;"
+                onmouseenter="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'"
+                onmouseleave="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.7)'">
           ${isBlock ? 'Got It' : 'Edit Prompt'}
         </button>
       </div>
 
-      <p style="margin: 16px 0 0; font-size: 11px; color: rgba(255,255,255,0.35);">
+      <p style="margin: 14px 0 0; font-size: 10px; color: rgba(255,255,255,0.25);">
         Safety checks protect your account from provider moderation penalties.
       </p>
     </div>
