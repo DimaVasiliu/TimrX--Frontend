@@ -240,9 +240,10 @@ export async function loadGlbFromUrl(url) {
             // Ground on grid (grid y = -0.5)
             const box = getVisualBounds(currentModel);
             const center = box.getCenter(new THREE.Vector3());
-            currentModel.position.x += -center.x;
-            currentModel.position.z += -center.z;
-            currentModel.position.y += -box.min.y - 0.5;
+            currentModel.position.set(0, 0, 0);
+            currentModel.position.x = -center.x;
+            currentModel.position.z = -center.z;
+            currentModel.position.y = -box.min.y - 0.5;
 
             if (demoCube) demoCube.visible = false;
 
