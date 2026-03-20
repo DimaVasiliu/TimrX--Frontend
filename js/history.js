@@ -164,6 +164,7 @@ function getLineageKey(item = {}) {
 function groupByLineage(items = []) {
   const lineages = new Map();
   const fingerprintCounts = new Map();
+  let fallbackCount = 0;
 
   items.forEach(item => {
     const fp = itemPromptFingerprint(item);
@@ -171,16 +172,19 @@ function groupByLineage(items = []) {
     fingerprintCounts.set(fp, (fingerprintCounts.get(fp) || 0) + 1);
   });
 
+  // Stage prefixes to strip from group titles
+  const _stagePrefixes = /^(rig|remesh|texture|refine|animate|animation)\s+/i;
+
   items.forEach(item => {
     if (!item) return;
-    // Prefer explicit lineage_origin_id (set by backend for related stages).
-    // Only fall back to prompt fingerprint cohort for items with no lineage key.
     const lineageKey = getLineageKey(item);
-    const hasExplicitLineage = item.lineage_origin_id && lineageKey;
+    const hasExplicitLineage = !!item.lineage_origin_id;
     const fingerprint = itemPromptFingerprint(item);
     const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 2;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
     const rootKey = (hasExplicitLineage ? lineageKey : '') || promptKey || lineageKey || String(item.id || '');
+
+    if (!hasExplicitLineage && !promptKey) fallbackCount++;
 
     if (!lineages.has(rootKey)) {
       lineages.set(rootKey, {
@@ -195,15 +199,27 @@ function groupByLineage(items = []) {
     const lineage = lineages.get(rootKey);
     lineage.models.push(item);
 
-    if (item.created_at) {
-      const lineageTime = lineage.created_at ? new Date(lineage.created_at).getTime() : Infinity;
-      const itemTime = new Date(item.created_at).getTime();
-      if (itemTime < lineageTime) {
-        lineage.created_at = item.created_at;
-        lineage.title = shortTitle(item);
+    // Pick group title from the oldest item, preferring base stages over derived
+    const stage = (item.stage || '').toLowerCase();
+    const isBase = !stage || stage === 'preview' || stage === 'image3d';
+    const lineageTime = lineage.created_at ? new Date(lineage.created_at).getTime() : Infinity;
+    const itemTime = item.created_at ? new Date(item.created_at).getTime() : Infinity;
+
+    if (isBase || itemTime < lineageTime) {
+      lineage.created_at = item.created_at || lineage.created_at;
+      // Use clean title: strip stage prefixes like "Rig ", "Remesh " from group heading
+      let title = shortTitle(item);
+      title = title.replace(_stagePrefixes, '').trim() || title;
+      // Only update title if this is a base item or if current title looks derived
+      if (isBase || lineage.title.match(_stagePrefixes)) {
+        lineage.title = title;
       }
     }
   });
+
+  if (fallbackCount > 0) {
+    console.log(`[HISTORY_GROUP] ${fallbackCount} items used fallback grouping (no lineage_origin_id)`);
+  }
 
   return Array.from(lineages.values());
 }
@@ -999,6 +1015,17 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   `;
 }
 
+function _getItemAssetType(item) {
+  if (!item) return 'model';
+  const stage = (item.stage || '').toLowerCase();
+  const action = (item.action || (item.payload && item.payload.action) || '').toLowerCase();
+  if (item.type === 'video' || item.video_url) return 'video';
+  if (item.type === 'image' || (!item.glb_url && item.image_url)) return 'image';
+  if (stage === 'animate' || stage === 'animation' || action.includes('animat')) return 'animated';
+  if (stage === 'rig' || action.includes('rig')) return 'animated';
+  return 'model';
+}
+
 function buildExpandedHistoryGallery(lineages = []) {
   if (!lineages.length) return '';
 
@@ -1012,22 +1039,35 @@ function buildExpandedHistoryGallery(lineages = []) {
     const bundles = buildLineageBundles(models);
 
     bundles.forEach((b, bundleIndex) => {
-      const delay = globalIndex * 0.04;
+      const delay = globalIndex * 0.03;
       globalIndex++;
+      const displayModel = b.models[0] || {};
+      const assetType = _getItemAssetType(displayModel);
       const thumbHtml = buildHistoryThumb(b, true);
       const isGroupStart = groupIndex > 0 && bundleIndex === 0;
       const groupClass = isGroupStart ? ' expanded-thumb--group-start' : '';
       contentParts.push(
         thumbHtml.replace(
           /class="expanded-thumb/,
-          `style="animation-delay: ${delay}s" class="expanded-thumb${groupClass}`
+          `style="animation-delay: ${delay}s" data-asset-type="${assetType}" class="expanded-thumb${groupClass}`
         )
       );
     });
   });
 
+  const filterBar = `
+    <div class="expanded-filter-bar">
+      <button type="button" class="expanded-filter-btn active" data-gallery-filter="all">All</button>
+      <button type="button" class="expanded-filter-btn" data-gallery-filter="model">Models</button>
+      <button type="button" class="expanded-filter-btn" data-gallery-filter="image">Images</button>
+      <button type="button" class="expanded-filter-btn" data-gallery-filter="animated">Animated</button>
+      <button type="button" class="expanded-filter-btn" data-gallery-filter="video">Videos</button>
+    </div>
+  `;
+
   return `
     <div class="expanded-section" data-lineage-root="gallery-view">
+      ${filterBar}
       <div class="expanded-thumbs-grid">
         ${contentParts.join('')}
       </div>

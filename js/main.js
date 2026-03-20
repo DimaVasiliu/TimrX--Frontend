@@ -59,7 +59,10 @@ function setMobileWorkspaceTab(target = 'controls') {
 // HISTORY FILTER SWITCHING
 // ============================================================================
 
+let _suppressHistoryFilterReset = false;
+
 function switchHistoryFilter(filter = 'all') {
+  if (_suppressHistoryFilterReset) return;
   // Only reset page if filter actually changed
   if (State.historyState.filter !== filter) {
     // Collapse expanded gallery when switching away from 'all'
@@ -1086,6 +1089,25 @@ function wireGallery() {
         return;
       }
 
+      // Gallery expanded view filter
+      const galleryFilterBtn = e.target.closest('[data-gallery-filter]');
+      if (galleryFilterBtn) {
+        const filterType = galleryFilterBtn.getAttribute('data-gallery-filter');
+        const bar = galleryFilterBtn.closest('.expanded-filter-bar');
+        if (bar) bar.querySelectorAll('.expanded-filter-btn').forEach(b => b.classList.toggle('active', b === galleryFilterBtn));
+        const thumbsGrid = grid.querySelector('.expanded-thumbs-grid');
+        if (thumbsGrid) {
+          thumbsGrid.querySelectorAll('.expanded-thumb').forEach(thumb => {
+            if (filterType === 'all') {
+              thumb.style.display = '';
+            } else {
+              thumb.style.display = thumb.getAttribute('data-asset-type') === filterType ? '' : 'none';
+            }
+          });
+        }
+        return;
+      }
+
       // Menu toggle
       const menuBtn = e.target.closest('[data-history-menu]');
       if (menuBtn) {
@@ -1145,8 +1167,10 @@ function wireGallery() {
           if (videoUrl) {
             State.setHistoryActiveModelId(id);
             renderHistory();
+            _suppressHistoryFilterReset = true;
             const videoRailBtn = document.querySelector('[data-panel="video"]');
             if (videoRailBtn) videoRailBtn.click();
+            _suppressHistoryFilterReset = false;
             Viewer.showVideoInViewer(videoUrl, {
               title: shortTitle(item) || 'Video Preview',
               hint: item.prompt || 'Generated video',
@@ -1162,8 +1186,10 @@ function wireGallery() {
             renderHistory();
             const imgSrc = item.image_url || item.thumbnail_url || '';
           if (imgSrc) {
+            _suppressHistoryFilterReset = true;
             const imageRailBtn = document.querySelector('[data-panel="image"]');
             if (imageRailBtn) imageRailBtn.click();
+            _suppressHistoryFilterReset = false;
             Viewer.showImageInViewer(imgSrc);
           }
           return;
@@ -1171,8 +1197,10 @@ function wireGallery() {
 
         if (!glbUrl) return;
 
+        _suppressHistoryFilterReset = true;
         const modelRailBtn = document.querySelector('[data-panel="model"]');
         if (modelRailBtn) modelRailBtn.click();
+        _suppressHistoryFilterReset = false;
 
         const genHintEl = byId('genHint');
         if (genHintEl) genHintEl.textContent = 'Loading model...';
@@ -1262,12 +1290,13 @@ function wireGallery() {
         // Collapse expanded gallery first (viewer is hidden in expanded mode)
         if (State.historyState.galleryExpanded) {
           State.historyState.galleryExpanded = false;
-          State.historyState.page = 1;
         }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (videoUrl) {
+          _suppressHistoryFilterReset = true;
           const videoRailBtn = document.querySelector('[data-panel="video"]');
           if (videoRailBtn) videoRailBtn.click();
+          _suppressHistoryFilterReset = false;
           // Show video in the viewer panel
           Viewer.showVideoInViewer(videoUrl, {
             title: shortTitle(item) || 'Video Preview',
