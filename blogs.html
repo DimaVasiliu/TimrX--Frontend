@@ -436,21 +436,18 @@
     </div>
   </footer>
   <!-- Minimal page logic (inline to keep page self-contained) -->
+  <script src="js/env-config.js"></script>
   <script>
     const qs = s => document.querySelector(s);
     const qsa = s => Array.from(document.querySelectorAll(s));
 
-    // Dev mode detection
-    const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || new URLSearchParams(window.location.search).has('dev');
-
-    // API base resolution: localStorage override only allowed in dev mode
-    const API_BASE = (IS_DEV && localStorage.getItem('BLOGS_API_BASE'))
-      ? localStorage.getItem('BLOGS_API_BASE').replace(/\/$/, '')
-      : window.location.origin.replace(/\/$/, '');
+    const TIMRX_ENV = window.TIMRX_ENV || {};
+    const IS_DEV = TIMRX_ENV.allowLocalOverrides === true;
+    const API_BASE = (TIMRX_ENV.blogApiBase || window.location.origin).replace(/\/$/, '');
     const API = API_BASE + '/api';
 
     // Debug logging
-    console.info('API_BASE', API_BASE, 'API', API);
+    console.info('[Blogs env]', TIMRX_ENV.mode || 'production', 'API_BASE', API_BASE, 'API', API);
 
     // Manual cache-bust: ?fresh=1 clears cache
     if (new URLSearchParams(window.location.search).has('fresh')) {

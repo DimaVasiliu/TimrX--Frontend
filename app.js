@@ -1,34 +1,8 @@
-/* ========= TimrX Chat API helper (fixed) ========= */
-
-/** 1) Deployed + local URLs */
-const TIMRX_API_RENDER = 'https://chat.timrx.live';
-const TIMRX_API_LOCAL  = 'http://localhost:8000'; // if you run locally
-
-/** 2) Pick the best available API automatically */
-let TIMRX_API_BASE = TIMRX_API_RENDER;
-
-async function pingApi(url, path = '/api/health', ms = 1200) { // <-- fixed path
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    const r = await fetch(url + path, { signal: ctrl.signal, cache: 'no-store' });
-    clearTimeout(t);
-    return r.ok;
-  } catch { return false; }
-}
-
-(async () => {
-  const host = location.hostname;
-  const localHost = host === 'localhost' || host === '127.0.0.1';
-  if (localHost && await pingApi(TIMRX_API_LOCAL)) {
-    TIMRX_API_BASE = TIMRX_API_LOCAL;
-  } else if (await pingApi(TIMRX_API_RENDER)) {
-    TIMRX_API_BASE = TIMRX_API_RENDER;
-  }
-  // publish the chosen base so FAQ + other code can use it
-  window.TIMRX_API_BASE = TIMRX_API_BASE; // <-- make it global
-  console.log('TimrX API →', TIMRX_API_BASE);
-})();
+/* ========= TimrX Chat API helper ========= */
+const TIMRX_ENV = window.TIMRX_ENV || {};
+const TIMRX_API_BASE = TIMRX_ENV.chatApiBase || window.TIMRX_API_BASE || 'https://chat.timrx.live';
+window.TIMRX_API_BASE = TIMRX_API_BASE;
+console.log('TimrX API →', TIMRX_API_BASE, `(env: ${TIMRX_ENV.mode || 'production'})`);
 
 /** 3) Local “house style” fallback (no API) */
 const TIMRX_FAQ_LOCAL = [

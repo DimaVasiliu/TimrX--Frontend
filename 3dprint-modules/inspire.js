@@ -554,6 +554,7 @@
                alt="${prompt}"
                loading="lazy"
                decoding="async"
+               onload="(function(img){var c=img.closest('.inspire-card');if(!c)return;var r=img.naturalWidth/img.naturalHeight;var a=r>1.3?'landscape':r<0.77?'portrait':'square';c.classList.remove('landscape','portrait','square');c.classList.add(a)})(this)"
                onerror="this.closest('.inspire-card').style.display='none'"/>
           ${videoLayer}
           ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}

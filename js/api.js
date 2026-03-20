@@ -2037,6 +2037,12 @@ const OPENAI_SHAPE_MAP = {
   landscape: '1536x1024',   // 3:2 (landscape)
 };
 
+// Map quality to OpenAI image_size tier (for pricing — OpenAI API uses pixel sizes, not 1K/2K)
+const OPENAI_QUALITY_MAP = {
+  standard: '1K',
+  high: '2K'
+};
+
 /**
  * Start OpenAI image generation
  * IMPORTANT: Provider must be 'openai' in GenerationState before calling this.
@@ -2086,8 +2092,9 @@ export async function startOpenAIImageGeneration() {
 
   console.log('[OpenAI Image] Using settings from State:', JSON.stringify(settings), 'credits:', imageCredits);
 
-  // Map shape to OpenAI resolution
+  // Map shape to OpenAI resolution, quality to image_size tier (for pricing)
   const resolution = OPENAI_SHAPE_MAP[settings.shape] || '1024x1024';
+  const imageSize = OPENAI_QUALITY_MAP[settings.quality] || '1K';
   const model = 'gpt-image-1';
 
   // Snapshot settings for this job
@@ -2149,6 +2156,7 @@ export async function startOpenAIImageGeneration() {
     const payload = {
       prompt: promptRaw,
       size: resolution,
+      image_size: imageSize,
       model,
       client_id: tempId
     };
@@ -2536,10 +2544,11 @@ const NANO_BANANA_SHAPE_MAP = {
   landscape: '16:9',
 };
 
-// Map quality to Nano Banana resolution
+// Map quality to Nano Banana resolution (4K is exclusive to Nano Banana)
 const NANO_BANANA_QUALITY_MAP = {
   standard: '1K',
-  high: '2K'
+  high: '2K',
+  '4k': '4K'
 };
 
 /**

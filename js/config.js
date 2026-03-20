@@ -6,13 +6,15 @@
 // ============================================================================
 // API ENDPOINTS
 // ============================================================================
-// Always use the custom domain for proper cookie handling
-export const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
-export const CHAT_API = window.TIMRX_API_BASE || 'https://chat.timrx.live';
+const TIMRX_ENV = window.TIMRX_ENV || {};
+export const FRONTEND_ENV = TIMRX_ENV.mode || 'production';
+export const BLOG_API_BASE = TIMRX_ENV.blogApiBase || window.TIMRX_BLOGS_API_BASE || window.location.origin.replace(/\/$/, '');
+export const BACKEND = TIMRX_ENV.threedApiBase || window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+export const CHAT_API = TIMRX_ENV.chatApiBase || window.TIMRX_API_BASE || 'https://chat.timrx.live';
 
-// Debug: log API base and hostname at startup
-console.log('[Config] BACKEND:', BACKEND, 'hostname:', window.location.hostname);
-console.log('[Config] Cross-origin API?', new URL(BACKEND).hostname !== window.location.hostname);
+// Debug: log resolved environment at startup
+console.log('[Config] env:', FRONTEND_ENV, 'blog:', BLOG_API_BASE, '3d:', BACKEND, 'chat:', CHAT_API);
+console.log('[Config] Cross-origin 3D API?', new URL(BACKEND).hostname !== window.location.hostname);
 
 // ============================================================================
 // STORAGE KEYS

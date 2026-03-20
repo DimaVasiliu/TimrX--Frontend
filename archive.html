@@ -833,8 +833,10 @@
     </div>
   </footer>
 
+  <script src="js/env-config.js"></script>
   <script>
-    const API_BASE = (localStorage.getItem('BLOGS_API_BASE') || window.location.origin).replace(/\/$/, '');
+    const TIMRX_ENV = window.TIMRX_ENV || {};
+    const API_BASE = (TIMRX_ENV.blogApiBase || window.location.origin).replace(/\/$/, '');
     const API = API_BASE + '/api';
     const PER_PAGE = 36;
 
