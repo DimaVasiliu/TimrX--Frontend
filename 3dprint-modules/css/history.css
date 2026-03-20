@@ -2300,27 +2300,19 @@
      ║  UPLOAD MODAL – TimrX Custom Overlay                              ║
      ╚════════════════════════════════════════════════════════════════════╝ */
   
-  /* Root overlay – sits on top of the generic .modal system */
+  /* Root overlay — workspace-matched dark overlay */
   #uploadModal {
     position: fixed;
     inset: 0;
-    display: none !important;           /* Hidden by default – toggled via .open */
+    display: none !important;
     place-items: center;
     z-index: 99999 !important;
-  
-    background:
-      radial-gradient(
-        1200px 700px at 50% 10%,
-        rgba(255, 255, 255, 0.06),
-        transparent 60%
-      ),
-      rgba(0, 0, 0, 0.62);
-    -webkit-backdrop-filter: blur(10px) saturate(120%);
-    backdrop-filter: blur(10px) saturate(120%);
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     pointer-events: none;
   }
   
-  /* Open state – click-through enabled, grid centering active */
   #uploadModal.open {
     display: grid !important;
     pointer-events: auto !important;
@@ -2328,140 +2320,186 @@
     opacity: 1 !important;
   }
   
-  /* Modal shell for the upload dialog only */
+  /* Modal shell — matches workspace .card styling */
   #uploadModal .modal-content {
     position: relative;
-    width: min(640px, 92vw);
+    width: min(440px, 90vw);
     max-height: 86vh;
     overflow: auto;
-  
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.08),
-        rgba(0, 0, 0, 0)
-      ),
-      #0f0f0f;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 20px;
-    padding: 22px;
-  
-    box-shadow:
-      0 24px 80px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  
-    animation: modalPop 0.22s ease-out;
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.97) 0%, rgba(18, 18, 20, 0.97) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    animation: modalPop 0.2s ease-out;
     outline: none;
   }
   
-  /* Pop-in animation when opening */
   @keyframes modalPop {
-    from {
-      transform: translateY(8px) scale(0.98);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
+    from { transform: translateY(6px) scale(0.98); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
   }
   
-  /* Header – title + close icon */
+  /* Header */
   #uploadModal .modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
   
   #uploadModal .modal-header h2 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
     letter-spacing: -0.01em;
   }
   
-  /* Close button (X) */
+  /* Close button — compact, workspace style */
   #uploadModal .modal-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-  
+    width: 28px;
+    height: 28px;
     border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
   }
   
   #uploadModal .modal-close:hover {
-    background: rgba(255, 0, 0, 0.15);
+    background: rgba(255, 60, 60, 0.12);
     color: #ff6b6b;
   }
   
-  /* Body – stacked form fields */
+  /* Body */
   #uploadModal .modal-body {
-    margin-bottom: 16px;
+    margin-bottom: 0;
+  }
+  
+  #uploadModal .modal-body .modal-instructions {
+    margin-bottom: 14px !important;
+    padding: 10px 12px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 8px !important;
+  }
+  
+  #uploadModal .modal-body .modal-instructions p {
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    line-height: 1.5 !important;
+  }
+  
+  #uploadModal .modal-body .modal-instructions ul {
+    font-size: 11px !important;
+    color: rgba(255, 255, 255, 0.4) !important;
   }
   
   #uploadModal .modal-body .form-field {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   
   #uploadModal .modal-body .form-field:last-child {
     margin-bottom: 0;
   }
   
-  /* Footer – primary / secondary actions aligned right */
+  #uploadModal .modal-body label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  
+  #uploadModal .modal-body input[type="text"] {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    color: #fff !important;
+    transition: border-color 0.2s ease;
+  }
+  
+  #uploadModal .modal-body input[type="text"]:focus {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    outline: none;
+  }
+  
+  /* Drop zone — workspace style */
+  #uploadModal .drop-zone {
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  #uploadModal .drop-zone:hover {
+    border-color: rgba(14, 165, 233, 0.3) !important;
+    background: rgba(14, 165, 233, 0.03) !important;
+  }
+  
+  #uploadModal .drop-zone p {
+    font-size: 13px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  #uploadModal .drop-zone span {
+    font-size: 11px !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  /* Footer — workspace button styles */
   #uploadModal .modal-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    padding-top: 16px;
-    margin-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 8px;
+    padding-top: 14px;
+    margin-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
   
   #uploadModal .btn-primary,
   #uploadModal .btn-secondary {
-    padding: 10px 18px;
+    padding: 9px 16px;
     border-radius: 8px;
-    font-weight: 700;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
   }
   
-  /* Primary action – gradient accent */
   #uploadModal .btn-primary {
     background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
     border: 0;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
   }
   
   #uploadModal .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.35);
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
   }
   
-  /* Secondary action – subtle outline button */
   #uploadModal .btn-secondary {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
   }
   
   #uploadModal .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
   }
   
   /* When any modal is open, freeze page scroll */
