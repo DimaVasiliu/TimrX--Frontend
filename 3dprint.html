@@ -333,6 +333,19 @@
     if (!burger || !menu) return;
 
     function open(){
+      // Close any active expansion first so the menu isn't stacked on top
+      var expansionClasses = ['tutorials-view','community-view','docs-view','about-view','converter-view'];
+      expansionClasses.forEach(function(cls){
+        if (document.body.classList.contains(cls)) {
+          var exitMap = {
+            'tutorials-view':'#tutorialsExit','community-view':'#communityExit',
+            'docs-view':'#docsExit','about-view':'#aboutExit','converter-view':'#converterExit'
+          };
+          var exitBtn = document.querySelector(exitMap[cls]);
+          if (exitBtn) exitBtn.click();
+        }
+      });
+
       menu.style.display = 'block';
       requestAnimationFrame(function(){
         burger.classList.add('is-open');
