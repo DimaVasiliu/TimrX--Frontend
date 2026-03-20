@@ -88,7 +88,7 @@
 
     let thumbEl;
     if (isAnimated) {
-      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(asset.animation_glb_url)}" autoplay animation-name="" camera-controls interaction-prompt="none" auto-rotate auto-rotate-delay="0" rotation-per-second="0deg" shadow-intensity="0.4" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" loading="lazy" reveal="auto"></model-viewer>`;
+      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(asset.animation_glb_url)}" animation-name="" camera-controls="false" interaction-prompt="none" auto-rotate rotation-per-second="30deg" shadow-intensity="0.4" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" loading="lazy" reveal="auto"></model-viewer>`;
     } else if (isVideo) {
       thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline autoplay preload="metadata" poster="${sanitize(thumb)}"></video>`;
     } else if (thumb) {
@@ -155,6 +155,29 @@
         vid.addEventListener('mouseenter', () => vid.play().catch(() => {}));
         vid.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
       }
+    });
+  }
+
+  // ─── Animated model hover play ───────────────────────────────────────────
+
+  function wireModelViewerHover(container) {
+    container.querySelectorAll('model-viewer.ccg-card__model-viewer').forEach(mv => {
+      if (mv.dataset.ccgHoverWired) return;
+      mv.dataset.ccgHoverWired = '1';
+
+      // Start paused — show poster only
+      mv.pause();
+
+      const card = mv.closest('.ccg-card');
+      if (!card) return;
+
+      card.addEventListener('mouseenter', () => {
+        mv.play();
+      });
+
+      card.addEventListener('mouseleave', () => {
+        mv.pause();
+      });
     });
   }
 
@@ -309,6 +332,7 @@
     grid.appendChild(frag);
     wireVideoAutoplay(grid);
     wireImageReveal(grid);
+    wireModelViewerHover(grid);
   }
 
   /** Fade in images once loaded (adds .ccg-loaded class) */
