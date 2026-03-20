@@ -1081,7 +1081,6 @@ export function watchJob(job_id) {
           State.addHistoryItem(historyData);
         }
 
-        State.historyState.page = 1;
         State.historyFreshThumbs.add(job_id);
         setTimeout(() => {
           State.historyFreshThumbs.delete(job_id);
@@ -2114,8 +2113,6 @@ export async function startOpenAIImageGeneration() {
     window.ImageJobControl.lock('openai', settingsSnapshot, tempId, reservation.reservationId);
   }
 
-  State.historyState.filter = 'image';
-  State.historyState.page = 1;
   renderHistory();
 
   const placeholder = {
@@ -2335,8 +2332,6 @@ export async function startGeminiImageGeneration() {
     window.ImageJobControl.lock('google', settingsSnapshot, tempId, reservation.reservationId);
   }
 
-  State.historyState.filter = 'image';
-  State.historyState.page = 1;
   renderHistory();
 
   const placeholder = {
@@ -2556,8 +2551,6 @@ export async function startImageGenerationByProvider() {
   console.log(`[Image] Settings:`, snapshot?.settings || 'N/A');
   console.log(`[Image] ========================================`);
 
-  State.historyState.filter = 'image';
-  State.historyState.page = 1;
   renderHistory();
 
   if (provider === 'openai') {
@@ -2749,8 +2742,6 @@ export async function startVideoGeneration() {
   }
   console.log('[VIDEO] Reservation succeeded:', reservation.reservationId, 'for', reservation.amount, 'credits');
 
-  State.historyState.filter = 'video';
-  State.historyState.page = 1;
   renderHistory();
 
   // Generate idempotency key for this video generation

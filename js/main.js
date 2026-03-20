@@ -1030,17 +1030,26 @@ function wireGallery() {
     });
   }
 
-  // Pagination
+  // Pagination — scroll history grid to top after page change
+  function scrollHistoryToTop() {
+    const panel = document.getElementById('ws-right-panel');
+    if (panel) panel.scrollTop = 0;
+    const gridEl = document.getElementById('historyGrid');
+    if (gridEl) gridEl.scrollTop = 0;
+  }
+
   if (first) first.addEventListener('click', () => {
     if (State.historyState.page > 1) {
       State.historyState.page = 1;
       renderHistory();
+      scrollHistoryToTop();
     }
   });
   if (prev) prev.addEventListener('click', () => {
     if (State.historyState.page > 1) {
       State.historyState.page--;
       renderHistory();
+      scrollHistoryToTop();
     }
   });
   if (next) next.addEventListener('click', () => {
@@ -1049,6 +1058,7 @@ function wireGallery() {
     if (State.historyState.page < total) {
       State.historyState.page++;
       renderHistory();
+      scrollHistoryToTop();
     }
   });
   if (last) last.addEventListener('click', () => {
@@ -1057,6 +1067,7 @@ function wireGallery() {
     if (State.historyState.page < total) {
       State.historyState.page = total;
       renderHistory();
+      scrollHistoryToTop();
     }
   });
 
@@ -1126,7 +1137,6 @@ function wireGallery() {
         const wasGallery = !!State.historyState.galleryExpanded;
         if (wasGallery) {
           State.historyState.galleryExpanded = false;
-          State.historyState.page = 1;
         }
 
         // Handle video type
