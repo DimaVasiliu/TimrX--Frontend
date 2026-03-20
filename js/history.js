@@ -1144,7 +1144,7 @@ function _renderHistoryImpl() {
   closeActiveHistoryMenu();
 
   const parsedSelectSize = sizeSel ? parseInt(sizeSel.value, 10) : NaN;
-  const pageSize = Math.max(1, Number.isFinite(parsedSelectSize) ? parsedSelectSize : (parseInt(historyState.pageSize, 10) || 9));
+  const pageSize = Math.max(1, Number.isFinite(parsedSelectSize) ? parsedSelectSize : (parseInt(historyState.pageSize, 10) || 12));
   historyState.pageSize = pageSize;
   if (sizeSel && (Number.isNaN(parsedSelectSize) || parsedSelectSize !== pageSize)) {
     sizeSel.value = String(pageSize);

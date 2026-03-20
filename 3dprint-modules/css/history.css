@@ -3240,7 +3240,7 @@
   .history-video-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    gap: 8px;
     padding: 8px 0;
     width: 100%;
   }
@@ -3280,15 +3280,18 @@
     }
   }
   
-  .history-video-grid .history-thumb--video:nth-child(1) { animation-delay: 0.05s; }
-  .history-video-grid .history-thumb--video:nth-child(2) { animation-delay: 0.1s; }
-  .history-video-grid .history-thumb--video:nth-child(3) { animation-delay: 0.15s; }
-  .history-video-grid .history-thumb--video:nth-child(4) { animation-delay: 0.2s; }
-  .history-video-grid .history-thumb--video:nth-child(5) { animation-delay: 0.25s; }
-  .history-video-grid .history-thumb--video:nth-child(6) { animation-delay: 0.3s; }
-  .history-video-grid .history-thumb--video:nth-child(7) { animation-delay: 0.35s; }
-  .history-video-grid .history-thumb--video:nth-child(8) { animation-delay: 0.4s; }
-  .history-video-grid .history-thumb--video:nth-child(9) { animation-delay: 0.45s; }
+  .history-video-grid .history-thumb--video:nth-child(1)  { animation-delay: 0.03s; }
+  .history-video-grid .history-thumb--video:nth-child(2)  { animation-delay: 0.06s; }
+  .history-video-grid .history-thumb--video:nth-child(3)  { animation-delay: 0.09s; }
+  .history-video-grid .history-thumb--video:nth-child(4)  { animation-delay: 0.12s; }
+  .history-video-grid .history-thumb--video:nth-child(5)  { animation-delay: 0.15s; }
+  .history-video-grid .history-thumb--video:nth-child(6)  { animation-delay: 0.18s; }
+  .history-video-grid .history-thumb--video:nth-child(7)  { animation-delay: 0.21s; }
+  .history-video-grid .history-thumb--video:nth-child(8)  { animation-delay: 0.24s; }
+  .history-video-grid .history-thumb--video:nth-child(9)  { animation-delay: 0.27s; }
+  .history-video-grid .history-thumb--video:nth-child(10) { animation-delay: 0.30s; }
+  .history-video-grid .history-thumb--video:nth-child(11) { animation-delay: 0.33s; }
+  .history-video-grid .history-thumb--video:nth-child(12) { animation-delay: 0.36s; }
   
   /* Responsive: 1 column on small screens */
   @media (max-width: 480px) {
@@ -3352,7 +3355,7 @@
   .history-image-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 8px;
     padding: 8px 0;
     width: 100%;
   }
@@ -3384,15 +3387,18 @@
     padding: 0 8px;
   }
   
-  .history-image-grid .history-thumb--image:nth-child(1) { animation-delay: 0.05s; }
-  .history-image-grid .history-thumb--image:nth-child(2) { animation-delay: 0.1s; }
-  .history-image-grid .history-thumb--image:nth-child(3) { animation-delay: 0.15s; }
-  .history-image-grid .history-thumb--image:nth-child(4) { animation-delay: 0.2s; }
-  .history-image-grid .history-thumb--image:nth-child(5) { animation-delay: 0.25s; }
-  .history-image-grid .history-thumb--image:nth-child(6) { animation-delay: 0.3s; }
-  .history-image-grid .history-thumb--image:nth-child(7) { animation-delay: 0.35s; }
-  .history-image-grid .history-thumb--image:nth-child(8) { animation-delay: 0.4s; }
-  .history-image-grid .history-thumb--image:nth-child(9) { animation-delay: 0.45s; }
+  .history-image-grid .history-thumb--image:nth-child(1)  { animation-delay: 0.03s; }
+  .history-image-grid .history-thumb--image:nth-child(2)  { animation-delay: 0.06s; }
+  .history-image-grid .history-thumb--image:nth-child(3)  { animation-delay: 0.09s; }
+  .history-image-grid .history-thumb--image:nth-child(4)  { animation-delay: 0.12s; }
+  .history-image-grid .history-thumb--image:nth-child(5)  { animation-delay: 0.15s; }
+  .history-image-grid .history-thumb--image:nth-child(6)  { animation-delay: 0.18s; }
+  .history-image-grid .history-thumb--image:nth-child(7)  { animation-delay: 0.21s; }
+  .history-image-grid .history-thumb--image:nth-child(8)  { animation-delay: 0.24s; }
+  .history-image-grid .history-thumb--image:nth-child(9)  { animation-delay: 0.27s; }
+  .history-image-grid .history-thumb--image:nth-child(10) { animation-delay: 0.30s; }
+  .history-image-grid .history-thumb--image:nth-child(11) { animation-delay: 0.33s; }
+  .history-image-grid .history-thumb--image:nth-child(12) { animation-delay: 0.36s; }
   
   @keyframes imageGridFadeIn {
     from {

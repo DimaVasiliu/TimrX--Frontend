@@ -268,38 +268,38 @@
               <input type="text" id="multiImageModelName" placeholder="My Multi-View Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
             </div>
             <label class="video-section-label">Upload 1–4 Reference Images</label>
-            <div id="multiImageGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;max-width:320px;margin-left:auto;margin-right:auto">
+            <div id="multiImageGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;max-width:240px;margin-left:auto;margin-right:auto">
               <div class="multi-img-slot" data-slot="0">
-                <div class="video-drop-zone" id="multiImgDrop0" style="height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:11px;color:#888;margin-top:4px">Image 1</span>
+                <div class="video-drop-zone" id="multiImgDrop0" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 1</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;height:120px;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="1">
-                <div class="video-drop-zone" id="multiImgDrop1" style="height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:11px;color:#888;margin-top:4px">Image 2</span>
+                <div class="video-drop-zone" id="multiImgDrop1" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 2</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;height:120px;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="2">
-                <div class="video-drop-zone" id="multiImgDrop2" style="height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:11px;color:#888;margin-top:4px">Image 3</span>
+                <div class="video-drop-zone" id="multiImgDrop2" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 3</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;height:120px;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="3">
-                <div class="video-drop-zone" id="multiImgDrop3" style="height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:11px;color:#888;margin-top:4px">Image 4</span>
+                <div class="video-drop-zone" id="multiImgDrop3" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 4</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;height:120px;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
             </div>
             <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
