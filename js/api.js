@@ -4147,7 +4147,7 @@ export async function startRigFromPanel() {
   confirmCreditsReservation(reservation.reservationId, job_id);
 
   // Replace temp placeholder with real job_id
-  State.removeHistoryItem(tempId);
+  State.deleteHistoryItem(tempId, { skipRemote: true });
   State.deletePendingMeta(tempId);
   rigMeta.status_label = 'Rigging...';
   addGeneratingPlaceholder(job_id, rigMeta);
@@ -4665,7 +4665,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   confirmCreditsReservation(reservation.reservationId, job_id);
 
   // Replace temp placeholder with real job_id
-  State.removeHistoryItem(tempId);
+  State.deleteHistoryItem(tempId, { skipRemote: true });
   State.deletePendingMeta(tempId);
   animMeta.status_label = 'Animating...';
   addGeneratingPlaceholder(job_id, animMeta);
@@ -5314,10 +5314,10 @@ export function updateJobsIndicator() {
       // Insert centered inside the viewer
       const viewerWrap = document.querySelector('.viewer-wrap') || document.getElementById('model3dViewer');
       if (viewerWrap) {
-        indicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
+        indicator.style.cssText = 'position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
         viewerWrap.appendChild(indicator);
       } else {
-        indicator.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
+        indicator.style.cssText = 'position: fixed; top: 56px; left: 50%; transform: translateX(-50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
         document.body.appendChild(indicator);
       }
     }

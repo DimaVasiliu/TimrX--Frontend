@@ -333,10 +333,10 @@ export function updateJobsIndicator(count = null) {
       // Insert centered inside the viewer
       const viewerWrap = document.querySelector('.viewer-wrap') || document.getElementById('model3dViewer');
       if (viewerWrap) {
-        indicatorElement.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
+        indicatorElement.style.cssText = 'position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
         viewerWrap.appendChild(indicatorElement);
       } else {
-        indicatorElement.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
+        indicatorElement.style.cssText = 'position: fixed; top: 56px; left: 50%; transform: translateX(-50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
         document.body.appendChild(indicatorElement);
       }
     }
