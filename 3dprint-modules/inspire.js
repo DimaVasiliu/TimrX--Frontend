@@ -1199,7 +1199,7 @@
 
           model.position.x = -center.x;
           model.position.z = -center.z;
-          model.position.y = -box.min.y; // Ground the model
+          model.position.y = -box.min.y - 0.5; // Ground on grid (grid y = -0.5)
 
           scene.add(model);
 
@@ -1211,8 +1211,8 @@
           const fov = camera.fov * (Math.PI / 180);
           const cameraDistance = (maxDim / 2) / Math.tan(fov / 2) * 1.8;
 
-          // Position camera at an angle looking at model center (now at origin after centering)
-          const modelCenter = new THREE.Vector3(0, size.y / 2, 0);
+          // Position camera at an angle looking at model center (grounded on grid at -0.5)
+          const modelCenter = new THREE.Vector3(0, (size.y / 2) - 0.5, 0);
           camera.position.set(
             cameraDistance * 0.6,
             cameraDistance * 0.4,

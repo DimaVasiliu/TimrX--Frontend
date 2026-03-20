@@ -1103,7 +1103,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
         </div>
         <div class="gen-btn-row">
-          <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled>
+          <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled style="display:none">
             Preview
           </button>
           <button type="button" id="generateVideoBtn" class="gen-btn" title="75 credits" data-base-credits="75" data-video-mode="text2video" data-provider="vertex" disabled>
