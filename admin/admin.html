@@ -7285,13 +7285,13 @@
       const totalMonth = sorted.reduce((s, p) => s + (p.estimated_spend_month_gbp || 0), 0);
 
       if (!sorted.length) {
-        wrap.innerHTML = '<div class="ops-empty">No spend data</div>';
+        wrap.innerHTML = '<div class="ops-empty">No provider cost data</div>';
         return;
       }
 
       wrap.innerHTML = `
         <table class="ops-spend-table">
-          <thead><tr><th>Provider</th><th>Feature</th><th>Spend 24h</th><th>Spend MTD</th></tr></thead>
+          <thead><tr><th>Provider</th><th>Feature</th><th>Provider Cost 24h (&pound;)</th><th>Provider Cost MTD (&pound;)</th></tr></thead>
           <tbody>
             ${sorted.map(p => `<tr>
               <td>${escapeHtmlText(p.provider)}</td>
