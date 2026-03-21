@@ -1936,6 +1936,22 @@
     .ops-bstat-value { color: #ccc; font-weight: 500; }
     .ops-bstat-value.low { color: #f87171; }
     .ops-bstat-value.med { color: #facc15; }
+
+    /* PiAPI umbrella card */
+    .ops-balance-card.umbrella { border-color: rgba(99,102,241,0.3); }
+    .ops-balance-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 12px;
+      font-size: 10px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255,255,255,0.08);
+    }
+    .ops-balance-breakdown .ops-bstat { font-size: 10px; }
+    .ops-balance-breakdown .ops-bstat-label { font-size: 9px; }
+    .ops-balance-breakdown .ops-bstat-value { font-size: 10px; }
+
     .ops-balance-footer {
       display: flex;
       justify-content: space-between;
@@ -2246,7 +2262,7 @@
               <div id="safetyTopUsers" style="margin-top:10px;"></div>
             </div>
 
-            <!-- Spend Snapshot -->
+            <!-- Provider Cost Snapshot -->
             <div class="ops-section">
               <div class="ops-section-header">
                 <h4>Provider Cost Snapshot</h4>
@@ -2274,7 +2290,7 @@
                 <span class="trigger-arrow">&rsaquo;</span>
               </button>
               <button class="ops-modal-trigger" id="openMonthlyModal">
-                <span class="trigger-left"><span class="trigger-icon">&para;</span><span class="trigger-label">Monthly Spend Summary</span></span>
+                <span class="trigger-left"><span class="trigger-icon">&para;</span><span class="trigger-label">Monthly Provider Cost Summary</span></span>
                 <span class="trigger-arrow">&rsaquo;</span>
               </button>
               <button class="ops-modal-trigger" id="openPurchasesModal">
@@ -3117,11 +3133,11 @@
     </div>
   </div>
 
-  <!-- Monthly Spend Summary Modal -->
+  <!-- Monthly Provider Cost Summary Modal -->
   <div class="modal" id="monthlyModal">
     <div class="modal-box ops-panel">
       <div class="modal-header">
-        <h3>Monthly Spend Summary</h3>
+        <h3>Monthly Provider Cost Summary</h3>
         <button class="modal-close" data-close-modal="monthlyModal">&times;</button>
       </div>
       <div class="ops-modal-body">
@@ -7221,10 +7237,30 @@
             ? `<span style="font-size:9px;background:rgba(239,68,68,0.2);color:#f87171;padding:1px 5px;border-radius:3px;margin-left:4px;">${p.wallet_alerts_7d} wallet alert${p.wallet_alerts_7d > 1 ? 's' : ''}</span>`
             : '';
 
+          // Display label: use umbrella label if present, otherwise raw provider name
+          const displayName = p.display_label || p.provider;
+          const subtitle = p.display_subtitle ? `<span style="font-size:9px;color:#888;margin-left:4px;">${escapeHtmlText(p.display_subtitle)}</span>` : '';
+
+          // PiAPI umbrella breakdown section
+          let breakdownHtml = '';
+          if (p.breakdown) {
+            const b = p.breakdown;
+            breakdownHtml = `
+              <div class="ops-balance-breakdown">
+                <div class="ops-bstat"><span class="ops-bstat-label">Video Jobs Since</span><span class="ops-bstat-value">${b.video_jobs_since_snapshot || 0}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Video Cost Since (&pound;)</span><span class="ops-bstat-value">&pound;${(b.video_cost_since_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Image Jobs Since</span><span class="ops-bstat-value">${b.image_jobs_since_snapshot || 0}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Image Cost Since (&pound;)</span><span class="ops-bstat-value">&pound;${(b.image_cost_since_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">NB Standard</span><span class="ops-bstat-value">${b.nano_banana_standard_count || 0}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">NB 2K</span><span class="ops-bstat-value">${b.nano_banana_2k_count || 0}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">NB 4K</span><span class="ops-bstat-value">${b.nano_banana_4k_count || 0}</span></div>
+              </div>`;
+          }
+
           return `
-            <div class="ops-balance-card status-${st}">
+            <div class="ops-balance-card status-${st}${p.is_umbrella ? ' umbrella' : ''}">
               <div class="ops-balance-top">
-                <span class="ops-balance-prov">${escapeHtmlText(p.provider)}${walletBadge}</span>
+                <span class="ops-balance-prov">${escapeHtmlText(displayName)}${subtitle}${walletBadge}</span>
                 <span class="ops-bal-status ${st}">${statusLabels[st] || st}</span>
               </div>
               <div class="ops-balance-stats">
@@ -7233,7 +7269,7 @@
                 <div class="ops-bstat"><span class="ops-bstat-label">Provider Cost Since (&pound;)</span><span class="ops-bstat-value">${spendStr}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Credits Since</span><span class="ops-bstat-value">${p.credits_consumed_since_snapshot || 0} cr</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Est. Remaining (&pound;)</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
-              </div>
+              </div>${breakdownHtml}
               <div class="ops-balance-footer">
                 <span class="snap-age ${ageClass}">${escapeHtmlText(ageLabel)}</span>
                 <button class="btn small" style="font-size:9px;padding:2px 8px;" onclick="updateProviderSnapshot('${escapeHtmlText(p.provider)}')">Update Snapshot</button>
