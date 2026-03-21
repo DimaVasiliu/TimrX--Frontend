@@ -2000,20 +2000,11 @@
         if (e.target === modal) closeEmailMismatchModal();
       });
 
-      // "Use This Email" button - autofill the correct email and close modal
+      // "Use This Email" button - close and let user retry
+      // (Backend always uses identity email for checkout, so no autofill needed.
+      //  The frontend inline-verify flow already ensures the correct email.)
       document.getElementById('emailMismatchUse')?.addEventListener('click', () => {
-        const correctEmail = document.getElementById('emailMismatchIdentity')?.textContent || '';
-        if (correctEmail) {
-          // Autofill checkout email field if it exists
-          if (checkoutEmail) {
-            checkoutEmail.value = correctEmail;
-            validateCheckoutForm();
-          }
-          // Store for video checkout flow
-          sessionStorage.setItem('timrx_checkout_email', correctEmail);
-        }
         closeEmailMismatchModal();
-        showToast('Email updated. Try again.', 'success');
       });
 
       // "Switch Account" button - open restore flow

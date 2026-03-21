@@ -2304,11 +2304,6 @@ margin-bottom: 0;
   transform:translate(-50%,0);
   pointer-events:auto;
 }
-@keyframes secure-alert-pulse{
-  0%{ transform:scale(.9); opacity:.8; }
-  70%{ transform:scale(1.5); opacity:0; }
-  100%{ transform:scale(1.5); opacity:0; }
-}
 .pricing-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
