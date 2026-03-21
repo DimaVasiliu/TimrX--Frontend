@@ -581,7 +581,7 @@ display: flex;
 /* Button row in checkout */
 .buy-credits-card .cta-row {
 display: flex;
-justify-content: flex-end;
+justify-content: center;
 margin-top: 4px;
 }
 
@@ -602,15 +602,28 @@ display: none;
 display: none;
 }
 
+/* Checkout inputs — match secure-modal input styling */
+.buy-credits-card .field input {
+background: rgba(255,255,255,0.05);
+border: 1px solid var(--line, rgba(255,255,255,.12));
+border-radius: 12px;
+}
+.buy-credits-card .field input:focus {
+border-color: rgba(255,255,255,0.3);
+background: rgba(255,255,255,0.08);
+box-shadow: none;
+}
+
 /* Checkout error */
 .checkout-error {
 display: none;
 background: rgba(220,53,69,.12);
 border: 1px solid rgba(220,53,69,.3);
-color: #ff6b7a;
+color: #ef4444;
 padding: 8px 12px;
 border-radius: 8px;
 font-size: 13px;
+text-align: center;
 }
 
 /* Checkout button */
@@ -648,37 +661,60 @@ gap: 8px;
 
 /* Checkout verify state */
 .checkout-verify-info {
-font-size: 14px;
-color: #aaa;
-margin: 0 0 12px;
+font-size: 13px;
+color: var(--muted, #888);
+margin: 0 0 14px;
 text-align: center;
+line-height: 1.55;
 }
-.checkout-verify-info strong { color: #fff; }
+.checkout-verify-info strong { color: var(--ink, #fff); }
+/* ── Checkout code input — match secure / restore-account code inputs ── */
 #checkoutVerifyCode,
 #videoBuyVerifyCode {
+display: block;
+margin: 0 auto;
+width: auto;
+max-width: 220px;
 text-align: center;
-font-size: 24px;
+font-size: 22px;
 font-weight: 600;
-letter-spacing: 8px;
+letter-spacing: 6px;
 font-family: 'SF Mono', Monaco, monospace;
+background: rgba(255,255,255,0.05);
+border: 1px solid var(--line, rgba(255,255,255,.12));
+border-radius: 12px;
+padding: 14px 20px;
+height: auto;
+}
+#checkoutVerifyCode:focus,
+#videoBuyVerifyCode:focus {
+border-color: rgba(255,255,255,0.3);
+background: rgba(255,255,255,0.08);
+box-shadow: none;
+}
+#checkoutVerifyCode::placeholder,
+#videoBuyVerifyCode::placeholder {
+color: var(--muted, #888);
 }
 .checkout-verify-error {
-color: #ff6b7a;
+color: #ef4444;
 font-size: 13px;
 margin: 0 0 8px;
 padding: 8px 12px;
 background: rgba(220,53,69,.12);
 border: 1px solid rgba(220,53,69,.3);
 border-radius: 8px;
+text-align: center;
 }
 .checkout-verify-message {
-color: #60a5fa;
+color: #4ade80;
 font-size: 13px;
 margin: 0 0 8px;
 padding: 8px 12px;
-background: rgba(59,130,246,.12);
-border: 1px solid rgba(59,130,246,.3);
+background: rgba(74,222,128,.10);
+border: 1px solid rgba(74,222,128,.25);
 border-radius: 8px;
+text-align: center;
 }
 .checkout-link-btn {
 display: block;
