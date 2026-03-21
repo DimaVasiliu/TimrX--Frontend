@@ -1106,6 +1106,17 @@
     /* Pulse on nonzero warning/critical */
     .ops-card.has-issue { border-color: rgba(239,68,68,0.35); }
 
+    /* Safety mini cards (smaller variant) */
+    .ops-safety-mini-cards .ops-card { min-width: 70px; }
+    .ops-safety-mini-cards .ops-card-value { font-size: 18px; }
+    .ops-safety-mini-cards .ops-card-label { font-size: 9px; }
+
+    /* Compact admin table */
+    .ops-table.compact { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .ops-table.compact th { text-align: left; color: #888; font-weight: 600; padding: 3px 8px; border-bottom: 1px solid #333; text-transform: uppercase; font-size: 9px; letter-spacing: 0.03em; }
+    .ops-table.compact td { padding: 3px 8px; color: #ccc; border-bottom: 1px solid #222; }
+    .ops-table.compact tr:hover td { background: rgba(255,255,255,0.03); }
+
     /* ====== OPS DASHBOARD TAB ====== */
     .ops-section { margin-bottom: 24px; }
     .ops-section-header {
@@ -2089,30 +2100,42 @@
         <span class="ops-eyebrow">Operations</span>
         <h2 class="ops-heading">Admin Dashboard</h2>
       </div>
+      <!-- Row 1: Operational Health -->
       <div class="ops-summary-cards" id="opsSummaryCards">
         <div class="ops-card" id="opsCardHealthy">
           <span class="ops-card-value ops-healthy" id="opsHealthyCount">--</span>
-          <span class="ops-card-label">Healthy</span>
+          <span class="ops-card-label">Providers OK</span>
         </div>
-        <div class="ops-card" id="opsCardWarning">
-          <span class="ops-card-value ops-warning" id="opsWarningCount">0</span>
-          <span class="ops-card-label">Warning/Down</span>
+        <div class="ops-card" id="opsCardJobs">
+          <span class="ops-card-value" id="opsJobsToday">--</span>
+          <span class="ops-card-label">Jobs 24h</span>
         </div>
         <div class="ops-card" id="opsCardAlerts">
           <span class="ops-card-value ops-critical" id="opsCriticalCount">0</span>
           <span class="ops-card-label">Active Alerts</span>
         </div>
-        <div class="ops-card" id="opsCardSpend24h">
-          <span class="ops-card-value" id="opsSpend24h">--</span>
-          <span class="ops-card-label">Spend 24h</span>
-        </div>
-        <div class="ops-card" id="opsCardSpendMonth">
-          <span class="ops-card-value" id="opsSpendMonth">--</span>
-          <span class="ops-card-label">Spend MTD</span>
-        </div>
         <div class="ops-card" id="opsCardRefunds">
           <span class="ops-card-value" id="opsRefundCount">0</span>
-          <span class="ops-card-label">Refund Review</span>
+          <span class="ops-card-label">Refund Queue</span>
+        </div>
+      </div>
+      <!-- Row 2: Economics & Safety -->
+      <div class="ops-summary-cards" id="opsSummaryCards2">
+        <div class="ops-card" id="opsCardCredits">
+          <span class="ops-card-value" id="opsCreditsSpent">--</span>
+          <span class="ops-card-label">Credits Spent 24h</span>
+        </div>
+        <div class="ops-card" id="opsCardProvCost">
+          <span class="ops-card-value" id="opsProvCost24h">--</span>
+          <span class="ops-card-label">Provider Cost 24h (&pound;)</span>
+        </div>
+        <div class="ops-card" id="opsCardRevenue">
+          <span class="ops-card-value" id="opsRevenueToday">--</span>
+          <span class="ops-card-label">Revenue Today (&pound;)</span>
+        </div>
+        <div class="ops-card" id="opsCardSafety">
+          <span class="ops-card-value" id="opsSafetyCount">0</span>
+          <span class="ops-card-label">Safety 24h</span>
         </div>
       </div>
     </div>
@@ -2207,13 +2230,29 @@
               </div>
             </div>
 
+            <!-- Safety Summary -->
+            <div class="ops-section" id="opsSafetySection">
+              <div class="ops-section-header">
+                <h4>Safety Events (24h)</h4>
+                <button class="btn small" id="refreshOpsSafety">Refresh</button>
+              </div>
+              <div class="ops-summary-cards ops-safety-mini-cards" id="opsSafetyMiniCards">
+                <div class="ops-card"><span class="ops-card-value" id="safetyBlocks">0</span><span class="ops-card-label">Blocks</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="safetyWarns">0</span><span class="ops-card-label">Warns</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="safetyPenalties">0</span><span class="ops-card-label">Penalties</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="safetyFalseNeg">0</span><span class="ops-card-label">False-Neg Candidates</span></div>
+              </div>
+              <div id="safetyCategoryTable" style="margin-top:10px;"></div>
+              <div id="safetyTopUsers" style="margin-top:10px;"></div>
+            </div>
+
             <!-- Spend Snapshot -->
             <div class="ops-section">
               <div class="ops-section-header">
-                <h4>Spend Snapshot</h4>
+                <h4>Provider Cost Snapshot</h4>
               </div>
               <div class="ops-spend-table-wrap" id="opsSpendWrap">
-                <div class="ops-loading">Loading spend data...</div>
+                <div class="ops-loading">Loading provider cost data...</div>
               </div>
             </div>
 
@@ -6945,20 +6984,19 @@
 
         _opsProviderData = j;
 
-        // Update summary cards
+        // Update summary row 1 from provider-health response
         const s = j.summary || {};
-        $('#opsHealthyCount').textContent = s.healthy_count ?? '--';
-        const warnDown = (s.warning_count || 0) + (s.down_count || 0);
-        $('#opsWarningCount').textContent = warnDown;
+        const totalProviders = s.provider_count || 0;
+        const healthyCount = s.healthy_count || 0;
+        $('#opsHealthyCount').textContent = `${healthyCount}/${totalProviders}`;
         $('#opsCriticalCount').textContent = s.alerts_active || 0;
-        $('#opsSpend24h').textContent = '\u00A3' + (s.estimated_spend_today_gbp || 0).toFixed(2);
-        $('#opsSpendMonth').textContent = '\u00A3' + (s.estimated_spend_month_gbp || 0).toFixed(2);
 
-        // Highlight cards with issues
-        const warnCard = $('#opsCardWarning');
+        // Highlight alert card
         const alertCard = $('#opsCardAlerts');
-        warnCard.classList.toggle('has-issue', warnDown > 0);
         alertCard.classList.toggle('has-issue', (s.alerts_active || 0) > 0);
+
+        // Fetch dashboard summary for row 2 cards (economics + safety)
+        _loadDashboardSummaryCards();
 
         // Render provider cards
         const providers = j.providers || [];
@@ -6982,7 +7020,8 @@
               <div class="ops-provider-stats">
                 <div class="ops-pstat"><span class="ops-pstat-label">Jobs 24h</span><span class="ops-pstat-value">${p.jobs_24h || 0}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Success</span><span class="ops-pstat-value">${rate}</span></div>
-                <div class="ops-pstat"><span class="ops-pstat-label">Spend 24h</span><span class="ops-pstat-value">\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Credits 24h</span><span class="ops-pstat-value">${p.credits_consumed_24h || 0} cr</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Provider Cost 24h</span><span class="ops-pstat-value">\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Alerts</span><span class="ops-pstat-value${p.active_alerts > 0 ? ' crit' : ''}">${p.active_alerts || 0}</span></div>
               </div>
             </div>`;
@@ -6994,6 +7033,120 @@
       } catch (err) {
         console.error('Ops health error:', err);
         grid.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+      }
+    }
+
+    // ========== DASHBOARD SUMMARY (row 2 cards + safety) ==========
+
+    async function _loadDashboardSummaryCards() {
+      try {
+        const r = await adminFetch(`${BACKEND}/api/admin/dashboard/summary`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.ok) return;
+
+        // Row 1 extras
+        const ops = d.operational || {};
+        const el = $('#opsJobsToday');
+        if (el) {
+          const rate = ops.success_rate_today != null ? ` \u00b7 ${(ops.success_rate_today * 100).toFixed(0)}%` : '';
+          el.textContent = `${ops.jobs_today ?? '--'}${rate}`;
+        }
+        const refEl = $('#opsRefundCount');
+        if (refEl) refEl.textContent = ops.refund_queue_count ?? 0;
+
+        // Row 2: Economics
+        const econ = d.economics || {};
+        const credEl = $('#opsCreditsSpent');
+        if (credEl) credEl.textContent = `${(econ.credits_spent_today || 0).toLocaleString()} cr`;
+        const costEl = $('#opsProvCost24h');
+        if (costEl) costEl.textContent = '\u00A3' + (econ.provider_cost_today_gbp || 0).toFixed(2);
+        const revEl = $('#opsRevenueToday');
+        if (revEl) {
+          const pCount = econ.purchases_today || 0;
+          revEl.textContent = '\u00A3' + (econ.revenue_today_gbp || 0).toFixed(2) + (pCount > 0 ? ` (${pCount})` : '');
+        }
+
+        // Row 2: Safety card
+        const safety = d.safety || {};
+        const safeEl = $('#opsSafetyCount');
+        if (safeEl) {
+          const blk = safety.blocks_today || 0;
+          const pen = safety.penalties_today || 0;
+          safeEl.textContent = `${blk} blk / ${pen} pen`;
+          const card = $('#opsCardSafety');
+          if (card) card.classList.toggle('has-issue', blk > 0 || pen > 0);
+        }
+
+        // Anomaly badges (optional visual indicators)
+        const anomalies = d.anomalies || [];
+        if (anomalies.length > 0) {
+          console.log('[ADMIN] Dashboard anomalies:', anomalies.map(a => a.type + ':' + a.severity));
+        }
+
+      } catch (err) {
+        console.error('Dashboard summary error:', err);
+      }
+    }
+
+    async function loadOpsSafety() {
+      try {
+        const r = await adminFetch(`${BACKEND}/api/admin/safety/summary`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.ok) return;
+
+        const today = d.today || {};
+        const week = d.last_7d || {};
+
+        // Mini cards
+        const blocksEl = $('#safetyBlocks');
+        if (blocksEl) blocksEl.textContent = (today.blocks_by_category || {})._total || 0;
+        const warnsEl = $('#safetyWarns');
+        if (warnsEl) warnsEl.textContent = (today.warns_by_category || {})._total || 0;
+        const penEl = $('#safetyPenalties');
+        if (penEl) {
+          const cnt = today.penalties_applied || 0;
+          const cr = today.penalty_credits_total || 0;
+          penEl.textContent = cnt > 0 ? `${cnt} (${cr} cr)` : '0';
+          if (cnt > 0) penEl.classList.add('ops-warning');
+        }
+        const fnEl = $('#safetyFalseNeg');
+        if (fnEl) fnEl.textContent = today.false_negative_candidates || 0;
+
+        // Category breakdown table (7d)
+        const cats = week.category_breakdown || [];
+        const catDiv = $('#safetyCategoryTable');
+        if (catDiv && cats.length > 0) {
+          catDiv.innerHTML = `
+            <table class="ops-table compact">
+              <thead><tr><th>Category</th><th>Blocks</th><th>Warns</th></tr></thead>
+              <tbody>${cats.map(c => `
+                <tr><td>${escapeHtmlText(c.category)}</td><td>${c.blocks}</td><td>${c.warns}</td></tr>
+              `).join('')}</tbody>
+            </table>`;
+        } else if (catDiv) {
+          catDiv.innerHTML = '<div class="ops-empty" style="font-size:11px;">No category data yet (populates after migration)</div>';
+        }
+
+        // Top penalized users (24h)
+        const users = today.top_penalized_users || [];
+        const usersDiv = $('#safetyTopUsers');
+        if (usersDiv && users.length > 0) {
+          usersDiv.innerHTML = `
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">Top Penalized Users (24h)</div>
+            <table class="ops-table compact">
+              <thead><tr><th>Email</th><th>Penalties</th><th>Credits Lost</th></tr></thead>
+              <tbody>${users.map(u => `
+                <tr><td>${escapeHtmlText(u.email_masked)}</td><td>${u.penalty_count}</td><td>${u.penalty_credits} cr</td></tr>
+              `).join('')}</tbody>
+            </table>`;
+        } else if (usersDiv) {
+          usersDiv.innerHTML = '';
+        }
+
+      } catch (err) {
+        console.error('Safety summary error:', err);
       }
     }
 
@@ -7075,10 +7228,11 @@
                 <span class="ops-bal-status ${st}">${statusLabels[st] || st}</span>
               </div>
               <div class="ops-balance-stats">
-                <div class="ops-bstat"><span class="ops-bstat-label">Manual snapshot</span><span class="ops-bstat-value">${balStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Provider Balance (&pound;)</span><span class="ops-bstat-value">${balStr}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Recorded</span><span class="ops-bstat-value" style="font-size:10px;">${escapeHtmlText(recordedStr)}</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Est. spend since</span><span class="ops-bstat-value">${spendStr}</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Approx. remaining</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Provider Cost Since (&pound;)</span><span class="ops-bstat-value">${spendStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Credits Since</span><span class="ops-bstat-value">${p.credits_consumed_since_snapshot || 0} cr</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Est. Remaining (&pound;)</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
               </div>
               <div class="ops-balance-footer">
                 <span class="snap-age ${ageClass}">${escapeHtmlText(ageLabel)}</span>
@@ -8714,6 +8868,7 @@
       loadOpsHealth();
       loadOpsBalances();
       loadOpsAlerts();
+      loadOpsSafety();
       loadOpsRefunds();
       loadOpsLedger();
       loadOpsMonthly();
@@ -8724,6 +8879,10 @@
       const oldSnap = $('#opsSnapshots');
       if (oldSnap) oldSnap.remove();
     }
+
+    // Safety refresh button
+    const _safetyRefreshBtn = $('#refreshOpsSafety');
+    if (_safetyRefreshBtn) _safetyRefreshBtn.addEventListener('click', loadOpsSafety);
 
     // Load ops on tab click + manage polling
     $$('.tab').forEach(tab => {
