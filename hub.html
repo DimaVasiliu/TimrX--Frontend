@@ -913,16 +913,37 @@
         </div>
       </div>
 
-      <div class="field">
-        <input type="email" id="videoBuyEmail" placeholder="Email for receipt" autocomplete="email" />
+      <!-- State 1: Email Input -->
+      <div id="videoBuyEmailState">
+        <div class="field">
+          <input type="email" id="videoBuyEmail" placeholder="Email address" autocomplete="email" />
+        </div>
+        <p class="sub-modal-error" id="videoBuyError" style="display:none"></p>
+        <div class="cta-row">
+          <button type="button" class="btn" id="videoBuyBtn" disabled>
+            <span class="btn-text">Continue</span>
+            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
+          </button>
+        </div>
       </div>
-      <p class="sub-modal-error" id="videoBuyError" style="display:none"></p>
 
-      <div class="cta-row">
-        <button type="button" class="btn" id="videoBuyBtn" disabled>
-          <span class="btn-text">Buy</span>
-          <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
-        </button>
+      <!-- State 2: Code Verification -->
+      <div id="videoBuyVerifyState" style="display:none">
+        <p class="checkout-verify-info">Enter the 6-digit code sent to <strong id="videoBuySentToEmail"></strong></p>
+        <div class="field">
+          <input type="text" id="videoBuyVerifyCode" placeholder="000000" maxlength="6"
+                 inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
+        </div>
+        <p class="checkout-verify-message" id="videoBuyVerifyMessage" style="display:none"></p>
+        <p class="checkout-verify-error" id="videoBuyVerifyError" style="display:none"></p>
+        <div class="cta-row">
+          <button type="button" class="btn" id="videoBuyVerifyBtn">
+            <span class="btn-text">Verify &amp; Buy</span>
+            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
+          </button>
+        </div>
+        <button type="button" class="checkout-link-btn" id="videoBuyResendCode">Resend code</button>
+        <button type="button" class="checkout-link-btn" id="videoBuyBackToEmail">Use different email</button>
       </div>
     </div>
   </div>
@@ -1332,19 +1353,39 @@
             <span class="selected-plan-price" id="selectedPlanPrice">-</span>
           </div>
 
-          <div class="field">
-            <input type="email" id="checkoutEmail" placeholder="Email for receipt" autocomplete="email" />
+          <!-- State 1: Email Input -->
+          <div id="checkoutEmailState">
+            <div class="field">
+              <input type="email" id="checkoutEmail" placeholder="Email address" autocomplete="email" />
+            </div>
+            <div class="checkout-error" id="checkoutError"></div>
+            <div class="cta-row">
+              <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
+                <span class="btn-text">Continue</span>
+                <span class="btn-loader" style="display:none;">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Processing...
+                </span>
+              </button>
+            </div>
           </div>
 
-          <div class="checkout-error" id="checkoutError"></div>
-
-          <div class="cta-row">
-            <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
-              <span class="btn-text">Buy</span>
-              <span class="btn-loader" style="display:none;">
-                <i class="fa-solid fa-spinner fa-spin"></i> Processing...
-              </span>
-            </button>
+          <!-- State 2: Code Verification -->
+          <div id="checkoutVerifyState" style="display:none">
+            <p class="checkout-verify-info">Enter the 6-digit code sent to <strong id="checkoutSentToEmail"></strong></p>
+            <div class="field">
+              <input type="text" id="checkoutVerifyCode" placeholder="000000" maxlength="6"
+                     inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
+            </div>
+            <p class="checkout-verify-message" id="checkoutVerifyMessage" style="display:none"></p>
+            <p class="checkout-verify-error" id="checkoutVerifyError" style="display:none"></p>
+            <div class="cta-row">
+              <button type="button" class="btn checkout-btn" id="checkoutVerifyBtn">
+                <span class="btn-text">Verify &amp; Buy</span>
+                <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>
+              </button>
+            </div>
+            <button type="button" class="checkout-link-btn" id="checkoutResendCode">Resend code</button>
+            <button type="button" class="checkout-link-btn" id="checkoutBackToEmail">Use different email</button>
           </div>
         </div>
 
@@ -1444,20 +1485,6 @@
             </div>
             <i class="fa-solid fa-chevron-right chooser-arrow"></i>
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================== POST-PURCHASE SECURE PROMPT ====================== -->
-    <div class="modal" id="postPurchaseModal" aria-hidden="true">
-      <div class="modal-content modal-sm">
-        <button type="button" class="modal-close" id="postPurchaseClose" aria-label="Close">&times;</button>
-        <div class="secure-icon"><i class="fa-solid fa-shield-halved"></i></div>
-        <h3>Protect Your Credits</h3>
-        <p class="secure-subtitle">You now have credits on this device. Add an email so you can restore them anytime.</p>
-        <div class="modal-actions">
-          <button type="button" class="btn" id="postPurchaseSecure">Secure My Credits</button>
-          <button type="button" class="btn ghost small" id="postPurchaseLater">Maybe Later</button>
         </div>
       </div>
     </div>

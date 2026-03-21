@@ -9,6 +9,22 @@
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 
+  // ─────────────────────────────────────────────────────────────
+  // Checkout Funnel Analytics
+  // Lightweight event tracking for the verify-before-checkout flow.
+  // Dispatches a custom DOM event and logs to console.
+  // If a global analytics handler is later added (gtag, posthog, etc.),
+  // it can listen for 'timrx:checkout_funnel' events on window.
+  // Never blocks UI — all failures are silently caught.
+  // ─────────────────────────────────────────────────────────────
+  function trackCheckoutEvent(eventName, metadata = {}) {
+    try {
+      const payload = { event: eventName, ts: Date.now(), ...metadata };
+      console.log('[Funnel]', eventName, payload);
+      window.dispatchEvent(new CustomEvent('timrx:checkout_funnel', { detail: payload }));
+    } catch (_) { /* never block UI */ }
+  }
+
   // Endpoint-specific timeouts (ms) - Render cold starts can take 10-30s
   // These are generous to handle worst-case cold start scenarios
   const ENDPOINT_TIMEOUTS = {
@@ -277,6 +293,17 @@
   const checkoutError = document.getElementById('checkoutError');
   const checkoutBtn = document.getElementById('checkoutBtn');
 
+  // Checkout verify state elements (inline email verification before purchase)
+  const checkoutEmailState = document.getElementById('checkoutEmailState');
+  const checkoutVerifyState = document.getElementById('checkoutVerifyState');
+  const checkoutSentToEmail = document.getElementById('checkoutSentToEmail');
+  const checkoutVerifyCodeInput = document.getElementById('checkoutVerifyCode');
+  const checkoutVerifyMessage = document.getElementById('checkoutVerifyMessage');
+  const checkoutVerifyError = document.getElementById('checkoutVerifyError');
+  const checkoutVerifyBtn = document.getElementById('checkoutVerifyBtn');
+  const checkoutResendCodeBtn = document.getElementById('checkoutResendCode');
+  const checkoutBackToEmailBtn = document.getElementById('checkoutBackToEmail');
+
   // Success modal elements
   const successModal = document.getElementById('paymentSuccessModal');
   const successCreditsValue = document.getElementById('successCreditsValue');
@@ -356,6 +383,15 @@
 
       // Broadcast wallet update event
       this.broadcast();
+
+      // Detect identity change (session swap, restore, merge) and notify open modals
+      if (prev.identityId && this._state.identityId
+          && prev.identityId !== this._state.identityId) {
+        console.log('[WalletStore] Identity changed: %s → %s', prev.identityId, this._state.identityId);
+        window.dispatchEvent(new CustomEvent('timrx:identity_changed', {
+          detail: { prevId: prev.identityId, newId: this._state.identityId },
+        }));
+      }
 
       console.log('[WalletStore] Updated: general=%d video=%d (was: %d/%d)',
         this._state.available, this._state.videoAvailable, prev.available, prev.videoAvailable);
@@ -1234,6 +1270,7 @@
     if (!plan) return;
 
     selectedPlan = { id: planId, ...plan };
+    trackCheckoutEvent('plan_selected', { flow: 'general', plan: planId });
 
     // Update UI - highlight selected plan card
     planCards.forEach(card => {
@@ -1262,6 +1299,13 @@
     // Show checkout section
     if (checkoutSection) {
       checkoutSection.classList.add('visible');
+    }
+
+    // Update button mode based on verification status
+    if (emailVerified) {
+      setCheckoutBtnMode('buy');
+    } else {
+      setCheckoutBtnMode('continue');
     }
 
     // Focus email input if empty
@@ -1332,6 +1376,7 @@
     // Reset state
     clearPlanSelection();
     clearCheckoutError();
+    generalVerifier.reset();
 
     buyCreditsModal.classList.add('open');
     buyCreditsModal.inert = false;
@@ -1344,17 +1389,23 @@
     // Pre-fill email if we have it
     if (checkoutEmail && userEmail) {
       checkoutEmail.value = userEmail;
-      // If email is verified, make field read-only (security: backend enforces this)
       if (emailVerified) {
+        // Verified user: read-only email, button says "Buy · £X.xx"
         checkoutEmail.readOnly = true;
         checkoutEmail.classList.add('verified-email');
         checkoutEmail.title = 'Using your verified email address';
+        setCheckoutBtnMode('buy');
       } else {
+        // Unverified: editable email, button says "Continue"
         checkoutEmail.readOnly = false;
         checkoutEmail.classList.remove('verified-email');
         checkoutEmail.title = '';
+        setCheckoutBtnMode('continue');
       }
       validateCheckoutForm();
+    } else {
+      // No email at all — anonymous user, button says "Continue"
+      setCheckoutBtnMode('continue');
     }
 
     // Focus first plan card if no preselection, otherwise focus email
@@ -1369,6 +1420,11 @@
   function closeBuyCreditsModal() {
     if (!buyCreditsModal) return;
 
+    // Best-effort: track if user had started verification but abandoned
+    if (selectedPlan && generalVerifier.pendingEmail) {
+      trackCheckoutEvent('abandoned_before_verify', { flow: 'general', plan: selectedPlan.id });
+    }
+
     // Move focus OUT before hiding
     if (buyCreditsModal.contains(document.activeElement)) {
       (lastFocusBeforeBuyModal || buyCreditsBtn || document.body).focus();
@@ -1380,6 +1436,7 @@
     // Reset state
     clearPlanSelection();
     clearCheckoutError();
+    generalVerifier.reset();
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1396,6 +1453,17 @@
   const videoBuyError = document.getElementById('videoBuyError');
   const videoBuyBtn = document.getElementById('videoBuyBtn');
 
+  // Video verify state elements (inline email verification before video purchase)
+  const videoBuyEmailState = document.getElementById('videoBuyEmailState');
+  const videoBuyVerifyState = document.getElementById('videoBuyVerifyState');
+  const videoBuySentToEmail = document.getElementById('videoBuySentToEmail');
+  const videoBuyVerifyCodeInput = document.getElementById('videoBuyVerifyCode');
+  const videoBuyVerifyMessage = document.getElementById('videoBuyVerifyMessage');
+  const videoBuyVerifyError = document.getElementById('videoBuyVerifyError');
+  const videoBuyVerifyBtn = document.getElementById('videoBuyVerifyBtn');
+  const videoBuyResendCodeBtn = document.getElementById('videoBuyResendCode');
+  const videoBuyBackToEmailBtn = document.getElementById('videoBuyBackToEmail');
+
   let selectedVideoPlan = null;
   let lastFocusBeforeVideoModal = null;
 
@@ -1410,6 +1478,7 @@
 
     selectedVideoPlan = planId;
     lastFocusBeforeVideoModal = document.activeElement;
+    trackCheckoutEvent('plan_selected', { flow: 'video', plan: planId });
 
     // Update modal content
     if (videoBuyTitle) videoBuyTitle.textContent = `Buy ${plan.name}`;
@@ -1417,19 +1486,25 @@
     if (videoBuyCredits) videoBuyCredits.textContent = plan.credits.toLocaleString();
     if (videoBuyPrice) videoBuyPrice.textContent = `£${plan.price.toFixed(2)}`;
 
+    // Reset verify state (uses shared verification layer)
+    videoVerifier.reset();
+
     // Pre-fill email if we have it
     if (videoBuyEmail && userEmail) {
       videoBuyEmail.value = userEmail;
-      // If email is verified, make field read-only (security: backend enforces this)
       if (emailVerified) {
         videoBuyEmail.readOnly = true;
         videoBuyEmail.classList.add('verified-email');
         videoBuyEmail.title = 'Using your verified email address';
+        setVideoBuyBtnMode('buy');
       } else {
         videoBuyEmail.readOnly = false;
         videoBuyEmail.classList.remove('verified-email');
         videoBuyEmail.title = '';
+        setVideoBuyBtnMode('continue');
       }
+    } else {
+      setVideoBuyBtnMode('continue');
     }
 
     // Clear previous error
@@ -1452,6 +1527,11 @@
   function closeVideoBuyModal() {
     if (!videoBuyModal) return;
 
+    // Best-effort: track if user had started verification but abandoned
+    if (selectedVideoPlan && videoVerifier.pendingEmail) {
+      trackCheckoutEvent('abandoned_before_verify', { flow: 'video', plan: selectedVideoPlan });
+    }
+
     if (videoBuyModal.contains(document.activeElement)) {
       (lastFocusBeforeVideoModal || document.body).focus();
     }
@@ -1459,6 +1539,7 @@
     videoBuyModal.classList.remove('open');
     videoBuyModal.inert = true;
     selectedVideoPlan = null;
+    videoVerifier.reset();
   }
 
   function validateVideoBuyForm() {
@@ -1477,6 +1558,13 @@
 
   async function startVideoCheckout() {
     if (!selectedVideoPlan || !validateVideoBuyForm()) return;
+
+    // Handoff guard: ensure verified identity still matches current session
+    if (!validateCheckoutHandoff('video')) {
+      showVideoBuyError('Your account changed during verification. Please confirm checkout again.');
+      videoVerifier.reset();
+      return;
+    }
 
     const plan = VIDEO_PLANS[selectedVideoPlan];
     if (!plan) return;
@@ -1530,6 +1618,7 @@
         console.log('[Credits] Video: Stored plan credits:', plan.credits, 'plan_code:', selectedVideoPlan);
 
         // Redirect to Mollie checkout
+        trackCheckoutEvent('redirect_started', { flow: 'video', plan: selectedVideoPlan });
         window.location.href = data.checkout_url;
       } else {
         throw new Error('No checkout URL returned');
@@ -1562,16 +1651,49 @@
     validateVideoBuyForm();
   });
 
+  // Video buy button — routes through verification for unverified users
   videoBuyBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    startVideoCheckout();
+    if (emailVerified) {
+      startVideoCheckout();
+    } else {
+      videoVerifier.handleEmailContinue();
+    }
   });
 
+  // Enter key in video email field — same routing
   videoBuyEmail?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !videoBuyBtn?.disabled) {
       e.preventDefault();
-      startVideoCheckout();
+      if (emailVerified) {
+        startVideoCheckout();
+      } else {
+        videoVerifier.handleEmailContinue();
+      }
     }
+  });
+
+  // Video verify state event listeners (delegated to videoVerifier)
+  videoBuyVerifyBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    videoVerifier.handleVerifyCode();
+  });
+  videoBuyVerifyCodeInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      videoVerifier.handleVerifyCode();
+    }
+  });
+  videoBuyVerifyCodeInput?.addEventListener('input', () => {
+    videoVerifier.clearVerifyMessages();
+  });
+  videoBuyResendCodeBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    videoVerifier.handleResendCode();
+  });
+  videoBuyBackToEmailBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    videoVerifier.handleBackToEmail();
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -1674,15 +1796,14 @@
     successModal.classList.remove('open');
     successModal.inert = true;
 
-    // After a successful purchase, prompt anonymous users to secure credits
-    const wasPurchaseSuccess = successModalState.isOpen && !successModalState.isPending
-      && !successModal.classList.contains('failed');
     successModalState.isOpen = false;
     successModalState.isPending = false;
 
-    if (wasPurchaseSuccess && !emailVerified && (walletAvailable > 0)) {
-      setTimeout(() => openPostPurchasePrompt(), 600);
-    }
+    // Post-purchase secure prompt removed from this path:
+    // All paid checkout flows now require inline email verification BEFORE
+    // billing, so users are always emailVerified=true when they reach here.
+    // The secure-credits feature remains accessible via the account beacon
+    // and guest chooser modal for non-purchase account protection.
   }
 
   /**
@@ -1780,15 +1901,16 @@
       return true;
     }
 
-    // 403 - Email required, not verified, or mismatch
+    // 403 - Email issues
+    // EMAIL_REQUIRED and EMAIL_NOT_VERIFIED are no longer expected in normal flow
+    // because inline verification completes before checkout. If the backend still
+    // returns them (e.g. race condition, session expiry), log defensively and
+    // let the caller show its own error. Do NOT open the old modal routing that
+    // created the double-email experience.
     if (status === 403) {
-      if (errorCode === 'EMAIL_REQUIRED') {
-        showEmailRequiredModal();
-        return true;
-      }
-      if (errorCode === 'EMAIL_NOT_VERIFIED') {
-        showEmailNotVerifiedModal();
-        return true;
+      if (errorCode === 'EMAIL_REQUIRED' || errorCode === 'EMAIL_NOT_VERIFIED') {
+        console.warn(`[Credits] Unexpected ${errorCode} in verified-first flow (context: ${context}). Refresh may be needed.`);
+        return false;  // Let caller handle with inline error
       }
       if (errorCode === 'EMAIL_MISMATCH') {
         showEmailMismatchModal(identityEmail, context);
@@ -1831,166 +1953,6 @@
     modal.classList.add('open');
     modal.inert = false;
     document.getElementById('sessionRefreshBtn')?.focus();
-  }
-
-  /**
-   * Show email required modal - prompts to add email
-   */
-  function showEmailRequiredModal() {
-    // Check if modal already exists
-    let modal = document.getElementById('emailRequiredModal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'emailRequiredModal';
-      modal.className = 'modal';
-      modal.setAttribute('role', 'dialog');
-      modal.setAttribute('aria-labelledby', 'emailRequiredTitle');
-      modal.innerHTML = `
-        <div class="modal-content modal-sm">
-          <button class="modal-close" id="emailRequiredClose" aria-label="Close">&times;</button>
-          <h2 id="emailRequiredTitle">Add Your Email</h2>
-          <p class="modal-subtitle">Add an email to secure your credits and enable purchases.</p>
-          <button class="btn btn-primary" id="emailRequiredCta">
-            <span class="btn-text">Add Email</span>
-          </button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-
-      // Close button
-      document.getElementById('emailRequiredClose')?.addEventListener('click', () => {
-        closeEmailRequiredModal();
-      });
-
-      // Backdrop click
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeEmailRequiredModal();
-      });
-
-      // CTA opens secure credits modal
-      document.getElementById('emailRequiredCta')?.addEventListener('click', () => {
-        closeEmailRequiredModal();
-        openSecureCreditsModal();
-      });
-    }
-
-    modal.classList.add('open');
-    modal.inert = false;
-    document.getElementById('emailRequiredCta')?.focus();
-  }
-
-  function closeEmailRequiredModal() {
-    const modal = document.getElementById('emailRequiredModal');
-    if (modal) {
-      modal.classList.remove('open');
-      modal.inert = true;
-    }
-  }
-
-  /**
-   * Show email not verified modal - prompts to verify
-   */
-  function showEmailNotVerifiedModal() {
-    // Check if modal already exists
-    let modal = document.getElementById('emailNotVerifiedModal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'emailNotVerifiedModal';
-      modal.className = 'modal';
-      modal.setAttribute('role', 'dialog');
-      modal.setAttribute('aria-labelledby', 'emailNotVerifiedTitle');
-      modal.innerHTML = `
-        <div class="modal-content modal-sm">
-          <button class="modal-close" id="emailNotVerifiedClose" aria-label="Close">&times;</button>
-          <h2 id="emailNotVerifiedTitle">Verify Your Email</h2>
-          <p class="modal-subtitle">Please verify your email address before making purchases.</p>
-          <p class="modal-note" id="emailNotVerifiedNote"></p>
-          <button class="btn btn-primary" id="emailNotVerifiedCta">
-            <span class="btn-text">Verify Now</span>
-          </button>
-          <button class="btn btn-link" id="emailNotVerifiedResend">
-            <span class="btn-text">Resend Code</span>
-          </button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-
-      // Close button
-      document.getElementById('emailNotVerifiedClose')?.addEventListener('click', () => {
-        closeEmailNotVerifiedModal();
-      });
-
-      // Backdrop click
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeEmailNotVerifiedModal();
-      });
-
-      // CTA opens secure credits modal in verify state
-      document.getElementById('emailNotVerifiedCta')?.addEventListener('click', () => {
-        closeEmailNotVerifiedModal();
-        // Open secure modal and transition to verify state (state 2)
-        openSecureCreditsModal();
-        if (userEmail && sentToEmail) {
-          pendingEmail = userEmail;
-          sentToEmail.textContent = userEmail;
-          showSecureState(2);
-          verifyCodeInput?.focus();
-        }
-      });
-
-      // Resend code button
-      document.getElementById('emailNotVerifiedResend')?.addEventListener('click', async () => {
-        const resendBtn = document.getElementById('emailNotVerifiedResend');
-        if (resendBtn) {
-          resendBtn.disabled = true;
-          resendBtn.querySelector('.btn-text').textContent = 'Sending...';
-        }
-
-        try {
-          await apiFetch('/api/auth/email/attach', {
-            method: 'POST',
-            body: { email: userEmail }
-          });
-
-          // Show success and transition to verify
-          closeEmailNotVerifiedModal();
-          openSecureCreditsModal();
-          if (userEmail && sentToEmail) {
-            pendingEmail = userEmail;
-            sentToEmail.textContent = userEmail;
-            showSecureState(2);
-            setVerifyMessage('New code sent! Check your email.');
-            startResendCooldown();
-            verifyCodeInput?.focus();
-          }
-        } catch (err) {
-          console.error('[Credits] Resend code error:', err);
-        } finally {
-          if (resendBtn) {
-            resendBtn.disabled = false;
-            resendBtn.querySelector('.btn-text').textContent = 'Resend Code';
-          }
-        }
-      });
-    }
-
-    // Update note with current email
-    const note = document.getElementById('emailNotVerifiedNote');
-    if (note && userEmail) {
-      note.textContent = `We sent a code to ${userEmail}`;
-    }
-
-    modal.classList.add('open');
-    modal.inert = false;
-    document.getElementById('emailNotVerifiedCta')?.focus();
-  }
-
-  function closeEmailNotVerifiedModal() {
-    const modal = document.getElementById('emailNotVerifiedModal');
-    if (modal) {
-      modal.classList.remove('open');
-      modal.inert = true;
-    }
   }
 
   /**
@@ -2091,8 +2053,6 @@
   // ESC key closes billing error modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeEmailRequiredModal();
-      closeEmailNotVerifiedModal();
       closeEmailMismatchModal();
       // Don't close session expired - it requires refresh
     }
@@ -2150,12 +2110,128 @@
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Verified-Checkout Handoff Latch
+  //
+  // Short-lived token set after email verification succeeds and
+  // /api/me refreshes. Consumed exactly once by startCheckout() or
+  // startVideoCheckout(). Prevents a stale identity from proceeding
+  // to billing if the session changes between verify and checkout.
+  //
+  // Cleared on: modal close, identity change, logout, expiry (30s),
+  // or successful consumption by a checkout executor.
+  // ─────────────────────────────────────────────────────────────
+
+  const HANDOFF_TTL_MS = 30000;
+
+  let checkoutHandoff = null;    // { identityId, email, flow, nonce, ts, timer }
+
+  function setCheckoutHandoff(flow) {
+    clearCheckoutHandoff();
+    const nonce = Math.random().toString(36).slice(2, 10);
+    checkoutHandoff = {
+      identityId: identityId,
+      email: userEmail,
+      flow,
+      nonce,
+      ts: Date.now(),
+      timer: setTimeout(() => {
+        console.log('[Handoff] Expired after', HANDOFF_TTL_MS, 'ms');
+        checkoutHandoff = null;
+      }, HANDOFF_TTL_MS),
+    };
+    console.log('[Handoff] Set:', flow, 'identity:', identityId, 'nonce:', nonce);
+    return nonce;
+  }
+
+  function clearCheckoutHandoff() {
+    if (checkoutHandoff) {
+      clearTimeout(checkoutHandoff.timer);
+      checkoutHandoff = null;
+    }
+  }
+
+  /**
+   * Validate that current session still matches the verified handoff state.
+   * Returns true if checkout may proceed, false if stale.
+   * @param {string} expectedFlow - 'general' or 'video'
+   */
+  function validateCheckoutHandoff(expectedFlow) {
+    if (!checkoutHandoff) {
+      // No handoff — user is already-verified (fast path) or direct click.
+      // Check live state instead.
+      if (!emailVerified) {
+        console.warn('[Handoff] No handoff and email not verified');
+        return false;
+      }
+      return true;
+    }
+
+    const h = checkoutHandoff;
+    const now = Date.now();
+
+    // Check expiry
+    if (now - h.ts > HANDOFF_TTL_MS) {
+      console.warn('[Handoff] Expired at validation time');
+      clearCheckoutHandoff();
+      return false;
+    }
+
+    // Check flow matches
+    if (h.flow !== expectedFlow) {
+      console.warn('[Handoff] Flow mismatch: handoff=%s expected=%s', h.flow, expectedFlow);
+      clearCheckoutHandoff();
+      return false;
+    }
+
+    // Check identity still matches
+    if (h.identityId !== identityId) {
+      console.warn('[Handoff] Identity mismatch: handoff=%s current=%s', h.identityId, identityId);
+      clearCheckoutHandoff();
+      return false;
+    }
+
+    // Check email still matches
+    if (h.email?.toLowerCase() !== userEmail?.toLowerCase()) {
+      console.warn('[Handoff] Email mismatch: handoff=%s current=%s', h.email, userEmail);
+      clearCheckoutHandoff();
+      return false;
+    }
+
+    // Check emailVerified is still true
+    if (!emailVerified) {
+      console.warn('[Handoff] emailVerified became false after handoff was set');
+      clearCheckoutHandoff();
+      return false;
+    }
+
+    // Valid — consume it (one-shot)
+    clearCheckoutHandoff();
+    return true;
+  }
+
+  // Clear handoff on identity change
+  window.addEventListener('timrx:identity_changed', () => {
+    if (checkoutHandoff) {
+      console.log('[Handoff] Cleared by identity change');
+      clearCheckoutHandoff();
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // Checkout Flow
   // ─────────────────────────────────────────────────────────────
 
   async function startCheckout() {
     if (!validateCheckoutForm()) {
       showCheckoutError('Please select a plan and enter a valid email.');
+      return;
+    }
+
+    // Handoff guard: ensure verified identity still matches current session
+    if (!validateCheckoutHandoff('general')) {
+      showCheckoutError('Your account changed during verification. Please confirm checkout again.');
+      setCheckoutLoading(false);
+      generalVerifier.reset();
       return;
     }
 
@@ -2207,6 +2283,7 @@
         console.log('[Credits] Stored plan credits:', planCredits, 'plan_code:', planCode);
 
         // Redirect to Mollie checkout
+        trackCheckoutEvent('redirect_started', { flow: 'general', plan: selectedPlan.id });
         window.location.href = data.checkout_url;
       } else {
         throw new Error('No checkout URL returned');
@@ -2229,6 +2306,462 @@
 
     if (btnText) btnText.style.display = loading ? 'none' : '';
     if (btnLoader) btnLoader.style.display = loading ? 'inline-flex' : 'none';
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Pre-Checkout Email Verification — Shared Layer
+  //
+  // Factory that creates a reusable verification controller for
+  // any checkout modal. Handles ONLY email attach, code verify,
+  // resend cooldown, identity-changed cleanup, and /api/me refresh.
+  //
+  // Does NOT touch pricing, wallets, plan selection, or checkout
+  // execution — those are injected via callbacks.
+  //
+  // Usage:
+  //   const v = createPreCheckoutVerifier({ ...domRefs, onCheckout, ... });
+  //   v.handleEmailContinue();   // Step 1: send code
+  //   v.handleVerifyCode();      // Step 2: verify + auto-checkout
+  //   v.reset();                 // Reset state on modal open/close
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * @param {Object} cfg
+   * @param {string}       cfg.name             - Log prefix, e.g. 'Checkout' or 'Video'
+   * @param {HTMLElement}  cfg.emailStateEl      - Container for email-input state
+   * @param {HTMLElement}  cfg.verifyStateEl     - Container for code-verify state
+   * @param {HTMLElement}  cfg.emailInput        - The email <input>
+   * @param {HTMLElement}  cfg.sentToEmailEl     - <strong> showing where code was sent
+   * @param {HTMLElement}  cfg.codeInput         - The 6-digit code <input>
+   * @param {HTMLElement}  cfg.verifyMsgEl       - Verify info message <p>
+   * @param {HTMLElement}  cfg.verifyErrEl       - Verify error message <p>
+   * @param {HTMLElement}  cfg.verifyBtn         - "Verify & Buy" button
+   * @param {HTMLElement}  cfg.resendBtn         - "Resend code" link-button
+   * @param {HTMLElement}  cfg.emailErrorEl      - Email-state error display (optional)
+   * @param {Function}     cfg.setEmailLoading   - fn(bool) to toggle email-state button loading
+   * @param {Function}     cfg.showEmailError    - fn(msg) to show error in email state
+   * @param {Function}     cfg.clearEmailError   - fn() to clear email state error
+   * @param {Function}     cfg.validateForm      - fn() → bool, returns false if form invalid
+   * @param {Function}     cfg.onCheckout        - fn() called after verification succeeds.
+   *                                               THIS is where product-specific billing runs.
+   *                                               General credits: startCheckout()
+   *                                               Video credits:   startVideoCheckout()
+   * @param {Function}     cfg.getBuyLabel       - fn() → string for the "Buy · £X.xx" button label
+   */
+  function createPreCheckoutVerifier(cfg) {
+    let pendingEmail = null;
+    let resendCooldown = 0;
+    let resendTimer = null;
+    let active = false;  // true while verification flow is in progress
+
+    // ── Identity change detection ──
+    // If the identity/session changes while this verifier is active (e.g. user
+    // restores account in another tab, or periodic /api/me detects a swap),
+    // discard stale pending verification state and rehydrate the modal.
+    window.addEventListener('timrx:identity_changed', () => {
+      if (!active) return;
+      console.log(`[Credits] ${cfg.name}: identity changed during verification, resetting`);
+
+      // Wipe pending email/code from old identity + any pending handoff
+      active = false;
+      pendingEmail = null;
+      resendCooldown = 0;
+      clearInterval(resendTimer);
+      clearCheckoutHandoff();
+      showEmailState();
+
+      // Let the modal re-apply email prefill, button mode, readOnly from new identity
+      if (typeof cfg.onIdentityChanged === 'function') {
+        cfg.onIdentityChanged();
+      }
+
+      // Show a brief message so the user understands why the form reset
+      cfg.showEmailError('Your account changed. Please confirm your email to continue.');
+    });
+
+    // ── UI helpers (all operate on this instance's DOM refs) ──
+
+    function showEmailState() {
+      if (cfg.emailStateEl) cfg.emailStateEl.style.display = '';
+      if (cfg.verifyStateEl) cfg.verifyStateEl.style.display = 'none';
+      clearVerifyMessages();
+    }
+
+    function showVerifyState() {
+      if (cfg.emailStateEl) cfg.emailStateEl.style.display = 'none';
+      if (cfg.verifyStateEl) cfg.verifyStateEl.style.display = '';
+      if (cfg.sentToEmailEl) cfg.sentToEmailEl.textContent = pendingEmail || '';
+      if (cfg.codeInput) { cfg.codeInput.value = ''; cfg.codeInput.focus(); }
+      clearVerifyMessages();
+    }
+
+    function showVerifyMsg(msg) {
+      if (cfg.verifyMsgEl) { cfg.verifyMsgEl.textContent = msg; cfg.verifyMsgEl.style.display = ''; }
+    }
+
+    function showVerifyErr(msg) {
+      if (cfg.verifyErrEl) { cfg.verifyErrEl.textContent = msg; cfg.verifyErrEl.style.display = ''; }
+    }
+
+    function clearVerifyMessages() {
+      if (cfg.verifyMsgEl) { cfg.verifyMsgEl.textContent = ''; cfg.verifyMsgEl.style.display = 'none'; }
+      if (cfg.verifyErrEl) { cfg.verifyErrEl.textContent = ''; cfg.verifyErrEl.style.display = 'none'; }
+    }
+
+    function setVerifyLoading(loading) {
+      if (!cfg.verifyBtn) return;
+      cfg.verifyBtn.disabled = loading;
+      const t = cfg.verifyBtn.querySelector('.btn-text');
+      const l = cfg.verifyBtn.querySelector('.btn-loader');
+      if (t) t.style.display = loading ? 'none' : '';
+      if (l) l.style.display = loading ? 'inline-flex' : 'none';
+    }
+
+    function startResendCooldown() {
+      resendCooldown = 60;
+      if (cfg.resendBtn) { cfg.resendBtn.disabled = true; cfg.resendBtn.textContent = 'Resend code (60s)'; }
+      clearInterval(resendTimer);
+      resendTimer = setInterval(() => {
+        resendCooldown--;
+        if (cfg.resendBtn) {
+          cfg.resendBtn.textContent = resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : 'Resend code';
+        }
+        if (resendCooldown <= 0) {
+          clearInterval(resendTimer);
+          if (cfg.resendBtn) cfg.resendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    // ── Shared post-verify session refresh (identity + wallet) ──
+
+    async function refreshSessionAfterVerify() {
+      try {
+        const meResult = await apiFetch('/api/me', { timeout: 15000 });
+        if (meResult.ok && meResult.data?.ok) {
+          userEmail = meResult.data.email;
+          emailVerified = meResult.data.email_verified || false;
+          identityId = meResult.data.identity_id;
+          WalletStore.update({
+            balance: meResult.data.balance_credits ?? 0,
+            reserved: meResult.data.reserved_credits ?? 0,
+            available: meResult.data.available_credits ?? 0,
+            videoBalance: meResult.data.balance_video_credits ?? 0,
+            videoReserved: meResult.data.reserved_video_credits ?? 0,
+            videoAvailable: meResult.data.available_video_credits ?? 0,
+            identityId: meResult.data.identity_id,
+            email: meResult.data.email,
+            emailVerified: meResult.data.email_verified,
+          });
+        }
+      } catch (meErr) {
+        console.warn(`[Credits] ${cfg.name}: /api/me refresh after verify failed:`, meErr);
+        userEmail = pendingEmail;
+        emailVerified = true;
+      }
+    }
+
+    // ── Shared verify error handler ──
+
+    function handleVerifyErrorCode(result) {
+      const errorCode = result.data?.error?.code || result.data?.code;
+      setVerifyLoading(false);
+
+      if (errorCode === 'INVALID_CODE') {
+        showVerifyErr('Invalid or expired code');
+      } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
+        showVerifyErr('Too many attempts. Please request a new code.');
+      } else if (errorCode === 'CODE_EXPIRED') {
+        showVerifyErr('Code has expired. Please request a new one.');
+      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
+        const nextStep = result.data?.error?.next_step;
+        if (nextStep === 'wait_for_jobs') {
+          showVerifyErr('You have active jobs processing. Please wait, then try again.');
+        } else if (nextStep === 'contact_support_subscription') {
+          showVerifyErr('Both accounts have subscriptions. Please contact support.');
+        } else {
+          showVerifyErr('Could not verify automatically. Please contact support.');
+        }
+      } else {
+        showVerifyErr(result.error || 'Verification failed');
+      }
+    }
+
+    // ── Public API ──
+
+    return {
+      /** Current pending email (readable for external state checks) */
+      get pendingEmail() { return pendingEmail; },
+
+      /** Reset all verification state. Call on modal open/close. */
+      reset() {
+        active = false;
+        pendingEmail = null;
+        resendCooldown = 0;
+        clearInterval(resendTimer);
+        clearCheckoutHandoff();
+        showEmailState();
+      },
+
+      /** Step 1: Send verification code. */
+      async handleEmailContinue() {
+        if (!cfg.validateForm()) {
+          cfg.showEmailError('Please enter a valid email.');
+          return;
+        }
+
+        const email = cfg.emailInput.value.trim();
+        const flow = cfg.flowType || 'unknown';
+        trackCheckoutEvent('email_continue_clicked', { flow, path: emailVerified ? 'fast' : 'verify' });
+
+        // Fast path: already verified with same email → skip to checkout
+        if (emailVerified && userEmail && userEmail.toLowerCase() === email.toLowerCase()) {
+          console.log(`[Credits] ${cfg.name}: email already verified, proceeding to checkout`);
+          cfg.onCheckout();
+          return;
+        }
+
+        active = true;  // Mark as in-use for identity-change detection
+        pendingEmail = email;
+        cfg.setEmailLoading(true);
+        cfg.clearEmailError();
+
+        try {
+          const result = await apiFetch('/api/auth/email/attach', {
+            method: 'POST',
+            body: { email }
+          });
+
+          cfg.setEmailLoading(false);
+
+          if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
+            cfg.showEmailError(result.data.error.message || 'Please wait before requesting another code.');
+            return;
+          }
+
+          trackCheckoutEvent('code_sent', { flow });
+          showVerifyState();
+          startResendCooldown();
+
+          if (result.data?.hint === 'restore_available') {
+            showVerifyMsg('Code sent! If you\'ve used this email before, try Restore Account.');
+          }
+        } catch (err) {
+          cfg.setEmailLoading(false);
+          // Proceed optimistically — code may have been sent
+          trackCheckoutEvent('code_sent', { flow, optimistic: true });
+          showVerifyState();
+          startResendCooldown();
+        }
+      },
+
+      /** Step 2: Verify 6-digit code, refresh session, then call onCheckout. */
+      async handleVerifyCode() {
+        const code = cfg.codeInput?.value?.trim() || '';
+        const flow = cfg.flowType || 'unknown';
+
+        if (code.length !== 6 || !/^\d+$/.test(code)) {
+          showVerifyErr('Code must be 6 digits');
+          return;
+        }
+
+        clearVerifyMessages();
+        setVerifyLoading(true);
+        showVerifyMsg('Verifying...');
+
+        try {
+          const result = await apiFetch('/api/auth/email/verify', {
+            method: 'POST',
+            body: { email: pendingEmail, code }
+          });
+
+          if (result.ok) {
+            console.log(`[Credits] ${cfg.name}: email verified, proceeding to checkout`);
+            trackCheckoutEvent('code_verified', {
+              flow,
+              identity_changed: !!result.data?.identity_changed,
+            });
+
+            // IDENT-1: cross-identity merge cache clear
+            if (result.data?.identity_changed && window.TimrXApi?.clearAllUserCaches) {
+              window.TimrXApi.clearAllUserCaches();
+              if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
+            }
+
+            showVerifyMsg('Email verified! Redirecting to payment...');
+            await refreshSessionAfterVerify();
+
+            // Set handoff latch — captures verified identity state for checkout guard
+            setCheckoutHandoff(flow);
+
+            // Brief pause for user to see confirmation, then proceed to checkout.
+            // The checkout executor will validate the handoff before calling billing.
+            setTimeout(() => cfg.onCheckout(), 500);
+            return;
+          }
+
+          const errorCode = result.data?.error?.code || result.data?.code || 'unknown';
+          trackCheckoutEvent('verify_error', { flow, error: errorCode });
+          handleVerifyErrorCode(result);
+        } catch (err) {
+          console.error(`[Credits] ${cfg.name} verify error:`, err);
+          trackCheckoutEvent('verify_error', { flow, error: 'network' });
+          setVerifyLoading(false);
+          showVerifyErr(err.message || 'Verification failed. Please try again.');
+        }
+      },
+
+      /** Resend verification code. */
+      async handleResendCode() {
+        if (!pendingEmail || resendCooldown > 0) return;
+
+        clearVerifyMessages();
+        showVerifyMsg('Resending code...');
+
+        try {
+          const result = await apiFetch('/api/auth/email/attach', {
+            method: 'POST',
+            body: { email: pendingEmail }
+          });
+
+          if (result.ok || result.status === 200) {
+            showVerifyMsg('New code sent!');
+            if (cfg.codeInput) cfg.codeInput.value = '';
+            startResendCooldown();
+          } else {
+            showVerifyErr(result.error || 'Failed to resend code');
+          }
+        } catch (err) {
+          showVerifyErr('Failed to resend code');
+        }
+      },
+
+      /** Go back to email input state. */
+      handleBackToEmail() {
+        pendingEmail = null;
+        showEmailState();
+        if (cfg.emailInput) cfg.emailInput.focus();
+      },
+
+      /** Clear verify-state messages (for external input listeners). */
+      clearVerifyMessages,
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // General Credits — Pre-checkout verifier instance
+  // onCheckout → startCheckout() (general plan_code, general balance)
+  // ─────────────────────────────────────────────────────────────
+
+  const generalVerifier = createPreCheckoutVerifier({
+    name: 'Checkout',
+    flowType: 'general',
+    emailStateEl:    checkoutEmailState,
+    verifyStateEl:   checkoutVerifyState,
+    emailInput:      checkoutEmail,
+    sentToEmailEl:   checkoutSentToEmail,
+    codeInput:       checkoutVerifyCodeInput,
+    verifyMsgEl:     checkoutVerifyMessage,
+    verifyErrEl:     checkoutVerifyError,
+    verifyBtn:       checkoutVerifyBtn,
+    resendBtn:       checkoutResendCodeBtn,
+    setEmailLoading: setCheckoutLoading,
+    showEmailError:  showCheckoutError,
+    clearEmailError: clearCheckoutError,
+    validateForm:    validateCheckoutForm,
+    onCheckout:      () => startCheckout(),
+    onIdentityChanged() {
+      // Rehydrate email input + button mode from new identity (same as openBuyCreditsModal)
+      if (checkoutEmail && userEmail) {
+        checkoutEmail.value = userEmail;
+        if (emailVerified) {
+          checkoutEmail.readOnly = true;
+          checkoutEmail.classList.add('verified-email');
+          setCheckoutBtnMode('buy');
+        } else {
+          checkoutEmail.readOnly = false;
+          checkoutEmail.classList.remove('verified-email');
+          setCheckoutBtnMode('continue');
+        }
+      } else {
+        if (checkoutEmail) { checkoutEmail.value = ''; checkoutEmail.readOnly = false; }
+        setCheckoutBtnMode('continue');
+      }
+      validateCheckoutForm();
+    },
+  });
+
+  /** Set the general-credits button label based on verification state. */
+  function setCheckoutBtnMode(mode) {
+    const btnText = checkoutBtn?.querySelector('.btn-text');
+    if (!btnText) return;
+    if (mode === 'buy' && selectedPlan) {
+      btnText.textContent = `Buy · £${selectedPlan.price.toFixed(2)}`;
+    } else {
+      btnText.textContent = 'Continue';
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Video Credits — Pre-checkout verifier instance
+  // onCheckout → startVideoCheckout() (video plan_code, video balance)
+  // ─────────────────────────────────────────────────────────────
+
+  const videoVerifier = createPreCheckoutVerifier({
+    name: 'Video',
+    flowType: 'video',
+    emailStateEl:    videoBuyEmailState,
+    verifyStateEl:   videoBuyVerifyState,
+    emailInput:      videoBuyEmail,
+    sentToEmailEl:   videoBuySentToEmail,
+    codeInput:       videoBuyVerifyCodeInput,
+    verifyMsgEl:     videoBuyVerifyMessage,
+    verifyErrEl:     videoBuyVerifyError,
+    verifyBtn:       videoBuyVerifyBtn,
+    resendBtn:       videoBuyResendCodeBtn,
+    setEmailLoading(loading) {
+      if (!videoBuyBtn) return;
+      videoBuyBtn.disabled = loading;
+      const t = videoBuyBtn.querySelector('.btn-text');
+      const l = videoBuyBtn.querySelector('.btn-loader');
+      if (t) t.style.display = loading ? 'none' : '';
+      if (l) l.style.display = loading ? '' : 'none';
+    },
+    showEmailError:  showVideoBuyError,
+    clearEmailError() { if (videoBuyError) videoBuyError.style.display = 'none'; },
+    validateForm:    validateVideoBuyForm,
+    onCheckout:      () => startVideoCheckout(),
+    onIdentityChanged() {
+      // Rehydrate email input + button mode from new identity (same as openVideoBuyModal)
+      if (videoBuyEmail && userEmail) {
+        videoBuyEmail.value = userEmail;
+        if (emailVerified) {
+          videoBuyEmail.readOnly = true;
+          videoBuyEmail.classList.add('verified-email');
+          setVideoBuyBtnMode('buy');
+        } else {
+          videoBuyEmail.readOnly = false;
+          videoBuyEmail.classList.remove('verified-email');
+          setVideoBuyBtnMode('continue');
+        }
+      } else {
+        if (videoBuyEmail) { videoBuyEmail.value = ''; videoBuyEmail.readOnly = false; }
+        setVideoBuyBtnMode('continue');
+      }
+      validateVideoBuyForm();
+    },
+  });
+
+  /** Set the video-credits button label based on verification state. */
+  function setVideoBuyBtnMode(mode) {
+    const btnText = videoBuyBtn?.querySelector('.btn-text');
+    if (!btnText) return;
+    if (mode === 'buy' && selectedVideoPlan) {
+      const plan = VIDEO_PLANS[selectedVideoPlan];
+      btnText.textContent = plan ? `Buy · £${plan.price.toFixed(2)}` : 'Buy';
+    } else {
+      btnText.textContent = 'Continue';
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -2331,18 +2864,49 @@
     }
   });
 
-  // Checkout button
+  // Checkout button — routes through verification for unverified users
   checkoutBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    startCheckout();
+    if (emailVerified) {
+      startCheckout();
+    } else {
+      generalVerifier.handleEmailContinue();
+    }
   });
 
-  // Enter key in email field triggers checkout
+  // Enter key in email field — same routing as button
   checkoutEmail?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !checkoutBtn?.disabled) {
       e.preventDefault();
-      startCheckout();
+      if (emailVerified) {
+        startCheckout();
+      } else {
+        generalVerifier.handleEmailContinue();
+      }
     }
+  });
+
+  // Checkout verify state event listeners (delegated to generalVerifier)
+  checkoutVerifyBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    generalVerifier.handleVerifyCode();
+  });
+  checkoutVerifyCodeInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      generalVerifier.handleVerifyCode();
+    }
+  });
+  checkoutVerifyCodeInput?.addEventListener('input', () => {
+    generalVerifier.clearVerifyMessages();
+  });
+  checkoutResendCodeBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    generalVerifier.handleResendCode();
+  });
+  checkoutBackToEmailBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    generalVerifier.handleBackToEmail();
   });
 
   // Success modal close button
@@ -2428,6 +2992,11 @@
     const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
     const pendingPlanCode = sessionStorage.getItem('timrx_pending_plan_code') || '';
     const isVideoPlan = pendingPlanCode.startsWith('video_');
+    trackCheckoutEvent('return_success', {
+      flow: isVideoPlan ? 'video' : 'general',
+      plan: pendingPlanCode,
+      credits: planCredits,
+    });
 
     // Choose the right pre-checkout base depending on credit pool
     const initialBalance = isVideoPlan ? preCheckoutVideoBalance : preCheckoutBalance;
@@ -2912,7 +3481,6 @@
       }
       // Also clear auth stamp so next session starts completely fresh
       try { localStorage.removeItem('timrx_auth_stamp'); } catch (_) {}
-      sessionStorage.removeItem('timrx_post_purchase_dismissed');
 
       closeRestoreAccountModal();
 
@@ -3215,58 +3783,6 @@
     }
     openSecureCreditsModal();
     secureEmailInput?.focus();
-  });
-
-  // ─────────────────────────────────────────────────────────────
-  // POST-PURCHASE SECURE PROMPT
-  // ─────────────────────────────────────────────────────────────
-  const postPurchaseModal = document.getElementById('postPurchaseModal');
-  let _postPurchaseShownThisSession = false;
-
-  function openPostPurchasePrompt() {
-    if (!postPurchaseModal) return;
-    if (_postPurchaseShownThisSession) return;
-    if (emailVerified) return; // already secured
-    if (sessionStorage.getItem('timrx_post_purchase_dismissed')) return;
-
-    _postPurchaseShownThisSession = true;
-    postPurchaseModal.classList.add('open');
-    postPurchaseModal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closePostPurchaseModal() {
-    if (!postPurchaseModal) return;
-    postPurchaseModal.classList.remove('open');
-    postPurchaseModal.setAttribute('aria-hidden', 'true');
-  }
-
-  document.getElementById('postPurchaseClose')?.addEventListener('click', () => {
-    sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
-    closePostPurchaseModal();
-  });
-  document.getElementById('postPurchaseLater')?.addEventListener('click', () => {
-    sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
-    closePostPurchaseModal();
-  });
-  postPurchaseModal?.addEventListener('click', (e) => {
-    if (e.target === postPurchaseModal) {
-      sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
-      closePostPurchaseModal();
-    }
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && postPurchaseModal?.classList.contains('open')) {
-      sessionStorage.setItem('timrx_post_purchase_dismissed', '1');
-      closePostPurchaseModal();
-    }
-  });
-
-  // "Secure My Credits" → open secure credits modal
-  document.getElementById('postPurchaseSecure')?.addEventListener('click', () => {
-    closePostPurchaseModal();
-    isRestoreMode = false;
-    resetToAttachMode();
-    openSecureCreditsModal();
   });
 
   /**
