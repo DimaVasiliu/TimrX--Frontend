@@ -1596,6 +1596,14 @@
           closeVideoBuyModal();
           return;
         }
+
+        // Checkout idempotency — a payment session already exists for this identity
+        if (result.data?.error_code === 'CHECKOUT_IN_PROGRESS' || result.data?.error === 'checkout_in_progress') {
+          const retryAfter = result.data.retry_after_seconds || 60;
+          showVideoBuyCooldown(retryAfter);
+          return;
+        }
+
         throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
@@ -2249,6 +2257,15 @@
           closeBuyCreditsModal();
           return;
         }
+
+        // Checkout idempotency — a payment session already exists for this identity
+        if (result.data?.error_code === 'CHECKOUT_IN_PROGRESS' || result.data?.error === 'checkout_in_progress') {
+          setCheckoutLoading(false);
+          const retryAfter = result.data.retry_after_seconds || 60;
+          showCheckoutCooldown(retryAfter);
+          return;
+        }
+
         throw new Error(result.data?.detail || result.error || `Checkout failed (${result.status})`);
       }
 
@@ -2297,6 +2314,66 @@
 
     if (btnText) btnText.style.display = loading ? 'none' : '';
     if (btnLoader) btnLoader.style.display = loading ? 'inline-flex' : 'none';
+  }
+
+  /**
+   * Show a user-friendly cooldown message when checkout is blocked by
+   * the idempotency guard.  Disables the buy button with a countdown
+   * that re-enables it when the slot expires.
+   *
+   * @param {number} seconds - Remaining seconds from retry_after_seconds
+   */
+  function showCheckoutCooldown(seconds) {
+    showCheckoutError(`A payment session was started recently. You can try again in ${seconds}s.`);
+
+    const btnText = checkoutBtn?.querySelector('.btn-text');
+    if (!btnText || !checkoutBtn) return;
+
+    checkoutBtn.disabled = true;
+    const originalLabel = btnText.textContent;
+
+    let remaining = seconds;
+    const tick = setInterval(() => {
+      remaining--;
+      if (remaining > 0) {
+        showCheckoutError(`A payment session was started recently. You can try again in ${remaining}s.`);
+      } else {
+        clearInterval(tick);
+        checkoutBtn.disabled = false;
+        btnText.textContent = originalLabel;
+        clearCheckoutError();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Video-checkout equivalent of showCheckoutCooldown.
+   */
+  function showVideoBuyCooldown(seconds) {
+    showVideoBuyError(`A payment session was started recently. You can try again in ${seconds}s.`);
+
+    if (!videoBuyBtn) return;
+
+    // Reset loading spinner state before starting cooldown
+    videoBuyBtn.disabled = true;
+    const btnText = videoBuyBtn.querySelector('.btn-text');
+    const btnLoader = videoBuyBtn.querySelector('.btn-loader');
+    if (btnText) btnText.style.display = '';
+    if (btnLoader) btnLoader.style.display = 'none';
+    const originalLabel = btnText?.textContent || 'Buy';
+
+    let remaining = seconds;
+    const tick = setInterval(() => {
+      remaining--;
+      if (remaining > 0) {
+        showVideoBuyError(`A payment session was started recently. You can try again in ${remaining}s.`);
+      } else {
+        clearInterval(tick);
+        videoBuyBtn.disabled = false;
+        if (btnText) btnText.textContent = originalLabel;
+        if (videoBuyError) videoBuyError.style.display = 'none';
+      }
+    }, 1000);
   }
 
   // ─────────────────────────────────────────────────────────────
