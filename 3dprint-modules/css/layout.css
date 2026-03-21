@@ -1306,88 +1306,50 @@
   }
   
   /* ==========================================================================
-     EMAIL BEACON - Navbar beacon prompt to add email
+     ACCOUNT SHIELD - Workspace navbar safety indicator
+     Color reflects state: red (anon) / amber (unverified) / green (verified)
      ========================================================================== */
-  .email-beacon {
+  .account-shield-ws {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(125, 211, 252, 0.15) 100%);
-    color: #7dd3fc;
-    font-size: 0.95rem;
+    background: transparent;
+    font-size: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform .2s ease;
     flex-shrink: 0;
-    margin: 0 12px;
-    animation: beaconGlow 2s ease-in-out infinite;
+    margin: 0 10px;
   }
+  .account-shield-ws:hover { transform: scale(1.12); }
+  .account-shield-ws:focus { outline: none; box-shadow: 0 0 0 2px rgba(148,163,184,.4); }
+  .account-shield-ws i { transition: color .2s ease, filter .2s ease; }
   
-  .email-beacon:hover {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.35) 0%, rgba(125, 211, 252, 0.25) 100%);
-    color: #0ea5e9;
-    transform: scale(1.08);
+  /* State colors — set by JS via data-status attribute */
+  .account-shield-ws[data-status="anonymous"] i {
+    color: #f87171;
+    filter: drop-shadow(0 0 3px rgba(248,113,113,.4));
   }
-  
-  .email-beacon:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
+  .account-shield-ws[data-status="unverified"] i {
+    color: #fbbf24;
+    filter: drop-shadow(0 0 3px rgba(251,191,36,.4));
   }
-  
-  .email-beacon.hidden {
-    display: none;
-  }
-  
-  /* Pulse ring effect */
-  .email-beacon-pulse {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(14, 165, 233, 0.6);
-    animation: beaconPulse 2s ease-out infinite;
-    pointer-events: none;
-  }
-  
-  /* Pulse animation */
-  @keyframes beaconPulse {
-    0% {
-      transform: scale(0.95);
-      opacity: 0.7;
-    }
-    50% {
-      transform: scale(1.15);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-  }
-  
-  /* Glow animation */
-  @keyframes beaconGlow {
-    0%, 100% {
-      filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
-    }
-    50% {
-      filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
-    }
+  .account-shield-ws[data-status="verified"] i {
+    color: #34d399;
+    filter: drop-shadow(0 0 3px rgba(52,211,153,.3));
   }
   
   /* Mobile responsive */
   @media (max-width: 600px) {
-    .email-beacon {
-      width: 32px;
-      height: 32px;
-      font-size: 0.85rem;
-      margin: 0 8px;
+    .account-shield-ws {
+      width: 30px;
+      height: 30px;
+      font-size: 13px;
+      margin: 0 6px;
     }
   }
   
@@ -1626,7 +1588,7 @@
     .ws-blog-cta,
     .ticker-header,
     .inspire-trigger-btn,
-    .email-beacon {
+    .account-shield-ws {
       display: none !important;
     }
     .ws-header {

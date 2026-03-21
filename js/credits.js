@@ -4590,78 +4590,75 @@
   });
 
   // ─────────────────────────────────────────────────────────────
-  // EMAIL BEACON - Navbar beacon prompt to add email
+  // Account Status Shield (navbar, inside credits group)
+  // Single indicator replaces old emailBeacon + accountStatusBtn.
+  // Shield icon color: red (anonymous) / amber (unverified) / green (verified)
+  // Click: opens secure-credits flow or restore modal depending on state.
   // ─────────────────────────────────────────────────────────────
 
-  const emailBeacon = document.getElementById('emailBeacon');
+  const accountStatusBtn = document.getElementById('accountStatusBtn');
 
   /**
-   * Update email beacon visibility based on email state
-   * Shows beacon if: no email attached
+   * Update all account-safety UI: navbar shield, checkout button hints.
+   * Called by updateSecureCreditsUI() on every wallet/identity refresh.
    */
   function updateEmailBeaconUI() {
-    if (!emailBeacon) return;
+    // Update navbar shield indicator
+    updateAccountStatusUI();
+    // Update checkout CTA button hints
+    updateCheckoutButtonStates();
+  }
 
-    const shouldShow = !userEmail;
+  function updateAccountStatusUI() {
+    if (!accountStatusBtn) return;
 
-    if (shouldShow) {
-      emailBeacon.classList.remove('hidden');
-      console.log('[Credits] Email beacon shown - no email attached');
+    let status, tooltip;
+
+    if (emailVerified && userEmail) {
+      status = 'verified';
+      tooltip = 'Account secured';
+    } else if (userEmail && !emailVerified) {
+      status = 'unverified';
+      tooltip = 'Verify your email';
     } else {
-      emailBeacon.classList.add('hidden');
-      console.log('[Credits] Email beacon hidden - email attached');
+      status = 'anonymous';
+      tooltip = 'Secure your account';
     }
 
-    // Also update checkout button states
-    updateCheckoutButtonStates();
+    accountStatusBtn.setAttribute('data-status', status);
+    accountStatusBtn.setAttribute('data-tooltip', tooltip);
+    accountStatusBtn.setAttribute('aria-label', tooltip);
+
+    // Shield icon stays fa-shield-halved in all states — color does the work
+    // (icon is set in HTML, no className swap needed)
   }
 
   /**
    * Update checkout button states based on email verification status.
-   * When email is not verified, buttons are disabled with a hint.
    */
   function updateCheckoutButtonStates() {
     const needsVerification = userEmail && !emailVerified;
     const needsEmail = !userEmail;
 
-    // Get all checkout-related CTA buttons
     const checkoutCtaButtons = document.querySelectorAll('.pricing-cta');
-
     checkoutCtaButtons.forEach(btn => {
       if (needsEmail || needsVerification) {
         btn.setAttribute('data-requires-verified-email', 'true');
-        // Don't disable, but add hint - let the server-side check handle it
-        // This provides UX feedback while allowing users to click and see the proper modal
-        if (needsEmail) {
-          btn.setAttribute('data-hint', 'Add email first');
-        } else if (needsVerification) {
-          btn.setAttribute('data-hint', 'Verify email first');
-        }
+        btn.setAttribute('data-hint', needsEmail ? 'Add email first' : 'Verify email first');
       } else {
         btn.removeAttribute('data-requires-verified-email');
         btn.removeAttribute('data-hint');
       }
     });
-
-    console.log('[Credits] Checkout buttons updated: needsEmail=' + needsEmail + ', needsVerification=' + needsVerification);
   }
 
-  /**
-   * Handle beacon click - route through the same logic as the shield button
-   */
-  function handleBeaconClick() {
+  accountStatusBtn?.addEventListener('click', () => {
     if (emailVerified) {
       openRestoreAccountModal();
-      return;
-    }
-    // Open the modal if not already open
-    if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
+    } else if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
       openSecureCreditsModal();
     }
-  }
-
-  // Beacon event listener
-  emailBeacon?.addEventListener('click', handleBeaconClick);
+  });
 
   // ─────────────────────────────────────────────────────────────
   // UPDATED INIT: Also update secure credits UI

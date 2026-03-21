@@ -338,11 +338,6 @@
       </div>
 
       <div class="nav-right">
-        <!-- Email Beacon - shown when user has no email attached -->
-        <button type="button" id="emailBeacon" class="email-beacon hidden" aria-label="Secure your credits - add email" title="Secure credits on any device">
-          <i class="fa-solid fa-shield-halved"></i>
-          <span class="email-beacon-pulse"></span>
-        </button>
         <!-- Subscription Status Pill - shown when user has subscription -->
         <button type="button" class="subscription-status-pill hidden" id="subscriptionStatusPill" aria-label="Manage subscription">
           <i class="fa-solid fa-rotate subscription-icon" id="subscriptionIcon"></i>
@@ -368,6 +363,9 @@
             </span>
           </span>
           <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
+          <button type="button" class="account-status-btn" id="accountStatusBtn" aria-label="Account status">
+            <i class="fa-solid fa-shield-halved"></i>
+          </button>
         </div>
 
         <!-- Mobile burger (same style as index) -->

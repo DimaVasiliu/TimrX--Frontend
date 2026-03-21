@@ -16,11 +16,11 @@ body.community-view .inspire-trigger-btn,
 body.converter-view .inspire-trigger-btn,
 body.about-view .inspire-trigger-btn,
 body.docs-view .inspire-trigger-btn,
-body.tutorials-view .email-beacon,
-body.community-view .email-beacon,
-body.converter-view .email-beacon,
-body.about-view .email-beacon,
-body.docs-view .email-beacon {
+body.tutorials-view .account-shield-ws,
+body.community-view .account-shield-ws,
+body.converter-view .account-shield-ws,
+body.about-view .account-shield-ws,
+body.docs-view .account-shield-ws {
   display: none !important;
 }
 

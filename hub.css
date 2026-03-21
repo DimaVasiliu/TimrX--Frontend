@@ -285,6 +285,63 @@ box-shadow: 0 6px 18px rgba(255,255,255,.15);
 transform: translateY(0);
 }
 
+/* Account status shield (inside credits group) */
+.account-status-btn {
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 32px;
+height: 32px;
+border: none;
+border-radius: 50%;
+background: transparent;
+cursor: pointer;
+padding: 0;
+transition: transform .2s ease, background .2s ease;
+flex-shrink: 0;
+}
+.account-status-btn:hover { transform: scale(1.12); }
+.account-status-btn i { font-size: 15px; transition: color .2s ease, filter .2s ease; }
+
+/* Three states — shield color reflects account safety */
+.account-status-btn[data-status="anonymous"] i {
+color: #f87171;
+filter: drop-shadow(0 0 3px rgba(248,113,113,.4));
+}
+.account-status-btn[data-status="unverified"] i {
+color: #fbbf24;
+filter: drop-shadow(0 0 3px rgba(251,191,36,.4));
+}
+.account-status-btn[data-status="verified"] i {
+color: #34d399;
+filter: drop-shadow(0 0 3px rgba(52,211,153,.3));
+}
+
+/* Tooltip on hover (CSS-only) */
+.account-status-btn::after {
+content: attr(data-tooltip);
+position: absolute;
+top: calc(100% + 6px);
+right: 0;
+white-space: nowrap;
+padding: 4px 10px;
+border-radius: 6px;
+background: #1e293b;
+color: #e2e8f0;
+font-size: 11px;
+font-weight: 500;
+pointer-events: none;
+opacity: 0;
+transform: translateY(-4px);
+transition: opacity .15s ease, transform .15s ease;
+z-index: 100;
+}
+.account-status-btn:hover::after {
+opacity: 1;
+transform: translateY(0);
+}
+
 /* Hide on mobile */
 @media (max-width: 940px) {
 .credits-group { display: none; }
@@ -2188,40 +2245,28 @@ margin-bottom: 0;
   position:relative;
 }
 .secure-info-btn{
-  width:34px; height:34px;
+  width:30px; height:30px;
   display:inline-flex; align-items:center; justify-content:center;
   border-radius:999px;
-  border:1.5px solid rgba(239,68,68,.55);
-  background:rgba(239,68,68,.14);
-  color:#ffe5e5;
+  border:1px solid rgba(148,163,184,.35);
+  background:rgba(148,163,184,.1);
+  color:#94a3b8;
   padding:0;
   cursor:pointer;
   transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   position:relative;
-  animation:secure-alert-breathe 2.5s ease-in-out infinite;
 }
 .secure-info-btn:hover{
-  transform:translateY(-2px) scale(1.08);
-  box-shadow:0 8px 24px rgba(239,68,68,.3);
-  border-color:rgba(239,68,68,.85);
-  animation:none;
+  transform:translateY(-1px) scale(1.06);
+  box-shadow:0 4px 12px rgba(148,163,184,.2);
+  border-color:rgba(148,163,184,.6);
+  color:#e2e8f0;
 }
 .secure-info-btn::after{
-  content:"";
-  position:absolute; inset:-6px;
-  border-radius:999px;
-  border:1.5px solid rgba(239,68,68,.4);
-  opacity:.7;
-  animation:secure-alert-pulse 2s ease-out infinite;
-  pointer-events:none;
+  display:none; /* Remove pulsing ring — no longer an urgent alert */
 }
 .secure-alert-dot{
-  font-size:16px; font-weight:900; line-height:1;
-  transform:translateY(-0.5px);
-}
-@keyframes secure-alert-breathe{
-  0%, 100%{ transform:scale(1); }
-  50%{ transform:scale(1.06); }
+  font-size:13px; font-weight:700; line-height:1;
 }
 .secure-info-pop{
   position:absolute;
@@ -5016,84 +5061,6 @@ padding-left: 24px;
 
 .faq-item p {
   padding-left: 0;
-}
-}
-
-/* ==========================================================================
- EMAIL BEACON - Flashing navbar button to prompt email attachment
- ========================================================================== */
-.email-beacon {
-position: relative;
-display: flex;
-align-items: center;
-justify-content: center;
-width: 40px;
-height: 40px;
-border: none;
-border-radius: 50%;
-background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(125, 211, 252, 0.15) 100%);
-color: #7dd3fc;
-font-size: 1rem;
-cursor: pointer;
-transition: all 0.3s ease;
-flex-shrink: 0;
-}
-
-.email-beacon:hover {
-background: linear-gradient(135deg, rgba(14, 165, 233, 0.35) 0%, rgba(125, 211, 252, 0.25) 100%);
-color: #0ea5e9;
-transform: scale(1.08);
-}
-
-.email-beacon.hidden {
-display: none;
-}
-
-/* Pulsing ring animation */
-.email-beacon-pulse {
-position: absolute;
-inset: -4px;
-border-radius: 50%;
-border: 2px solid #0ea5e9;
-opacity: 0;
-animation: beaconPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes beaconPulse {
-0% {
-  transform: scale(0.95);
-  opacity: 0.7;
-}
-50% {
-  transform: scale(1.15);
-  opacity: 0;
-}
-100% {
-  transform: scale(0.95);
-  opacity: 0;
-}
-}
-
-/* Icon glow animation */
-.email-beacon i {
-animation: beaconGlow 2s ease-in-out infinite;
-}
-
-@keyframes beaconGlow {
-0%, 100% {
-  filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
-}
-50% {
-  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
-}
-}
-
-/* Mobile: smaller beacon */
-@media (max-width: 768px) {
-.email-beacon {
-  width: 36px;
-  height: 36px;
-  font-size: 0.9rem;
 }
 }
 

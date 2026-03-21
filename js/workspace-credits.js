@@ -1273,38 +1273,34 @@ export function updateWallet(wallet) {
 // ============================================================================
 
 /**
- * Update email beacon visibility based on email state
- * Shows beacon if: no email attached
+ * Update account shield status indicator (workspace navbar).
+ * Always visible. Color reflects account safety state.
+ * Click navigates to hub secure-credits section.
  */
 function updateEmailBeaconUI() {
-  const emailBeacon = document.getElementById('emailBeacon');
-  if (!emailBeacon) return;
+  const shield = document.getElementById('emailBeacon');
+  if (!shield) return;
 
-  const shouldShow = !creditsState.email;
-
-  if (shouldShow) {
-    emailBeacon.classList.remove('hidden');
-    log('[Credits] Email beacon shown - no email attached');
+  let status;
+  if (creditsState.emailVerified && creditsState.email) {
+    status = 'verified';
+  } else if (creditsState.email && !creditsState.emailVerified) {
+    status = 'unverified';
   } else {
-    emailBeacon.classList.add('hidden');
-    log('[Credits] Email beacon hidden - email attached');
+    status = 'anonymous';
   }
+  shield.setAttribute('data-status', status);
 }
 
-/**
- * Handle beacon click - navigate to hub secure credits section
- */
 function handleBeaconClick() {
   window.location.href = 'hub.html#secure-credits';
 }
 
-// Setup email beacon event listeners on DOM ready
 function setupEmailBeaconListeners() {
-  const emailBeacon = document.getElementById('emailBeacon');
-  emailBeacon?.addEventListener('click', handleBeaconClick);
+  const shield = document.getElementById('emailBeacon');
+  shield?.addEventListener('click', handleBeaconClick);
 }
 
-// Run setup when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupEmailBeaconListeners);
 } else {
