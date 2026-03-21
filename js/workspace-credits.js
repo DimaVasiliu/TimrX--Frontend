@@ -1275,7 +1275,7 @@ export function updateWallet(wallet) {
 /**
  * Update account shield status indicator (workspace navbar).
  * Always visible. Color reflects account safety state.
- * Click navigates to hub secure-credits section.
+ * Click navigates to hub account section.
  */
 function updateEmailBeaconUI() {
   const shield = document.getElementById('emailBeacon');

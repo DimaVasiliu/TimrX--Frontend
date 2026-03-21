@@ -384,7 +384,7 @@
       // Broadcast wallet update event
       this.broadcast();
 
-      // Detect identity change (session swap, restore, merge) and notify open modals
+      // Detect identity change (session swap, restore) and notify open modals
       if (prev.identityId && this._state.identityId
           && prev.identityId !== this._state.identityId) {
         console.log('[WalletStore] Identity changed: %s → %s', prev.identityId, this._state.identityId);
@@ -981,15 +981,19 @@
       });
 
       // Note: attach returns 200 even if email belongs to another identity (anti-enumeration).
-      // Cross-identity cases are handled server-side by IDENT-1 auto-merge during verify.
+      // Cross-identity cases: server switches session to the email-owning account.
       if (result.ok || result.status === 200) {
-        console.log('[Credits] Verification code sent to:', email);
         setSubBtnLoading(subCheckoutBtn, false);
-        showSubVerifyState();
-        // IDENT-4: Show restore hint in sub-checkout verify state
-        if (result.data?.hint === 'restore_available') {
-          showSubMessage('Code sent! If you\'ve used this email before, try Restore Account.', true);
+
+        if (result.data?.hint === 'account_switch_required') {
+          // Email belongs to another account — do NOT show verify state
+          // (no code was sent for this identity). Guide to restore instead.
+          showSubError('This email belongs to another account. Use Restore to switch accounts.', false);
+          return;
         }
+
+        console.log('[Credits] Verification code sent to:', email);
+        showSubVerifyState();
       } else {
         throw new Error(result.error || 'Failed to send verification code');
       }
@@ -1028,7 +1032,7 @@
       if (result.ok) {
         // Email verified/restored successfully
         console.log('[Credits] Email verified, refreshing session...');
-        // IDENT-1: If identity changed via cross-identity merge, clear stale caches
+        // If identity changed via cross-identity account switch, clear stale caches
         if (result.data?.identity_changed && window.TimrXApi?.clearAllUserCaches) {
           window.TimrXApi.clearAllUserCaches();
           if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
@@ -1049,16 +1053,6 @@
         showSubError('Too many attempts. Please request a new code.', true);
       } else if (errorCode === 'CODE_EXPIRED') {
         showSubError('Code has expired. Please request a new one.', true);
-      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
-        // IDENT-1: Cross-identity merge was attempted but blocked
-        const nextStep = result.data?.error?.next_step;
-        if (nextStep === 'wait_for_jobs') {
-          showSubError('You have active jobs processing. Please wait for them to finish, then try again.', true);
-        } else if (nextStep === 'contact_support_subscription') {
-          showSubError('Both accounts have active subscriptions. Please contact support to merge them.', true);
-        } else {
-          showSubError('This email could not be verified automatically. Please contact support.', true);
-        }
       } else {
         showSubError(result.error || 'Verification failed', true);
       }
@@ -1807,11 +1801,9 @@
     successModalState.isOpen = false;
     successModalState.isPending = false;
 
-    // Post-purchase secure prompt removed from this path:
-    // All paid checkout flows now require inline email verification BEFORE
-    // billing, so users are always emailVerified=true when they reach here.
-    // The secure-credits feature remains accessible via the account beacon
-    // and guest chooser modal for non-purchase account protection.
+    // Paid checkout requires verified email before billing, so credits
+    // are always secured to the purchasing account. No post-purchase
+    // action needed.
   }
 
   /**
@@ -2541,15 +2533,6 @@
         showVerifyErr('Too many attempts. Please request a new code.');
       } else if (errorCode === 'CODE_EXPIRED') {
         showVerifyErr('Code has expired. Please request a new one.');
-      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
-        const nextStep = result.data?.error?.next_step;
-        if (nextStep === 'wait_for_jobs') {
-          showVerifyErr('You have active jobs processing. Please wait, then try again.');
-        } else if (nextStep === 'contact_support_subscription') {
-          showVerifyErr('Both accounts have subscriptions. Please contact support.');
-        } else {
-          showVerifyErr('Could not verify automatically. Please contact support.');
-        }
       } else {
         showVerifyErr(result.error || 'Verification failed');
       }
@@ -2607,13 +2590,16 @@
             return;
           }
 
+          if (result.data?.hint === 'account_switch_required') {
+            // Email belongs to another account — do NOT show verify state
+            // (no code was sent for this identity). Guide to restore instead.
+            cfg.showEmailError('This email belongs to another account. Use Restore to switch accounts.');
+            return;
+          }
+
           trackCheckoutEvent('code_sent', { flow });
           showVerifyState();
           startResendCooldown();
-
-          if (result.data?.hint === 'restore_available') {
-            showVerifyMsg('Code sent! If you\'ve used this email before, try Restore Account.');
-          }
         } catch (err) {
           cfg.setEmailLoading(false);
           // Proceed optimistically — code may have been sent
@@ -2650,7 +2636,7 @@
               identity_changed: !!result.data?.identity_changed,
             });
 
-            // IDENT-1: cross-identity merge cache clear
+            // Cross-identity account switch — clear stale caches
             if (result.data?.identity_changed && window.TimrXApi?.clearAllUserCaches) {
               window.TimrXApi.clearAllUserCaches();
               if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
@@ -3259,7 +3245,7 @@
   // EMAIL ATTACH / VERIFY / RESTORE
   // ─────────────────────────────────────────────────────────────
 
-  // Secure credits section DOM elements
+  // Account modal DOM elements
   const secureState1 = document.getElementById('secureState1');
   const secureState2 = document.getElementById('secureState2');
   const secureState3 = document.getElementById('secureState3');
@@ -3314,6 +3300,10 @@
 
     // Store current focus before opening
     lastFocusBeforeRestoreModal = document.activeElement;
+
+    // Show which account was switched to
+    const successEmail = document.getElementById('restoreSuccessEmail');
+    if (successEmail) successEmail.textContent = userEmail || '(unknown)';
 
     // Update general credits display
     if (restoreCreditsValue) {
@@ -3451,7 +3441,6 @@
   const raEmailError = document.getElementById('raEmailError');
   const raSendCodeBtn = document.getElementById('raSendCodeBtn');
   const raSentToEmail = document.getElementById('raSentToEmail');
-  const raMergeNotice = document.getElementById('raMergeNotice');
   const raCodeInput = document.getElementById('raCodeInput');
   const raCodeError = document.getElementById('raCodeError');
   const raCodeMessage = document.getElementById('raCodeMessage');
@@ -3587,20 +3576,7 @@
         return;
       }
 
-      const responseData = result.data || {};
-      const resolvedEmail = responseData.resolved_email;
-      const mergeRedirected = responseData.merge_redirected;
-
-      if (mergeRedirected && resolvedEmail) {
-        if (raSentToEmail) raSentToEmail.textContent = resolvedEmail;
-        if (raMergeNotice) {
-          raMergeNotice.textContent = `This email is linked to a merged account. The code was sent to: ${resolvedEmail}`;
-          raMergeNotice.style.display = 'block';
-        }
-      } else {
-        if (raSentToEmail) raSentToEmail.textContent = email;
-        if (raMergeNotice) raMergeNotice.style.display = 'none';
-      }
+      if (raSentToEmail) raSentToEmail.textContent = email;
 
       showRaStep(3);
       raStartResendCooldown();
@@ -3609,7 +3585,6 @@
     } catch (err) {
       console.error('[RestoreAccount] sendCode error:', err);
       if (raSentToEmail) raSentToEmail.textContent = email;
-      if (raMergeNotice) raMergeNotice.style.display = 'none';
       showRaStep(3);
       raStartResendCooldown();
       raCodeInput?.focus();
@@ -3652,17 +3627,6 @@
           if (raCodeError) raCodeError.textContent = 'Too many attempts. Please request a new code.';
         } else if (errorCode === 'CODE_EXPIRED') {
           if (raCodeError) raCodeError.textContent = 'Code has expired. Please request a new one.';
-        } else if (errorCode === 'RESTORE_MERGE_BLOCKED') {
-          const nextStep = result.data?.error?.next_step;
-          if (nextStep === 'wait_for_jobs') {
-            if (raCodeError) raCodeError.textContent = 'You have active jobs processing. Please wait for them to finish, then try again.';
-          } else if (nextStep === 'contact_support_subscription') {
-            if (raCodeError) raCodeError.textContent = 'Both accounts have active subscriptions. Please contact support to merge them.';
-          } else {
-            if (raCodeError) raCodeError.textContent = 'Accounts could not be merged automatically. Please contact support.';
-          }
-        } else if (errorCode === 'RESTORE_BLOCKED_DATA_CONFLICT') {
-          if (raCodeError) raCodeError.textContent = 'Restore cannot complete automatically. Please contact support.';
         } else {
           if (raCodeError) raCodeError.textContent = result.error || 'Verification failed';
         }
@@ -3736,13 +3700,7 @@
         if (raCodeError) raCodeError.textContent = result.data.error.message || 'Please wait before requesting another code';
         return;
       }
-      const resendData = result.data || {};
-      if (resendData.merge_redirected && resendData.resolved_email) {
-        if (raSentToEmail) raSentToEmail.textContent = resendData.resolved_email;
-        if (raCodeMessage) raCodeMessage.textContent = `New code sent to ${resendData.resolved_email}`;
-      } else {
-        if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
-      }
+      if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
       raStartResendCooldown();
       if (raCodeInput) raCodeInput.value = '';
     } catch (err) {
@@ -3831,7 +3789,7 @@
     }
   });
 
-  // "Secure Your Credits" → open existing secure credits modal in attach mode
+  // "Secure Your Account" → open account modal in attach mode
   document.getElementById('chooserSecure')?.addEventListener('click', () => {
     closeGuestChooserModal();
     isRestoreMode = false;
@@ -3839,7 +3797,7 @@
     openSecureCreditsModal();
   });
 
-  // "I Already Have an Account" → open existing secure credits modal in restore mode
+  // "I Already Have an Account" → open account modal in restore mode
   document.getElementById('chooserRestore')?.addEventListener('click', () => {
     closeGuestChooserModal();
     isRestoreMode = true;
@@ -3847,7 +3805,7 @@
       const h3 = secureState1.querySelector('h3');
       const subtitle = secureState1.querySelector('.secure-subtitle');
       if (h3) h3.textContent = 'Restore Your Account';
-      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing credits.';
+      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing account.';
     }
     openSecureCreditsModal();
     secureEmailInput?.focus();
@@ -4039,7 +3997,7 @@
     if (secureMessage) secureMessage.textContent = '';
     if (verifyError) verifyError.textContent = '';
     if (verifyMessage) verifyMessage.textContent = '';
-    // IDENT-4: Clear restore hint
+    // Clear restore hint
     const hintEl = document.getElementById('verifyRestoreHint');
     if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
   }
@@ -4130,40 +4088,19 @@
         return;
       }
 
-      // For all other cases (success, timeout, other errors), proceed to state 2
-      // The backend returns generic success for anti-enumeration, and even on timeout
-      // the request may have been processed server-side
-
-      // Check if backend resolved to a different (canonical) email via merge
       const responseData = result.data || {};
-      const resolvedEmail = responseData.resolved_email;
-      const mergeRedirected = responseData.merge_redirected;
 
-      if (mergeRedirected && resolvedEmail) {
-        // Merged alias — show where the code was actually sent
-        if (sentToEmail) sentToEmail.textContent = resolvedEmail;
-        showSecureState(2);
-        setVerifyMessage(
-          'This email is linked to your merged TimrX account. ' +
-          `For security, the verification code was sent to: ${resolvedEmail}`
-        );
-        console.log(`[Credits] Merge redirect: ${email} → ${resolvedEmail}`);
-      } else {
-        if (sentToEmail) sentToEmail.textContent = email;
-        showSecureState(2);
-        // Show neutral message (anti-enumeration safe)
-        setVerifyMessage('If an account exists for this email, a code has been sent.');
+      // If email belongs to another account, stay on state 1 with guidance
+      if (!isRestoreMode && responseData.hint === 'account_switch_required') {
+        setSecureError('This email belongs to another account. Use Restore Account to switch.');
+        sendCodeBtn?.classList.remove('loading');
+        return;
       }
 
-      // IDENT-4: Show restore hint (always, anti-enum safe — same regardless of
-      // whether email is taken). Helps users who already used this email elsewhere.
-      if (!isRestoreMode && responseData.hint === 'restore_available') {
-        const hintEl = document.getElementById('verifyRestoreHint');
-        if (hintEl) {
-          hintEl.textContent = "Used this email before on another device? Try Restore Account instead.";
-          hintEl.style.display = 'block';
-        }
-      }
+      // Code was sent — transition to state 2 (code entry)
+      if (sentToEmail) sentToEmail.textContent = email;
+      showSecureState(2);
+      setVerifyMessage('If an account exists for this email, a code has been sent.');
 
       // Start resend cooldown
       startResendCooldown();
@@ -4350,28 +4287,6 @@
         setVerifyError('Too many attempts. Please request a new code.');
       } else if (errorCode === 'CODE_EXPIRED') {
         setVerifyError('Code has expired. Please request a new one.');
-      } else if (errorCode === 'RESTORE_MERGE_BLOCKED') {
-        // IDENT-1: Merge was attempted but blocked — show specific guidance
-        const nextStep = result?.data?.error?.next_step;
-        if (nextStep === 'wait_for_jobs') {
-          setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
-        } else if (nextStep === 'contact_support_subscription') {
-          setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
-        } else {
-          setVerifyError('Accounts could not be merged automatically. Please contact support.');
-        }
-      } else if (errorCode === 'RESTORE_BLOCKED_DATA_CONFLICT') {
-        setVerifyError('Restore cannot complete automatically. Please contact support.');
-      } else if (errorCode === 'VERIFY_MERGE_BLOCKED') {
-        // IDENT-4: Cross-identity merge was attempted server-side but blocked
-        const nextStep = result?.data?.error?.next_step;
-        if (nextStep === 'wait_for_jobs') {
-          setVerifyError('You have active jobs processing. Please wait for them to finish, then try again.');
-        } else if (nextStep === 'contact_support_subscription') {
-          setVerifyError('Both accounts have active subscriptions. Please contact support to merge them.');
-        } else {
-          setVerifyError('This email could not be verified automatically. Please contact support.');
-        }
       } else {
         setVerifyError(result?.error || 'Verification failed');
       }
@@ -4383,7 +4298,7 @@
     console.log('[Credits] Email verified successfully');
     const wasRestoreMode = isRestoreMode; // Capture before resetting
     const identityChanged = result?.data?.identity_changed || false;
-    // NEW-1 / IDENT-1: Clear stale caches when identity changed (restore or cross-identity merge)
+    // Clear stale caches when identity changed (restore or cross-identity account switch)
     if ((wasRestoreMode || identityChanged) && window.TimrXApi?.clearAllUserCaches) {
       window.TimrXApi.clearAllUserCaches();
       if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
@@ -4487,14 +4402,7 @@
         return;
       }
 
-      // Check for merge redirect on resend
-      const resendData = result.data || {};
-      if (resendData.merge_redirected && resendData.resolved_email) {
-        if (sentToEmail) sentToEmail.textContent = resendData.resolved_email;
-        setVerifyMessage(`New code sent to ${resendData.resolved_email}`);
-      } else {
-        setVerifyMessage('New code sent! Check your email.');
-      }
+      setVerifyMessage('New code sent! Check your email.');
       startResendCooldown();
 
       // Clear code input
@@ -4556,7 +4464,7 @@
       const h3 = secureState1.querySelector('h3');
       const subtitle = secureState1.querySelector('.secure-subtitle');
       if (h3) h3.textContent = 'Restore Your Account';
-      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing credits.';
+      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing account.';
     }
     secureEmailInput?.focus();
   }
@@ -4569,8 +4477,8 @@
     if (secureState1) {
       const h3 = secureState1.querySelector('h3');
       const subtitle = secureState1.querySelector('.secure-subtitle');
-      if (h3) h3.textContent = 'Secure Your Credits';
-      if (subtitle) subtitle.textContent = 'Add an email to restore your credits on any device.';
+      if (h3) h3.textContent = 'Your Account';
+      if (subtitle) subtitle.textContent = 'Add an email to access your account on any device.';
     }
   }
 

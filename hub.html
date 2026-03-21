@@ -658,11 +658,11 @@
             <i class="fa-solid fa-chevron-down toggle-chevron" aria-hidden="true"></i>
           </button>
           <div class="secure-alert-wrap" id="secureInfoWrap">
-            <button type="button" id="secureInfoBtn" class="secure-info-btn" aria-label="Why secure credits?" aria-haspopup="dialog" aria-controls="secureInfoPopover" aria-expanded="false">
+            <button type="button" id="secureInfoBtn" class="secure-info-btn" aria-label="Account info" aria-haspopup="dialog" aria-controls="secureInfoPopover" aria-expanded="false">
               <span class="secure-alert-dot">!</span>
             </button>
             <div id="secureInfoPopover" class="secure-info-pop" role="dialog" aria-hidden="true">
-              <p>Your email keeps your credits recoverable across devices. On a new browser, use Restore to bring your account back.</p>
+              <p>Your email lets you access your account on any device. On a new browser, use Restore to switch to your account.</p>
             </div>
           </div>
         </div>
@@ -1018,7 +1018,7 @@
     </div>
   </div>
 
-  <!-- ====================== SECURE CREDITS MODAL ====================== -->
+  <!-- ====================== ACCOUNT MODAL ====================== -->
   <div id="secureModalBackdrop" class="secure-modal-backdrop"></div>
   <div id="secureCreditsCard" class="secure-credits-card collapsed" role="dialog" aria-modal="true" aria-labelledby="secureModalTitle">
     <button type="button" id="secureModalClose" class="secure-modal-close" aria-label="Close">
@@ -1030,8 +1030,8 @@
 
     <!-- State 1: No email attached -->
     <div id="secureState1" class="secure-state">
-      <h3 id="secureModalTitle">Secure Your Credits</h3>
-      <p class="secure-subtitle">Add an email to restore your credits on any device.</p>
+      <h3 id="secureModalTitle">Your Account</h3>
+      <p class="secure-subtitle">Add an email to access your account on any device.</p>
 
       <div class="secure-form">
         <div class="secure-input-group">
@@ -1067,7 +1067,7 @@
     <div id="secureState3" class="secure-state" style="display: none;">
       <h3>Email Verified</h3>
       <p class="secure-subtitle"><i class="fa-solid fa-circle-check"></i> <span id="verifiedEmail">your@email.com</span></p>
-      <p class="secure-helper">Use this email to restore your credits on another device or browser.</p>
+      <p class="secure-helper">Use this email to access your account on another device or browser.</p>
       <button type="button" id="changeVerifiedEmailBtn" class="btn ghost small">Change Email</button>
     </div>
 
@@ -1433,7 +1433,7 @@
         </div>
 
         <h4 class="restore-title">Welcome Back!</h4>
-        <p class="modal-sub restore-subtitle">Your account has been restored successfully.</p>
+        <p class="modal-sub restore-subtitle">Switched to account: <strong id="restoreSuccessEmail"></strong></p>
 
         <div class="restore-credits-display">
           <span class="restore-credits-label">Your Balance</span>
@@ -1498,7 +1498,7 @@
           <h3>Restore Another Account</h3>
           <p class="secure-subtitle">
             This will <strong>switch</strong> you to a different TimrX account.
-            Your current credits and history will stay on your current account &mdash; they are <em>not</em> merged.
+            Your current credits and history will stay on your current account.
           </p>
           <div class="modal-actions">
             <button type="button" class="btn" id="raNextToEmail">Continue</button>
@@ -1530,7 +1530,6 @@
           <div class="secure-icon"><i class="fa-solid fa-key"></i></div>
           <h3>Enter Verification Code</h3>
           <p class="secure-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
-          <p id="raMergeNotice" class="modal-note" style="display:none"></p>
           <div class="ra-input-group ra-code-input-group">
             <input type="text" id="raCodeInput" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
           </div>
