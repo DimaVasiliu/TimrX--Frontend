@@ -611,7 +611,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   <span class="card-menu__icon">&#127909;</span>
                   <span>Create Video</span>
                 </span>
-                <span class="card-menu__badge">from 45 cr · 5s</span>
+                <span class="card-menu__badge">45c</span>
               </button>
               <div class="card-menu__divider"></div>
               <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${imgSrc}" ${!imgCanDownload ? 'disabled' : ''}>
