@@ -187,19 +187,19 @@
     starter: {
       images: 75,       // 300 credits ÷ 4 per image
       models: 15,       // 300 credits ÷ 20 per model
-      videos: 2,        // 100 video credits — ~2 short videos
+      videos: 2,        // 100 video credits ÷ 45c (budget 5s) ≈ 2 short videos
       perks: ['Up to 75 AI images/mo', 'Up to 15 3D models/mo', '2 AI videos included/mo', 'GLB/GLTF downloads'],
     },
     creator: {
       images: 200,      // 800 credits ÷ 4 per image
       models: 40,       // 800 credits ÷ 20 per model
-      videos: 6,        // 300 video credits — ~6 short videos
+      videos: 6,        // 300 video credits ÷ 45c (budget 5s) ≈ 6 short videos
       perks: ['Up to 200 AI images/mo', 'Up to 40 3D models/mo', '6 AI videos included/mo', 'Priority queue'],
     },
     studio: {
       images: 500,      // 2000 credits ÷ 4 per image
       models: 100,      // 2000 credits ÷ 20 per model
-      videos: 16,       // 800 video credits — ~16 short videos
+      videos: 16,       // 800 video credits ÷ 45c (budget 5s) ≈ 17 short videos (conservative)
       perks: ['Up to 500 AI images/mo', 'Up to 100 3D models/mo', '16 AI videos included/mo', 'Pro priority queue'],
     },
   };

@@ -1397,12 +1397,12 @@ export function updateCreditsUI() {
  * - image_generate       (4c) - OpenAI/Gemini; piapi_image_generate (7c) - Nano Banana
  * - text_to_3d_generate  (20c) - Text to 3D preview
  * - image_to_3d_generate (30c) - Image to 3D
- * - refine               (10c) - Refine 3D model
- * - remesh               (10c) - Remesh 3D model
- * - retexture            (15c) - Retexture 3D model
- * - video_generate       (75-250c) - Video generation (varies by duration/resolution)
- * - video_text_generate  (75-200c) - Text to video
- * - video_image_animate  (110-250c) - Image to video
+ * - refine               (6c)  - Refine 3D model
+ * - remesh               (6c)  - Remesh 3D model
+ * - retexture            (5c)  - Retexture 3D model
+ * - video_generate       (48-156c) - Video generation (Vertex 12 c/s, varies by duration/resolution)
+ * - video_text_generate  (48-156c) - Text to video (equalized with image-to-video)
+ * - video_image_animate  (48-156c) - Image to video (equalized with text-to-video)
  */
 const BUTTON_CONFIG = {
   // Core generation buttons (canonical keys)
