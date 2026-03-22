@@ -15,6 +15,15 @@
   const REACTION_EMOJI = { heart: '❤️', fire: '🔥', star: '⭐', clap: '👏', wow: '😮' };
   const TIP_AMOUNTS = [5, 10, 25, 50];
 
+  // Content types excluded from public community display.
+  // Animated items look rough/inconsistent and weaken perceived quality.
+  // Set to [] to re-enable all types.
+  const EXCLUDED_DISPLAY_TYPES = ['animated'];
+
+  function isExcludedPost(post) {
+    return EXCLUDED_DISPLAY_TYPES.includes(genTypeCls(post.gen_type));
+  }
+
   // State
   let currentFilter = 'all';
   let currentOffset = 0;
@@ -322,7 +331,7 @@
     hideSkeleton();
     if (!append) clearCards();
     const frag = document.createDocumentFragment();
-    posts.forEach(p => {
+    posts.filter(p => !isExcludedPost(p)).forEach(p => {
       const wrap = document.createElement('div');
       wrap.innerHTML = buildCard(p);
       frag.appendChild(wrap.firstElementChild);
@@ -508,12 +517,17 @@
         return;
       }
 
-      featuredPosts = data.posts;
+      featuredPosts = (data.posts || []).filter(p => !isExcludedPost(p));
 
       // Cache these posts too
       featuredPosts.forEach(p => {
         if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
       });
+
+      if (featuredPosts.length === 0) {
+        if (featuredSection) featuredSection.hidden = true;
+        return;
+      }
 
       featuredTrack.innerHTML = featuredPosts.map(p => buildFeaturedCard(p)).join('');
       wireVideoAutoplay(featuredTrack);
@@ -588,6 +602,17 @@
       return `<button class="ccg-reaction" data-post-id="${postId}" data-reaction="${r}" title="${r}" type="button">${REACTION_EMOJI[r]}<span class="ccg-reaction__count">${count || ''}</span></button>`;
     }).join('');
 
+    // Store current post ref for remix
+    detailEl._currentPost = post;
+
+    // Build prompt section or empty-state fallback
+    const promptBlock = prompt
+      ? `<div class="ccg-detail__prompt-section">
+           <span class="ccg-detail__prompt-label">Prompt</span>
+           <p class="ccg-detail__prompt-text">${prompt}</p>
+         </div>`
+      : `<p class="ccg-detail__no-prompt">Prompt not shared by creator</p>`;
+
     // Info panel
     detailInfo.innerHTML = `
       <div class="ccg-detail__creator">
@@ -598,19 +623,13 @@
         </div>
       </div>
       ${genType ? `<div class="ccg-detail__type ${typeCls}">${sanitize(genType)}</div>` : ''}
-      ${prompt ? `
-        <div class="ccg-detail__prompt-section">
-          <span class="ccg-detail__prompt-label">Prompt</span>
-          <p class="ccg-detail__prompt-text">${prompt}</p>
-        </div>` : ''}
+      ${promptBlock}
       <div class="ccg-detail__reactions">
         ${reactionsHtml}
       </div>
       <div class="ccg-detail__actions">
         <button class="ccg-detail__action-btn" data-post-id="${postId}" data-creator="${name}" data-action="tip" type="button">💎 Tip</button>
-        <!-- TODO: Wire remix when backend ready -->
-        <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button" title="Coming soon" disabled>Remix</button>
-        <!-- TODO: Open in workspace -->
+        <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button"${prompt ? '' : ' disabled title="No prompt available"'}>Remix</button>
       </div>`;
 
     // Show
@@ -659,6 +678,68 @@
         if (postId) openTipModal(postId, creator);
       });
     }
+
+    // Remix button — routes back to workspace with prompt prefilled
+    const remixBtn = detailInfo.querySelector('[data-action="remix"]');
+    if (remixBtn && !remixBtn.disabled) {
+      remixBtn.addEventListener('click', () => {
+        const post = detailEl?._currentPost;
+        if (!post) return;
+        handleRemix(post);
+      });
+    }
+  }
+
+  // ─── Remix flow ────────────────────────────────────────────────────────────
+
+  /**
+   * Routes the user back to the workspace with prompt + mode prefilled.
+   * Uses sessionStorage for clean handoff across the community→workspace
+   * transition. The workspace init picks up the remix data after the
+   * community view is closed.
+   */
+  function handleRemix(post) {
+    const prompt = post.prompt_public || post.prompt || '';
+    if (!prompt) return;
+
+    // Determine target workspace panel based on asset/gen type
+    const genCls = genTypeCls(post.gen_type);
+    const modeMap = { model: 'model', image: 'image', video: 'video', animated: 'model' };
+    const targetPanel = modeMap[genCls] || 'model';
+
+    // Determine the prompt textarea ID for the target panel
+    const promptIdMap = {
+      model: 'modelPrompt',
+      image: 'imagePrompt',
+      video: 'videoTextPrompt',
+    };
+    const targetPromptId = promptIdMap[targetPanel] || 'modelPrompt';
+
+    // Close detail view first
+    closeDetailView();
+
+    // Exit community view → return to workspace
+    const exitBtn = document.getElementById('communityExit');
+    if (exitBtn) exitBtn.click();
+
+    // After the community→workspace transition settles, switch mode and prefill
+    setTimeout(() => {
+      // Click the target rail button to switch to the correct panel
+      const railBtn = document.querySelector(`.rail-btn[data-panel="${targetPanel}"]`);
+      if (railBtn) railBtn.click();
+
+      // Wait for panel injection, then set the prompt
+      setTimeout(() => {
+        const textarea = document.getElementById(targetPromptId);
+        if (textarea) {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+          // Place cursor at end
+          textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+        }
+      }, 150);
+    }, 250);
   }
 
   function wireDetailView() {
