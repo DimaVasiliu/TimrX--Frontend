@@ -449,13 +449,30 @@
    * @param {object} options - { force: boolean, timeout: number }
    * @returns {Promise<{balance: number, reserved: number, available: number}|null>}
    */
+  let _walletFetchInFlight = null;
+  let _walletFetchedAt = 0;
+
   async function fetchWallet(options = {}) {
     const { force = false, timeout = 15000 } = options;
+
+    // Dedupe: return in-flight promise if one exists
+    if (_walletFetchInFlight && !force) {
+      return _walletFetchInFlight;
+    }
+
+    // Skip if fetched recently (within 5s) unless forced
+    const now = Date.now();
+    if (!force && _walletFetchedAt && (now - _walletFetchedAt) < 5000) {
+      return null;
+    }
 
     console.log('[Credits] Fetching wallet from:', `${API_BASE}/api/me`, force ? '(forced)' : '');
     WalletStore.setFetching(true);
 
-    const result = await apiFetch('/api/me', { timeout });
+    _walletFetchInFlight = apiFetch('/api/me', { timeout });
+    const result = await _walletFetchInFlight;
+    _walletFetchInFlight = null;
+    _walletFetchedAt = Date.now();
 
     if (!result.ok) {
       console.warn('[Credits] Wallet fetch failed:', result.status, result.error);
@@ -4877,14 +4894,25 @@
   /**
    * Fetch user's subscription status
    */
-  async function fetchSubscription() {
+  let _subFetchInFlight = null;
+  let _subFetchedAt = 0;
+
+  async function fetchSubscription(force = false) {
+    // Dedupe: skip if fetched recently (10s) unless forced
+    if (_subFetchInFlight && !force) return _subFetchInFlight;
+    if (!force && _subFetchedAt && (Date.now() - _subFetchedAt) < 10000) return;
+
     try {
-      const result = await apiFetch('/api/billing/subscriptions/me');
+      _subFetchInFlight = apiFetch('/api/billing/subscriptions/me');
+      const result = await _subFetchInFlight;
+      _subFetchInFlight = null;
+      _subFetchedAt = Date.now();
       if (result.ok && result.data?.ok) {
         currentSubscription = result.data.subscription;
         updateSubscriptionUI();
       }
     } catch (err) {
+      _subFetchInFlight = null;
       console.warn('[Credits] Failed to fetch subscription:', err);
     }
   }
@@ -5185,11 +5213,21 @@
    * Uses GET /api/billing/subscriptions/summary
    * Includes retry logic for reliability
    */
+  let _subSummaryInFlight = null;
+  let _subSummaryFetchedAt = 0;
+
   async function loadSubscriptionSummary(retryCount = 0) {
     if (!subscriptionStatusPill) return;
 
+    // Dedupe: return in-flight promise or skip if fetched recently (10s)
+    if (_subSummaryInFlight && retryCount === 0) return _subSummaryInFlight;
+    if (retryCount === 0 && _subSummaryFetchedAt && (Date.now() - _subSummaryFetchedAt) < 10000) return;
+
     try {
-      const result = await apiFetch('/api/billing/subscriptions/summary', { timeout: 15000 });
+      _subSummaryInFlight = apiFetch('/api/billing/subscriptions/summary', { timeout: 15000 });
+      const result = await _subSummaryInFlight;
+      _subSummaryInFlight = null;
+      _subSummaryFetchedAt = Date.now();
 
       if (!result.ok || !result.data?.ok) {
         // Retry up to 2 times on failure
