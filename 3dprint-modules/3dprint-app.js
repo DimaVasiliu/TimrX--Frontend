@@ -2944,35 +2944,41 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           generateImageBtn.dataset.baseCredits = snapshot.credits;
         }
 
-        // Update quality dropdown — rebuild options based on provider capabilities
+        // Rebuild quality dropdown fully from provider capabilities (no stale options)
         if (caps?.creditsByQuality && imageQuality) {
           const supportedQualities = caps.qualities || ['standard', 'high'];
           const currentVal = imageQuality.value;
           const cbq = caps.creditsByQuality;
 
-          // Update or add Standard option
-          let stdOpt = imageQuality.querySelector('option[value="standard"]');
-          if (!stdOpt) { stdOpt = document.createElement('option'); stdOpt.value = 'standard'; imageQuality.appendChild(stdOpt); }
+          // Clear and rebuild all options from scratch
+          imageQuality.innerHTML = '';
+
+          // Standard (always present)
+          const stdOpt = document.createElement('option');
+          stdOpt.value = 'standard';
           stdOpt.textContent = `Standard (${cbq.standard ?? 4}c)`;
+          imageQuality.appendChild(stdOpt);
 
-          // Update or add 2K option
-          let highOpt = imageQuality.querySelector('option[value="high"]');
-          if (!highOpt) { highOpt = document.createElement('option'); highOpt.value = 'high'; imageQuality.appendChild(highOpt); }
+          // 2K (always present)
+          const highOpt = document.createElement('option');
+          highOpt.value = 'high';
           highOpt.textContent = `2K (${cbq.high ?? 8}c)`;
+          imageQuality.appendChild(highOpt);
 
-          // 4K option — only for providers that support it (Nano Banana exclusive)
-          let fourKOpt = imageQuality.querySelector('option[value="4k"]');
+          // 4K — only for providers that support it (Nano Banana exclusive)
           if (supportedQualities.includes('4k')) {
-            if (!fourKOpt) { fourKOpt = document.createElement('option'); fourKOpt.value = '4k'; imageQuality.appendChild(fourKOpt); }
+            const fourKOpt = document.createElement('option');
+            fourKOpt.value = '4k';
             fourKOpt.textContent = `\u2728 4K Ultra (${cbq['4k'] ?? 18}c)`;
+            imageQuality.appendChild(fourKOpt);
+          }
+
+          // Restore previous selection if still valid, otherwise fall back
+          if (supportedQualities.includes(currentVal)) {
+            imageQuality.value = currentVal;
           } else {
-            // Remove 4K option if provider doesn't support it
-            if (fourKOpt) fourKOpt.remove();
-            // If user had 4K selected, fall back to high (2K)
-            if (currentVal === '4k') {
-              imageQuality.value = 'high';
-              window.GenerationState.setSetting('image', 'quality', 'high');
-            }
+            imageQuality.value = 'standard';
+            window.GenerationState.setSetting('image', 'quality', 'standard');
           }
 
           // Update hint text
