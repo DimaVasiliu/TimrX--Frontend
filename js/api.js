@@ -321,12 +321,21 @@ function handleApiError(response, action, reservationId = null) {
     }
   }
 
-  // Handle 429 rate limit / video limit errors — use toast, never alert()
+  // Handle 429 rate limit / video limit errors
   if (response.status === 429) {
-    log('[Quota] 429 Rate limit exceeded for:', action);
     if (reservationId) {
       releaseCreditsReservation(reservationId);
     }
+
+    // Daily quota exceeded — show dedicated modal
+    if (response.data?.error === 'DAILY_QUOTA_EXCEEDED') {
+      log('[Quota] Daily quota exceeded:', response.data.provider, response.data.used_today + '/' + response.data.limit);
+      showDailyQuotaModal(response.data);
+      return true;
+    }
+
+    // Generic rate limit — toast
+    log('[Quota] 429 Rate limit exceeded for:', action);
     const msg = response.data?.message || 'Rate limit reached. Please try again shortly.';
     if (typeof UI !== 'undefined' && UI.toast) {
       UI.toast(msg, 'error', 6000);
@@ -454,6 +463,70 @@ function parseInsufficientCreditsError(errorMsg) {
  * @param {number} required - Video credits required for this action
  * @param {number} available - Video credits currently available
  */
+/**
+ * Show daily quota exceeded modal — provider-specific, premium UX.
+ * @param {Object} data — { provider, provider_name, limit, used_today, resets_at, message }
+ */
+function showDailyQuotaModal(data) {
+  const providerName = data.provider_name || data.provider || 'this model';
+  const limit = data.limit || 0;
+  const used = data.used_today || 0;
+  const resetsAt = data.resets_at ? new Date(data.resets_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'midnight UTC';
+
+  // Remove existing modal if any
+  const existing = document.getElementById('dailyQuotaModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'dailyQuotaModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
+
+  modal.innerHTML = `
+    <div style="position:absolute;inset:0;cursor:pointer;" data-close></div>
+    <div style="position:relative;z-index:1;background:var(--surface-elevated,#1e1e2e);border-radius:16px;padding:32px;max-width:420px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,0.5);text-align:center;">
+      <div style="width:56px;height:56px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);">
+        <i class="fa-solid fa-hourglass-end" style="font-size:22px;color:#fbbf24;"></i>
+      </div>
+      <h3 style="margin:0 0 8px;color:var(--text-primary,#fff);font-size:20px;font-weight:700;">Daily Limit Reached</h3>
+      <p style="margin:0 0 20px;color:var(--text-secondary,#a0a0b0);font-size:14px;line-height:1.6;">
+        You've used all <strong style="color:var(--text-primary,#fff);">${limit}</strong> ${providerName} generations for today.
+      </p>
+      <div style="background:var(--surface-base,#14141f);border-radius:10px;padding:14px;margin:0 0 20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:var(--text-secondary,#a0a0b0);font-size:13px;">Used today</span>
+          <span style="color:var(--text-primary,#fff);font-weight:600;font-size:13px;">${used} / ${limit}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--text-secondary,#a0a0b0);font-size:13px;">Resets at</span>
+          <span style="color:#fbbf24;font-weight:600;font-size:13px;">${resetsAt}</span>
+        </div>
+        <div style="margin-top:10px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:100%;background:#fbbf24;border-radius:2px;"></div>
+        </div>
+      </div>
+      <p style="margin:0 0 20px;color:var(--text-secondary,#a0a0b0);font-size:13px;">
+        You can still use other video models that haven't reached their limit.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button data-close style="flex:1;padding:12px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">
+          Got it
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close handlers
+  const closeModal = () => modal.remove();
+  modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
+  modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  // Focus the button
+  requestAnimationFrame(() => modal.querySelector('button[data-close]')?.focus());
+}
+
+
 function showInsufficientVideoCreditsModal(required, available) {
   const numRequired = Number(required) || 0;
   const numAvailable = Number(available) || 0;
