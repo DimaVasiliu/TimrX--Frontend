@@ -828,6 +828,29 @@
       </div>
 
       <p class="foot-note" id="pricingFootNote">AI Image from 4 credits · 3D from 3–30 credits · 5s video from 45 credits · 8s standard video from 96 credits · Subscriptions include general + video credits</p>
+
+      <!-- ═══ "What can I generate?" Calculator ═══ -->
+      <div class="calc-wrap collapsed" id="valueCalculator">
+        <button type="button" class="calc-title" id="calcToggleBtn">
+          <i class="fa-solid fa-calculator calc-title-icon"></i>
+          What can I create?
+          <i class="fa-solid fa-chevron-down calc-title-chevron"></i>
+        </button>
+        <div class="calc-body">
+          <p class="calc-sub">Select a pack to see what you can generate.</p>
+
+          <!-- Pool pills + tier dropdowns (rebuilt dynamically by JS) -->
+          <div class="calc-pills" id="calcPills"></div>
+
+          <!-- Output grid -->
+          <div class="calc-grid" id="calcGrid">
+            <!-- Filled dynamically by JS -->
+          </div>
+
+          <!-- Tier dropdowns are now inline with the pool pills -->
+        </div>
+      </div>
+
     </div>
   </section>
 

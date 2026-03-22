@@ -641,6 +641,9 @@
     pricingMode = mode;
     localStorage.setItem('timrx_pricing_mode', mode);
 
+    // Notify calculator of mode change
+    window.dispatchEvent(new CustomEvent('timrx:pricing-mode', { detail: { mode } }));
+
     // Update pill active state
     modePills.forEach(pill => {
       pill.classList.toggle('active', pill.dataset.mode === mode);
@@ -5384,6 +5387,167 @@
   });
 
   // Expose for external use
+  // ─────────────────────────────────────────────────────────────
+  // Value Calculator — "What can I create?"
+  // ─────────────────────────────────────────────────────────────
+  const calcGrid = document.getElementById('calcGrid');
+  const calcPills = document.getElementById('calcPills');
+  // calcToggleRow and calcVideoTier removed — tiers are now inline dropdowns
+  const calcSub = document.querySelector('.calc-sub');
+
+  // Credit costs (single source of truth — matches backend pricing_service.py)
+  const CALC_COSTS = {
+    general: {
+      image_1k: 4,
+      image_2k: 8,
+      image_4k_nb: 18,
+      text_to_3d: 20,
+      image_to_3d: 30,
+      refine: 6,
+      retexture: 5,
+    },
+    video: {
+      budget:  { '5s': 45, '10s': 80, '12s': 95 },
+      standard: { '4s': 48, '6s': 72, '8s': 96, '8s_1080p': 120, '8s_4k': 156 },
+      fast:    { '5s': 50, '10s': 100, '15s': 150 },
+      premium: { '5s': 80, '10s': 160, '15s': 240 },
+    },
+  };
+
+  function renderCalcGrid(credits, type) {
+    if (!calcGrid) return;
+
+    let items = [];
+
+    if (type === 'general') {
+      const c = CALC_COSTS.general;
+      items = [
+        { icon: 'fa-image',       value: Math.floor(credits / c.image_1k),   label: 'AI Images',   detail: '1K · 4c each' },
+        { icon: 'fa-expand',      value: Math.floor(credits / c.image_2k),   label: 'HD Images',   detail: '2K · 8c each' },
+        { icon: 'fa-cube',        value: Math.floor(credits / c.text_to_3d), label: '3D Models',   detail: 'Text to 3D · 20c' },
+        { icon: 'fa-upload',      value: Math.floor(credits / c.image_to_3d),label: 'Image to 3D', detail: 'Photo → model · 30c' },
+        { icon: 'fa-wand-magic-sparkles', value: Math.floor(credits / c.refine), label: 'Refines', detail: 'Enhance · 6c' },
+        { icon: 'fa-palette',     value: Math.floor(credits / c.retexture),  label: 'Retextures',  detail: 'New textures · 5c' },
+      ];
+    } else {
+      // Video mode — show key durations across all tiers (3x3 grid)
+      const v = CALC_COSTS.video;
+      items = [
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['5s']),   label: '5s Draft',      detail: 'Seedance 1.5 · 45c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['10s']),  label: '10s Draft',     detail: 'Seedance 1.5 · 80c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['12s']),  label: '12s Draft',     detail: 'Seedance 1.5 · 95c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['5s']),     label: '5s Standard',   detail: 'Seedance 2.0 · 50c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['10s']),    label: '10s Standard',  detail: 'Seedance 2.0 · 100c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['15s']),    label: '15s Standard',  detail: 'Seedance 2.0 · 150c' },
+        { icon: 'fa-film',        value: Math.floor(credits / v.standard['4s']), label: '4s HD',         detail: 'Veo 3.1 720p · 48c' },
+        { icon: 'fa-film',        value: Math.floor(credits / v.standard['8s']), label: '8s HD',         detail: 'Veo 3.1 720p · 96c' },
+        { icon: 'fa-clapperboard',value: Math.floor(credits / v.standard['8s_4k']),label: '8s Ultra',    detail: 'Veo 3.1 4K · 156c' },
+      ];
+    }
+
+    calcGrid.innerHTML = items.map(item =>
+      item ? `<div class="calc-item">
+        <i class="fa-solid ${item.icon} calc-item-icon"></i>
+        <span class="calc-item-value pop">${item.value.toLocaleString()}</span>
+        <span class="calc-item-label">${item.label}</span>
+        <span class="calc-item-detail">${item.detail}</span>
+      </div>` : '<div class="calc-item calc-item-empty"></div>'
+    ).join('');
+
+    // All tiers shown at once — no separate toggle needed
+  }
+
+  function updateCalcPills(mode) {
+    if (!calcPills) return;
+
+    // Tier options per pool
+    const generalTiers = (mode === 'monthly' || mode === 'yearly')
+      ? [{ value: 300, label: 'Starter · 300/mo' }, { value: 800, label: 'Creator · 800/mo' }, { value: 2000, label: 'Studio · 2,000/mo' }]
+      : [{ value: 350, label: 'Starter · 350' }, { value: 1100, label: 'Creator · 1,100' }, { value: 2400, label: 'Studio · 2,400' }];
+
+    const videoTiers = [
+      { value: 550, label: 'Starter · 550' },
+      { value: 1800, label: 'Creator · 1,800' },
+      { value: 4000, label: 'Studio · 4,000' },
+    ];
+
+    const activePool = mode === 'video' ? 'video' : 'general';
+
+    calcPills.innerHTML = `
+      <button type="button" class="calc-pill${activePool === 'general' ? ' active' : ''}" data-calc-pool="general">
+        <i class="fa-solid fa-cube" style="margin-right:5px;font-size:12px;opacity:.6"></i>General
+      </button>
+      <select class="calc-tier-select" id="calcGeneralTier">
+        ${generalTiers.map((t, i) => `<option value="${t.value}"${i === 0 ? ' selected' : ''}>${t.label}</option>`).join('')}
+      </select>
+      <button type="button" class="calc-pill${activePool === 'video' ? ' active' : ''}" data-calc-pool="video">
+        <i class="fa-solid fa-video" style="margin-right:5px;font-size:12px;opacity:.6"></i>Video
+      </button>
+      <select class="calc-tier-select" id="calcVideoTierSelect">
+        ${videoTiers.map((t, i) => `<option value="${t.value}"${i === 0 ? ' selected' : ''}>${t.label}</option>`).join('')}
+      </select>
+    `;
+
+    // Refs
+    const generalPillBtn = calcPills.querySelector('[data-calc-pool="general"]');
+    const videoPillBtn = calcPills.querySelector('[data-calc-pool="video"]');
+    const generalTierSel = document.getElementById('calcGeneralTier');
+    const videoTierSel = document.getElementById('calcVideoTierSelect');
+
+    function activatePool(pool) {
+      generalPillBtn.classList.toggle('active', pool === 'general');
+      videoPillBtn.classList.toggle('active', pool === 'video');
+      generalTierSel.style.display = pool === 'general' ? '' : 'none';
+      videoTierSel.style.display = pool === 'video' ? '' : 'none';
+      const credits = parseInt(pool === 'general' ? generalTierSel.value : videoTierSel.value, 10);
+      renderCalcGrid(credits, pool);
+      if (calcSub) {
+        calcSub.textContent = pool === 'video'
+          ? 'Video credits are separate — used only for video generation.'
+          : 'General credits — used for images, 3D, refine & retexture.';
+      }
+    }
+
+    generalPillBtn.addEventListener('click', () => activatePool('general'));
+    videoPillBtn.addEventListener('click', () => activatePool('video'));
+    generalTierSel.addEventListener('change', () => {
+      activatePool('general');
+    });
+    videoTierSel.addEventListener('change', () => {
+      activatePool('video');
+    });
+
+    // Initial render
+    activatePool(activePool);
+  }
+
+  // Listen for pricing mode changes to update calculator
+  window.addEventListener('timrx:pricing-mode', (e) => {
+    updateCalcPills(e.detail?.mode || 'one_time');
+  });
+
+  // Title button toggles calculator open/closed
+  const calcToggleBtn = document.getElementById('calcToggleBtn');
+  const calcWrap = document.getElementById('valueCalculator');
+
+  if (calcToggleBtn && calcWrap) {
+    calcToggleBtn.addEventListener('click', () => {
+      const isOpen = calcWrap.classList.contains('open');
+      if (isOpen) {
+        calcWrap.classList.remove('open');
+        calcWrap.classList.add('collapsed');
+      } else {
+        calcWrap.classList.remove('collapsed');
+        calcWrap.classList.add('open');
+        // Initialize grid on first open
+        updateCalcPills(pricingMode);
+      }
+    });
+  }
+
+  // Initialize calculator on load (only if already visible)
+  if (calcGrid && calcWrap && calcWrap.classList.contains('open')) updateCalcPills(pricingMode);
+
   window.TimrXCredits = {
     refresh: refreshCredits,
     fetchWallet: fetchWallet,

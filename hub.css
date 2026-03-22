@@ -1104,6 +1104,276 @@ transform: translateY(-1px);
 }
 
 /* ========================================================================== */
+/* VALUE CALCULATOR — "What can I create?"                                     */
+/* ========================================================================== */
+
+/* Collapsible wrapper */
+.calc-wrap {
+margin: 32px auto 0;
+max-width: 640px;
+text-align: center;
+}
+
+/* Title = clickable toggle button */
+@keyframes calcTitlePulse {
+0%   { transform: scale(1); }
+35%  { transform: scale(1.06); }
+65%  { transform: scale(0.97); }
+100% { transform: scale(1); }
+}
+
+.calc-title {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+margin: 0 auto 6px;
+padding: 12px 28px;
+border-radius: 24px;
+border: 1px solid var(--line);
+background: rgba(255, 255, 255, 0.03);
+color: var(--muted);
+font-size: 16px;
+font-weight: 700;
+font-family: inherit;
+letter-spacing: -0.02em;
+cursor: pointer;
+transition: all 0.25s ease;
+animation: calcTitlePulse 2s cubic-bezier(0.16, 1, 0.3, 1) 1.5s;
+}
+
+.calc-title:hover {
+border-color: var(--ink);
+color: var(--ink);
+background: rgba(255, 255, 255, 0.06);
+transform: translateY(-1px);
+}
+
+.calc-title-icon {
+font-size: 14px;
+opacity: 0.6;
+}
+
+.calc-title-chevron {
+font-size: 10px;
+transition: transform 0.3s ease;
+}
+
+.calc-wrap.open .calc-title-chevron {
+transform: rotate(180deg);
+}
+
+.calc-wrap.open .calc-title {
+border-color: rgba(255, 255, 255, 0.15);
+color: var(--ink);
+animation: none;
+}
+
+/* Collapsible body */
+.calc-body {
+overflow: hidden;
+transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+max-height: 800px;
+opacity: 1;
+}
+
+.calc-wrap.collapsed .calc-body {
+max-height: 0;
+opacity: 0;
+pointer-events: none;
+}
+
+.calc-sub {
+font-size: 14px;
+color: var(--muted);
+margin: 0 0 20px;
+}
+
+/* Pool pills + tier dropdowns */
+.calc-pills {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 8px;
+flex-wrap: wrap;
+margin-bottom: 24px;
+}
+
+.calc-pill {
+padding: 8px 16px;
+border-radius: 20px;
+border: 1px solid var(--line);
+background: transparent;
+color: var(--muted);
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+font-family: inherit;
+}
+
+.calc-pill:hover {
+border-color: var(--ink);
+color: var(--ink);
+}
+
+.calc-pill.active {
+background: rgba(255, 255, 255, 0.08);
+border-color: var(--ink);
+color: var(--ink);
+}
+
+/* Pool pill accents */
+.calc-pill[data-calc-pool="video"] {
+border-color: rgba(139, 92, 246, 0.3);
+color: rgba(139, 92, 246, 0.7);
+}
+
+.calc-pill[data-calc-pool="video"]:hover,
+.calc-pill[data-calc-pool="video"].active {
+border-color: rgba(139, 92, 246, 0.6);
+color: #8b5cf6;
+background: rgba(139, 92, 246, 0.08);
+}
+
+.calc-pill[data-calc-pool="general"].active {
+background: rgba(255, 255, 255, 0.08);
+border-color: var(--ink);
+color: var(--ink);
+}
+
+/* Tier dropdown — Apple-style segmented select */
+.calc-tier-select {
+appearance: none;
+-webkit-appearance: none;
+padding: 8px 32px 8px 14px;
+border-radius: 10px;
+border: 1px solid rgba(255, 255, 255, 0.12);
+background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+  no-repeat right 12px center,
+  rgba(255, 255, 255, 0.06);
+color: var(--ink);
+font-size: 13px;
+font-weight: 600;
+font-family: inherit;
+letter-spacing: -0.01em;
+cursor: pointer;
+transition: all 0.2s ease;
+min-width: 140px;
+}
+
+.calc-tier-select:hover {
+border-color: rgba(255, 255, 255, 0.25);
+background-color: rgba(255, 255, 255, 0.08);
+}
+
+.calc-tier-select:focus {
+outline: none;
+border-color: rgba(255, 255, 255, 0.35);
+box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.calc-tier-select option {
+background: #1a1a2e;
+color: #fff;
+padding: 8px;
+}
+
+/* Output grid — fixed 3 columns */
+.calc-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 12px;
+margin-bottom: 16px;
+}
+
+.calc-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+padding: 20px 12px;
+background: rgba(255, 255, 255, 0.03);
+border: 1px solid rgba(255, 255, 255, 0.07);
+border-radius: 12px;
+transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.calc-item:hover {
+border-color: rgba(255, 255, 255, 0.14);
+transform: translateY(-2px);
+}
+
+.calc-item-icon {
+font-size: 20px;
+color: var(--muted);
+opacity: 0.6;
+}
+
+.calc-item-value {
+font-size: 32px;
+font-weight: 800;
+color: var(--ink);
+letter-spacing: -0.03em;
+line-height: 1;
+font-variant-numeric: tabular-nums;
+}
+
+.calc-item-label {
+font-size: 12px;
+color: var(--muted);
+text-transform: uppercase;
+letter-spacing: 0.08em;
+line-height: 1.3;
+text-align: center;
+}
+
+.calc-item-detail {
+font-size: 11px;
+color: var(--muted);
+opacity: 0.6;
+}
+
+.calc-item-empty {
+border-color: transparent;
+background: transparent;
+}
+
+/* (calc-toggle-row removed — tiers are now inline dropdowns in .calc-pills) */
+
+/* Animate values on change */
+@keyframes calcValuePop {
+0%   { transform: scale(0.85); opacity: 0.5; }
+60%  { transform: scale(1.05); }
+100% { transform: scale(1); opacity: 1; }
+}
+
+.calc-item-value.pop {
+animation: calcValuePop 0.3s ease-out;
+}
+
+/* Mobile — 2 columns, compact pills */
+@media (max-width: 520px) {
+.calc-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.calc-pills {
+  gap: 6px;
+}
+
+.calc-pill {
+  font-size: 12px;
+  padding: 7px 12px;
+}
+
+.calc-item-empty {
+  display: none;
+}
+}
+
+/* ========================================================================== */
 /* RESTORE SUCCESS MODAL                                                       */
 /* ========================================================================== */
 .restore-success-card {

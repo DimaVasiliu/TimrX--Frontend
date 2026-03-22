@@ -1041,6 +1041,59 @@
       margin: 24px 0;
     }
 
+    /* ====== Margin Dashboard ====== */
+    .margin-dashboard { margin-bottom: 24px; }
+    .margin-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .margin-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+    }
+    .margin-card.small { padding: 12px; }
+    .margin-card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+    }
+    .margin-card-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .margin-card.small .margin-card-value {
+      font-size: 18px;
+    }
+    .margin-card-value.green { color: #22c55e; }
+    .margin-card-value.amber { color: #fbbf24; }
+    .margin-card-value.red { color: #ef4444; }
+
+    .margin-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .margin-badge.critical { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .margin-badge.warning { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .margin-badge.healthy { background: rgba(34,197,94,0.15); color: #22c55e; }
+
+    @media (max-width: 700px) {
+      .margin-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* ====== OPS SUMMARY BAR ====== */
     .ops-summary-bar {
       padding: 80px 32px 20px;
@@ -2857,6 +2910,135 @@
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+
+            <div class="billing-section-divider"></div>
+
+            <!-- ═══ Revenue & Margin Dashboard ═══ -->
+            <div class="margin-dashboard" id="marginDashboard">
+              <div class="analytics-header">
+                <h3>Revenue &amp; Margin</h3>
+                <div class="analytics-controls">
+                  <select class="form-select" id="marginPeriod">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                  </select>
+                  <button class="action-btn" id="refreshMargin">Refresh</button>
+                </div>
+              </div>
+
+              <!-- Overview Cards -->
+              <div class="margin-cards" id="marginOverviewCards">
+                <div class="margin-card">
+                  <span class="margin-card-label">Total Revenue</span>
+                  <span class="margin-card-value" id="mTotalRevenue">--</span>
+                </div>
+                <div class="margin-card">
+                  <span class="margin-card-label">Total Cost</span>
+                  <span class="margin-card-value" id="mTotalCost">--</span>
+                </div>
+                <div class="margin-card">
+                  <span class="margin-card-label">Profit</span>
+                  <span class="margin-card-value" id="mTotalProfit">--</span>
+                </div>
+                <div class="margin-card">
+                  <span class="margin-card-label">Margin</span>
+                  <span class="margin-card-value" id="mOverallMargin">--</span>
+                </div>
+              </div>
+
+              <!-- Period Cards -->
+              <div class="margin-cards margin-cards-period" id="marginPeriodCards">
+                <div class="margin-card small">
+                  <span class="margin-card-label">Period Revenue</span>
+                  <span class="margin-card-value" id="mPeriodRevenue">--</span>
+                </div>
+                <div class="margin-card small">
+                  <span class="margin-card-label">Period Cost</span>
+                  <span class="margin-card-value" id="mPeriodCost">--</span>
+                </div>
+                <div class="margin-card small">
+                  <span class="margin-card-label">Period Profit</span>
+                  <span class="margin-card-value" id="mPeriodProfit">--</span>
+                </div>
+                <div class="margin-card small">
+                  <span class="margin-card-label">Period Margin</span>
+                  <span class="margin-card-value" id="mPeriodMargin">--</span>
+                </div>
+              </div>
+
+              <!-- By Product -->
+              <h4 style="margin:24px 0 12px;color:#fff;font-size:15px;">By Product</h4>
+              <div class="billing-table-wrap">
+                <table class="billing-table" id="marginByProductTable">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Jobs</th>
+                      <th>Credits Used</th>
+                      <th>Cost (£)</th>
+                      <th>Cost/Job</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+
+              <!-- By Provider -->
+              <h4 style="margin:24px 0 12px;color:#fff;font-size:15px;">By Provider</h4>
+              <div class="billing-table-wrap">
+                <table class="billing-table" id="marginByProviderTable">
+                  <thead>
+                    <tr>
+                      <th>Provider</th>
+                      <th>Jobs</th>
+                      <th>Credits Used</th>
+                      <th>Cost (£)</th>
+                      <th>Cost/Job</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+
+              <!-- Risk Alerts -->
+              <div id="marginAlerts" style="display:none;">
+                <h4 style="margin:24px 0 12px;color:#ef4444;font-size:15px;">Risk Alerts</h4>
+                <div class="billing-table-wrap">
+                  <table class="billing-table" id="marginAlertsTable">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Revenue</th>
+                        <th>Cost</th>
+                        <th>Margin</th>
+                        <th>Severity</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- By User -->
+              <h4 style="margin:24px 0 12px;color:#fff;font-size:15px;">Top Users by Cost</h4>
+              <div class="billing-table-wrap" style="max-height:400px;overflow-y:auto;">
+                <table class="billing-table" id="marginByUserTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Jobs</th>
+                      <th>Revenue</th>
+                      <th>Cost</th>
+                      <th>Profit</th>
+                      <th>Margin</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
               </div>
             </div>
 
@@ -6385,6 +6567,7 @@
         tab.addEventListener('click', () => {
           billingPage = 0;
           loadBillingHealth();
+          loadMarginDashboard();
         });
       }
     });
@@ -6802,6 +6985,117 @@
     };
 
     if ($('#orphanSummaryBtn')) $('#orphanSummaryBtn').onclick = doOrphanSummary;
+
+    // ========== REVENUE & MARGIN DASHBOARD ==========
+
+    async function loadMarginDashboard() {
+      const days = parseInt($('#marginPeriod')?.value || '30', 10);
+      try {
+        const res = await fetch(`/api/admin/margin-analytics?days=${days}`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.ok) { console.error('Margin error:', data.error); return; }
+
+        const o = data.overview;
+        const fmt = v => `£${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const marginColor = m => m >= 55 ? 'green' : m >= 40 ? 'amber' : 'red';
+
+        // Overview cards
+        $('#mTotalRevenue').textContent = fmt(o.total_revenue_gbp);
+        $('#mTotalCost').textContent = fmt(o.total_cost_gbp);
+        $('#mTotalProfit').textContent = fmt(o.total_profit_gbp);
+        $('#mTotalProfit').className = 'margin-card-value ' + (o.total_profit_gbp >= 0 ? 'green' : 'red');
+        $('#mOverallMargin').textContent = o.overall_margin_pct.toFixed(1) + '%';
+        $('#mOverallMargin').className = 'margin-card-value ' + marginColor(o.overall_margin_pct);
+
+        // Period cards
+        $('#mPeriodRevenue').textContent = fmt(o.period_revenue_gbp);
+        $('#mPeriodCost').textContent = fmt(o.period_cost_gbp);
+        $('#mPeriodProfit').textContent = fmt(o.period_profit_gbp);
+        $('#mPeriodProfit').className = 'margin-card-value ' + (o.period_profit_gbp >= 0 ? 'green' : 'red');
+        $('#mPeriodMargin').textContent = o.period_margin_pct.toFixed(1) + '%';
+        $('#mPeriodMargin').className = 'margin-card-value ' + marginColor(o.period_margin_pct);
+
+        // By Product table
+        const prodTbody = $('#marginByProductTable tbody');
+        prodTbody.innerHTML = data.by_product.map(p => `
+          <tr>
+            <td><strong>${p.category}</strong></td>
+            <td>${p.jobs.toLocaleString()}</td>
+            <td>${p.credits_used.toLocaleString()}</td>
+            <td>${fmt(p.cost_gbp)}</td>
+            <td>${fmt(p.cost_per_job)}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="5" style="color:#888;text-align:center;">No data</td></tr>';
+
+        // By Provider table
+        const provTbody = $('#marginByProviderTable tbody');
+        provTbody.innerHTML = data.by_provider.map(p => `
+          <tr>
+            <td><strong>${p.provider || '—'}</strong></td>
+            <td>${p.jobs.toLocaleString()}</td>
+            <td>${p.credits_used.toLocaleString()}</td>
+            <td>${fmt(p.cost_gbp)}</td>
+            <td>${fmt(p.cost_per_job)}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="5" style="color:#888;text-align:center;">No data</td></tr>';
+
+        // Alerts
+        const alertsWrap = $('#marginAlerts');
+        if (data.alerts.length > 0) {
+          alertsWrap.style.display = '';
+          const alertTbody = $('#marginAlertsTable tbody');
+          alertTbody.innerHTML = data.alerts.map(a => `
+            <tr class="row-${a.severity === 'critical' ? 'red' : 'amber'}">
+              <td>${a.email}</td>
+              <td>${fmt(a.revenue_gbp)}</td>
+              <td>${fmt(a.cost_gbp)}</td>
+              <td>${a.margin_pct.toFixed(1)}%</td>
+              <td><span class="margin-badge ${a.severity}">${a.severity}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          alertsWrap.style.display = 'none';
+        }
+
+        // By User table
+        const userTbody = $('#marginByUserTable tbody');
+        userTbody.innerHTML = data.by_user.map(u => {
+          const mc = marginColor(u.margin_pct);
+          const rowClass = u.margin_pct < 40 ? (u.margin_pct < 20 ? 'row-red' : 'row-amber') : '';
+          return `
+            <tr class="${rowClass}">
+              <td title="${u.identity_id}">${u.email}</td>
+              <td>${u.jobs.toLocaleString()}</td>
+              <td>${fmt(u.revenue_gbp)}</td>
+              <td>${fmt(u.cost_gbp)}</td>
+              <td class="${mc}">${fmt(u.profit_gbp)}</td>
+              <td><span class="margin-badge ${mc === 'green' ? 'healthy' : mc === 'amber' ? 'warning' : 'critical'}">${u.margin_pct.toFixed(1)}%</span></td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="6" style="color:#888;text-align:center;">No data</td></tr>';
+
+      } catch (err) {
+        console.error('Margin dashboard error:', err);
+      }
+    }
+
+    // Margin event listeners
+    if ($('#marginPeriod')) {
+      $('#marginPeriod').onchange = loadMarginDashboard;
+    }
+    if ($('#refreshMargin')) {
+      $('#refreshMargin').onclick = loadMarginDashboard;
+    }
+
+    // Load margin data when billing tab is shown
+    const marginTabObserver = new MutationObserver(() => {
+      const billingTab = $('#tab-billing');
+      if (billingTab && billingTab.style.display !== 'none' && billingTab.offsetParent !== null) {
+        loadMarginDashboard();
+      }
+    });
 
     // ========== CREDIT USAGE ANALYTICS ==========
     let analyticsPeriod = 30;
