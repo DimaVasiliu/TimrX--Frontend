@@ -1,7 +1,8 @@
 /**
- * community-gallery.js
+ * community-gallery.js — v2 Premium Showcase
  * Community Creations Gallery — loads posts from /api/_mod/community/feed,
- * renders a filterable 6-column card grid with reactions and tip functionality.
+ * renders a filterable card grid with reactions, tipping, featured carousel,
+ * and expanded detail view.
  */
 
 (function () {
@@ -9,6 +10,7 @@
 
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
   const PAGE_SIZE = 18;
+  const FEATURED_SIZE = 8;
   const REACTIONS = ['heart', 'fire', 'star', 'clap', 'wow'];
   const REACTION_EMOJI = { heart: '❤️', fire: '🔥', star: '⭐', clap: '👏', wow: '😮' };
   const TIP_AMOUNTS = [5, 10, 25, 50];
@@ -17,12 +19,16 @@
   let currentFilter = 'all';
   let currentOffset = 0;
   let isLoading = false;
+  let featuredPosts = [];      // cached featured data
+  let allPostsCache = [];      // full posts for detail view lookup
 
   // Track current user's reactions per post (postId → reaction string)
   const userReactions = new Map();
 
   // DOM refs (resolved on init)
   let grid, skeleton, emptyState, loadMoreWrap, loadMoreBtn, filterBar;
+  let featuredTrack, featuredPrev, featuredNext, featuredSection;
+  let detailEl, detailBackdrop, detailClose, detailMedia, detailInfo;
 
   // ─── Utilities ────────────────────────────────────────────────────────────
 
@@ -145,13 +151,12 @@
     : null;
 
   function wireVideoAutoplay(container) {
-    container.querySelectorAll('video.ccg-card__image').forEach(vid => {
+    container.querySelectorAll('video.ccg-card__image, video.ccg-featured__card-media').forEach(vid => {
       if (vid.dataset.ccgObserved) return;
       vid.dataset.ccgObserved = '1';
       if (videoObserver) {
         videoObserver.observe(vid);
       } else {
-        // Fallback: hover play for browsers without IntersectionObserver
         vid.addEventListener('mouseenter', () => vid.play().catch(() => {}));
         vid.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
       }
@@ -165,19 +170,13 @@
       if (mv.dataset.ccgHoverWired) return;
       mv.dataset.ccgHoverWired = '1';
 
-      // Start paused — show poster only
       mv.pause();
 
-      const card = mv.closest('.ccg-card');
+      const card = mv.closest('.ccg-card') || mv.closest('.ccg-featured__card');
       if (!card) return;
 
-      card.addEventListener('mouseenter', () => {
-        mv.play();
-      });
-
-      card.addEventListener('mouseleave', () => {
-        mv.pause();
-      });
+      card.addEventListener('mouseenter', () => { mv.play(); });
+      card.addEventListener('mouseleave', () => { mv.pause(); });
     });
   }
 
@@ -194,12 +193,11 @@
       const data = await res.json();
       if (!data.ok) throw new Error(data.error?.message || 'React failed');
 
-      const card = grid.querySelector(`.ccg-card[data-post-id="${postId}"]`);
-      if (!card) return;
       const prev = userReactions.get(postId);
       userReactions.set(postId, reaction);
 
-      card.querySelectorAll('.ccg-reaction').forEach(btn => {
+      // Update all instances (grid + detail view)
+      document.querySelectorAll(`.ccg-reaction[data-post-id="${postId}"]`).forEach(btn => {
         const r = btn.dataset.reaction;
         const countEl = btn.querySelector('.ccg-reaction__count');
         const isActive = r === reaction;
@@ -335,9 +333,9 @@
     wireModelViewerHover(grid);
   }
 
-  /** Fade in images once loaded (adds .ccg-loaded class) */
+  /** Fade in images once loaded */
   function wireImageReveal(container) {
-    container.querySelectorAll('img.ccg-card__image').forEach(img => {
+    container.querySelectorAll('img.ccg-card__image, img.ccg-featured__card-media').forEach(img => {
       if (img.dataset.ccgRevealed) return;
       img.dataset.ccgRevealed = '1';
       if (img.complete && img.naturalWidth) {
@@ -366,17 +364,24 @@
       const data = await fetchPage(filter, offset);
       if (!data.ok) throw new Error(data.error?.message || 'Feed failed');
 
-      currentOffset = offset + (data.posts?.length || 0);
+      const posts = data.posts || [];
+      currentOffset = offset + posts.length;
+
+      // Cache posts for detail view lookup
+      if (!append) allPostsCache = [];
+      posts.forEach(p => {
+        if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
+      });
 
       hideSkeleton();
 
-      if (!append && (!data.posts || data.posts.length === 0)) {
+      if (!append && posts.length === 0) {
         emptyState.hidden = false;
         loadMoreWrap.hidden = true;
         return;
       }
 
-      renderPosts(data.posts || [], append);
+      renderPosts(posts, append);
       emptyState.hidden = true;
       loadMoreWrap.hidden = !data.has_more;
     } catch (err) {
@@ -396,19 +401,30 @@
   function wireGrid() {
     if (!grid) return;
     grid.addEventListener('click', e => {
+      // Reactions
       const reactionBtn = e.target.closest('.ccg-reaction[data-reaction]');
       if (reactionBtn) {
+        e.stopPropagation();
         const postId = reactionBtn.dataset.postId;
         const reaction = reactionBtn.dataset.reaction;
         if (postId && reaction) react(postId, reaction);
         return;
       }
+      // Tip
       const tipBtn = e.target.closest('.ccg-card__tip-btn[data-post-id]');
       if (tipBtn) {
+        e.stopPropagation();
         const postId = tipBtn.dataset.postId;
         const creator = tipBtn.dataset.creator || 'Creator';
         if (postId) openTipModal(postId, creator);
         return;
+      }
+      // Card click → open detail view
+      const card = e.target.closest('.ccg-card[data-post-id]');
+      if (card) {
+        const postId = card.dataset.postId;
+        const post = allPostsCache.find(p => String(p.id) === String(postId));
+        if (post) openDetailView(post);
       }
     });
   }
@@ -437,6 +453,252 @@
     loadMoreBtn.addEventListener('click', () => {
       load(currentFilter, currentOffset, true);
     });
+  }
+
+  // ─── Featured Carousel ────────────────────────────────────────────────────
+
+  function buildFeaturedCard(post) {
+    const asset = post.asset || {};
+    const thumb = asset.thumbnail_url || '';
+    const name = sanitize(post.display_name || 'Anonymous');
+    const genType = post.gen_type || '';
+    const typeCls = genTypeCls(genType);
+    const isVideo = (post.asset_type === 'video') && asset.video_url;
+    const postId = sanitize(post.id);
+    const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
+
+    let mediaEl;
+    if (isVideo) {
+      mediaEl = `<video class="ccg-featured__card-media" src="${sanitize(asset.video_url)}" muted loop playsinline preload="metadata" poster="${sanitize(thumb)}"></video>`;
+    } else if (thumb) {
+      mediaEl = `<img class="ccg-featured__card-media" src="${sanitize(thumb)}" alt="" loading="lazy" decoding="async">`;
+    } else {
+      mediaEl = `<div class="ccg-featured__card-media" style="background:linear-gradient(135deg,#0e0e14,#161622);width:100%;height:100%"></div>`;
+    }
+
+    return `
+      <div class="ccg-featured__card" data-post-id="${postId}">
+        ${mediaEl}
+        ${genType ? `<div class="ccg-featured__card-badge ${typeCls}">${sanitize(genType)}</div>` : ''}
+        <div class="ccg-featured__card-overlay">
+          ${prompt ? `<p class="ccg-featured__card-title">${prompt}</p>` : ''}
+          <p class="ccg-featured__card-author">${name}</p>
+        </div>
+      </div>`;
+  }
+
+  async function loadFeatured() {
+    if (!featuredTrack) return;
+
+    // Show skeletons
+    featuredTrack.innerHTML = Array.from({ length: 4 }, () =>
+      '<div class="ccg-featured__skeleton"></div>'
+    ).join('');
+
+    try {
+      // TODO: Replace with dedicated featured endpoint when available
+      // For now, use the first page of the feed as featured content
+      const params = new URLSearchParams({ limit: FEATURED_SIZE, offset: 0 });
+      const res = await fetch(`${API_BASE}/api/_mod/community/feed?${params}`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`Featured feed error ${res.status}`);
+      const data = await res.json();
+
+      if (!data.ok || !data.posts || data.posts.length === 0) {
+        if (featuredSection) featuredSection.hidden = true;
+        return;
+      }
+
+      featuredPosts = data.posts;
+
+      // Cache these posts too
+      featuredPosts.forEach(p => {
+        if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
+      });
+
+      featuredTrack.innerHTML = featuredPosts.map(p => buildFeaturedCard(p)).join('');
+      wireVideoAutoplay(featuredTrack);
+      wireImageReveal(featuredTrack);
+
+      // Click handler for featured cards
+      featuredTrack.addEventListener('click', e => {
+        const card = e.target.closest('.ccg-featured__card[data-post-id]');
+        if (!card) return;
+        const postId = card.dataset.postId;
+        const post = allPostsCache.find(p => String(p.id) === String(postId));
+        if (post) openDetailView(post);
+      });
+
+    } catch (err) {
+      console.warn('[CommunityGallery] featured load error:', err);
+      if (featuredSection) featuredSection.hidden = true;
+    }
+  }
+
+  function wireFeaturedNav() {
+    if (!featuredTrack || !featuredPrev || !featuredNext) return;
+
+    const scrollAmount = () => {
+      const card = featuredTrack.querySelector('.ccg-featured__card');
+      return card ? card.offsetWidth + 16 : 320;
+    };
+
+    featuredPrev.addEventListener('click', () => {
+      featuredTrack.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    });
+    featuredNext.addEventListener('click', () => {
+      featuredTrack.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    });
+  }
+
+  // ─── Detail View ──────────────────────────────────────────────────────────
+
+  function openDetailView(post) {
+    if (!detailEl || !detailMedia || !detailInfo) return;
+
+    const asset = post.asset || {};
+    const thumb = asset.thumbnail_url || '';
+    const name = sanitize(post.display_name || 'Anonymous');
+    const initials = getInitials(post.display_name || 'Anonymous');
+    const color = avatarColor(post.display_name || '');
+    const ago = timeAgo(post.created_at);
+    const genType = post.gen_type || '';
+    const typeCls = genTypeCls(genType);
+    const isVideo = (post.asset_type === 'video') && asset.video_url;
+    const isAnimated = !!asset.animation_glb_url;
+    const postId = sanitize(post.id);
+    const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
+    const reactions = post.reactions || {};
+
+    // Media
+    let mediaHtml;
+    if (isAnimated && asset.animation_glb_url) {
+      mediaHtml = `<model-viewer src="${sanitize(asset.animation_glb_url)}" camera-controls auto-rotate shadow-intensity="0.5" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" style="width:100%;height:100%;display:block;background:#0a0a0a"></model-viewer>`;
+    } else if (isVideo) {
+      mediaHtml = `<video src="${sanitize(asset.video_url)}" controls muted loop playsinline autoplay poster="${sanitize(thumb)}" style="width:100%;height:100%;object-fit:contain"></video>`;
+    } else if (thumb) {
+      mediaHtml = `<img src="${sanitize(thumb)}" alt="" style="width:100%;height:100%;object-fit:contain">`;
+    } else {
+      mediaHtml = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0e0e14,#161622)"></div>`;
+    }
+    detailMedia.innerHTML = mediaHtml;
+
+    // Reactions HTML
+    const reactionsHtml = REACTIONS.map(r => {
+      const count = reactions[r] || 0;
+      return `<button class="ccg-reaction" data-post-id="${postId}" data-reaction="${r}" title="${r}" type="button">${REACTION_EMOJI[r]}<span class="ccg-reaction__count">${count || ''}</span></button>`;
+    }).join('');
+
+    // Info panel
+    detailInfo.innerHTML = `
+      <div class="ccg-detail__creator">
+        <div class="ccg-detail__avatar" style="background:${color}">${initials}</div>
+        <div class="ccg-detail__creator-meta">
+          <span class="ccg-detail__creator-name">${name}</span>
+          <span class="ccg-detail__creator-time">${ago}</span>
+        </div>
+      </div>
+      ${genType ? `<div class="ccg-detail__type ${typeCls}">${sanitize(genType)}</div>` : ''}
+      ${prompt ? `
+        <div class="ccg-detail__prompt-section">
+          <span class="ccg-detail__prompt-label">Prompt</span>
+          <p class="ccg-detail__prompt-text">${prompt}</p>
+        </div>` : ''}
+      <div class="ccg-detail__reactions">
+        ${reactionsHtml}
+      </div>
+      <div class="ccg-detail__actions">
+        <button class="ccg-detail__action-btn" data-post-id="${postId}" data-creator="${name}" data-action="tip" type="button">💎 Tip</button>
+        <!-- TODO: Wire remix when backend ready -->
+        <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button" title="Coming soon" disabled>Remix</button>
+        <!-- TODO: Open in workspace -->
+      </div>`;
+
+    // Show
+    detailEl.hidden = false;
+    detailEl.classList.add('ccg-detail--open');
+    detailEl.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // Wire detail interactions
+    wireDetailInteractions();
+  }
+
+  function closeDetailView() {
+    if (!detailEl) return;
+    detailEl.classList.remove('ccg-detail--open');
+    detailEl.setAttribute('aria-hidden', 'true');
+    setTimeout(() => {
+      detailEl.hidden = true;
+      if (detailMedia) detailMedia.innerHTML = '';
+      if (detailInfo) detailInfo.innerHTML = '';
+    }, 300);
+    // Restore scroll only if still in community view
+    if (document.body.classList.contains('community-view')) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function wireDetailInteractions() {
+    if (!detailInfo) return;
+
+    // Reactions in detail view
+    detailInfo.querySelectorAll('.ccg-reaction[data-reaction]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const postId = btn.dataset.postId;
+        const reaction = btn.dataset.reaction;
+        if (postId && reaction) react(postId, reaction);
+      });
+    });
+
+    // Tip button in detail view
+    const tipBtn = detailInfo.querySelector('[data-action="tip"]');
+    if (tipBtn) {
+      tipBtn.addEventListener('click', () => {
+        const postId = tipBtn.dataset.postId;
+        const creator = tipBtn.dataset.creator || 'Creator';
+        if (postId) openTipModal(postId, creator);
+      });
+    }
+  }
+
+  function wireDetailView() {
+    if (!detailEl) return;
+
+    if (detailBackdrop) {
+      detailBackdrop.addEventListener('click', closeDetailView);
+    }
+    if (detailClose) {
+      detailClose.addEventListener('click', closeDetailView);
+    }
+
+    // ESC key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && detailEl.classList.contains('ccg-detail--open')) {
+        closeDetailView();
+      }
+    });
+  }
+
+  // ─── Hero CTA wiring ─────────────────────────────────────────────────────
+
+  function wireHeroCTAs() {
+    // "Explore Creations" scroll to gallery
+    const scrollBtn = document.querySelector('[data-ccg-scroll="gallery"]');
+    if (scrollBtn) {
+      scrollBtn.addEventListener('click', () => {
+        const section = document.getElementById('communityCreationsSection');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    // "Open Workspace" returns to workspace
+    const backBtn = document.getElementById('communityBackToWorkspace');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        const exitBtn = document.getElementById('communityExit');
+        if (exitBtn) exitBtn.click();
+      });
+    }
   }
 
   // ─── Share modal ──────────────────────────────────────────────────────────
@@ -575,10 +837,12 @@
   function loadOnce() {
     if (_loaded) return;
     _loaded = true;
+    loadFeatured();
     load('all', 0, false);
   }
 
   function init() {
+    // Main grid refs
     grid = document.getElementById('ccgGrid');
     skeleton = document.getElementById('ccgSkeleton');
     emptyState = document.getElementById('ccgEmpty');
@@ -586,11 +850,27 @@
     loadMoreBtn = document.getElementById('ccgLoadMore');
     filterBar = document.querySelector('.ccg-filter-bar');
 
+    // Featured refs
+    featuredSection = document.getElementById('ccgFeatured');
+    featuredTrack = document.getElementById('ccgFeaturedTrack');
+    featuredPrev = document.getElementById('ccgFeaturedPrev');
+    featuredNext = document.getElementById('ccgFeaturedNext');
+
+    // Detail view refs
+    detailEl = document.getElementById('ccgDetail');
+    detailBackdrop = document.getElementById('ccgDetailBackdrop');
+    detailClose = document.getElementById('ccgDetailClose');
+    detailMedia = document.getElementById('ccgDetailMedia');
+    detailInfo = document.getElementById('ccgDetailInfo');
+
     if (!grid) return;
 
     wireFilters();
     wireLoadMore();
     wireGrid();
+    wireFeaturedNav();
+    wireDetailView();
+    wireHeroCTAs();
 
     if (document.body.classList.contains('community-view')) {
       loadOnce();
