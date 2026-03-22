@@ -744,59 +744,223 @@ cursor: pointer;
 /* ========================================================================== */
 /* SUCCESS MODAL                                                               */
 /* ========================================================================== */
-.success-card {
-width: min(380px, 90vw);
-text-align: center;
-padding: 48px 40px 40px;
+/* ── Payment Success Modal — Premium Delight ─────────────────────────────── */
+
+/* Entrance animation for the card */
+@keyframes successCardIn {
+0%   { opacity: 0; transform: scale(0.92) translateY(12px); }
+100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* Animated check ring draw */
+@keyframes checkRingDraw {
+0%   { stroke-dashoffset: 151; }
+100% { stroke-dashoffset: 0; }
+}
+
+/* Animated check path draw */
+@keyframes checkPathDraw {
+0%   { stroke-dashoffset: 40; }
+100% { stroke-dashoffset: 0; }
+}
+
+/* Subtle glow pulse on the icon */
+@keyframes successGlow {
+0%, 100% { box-shadow: 0 0 0 0 rgba(80, 200, 120, 0); }
+50%      { box-shadow: 0 0 24px 4px rgba(80, 200, 120, 0.15); }
+}
+
+/* Badge pop-in */
+@keyframes badgePopIn {
+0%   { opacity: 0; transform: scale(0.5) translateY(6px); }
+60%  { transform: scale(1.08) translateY(-1px); }
+100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Particle burst (6 dots radiating outward) */
+@keyframes particleBurst {
+0%   { opacity: 1; transform: translate(-50%, -50%) scale(0); }
+50%  { opacity: 0.7; }
+100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+.success-card {
+width: min(400px, 92vw);
+text-align: center;
+padding: 48px 40px 36px;
+position: relative;
+overflow: hidden;
+animation: successCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Particle container */
+.success-particles {
+position: absolute;
+top: 80px;
+left: 50%;
+width: 0;
+height: 0;
+pointer-events: none;
+z-index: 0;
+}
+
+.success-card.celebrate .success-particles::before,
+.success-card.celebrate .success-particles::after {
+content: '';
+position: absolute;
+width: 6px;
+height: 6px;
+border-radius: 50%;
+animation: particleBurst 0.8s ease-out both;
+}
+
+.success-card.celebrate .success-particles::before {
+background: rgba(80, 200, 120, 0.6);
+box-shadow:
+  40px -30px 0 rgba(139, 92, 246, 0.5),
+  -35px -25px 0 rgba(99, 102, 241, 0.5),
+  50px 15px 0 rgba(80, 200, 120, 0.4),
+  -45px 20px 0 rgba(251, 191, 36, 0.5),
+  15px -45px 0 rgba(236, 72, 153, 0.4);
+}
+
+.success-card.celebrate .success-particles::after {
+background: rgba(251, 191, 36, 0.5);
+box-shadow:
+  -50px -15px 0 rgba(80, 200, 120, 0.4),
+  30px -40px 0 rgba(236, 72, 153, 0.4),
+  -20px 35px 0 rgba(139, 92, 246, 0.4),
+  45px 25px 0 rgba(99, 102, 241, 0.4),
+  -10px -50px 0 rgba(251, 191, 36, 0.3);
+animation-delay: 0.1s;
+}
+
+/* Animated SVG check icon */
 .success-icon {
-width: 56px;
-height: 56px;
-margin: 0 auto 24px;
+width: 60px;
+height: 60px;
+margin: 0 auto 20px;
 display: flex;
 align-items: center;
 justify-content: center;
 border-radius: 50%;
+background: rgba(80, 200, 120, 0.08);
+border: 1px solid rgba(80, 200, 120, 0.2);
+position: relative;
+z-index: 1;
+}
+
+.success-card.celebrate .success-icon {
+animation: successGlow 2s ease-in-out 0.5s;
+}
+
+.success-check-svg {
+width: 32px;
+height: 32px;
+color: #50c878;
+}
+
+.success-check-ring {
+stroke-dasharray: 151;
+stroke-dashoffset: 151;
+fill: none;
+opacity: 0.3;
+}
+
+.success-card.celebrate .success-check-ring {
+animation: checkRingDraw 0.6s ease-out 0.15s both;
+}
+
+.success-check-path {
+stroke-dasharray: 40;
+stroke-dashoffset: 40;
+fill: none;
+}
+
+.success-card.celebrate .success-check-path {
+animation: checkPathDraw 0.35s ease-out 0.5s both;
+}
+
+/* Pending state: spinner instead of check */
+.success-card.pending .success-icon {
 background: rgba(255, 255, 255, 0.05);
-border: 1px solid var(--line);
+border-color: var(--line);
+animation: none;
 }
 
-.success-icon i {
+.success-card.pending .success-check-svg { display: none; }
+
+.success-card.pending .success-icon::after {
+content: '';
+width: 24px;
+height: 24px;
+border: 2px solid var(--line);
+border-top-color: var(--ink);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+/* Failed state: X icon */
+.success-card.failed .success-icon {
+background: rgba(239, 68, 68, 0.08);
+border-color: rgba(239, 68, 68, 0.2);
+animation: none;
+}
+
+.success-card.failed .success-check-svg { display: none; }
+
+.success-card.failed .success-icon::after {
+content: '\f00d';
+font-family: 'Font Awesome 6 Free';
+font-weight: 900;
 font-size: 24px;
-color: var(--ink);
+color: #ef4444;
 }
 
-.success-card h4 {
+.success-card.failed .success-particles { display: none; }
+
+/* Title */
+.success-card h4,
+.success-card .success-title {
 color: var(--ink);
-font-size: 20px;
+font-size: 22px;
 font-weight: 700;
-letter-spacing: -0.01em;
-margin-bottom: 8px;
+letter-spacing: -0.02em;
+margin-bottom: 6px;
 text-align: center;
+position: relative;
+z-index: 1;
 }
 
-.success-card .modal-sub {
+/* Subtitle */
+.success-card .modal-subtitle {
 color: var(--muted);
 font-size: 14px;
 margin-bottom: 0;
 text-align: center;
+line-height: 1.5;
 }
 
+/* Credits highlight card */
 .success-credits {
 display: flex;
 flex-direction: column;
 align-items: center;
 justify-content: center;
 gap: 4px;
-margin: 20px auto 18px;
-padding: 14px 18px;
-width: min(260px, 80%);
-background: rgba(255,255,255,0.03);
-border: 1px solid rgba(255,255,255,0.08);
-border-radius: 12px;
+margin: 24px auto 16px;
+padding: 18px 24px;
+width: min(280px, 85%);
+background: rgba(255, 255, 255, 0.03);
+border: 1px solid rgba(255, 255, 255, 0.08);
+border-radius: 14px;
 position: relative;
 overflow: hidden;
+z-index: 1;
 }
 
 .success-credits::before {
@@ -804,8 +968,23 @@ content: '';
 position: absolute;
 inset: 0;
 border-radius: inherit;
-box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 pointer-events: none;
+}
+
+/* "+350" badge above the balance */
+.success-added-badge {
+display: none;
+font-size: 13px;
+font-weight: 700;
+color: #50c878;
+letter-spacing: 0.02em;
+margin-bottom: 2px;
+}
+
+.success-added-badge.visible {
+display: block;
+animation: badgePopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
 }
 
 .success-label {
@@ -817,12 +996,13 @@ text-align: center;
 }
 
 .success-value {
-font-size: 40px;
+font-size: 42px;
 font-weight: 800;
 color: var(--ink);
 letter-spacing: -0.03em;
 line-height: 1;
 text-align: center;
+font-variant-numeric: tabular-nums;
 }
 
 .success-unit {
@@ -831,22 +1011,34 @@ font-size: 13px;
 text-align: center;
 }
 
+/* Microcopy */
+.success-microcopy {
+color: var(--muted);
+font-size: 13px;
+margin: 0 0 4px 0;
+text-align: center;
+opacity: 0.7;
+font-style: italic;
+}
+
+/* CTA Actions */
 .success-actions {
 display: flex;
 flex-direction: row;
 justify-content: center;
 align-items: center;
 gap: 12px;
-margin-top: 8px;
+margin-top: 12px;
 }
 
 .success-actions .btn {
 flex: 1;
-max-width: 150px;
-padding: 14px 20px;
+max-width: 170px;
+padding: 14px 24px;
 justify-content: center;
 text-align: center;
-font-size: 13px;
+font-size: 14px;
+font-weight: 600;
 transition: all 0.2s ease;
 }
 
@@ -862,7 +1054,7 @@ top: 50%;
 left: 50%;
 width: 0;
 height: 0;
-background: rgba(255,255,255,0.1);
+background: rgba(255, 255, 255, 0.1);
 border-radius: 50%;
 transform: translate(-50%, -50%);
 transition: width 0.4s ease, height 0.4s ease;
@@ -870,7 +1062,7 @@ transition: width 0.4s ease, height 0.4s ease;
 
 .success-actions .btn:not(.ghost):hover {
 transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .success-actions .btn:not(.ghost):hover::after {
@@ -893,6 +1085,22 @@ transition: all 0.2s ease;
 border-color: var(--ink);
 color: var(--ink);
 transform: translateY(-1px);
+}
+
+/* Mobile: full-width buttons stacked */
+@media (max-width: 480px) {
+.success-card {
+  padding: 40px 24px 32px;
+}
+
+.success-actions {
+  flex-direction: column;
+}
+
+.success-actions .btn {
+  max-width: 100%;
+  width: 100%;
+}
 }
 
 /* ========================================================================== */

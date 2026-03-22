@@ -1397,18 +1397,34 @@
     <!-- Payment Success Modal -->
     <div class="modal" id="paymentSuccessModal" aria-hidden="true">
       <div class="card success-card">
+        <!-- Particle burst (CSS-only, activated via .celebrate) -->
+        <div class="success-particles" aria-hidden="true"></div>
+
+        <!-- Animated check icon -->
         <div class="success-icon">
-          <i class="fa-solid fa-check"></i>
+          <svg class="success-check-svg" viewBox="0 0 52 52" fill="none">
+            <circle class="success-check-ring" cx="26" cy="26" r="24" stroke="currentColor" stroke-width="2"/>
+            <path class="success-check-path" d="M15 27l7 7 15-15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
-        <h4 class="success-title">Payment Complete</h4>
+
+        <h4 class="success-title">You're All Set</h4>
         <p class="modal-subtitle">Your credits have been added.</p>
+
+        <!-- Credit highlight (centerpiece) -->
         <div class="success-credits" id="successCredits">
-          <span class="success-label">Balance</span>
+          <span class="success-added-badge" id="successAddedBadge"></span>
+          <span class="success-label">New Balance</span>
           <span class="success-value" id="successCreditsValue">--</span>
           <span class="success-unit">credits</span>
         </div>
-        <div class="success-actions">
-          <a class="btn" href="https://timrx.live/3dprint?refresh=1">Go to Workspace</a>
+
+        <!-- Microcopy -->
+        <p class="success-microcopy" id="successMicrocopy">Ready to create something amazing?</p>
+
+        <!-- Contextual CTAs -->
+        <div class="success-actions" id="successActions">
+          <a class="btn" id="successPrimaryCta" href="https://timrx.live/3dprint?refresh=1">Start Creating</a>
           <button class="btn ghost" id="successCloseBtn" type="button">Close</button>
         </div>
       </div>

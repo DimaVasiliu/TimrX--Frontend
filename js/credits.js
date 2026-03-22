@@ -1728,6 +1728,24 @@
   let lastFocusBeforeSuccessModal = null;
 
   /**
+   * Animate a number counting up from start to end
+   */
+  function animateCountUp(el, start, end, duration = 600) {
+    if (!el || start === end) { el.textContent = end.toLocaleString(); return; }
+    const startTime = performance.now();
+    const diff = end - start;
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + diff * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /**
    * Open success modal
    * @param {number|null} credits - Credits to display (null = show "Updating...")
    * @param {boolean} isPending - Whether credits are still being processed
@@ -1741,48 +1759,83 @@
     successModalState.isOpen = true;
     successModalState.isPending = isPending;
 
+    const successCard = successModal.querySelector('.success-card');
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
     const creditsDisplay = successModal.querySelector('.success-credits');
+    const addedBadge = document.getElementById('successAddedBadge');
+    const microcopy = document.getElementById('successMicrocopy');
+    const primaryCta = document.getElementById('successPrimaryCta');
 
-    // Determine pool-specific labels
-    const poolLabel = successModalState.isVideoPlan ? 'video credits' : 'general credits';
+    // Pool labels
+    const isVideo = successModalState.isVideoPlan;
+    const poolLabel = isVideo ? 'video credits' : 'general credits';
+
+    // Reset animation classes
+    if (successCard) {
+      successCard.classList.remove('celebrate', 'pending', 'failed');
+      // Force re-trigger entrance animation
+      successCard.style.animation = 'none';
+      successCard.offsetHeight; // reflow
+      successCard.style.animation = '';
+    }
 
     if (isPending) {
-      // Show immediate feedback with "Updating balance..." state
-      if (successTitle) successTitle.textContent = 'Payment Received';
+      if (successTitle) successTitle.textContent = 'Processing Payment';
       if (successMessage) successMessage.textContent = `Updating ${poolLabel} balance…`;
-      successModal.classList.add('pending');
-      successModal.classList.remove('failed');
+      if (successCard) successCard.classList.add('pending');
+      if (addedBadge) { addedBadge.textContent = ''; addedBadge.classList.remove('visible'); }
+      if (microcopy) microcopy.style.display = 'none';
 
-      // Show current balance or placeholder
       if (successCreditsValue) {
         successCreditsValue.textContent = credits != null ? credits.toLocaleString() : '—';
       }
       if (creditsDisplay) creditsDisplay.style.display = '';
     } else {
-      // Credits have been granted - show success state
-      if (successTitle) successTitle.textContent = 'Payment Successful';
-      if (successMessage) successMessage.textContent = successModalState.isVideoPlan
+      // Success! Show celebration state
+      if (successTitle) successTitle.textContent = "You're All Set";
+      if (successMessage) successMessage.textContent = isVideo
         ? 'Your video credits have been added.'
         : 'Your general credits have been added.';
-      successModal.classList.remove('pending');
-      successModal.classList.remove('failed');
 
-      // Update balance display
+      // Trigger celebration animations
+      if (successCard) successCard.classList.add('celebrate');
+
+      // Show "+N credits" badge
+      const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+      if (addedBadge && planCredits > 0) {
+        addedBadge.textContent = `+${planCredits.toLocaleString()} ${poolLabel}`;
+        addedBadge.classList.add('visible');
+      }
+
+      // Count-up animation for the balance value
       if (successCreditsValue && credits != null) {
-        successCreditsValue.textContent = credits.toLocaleString();
+        const prevBalance = successModalState.preCheckoutBalance || 0;
+        animateCountUp(successCreditsValue, prevBalance, credits, 700);
       }
       if (creditsDisplay) creditsDisplay.style.display = '';
+
+      // Contextual microcopy
+      if (microcopy) {
+        microcopy.textContent = isVideo
+          ? 'Your videos are waiting to be created.'
+          : 'Ready to create something amazing?';
+        microcopy.style.display = '';
+      }
+
+      // Contextual CTA
+      if (primaryCta) {
+        primaryCta.textContent = isVideo ? 'Create Video' : 'Start Creating';
+        primaryCta.href = 'https://timrx.live/3dprint?refresh=1';
+      }
     }
 
-    // Update unit label to match pool
+    // Update unit label
     const unitEl = successModal.querySelector('.success-unit');
     if (unitEl) unitEl.textContent = poolLabel;
 
     successModal.classList.add('open');
     successModal.inert = false;
-    // Focus the close button
     requestAnimationFrame(() => {
       const closeBtn = successModal.querySelector('button, [data-action="close"]');
       closeBtn?.focus();
@@ -1797,24 +1850,51 @@
 
     successModalState.isPending = false;
 
+    const successCard = successModal.querySelector('.success-card');
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
     const creditsDisplay = successModal.querySelector('.success-credits');
+    const addedBadge = document.getElementById('successAddedBadge');
+    const microcopy = document.getElementById('successMicrocopy');
+    const primaryCta = document.getElementById('successPrimaryCta');
 
-    const poolLabel = successModalState.isVideoPlan ? 'video credits' : 'general credits';
-    if (successTitle) successTitle.textContent = 'Payment Successful';
-    if (successMessage) successMessage.textContent = successModalState.isVideoPlan
+    const isVideo = successModalState.isVideoPlan;
+    const poolLabel = isVideo ? 'video credits' : 'general credits';
+    if (successTitle) successTitle.textContent = "You're All Set";
+    if (successMessage) successMessage.textContent = isVideo
       ? 'Your video credits have been added.'
       : 'Your general credits have been added.';
-    if (successCreditsValue) successCreditsValue.textContent = balance.toLocaleString();
+
+    // Count-up from previous balance
+    const prevBalance = successModalState.preCheckoutBalance || 0;
+    if (successCreditsValue) animateCountUp(successCreditsValue, prevBalance, balance, 700);
     if (creditsDisplay) creditsDisplay.style.display = '';
 
-    // Update unit label to match pool
+    // Show added badge
+    const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+    if (addedBadge && planCredits > 0) {
+      addedBadge.textContent = `+${planCredits.toLocaleString()} ${poolLabel}`;
+      addedBadge.classList.add('visible');
+    }
+
+    // Trigger celebrate
+    if (successCard) {
+      successCard.classList.remove('pending', 'failed');
+      successCard.classList.add('celebrate');
+    }
+
+    // Show microcopy + contextual CTA
+    if (microcopy) {
+      microcopy.textContent = isVideo ? 'Your videos are waiting to be created.' : 'Ready to create something amazing?';
+      microcopy.style.display = '';
+    }
+    if (primaryCta) {
+      primaryCta.textContent = isVideo ? 'Create Video' : 'Start Creating';
+    }
+
+    // Update unit label
     const unitEl = successModal.querySelector('.success-unit');
     if (unitEl) unitEl.textContent = poolLabel;
-
-    successModal.classList.remove('pending');
-    successModal.classList.remove('failed');
 
     console.log('[Credits] Modal transitioned to complete, balance:', balance, `(${poolLabel})`);
   }
@@ -1827,6 +1907,12 @@
     }
     successModal.classList.remove('open');
     successModal.inert = true;
+
+    // Clean up animation classes
+    const successCard = successModal.querySelector('.success-card');
+    if (successCard) successCard.classList.remove('celebrate', 'pending', 'failed');
+    const addedBadge = document.getElementById('successAddedBadge');
+    if (addedBadge) addedBadge.classList.remove('visible');
 
     successModalState.isOpen = false;
     successModalState.isPending = false;
@@ -1844,22 +1930,41 @@
 
     successModalState.isPending = false;
 
+    const successCard = successModal.querySelector('.success-card');
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
     const creditsDisplay = successModal.querySelector('.success-credits');
+    const addedBadge = document.getElementById('successAddedBadge');
+    const microcopy = document.getElementById('successMicrocopy');
+    const primaryCta = document.getElementById('successPrimaryCta');
 
     if (successTitle) {
       successTitle.textContent = status === 'canceled' ? 'Payment Cancelled' : 'Payment Failed';
     }
     if (successMessage) {
       successMessage.textContent = status === 'canceled'
-        ? 'Your payment was cancelled. No credits were charged.'
-        : 'Your payment could not be processed. Please try again.';
+        ? 'No credits were charged. You can try again anytime.'
+        : 'Something went wrong. Please try again.';
     }
     if (creditsDisplay) creditsDisplay.style.display = 'none';
+    if (addedBadge) { addedBadge.textContent = ''; addedBadge.classList.remove('visible'); }
+    if (microcopy) microcopy.style.display = 'none';
 
-    successModal.classList.remove('pending');
-    successModal.classList.add('failed');
+    // Update CTA to retry
+    if (primaryCta) {
+      primaryCta.textContent = 'Try Again';
+      primaryCta.href = '#pricing';
+      primaryCta.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeSuccessModal();
+        document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+      }, { once: true });
+    }
+
+    if (successCard) {
+      successCard.classList.remove('pending', 'celebrate');
+      successCard.classList.add('failed');
+    }
   }
 
   /**
@@ -1877,9 +1982,12 @@
       successMessage.textContent = `${poolLabel} will appear shortly. Refresh if needed.`;
     }
 
-    // Keep pending class for visual styling
-    successModal.classList.add('pending');
-    successModal.classList.remove('failed');
+    // Keep pending class on card for visual styling
+    const successCard = successModal.querySelector('.success-card');
+    if (successCard) {
+      successCard.classList.add('pending');
+      successCard.classList.remove('failed', 'celebrate');
+    }
   }
 
   // Subscribe to wallet events to update modal automatically
@@ -3051,20 +3159,42 @@
 
     // Open success modal with subscription-specific text
     if (successModal) {
+      const successCard = successModal.querySelector('.success-card');
       const successTitle = successModal.querySelector('.success-title, h2');
       const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
       const creditsDisplay = successModal.querySelector('.success-credits');
+      const addedBadge = document.getElementById('successAddedBadge');
+      const microcopy = document.getElementById('successMicrocopy');
+      const primaryCta = document.getElementById('successPrimaryCta');
 
       if (successTitle) successTitle.textContent = 'Subscription Active';
       if (successMessage) successMessage.textContent = subSuccessMsg;
       if (creditsDisplay) creditsDisplay.style.display = 'none';
+
+      // Subscription celebration
+      if (successCard) {
+        successCard.classList.remove('pending', 'failed');
+        successCard.classList.add('celebrate');
+        // Re-trigger entrance animation
+        successCard.style.animation = 'none';
+        successCard.offsetHeight;
+        successCard.style.animation = '';
+      }
+      if (addedBadge) { addedBadge.textContent = ''; addedBadge.classList.remove('visible'); }
+      if (microcopy) {
+        microcopy.textContent = "Let's build something.";
+        microcopy.style.display = '';
+      }
+      if (primaryCta) {
+        primaryCta.textContent = 'Start Creating';
+        primaryCta.href = 'https://timrx.live/3dprint?refresh=1';
+      }
 
       successModal.classList.remove('pending', 'failed');
       successModal.classList.add('open');
       successModal.inert = false;
       successModalState.isOpen = true;
       successModalState.isPending = false;
-      // Focus close button
       requestAnimationFrame(() => {
         const closeBtn = successModal.querySelector('button, [data-action="close"]');
         closeBtn?.focus();

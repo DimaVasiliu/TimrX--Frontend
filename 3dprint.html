@@ -381,7 +381,7 @@
     });
 
     window.addEventListener('resize', function(){
-      if (window.innerWidth > 768 && menu.classList.contains('is-open')) close();
+      if (window.innerWidth > 1024 && menu.classList.contains('is-open')) close();
     });
 
     var inspireBtn = document.getElementById('wsMobileInspire');
@@ -3205,18 +3205,20 @@
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Nav hide on scroll for expanded views
+      // Nav hide on scroll — expansion views (all sizes) + mobile/tablet (all views)
+      const wsHeader = document.querySelector('.ws-header');
       const nav = document.querySelector('.ws-nav');
       const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
       const tickerHeader = document.querySelector('.ticker-header');
       const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader].filter(Boolean);
 
-      if (hideableElements.length > 0) {
+      if (wsHeader) {
         let ticking = false;
 
         const handleScroll = () => {
-          const revealThreshold = window.innerWidth <= 768 ? 12 : 18;
+          const isMobileOrTablet = window.innerWidth <= 1024;
+          const revealThreshold = isMobileOrTablet ? 12 : 18;
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
                                   document.body.classList.contains('converter-view') ||
                                   document.body.classList.contains('community-view') ||
@@ -3224,12 +3226,26 @@
                                   document.body.classList.contains('docs-view') ||
                                   document.body.classList.contains('history-expanded');
 
-          if (!isExpandedView) {
-            hideableElements.forEach(el => el.classList.remove('nav-hidden'));
+          const currentScrollY = window.scrollY;
+
+          // Mobile/tablet: hide the whole header in any view
+          if (isMobileOrTablet) {
+            if (currentScrollY <= revealThreshold) {
+              wsHeader.classList.remove('nav-hidden');
+            } else {
+              wsHeader.classList.add('nav-hidden');
+            }
+            ticking = false;
             return;
           }
 
-          const currentScrollY = window.scrollY;
+          // Desktop: only hide individual parts in expanded views
+          if (!isExpandedView) {
+            hideableElements.forEach(el => el.classList.remove('nav-hidden'));
+            wsHeader.classList.remove('nav-hidden');
+            ticking = false;
+            return;
+          }
 
           if (currentScrollY <= revealThreshold) {
             hideableElements.forEach(el => el.classList.remove('nav-hidden'));

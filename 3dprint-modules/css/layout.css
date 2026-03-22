@@ -1579,8 +1579,17 @@
     color: rgba(255,255,255,0.2);
   }
   
-  /* Show burger, hide desktop nav on mobile */
-  @media (max-width: 768px) {
+  /* ── Scroll-hide support ── */
+  .ws-header {
+    transition: transform 0.35s ease;
+  }
+  .ws-header.nav-hidden {
+    transform: translateY(-100%);
+    pointer-events: none;
+  }
+  
+  /* Show burger, hide desktop nav on tablet + mobile */
+  @media (max-width: 1024px) {
     .ws-burger {
       display: flex;
     }
@@ -1600,9 +1609,17 @@
       align-items: center;
     }
     .ws-nav-logo {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 10px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .ws-nav-logo {
       width: 34px;
       height: 34px;
-      border: none;
       border-radius: 8px;
     }
   }
