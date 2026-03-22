@@ -84,6 +84,7 @@ export function makeProgressDriver() {
   let pct = 0, id = null;
 
   return {
+    pct: (to, _label) => { pct = Math.max(pct, to); },
     label: () => {},
     jump: (to) => { pct = Math.max(pct, to); },
     done: () => { clearInterval(id); },

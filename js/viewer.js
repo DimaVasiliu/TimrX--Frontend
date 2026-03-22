@@ -6,7 +6,7 @@
  * IMPORTANT: All functions guard against missing WebGL/scene/renderer to prevent crashes.
  */
 
-import { byId, log } from './config.js';
+import { byId, log, isTimrxS3Url } from './config.js';
 
 let scene, camera, renderer, controls;
 let viewerPlaceholder = null;
@@ -200,7 +200,9 @@ export async function loadGlbFromUrl(url) {
 
     // Defensive check: pre-validate URL returns binary/model data, not HTML
     try {
-        const headRes = await fetch(url, { method: 'HEAD', mode: 'cors', credentials: 'include' });
+        const fetchOpts = { method: 'HEAD', mode: 'cors' };
+        if (!isTimrxS3Url(url)) fetchOpts.credentials = 'include';
+        const headRes = await fetch(url, fetchOpts);
         const contentType = headRes.headers.get('content-type') || '';
         if (contentType.includes('text/html')) {
             const err = new Error(`Model URL returned HTML (likely 404 or redirect): ${url}`);

@@ -837,8 +837,17 @@
     }
 
     if (subModalTitle) subModalTitle.textContent = `Subscribe — ${plan.name}`;
-    if (subModalSubtitle) subModalSubtitle.textContent = `${plan.credits_per_month} credits every month. Cancel anytime.`;
+    const videoPerMonth = plan.video_credits_per_month || 0;
+    if (subModalSubtitle) {
+      subModalSubtitle.textContent = videoPerMonth > 0
+        ? `${plan.credits_per_month} general + ${videoPerMonth} video credits every month. Cancel anytime.`
+        : `${plan.credits_per_month} credits every month. Cancel anytime.`;
+    }
     if (subModalCredits) subModalCredits.textContent = plan.credits_per_month.toLocaleString();
+    const subModalVideoCredits = document.getElementById('subModalVideoCredits');
+    const subModalVideoRow = document.getElementById('subModalVideoRow');
+    if (subModalVideoCredits) subModalVideoCredits.textContent = videoPerMonth.toLocaleString();
+    if (subModalVideoRow) subModalVideoRow.style.display = videoPerMonth > 0 ? '' : 'none';
     if (subModalCadence) subModalCadence.textContent = cadenceLabel;
     if (subModalPrice) subModalPrice.innerHTML = priceLabel + convertedLabel;
 
@@ -1736,10 +1745,13 @@
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
     const creditsDisplay = successModal.querySelector('.success-credits');
 
+    // Determine pool-specific labels
+    const poolLabel = successModalState.isVideoPlan ? 'video credits' : 'general credits';
+
     if (isPending) {
       // Show immediate feedback with "Updating balance..." state
       if (successTitle) successTitle.textContent = 'Payment Received';
-      if (successMessage) successMessage.textContent = 'Updating balance…';
+      if (successMessage) successMessage.textContent = `Updating ${poolLabel} balance…`;
       successModal.classList.add('pending');
       successModal.classList.remove('failed');
 
@@ -1751,7 +1763,9 @@
     } else {
       // Credits have been granted - show success state
       if (successTitle) successTitle.textContent = 'Payment Successful';
-      if (successMessage) successMessage.textContent = 'Your credits have been added to your account.';
+      if (successMessage) successMessage.textContent = successModalState.isVideoPlan
+        ? 'Your video credits have been added.'
+        : 'Your general credits have been added.';
       successModal.classList.remove('pending');
       successModal.classList.remove('failed');
 
@@ -1761,6 +1775,10 @@
       }
       if (creditsDisplay) creditsDisplay.style.display = '';
     }
+
+    // Update unit label to match pool
+    const unitEl = successModal.querySelector('.success-unit');
+    if (unitEl) unitEl.textContent = poolLabel;
 
     successModal.classList.add('open');
     successModal.inert = false;
@@ -1783,15 +1801,22 @@
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
     const creditsDisplay = successModal.querySelector('.success-credits');
 
+    const poolLabel = successModalState.isVideoPlan ? 'video credits' : 'general credits';
     if (successTitle) successTitle.textContent = 'Payment Successful';
-    if (successMessage) successMessage.textContent = 'Your credits have been added to your account.';
+    if (successMessage) successMessage.textContent = successModalState.isVideoPlan
+      ? 'Your video credits have been added.'
+      : 'Your general credits have been added.';
     if (successCreditsValue) successCreditsValue.textContent = balance.toLocaleString();
     if (creditsDisplay) creditsDisplay.style.display = '';
+
+    // Update unit label to match pool
+    const unitEl = successModal.querySelector('.success-unit');
+    if (unitEl) unitEl.textContent = poolLabel;
 
     successModal.classList.remove('pending');
     successModal.classList.remove('failed');
 
-    console.log('[Credits] Modal transitioned to complete, balance:', balance);
+    console.log('[Credits] Modal transitioned to complete, balance:', balance, `(${poolLabel})`);
   }
 
   function closeSuccessModal() {
@@ -1846,9 +1871,10 @@
     const successTitle = successModal.querySelector('.success-title, h2');
     const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
 
+    const poolLabel = successModalState.isVideoPlan ? 'Video credits' : 'Credits';
     if (successTitle) successTitle.textContent = 'Payment Received';
     if (successMessage) {
-      successMessage.textContent = 'Credits will appear shortly. Refresh if needed.';
+      successMessage.textContent = `${poolLabel} will appear shortly. Refresh if needed.`;
     }
 
     // Keep pending class for visual styling
@@ -3010,9 +3036,18 @@
       .find(p => p.plan_code === pendingSubPlan);
     const planName = subPlanInfo ? subPlanInfo.name : 'Subscription';
     const creditsPerMonth = subPlanInfo ? subPlanInfo.credits_per_month : 0;
+    const videoCreditsPerMonth = subPlanInfo ? (subPlanInfo.video_credits_per_month || 0) : 0;
 
     // Show subscription success in the existing success modal
     successModalState.preCheckoutBalance = 0;
+
+    // Build subscription success message with both pools
+    let subSuccessMsg = `Your ${planName} plan is active.`;
+    if (creditsPerMonth > 0 && videoCreditsPerMonth > 0) {
+      subSuccessMsg += ` ${creditsPerMonth} general + ${videoCreditsPerMonth} video credits added.`;
+    } else if (creditsPerMonth > 0) {
+      subSuccessMsg += ` ${creditsPerMonth} credits have been added.`;
+    }
 
     // Open success modal with subscription-specific text
     if (successModal) {
@@ -3021,7 +3056,7 @@
       const creditsDisplay = successModal.querySelector('.success-credits');
 
       if (successTitle) successTitle.textContent = 'Subscription Active';
-      if (successMessage) successMessage.textContent = `Your ${planName} plan is active. ${creditsPerMonth} credits have been added.`;
+      if (successMessage) successMessage.textContent = subSuccessMsg;
       if (creditsDisplay) creditsDisplay.style.display = 'none';
 
       successModal.classList.remove('pending', 'failed');

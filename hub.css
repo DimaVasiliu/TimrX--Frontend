@@ -429,27 +429,29 @@ color: #ef4444 !important;
 /* BUY CREDITS MODAL                                                          */
 /* ========================================================================== */
 .buy-credits-card {
-width: min(440px, 92vw) !important;
+width: min(460px, 92vw) !important;
 max-height: 90vh;
 overflow-y: auto;
 position: relative;
-padding: 24px;
+padding: 28px 26px;
+}
+
+.buy-credits-card h4 {
+font-size: 22px;
+margin-bottom: 4px;
 }
 
 .buy-credits-card .modal-sub {
-color: #bdbdbd;
-font-size: 14px;
-margin: 0 0 18px;
+color: #999;
+font-size: 13px;
+margin: 0 0 22px;
 }
 
 .credits-plans {
 display: flex;
 flex-direction: column;
-gap: 0;
-border: 1px solid rgba(255,255,255,.10);
-border-radius: 14px;
-overflow: hidden;
-margin-bottom: 14px;
+gap: 10px;
+margin-bottom: 18px;
 }
 
 .plan-card {
@@ -457,13 +459,11 @@ appearance: none;
 display: flex;
 flex-direction: row;
 align-items: center;
-justify-content: space-between;
-gap: 12px;
-padding: 12px 16px;
-border-radius: 0;
-border: none;
-border-bottom: 1px solid rgba(255,255,255,.06);
-background: transparent;
+gap: 14px;
+padding: 16px 18px;
+border-radius: 14px;
+border: 1px solid rgba(255,255,255,.08);
+background: rgba(255,255,255,.03);
 color: #eaeaea;
 cursor: pointer;
 transition: all .2s ease;
@@ -471,12 +471,9 @@ position: relative;
 overflow: visible;
 }
 
-.plan-card:last-child {
-border-bottom: none;
-}
-
 .plan-card:hover {
-background: rgba(255,255,255,.03);
+background: rgba(255,255,255,.06);
+border-color: rgba(255,255,255,.14);
 }
 
 .plan-card:focus-visible {
@@ -485,34 +482,36 @@ outline-offset: 2px;
 }
 
 .plan-card.featured {
-background: transparent;
+border-color: rgba(125,211,252,.30);
+background: rgba(125,211,252,.05);
 }
 
 .plan-card.featured:hover {
-background: rgba(255,255,255,.03);
+background: rgba(125,211,252,.08);
+border-color: rgba(125,211,252,.45);
 }
 
 .plan-popular {
 position: absolute;
-top: 50%;
-right: 90px;
-transform: translateY(-50%);
-padding: 3px 8px;
+top: -9px;
+right: 16px;
+padding: 3px 10px;
 border-radius: 999px;
 background: #7dd3fc;
 color: #0b0b0b;
-font-size: 8px;
+font-size: 9px;
 font-weight: 800;
 letter-spacing: .06em;
 text-transform: uppercase;
 white-space: nowrap;
+box-shadow: 0 2px 8px rgba(125,211,252,.30);
 }
 
 .plan-badge {
-font-size: 13px;
+font-size: 14px;
 font-weight: 700;
 color: #eaeaea;
-min-width: 60px;
+min-width: 64px;
 }
 
 .plan-card.featured .plan-badge {
@@ -520,16 +519,19 @@ color: #7dd3fc;
 }
 
 .plan-credits {
-font-size: 14px;
+font-size: 13px;
 font-weight: 600;
-color: #999;
+color: #777;
 flex: 1;
+text-align: center;
 }
 
 .plan-price {
-font-size: 16px;
+font-size: 17px;
 font-weight: 800;
 color: #fff;
+min-width: 60px;
+text-align: right;
 }
 
 .plan-note {
@@ -556,14 +558,17 @@ justify-content: center;
 
 .credits-footer {
 text-align: center;
-font-size: 12px;
-color: #666;
-margin: 16px 0 0;
+font-size: 11px;
+color: #555;
+margin: 18px 0 0;
+line-height: 1.5;
 }
 
 /* Selected plan card */
 .plan-card.selected {
-background: rgba(125,211,252,.08);
+background: rgba(125,211,252,.10);
+border-color: rgba(125,211,252,.40);
+box-shadow: 0 0 16px rgba(125,211,252,.10);
 }
 
 /* Checkout section (hidden until plan selected) */
@@ -2350,6 +2355,10 @@ margin-bottom: 0;
   border-radius:20px; padding:22px;
   display:flex; flex-direction:column; gap:16px;
   transition:transform .25s ease, box-shadow .3s ease, border-color .25s ease;
+}
+.pc-note{
+  margin-top:auto;
+  white-space:nowrap;
 }
 .price-card:hover{
   transform:translateY(-6px);

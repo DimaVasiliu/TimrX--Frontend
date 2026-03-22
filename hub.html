@@ -840,8 +840,12 @@
 
       <div class="sub-modal-details">
         <div class="sub-detail-row">
-          <span class="sub-detail-label">Credits per month</span>
+          <span class="sub-detail-label">General credits / month</span>
           <span class="sub-detail-value" id="subModalCredits">300</span>
+        </div>
+        <div class="sub-detail-row" id="subModalVideoRow">
+          <span class="sub-detail-label">Video credits / month</span>
+          <span class="sub-detail-value" id="subModalVideoCredits">100</span>
         </div>
         <div class="sub-detail-row">
           <span class="sub-detail-label">Billing</span>
@@ -1396,8 +1400,8 @@
         <div class="success-icon">
           <i class="fa-solid fa-check"></i>
         </div>
-        <h4>Payment Complete</h4>
-        <p class="modal-sub">Your credits have been added to your account.</p>
+        <h4 class="success-title">Payment Complete</h4>
+        <p class="modal-subtitle">Your credits have been added.</p>
         <div class="success-credits" id="successCredits">
           <span class="success-label">Balance</span>
           <span class="success-value" id="successCreditsValue">--</span>
