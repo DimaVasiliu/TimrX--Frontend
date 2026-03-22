@@ -479,10 +479,10 @@ function getDefaultActionCosts() {
     'MESHY_ANIMATION': 3,
     'OPENAI_IMAGE': 4,
     'OPENAI_IMAGE_2K': 8,
-    'OPENAI_IMAGE_4K': 12,
+    // OPENAI_IMAGE_4K removed — OpenAI does not support 4K
     'GEMINI_IMAGE': 4,
     'GEMINI_IMAGE_2K': 8,
-    'GEMINI_IMAGE_4K': 12,
+    // GEMINI_IMAGE_4K removed — Gemini does not support 4K
     'PIAPI_IMAGE': 7,
     'PIAPI_IMAGE_2K': 12,
     'PIAPI_IMAGE_4K': 18,
