@@ -2172,10 +2172,10 @@ const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_gener
 function getImageCredits(quality = 'standard') {
   const snapshot = window.GenerationState?.getGenerationSnapshot?.('image');
   if (snapshot?.capabilities?.creditsByQuality) {
-    return snapshot.capabilities.creditsByQuality[quality] ?? snapshot.capabilities.credits ?? 10;
+    return snapshot.capabilities.creditsByQuality[quality] ?? snapshot.capabilities.credits ?? 4;
   }
   // Fallback: cheapest tier (OpenAI/Gemini)
-  return quality === 'high' ? 15 : 10;
+  return quality === 'high' ? 8 : 4;
 }
 
 /**
@@ -3203,23 +3203,24 @@ const VIDEO_ASPECT_MAP = {
  * - 1080p: 8s only
  * - 4k: 8s only
  */
+// Vertex Veo 3.1: 12 c/s (margin-stabilized). All modes equalized.
 const VIDEO_CREDIT_COSTS = {
-  '720p':  { 4: 75, 6: 100, 8: 125 },
-  '1080p': { 8: 150 },
-  '4k':    { 8: 200 }
+  '720p':  { 4: 48, 6: 72, 8: 96 },
+  '1080p': { 8: 120 },
+  '4k':    { 8: 156 }
 };
 
-// Image-to-Video costs (premium over text-to-video)
+// Image-to-Video costs — EQUALIZED with text-to-video (no premium)
 const VIDEO_IMAGE_CREDIT_COSTS = {
-  '720p':  { 4: 110, 6: 140, 8: 170 },
-  '1080p': { 8: 200 },
-  '4k':    { 8: 250 }
+  '720p':  { 4: 48, 6: 72, 8: 96 },
+  '1080p': { 8: 120 },
+  '4k':    { 8: 156 }
 };
 
-// Seedance credits: tier * duration (fast=16 cps, preview=25 cps)
-const SEEDANCE_CPS = { fast: 16, preview: 25 };
-// fal Seedance 1.5 Pro: flat 14 cps
-const FAL_SEEDANCE_CPS = 14;
+// Seedance: Fast=STANDARD (10 cps), Preview=PREMIUM (16 cps)
+const SEEDANCE_CPS = { fast: 10, preview: 16 };
+// fal Seedance 1.5 Pro: BUDGET tier (8 cps)
+const FAL_SEEDANCE_CPS = 8;
 
 /**
  * Check if a provider belongs to the Seedance family (fal or PiAPI).
@@ -3243,7 +3244,7 @@ function _providerDisplayName(provider) {
  * Uses VideoJobControl if available, falls back to local costs.
  *
  * @param {Object} settings - { provider, durationSec, resolution }
- * @returns {number} Total credits (70-160)
+ * @returns {number} Total credits (40-240)
  */
 function getVideoCredits(settings) {
   // Prefer VideoJobControl.computeCredits() as single source of truth
@@ -3251,25 +3252,23 @@ function getVideoCredits(settings) {
     return window.VideoJobControl.computeCredits(settings);
   }
 
-  // fal Seedance: flat 14 cps
+  // fal Seedance: BUDGET tier (8 cps)
   if (settings.provider === 'fal_seedance') {
     return FAL_SEEDANCE_CPS * (settings.durationSec || 5);
   }
 
-  // Seedance (PiAPI): tier * duration
+  // Seedance (PiAPI): tier * duration (Fast=10 cps, Preview=16 cps)
   if (settings.provider === 'seedance') {
     const tier = settings.seedanceTier || 'fast';
-    const cps = SEEDANCE_CPS[tier] || 14;
+    const cps = SEEDANCE_CPS[tier] || 10;
     return cps * (settings.durationSec || 5);
   }
 
-  // Veo — use image costs (+50%) for image-to-video modes
+  // Veo — all modes equalized (no image-to-video premium)
   const resolution = settings.resolution || '720p';
   const duration = settings.durationSec || 4;
-  const isImageMode = settings.mode && settings.mode !== 'text2video';
-  const costTable = isImageMode ? VIDEO_IMAGE_CREDIT_COSTS : VIDEO_CREDIT_COSTS;
-  const resolutionCosts = costTable[resolution] || costTable['720p'];
-  return resolutionCosts[duration] || (isImageMode ? 110 : 75);
+  const resolutionCosts = VIDEO_CREDIT_COSTS[resolution] || VIDEO_CREDIT_COSTS['720p'];
+  return resolutionCosts[duration] || 96;
 }
 
 /**

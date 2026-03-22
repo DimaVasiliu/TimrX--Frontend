@@ -185,11 +185,11 @@
           <div class="inline-field" id="imageQualityRow">
             <label for="imageQuality">Quality</label>
             <select id="imageQuality">
-              <option value="standard" selected>Standard (15c)</option>
-              <option value="high">2K (20c)</option>
+              <option value="standard" selected>Standard (4c)</option>
+              <option value="high">2K (8c)</option>
             </select>
           </div>
-          <span class="field-hint" id="imageQualityHint">Standard 15c · 2K 20c</span>
+          <span class="field-hint" id="imageQualityHint">Standard 4c · 2K 8c</span>
           <div class="premium-quality-hint" id="premiumQualityHint"></div>
 
           <div class="provider-hint" id="imageProviderHint"></div>
@@ -199,9 +199,9 @@
           <div class="gen-meta">
             <span class="gen-time" id="imageGenTime">45 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 15</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 7</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="15 credits" data-provider="nano_banana">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="7 credits" data-provider="nano_banana">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate
           </button>
@@ -467,9 +467,9 @@
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 6</span>
           </div>
-          <button type="button" id="applyRemeshBtn" class="gen-btn" title="10 credits">
+          <button type="button" id="applyRemeshBtn" class="gen-btn" title="6 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
             Remesh
           </button>
@@ -557,9 +557,9 @@
           <div class="gen-meta">
             <span class="gen-time">1.5 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="generateTextureBtn" class="gen-btn" title="15 credits">
+          <button type="button" id="generateTextureBtn" class="gen-btn" title="5 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
             Texture
           </button>
@@ -657,9 +657,9 @@
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 15</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="15 credits">
+          <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="5 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
             Start Rigging
           </button>
@@ -753,9 +753,9 @@
             <div class="gen-meta">
               <span class="gen-time">1 min</span>
               <span class="gen-divider">|</span>
-              <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
+              <span class="gen-credits"><i class="fa-solid fa-coins"></i> 3</span>
             </div>
-            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="10 credits">
+            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="3 credits">
               <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Apply Animation
             </button>
@@ -1108,7 +1108,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled style="display:none">
             Preview
           </button>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="75 credits" data-base-credits="75" data-video-mode="text2video" data-provider="vertex" disabled>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="96 credits" data-base-credits="96" data-video-mode="text2video" data-provider="vertex" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate
           </button>
@@ -1839,28 +1839,30 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Fallback credits by resolution and duration (used if backend unavailable)
       // Actual costs are fetched from backend via WorkspaceCredits
       // Mapping: Standard (HD) = 720p, Pro (Full HD) = 1080p
+      // Vertex Veo 3.1: 12 c/s (margin-stabilized). All modes equalized.
       const VIDEO_CREDIT_RULES_FALLBACK = {
-        '720p':  { 4: 75, 6: 100, 8: 125 },  // Standard (HD)
-        '1080p': { 8: 150 },                  // Pro (Full HD) - requires 8s
-        '4k':    { 8: 200 }                   // Ultra (4K) - requires 8s
+        '720p':  { 4: 48, 6: 72, 8: 96 },    // Standard (HD) — 12 c/s
+        '1080p': { 8: 120 },                  // Pro (Full HD) - requires 8s
+        '4k':    { 8: 156 }                   // Ultra (4K) - requires 8s
       };
 
-      // Image-to-Video fallback costs (premium over text-to-video)
+      // Image-to-Video fallback costs — EQUALIZED with text-to-video (no premium)
       const VIDEO_IMAGE_CREDIT_RULES_FALLBACK = {
-        '720p':  { 4: 110, 6: 140, 8: 170 },
-        '1080p': { 8: 200 },
-        '4k':    { 8: 250 }
+        '720p':  { 4: 48, 6: 72, 8: 96 },
+        '1080p': { 8: 120 },
+        '4k':    { 8: 156 }
       };
       // Seedance credit costs — explicit lookup tables (DB is authoritative)
+      // Fast = STANDARD tier (10 c/s), Preview = PREMIUM tier (16 c/s)
       const SEEDANCE_COSTS = {
-        fast:    { 5: 80, 10: 150, 15: 225 },
-        preview: { 5: 125, 10: 250, 15: 375 }
+        fast:    { 5: 50, 10: 100, 15: 150 },
+        preview: { 5: 80, 10: 160, 15: 240 }
       };
       // Approximate CPS for fallback only (DB values are authoritative)
-      const SEEDANCE_CPS = { fast: 16, preview: 25 };
-      // fal Seedance 1.5 Pro — explicit lookup (DB is authoritative)
-      const FAL_SEEDANCE_COSTS = { 5: 80, 10: 150, 12: 180 };
-      const FAL_SEEDANCE_CPS = 16;
+      const SEEDANCE_CPS = { fast: 10, preview: 16 };
+      // fal Seedance 1.5 Pro — BUDGET tier (8–9 c/s)
+      const FAL_SEEDANCE_COSTS = { 5: 45, 10: 80, 12: 95 };
+      const FAL_SEEDANCE_CPS = 8;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
@@ -2076,7 +2078,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             cost = resRules[8];
             source = 'fallback-8s';
           } else {
-            cost = isImageMode ? 110 : 75;
+            cost = 96;  // Vertex 8s 720p base (12 c/s)
             source = 'fallback-default';
           }
         }
@@ -2951,18 +2953,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           // Update or add Standard option
           let stdOpt = imageQuality.querySelector('option[value="standard"]');
           if (!stdOpt) { stdOpt = document.createElement('option'); stdOpt.value = 'standard'; imageQuality.appendChild(stdOpt); }
-          stdOpt.textContent = `Standard (${cbq.standard ?? 10}c)`;
+          stdOpt.textContent = `Standard (${cbq.standard ?? 4}c)`;
 
           // Update or add 2K option
           let highOpt = imageQuality.querySelector('option[value="high"]');
           if (!highOpt) { highOpt = document.createElement('option'); highOpt.value = 'high'; imageQuality.appendChild(highOpt); }
-          highOpt.textContent = `2K (${cbq.high ?? 15}c)`;
+          highOpt.textContent = `2K (${cbq.high ?? 8}c)`;
 
           // 4K option — only for providers that support it (Nano Banana exclusive)
           let fourKOpt = imageQuality.querySelector('option[value="4k"]');
           if (supportedQualities.includes('4k')) {
             if (!fourKOpt) { fourKOpt = document.createElement('option'); fourKOpt.value = '4k'; imageQuality.appendChild(fourKOpt); }
-            fourKOpt.textContent = `\u2728 4K Ultra (${cbq['4k'] ?? 30}c)`;
+            fourKOpt.textContent = `\u2728 4K Ultra (${cbq['4k'] ?? 18}c)`;
           } else {
             // Remove 4K option if provider doesn't support it
             if (fourKOpt) fourKOpt.remove();
@@ -2976,8 +2978,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           // Update hint text
           const hintEl = document.getElementById('imageQualityHint');
           if (hintEl) {
-            let hint = `Standard ${cbq.standard ?? 10}c \u00b7 2K ${cbq.high ?? 15}c`;
-            if (supportedQualities.includes('4k')) hint += ` \u00b7 4K ${cbq['4k'] ?? 30}c`;
+            let hint = `Standard ${cbq.standard ?? 4}c \u00b7 2K ${cbq.high ?? 8}c`;
+            if (supportedQualities.includes('4k')) hint += ` \u00b7 4K ${cbq['4k'] ?? 18}c`;
             hintEl.textContent = hint;
           }
 

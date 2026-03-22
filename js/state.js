@@ -656,8 +656,8 @@ export const PROVIDER_CAPABILITIES = {
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 15,  // PREMIUM provider
-      creditsByQuality: { standard: 15, high: 20, '4k': 30 },
+      credits: 7,   // PREMIUM provider
+      creditsByQuality: { standard: 7, high: 12, '4k': 18 },
       genTimeByQuality: { standard: '45 sec', high: '60 sec', '4k': '90 sec' },
       genTime: '45 sec',
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
@@ -669,8 +669,8 @@ export const PROVIDER_CAPABILITIES = {
       qualities: ['standard', 'high'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10,
-      creditsByQuality: { standard: 10, high: 15 },
+      credits: 4,
+      creditsByQuality: { standard: 4, high: 8 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec' },
       genTime: '30 sec',
       shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
@@ -683,8 +683,8 @@ export const PROVIDER_CAPABILITIES = {
       qualities: ['standard', 'high'],
       defaultShape: 'square',
       defaultQuality: 'standard',
-      credits: 10,
-      creditsByQuality: { standard: 10, high: 15 },
+      credits: 4,
+      creditsByQuality: { standard: 4, high: 8 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec' },
       genTime: '30 sec',
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
@@ -953,9 +953,9 @@ export function getGenerationSnapshot(mode) {
   let genTime = caps?.genTime || '30 sec';
 
   if (mode === 'image' && caps) {
-    // Image: provider-specific pricing (OpenAI/Gemini: 10/15, Nano Banana: 15/20)
+    // Image: provider-specific pricing (OpenAI/Gemini: 4/8, Nano Banana: 7/12/18)
     const quality = settings.quality || 'standard';
-    credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 10;
+    credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 4;
     genTime = caps.genTimeByQuality?.[quality] ?? caps.genTime ?? '30 sec';
   } else if (mode === 'video' && caps) {
     // Video: pricing by duration and quality multiplier

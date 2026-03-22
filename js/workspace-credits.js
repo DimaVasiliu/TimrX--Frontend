@@ -411,78 +411,84 @@ export async function fetchActionCosts() {
 /**
  * Default action costs (fallback if API unavailable)
  *
- * CANONICAL ACTION KEYS (use these in new code):
- * - image_generate          (10c) - OpenAI standard image (1K)
- * - image_generate_2k       (15c) - OpenAI 2K image
- * - gemini_image_generate   (10c) - Gemini standard image
- * - piapi_image_generate    (15c) - Nano Banana standard (premium)
- * - piapi_image_generate_2k (20c) - Nano Banana 2K (premium)
+ * CANONICAL ACTION KEYS — Pricing refactor Mar 2026:
+ * - image_generate          (4c)  - OpenAI standard image (1K)
+ * - image_generate_2k       (8c)  - OpenAI 2K image
+ * - gemini_image_generate   (4c)  - Gemini standard image
+ * - piapi_image_generate    (7c)  - Nano Banana standard (premium)
+ * - piapi_image_generate_2k (12c) - Nano Banana 2K (premium)
  * - text_to_3d_generate  (20c) - Text to 3D preview generation
  * - image_to_3d_generate (30c) - Image to 3D conversion
- * - refine               (10c) - Refine/upscale 3D model
- * - remesh               (10c) - Remesh 3D model (same cost as refine)
- * - retexture            (15c) - Apply new texture to 3D model
- * - video_generate       (75c) - Generic video generation (minimum, varies by duration/resolution)
- * - video_text_generate  (75c) - Text-to-video generation (minimum)
- * - video_image_animate  (110c) - Image-to-video animation (minimum)
+ * - refine               (6c)  - Refine/upscale 3D model
+ * - remesh               (6c)  - Remesh 3D model (same cost as refine)
+ * - retexture            (5c)  - Apply new texture to 3D model
+ * - video_generate       (96c) - Generic video generation (Vertex 8s 720p base)
+ * - video_text_generate  (96c) - Text-to-video generation (base)
+ * - video_image_animate  (96c) - Image-to-video (equalized with text-to-video)
  *
  * VIDEO PRICING (DB-driven via video_credit_rules):
- * - 720p:  4s=75, 6s=100, 8s=125
- * - 1080p: 8s=150 (requires 8s duration)
- * - 4K:    8s=200 (requires 8s duration)
+ * - 720p:  4s=48, 6s=72, 8s=96  (Vertex 12 c/s, margin-stabilized)
+ * - 1080p: 8s=120 (requires 8s duration)
+ * - 4K:    8s=156 (requires 8s duration)
  */
 function getDefaultActionCosts() {
   return {
-    // === CANONICAL ACTION KEYS ===
-    // Image — OpenAI tier (10c / 15c)
-    'image_generate': 10,
-    'image_generate_2k': 15,
-    // Image — Gemini tier (10c / 15c)
-    'gemini_image_generate': 10,
-    'gemini_image_generate_2k': 15,
-    // Image — Nano Banana premium tier (15c / 20c / 30c)
-    'piapi_image_generate': 15,
-    'piapi_image_generate_2k': 20,
-    'piapi_image_generate_4k': 30,
+    // === CANONICAL ACTION KEYS — Pricing refactor Mar 2026 ===
+    // Image — OpenAI/Gemini standard tier (4c / 8c / 12c)
+    'image_generate': 4,
+    'image_generate_2k': 8,
+    'image_generate_4k': 12,
+    // Image — Gemini tier (4c / 8c / 12c)
+    'gemini_image_generate': 4,
+    'gemini_image_generate_2k': 8,
+    'gemini_image_generate_4k': 12,
+    // Image — Nano Banana premium tier (7c / 12c / 18c)
+    'piapi_image_generate': 7,
+    'piapi_image_generate_2k': 12,
+    'piapi_image_generate_4k': 18,
     'text_to_3d_generate': 20,    // Text to 3D preview
     'image_to_3d_generate': 30,   // Image to 3D
-    'refine': 10,                 // Refine 3D model
-    'remesh': 10,                 // Remesh 3D model
-    'retexture': 15,              // Retexture 3D model
-    'video_generate': 75,         // Video generation (minimum - actual cost from video_credit_rules)
-    'video_text_generate': 75,    // Text to video (minimum)
-    'video_image_animate': 110,   // Image to video (minimum)
-    'rig': 15,                     // Rig a 3D model
-    'animate': 10,                 // Apply animation to rigged model
+    'refine': 6,                  // Refine 3D model
+    'remesh': 6,                  // Remesh 3D model
+    'retexture': 5,               // Retexture 3D model
+    'video_generate': 96,         // Video generation (Vertex 8s 720p base)
+    'video_text_generate': 96,    // Text to video (base)
+    'video_image_animate': 96,    // Image to video (equalized)
+    'rig': 5,                     // Rig a 3D model
+    'animate': 3,                 // Apply animation to rigged model
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
     'text-to-3d': 20,
     'image-to-3d': 30,
-    'text-to-image': 10,           // -> image_generate (OpenAI tier)
+    'text-to-image': 4,            // -> image_generate (OpenAI tier)
 
     // Old naming
     'preview': 20,                // -> text_to_3d_generate
-    'texture': 15,                // -> retexture
-    'upscale': 10,                // -> refine
-    'video': 75,                  // -> video_generate (minimum)
-    'image_studio_generate': 10,  // -> image_generate (OpenAI tier)
+    'texture': 5,                 // -> retexture
+    'upscale': 6,                 // -> refine
+    'video': 96,                  // -> video_generate (base)
+    'image_studio_generate': 4,   // -> image_generate (OpenAI tier)
 
     // Backend DB action codes (for direct lookups)
     'MESHY_TEXT_TO_3D': 20,
     'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 15,
-    'MESHY_REFINE': 10,
-    'OPENAI_IMAGE': 10,
-    'OPENAI_IMAGE_2K': 15,
-    'GEMINI_IMAGE': 10,
-    'GEMINI_IMAGE_2K': 15,
-    'PIAPI_IMAGE': 15,
-    'PIAPI_IMAGE_2K': 20,
-    'PIAPI_IMAGE_4K': 30,
-    'VIDEO_GENERATE': 75,         // Minimum video cost
-    'VIDEO_TEXT_GENERATE': 75,
-    'VIDEO_IMAGE_ANIMATE': 110,
+    'MESHY_RETEXTURE': 5,
+    'MESHY_REFINE': 6,
+    'MESHY_RIGGING': 5,
+    'MESHY_ANIMATION': 3,
+    'OPENAI_IMAGE': 4,
+    'OPENAI_IMAGE_2K': 8,
+    'OPENAI_IMAGE_4K': 12,
+    'GEMINI_IMAGE': 4,
+    'GEMINI_IMAGE_2K': 8,
+    'GEMINI_IMAGE_4K': 12,
+    'PIAPI_IMAGE': 7,
+    'PIAPI_IMAGE_2K': 12,
+    'PIAPI_IMAGE_4K': 18,
+    'VIDEO_GENERATE': 96,
+    'VIDEO_TEXT_GENERATE': 96,
+    'VIDEO_IMAGE_ANIMATE': 96,
   };
 }
 
@@ -728,30 +734,24 @@ export function getVideoCreditCost(task, durationSeconds, resolution) {
   }
 
   // Fallback to hardcoded defaults (must match backend pricing_service.py)
-  const FALLBACK_TEXT = {
-    '720p': { 4: 75, 6: 100, 8: 125 },
-    '1080p': { 8: 150 },
-    '4k': { 8: 200 },
-  };
-  const FALLBACK_IMAGE = {
-    '720p': { 4: 110, 6: 140, 8: 170 },
-    '1080p': { 8: 200 },
-    '4k': { 8: 250 },
+  // Vertex Veo 3.1: 12 c/s (margin-stabilized). All modes equalized.
+  const FALLBACK_COSTS = {
+    '720p': { 4: 48, 6: 72, 8: 96 },
+    '1080p': { 8: 120 },
+    '4k': { 8: 156 },
   };
 
-  const isImageTask = task && task.toLowerCase() !== 'text2video';
-  const fallback = isImageTask ? FALLBACK_IMAGE : FALLBACK_TEXT;
   const resLower = resolution.toLowerCase();
   const dur = parseInt(durationSeconds, 10);
 
-  if (fallback[resLower] && fallback[resLower][dur] !== undefined) {
-    console.warn(`[Credits] Using fallback cost for ${actionCode}: ${fallback[resLower][dur]}`);
-    return fallback[resLower][dur];
+  if (FALLBACK_COSTS[resLower] && FALLBACK_COSTS[resLower][dur] !== undefined) {
+    console.warn(`[Credits] Using fallback cost for ${actionCode}: ${FALLBACK_COSTS[resLower][dur]}`);
+    return FALLBACK_COSTS[resLower][dur];
   }
 
-  // Ultimate fallback
-  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to ${isImageTask ? 110 : 75}`);
-  return isImageTask ? 110 : 75;
+  // Ultimate fallback — Vertex 8s 720p base rate
+  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to 96`);
+  return 96;
 }
 
 /**
@@ -1394,7 +1394,7 @@ export function updateCreditsUI() {
  * Button to action mapping with associated batch count inputs.
  *
  * CANONICAL ACTION KEYS (use these):
- * - image_generate       (10c) - OpenAI/Gemini; piapi_image_generate (15c) - Nano Banana
+ * - image_generate       (4c) - OpenAI/Gemini; piapi_image_generate (7c) - Nano Banana
  * - text_to_3d_generate  (20c) - Text to 3D preview
  * - image_to_3d_generate (30c) - Image to 3D
  * - refine               (10c) - Refine 3D model

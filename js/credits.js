@@ -150,52 +150,57 @@
     return result;
   }
 
-  // Plan definitions (must match DB: starter_250, creator_900, studio_2200)
+  // Plan definitions (must match DB — plan codes kept for backward compat, credit_grant updated)
+  // Pricing refactor Mar 2026
   const PLANS = {
-    starter_250: { name: 'Starter', credits: 250, price: 7.99 },
-    creator_900: { name: 'Creator', credits: 900, price: 19.99 },
-    studio_2200: { name: 'Studio', credits: 2200, price: 37.99 }
+    starter_250: { name: 'Starter', credits: 350, price: 7.99 },
+    creator_900: { name: 'Creator', credits: 1100, price: 19.99 },
+    studio_2200: { name: 'Studio', credits: 2400, price: 37.99 }
   };
 
-  // Video plan definitions (video credits) - Premium rebalance Feb 2026
+  // Video plan definitions (video credits — separate pool) — Pricing refactor Mar 2026
   const VIDEO_PLANS = {
-    video_starter_300: { name: 'Video Starter', credits: 300, price: 9.99 },
-    video_creator_900: { name: 'Video Creator', credits: 900, price: 29.99 },
-    video_studio_2000: { name: 'Video Studio', credits: 2000, price: 59.99 }
+    video_starter_300: { name: 'Video Starter', credits: 550, price: 9.99 },
+    video_creator_900: { name: 'Video Creator', credits: 1800, price: 29.99 },
+    video_studio_2000: { name: 'Video Studio', credits: 4000, price: 59.99 }
   };
 
   // Subscription plan definitions (must match backend subscription_service.py)
-  // Updated Feb 2026 for premium Creator credit economy
+  // Pricing refactor Mar 2026 — includes video bridge credits
   const SUB_PLANS = {
     monthly: {
-      starter:  { plan_code: 'starter_monthly',  name: 'Starter', credits_per_month: 400,  price: 9.99,   cadence: 'monthly' },
-      creator:  { plan_code: 'creator_monthly',  name: 'Creator', credits_per_month: 1300, price: 24.99,  cadence: 'monthly' },
-      studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 3200, price: 49.99,  cadence: 'monthly' },
+      starter:  { plan_code: 'starter_monthly',  name: 'Starter', credits_per_month: 300,  video_credits_per_month: 100,  price: 9.99,   cadence: 'monthly' },
+      creator:  { plan_code: 'creator_monthly',  name: 'Creator', credits_per_month: 800,  video_credits_per_month: 300,  price: 24.99,  cadence: 'monthly' },
+      studio:   { plan_code: 'studio_monthly',   name: 'Studio',  credits_per_month: 2000, video_credits_per_month: 800,  price: 49.99,  cadence: 'monthly' },
     },
     yearly: {
-      // Yearly = ~2 months free. Credits distributed monthly (400/1300/3200 per month)
-      starter:  { plan_code: 'starter_yearly',   name: 'Starter', credits_per_month: 400,  credits_total: 4800,  price: 99.00,  cadence: 'yearly' },
-      creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 1300, credits_total: 15600, price: 249.00, cadence: 'yearly' },
-      studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 3200, credits_total: 38400, price: 499.00, cadence: 'yearly' },
+      // Yearly = ~2 months free. Credits distributed monthly
+      starter:  { plan_code: 'starter_yearly',   name: 'Starter', credits_per_month: 300,  video_credits_per_month: 100,  credits_total: 3600,  video_credits_total: 1200,  price: 99.00,  cadence: 'yearly' },
+      creator:  { plan_code: 'creator_yearly',   name: 'Creator', credits_per_month: 800,  video_credits_per_month: 300,  credits_total: 9600,  video_credits_total: 3600,  price: 249.00, cadence: 'yearly' },
+      studio:   { plan_code: 'studio_yearly',    name: 'Studio',  credits_per_month: 2000, video_credits_per_month: 800,  credits_total: 24000, video_credits_total: 9600,  price: 499.00, cadence: 'yearly' },
     },
   };
 
   // Tier benefits for UI display (must match backend TIER_PERKS)
+  // Based on new action costs: image=4c, 3D model=20c
   const TIER_BENEFITS = {
     starter: {
-      images: 40,       // 400 credits ÷ 10 per image (OpenAI/Gemini tier)
-      models: 20,       // 400 credits ÷ 20 per model
-      perks: ['Up to 40 AI Images', 'Up to 20 3D Models', 'Refinements included', 'GLB/GLTF downloads'],
+      images: 75,       // 300 credits ÷ 4 per image
+      models: 15,       // 300 credits ÷ 20 per model
+      videos: 2,        // 100 video credits — ~2 short videos
+      perks: ['Up to 75 AI images/mo', 'Up to 15 3D models/mo', '2 AI videos included/mo', 'GLB/GLTF downloads'],
     },
     creator: {
-      images: 130,      // 1300 credits ÷ 10 per image
-      models: 65,       // 1300 credits ÷ 20 per model
-      perks: ['Up to 130 AI Images', 'Up to 65 3D Models', 'Priority queue', 'Faster processing'],
+      images: 200,      // 800 credits ÷ 4 per image
+      models: 40,       // 800 credits ÷ 20 per model
+      videos: 6,        // 300 video credits — ~6 short videos
+      perks: ['Up to 200 AI images/mo', 'Up to 40 3D models/mo', '6 AI videos included/mo', 'Priority queue'],
     },
     studio: {
-      images: 320,      // 3200 credits ÷ 10 per image
-      models: 160,      // 3200 credits ÷ 20 per model
-      perks: ['Up to 320 AI Images', 'Up to 160 3D Models', 'Pro priority queue', 'Highest concurrency'],
+      images: 500,      // 2000 credits ÷ 4 per image
+      models: 100,      // 2000 credits ÷ 20 per model
+      videos: 16,       // 800 video credits — ~16 short videos
+      perks: ['Up to 500 AI images/mo', 'Up to 100 3D models/mo', '16 AI videos included/mo', 'Pro priority queue'],
     },
   };
 
@@ -206,66 +211,66 @@
     studio_2200:  'studio',
   };
 
-  // Dynamic bullet copy per pricing mode and tier
+  // Dynamic bullet copy per pricing mode and tier — Pricing refactor Mar 2026
   const PLAN_BULLETS = {
     one_time: {
       starter: [
-        'Up to 25 AI images',
-        'Up to 12 3D models',
-        'Refinements included',
+        'Up to 87 AI images',
+        'Up to 17 3D models',
+        'Refinements & retextures included',
         'GLB/GLTF downloads',
       ],
       creator: [
-        'Up to 90 AI images',
-        'Up to 45 3D models',
-        'Refinements included',
+        'Up to 275 AI images',
+        'Up to 55 3D models',
+        'Refinements & retextures included',
         'GLB/GLTF downloads',
       ],
       studio: [
-        'Up to 220 AI images',
-        'Up to 110 3D models',
-        'Refinements included',
+        'Up to 600 AI images',
+        'Up to 120 3D models',
+        'Refinements & retextures included',
         'Priority queue access',
       ],
     },
     monthly: {
       starter: [
-        'Up to 40 AI images/mo',
-        'Up to 20 3D models/mo',
-        'Standard queue priority',
+        'Up to 75 AI images/mo',
+        'Up to 15 3D models/mo',
+        '2 AI videos included/mo',
         'Cancel anytime',
       ],
       creator: [
-        'Up to 130 AI images/mo',
-        'Up to 65 3D models/mo',
-        'Priority queue included',
-        'Cancel anytime',
+        'Up to 200 AI images/mo',
+        'Up to 40 3D models/mo',
+        '6 AI videos included/mo',
+        'Priority queue',
       ],
       studio: [
-        'Up to 320 AI images/mo',
-        'Up to 160 3D models/mo',
+        'Up to 500 AI images/mo',
+        'Up to 100 3D models/mo',
+        '16 AI videos included/mo',
         'Pro priority queue',
-        'Highest concurrency',
       ],
     },
     yearly: {
       starter: [
         'Billed yearly (12 monthly refills)',
         'Save ~2 months vs monthly',
-        'Standard queue priority',
+        '2 AI videos included/mo',
         'Cancel anytime',
       ],
       creator: [
         'Billed yearly (12 monthly refills)',
         'Save ~2 months vs monthly',
-        'Priority queue included',
-        'Cancel anytime',
+        '6 AI videos included/mo',
+        'Priority queue',
       ],
       studio: [
         'Billed yearly (12 monthly refills)',
         'Save ~2 months vs monthly',
-        'Pro priority + highest concurrency',
-        'Cancel anytime',
+        '16 AI videos included/mo',
+        'Pro priority queue',
       ],
     },
   };
@@ -624,9 +629,9 @@
    * One-time card content per tier (original values)
    */
   const ONE_TIME_CARDS = {
-    starter: { price: '£7.99', sub: '250 Credits', btn: 'Get Starter' },
-    creator: { price: '£19.99', sub: '900 Credits', btn: 'Get Creator' },
-    studio:  { price: '£37.99', sub: '2,200 Credits', btn: 'Get Studio' },
+    starter: { price: '£7.99', sub: '350 Credits', btn: 'Get Starter' },
+    creator: { price: '£19.99', sub: '1,100 Credits', btn: 'Get Creator' },
+    studio:  { price: '£37.99', sub: '2,400 Credits', btn: 'Get Studio' },
   };
 
   /**
