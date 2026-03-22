@@ -1463,15 +1463,15 @@ function wireGallery() {
           videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
         }
 
-        // Update credits display — Veo image-to-video 4s 720p = 110 credits
+        // Update credits display — Veo image-to-video 4s 720p (equalized with text-to-video)
         const videoCreditsDisplay = byId('videoCreditsDisplay');
         if (videoCreditsDisplay) {
-          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 110';
+          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 48';
         }
         const generateVideoBtn = byId('generateVideoBtn');
         if (generateVideoBtn) {
-          generateVideoBtn.title = '110 credits';
-          generateVideoBtn.dataset.baseCredits = '110';
+          generateVideoBtn.title = '48 credits';
+          generateVideoBtn.dataset.baseCredits = '48';
           // Enable button since we have a valid image loaded
           generateVideoBtn.disabled = false;
           generateVideoBtn.removeAttribute('data-disabled-reason');

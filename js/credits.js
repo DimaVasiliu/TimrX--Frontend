@@ -650,13 +650,13 @@
     if (mode === 'video') {
       if (modelPricingGrid) modelPricingGrid.style.display = 'none';
       if (videoPricingGrid) videoPricingGrid.style.display = '';
-      if (pricingFootNote) pricingFootNote.textContent = 'Video sold separately · 1 video ≈ 70-160 credits';
+      if (pricingFootNote) pricingFootNote.textContent = 'Video sold separately · 1 video ≈ 45–240 credits';
       return;
     } else {
       if (modelPricingGrid) modelPricingGrid.style.display = '';
       if (videoPricingGrid) videoPricingGrid.style.display = 'none';
       // Simplified footer - no internal math explanations
-      if (pricingFootNote) pricingFootNote.textContent = 'AI Image = 10 credits · 3D Model = 20 credits · Video sold separately';
+      if (pricingFootNote) pricingFootNote.textContent = 'AI Image from 4 credits · 3D from 3–30 credits · 5s video from 45 credits · 8s standard video from 96 credits · Subscriptions include general + video credits';
     }
 
     // Update each pricing card
