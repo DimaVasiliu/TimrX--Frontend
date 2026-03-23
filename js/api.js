@@ -5796,16 +5796,37 @@ async function fetchActiveJobsFromBackend() {
   }
 }
 
+// ── Resume contract helpers ──────────────────────────────────────────────
+// The backend /api/jobs/active response includes canonical resume fields:
+//   frontend_resume_id — the exact ID the frontend must poll with
+//   resume_strategy    — which watcher to start
+// These helpers extract them, with fallbacks for legacy payloads.
+
 /**
- * Map a backend job object to the frontend stage used for watcher selection.
- * Backend returns job_type, stage, and action_code — we map to:
- *   'remesh'|'texture'|'image3d' → watchMeshyTask
- *   'video' → watchVideoJob
- *   'image' → not resumable (sync requests)
- *   everything else → watchJob (text-to-3d)
+ * Get the polling ID for a backend job object.
+ * Prefers the canonical frontend_resume_id, falls back to legacy inference.
  */
-function _mapBackendJobStage(job) {
-  if (job.stage) return job.stage;
+function _getResumeId(job) {
+  if (job.frontend_resume_id) return job.frontend_resume_id;
+  // Legacy fallback: infer from provider/stage
+  const stage = job.stage || _inferStageFromAction(job);
+  const usesUpstream = job.upstream_job_id
+    && ['remesh', 'texture', 'rig', 'animate'].includes(stage);
+  return usesUpstream ? job.upstream_job_id : job.id;
+}
+
+/**
+ * Get the watcher strategy for a backend job object.
+ * Prefers the canonical resume_strategy, falls back to legacy inference.
+ */
+function _getResumeStrategy(job) {
+  if (job.resume_strategy) return job.resume_strategy;
+  // Legacy fallback
+  return _inferStrategyFromStage(job.stage || _inferStageFromAction(job));
+}
+
+/** Legacy: infer stage from action_code (only used when backend doesn't provide stage) */
+function _inferStageFromAction(job) {
   const code = (job.action_code || '').toLowerCase();
   if (code.includes('image_to_3d')) return 'image3d';
   if (code.includes('refine')) return 'refine';
@@ -5815,11 +5836,41 @@ function _mapBackendJobStage(job) {
   if (code.includes('animation') || code === 'animate') return 'animate';
   if (code.includes('video') || code.includes('seedance')) return 'video';
   if (code.includes('image') && !code.includes('3d')) return 'image';
-  const jt = (job.job_type || '').toLowerCase();
-  if (jt.includes('image_to_3d')) return 'image3d';
-  if (jt.includes('video')) return 'video';
-  if (jt.includes('image')) return 'image';
   return 'preview';
+}
+
+/** Map resume_strategy → the watcher category used for dispatch */
+const _STRATEGY_TO_CATEGORY = {
+  meshy_retexture:   'mesh',
+  meshy_remesh:      'mesh',
+  meshy_image_to_3d: 'mesh',
+  meshy_text_to_3d:  'text',
+  meshy_refine:      'text',
+  meshy_rig:         'rig',
+  meshy_animation:   'animate',
+  video:             'video',
+  image:             'image',
+};
+
+/** Map resume_strategy → the stage value for pendingMeta / placeholder */
+const _STRATEGY_TO_STAGE = {
+  meshy_retexture:   'texture',
+  meshy_remesh:      'remesh',
+  meshy_image_to_3d: 'image3d',
+  meshy_text_to_3d:  'preview',
+  meshy_refine:      'refine',
+  meshy_rig:         'rig',
+  meshy_animation:   'animate',
+  video:             'video',
+  image:             'image',
+};
+
+/** Legacy: infer resume_strategy from a stage string */
+function _inferStrategyFromStage(stage) {
+  const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
+    preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
+    animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image' };
+  return map[stage] || 'meshy_text_to_3d';
 }
 
 /**
@@ -5841,28 +5892,27 @@ export async function resumePendingJobs(options = {}) {
   if (backendJobs && backendJobs.length) {
     log(`[Recovery] Backend reports ${backendJobs.length} active job(s)`);
     for (const job of backendJobs) {
-      const stage = _mapBackendJobStage(job);
-      // Some Meshy status handlers expect the Meshy upstream task ID in the URL
-      // (retexture, remesh, rig, animate). Others resolve internally from the
-      // app-level job UUID (text-to-3d, image-to-3d). Pick the right one.
-      const usesUpstreamId = job.upstream_job_id
-        && ['remesh', 'texture', 'rig', 'animate'].includes(stage);
-      const id = usesUpstreamId ? job.upstream_job_id : job.id;
+      // Use canonical resume contract from backend (preferred) or legacy fallback
+      const id = _getResumeId(job);
+      const strategy = _getResumeStrategy(job);
+      const stage = _STRATEGY_TO_STAGE[strategy] || job.stage || 'preview';
       if (!id) continue;
       // Add to local tracking if not already there
       if (!State.getActiveJobs().includes(id)) {
         State.addActiveJob(id);
-        log(`[Recovery] Discovered server-side job ${id} (${job.action_code || stage})${usesUpstreamId ? ' [upstream]' : ''}`);
+        log(`[Recovery] Discovered job ${id} strategy=${strategy} (${job.action_code || ''})`);
       }
       // Ensure pendingMeta exists for watcher selection
       State.savePendingMeta(id, {
         stage,
+        resume_strategy: strategy,
         type: stage === 'video' ? 'video' : stage === 'image' ? 'image' : 'model',
         prompt: job.prompt || '',
         root_prompt: job.prompt || '',
         job_type: job.job_type || '',
         provider: job.provider || '',
         internal_job_id: job.id,
+        provider_job_id: job.provider_job_id || job.upstream_job_id || null,
       });
     }
   } else if (backendJobs && backendJobs.length === 0) {
@@ -5877,8 +5927,10 @@ export async function resumePendingJobs(options = {}) {
 
   // ── Step 3: Remove local jobs that backend says are gone ──
   if (backendJobs !== null) {
-    // Include both internal id AND upstream_job_id so Meshy task IDs match
-    const backendIds = new Set(backendJobs.flatMap(j => [j.id, j.upstream_job_id].filter(Boolean)));
+    // Include all ID forms so locally-cached jobs match regardless of ID convention
+    const backendIds = new Set(backendJobs.flatMap(j =>
+      [j.id, j.upstream_job_id, j.frontend_resume_id, j.provider_job_id].filter(Boolean)
+    ));
     const staleLocal = ids.filter(id => !backendIds.has(id));
     for (const id of staleLocal) {
       // Keep if history shows it finished (avoid flicker on completed jobs)
@@ -5952,88 +6004,69 @@ export async function resumePendingJobs(options = {}) {
     return;
   }
 
-  // ── Step 6: Categorize by stage and start watchers ──
-  const meshIds = [];
-  const imageIds = [];
-  const textIds = [];
-  const videoIds = [];
-  const rigIds = [];
-  const animateIds = [];
+  // ── Step 6: Categorize by resume_strategy and start watchers ──
+  const buckets = { mesh: [], text: [], video: [], rig: [], animate: [], image: [] };
 
   for (const id of ids) {
-    // Skip if already being watched (dedup across tabs / re-runs)
     if (State.watchers.has(id)) {
       log(`[Recovery] Skipping ${id} — already polling`);
       continue;
     }
-    const stage = pendingMeta?.[id]?.stage;
-    if (stage === 'remesh' || stage === 'texture' || stage === 'image3d') {
-      meshIds.push(id);
-    } else if (stage === 'image') {
-      imageIds.push(id);
-    } else if (stage === 'video') {
-      videoIds.push(id);
-    } else if (stage === 'rig') {
-      rigIds.push(id);
-    } else if (stage === 'animate' || stage === 'animation') {
-      animateIds.push(id);
-    } else {
-      textIds.push(id);
-    }
+    const meta = pendingMeta?.[id] || {};
+    const strategy = meta.resume_strategy || _inferStrategyFromStage(meta.stage || 'preview');
+    const category = _STRATEGY_TO_CATEGORY[strategy] || 'text';
+    (buckets[category] || buckets.text).push(id);
   }
 
-  // Image jobs are synchronous (no polling) — cannot resume after refresh
-  if (imageIds.length) {
-    log(`[Recovery] Cleaning up ${imageIds.length} stale image job(s) - cannot resume synchronous requests`);
-    imageIds.forEach(id => {
+  // Image jobs are synchronous — cannot resume after refresh
+  if (buckets.image.length) {
+    log(`[Recovery] Cleaning up ${buckets.image.length} stale image job(s) - cannot resume synchronous requests`);
+    buckets.image.forEach(id => {
       State.removeActiveJob(id);
       if (State.historyHasJobId(id)) {
-        State.updateHistoryItem(id, {
-          status: 'failed',
-          status_label: 'Interrupted - please retry'
-        });
+        State.updateHistoryItem(id, { status: 'failed', status_label: 'Interrupted - please retry' });
       }
     });
     renderHistory();
   }
 
-  const allToResume = [...meshIds, ...textIds, ...videoIds, ...rigIds, ...animateIds];
+  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
   }
 
-  log(`[Recovery] Resuming ${allToResume.length} job(s): ${meshIds.length} mesh, ${textIds.length} text-to-3d, ${videoIds.length} video, ${rigIds.length} rig, ${animateIds.length} animate`);
+  log(`[Recovery] Resuming ${allToResume.length} job(s): mesh=${buckets.mesh.length} text=${buckets.text.length} video=${buckets.video.length} rig=${buckets.rig.length} animate=${buckets.animate.length}`);
 
   // Mark recovered jobs as "generating" in history so cards show progress overlay
+  const STATUS_LABELS = {
+    texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
+    video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
+    animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
+  };
   for (const id of allToResume) {
     const meta = pendingMeta[id] || {};
     addGeneratingPlaceholder(id, {
       ...meta,
-      status_label: meta.stage === 'texture' ? 'Texturing...'
-        : meta.stage === 'remesh' ? 'Remeshing...'
-        : meta.stage === 'image3d' ? 'Generating 3D...'
-        : meta.stage === 'video' ? 'Generating video...'
-        : meta.stage === 'rig' ? 'Rigging...'
-        : (meta.stage === 'animate' || meta.stage === 'animation') ? 'Animating...'
-        : 'Generating...',
+      status_label: STATUS_LABELS[meta.stage] || 'Generating...',
     });
   }
   renderHistory();
 
-  for (const id of meshIds) {
+  // Start the correct watcher for each category
+  for (const id of buckets.mesh) {
     watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh', { isRecovery: true });
   }
-  for (const id of textIds) {
+  for (const id of buckets.text) {
     watchJob(id, { isRecovery: true });
   }
-  for (const id of videoIds) {
+  for (const id of buckets.video) {
     watchVideoJob(id, null, pendingMeta[id] || {});
   }
-  for (const id of rigIds) {
+  for (const id of buckets.rig) {
     watchRigJob(id);
   }
-  for (const id of animateIds) {
+  for (const id of buckets.animate) {
     watchAnimationJob(id);
   }
 }
