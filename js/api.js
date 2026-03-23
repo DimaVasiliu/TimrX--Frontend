@@ -1113,6 +1113,12 @@ function getTextureFormValues() {
  */
 function addGeneratingPlaceholder(jobId, meta = {}) {
   if (State.historyHasJobId(jobId)) {
+    // Don't overwrite completed/failed items with a generating overlay —
+    // this prevents flicker on reload when recovery touches finished cards
+    const existing = State.getHistory().find(h => h && h.id === jobId);
+    if (existing && (existing.status === 'finished' || existing.status === 'failed')) {
+      return;
+    }
     State.updateHistoryItem(jobId, {
       status: meta.status_label?.includes('Refin') ? 'refining' : meta.status_label?.includes('Remesh') ? 'remeshing' : meta.stage === 'texture' ? 'texturing' : meta.stage === 'rig' ? 'rigging' : (meta.stage === 'animation' || meta.stage === 'animate') ? 'animating' : 'generating',
       status_label: meta.status_label || 'Generating...',
