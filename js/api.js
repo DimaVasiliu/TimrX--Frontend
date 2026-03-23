@@ -3814,7 +3814,7 @@ function _friendlyVideoError(errorCode, rawMsg) {
 /**
  * Watch a video generation job for completion
  */
-async function watchVideoJob(jobId, reservationId, meta) {
+async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } = {}) {
   // Resolve the real videos.id for history_items FK.
   // meta.video_uuid is set by the initial dispatch; falls back to jobId for recovery polls.
   const videoUuid = meta.video_uuid || State.getHistory().find(x => x.id === jobId)?.video_id || jobId;
@@ -3875,10 +3875,12 @@ async function watchVideoJob(jobId, reservationId, meta) {
           provider: 'google',
           upstream_id: data.upstream_id || jobId
         });
-        State.setHistoryActiveModelId(jobId);
+        if (!isRecovery) {
+          State.setHistoryActiveModelId(jobId);
+        }
         renderHistory();
 
-        if (data.video_url) {
+        if (!isRecovery && data.video_url) {
           const videoRailBtn = document.querySelector('[data-panel="video"]');
           if (videoRailBtn) videoRailBtn.click();
           Viewer.showVideoInViewer(data.video_url, {
@@ -6078,7 +6080,7 @@ export async function resumePendingJobs(options = {}) {
     watchJob(id, { isRecovery: !soloPreview });
   }
   for (const id of buckets.video) {
-    watchVideoJob(id, null, pendingMeta[id] || {});
+    watchVideoJob(id, null, pendingMeta[id] || {}, { isRecovery: true });
   }
   for (const id of buckets.rig) {
     watchRigJob(id);
@@ -6193,11 +6195,12 @@ export function updateJobsIndicator() {
       // Click handler to show jobs panel
       indicator.addEventListener('click', showJobsPanel);
 
-      // Insert centered inside the viewer
-      const viewerWrap = document.querySelector('.viewer-wrap') || document.getElementById('model3dViewer');
-      if (viewerWrap) {
+      // Insert centered in the main viewer pane (shared parent of all viewer types)
+      // so the indicator is visible whether the user is on 3D, image, or video display
+      const viewerPane = document.querySelector('.ws-viewer') || document.querySelector('.viewer-wrap') || document.getElementById('model3dViewer');
+      if (viewerPane) {
         indicator.style.cssText = 'position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 15; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;';
-        viewerWrap.appendChild(indicator);
+        viewerPane.appendChild(indicator);
       } else {
         indicator.style.cssText = 'position: fixed; top: 56px; left: 50%; transform: translateX(-50%); z-index: 9999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #e0e0e0; font-size: 13px; cursor: pointer;';
         document.body.appendChild(indicator);
