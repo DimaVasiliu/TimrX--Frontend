@@ -1679,7 +1679,7 @@ export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
   State.watchers.set(jobId, ctl);
 
   const prog = UI.makeProgressDriver();
-  const startTime = Date.now();
+  const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
   const estimatedDuration = 45000;
 
   const poll = async (delay = 900) => {
@@ -1803,7 +1803,7 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
   State.watchers.set(jobId, ctl);
 
   const prog = UI.makeProgressDriver();
-  const startTime = Date.now();
+  const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
   const estimatedDuration = 30000; // Gemini is typically faster
   const maxPollingDuration = 120000; // Max 120 seconds of polling
   let notFoundCount = 0;
@@ -3085,7 +3085,9 @@ export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
   State.watchers.set(jobId, ctl);
 
   const prog = UI.makeProgressDriver();
-  const startTime = Date.now();
+  // Use job creation time for progress if recovering, so progress continues
+  // from where it was instead of resetting to 0%
+  const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
   const estimatedDuration = 45000; // ~45s typical for PiAPI
   const maxPollingDuration = 180000; // 180s max (PiAPI can be slower)
   let notFoundCount = 0;
@@ -5934,6 +5936,7 @@ export async function resumePendingJobs(options = {}) {
         provider: job.provider || '',
         internal_job_id: job.id,
         provider_job_id: job.provider_job_id || job.upstream_job_id || null,
+        created_at: job.created_at || null,
       });
     }
   } else if (backendJobs && backendJobs.length === 0) {
