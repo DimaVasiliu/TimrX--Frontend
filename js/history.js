@@ -181,7 +181,7 @@ function groupByLineage(items = []) {
   items.forEach(item => {
     if (!item) return;
     const lineageKey = getLineageKey(item);
-    const hasExplicitLineage = !!item.lineage_origin_id;
+    const hasExplicitLineage = !!(item.lineage_origin_id || item.lineage_root_id);
     const fingerprint = itemPromptFingerprint(item);
     const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 2;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
