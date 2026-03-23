@@ -142,12 +142,15 @@ function dedupeHistoryItems(items = []) {
 
 function getLineageKey(item = {}) {
   if (!item || typeof item !== 'object') return '';
-  // Priority: lineage_origin_id is the primary grouping key (set by backend)
+  // Primary: lineage_origin_id from backend DB column
   if (item.lineage_origin_id) return String(item.lineage_origin_id);
+  // Also check lineage_root_id (set by frontend watchers during current session)
+  if (item.lineage_root_id) return String(item.lineage_root_id);
   // Fallback: check payload for lineage/source fields (older records)
   const payload = item.payload || {};
   const fallbackCandidates = [
     payload.lineage_origin_id,
+    payload.lineage_root_id,
     payload.source_task_id,
     payload.preview_task_id,
     payload.parent_job_id,

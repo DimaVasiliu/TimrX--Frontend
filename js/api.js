@@ -1152,7 +1152,8 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
     thumbnail_url: meta.thumbnail_url || '',
     glb_url: '',
     glb_proxy: '',
-    lineage_root_id: meta.lineage_origin_id || meta.batch_group_id || jobId
+    lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.batch_group_id || jobId,
+    lineage_root_id: meta.lineage_origin_id || meta.lineage_root_id || meta.batch_group_id || jobId,
   };
 
   State.addHistoryItem(placeholder);
@@ -1315,7 +1316,8 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           glb_url: st.glb_url,
           glb_proxy: glbProxy,
           preview_task_id: previewTaskIdForHistory,
-          lineage_root_id: lineageRootId
+          lineage_origin_id: lineageRootId,
+          lineage_root_id: lineageRootId,
         };
 
         if (State.historyHasJobId(job_id)) {
@@ -1568,6 +1570,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           glb_url: glbDirect,
           glb_proxy: glbProxy,
           preview_task_id: meta.preview_task_id || null,
+          lineage_origin_id: lineageRootId,
           lineage_root_id: lineageRootId,
           texture_urls: st.texture_urls || [],
           model_urls: st.model_urls || {},
