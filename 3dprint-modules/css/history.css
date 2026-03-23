@@ -3445,14 +3445,6 @@
     height: 16px;
   }
   
-  /* Hide image & video dropdown menus on mobile — thumbs are too small */
-  @media (max-width: 768px) {
-    .history-thumb--image .history-thumb__menu-wrap,
-    .history-thumb--video .history-thumb__menu-wrap {
-      display: none;
-    }
-  }
-  
   /* ===========================================================
      IMAGE GRID LAYOUT
      Simple 3-column grid for image thumbnails (no collections)
@@ -4254,6 +4246,12 @@
       bottom: 5px;
       padding: 3px 6px;
       font-size: 9px;
+    }
+  
+    /* Hide image & video dropdown menus on mobile — thumbs too small for tap targets */
+    .history-thumb--image .history-thumb__menu-wrap,
+    .history-thumb--video .history-thumb__menu-wrap {
+      display: none;
     }
   }
   
