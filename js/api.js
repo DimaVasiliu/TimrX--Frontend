@@ -1331,15 +1331,22 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           State.historyFreshThumbs.delete(job_id);
           renderHistory();
         }, 1800);
-        State.setHistoryActiveModelId(job_id);
+        // Recovery: update history only, don't hijack the viewer
+        if (!isRecovery) {
+          State.setHistoryActiveModelId(job_id);
+        }
         renderHistory();
 
-        prog.jump(99, 'Downloading model...');
-        await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
-        prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
+        if (!isRecovery) {
+          prog.jump(99, 'Downloading model...');
+          await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
+          prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
+        } else {
+          prog.clear();
+        }
 
         // Version stack: push for edit operations, dispatch event for action bar
-        if (stage === 'remesh' || stage === 'texture') {
+        if (!isRecovery && (stage === 'remesh' || stage === 'texture')) {
           State.pushModelVersion({
             id: job_id,
             glb_url: glbProxy || st.glb_url,
@@ -1350,8 +1357,8 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           window.dispatchEvent(new CustomEvent('model:edited', { detail: { id: job_id, stage } }));
         }
 
-        // Show Discord share modal sparingly (once per 7 days)
-        if (shouldShowDiscordPrompt()) {
+        // Show Discord share modal sparingly (once per 7 days, not on recovery)
+        if (!isRecovery && shouldShowDiscordPrompt()) {
           markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || '', st.thumbnail_url || '');
         }
@@ -1583,7 +1590,10 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         if (State.historyHasJobId(job_id)) State.updateHistoryItem(job_id, historyData);
         else State.addHistoryItem(historyData);
 
-        State.setHistoryActiveModelId(job_id);
+        // Recovery: update history only, don't hijack the viewer
+        if (!isRecovery) {
+          State.setHistoryActiveModelId(job_id);
+        }
         State.historyFreshThumbs.add(job_id);
         setTimeout(() => {
           State.historyFreshThumbs.delete(job_id);
@@ -1591,16 +1601,18 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         }, 1800);
         renderHistory();
 
-        if (glbDirect) {
+        if (!isRecovery && glbDirect) {
           prog.jump(99, 'Downloading model...');
           await Viewer.loadModelWithFallback(glbProxy || glbDirect, glbDirect);
           prog.done(`${stageLabel} complete.`);
+        } else if (isRecovery) {
+          prog.clear();
         } else {
           prog.done(`${stageLabel} complete.`);
         }
 
-        // Show Discord share modal for texture completions (respects cooldown)
-        if (kind === 'texture' && shouldShowDiscordPrompt()) {
+        // Show Discord share modal for texture completions (respects cooldown, not on recovery)
+        if (!isRecovery && kind === 'texture' && shouldShowDiscordPrompt()) {
           markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || promptCandidate || '', st.thumbnail_url || meta.thumbnail_url || '');
         }
