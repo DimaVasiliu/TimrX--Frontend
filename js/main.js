@@ -1752,6 +1752,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // Resume any pending jobs
     await API.resumePendingJobs({ skipEmptyUI: true });
 
+    // After login/restore/identity swap, re-run job recovery for the new identity
+    window.addEventListener('timrx:identity_changed', () => {
+      log('[Recovery] Identity changed — re-running job recovery');
+      API.resumePendingJobs({ skipEmptyUI: true });
+    });
+
     log('TimrX 3D Print Hub initialized successfully.');
   });
 });

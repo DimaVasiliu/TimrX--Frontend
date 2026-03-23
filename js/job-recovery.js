@@ -219,8 +219,9 @@ export function setBeforeUnloadEnabled(enabled) {
 }
 
 /**
- * Handler for beforeunload event
- * Shows warning if there are active jobs
+ * Handler for beforeunload event.
+ * Jobs are backend-durable and will resume on next page load via
+ * /api/jobs/active recovery — this is a soft reminder, not a real warning.
  */
 function handleBeforeUnload(e) {
   if (!beforeUnloadEnabled) return;
@@ -228,8 +229,7 @@ function handleBeforeUnload(e) {
   const activeJobs = getActiveJobs();
   if (activeJobs.length === 0) return;
 
-  // Show browser's built-in confirmation dialog
-  const message = `You have ${activeJobs.length} generation${activeJobs.length > 1 ? 's' : ''} in progress. They will continue in the background, but you may lose the live preview.`;
+  const message = `You have ${activeJobs.length} generation${activeJobs.length > 1 ? 's' : ''} running. They will continue on the server and resume automatically when you return.`;
 
   e.preventDefault();
   e.returnValue = message;
