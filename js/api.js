@@ -5808,8 +5808,11 @@ function _mapBackendJobStage(job) {
   if (job.stage) return job.stage;
   const code = (job.action_code || '').toLowerCase();
   if (code.includes('image_to_3d')) return 'image3d';
-  if (code.includes('refine') || code.includes('remesh')) return 'remesh';
+  if (code.includes('refine')) return 'refine';
+  if (code.includes('remesh') || code.includes('upscale')) return 'remesh';
   if (code.includes('retexture') || code.includes('texture')) return 'texture';
+  if (code.includes('rigging') || code === 'rig') return 'rig';
+  if (code.includes('animation') || code === 'animate') return 'animate';
   if (code.includes('video') || code.includes('seedance')) return 'video';
   if (code.includes('image') && !code.includes('3d')) return 'image';
   const jt = (job.job_type || '').toLowerCase();
@@ -5838,15 +5841,20 @@ export async function resumePendingJobs(options = {}) {
   if (backendJobs && backendJobs.length) {
     log(`[Recovery] Backend reports ${backendJobs.length} active job(s)`);
     for (const job of backendJobs) {
-      const id = job.id;
+      const stage = _mapBackendJobStage(job);
+      // Some Meshy status handlers expect the Meshy upstream task ID in the URL
+      // (retexture, remesh, rig, animate). Others resolve internally from the
+      // app-level job UUID (text-to-3d, image-to-3d). Pick the right one.
+      const usesUpstreamId = job.upstream_job_id
+        && ['remesh', 'texture', 'rig', 'animate'].includes(stage);
+      const id = usesUpstreamId ? job.upstream_job_id : job.id;
       if (!id) continue;
       // Add to local tracking if not already there
       if (!State.getActiveJobs().includes(id)) {
         State.addActiveJob(id);
-        log(`[Recovery] Discovered server-side job ${id} (${job.action_code || job.job_type || 'unknown'})`);
+        log(`[Recovery] Discovered server-side job ${id} (${job.action_code || stage})${usesUpstreamId ? ' [upstream]' : ''}`);
       }
       // Ensure pendingMeta exists for watcher selection
-      const stage = _mapBackendJobStage(job);
       State.savePendingMeta(id, {
         stage,
         type: stage === 'video' ? 'video' : stage === 'image' ? 'image' : 'model',
@@ -5854,6 +5862,7 @@ export async function resumePendingJobs(options = {}) {
         root_prompt: job.prompt || '',
         job_type: job.job_type || '',
         provider: job.provider || '',
+        internal_job_id: job.id,
       });
     }
   } else if (backendJobs && backendJobs.length === 0) {
@@ -5868,7 +5877,8 @@ export async function resumePendingJobs(options = {}) {
 
   // ── Step 3: Remove local jobs that backend says are gone ──
   if (backendJobs !== null) {
-    const backendIds = new Set(backendJobs.map(j => j.id));
+    // Include both internal id AND upstream_job_id so Meshy task IDs match
+    const backendIds = new Set(backendJobs.flatMap(j => [j.id, j.upstream_job_id].filter(Boolean)));
     const staleLocal = ids.filter(id => !backendIds.has(id));
     for (const id of staleLocal) {
       // Keep if history shows it finished (avoid flicker on completed jobs)
@@ -5947,6 +5957,8 @@ export async function resumePendingJobs(options = {}) {
   const imageIds = [];
   const textIds = [];
   const videoIds = [];
+  const rigIds = [];
+  const animateIds = [];
 
   for (const id of ids) {
     // Skip if already being watched (dedup across tabs / re-runs)
@@ -5961,6 +5973,10 @@ export async function resumePendingJobs(options = {}) {
       imageIds.push(id);
     } else if (stage === 'video') {
       videoIds.push(id);
+    } else if (stage === 'rig') {
+      rigIds.push(id);
+    } else if (stage === 'animate' || stage === 'animation') {
+      animateIds.push(id);
     } else {
       textIds.push(id);
     }
@@ -5981,13 +5997,13 @@ export async function resumePendingJobs(options = {}) {
     renderHistory();
   }
 
-  const allToResume = [...meshIds, ...textIds, ...videoIds];
+  const allToResume = [...meshIds, ...textIds, ...videoIds, ...rigIds, ...animateIds];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
   }
 
-  log(`[Recovery] Resuming ${allToResume.length} job(s): ${meshIds.length} mesh, ${textIds.length} text-to-3d, ${videoIds.length} video`);
+  log(`[Recovery] Resuming ${allToResume.length} job(s): ${meshIds.length} mesh, ${textIds.length} text-to-3d, ${videoIds.length} video, ${rigIds.length} rig, ${animateIds.length} animate`);
 
   // Mark recovered jobs as "generating" in history so cards show progress overlay
   for (const id of allToResume) {
@@ -5998,6 +6014,8 @@ export async function resumePendingJobs(options = {}) {
         : meta.stage === 'remesh' ? 'Remeshing...'
         : meta.stage === 'image3d' ? 'Generating 3D...'
         : meta.stage === 'video' ? 'Generating video...'
+        : meta.stage === 'rig' ? 'Rigging...'
+        : (meta.stage === 'animate' || meta.stage === 'animation') ? 'Animating...'
         : 'Generating...',
     });
   }
@@ -6011,6 +6029,12 @@ export async function resumePendingJobs(options = {}) {
   }
   for (const id of videoIds) {
     watchVideoJob(id, null, pendingMeta[id] || {});
+  }
+  for (const id of rigIds) {
+    watchRigJob(id);
+  }
+  for (const id of animateIds) {
+    watchAnimationJob(id);
   }
 }
 
