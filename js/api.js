@@ -5989,6 +5989,20 @@ export async function resumePendingJobs(options = {}) {
 
   log(`[Recovery] Resuming ${allToResume.length} job(s): ${meshIds.length} mesh, ${textIds.length} text-to-3d, ${videoIds.length} video`);
 
+  // Mark recovered jobs as "generating" in history so cards show progress overlay
+  for (const id of allToResume) {
+    const meta = pendingMeta[id] || {};
+    addGeneratingPlaceholder(id, {
+      ...meta,
+      status_label: meta.stage === 'texture' ? 'Texturing...'
+        : meta.stage === 'remesh' ? 'Remeshing...'
+        : meta.stage === 'image3d' ? 'Generating 3D...'
+        : meta.stage === 'video' ? 'Generating video...'
+        : 'Generating...',
+    });
+  }
+  renderHistory();
+
   for (const id of meshIds) {
     watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh', { isRecovery: true });
   }
