@@ -960,12 +960,24 @@ function showExpiredModelError(operation = 'process') {
  * @param {string} operation - Operation type (refine, texture, etc.)
  * @returns {boolean} true if handled with modal, false if used alert
  */
-function handleJobFailure(message, operation = '') {
+/**
+ * Handle job failure. Shows alert for user-initiated jobs,
+ * silently logs for background-recovered jobs.
+ * @param {string} message - Error message
+ * @param {string} operation - Job type
+ * @param {object} opts - Options
+ * @param {boolean} opts.isRecovery - If true, suppress popup (stale recovery)
+ */
+function handleJobFailure(message, operation = '', opts = {}) {
   if (isExpiredModelError(message)) {
     showExpiredModelError(operation);
     return true;
   }
-  // Fall back to regular alert for other errors
+  if (opts.isRecovery) {
+    // Stale recovered job — log but don't spam the user with alerts
+    console.warn(`[Recovery] Silently failed recovered ${operation} job: ${message}`);
+    return false;
+  }
   alert(message || 'Job failed');
   return false;
 }
@@ -1155,7 +1167,7 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
 /**
  * Watch a text-to-3D job until completion
  */
-export function watchJob(job_id) {
+export function watchJob(job_id, { isRecovery = false } = {}) {
   if (State.watchers.has(job_id)) return;
 
   let aborted = false;
@@ -1186,7 +1198,7 @@ export function watchJob(job_id) {
       State.removeActiveJob(job_id);
       State.watchers.delete(job_id);
       prog.fail('Generation timed out - please try again');
-      handleJobFailure('Generation timed out after max attempts', 'text-to-3d');
+      handleJobFailure('Generation timed out after max attempts', 'text-to-3d', { isRecovery });
       return;
     }
 
@@ -1203,7 +1215,7 @@ export function watchJob(job_id) {
           State.removeActiveJob(job_id);
           State.watchers.delete(job_id);
           prog.fail('Generation failed - server error');
-          handleJobFailure(result.error || `Server error (${result.status})`, 'text-to-3d');
+          handleJobFailure(result.error || `Server error (${result.status})`, 'text-to-3d', { isRecovery });
           if (window.WorkspaceCredits?.syncWithBackend) {
             window.WorkspaceCredits.syncWithBackend();
           }
@@ -1358,7 +1370,7 @@ export function watchJob(job_id) {
           }
         }
         prog.fail(st.message || 'Job failed');
-        handleJobFailure(st.message || 'Job failed', 'refine');
+        handleJobFailure(st.message || 'Job failed', 'refine', { isRecovery });
         return;
       }
 
@@ -1375,7 +1387,7 @@ export function watchJob(job_id) {
         State.removeActiveJob(job_id);
         State.watchers.delete(job_id);
         prog.fail('Generation failed - connection error');
-        handleJobFailure('Connection error while polling', 'text-to-3d');
+        handleJobFailure('Connection error while polling', 'text-to-3d', { isRecovery });
         return;
       }
 
@@ -1390,7 +1402,7 @@ export function watchJob(job_id) {
 /**
  * Watch a Meshy task (remesh, texture, rig, image3d)
  */
-export function watchMeshyTask(job_id, kind = 'remesh') {
+export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } = {}) {
   if (State.watchers.has(job_id)) return;
   let aborted = false;
   const ctl = { abort() { aborted = true; } };
@@ -1436,7 +1448,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
       State.removeActiveJob(job_id);
       State.watchers.delete(job_id);
       prog.fail(`${stageLabel} timed out - please try again`);
-      handleJobFailure(`${stageLabel} timed out after max attempts`, kind);
+      handleJobFailure(`${stageLabel} timed out after max attempts`, kind, { isRecovery });
       return;
     }
 
@@ -1453,7 +1465,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           State.removeActiveJob(job_id);
           State.watchers.delete(job_id);
           prog.fail(`${stageLabel} failed - server error`);
-          handleJobFailure(result.error || `Server error (${result.status})`, kind);
+          handleJobFailure(result.error || `Server error (${result.status})`, kind, { isRecovery });
           // Sync credits from backend
           if (window.WorkspaceCredits?.syncWithBackend) {
             window.WorkspaceCredits.syncWithBackend();
@@ -1606,7 +1618,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
           }
         }
         prog.fail(st.message || `${stageLabel} failed`);
-        handleJobFailure(st.message || `${stageLabel} failed`, kind);
+        handleJobFailure(st.message || `${stageLabel} failed`, kind, { isRecovery });
         State.watchers.delete(job_id);
         return;
       }
@@ -1624,7 +1636,7 @@ export function watchMeshyTask(job_id, kind = 'remesh') {
         State.removeActiveJob(job_id);
         State.watchers.delete(job_id);
         prog.fail(`${stageLabel} failed - connection error`);
-        handleJobFailure('Connection error while polling', kind);
+        handleJobFailure('Connection error while polling', kind, { isRecovery });
         return;
       }
 
@@ -5978,10 +5990,10 @@ export async function resumePendingJobs(options = {}) {
   log(`[Recovery] Resuming ${allToResume.length} job(s): ${meshIds.length} mesh, ${textIds.length} text-to-3d, ${videoIds.length} video`);
 
   for (const id of meshIds) {
-    watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh');
+    watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh', { isRecovery: true });
   }
   for (const id of textIds) {
-    watchJob(id);
+    watchJob(id, { isRecovery: true });
   }
   for (const id of videoIds) {
     watchVideoJob(id, null, pendingMeta[id] || {});
