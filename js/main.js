@@ -1504,6 +1504,20 @@ function wireGallery() {
       }
 
       if (act === 'delete') {
+        // Check if this is a local-only placeholder (generating/processing) —
+        // these are keyed by job_id and have no persisted history_items row
+        const item = State.getHistory().find(h => h && h.id === id);
+        const isLocalOnly = item && ['generating', 'refining', 'remeshing',
+          'texturing', 'rigging', 'animating'].includes(item.status);
+
+        if (isLocalOnly) {
+          // Local placeholder — just remove from state and cancel watcher
+          State.removeActiveJob(id);
+          State.deleteHistoryItem(id, { skipRemote: true });
+          renderHistory();
+          return;
+        }
+
         if (!confirm('Delete from database and S3 permanently?')) return;
         try {
           const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
