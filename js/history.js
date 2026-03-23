@@ -248,15 +248,26 @@ function deriveBatchBundleKey(model = {}) {
   return `cohort:${fingerprint}:${createdBucket}:${batchCount}`;
 }
 
+/**
+ * Deterministic sort for models within a family.
+ * Stage-based order first (preview → refine → texture → remesh → rig → animate),
+ * then by created_at, so the same family renders identically before and after reload.
+ */
+const _STAGE_ORDER = { preview: 0, image3d: 1, refine: 2, texture: 3, remesh: 4, rig: 5, animate: 6, animation: 6 };
+
 function compareHistoryModels(a = {}, b = {}) {
+  const stageA = (a?.stage || 'preview').toLowerCase();
+  const stageB = (b?.stage || 'preview').toLowerCase();
+  const orderA = _STAGE_ORDER[stageA] ?? 99;
+  const orderB = _STAGE_ORDER[stageB] ?? 99;
+  if (orderA !== orderB) return orderA - orderB;
+  // Within the same stage, sort by time
   const timeA = a?.created_at ? new Date(a.created_at).getTime() : 0;
   const timeB = b?.created_at ? new Date(b.created_at).getTime() : 0;
   if (timeA !== timeB) {
     return historyState.sort === 'asc' ? timeA - timeB : timeB - timeA;
   }
-  const stageA = (a?.stage || '').toLowerCase();
-  const stageB = (b?.stage || '').toLowerCase();
-  return stageA.localeCompare(stageB);
+  return 0;
 }
 
 function buildLineageBundles(models = []) {

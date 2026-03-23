@@ -6039,31 +6039,20 @@ export async function resumePendingJobs(options = {}) {
     (buckets[category] || buckets.text).push(id);
   }
 
-  // Image jobs are synchronous — cannot resume after refresh
-  if (buckets.image.length) {
-    log(`[Recovery] Cleaning up ${buckets.image.length} stale image job(s) - cannot resume synchronous requests`);
-    buckets.image.forEach(id => {
-      State.removeActiveJob(id);
-      if (State.historyHasJobId(id)) {
-        State.updateHistoryItem(id, { status: 'failed', status_label: 'Interrupted - please retry' });
-      }
-    });
-    renderHistory();
-  }
-
-  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate];
+  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate, ...buckets.image];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
   }
 
-  log(`[Recovery] Resuming ${allToResume.length} job(s): mesh=${buckets.mesh.length} text=${buckets.text.length} video=${buckets.video.length} rig=${buckets.rig.length} animate=${buckets.animate.length}`);
+  log(`[Recovery] Resuming ${allToResume.length} job(s): mesh=${buckets.mesh.length} text=${buckets.text.length} video=${buckets.video.length} rig=${buckets.rig.length} animate=${buckets.animate.length} image=${buckets.image.length}`);
 
   // Mark recovered jobs as "generating" in history so cards show progress overlay
   const STATUS_LABELS = {
     texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
+    image: 'Generating image...',
   };
   for (const id of allToResume) {
     const meta = pendingMeta[id] || {};
@@ -6074,12 +6063,16 @@ export async function resumePendingJobs(options = {}) {
   }
   renderHistory();
 
-  // Start the correct watcher for each category
+  // Start the correct watcher for each category.
+  // If there is exactly one text-to-3d job (preview/refine), let it auto-load
+  // into the viewer when it finishes — the user started it and wants to see it.
+  // Multiple jobs or derivative ops (mesh/rig/animate) stay recovery-only.
+  const soloPreview = buckets.text.length === 1 && allToResume.length === 1;
   for (const id of buckets.mesh) {
     watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh', { isRecovery: true });
   }
   for (const id of buckets.text) {
-    watchJob(id, { isRecovery: true });
+    watchJob(id, { isRecovery: !soloPreview });
   }
   for (const id of buckets.video) {
     watchVideoJob(id, null, pendingMeta[id] || {});
@@ -6089,6 +6082,20 @@ export async function resumePendingJobs(options = {}) {
   }
   for (const id of buckets.animate) {
     watchAnimationJob(id);
+  }
+  for (const id of buckets.image) {
+    // Route to provider-specific image watcher based on pendingMeta.provider
+    const meta = pendingMeta[id] || {};
+    const prov = (meta.provider || '').toLowerCase();
+    if (prov === 'nano_banana' || prov === 'piapi') {
+      watchNanoBananaImageJob(id, null, meta);
+    } else if (prov === 'google' || prov === 'gemini') {
+      watchGeminiImageJob(id, null, meta);
+    } else {
+      // OpenAI or unknown — use OpenAI watcher as default
+      watchOpenAIImageJob(id, null, meta);
+    }
+    log(`[Recovery] Resumed image job ${id} provider=${prov}`);
   }
 }
 
