@@ -5213,10 +5213,12 @@ export function watchRigJob(job_id) {
  */
 function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const MAX_DELAY = 8000;
+  const INITIAL_DELAY = 3000;
+  const STEADY_DELAY = 8000;
+  const RAMP_UP_AFTER = 30000;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 2000) => {
+  const poll = async (delay = INITIAL_DELAY) => {
     const elapsedSec = (Date.now() - startedAt) / 1000;
 
     // Abandon policy: stop active polling after threshold, move to background
@@ -5280,10 +5282,10 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
         return;
       }
 
-      // Still in progress — adaptive poll interval
-      // Slow down slightly over time: base 2s, grows to 8s max
-      const nextDelay = Math.min(MAX_DELAY, delay + 500);
-      setTimeout(() => poll(nextDelay), delay);
+      // Adaptive polling: fast for first 30s, then steady 8s
+      const elapsed = Date.now() - startedAt;
+      const nextDelay = elapsed < RAMP_UP_AFTER ? INITIAL_DELAY : STEADY_DELAY;
+      setTimeout(() => poll(nextDelay), nextDelay);
     } catch (err) {
       consecutiveErrors++;
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
@@ -5562,10 +5564,12 @@ export function watchAnimationJob(job_id) {
  */
 function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const MAX_DELAY = 8000;
+  const INITIAL_DELAY = 3000;
+  const STEADY_DELAY = 8000;
+  const RAMP_UP_AFTER = 30000;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 2000) => {
+  const poll = async (delay = INITIAL_DELAY) => {
     const elapsedSec = (Date.now() - startedAt) / 1000;
 
     if (elapsedSec > _ANIM_THRESHOLDS.abandon) {
@@ -5625,8 +5629,10 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
         return;
       }
 
-      const nextDelay = Math.min(MAX_DELAY, delay + 500);
-      setTimeout(() => poll(nextDelay), delay);
+      // Adaptive polling: fast for first 30s, then steady 8s
+      const elapsed = Date.now() - startedAt;
+      const nextDelay = elapsed < RAMP_UP_AFTER ? INITIAL_DELAY : STEADY_DELAY;
+      setTimeout(() => poll(nextDelay), nextDelay);
     } catch (err) {
       consecutiveErrors++;
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
@@ -5634,7 +5640,7 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
         prog.fail('Animation failed - network error');
         return;
       }
-      setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
+      setTimeout(() => poll(Math.min(STEADY_DELAY * 2, delay * 2)), delay);
     }
   };
 
