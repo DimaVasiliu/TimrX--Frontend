@@ -1088,7 +1088,7 @@
       } else if (errorCode === 'CODE_EXPIRED') {
         showSubError('Code has expired. Please request a new one.', true);
       } else {
-        showSubError(result.error || 'Verification failed', true);
+        showSubError((result.isHtml || result.status >= 500) ? 'Verification failed. Please try again.' : (result.error || 'Verification failed'), true);
       }
 
       setSubBtnLoading(subVerifyBtn, false);
@@ -3818,7 +3818,9 @@
         } else if (errorCode === 'CODE_EXPIRED') {
           if (raCodeError) raCodeError.textContent = 'Code has expired. Please request a new one.';
         } else {
-          if (raCodeError) raCodeError.textContent = result.error || 'Verification failed';
+          if (raCodeError) raCodeError.textContent = (result.isHtml || result.status >= 500)
+            ? 'Verification failed. Please try again.'
+            : (result.error || 'Verification failed');
         }
         if (raCodeMessage) raCodeMessage.textContent = '';
         raVerifyBtn?.classList.remove('loading');
