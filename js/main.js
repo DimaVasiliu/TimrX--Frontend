@@ -71,7 +71,13 @@ function switchHistoryFilter(filter = 'all') {
     }
     State.historyState.filter = filter;
     State.historyState.page = 1;
+    // Render immediately with whatever is cached (may be fallback-filtered)
     renderHistory();
+    // If this tab hasn't been loaded from DB yet, fetch its first page.
+    // loadHistoryTab returns cached items instantly if already loaded.
+    if (filter !== 'all') {
+      State.loadHistoryTab(filter).then(() => renderHistory());
+    }
   }
 }
 

@@ -14,7 +14,9 @@ import {
   setHistoryActiveModelId,
   historyHasMore,
   historyLoadingMore,
-  loadMoreHistory
+  loadMoreHistory,
+  getTabHistory,
+  loadHistoryTab
 } from './state.js';
 
 // ============================================================================
@@ -1098,18 +1100,13 @@ function buildExpandedHistoryGallery(lineages = []) {
 
 export function getFilteredHistory() {
   const q = (historyState.query || '').toLowerCase();
-  const filter = historyState.filter || 'all';
-  const raw = getHistory();
+  // Use the per-tab DB-backed cache.  getTabHistory() returns the
+  // tab-specific items if loaded, or falls back to filtering the
+  // global "all" cache for backward compatibility.
+  const raw = getTabHistory();
   let arr = dedupeHistoryItems(raw);
   if (arr.length !== raw.length) {
     console.info('[history] deduped items', { before: raw.length, after: arr.length });
-  }
-
-  if (filter !== 'all') {
-    arr = arr.filter((it) => {
-      const type = it.type || (it.glb_url ? 'model' : it.image_url ? 'image' : it.video_url ? 'video' : 'model');
-      return type === filter;
-    });
   }
 
   if (!q) return arr;

@@ -363,13 +363,20 @@ async function migrateOldHistory() {
 /**
  * Load history from database API
  */
-// Pagination state — tracks whether the backend has more pages available.
-let _historyHasMore = false;
-let _historyNextOffset = 0;
-let _historyLoadingMore = false;
+// Per-tab pagination state — each filter type has its own cache/offset/hasMore.
+// "all" is the default tab; "image", "video", "model" are the media tabs.
+const _tabState = {
+  all:   { items: null, hasMore: false, nextOffset: 0, loading: false },
+  image: { items: null, hasMore: false, nextOffset: 0, loading: false },
+  video: { items: null, hasMore: false, nextOffset: 0, loading: false },
+  model: { items: null, hasMore: false, nextOffset: 0, loading: false },
+};
 
-export function historyHasMore() { return _historyHasMore; }
-export function historyLoadingMore() { return _historyLoadingMore; }
+function _currentTab() { return historyState.filter || 'all'; }
+function _ts(tab) { return _tabState[tab] || _tabState.all; }
+
+export function historyHasMore() { return _ts(_currentTab()).hasMore; }
+export function historyLoadingMore() { return _ts(_currentTab()).loading; }
 
 /**
  * Parse the history API response, which may be:
@@ -401,9 +408,9 @@ export async function loadHistoryFromDB() {
       // First, try to migrate old localStorage data
       await migrateOldHistory();
 
-      // Helper to attempt a single fetch
+      // Helper to attempt a single fetch (always fetches "all" tab for initial load)
       const attemptFetch = async () => {
-        const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0`);
+        const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0&type=all`);
         if (!result.ok) {
           const err = new Error(result.error || `HTTP ${result.status}`);
           err.isTimeout = result.isTimeout;
@@ -417,11 +424,13 @@ export async function loadHistoryFromDB() {
         try {
           const page = await attemptFetch();
           historyCache = page.items;
-          _historyHasMore = page.hasMore;
-          _historyNextOffset = page.nextOffset;
+          const ts = _ts('all');
+          ts.items = page.items;
+          ts.hasMore = page.hasMore;
+          ts.nextOffset = page.nextOffset;
           saveHistoryCache(historyCache);
           log('History loaded from DB:', historyCache.length, 'items',
-            _historyHasMore ? `(has_more, next=${_historyNextOffset})` : '(all loaded)',
+            ts.hasMore ? `(has_more, next=${ts.nextOffset})` : '(all loaded)',
             attempt > 1 ? '(retry succeeded)' : '');
           return historyCache;
         } catch (err) {
@@ -434,7 +443,7 @@ export async function loadHistoryFromDB() {
           // All attempts failed - use cache
           console.warn('[History] Failed to load from DB, using cache:', err.message);
           historyCache = getHistoryCache();
-          _historyHasMore = false;
+          _ts('all').hasMore = false;
           return historyCache;
         }
       }
@@ -452,52 +461,123 @@ export async function loadHistoryFromDB() {
 }
 
 /**
- * Load the next page of history from the DB and APPEND to the existing cache.
+ * Load page 1 of a specific tab from the DB.
+ * Used when the user switches to a media tab (image/video/model) for the first time.
+ * Returns the items for that tab, or [] on failure.
+ */
+export async function loadHistoryTab(tab) {
+  const ts = _ts(tab);
+  if (ts.loading) return ts.items || [];
+  // If already loaded, return cached items
+  if (ts.items !== null) return ts.items;
+
+  ts.loading = true;
+  try {
+    const typeParam = tab === 'all' ? 'all' : tab;
+    const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0&type=${typeParam}`);
+    if (!result.ok) {
+      console.warn(`[History] loadTab(${tab}) failed:`, result.error);
+      ts.items = [];
+      return [];
+    }
+    const page = _parseHistoryResponse(result.data);
+    ts.items = page.items;
+    ts.hasMore = page.hasMore;
+    ts.nextOffset = page.nextOffset;
+    log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}`);
+    return ts.items;
+  } catch (err) {
+    console.warn(`[History] loadTab(${tab}) error:`, err.message);
+    ts.items = [];
+    return [];
+  } finally {
+    ts.loading = false;
+  }
+}
+
+/**
+ * Load the next page of history from the DB and APPEND to the current tab's cache.
  * Returns the newly appended items, or [] if no more pages.
  */
 export async function loadMoreHistory() {
-  if (_historyLoadingMore || !_historyHasMore || !_historyNextOffset) {
+  const tab = _currentTab();
+  const ts = _ts(tab);
+
+  if (ts.loading || !ts.hasMore || !ts.nextOffset) {
     return [];
   }
 
-  _historyLoadingMore = true;
+  ts.loading = true;
   try {
+    const typeParam = tab === 'all' ? 'all' : tab;
     const result = await apiFetch(
-      `/api/_mod/history?limit=${HISTORY_LIMIT}&offset=${_historyNextOffset}`
+      `/api/_mod/history?limit=${HISTORY_LIMIT}&offset=${ts.nextOffset}&type=${typeParam}`
     );
     if (!result.ok) {
-      console.warn('[History] loadMore failed:', result.error);
+      console.warn(`[History] loadMore(${tab}) failed:`, result.error);
       return [];
     }
 
     const page = _parseHistoryResponse(result.data);
     if (!page.items.length) {
-      _historyHasMore = false;
+      ts.hasMore = false;
       return [];
     }
 
-    // Append to in-memory cache (dedupe by id)
-    const existingIds = new Set((historyCache || []).map(h => h.id));
+    // Append to tab cache (dedupe by id)
+    const existingIds = new Set((ts.items || []).map(h => h.id));
     const newItems = page.items.filter(h => !existingIds.has(h.id));
-    if (historyCache) {
-      historyCache.push(...newItems);
+    if (ts.items) {
+      ts.items.push(...newItems);
     } else {
-      historyCache = newItems;
+      ts.items = newItems;
+    }
+    ts.hasMore = page.hasMore;
+    ts.nextOffset = page.nextOffset;
+
+    // Also update the global historyCache if this is the "all" tab
+    if (tab === 'all') {
+      historyCache = ts.items;
+      saveHistoryCache(historyCache);
     }
 
-    _historyHasMore = page.hasMore;
-    _historyNextOffset = page.nextOffset;
-
-    // Update localStorage cache with the expanded set
-    saveHistoryCache(historyCache);
-
-    log(`[History] loadMore: +${newItems.length} items (total=${historyCache.length}, has_more=${_historyHasMore})`);
+    log(`[History] loadMore(${tab}): +${newItems.length} items (total=${ts.items.length}, has_more=${ts.hasMore})`);
     return newItems;
   } catch (err) {
-    console.warn('[History] loadMore error:', err.message);
+    console.warn(`[History] loadMore(${tab}) error:`, err.message);
     return [];
   } finally {
-    _historyLoadingMore = false;
+    ts.loading = false;
+  }
+}
+
+/**
+ * Get the items for the current tab. Returns the tab-specific cache if loaded,
+ * otherwise falls back to filtering the global historyCache (backward compat).
+ */
+export function getTabHistory() {
+  const tab = _currentTab();
+  const ts = _ts(tab);
+  if (ts.items !== null) return ts.items;
+  // Fallback: filter the global "all" cache (covers the case before tab-specific load)
+  const all = getHistory();
+  if (tab === 'all') return all;
+  return all.filter(it => {
+    const type = it.type || (it.glb_url ? 'model' : it.image_url ? 'image' : it.video_url ? 'video' : 'model');
+    return type === tab;
+  });
+}
+
+/**
+ * Invalidate all tab caches (called after new generations, deletes, etc.)
+ */
+export function invalidateTabCaches() {
+  for (const key of Object.keys(_tabState)) {
+    if (key !== 'all') {
+      _tabState[key].items = null;
+      _tabState[key].hasMore = false;
+      _tabState[key].nextOffset = 0;
+    }
   }
 }
 
@@ -673,8 +753,12 @@ export async function forceRestoreFromDB() {
       throw err;
     }
     const page = _parseHistoryResponse(result.data);
-    _historyHasMore = page.hasMore;
-    _historyNextOffset = page.nextOffset;
+    const ts = _ts('all');
+    ts.hasMore = page.hasMore;
+    ts.nextOffset = page.nextOffset;
+    ts.items = page.items;
+    // Also invalidate media tab caches so they re-fetch with fresh data
+    invalidateTabCaches();
     return page.items;
   };
 
@@ -1265,6 +1349,7 @@ window.updateHistoryItem = updateHistoryItem;
 window.deleteHistoryItem = deleteHistoryItem;
 window.loadHistoryFromDB = loadHistoryFromDB;
 window.loadMoreHistory = loadMoreHistory;
+window.loadHistoryTab = loadHistoryTab;
 window.forceRestoreFromDB = forceRestoreFromDB;
 window.clearLocalHistoryCache = clearLocalHistoryCache;
 // Idempotency key functions (generation reliability)
