@@ -1286,7 +1286,7 @@
 }
 
 /* ==========================================================================
-   MOBILE WORKSPACE REDESIGN (768px) — Tab-segmented layout
+   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤980px)
    Rail -> Viewer -> [Controls|History] tabs
    ========================================================================== */
 
@@ -1295,7 +1295,7 @@
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 980px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {

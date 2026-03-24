@@ -4094,9 +4094,9 @@
   }
   
   /* ==========================================================================
-     MOBILE HISTORY — Tab-controlled visibility (768px)
+     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤980px)
      ========================================================================== */
-  @media (max-width: 768px) {
+  @media (max-width: 980px) {
     .timrx-3dprint .ws-right {
       display: none;
       padding: 0 4px;
@@ -4254,4 +4254,3 @@
       display: none;
     }
   }
-  
