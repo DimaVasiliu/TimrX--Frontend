@@ -1653,12 +1653,12 @@
       console.log('[Inspire] Rendered cached content');
     }
 
-    // Load the full pool. If we have cached content already showing,
-    // delay the API fetch by 4s to avoid competing with essential auth/wallet
-    // requests during page startup. If no cache, fetch immediately.
-    const poolLoader = hasContentReady
-      ? new Promise(r => setTimeout(r, 4000)).then(() => ensurePoolLoaded())
-      : ensurePoolLoaded();
+    // Load the full pool. Always delay the API fetch to avoid competing
+    // with essential auth/wallet/history requests during page startup.
+    // With cache: 4s delay (user sees cached content instantly).
+    // Without cache: 2s delay (still avoids the T+0 burst window).
+    const poolDelay = hasContentReady ? 4000 : 2000;
+    const poolLoader = new Promise(r => setTimeout(r, poolDelay)).then(() => ensurePoolLoaded());
     const poolLoadPromise = poolLoader.then(success => {
       if (success && INSPIRE_POOL.length > 0) {
         // If no cards were rendered yet, show from pool

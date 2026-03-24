@@ -22,7 +22,7 @@ let walletFetchInFlight = null;
 let refreshInFlight = null;
 let pendingRetry = false; // Flag for window.focus retry
 let lastRefreshTime = Date.now(); // Initialise to "now" so the first focus/visibility event doesn't race with initCredits()
-const MIN_REFRESH_INTERVAL_MS = 30000; // Don't refresh more than once per 30s (reduces DB pressure)
+const MIN_REFRESH_INTERVAL_MS = 60000; // Don't refresh more than once per 60s (reduces DB pressure)
 
 // ============================================================================
 // STATE
@@ -518,13 +518,16 @@ export async function initCredits() {
     // critical auth request with no contention.
     await fetchWallet();
 
-    // Phase 2: action-costs after wallet settles.
-    // Non-blocking: don't let a slow/failed costs fetch block the
-    // rest of startup (costs are cached in-module and have hardcoded
-    // fallbacks via defaultActionCosts).
-    fetchActionCosts().catch(err => {
-      log('[Credits] Action costs fetch failed (non-blocking):', err.message);
-    });
+    // Phase 2: action-costs deferred 1.5s after wallet settles.
+    // Pricing data changes rarely — hardcoded fallbacks via
+    // defaultActionCosts() cover the first 1.5s of UI.  The delay
+    // avoids overlapping with /api/_mod/history which fires right
+    // after creditsPromise resolves in main.js.
+    setTimeout(() => {
+      fetchActionCosts().catch(err => {
+        log('[Credits] Action costs fetch failed (non-blocking):', err.message);
+      });
+    }, 1500);
 
     creditsState.loaded = true;
     log('[Credits] Initialization complete');

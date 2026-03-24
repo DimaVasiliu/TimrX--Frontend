@@ -3142,14 +3142,15 @@
   // NOTE: Do NOT call fetchWallet() here at module load.
   // workspace-credits.js initCredits() already fetches /api/me on startup.
   // A duplicate /api/me doubles DB pool pressure during page load.
+  //
+  // Periodic refresh is handled by workspace-credits.js visibility/focus
+  // handlers (refreshCredits → /api/credits/wallet, 30s throttle).
+  // That's sufficient — no need for a blind 2-minute interval that fires
+  // /api/me even when the tab is in the background.
   // This module's wallet data refreshes on:
-  //   - 60s interval (below)
+  //   - tab focus/visibility (via workspace-credits.js)
   //   - credits panel open (fetchWallet call in openSecureCredits)
   //   - any explicit user action that needs fresh data
-
-  // Refresh wallet periodically (every 2 minutes to reduce DB pressure).
-  // workspace-credits.js handles the primary /api/me fetch on startup.
-  setInterval(fetchWallet, 120000);
 
   // Handle checkout return (check URL params)
   const urlParams = new URLSearchParams(window.location.search);
