@@ -399,11 +399,18 @@ export async function fetchActionCosts() {
       log('[Credits] API response was:', data);
     }
 
+    // Re-evaluate generate buttons now that real costs are known.
+    // Without this, buttons stay in "checking" state until the next
+    // wallet refresh or user interaction.
+    updateGenerateButtonCosts();
+
     return creditsState.actionCosts;
   } catch (err) {
     log('[Credits] Action costs fetch error:', err);
     creditsState.actionCosts = getDefaultActionCosts();
     creditsState.error = err.message;
+    // Still refresh buttons — defaults are now loaded
+    updateGenerateButtonCosts();
     return creditsState.actionCosts;
   }
 }
@@ -1473,17 +1480,25 @@ function updateGenerateButtonCosts() {
     // Pool-aware affordability check: video actions use the video credits pool
     const isVideo = isVideoAction(action);
     const balanceForCheck = isVideo ? creditsState.wallet.videoAvailable : effectiveAvailable;
-    const hasCreds = isUnknown ? false : balanceForCheck >= totalCost;
+
+    // Three states:
+    //   isChecking = true  → wallet or costs not yet loaded (show neutral/loading)
+    //   hasCreds   = true  → confirmed affordable
+    //   hasCreds   = false → confirmed insufficient
+    const walletKnown = creditsState.loaded || creditsState.wallet.available > 0 || creditsState.wallet.videoAvailable > 0;
+    const isChecking = isUnknown || !walletKnown;
+    const hasCreds = isChecking ? true : balanceForCheck >= totalCost;
 
     // Find the .gen-credits span in the same footer card
     const footerCard = btn.closest('.gen-footer-card');
     if (footerCard) {
       const creditsSpan = footerCard.querySelector('.gen-credits');
       if (creditsSpan) {
-        // Show "—" for unknown costs, otherwise show the cost
-        if (isUnknown) {
-          creditsSpan.textContent = '—';
-          creditsSpan.title = `Cost unknown for action: ${action}`;
+        // Show "…" while checking, otherwise show the cost
+        if (isChecking) {
+          creditsSpan.textContent = '…';
+          creditsSpan.title = 'Checking credits…';
+          creditsSpan.classList.remove('insufficient');
         } else {
           // Show batch multiplier if > 1
           const costText = batchCount > 1
@@ -1515,9 +1530,9 @@ function updateGenerateButtonCosts() {
     }
 
     // Update tooltip with clear message about required credits
-    btn.setAttribute('data-credits', isUnknown ? '' : totalCost);
-    if (isUnknown) {
-      btn.setAttribute('title', `Cost unknown for action: ${action}`);
+    btn.setAttribute('data-credits', isChecking ? '' : totalCost);
+    if (isChecking) {
+      btn.setAttribute('title', 'Checking credits…');
     } else if (!hasCreds) {
       // Ensure missing is never negative — use correct pool for message
       const missing = Math.max(0, totalCost - balanceForCheck);
@@ -1527,16 +1542,16 @@ function updateGenerateButtonCosts() {
       btn.setAttribute('title', `${totalCost} credits`);
     }
 
-    // Add cost badge to button (show "—" for unknown, cost for known)
+    // Add cost badge to button (show "…" for checking, "—" for truly unknown, cost for known)
     let costBadge = btn.querySelector('.btn-cost-badge');
-    if (isUnknown || totalCost > 0) {
+    if (isChecking || totalCost > 0) {
       if (!costBadge) {
         costBadge = document.createElement('span');
         costBadge.className = 'btn-cost-badge';
         btn.appendChild(costBadge);
       }
-      if (isUnknown) {
-        costBadge.textContent = '—';
+      if (isChecking) {
+        costBadge.textContent = '…';
         costBadge.classList.add('unknown');
         costBadge.classList.remove('insufficient', 'has-batch');
       } else {
