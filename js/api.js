@@ -1185,13 +1185,18 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
   let notFoundAttempts = 0;
 
   // Polling safety: max attempts and error tracking
+  // Adaptive polling: 3s for first 30s (catch quick failures), then 8s steady state.
+  // 3D generation takes 1-5 minutes — sub-second polls are wasteful.
   const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const MAX_DELAY = 8000;
+  const INITIAL_DELAY = 3000;       // 3s — catch early failures quickly
+  const STEADY_DELAY = 8000;        // 8s — steady state during generation
+  const RAMP_UP_AFTER = 30000;      // switch to steady after 30s elapsed
+  const pollStartedAt = Date.now();
   let pollAttempts = 0;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 900) => {
+  const poll = async (delay = INITIAL_DELAY) => {
     if (aborted) {
       State.watchers.delete(job_id);
       return;
@@ -1389,9 +1394,12 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         return;
       }
 
-      // Continue polling with exponential backoff, capped at MAX_DELAY
-      const nextDelay = Math.min(MAX_DELAY, delay * 1.2);
-      setTimeout(() => poll(nextDelay), delay);
+      // Adaptive polling: fast for first 30s, then steady 8s
+      const elapsed = Date.now() - pollStartedAt;
+      const nextDelay = elapsed < RAMP_UP_AFTER
+        ? Math.min(INITIAL_DELAY, delay)   // stay at 3s during ramp-up
+        : STEADY_DELAY;                    // 8s steady state
+      setTimeout(() => poll(nextDelay), nextDelay);
     } catch (err) {
       // Unexpected error - increment error counter and retry with backoff
       consecutiveErrors++;
@@ -1406,8 +1414,8 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         return;
       }
 
-      // Retry with exponential backoff
-      const retryDelay = Math.min(MAX_DELAY, delay * 2);
+      // Retry with longer backoff on errors
+      const retryDelay = Math.min(STEADY_DELAY * 2, delay * 2);
       setTimeout(() => poll(retryDelay), retryDelay);
     }
   };
@@ -1442,14 +1450,17 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
   const estimatedDuration = kind === 'image3d' ? 120000 : 60000; // 2 mins for image3d, 1 min for others
   let simulatedPct = 0;
 
-  // Polling safety: max attempts and error tracking
-  const MAX_POLL_ATTEMPTS = 120; // ~2-4 minutes depending on backoff
+  // Polling safety: adaptive timing to reduce DB pressure
+  const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const MAX_DELAY = 8000;
+  const INITIAL_DELAY = 3000;
+  const STEADY_DELAY = 8000;
+  const RAMP_UP_AFTER = 30000;
+  const pollStartedAt = Date.now();
   let pollAttempts = 0;
   let consecutiveErrors = 0;
 
-  const poll = async (delay = 900) => {
+  const poll = async (delay = INITIAL_DELAY) => {
     if (aborted) {
       State.watchers.delete(job_id);
       return;
@@ -1644,9 +1655,12 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         return;
       }
 
-      // Continue polling with exponential backoff, capped at MAX_DELAY
-      const nextDelay = Math.min(MAX_DELAY, delay * 1.2);
-      setTimeout(() => poll(nextDelay), delay);
+      // Adaptive polling: fast for first 30s, then steady 8s
+      const elapsed = Date.now() - pollStartedAt;
+      const nextDelay = elapsed < RAMP_UP_AFTER
+        ? Math.min(INITIAL_DELAY, delay)
+        : STEADY_DELAY;
+      setTimeout(() => poll(nextDelay), nextDelay);
     } catch (err) {
       // Unexpected error - increment error counter and retry with backoff
       consecutiveErrors++;
@@ -1661,8 +1675,8 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         return;
       }
 
-      // Retry with exponential backoff
-      const retryDelay = Math.min(MAX_DELAY, delay * 2);
+      // Retry with longer backoff on errors
+      const retryDelay = Math.min(STEADY_DELAY * 2, delay * 2);
       setTimeout(() => poll(retryDelay), retryDelay);
     }
   };
