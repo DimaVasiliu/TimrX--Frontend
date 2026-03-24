@@ -363,6 +363,33 @@ async function migrateOldHistory() {
 /**
  * Load history from database API
  */
+// Pagination state — tracks whether the backend has more pages available.
+let _historyHasMore = false;
+let _historyNextOffset = 0;
+let _historyLoadingMore = false;
+
+export function historyHasMore() { return _historyHasMore; }
+export function historyLoadingMore() { return _historyLoadingMore; }
+
+/**
+ * Parse the history API response, which may be:
+ * - New format: { ok, items, has_more, next_offset, ... }
+ * - Legacy format: bare Array
+ */
+function _parseHistoryResponse(data) {
+  if (data && data.ok && Array.isArray(data.items)) {
+    // New paginated format
+    return {
+      items: data.items,
+      hasMore: !!data.has_more,
+      nextOffset: data.next_offset ?? 0,
+    };
+  }
+  // Legacy: bare array
+  const items = Array.isArray(data) ? data : [];
+  return { items, hasMore: false, nextOffset: 0 };
+}
+
 export async function loadHistoryFromDB() {
   if (historyLoading && historyLoadPromise) {
     return historyLoadPromise;
@@ -376,21 +403,26 @@ export async function loadHistoryFromDB() {
 
       // Helper to attempt a single fetch
       const attemptFetch = async () => {
-        const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}`);
+        const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0`);
         if (!result.ok) {
           const err = new Error(result.error || `HTTP ${result.status}`);
           err.isTimeout = result.isTimeout;
           throw err;
         }
-        return Array.isArray(result.data) ? result.data : [];
+        return _parseHistoryResponse(result.data);
       };
 
       // Try up to 2 times on timeout
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          historyCache = await attemptFetch();
+          const page = await attemptFetch();
+          historyCache = page.items;
+          _historyHasMore = page.hasMore;
+          _historyNextOffset = page.nextOffset;
           saveHistoryCache(historyCache);
-          log('History loaded from DB:', historyCache.length, 'items', attempt > 1 ? '(retry succeeded)' : '');
+          log('History loaded from DB:', historyCache.length, 'items',
+            _historyHasMore ? `(has_more, next=${_historyNextOffset})` : '(all loaded)',
+            attempt > 1 ? '(retry succeeded)' : '');
           return historyCache;
         } catch (err) {
           // Only retry on timeout, and only once
@@ -402,6 +434,7 @@ export async function loadHistoryFromDB() {
           // All attempts failed - use cache
           console.warn('[History] Failed to load from DB, using cache:', err.message);
           historyCache = getHistoryCache();
+          _historyHasMore = false;
           return historyCache;
         }
       }
@@ -416,6 +449,56 @@ export async function loadHistoryFromDB() {
   })();
 
   return historyLoadPromise;
+}
+
+/**
+ * Load the next page of history from the DB and APPEND to the existing cache.
+ * Returns the newly appended items, or [] if no more pages.
+ */
+export async function loadMoreHistory() {
+  if (_historyLoadingMore || !_historyHasMore || !_historyNextOffset) {
+    return [];
+  }
+
+  _historyLoadingMore = true;
+  try {
+    const result = await apiFetch(
+      `/api/_mod/history?limit=${HISTORY_LIMIT}&offset=${_historyNextOffset}`
+    );
+    if (!result.ok) {
+      console.warn('[History] loadMore failed:', result.error);
+      return [];
+    }
+
+    const page = _parseHistoryResponse(result.data);
+    if (!page.items.length) {
+      _historyHasMore = false;
+      return [];
+    }
+
+    // Append to in-memory cache (dedupe by id)
+    const existingIds = new Set((historyCache || []).map(h => h.id));
+    const newItems = page.items.filter(h => !existingIds.has(h.id));
+    if (historyCache) {
+      historyCache.push(...newItems);
+    } else {
+      historyCache = newItems;
+    }
+
+    _historyHasMore = page.hasMore;
+    _historyNextOffset = page.nextOffset;
+
+    // Update localStorage cache with the expanded set
+    saveHistoryCache(historyCache);
+
+    log(`[History] loadMore: +${newItems.length} items (total=${historyCache.length}, has_more=${_historyHasMore})`);
+    return newItems;
+  } catch (err) {
+    console.warn('[History] loadMore error:', err.message);
+    return [];
+  } finally {
+    _historyLoadingMore = false;
+  }
 }
 
 /**
@@ -589,7 +672,10 @@ export async function forceRestoreFromDB() {
       err.isTimeout = result.isTimeout;
       throw err;
     }
-    return Array.isArray(result.data) ? result.data : [];
+    const page = _parseHistoryResponse(result.data);
+    _historyHasMore = page.hasMore;
+    _historyNextOffset = page.nextOffset;
+    return page.items;
   };
 
   // Load fresh from database with retry on timeout
@@ -1178,6 +1264,7 @@ window.addHistoryItem = addHistoryItem;
 window.updateHistoryItem = updateHistoryItem;
 window.deleteHistoryItem = deleteHistoryItem;
 window.loadHistoryFromDB = loadHistoryFromDB;
+window.loadMoreHistory = loadMoreHistory;
 window.forceRestoreFromDB = forceRestoreFromDB;
 window.clearLocalHistoryCache = clearLocalHistoryCache;
 // Idempotency key functions (generation reliability)

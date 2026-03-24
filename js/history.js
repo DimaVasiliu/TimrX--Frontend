@@ -11,7 +11,10 @@ import {
   historyLineageCounts,
   historyFreshThumbs,
   historyActiveModelId,
-  setHistoryActiveModelId
+  setHistoryActiveModelId,
+  historyHasMore,
+  historyLoadingMore,
+  loadMoreHistory
 } from './state.js';
 
 // ============================================================================
@@ -1529,6 +1532,54 @@ function _renderHistoryImpl() {
   disableNav(nextBtn, historyState.page >= pages || isGallery);
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
+
+  // ── "Load more" banner when the backend has additional pages ──
+  // Show at the bottom of the grid when the user is on the last
+  // client-side page AND the backend reported has_more=true.
+  const existingBanner = grid.querySelector('.history-load-more');
+  if (existingBanner) existingBanner.remove();
+
+  const onLastClientPage = historyState.page >= pages;
+  const serverHasMore = historyHasMore();
+  const isLoadingMore = historyLoadingMore();
+
+  if (onLastClientPage && serverHasMore && !isGallery) {
+    const banner = document.createElement('div');
+    banner.className = 'history-load-more';
+    banner.setAttribute('role', 'status');
+
+    if (isLoadingMore) {
+      banner.innerHTML = `
+        <div class="history-load-more__inner">
+          <div class="history-load-more__spinner"></div>
+          <span>Loading more generations…</span>
+        </div>`;
+    } else {
+      banner.innerHTML = `
+        <div class="history-load-more__inner">
+          <button class="history-load-more__btn" type="button">
+            Load more generations
+          </button>
+        </div>`;
+      banner.querySelector('.history-load-more__btn').addEventListener('click', async () => {
+        // Show loading state immediately
+        banner.innerHTML = `
+          <div class="history-load-more__inner">
+            <div class="history-load-more__spinner"></div>
+            <span>Loading more generations…</span>
+          </div>`;
+        const added = await loadMoreHistory();
+        if (added.length > 0) {
+          // Re-render with the expanded cache — pagination recalculates
+          renderHistory();
+        } else {
+          // No more items — remove the banner
+          banner.remove();
+        }
+      });
+    }
+    grid.appendChild(banner);
+  }
 
   // Notify listeners (e.g., toolbar disabled state)
   window.dispatchEvent(new CustomEvent('history:rendered'));

@@ -962,6 +962,45 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     opacity: 0.7;
   }
 
+  /* ── Load More Generations banner ─────────────────────────── */
+  .history-load-more {
+    padding: 16px 0 8px;
+    text-align: center;
+  }
+  .history-load-more__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+  }
+  .history-load-more__btn {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .history-load-more__btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .history-load-more__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    animation: history-spin 0.6s linear infinite;
+  }
+  @keyframes history-spin {
+    to { transform: rotate(360deg); }
+  }
+
 /* ================================================================
    TUTORIALS & STORIES – EXPANDED VIEWS (CONSOLIDATED)
    ================================================================ */
