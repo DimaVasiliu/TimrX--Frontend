@@ -5291,9 +5291,20 @@
     }
   }
 
-  // Load subscription summary after essential startup requests complete.
-  // Delayed 3s to avoid competing with auth/wallet/history for pool connections.
-  setTimeout(() => loadSubscriptionSummary(), 3000);
+  // Load subscription summary AFTER the bootstrap burst completes.
+  // Listen for the first timrx:wallet event (fired when /api/me returns
+  // wallet data), then wait 2s more for history/jobs/inspire to settle.
+  // On fast connections this fires at ~T+2-3s; on slow ones it waits
+  // instead of piling on during the bottleneck.  6s fallback if the
+  // wallet event never fires (e.g., no session).
+  let _subSummaryScheduled = false;
+  const _scheduleSubSummary = () => {
+    if (_subSummaryScheduled) return;
+    _subSummaryScheduled = true;
+    setTimeout(() => loadSubscriptionSummary(), 2000);
+  };
+  window.addEventListener('timrx:wallet', _scheduleSubSummary, { once: true });
+  setTimeout(_scheduleSubSummary, 6000); // fallback
 
   // ─────────────────────────────────────────────────────────────
   // MANAGE SUBSCRIPTION MODAL (standalone, opened from pill)
