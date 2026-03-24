@@ -13,8 +13,6 @@ import {
   historyActiveModelId,
   setHistoryActiveModelId,
   historyHasMore,
-  historyLoadingMore,
-  loadMoreHistory,
   getTabHistory,
   loadHistoryTab
 } from './state.js';
@@ -1539,69 +1537,12 @@ function _renderHistoryImpl() {
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
 
-  // ── "Load more" banner when the backend has additional pages ──
-  // Show at the bottom of the grid when the user is on the last
-  // client-side page AND the backend reported has_more=true.
+  // Clean up any leftover load-more banners from previous renders
   const existingBanner = grid.querySelector('.history-load-more');
   if (existingBanner) existingBanner.remove();
-
-  const onLastClientPage = historyState.page >= pages;
-  // serverHasMore already declared above for nav button state
-  const isLoadingMore = historyLoadingMore();
-
-  if (onLastClientPage && serverHasMore && !isGallery) {
-    const banner = document.createElement('div');
-    banner.className = 'history-load-more';
-    banner.setAttribute('role', 'status');
-
-    const _triggerLoadMore = async () => {
-      // Prevent double-trigger
-      if (banner.dataset.loading === '1') return;
-      banner.dataset.loading = '1';
-      banner.innerHTML = `
-        <div class="history-load-more__inner">
-          <div class="history-load-more__spinner"></div>
-          <span>Loading more generations…</span>
-        </div>`;
-      const added = await loadMoreHistory();
-      if (added.length > 0) {
-        renderHistory();
-      } else {
-        banner.remove();
-      }
-    };
-
-    if (isLoadingMore) {
-      banner.dataset.loading = '1';
-      banner.innerHTML = `
-        <div class="history-load-more__inner">
-          <div class="history-load-more__spinner"></div>
-          <span>Loading more generations…</span>
-        </div>`;
-    } else {
-      banner.innerHTML = `
-        <div class="history-load-more__inner">
-          <button class="history-load-more__btn" type="button">
-            Load more generations
-          </button>
-        </div>`;
-      banner.querySelector('.history-load-more__btn').addEventListener('click', _triggerLoadMore);
-
-      // Infinite scroll: auto-load when banner enters the viewport.
-      // Uses IntersectionObserver with a 200px rootMargin so the fetch
-      // starts before the user reaches the very bottom.
-      if (typeof IntersectionObserver !== 'undefined') {
-        const observer = new IntersectionObserver((entries) => {
-          if (entries[0]?.isIntersecting) {
-            observer.disconnect();
-            _triggerLoadMore();
-          }
-        }, { rootMargin: '200px' });
-        observer.observe(banner);
-      }
-    }
-    grid.appendChild(banner);
-  }
+  // Pagination is now entirely button-driven (next/prev arrows).
+  // No infinite scroll or "load more" banner — the next button in main.js
+  // handles DB fetching when the user reaches the last cached page.
 
   // Notify listeners (e.g., toolbar disabled state)
   window.dispatchEvent(new CustomEvent('history:rendered'));
