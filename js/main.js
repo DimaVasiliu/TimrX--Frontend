@@ -1061,23 +1061,40 @@ function wireGallery() {
       scrollHistoryToTop();
     }
   });
-  if (next) next.addEventListener('click', () => {
+  if (next) next.addEventListener('click', async () => {
     const filtered = getFilteredHistory();
-    const total = Math.max(1, Math.ceil(filtered.length / State.historyState.pageSize));
-    if (State.historyState.page < total) {
+    const ps = State.historyState.pageSize;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
+
+    if (State.historyState.page < totalPages) {
+      // Normal next — more cached pages available
       State.historyState.page++;
       renderHistory();
       scrollHistoryToTop();
+    } else if (State.historyHasMore()) {
+      // On last cached page but backend has more — fetch next DB page
+      next.setAttribute('disabled', '');
+      const added = await State.loadMoreHistory();
+      next.removeAttribute('disabled');
+      if (added.length > 0) {
+        State.historyState.page++;
+        renderHistory();
+        scrollHistoryToTop();
+      }
     }
   });
-  if (last) last.addEventListener('click', () => {
+  if (last) last.addEventListener('click', async () => {
     const filtered = getFilteredHistory();
-    const total = Math.max(1, Math.ceil(filtered.length / State.historyState.pageSize));
-    if (State.historyState.page < total) {
-      State.historyState.page = total;
+    const ps = State.historyState.pageSize;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
+
+    if (State.historyState.page < totalPages) {
+      State.historyState.page = totalPages;
       renderHistory();
       scrollHistoryToTop();
     }
+    // "Last" goes to last cached page — it doesn't try to load ALL
+    // remaining DB pages (that would defeat the purpose of pagination).
   });
 
   // Grid event delegation

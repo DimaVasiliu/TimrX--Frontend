@@ -1287,9 +1287,11 @@ function _renderHistoryImpl() {
     grid.innerHTML = `<div class="history-image-grid">${imageGridMarkup}</div>`;
 
     if (pageLabel) {
+      const imgHasMore = historyHasMore();
+      const pagesLabel = imgHasMore ? `${pages}+` : `${pages}`;
       pageLabel.textContent = isGallery
         ? `Gallery - ${totalImages} image${totalImages === 1 ? '' : 's'}`
-        : `${historyState.page}/${pages}`;
+        : `${historyState.page}/${pagesLabel}`;
     }
 
     const disableNav = (btn, shouldDisable) => {
@@ -1298,7 +1300,7 @@ function _renderHistoryImpl() {
       else btn.removeAttribute('disabled');
     };
     disableNav(prevBtn, historyState.page <= 1 || isGallery);
-    disableNav(nextBtn, historyState.page >= pages || isGallery);
+    disableNav(nextBtn, (historyState.page >= pages && !historyHasMore()) || isGallery);
     disableNav(firstBtn, historyState.page <= 1 || isGallery);
     disableNav(lastBtn, historyState.page >= pages || isGallery);
     return;
@@ -1385,9 +1387,11 @@ function _renderHistoryImpl() {
     }
 
     if (pageLabel) {
+      const vidHasMore = historyHasMore();
+      const pagesLabel = vidHasMore ? `${pages}+` : `${pages}`;
       pageLabel.textContent = isGallery
         ? `Gallery - ${totalVideos} video${totalVideos === 1 ? '' : 's'}`
-        : `${historyState.page}/${pages}`;
+        : `${historyState.page}/${pagesLabel}`;
     }
 
     const disableNav = (btn, shouldDisable) => {
@@ -1396,7 +1400,7 @@ function _renderHistoryImpl() {
       else btn.removeAttribute('disabled');
     };
     disableNav(prevBtn, historyState.page <= 1 || isGallery);
-    disableNav(nextBtn, historyState.page >= pages || isGallery);
+    disableNav(nextBtn, (historyState.page >= pages && !historyHasMore()) || isGallery);
     disableNav(firstBtn, historyState.page <= 1 || isGallery);
     disableNav(lastBtn, historyState.page >= pages || isGallery);
     return;
@@ -1511,12 +1515,16 @@ function _renderHistoryImpl() {
   const rowsMarkup = isGallery ? buildExpandedHistoryGallery(sortedLineages) : timelineMarkup;
   grid.innerHTML = (skeletonMarkup || '') + rowsMarkup;
 
+  const serverHasMore = historyHasMore();
+
   if (pageLabel) {
     if (isGallery) {
       const assetLabel = `${totalAssets} asset${totalAssets === 1 ? '' : 's'}`;
       pageLabel.textContent = `Gallery - ${assetLabel}`;
     } else {
-      pageLabel.textContent = `${historyState.page}/${pages}`;
+      // Show "+" suffix when the backend has more pages beyond the local cache
+      const pagesLabel = serverHasMore ? `${pages}+` : `${pages}`;
+      pageLabel.textContent = `${historyState.page}/${pagesLabel}`;
     }
   }
 
@@ -1526,7 +1534,8 @@ function _renderHistoryImpl() {
     else btn.removeAttribute('disabled');
   };
   disableNav(prevBtn, historyState.page <= 1 || isGallery);
-  disableNav(nextBtn, historyState.page >= pages || isGallery);
+  // Keep next enabled when the backend has more pages, even if we're on the last cached page
+  disableNav(nextBtn, (historyState.page >= pages && !serverHasMore) || isGallery);
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
 
@@ -1537,7 +1546,7 @@ function _renderHistoryImpl() {
   if (existingBanner) existingBanner.remove();
 
   const onLastClientPage = historyState.page >= pages;
-  const serverHasMore = historyHasMore();
+  // serverHasMore already declared above for nav button state
   const isLoadingMore = historyLoadingMore();
 
   if (onLastClientPage && serverHasMore && !isGallery) {
