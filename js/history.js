@@ -13,6 +13,7 @@ import {
   historyActiveModelId,
   setHistoryActiveModelId,
   historyHasMore,
+  historyTabLoaded,
   getTabHistory,
   loadHistoryTab
 } from './state.js';
@@ -1285,8 +1286,9 @@ function _renderHistoryImpl() {
     grid.innerHTML = `<div class="history-image-grid">${imageGridMarkup}</div>`;
 
     if (pageLabel) {
+      const imgTabLoaded = historyTabLoaded();
       const imgHasMore = historyHasMore();
-      const pagesLabel = imgHasMore ? `${pages}+` : `${pages}`;
+      const pagesLabel = (!imgTabLoaded || imgHasMore) ? `${pages}+` : `${pages}`;
       pageLabel.textContent = isGallery
         ? `Gallery - ${totalImages} image${totalImages === 1 ? '' : 's'}`
         : `${historyState.page}/${pagesLabel}`;
@@ -1298,7 +1300,8 @@ function _renderHistoryImpl() {
       else btn.removeAttribute('disabled');
     };
     disableNav(prevBtn, historyState.page <= 1 || isGallery);
-    disableNav(nextBtn, (historyState.page >= pages && !historyHasMore()) || isGallery);
+    const imgNextOff = historyState.page >= pages && historyTabLoaded() && !historyHasMore();
+    disableNav(nextBtn, imgNextOff || isGallery);
     disableNav(firstBtn, historyState.page <= 1 || isGallery);
     disableNav(lastBtn, historyState.page >= pages || isGallery);
     return;
@@ -1385,8 +1388,9 @@ function _renderHistoryImpl() {
     }
 
     if (pageLabel) {
+      const vidTabLoaded = historyTabLoaded();
       const vidHasMore = historyHasMore();
-      const pagesLabel = vidHasMore ? `${pages}+` : `${pages}`;
+      const pagesLabel = (!vidTabLoaded || vidHasMore) ? `${pages}+` : `${pages}`;
       pageLabel.textContent = isGallery
         ? `Gallery - ${totalVideos} video${totalVideos === 1 ? '' : 's'}`
         : `${historyState.page}/${pagesLabel}`;
@@ -1398,7 +1402,8 @@ function _renderHistoryImpl() {
       else btn.removeAttribute('disabled');
     };
     disableNav(prevBtn, historyState.page <= 1 || isGallery);
-    disableNav(nextBtn, (historyState.page >= pages && !historyHasMore()) || isGallery);
+    const vidNextOff = historyState.page >= pages && historyTabLoaded() && !historyHasMore();
+    disableNav(nextBtn, vidNextOff || isGallery);
     disableNav(firstBtn, historyState.page <= 1 || isGallery);
     disableNav(lastBtn, historyState.page >= pages || isGallery);
     return;
@@ -1514,14 +1519,15 @@ function _renderHistoryImpl() {
   grid.innerHTML = (skeletonMarkup || '') + rowsMarkup;
 
   const serverHasMore = historyHasMore();
+  const tabLoaded = historyTabLoaded();
 
   if (pageLabel) {
     if (isGallery) {
       const assetLabel = `${totalAssets} asset${totalAssets === 1 ? '' : 's'}`;
       pageLabel.textContent = `Gallery - ${assetLabel}`;
     } else {
-      // Show "+" suffix when the backend has more pages beyond the local cache
-      const pagesLabel = serverHasMore ? `${pages}+` : `${pages}`;
+      // Show "+" when backend may have more (or tab hasn't loaded yet)
+      const pagesLabel = (!tabLoaded || serverHasMore) ? `${pages}+` : `${pages}`;
       pageLabel.textContent = `${historyState.page}/${pagesLabel}`;
     }
   }
@@ -1532,8 +1538,10 @@ function _renderHistoryImpl() {
     else btn.removeAttribute('disabled');
   };
   disableNav(prevBtn, historyState.page <= 1 || isGallery);
-  // Keep next enabled when the backend has more pages, even if we're on the last cached page
-  disableNav(nextBtn, (historyState.page >= pages && !serverHasMore) || isGallery);
+  // Next is disabled ONLY when on last cached page AND backend confirmed
+  // no more data. If tab hasn't loaded yet, keep next enabled.
+  const nextDisabled = historyState.page >= pages && tabLoaded && !serverHasMore;
+  disableNav(nextBtn, nextDisabled || isGallery);
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
 

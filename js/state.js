@@ -378,6 +378,8 @@ function _ts(tab) { return _tabState[tab] || _tabState.all; }
 
 export function historyHasMore() { return _ts(_currentTab()).hasMore; }
 export function historyLoadingMore() { return _ts(_currentTab()).loading; }
+/** True if the current tab has fetched its first page from the DB. */
+export function historyTabLoaded() { return _ts(_currentTab()).items !== null; }
 
 /**
  * Parse the history API response, which may be:

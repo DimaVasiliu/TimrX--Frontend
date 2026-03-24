@@ -1067,23 +1067,40 @@ function wireGallery() {
     const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
 
     if (State.historyState.page < totalPages) {
-      // Normal next — more cached pages available
+      // More cached pages available — navigate locally
       State.historyState.page++;
       renderHistory();
       scrollHistoryToTop();
-    } else if (State.historyHasMore()) {
-      // On last cached page but backend has more — fetch next DB page
+    } else {
+      // On last cached page — try to fetch more from DB.
       next.setAttribute('disabled', '');
-      const added = await State.loadMoreHistory();
-      next.removeAttribute('disabled');
-      if (added.length > 0) {
-        State.historyState.page++;
-        renderHistory();
-        scrollHistoryToTop();
+      next.classList.add('loading');
+
+      let added = [];
+      if (State.historyTabLoaded()) {
+        // Tab is loaded — fetch the next page
+        added = await State.loadMoreHistory();
+      } else {
+        // Tab hasn't loaded yet — fetch its first DB page
+        const tabItems = await State.loadHistoryTab(State.historyState.filter);
+        added = tabItems || [];
       }
+
+      next.classList.remove('loading');
+      next.removeAttribute('disabled');
+      if (added.length > 0 && State.historyTabLoaded()) {
+        // Only advance page if we actually loaded new data beyond what was shown
+        const newFiltered = getFilteredHistory();
+        const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / ps));
+        if (State.historyState.page < newTotalPages) {
+          State.historyState.page++;
+        }
+      }
+      renderHistory();
+      scrollHistoryToTop();
     }
   });
-  if (last) last.addEventListener('click', async () => {
+  if (last) last.addEventListener('click', () => {
     const filtered = getFilteredHistory();
     const ps = State.historyState.pageSize;
     const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
@@ -1093,8 +1110,6 @@ function wireGallery() {
       renderHistory();
       scrollHistoryToTop();
     }
-    // "Last" goes to last cached page — it doesn't try to load ALL
-    // remaining DB pages (that would defeat the purpose of pagination).
   });
 
   // Grid event delegation
