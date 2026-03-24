@@ -328,7 +328,25 @@ export async function fetchWallet() {
  * Fetch action costs from /api/billing/action-costs
  * Response format: { ok: true, action_costs: [{ action_key: "...", credits: N }, ...] }
  */
+const _ACTION_COSTS_CACHE_KEY = 'timrx_action_costs';
+const _ACTION_COSTS_CACHE_TTL = 3600000; // 1 hour — costs are admin-configured, rarely change
+const _ACTION_COSTS_CACHE_VERSION = 1;   // Bump when pricing changes to invalidate stale caches
+
 export async function fetchActionCosts() {
+  // Fast path: use localStorage cache if fresh (avoids network call entirely on repeat loads)
+  try {
+    const raw = localStorage.getItem(_ACTION_COSTS_CACHE_KEY);
+    if (raw) {
+      const { data: cached, ts, v } = JSON.parse(raw);
+      if (cached && v === _ACTION_COSTS_CACHE_VERSION && Date.now() - ts < _ACTION_COSTS_CACHE_TTL) {
+        creditsState.actionCosts = { ...getDefaultActionCosts(), ...cached };
+        log('[Credits] Action costs from localStorage cache:', Object.keys(cached).length, 'keys');
+        updateGenerateButtonCosts();
+        return creditsState.actionCosts;
+      }
+    }
+  } catch (_) { /* corrupt cache — fall through to fetch */ }
+
   try {
     const result = await apiFetch('/api/billing/action-costs');
 
@@ -399,9 +417,16 @@ export async function fetchActionCosts() {
       log('[Credits] API response was:', data);
     }
 
+    // Cache to localStorage for repeat page loads (1-hour TTL)
+    try {
+      localStorage.setItem(_ACTION_COSTS_CACHE_KEY, JSON.stringify({
+        data: creditsState.actionCosts,
+        ts: Date.now(),
+        v: _ACTION_COSTS_CACHE_VERSION,
+      }));
+    } catch (_) { /* quota exceeded or private mode — ignore */ }
+
     // Re-evaluate generate buttons now that real costs are known.
-    // Without this, buttons stay in "checking" state until the next
-    // wallet refresh or user interaction.
     updateGenerateButtonCosts();
 
     return creditsState.actionCosts;
@@ -2019,7 +2044,13 @@ renderCachedCreditsEarly();
  * Refresh credits if enough time has passed since last refresh
  * Used for focus/visibility events to catch up after payments or generation
  */
+const _APP_START_TIME = Date.now();
+const _STARTUP_GRACE_MS = 10000; // Skip visibility refreshes for 10s after load
+
 function maybeRefreshOnVisibility() {
+  // Grace period: don't fire during startup — bootstrap handles the initial fetch
+  if (Date.now() - _APP_START_TIME < _STARTUP_GRACE_MS) return;
+
   const now = Date.now();
   const timeSinceLastRefresh = now - lastRefreshTime;
 

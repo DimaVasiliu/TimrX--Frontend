@@ -18,6 +18,8 @@ export const MAX_DATA_URI_LEN = 50000;
 let historyCache = null;
 let historyLoading = false;
 let historyLoadPromise = null;
+let _historyLastFetchedAt = 0; // monotonic timestamp of last successful fetch
+const _HISTORY_DEDUP_MS = 5000; // skip duplicate calls within 5s
 
 // ============================================================================
 // JOB WATCHERS (shared Map for tracking active job polling)
@@ -406,6 +408,13 @@ export async function loadHistoryFromDB() {
     return historyLoadPromise;
   }
 
+  // Skip if we successfully fetched very recently (prevents double-fetch on
+  // page load when both main.js and getHistory() trigger loadHistoryFromDB)
+  if (historyCache && (Date.now() - _historyLastFetchedAt) < _HISTORY_DEDUP_MS) {
+    log('[History] Skipping duplicate load (fetched', Date.now() - _historyLastFetchedAt, 'ms ago)');
+    return historyCache;
+  }
+
   historyLoading = true;
   historyLoadPromise = (async () => {
     try {
@@ -428,6 +437,7 @@ export async function loadHistoryFromDB() {
         try {
           const page = await attemptFetch();
           historyCache = page.items;
+          _historyLastFetchedAt = Date.now();
           const ts = _ts('all');
           ts.items = page.items;
           ts.hasMore = page.hasMore;

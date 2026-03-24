@@ -1655,9 +1655,8 @@
 
     // Load the full pool. Always delay the API fetch to avoid competing
     // with essential auth/wallet/history requests during page startup.
-    // With cache: 4s delay (user sees cached content instantly).
-    // Without cache: 2s delay (still avoids the T+0 burst window).
-    const poolDelay = hasContentReady ? 4000 : 2000;
+    // History settles at ~T+2-3s, so 4-5s delay keeps inspire out of the burst.
+    const poolDelay = hasContentReady ? 5000 : 4000;
     const poolLoader = new Promise(r => setTimeout(r, poolDelay)).then(() => ensurePoolLoaded());
     const poolLoadPromise = poolLoader.then(success => {
       if (success && INSPIRE_POOL.length > 0) {
