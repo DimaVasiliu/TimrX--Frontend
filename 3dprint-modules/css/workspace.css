@@ -1247,7 +1247,7 @@
    ========================================================================== */
 
 /* Tablet — stacked layout */
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
   .timrx-3dprint {
     height: auto;
     min-height: 100vh;
@@ -1286,7 +1286,7 @@
 }
 
 /* ==========================================================================
-   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤980px)
+   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤1024px)
    Rail -> Viewer -> [Controls|History] tabs
    ========================================================================== */
 
@@ -1295,7 +1295,7 @@
   display: none;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
@@ -1315,11 +1315,12 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    gap: 6px;
-    padding: 10px 0;
+    gap: 4px;
+    padding: 10px 8px;
     margin: 0 auto 10px !important;
     justify-content: center;
-    width: fit-content;
+    width: auto;
+    max-width: 100%;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -1329,18 +1330,19 @@
   .timrx-3dprint .rail-btn {
     flex-direction: row;
     flex-shrink: 0;
-    gap: 6px;
-    padding: 10px 16px;
+    width: auto;
+    gap: 5px;
+    padding: 9px 12px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(255, 255, 255, 0.04);
   }
   .timrx-3dprint .rail-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
   .timrx-3dprint .rail-btn span {
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.03em;
   }
 
@@ -1413,10 +1415,13 @@
     background: rgba(255, 255, 255, 0.03);
   }
 
-  /* --- PANELS --- */
+  /* --- PANELS — constrain width so controls don't stretch full-screen --- */
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     width: 100%;
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
     position: static;
     max-height: none;
     overflow: visible;
@@ -1432,6 +1437,7 @@
   /* Right panel hidden by default — shown by tab */
   .timrx-3dprint .ws-right {
     display: none;
+    max-width: none; /* history uses full width for grids */
   }
   .timrx-3dprint .ws-right.mob-active {
     display: flex;
@@ -1907,20 +1913,73 @@
   pointer-events: none;
 }
 
+/* ==========================================================================
+   TABLET CONTROL PANEL ADJUSTMENTS (≤1024px)
+   Tighter cards, compact grids, touch-friendly targets
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* --- Card compaction --- */
+  .timrx-3dprint .card {
+    padding: 12px 14px;
+  }
+  .timrx-3dprint .card h3 {
+    font-size: 11px;
+  }
+  .timrx-3dprint .pane-stack {
+    gap: 6px;
+  }
+
+  /* --- Remesh presets grid: compact 2-col --- */
+  .remesh-presets {
+    gap: 6px;
+  }
+  .remesh-preset {
+    padding: 10px 6px;
+    gap: 3px;
+  }
+  .remesh-preset__icon {
+    width: 18px;
+    height: 18px;
+  }
+  .remesh-preset__name {
+    font-size: 11px;
+  }
+  .remesh-preset__desc {
+    font-size: 9px;
+  }
+
+  /* --- Advanced toggle --- */
+  .remesh-advanced-toggle {
+    padding: 8px 0;
+    font-size: 12px;
+  }
+
+  /* --- Material chips (Texture panel) --- */
+  .material-chips {
+    gap: 5px;
+  }
+  .material-chip {
+    padding: 6px 11px;
+    font-size: 10px;
+  }
+
+  /* --- Viewer action bar --- */
+  .viewer-action-bar {
+    bottom: 12px;
+    padding: 5px;
+  }
+  .vab-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 768px) {
   .remesh-presets {
     grid-template-columns: 1fr 1fr;
     gap: 6px;
   }
   .remesh-preset {
-    padding: 10px 6px;
-  }
-  .viewer-action-bar {
-    bottom: 12px;
-    padding: 5px;
-  }
-  .vab-btn {
-    padding: 7px 12px;
-    font-size: 12px;
+    padding: 8px 5px;
   }
 }

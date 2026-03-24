@@ -965,7 +965,7 @@
     animation: expandedThumbEnter 0.35s ease-out forwards;
   }
   
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     .expanded-thumbs-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
@@ -2019,7 +2019,7 @@
     }
   
     /* Small screens – single column, tools rail becomes a horizontal bar */
-    @media (max-width: 980px) {
+    @media (max-width: 1024px) {
       .timrx-3dprint .ws-grid {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -3384,7 +3384,7 @@
   .history-video-grid .history-thumb--video:nth-child(12) { animation-delay: 0.36s; }
   
   /* Responsive: 4 columns on tablets */
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     .history-video-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
@@ -3467,7 +3467,7 @@
   }
   
   /* Responsive: 4 columns on tablets */
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     .history-image-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
@@ -3628,7 +3628,7 @@
     }
   
     /* Responsive: 4 columns on tablets */
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
       .history-collection__thumbs {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
@@ -4094,9 +4094,9 @@
   }
   
   /* ==========================================================================
-     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤980px)
+     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤1024px)
      ========================================================================== */
-  @media (max-width: 980px) {
+  @media (max-width: 1024px) {
     .timrx-3dprint .ws-right {
       display: none;
       padding: 0 4px;

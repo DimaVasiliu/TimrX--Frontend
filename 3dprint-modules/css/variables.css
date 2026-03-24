@@ -137,8 +137,8 @@ body.print3d-page > .nav {
   display: none !important;
 }
 
-/* Mobile — unlock scroll */
-@media (max-width: 980px) {
+/* Mobile / Tablet — unlock scroll */
+@media (max-width: 1024px) {
   .timrx-3dprint,
   body.print3d-page {
     height: auto;

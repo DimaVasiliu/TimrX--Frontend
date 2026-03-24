@@ -1269,16 +1269,7 @@ textarea {
   border-radius: 5px;
 }
 
-@media (max-width: 640px) {
-  .video-settings-grid {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .video-grid-cell:nth-child(3) {
-    justify-content: flex-start;
-  }
-}
+/* Video grid 1-column now handled by the ≤1024px tablet block at the end of this file */
 
 /* ===== VIDEO TAB COMPACT LAYOUT ===== */
 
@@ -1562,8 +1553,12 @@ textarea {
 .vs-motion-trigger .vs-label {
   margin: 0;
   padding: 0;
-  flex: 0 0 auto;
-  font-size: 12px;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .vs-motion-value {
   flex: 1;
@@ -2870,4 +2865,181 @@ body.print3d-page > .discord-share-overlay.show .discord-share-card {
 }
 .video-gallery-btn:hover svg {
   opacity: 0.8;
+}
+
+/* ==========================================================================
+   TABLET COMPONENT ADJUSTMENTS (≤1024px)
+   Compact form elements, better touch targets, reduced whitespace
+   ========================================================================== */
+@media (max-width: 1024px) {
+
+  /* --- Form fields: tighter layout --- */
+  .form-field {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .form-field label {
+    flex: 0 0 35%;
+    max-width: 140px;
+    font-size: 11px;
+  }
+
+  /* --- Textareas: shorter on tablet --- */
+  textarea {
+    min-height: 80px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  /* --- Inline fields: compact selects --- */
+  .timrx-3dprint .card .inline-field select,
+  .timrx-3dprint .card .inline-field input[type="text"],
+  .timrx-3dprint .card .inline-field input[type="number"] {
+    min-width: 110px;
+    max-width: 150px;
+  }
+
+  /* --- Tab buttons (Text to 3D / Image to 3D / Multi-Image) --- */
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  /* --- Segment groups (Off/Auto/On, CC BY/Private) --- */
+  .segment {
+    padding: 8px 8px;
+    font-size: 11px;
+  }
+
+  /* --- Generation footer --- */
+  .gen-footer-card {
+    padding: 14px 16px !important;
+  }
+  .gen-meta {
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .gen-btn {
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+  .gen-btn-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* --- Selects --- */
+  .field-select-inline {
+    font-size: 11px;
+    padding: 6px 26px 6px 10px;
+  }
+
+  /* --- Stepper inputs --- */
+  .stepper-input {
+    gap: 4px;
+  }
+
+  /* --- Hints --- */
+  .field-hint,
+  .hint-text {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* ─── VIDEO TAB ─── */
+
+  /* Video header card */
+  .video-header-card {
+    padding: 12px 14px !important;
+  }
+
+  /* Provider switcher: compact pills */
+  .video-provider-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  /* Mode switcher */
+  .video-mode-switcher {
+    margin-bottom: 10px;
+  }
+  .video-mode-btn {
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+
+  /* Video image grid compact: smaller and centered */
+  .video-image-grid.compact {
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+  }
+  .video-image-grid.compact .video-drop-zone {
+    width: 72px;
+    height: 72px;
+    padding: 8px;
+    border-radius: 8px;
+  }
+  .video-image-grid.compact .video-drop-zone svg {
+    width: 18px;
+    height: 18px;
+  }
+  .video-image-grid.compact .video-drop-zone span {
+    font-size: 10px;
+  }
+  .video-image-grid.compact .video-preview-wrap {
+    height: 72px;
+    border-radius: 8px;
+  }
+
+  /* Video transition grid (start → end) */
+  .video-transition-grid {
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Video settings grid: 1 column */
+  .video-settings-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .video-grid-cell:nth-child(3) {
+    justify-content: flex-start;
+  }
+
+  /* VS output settings grid: compact */
+  .vs-settings-grid {
+    gap: 10px;
+  }
+  .vs-setting select {
+    padding: 8px 24px 8px 10px;
+    font-size: 12px;
+  }
+  .vs-section {
+    margin-bottom: 10px;
+  }
+
+  /* Video motion trigger */
+  .vs-motion-trigger {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  /* ─── ANIMATE TAB ─── */
+
+  /* Animation library grid: smaller cards */
+  #animLibraryGrid2 {
+    max-height: 260px;
+  }
+
+  /* Quick animation chips */
+  #animQuickChips {
+    gap: 5px;
+  }
 }
