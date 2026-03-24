@@ -1776,8 +1776,17 @@ window.addEventListener('DOMContentLoaded', () => {
     // ── Phase 3: Resume any pending jobs (credits + history ready) ──
     await API.resumePendingJobs({ skipEmptyUI: true });
 
-    // After login/restore/identity swap, re-run job recovery for the new identity
+    // After login/restore/identity swap, re-run job recovery for the new identity.
+    // The identity_changed event also fires on first bootstrap (null → realId);
+    // skip that initial fire since resumePendingJobs just ran above.
+    let startupRecoveryDone = true;
     window.addEventListener('timrx:identity_changed', () => {
+      if (startupRecoveryDone) {
+        // Skip the first fire — it's the initial null→realId transition
+        // that happens when /api/me returns during this same startup.
+        startupRecoveryDone = false;
+        return;
+      }
       log('[Recovery] Identity changed — re-running job recovery');
       API.resumePendingJobs({ skipEmptyUI: true });
     });

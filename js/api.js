@@ -5811,7 +5811,7 @@ export async function evolveFromHistory(item, count = 2) {
  */
 async function fetchActiveJobsFromBackend() {
   try {
-    const result = await apiFetch('/api/jobs/active');
+    const result = await apiFetch('/api/jobs/active', { timeout: 8000 });
     if (!result.ok) return null;
     const jobs = result.data?.jobs;
     return Array.isArray(jobs) ? jobs : [];
@@ -5908,7 +5908,20 @@ function _inferStrategyFromStage(stage) {
  * 4. Fall back to history scan if backend is unreachable
  * 5. Start watchers with built-in dedup (watchers.has() check)
  */
+let _resumeInFlight = null;
 export async function resumePendingJobs(options = {}) {
+  // Single-flight guard: the identity_changed event fires on first
+  // WalletStore update (null→realId), which overlaps with the explicit
+  // Phase 3 call in main.js.  Coalesce into one backend fetch.
+  if (_resumeInFlight) {
+    log('[Recovery] resumePendingJobs already in flight, returning existing promise');
+    return _resumeInFlight;
+  }
+  _resumeInFlight = _doResumePendingJobs(options);
+  try { return await _resumeInFlight; } finally { _resumeInFlight = null; }
+}
+
+async function _doResumePendingJobs(options = {}) {
   const { skipEmptyUI = false } = options;
 
   // ── Step 1: Fetch active jobs from backend (source of truth) ──

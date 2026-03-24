@@ -4838,47 +4838,17 @@
   // UPDATED INIT: Also update secure credits UI
   // ─────────────────────────────────────────────────────────────
 
-  // Modify fetchWallet to also update email state
-  const originalFetchWallet = fetchWallet;
-
-  // Wrap fetchWallet to update secure credits UI
-  async function fetchWalletAndUpdateUI() {
-    const result = await originalFetchWallet();
-
-    // Update email state from latest /api/me response
-    // (userEmail is already set in originalFetchWallet)
-    // We need to track email_verified separately
-    try {
-      const meResult = await apiFetch('/api/me');
-      if (meResult.ok && meResult.data?.ok) {
-        userEmail = meResult.data.email || '';
-        emailVerified = meResult.data.email_verified || false;
-        updateSecureCreditsUI();
-      }
-    } catch (err) {
-      console.warn('[Credits] Failed to update email state:', err);
+  // Initial secure credits UI update.
+  // Email state is already available from the workspace-credits bootstrap
+  // (/api/me via initCredits → fetchWallet) which writes to WalletStore.
+  // We read from WalletStore instead of making a duplicate /api/me call.
+  setTimeout(() => {
+    const snap = WalletStore.getSnapshot();
+    if (snap.email !== null || snap.emailVerified) {
+      userEmail = snap.email || '';
+      emailVerified = snap.emailVerified || false;
     }
-
-    return result;
-  }
-
-  // Initial secure credits UI update
-  // This happens after the first fetchWallet call
-  setTimeout(async () => {
-    try {
-      const meResult = await apiFetch('/api/me');
-      if (meResult.ok && meResult.data?.ok) {
-        userEmail = meResult.data.email || '';
-        emailVerified = meResult.data.email_verified || false;
-        updateSecureCreditsUI();
-      }
-    } catch (err) {
-      console.warn('[Credits] Failed to get email state:', err);
-      updateSecureCreditsUI(); // Still update to show state 1
-    }
-
-    // Also fetch subscription status
-    await fetchSubscription();
+    updateSecureCreditsUI();
   }, 500);
 
   // ─────────────────────────────────────────────────────────────
