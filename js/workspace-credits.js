@@ -22,7 +22,7 @@ let walletFetchInFlight = null;
 let refreshInFlight = null;
 let pendingRetry = false; // Flag for window.focus retry
 let lastRefreshTime = 0; // Track last refresh for visibility/focus throttling
-const MIN_REFRESH_INTERVAL_MS = 5000; // Don't refresh more than once per 5s
+const MIN_REFRESH_INTERVAL_MS = 30000; // Don't refresh more than once per 30s (reduces DB pressure)
 
 // ============================================================================
 // STATE

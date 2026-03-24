@@ -3147,9 +3147,9 @@
   //   - credits panel open (fetchWallet call in openSecureCredits)
   //   - any explicit user action that needs fresh data
 
-  // Refresh wallet periodically (every 60 seconds)
-  // First tick at 60s gives workspace-credits time to populate first.
-  setInterval(fetchWallet, 60000);
+  // Refresh wallet periodically (every 2 minutes to reduce DB pressure).
+  // workspace-credits.js handles the primary /api/me fetch on startup.
+  setInterval(fetchWallet, 120000);
 
   // Handle checkout return (check URL params)
   const urlParams = new URLSearchParams(window.location.search);
