@@ -1185,12 +1185,12 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
   let notFoundAttempts = 0;
 
   // Polling safety: max attempts and error tracking
-  // Adaptive polling: 3s for first 30s (catch quick failures), then 8s steady state.
-  // 3D generation takes 1-5 minutes — sub-second polls are wasteful.
+  // Adaptive polling: 5s for first 30s (catch quick failures), then 10s steady state.
+  // 3D generation takes 1-5 minutes — frequent polls waste DB connections.
   const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 3000;       // 3s — catch early failures quickly
-  const STEADY_DELAY = 8000;        // 8s — steady state during generation
+  const INITIAL_DELAY = 5000;       // 5s — catch early failures quickly
+  const STEADY_DELAY = 10000;       // 10s — steady state during generation
   const RAMP_UP_AFTER = 30000;      // switch to steady after 30s elapsed
   const pollStartedAt = Date.now();
   let pollAttempts = 0;
@@ -1453,8 +1453,8 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
   // Polling safety: adaptive timing to reduce DB pressure
   const MAX_POLL_ATTEMPTS = 120;
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 3000;
-  const STEADY_DELAY = 8000;
+  const INITIAL_DELAY = 5000;
+  const STEADY_DELAY = 10000;
   const RAMP_UP_AFTER = 30000;
   const pollStartedAt = Date.now();
   let pollAttempts = 0;
@@ -3833,19 +3833,21 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
   // meta.video_uuid is set by the initial dispatch; falls back to jobId for recovery polls.
   const videoUuid = meta.video_uuid || State.getHistory().find(x => x.id === jobId)?.video_id || jobId;
 
-  // D2: Exponential backoff — start at 2s, cap at 15s
+  // D2: Exponential backoff — start at 5s, cap at 15s
   // 55 min frontend budget — backend Seedance preview can take 30 min pending
   // + fallback to fast adds another 20 min worst case
-  const INITIAL_INTERVAL = 2000;
+  const INITIAL_INTERVAL = 5000;
   const MAX_INTERVAL = 15000;
   const MAX_ELAPSED_MS = 55 * 60 * 1000;
+  const MAX_CONSECUTIVE_ERRORS = 5;
   let interval = INITIAL_INTERVAL;
   let elapsed = 0;
+  let consecutiveErrors = 0;
 
   while (elapsed < MAX_ELAPSED_MS) {
     await new Promise(r => setTimeout(r, interval));
     elapsed += interval;
-    // Backoff: double every poll, capped at MAX_INTERVAL
+    // Backoff: increase every poll, capped at MAX_INTERVAL
     interval = Math.min(interval * 1.3, MAX_INTERVAL);
 
     try {
@@ -3864,9 +3866,25 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
           renderHistory();
           return;
         }
-        console.warn('[Video] Status check failed:', result.error);
+        consecutiveErrors++;
+        console.warn(`[Video] Status check failed (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}):`, result.error);
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error('[Video] Too many consecutive errors, stopping poll for', jobId);
+          State.updateHistoryItem(jobId, {
+            status: 'failed',
+            status_label: 'Video status unavailable — check history later',
+            type: 'video'
+          });
+          State.removeActiveJob(jobId);
+          renderHistory();
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          return;
+        }
         continue;
       }
+
+      // Reset on success
+      consecutiveErrors = 0;
 
       const data = result.data;
       const status = data.status;
@@ -5213,8 +5231,8 @@ export function watchRigJob(job_id) {
  */
 function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 3000;
-  const STEADY_DELAY = 8000;
+  const INITIAL_DELAY = 5000;
+  const STEADY_DELAY = 10000;
   const RAMP_UP_AFTER = 30000;
   let consecutiveErrors = 0;
 
@@ -5564,8 +5582,8 @@ export function watchAnimationJob(job_id) {
  */
 function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
   const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 3000;
-  const STEADY_DELAY = 8000;
+  const INITIAL_DELAY = 5000;
+  const STEADY_DELAY = 10000;
   const RAMP_UP_AFTER = 30000;
   let consecutiveErrors = 0;
 
