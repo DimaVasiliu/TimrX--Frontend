@@ -3139,10 +3139,16 @@
   // Initialize
   // ─────────────────────────────────────────────────────────────
 
-  // Fetch wallet on load
-  fetchWallet();
+  // NOTE: Do NOT call fetchWallet() here at module load.
+  // workspace-credits.js initCredits() already fetches /api/me on startup.
+  // A duplicate /api/me doubles DB pool pressure during page load.
+  // This module's wallet data refreshes on:
+  //   - 60s interval (below)
+  //   - credits panel open (fetchWallet call in openSecureCredits)
+  //   - any explicit user action that needs fresh data
 
   // Refresh wallet periodically (every 60 seconds)
+  // First tick at 60s gives workspace-credits time to populate first.
   setInterval(fetchWallet, 60000);
 
   // Handle checkout return (check URL params)
@@ -5314,8 +5320,9 @@
     }
   }
 
-  // Load subscription summary on page load (after wallet)
-  setTimeout(() => loadSubscriptionSummary(), 500);
+  // Load subscription summary after essential startup requests complete.
+  // Delayed 3s to avoid competing with auth/wallet/history for pool connections.
+  setTimeout(() => loadSubscriptionSummary(), 3000);
 
   // ─────────────────────────────────────────────────────────────
   // MANAGE SUBSCRIPTION MODAL (standalone, opened from pill)
