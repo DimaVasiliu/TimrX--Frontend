@@ -363,13 +363,14 @@ async function migrateOldHistory() {
 /**
  * Load history from database API
  */
-// Per-tab pagination state — each filter type has its own cache/offset/hasMore.
+// Per-tab pagination state — each filter type has its own cache/cursor/hasMore.
 // "all" is the default tab; "image", "video", "model" are the media tabs.
+// nextCursor is an opaque base64 string from the backend; nextOffset is legacy fallback.
 const _tabState = {
-  all:   { items: null, hasMore: false, nextOffset: 0, loading: false },
-  image: { items: null, hasMore: false, nextOffset: 0, loading: false },
-  video: { items: null, hasMore: false, nextOffset: 0, loading: false },
-  model: { items: null, hasMore: false, nextOffset: 0, loading: false },
+  all:   { items: null, hasMore: false, nextCursor: null, nextOffset: 0, loading: false },
+  image: { items: null, hasMore: false, nextCursor: null, nextOffset: 0, loading: false },
+  video: { items: null, hasMore: false, nextCursor: null, nextOffset: 0, loading: false },
+  model: { items: null, hasMore: false, nextCursor: null, nextOffset: 0, loading: false },
 };
 
 function _currentTab() { return historyState.filter || 'all'; }
@@ -385,16 +386,17 @@ export function historyLoadingMore() { return _ts(_currentTab()).loading; }
  */
 function _parseHistoryResponse(data) {
   if (data && data.ok && Array.isArray(data.items)) {
-    // New paginated format
+    // New paginated format (supports cursor + legacy offset)
     return {
       items: data.items,
       hasMore: !!data.has_more,
+      nextCursor: data.next_cursor || null,
       nextOffset: data.next_offset ?? 0,
     };
   }
   // Legacy: bare array
   const items = Array.isArray(data) ? data : [];
-  return { items, hasMore: false, nextOffset: 0 };
+  return { items, hasMore: false, nextCursor: null, nextOffset: 0 };
 }
 
 export async function loadHistoryFromDB() {
@@ -427,10 +429,11 @@ export async function loadHistoryFromDB() {
           const ts = _ts('all');
           ts.items = page.items;
           ts.hasMore = page.hasMore;
+          ts.nextCursor = page.nextCursor;
           ts.nextOffset = page.nextOffset;
           saveHistoryCache(historyCache);
           log('History loaded from DB:', historyCache.length, 'items',
-            ts.hasMore ? `(has_more, next=${ts.nextOffset})` : '(all loaded)',
+            ts.hasMore ? `(has_more, cursor=${ts.nextCursor ? 'yes' : 'no'})` : '(all loaded)',
             attempt > 1 ? '(retry succeeded)' : '');
           return historyCache;
         } catch (err) {
@@ -483,6 +486,7 @@ export async function loadHistoryTab(tab) {
     const page = _parseHistoryResponse(result.data);
     ts.items = page.items;
     ts.hasMore = page.hasMore;
+    ts.nextCursor = page.nextCursor;
     ts.nextOffset = page.nextOffset;
     log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}`);
     return ts.items;
@@ -503,15 +507,19 @@ export async function loadMoreHistory() {
   const tab = _currentTab();
   const ts = _ts(tab);
 
-  if (ts.loading || !ts.hasMore || !ts.nextOffset) {
+  if (ts.loading || !ts.hasMore) {
     return [];
   }
 
   ts.loading = true;
   try {
     const typeParam = tab === 'all' ? 'all' : tab;
+    // Prefer cursor-based pagination (avoids OFFSET row-scan); fall back to offset
+    const paginationParam = ts.nextCursor
+      ? `cursor=${encodeURIComponent(ts.nextCursor)}`
+      : `offset=${ts.nextOffset}`;
     const result = await apiFetch(
-      `/api/_mod/history?limit=${HISTORY_LIMIT}&offset=${ts.nextOffset}&type=${typeParam}`
+      `/api/_mod/history?limit=${HISTORY_LIMIT}&${paginationParam}&type=${typeParam}`
     );
     if (!result.ok) {
       console.warn(`[History] loadMore(${tab}) failed:`, result.error);
@@ -533,6 +541,7 @@ export async function loadMoreHistory() {
       ts.items = newItems;
     }
     ts.hasMore = page.hasMore;
+    ts.nextCursor = page.nextCursor;
     ts.nextOffset = page.nextOffset;
 
     // Also update the global historyCache if this is the "all" tab
@@ -576,6 +585,7 @@ export function invalidateTabCaches() {
     if (key !== 'all') {
       _tabState[key].items = null;
       _tabState[key].hasMore = false;
+      _tabState[key].nextCursor = null;
       _tabState[key].nextOffset = 0;
     }
   }
@@ -755,6 +765,7 @@ export async function forceRestoreFromDB() {
     const page = _parseHistoryResponse(result.data);
     const ts = _ts('all');
     ts.hasMore = page.hasMore;
+    ts.nextCursor = page.nextCursor;
     ts.nextOffset = page.nextOffset;
     ts.items = page.items;
     // Also invalidate media tab caches so they re-fetch with fresh data

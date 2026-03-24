@@ -1545,7 +1545,25 @@ function _renderHistoryImpl() {
     banner.className = 'history-load-more';
     banner.setAttribute('role', 'status');
 
+    const _triggerLoadMore = async () => {
+      // Prevent double-trigger
+      if (banner.dataset.loading === '1') return;
+      banner.dataset.loading = '1';
+      banner.innerHTML = `
+        <div class="history-load-more__inner">
+          <div class="history-load-more__spinner"></div>
+          <span>Loading more generations…</span>
+        </div>`;
+      const added = await loadMoreHistory();
+      if (added.length > 0) {
+        renderHistory();
+      } else {
+        banner.remove();
+      }
+    };
+
     if (isLoadingMore) {
+      banner.dataset.loading = '1';
       banner.innerHTML = `
         <div class="history-load-more__inner">
           <div class="history-load-more__spinner"></div>
@@ -1558,22 +1576,20 @@ function _renderHistoryImpl() {
             Load more generations
           </button>
         </div>`;
-      banner.querySelector('.history-load-more__btn').addEventListener('click', async () => {
-        // Show loading state immediately
-        banner.innerHTML = `
-          <div class="history-load-more__inner">
-            <div class="history-load-more__spinner"></div>
-            <span>Loading more generations…</span>
-          </div>`;
-        const added = await loadMoreHistory();
-        if (added.length > 0) {
-          // Re-render with the expanded cache — pagination recalculates
-          renderHistory();
-        } else {
-          // No more items — remove the banner
-          banner.remove();
-        }
-      });
+      banner.querySelector('.history-load-more__btn').addEventListener('click', _triggerLoadMore);
+
+      // Infinite scroll: auto-load when banner enters the viewport.
+      // Uses IntersectionObserver with a 200px rootMargin so the fetch
+      // starts before the user reaches the very bottom.
+      if (typeof IntersectionObserver !== 'undefined') {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0]?.isIntersecting) {
+            observer.disconnect();
+            _triggerLoadMore();
+          }
+        }, { rootMargin: '200px' });
+        observer.observe(banner);
+      }
     }
     grid.appendChild(banner);
   }
