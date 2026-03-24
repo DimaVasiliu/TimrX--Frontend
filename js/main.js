@@ -1683,6 +1683,9 @@ window.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   // CREDITS: Initialize IMMEDIATELY - must not depend on Three.js
   // =========================================================================
+  // Phase 1: /api/me bootstraps identity + wallet (single request).
+  // Phase 2: action-costs + history load after /api/me settles, so the
+  //          critical auth bootstrap gets a clear pool lane.
   const creditsPromise = Credits.initCredits().catch(e => {
     console.error('Credits init failed:', e);
   });
@@ -1720,7 +1723,17 @@ window.addEventListener('DOMContentLoaded', () => {
       console.error('Gallery wire failed:', e);
     }
 
-    // Load history from database and render
+    // ── Phase 2: wait for /api/me to complete, then load history ──
+    // Rendering cached history is instant (no network), so do it first
+    // for perceived performance while we wait for the bootstrap request.
+    renderHistory();
+
+    // Wait for credits/identity bootstrap before hitting more endpoints.
+    // This prevents history + action-costs from racing /api/me for pool
+    // connections during the critical first 500ms.
+    await creditsPromise;
+
+    // Load history from database (session now confirmed)
     try {
       await State.loadHistoryFromDB();
       renderHistory();
@@ -1760,10 +1773,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Hide progress initially
     UI.showOutputEmpty();
 
-    // Ensure credits are loaded before resuming jobs (they may need credit checks)
-    await creditsPromise;
-
-    // Resume any pending jobs
+    // ── Phase 3: Resume any pending jobs (credits + history ready) ──
     await API.resumePendingJobs({ skipEmptyUI: true });
 
     // After login/restore/identity swap, re-run job recovery for the new identity

@@ -21,7 +21,7 @@ const VIDEO_CREDITS_CACHE_KEY = 'timrx_video_credits_last';
 let walletFetchInFlight = null;
 let refreshInFlight = null;
 let pendingRetry = false; // Flag for window.focus retry
-let lastRefreshTime = 0; // Track last refresh for visibility/focus throttling
+let lastRefreshTime = Date.now(); // Initialise to "now" so the first focus/visibility event doesn't race with initCredits()
 const MIN_REFRESH_INTERVAL_MS = 30000; // Don't refresh more than once per 30s (reduces DB pressure)
 
 // ============================================================================
@@ -513,11 +513,18 @@ export async function initCredits() {
   creditsState.error = null;
 
   try {
-    // Fetch both in parallel
-    await Promise.all([
-      fetchWallet(),
-      fetchActionCosts(),
-    ]);
+    // Phase 1: /api/me first — bootstraps identity, wallet, session.
+    // Must land before anything else so the backend pool serves the
+    // critical auth request with no contention.
+    await fetchWallet();
+
+    // Phase 2: action-costs after wallet settles.
+    // Non-blocking: don't let a slow/failed costs fetch block the
+    // rest of startup (costs are cached in-module and have hardcoded
+    // fallbacks via defaultActionCosts).
+    fetchActionCosts().catch(err => {
+      log('[Credits] Action costs fetch failed (non-blocking):', err.message);
+    });
 
     creditsState.loaded = true;
     log('[Credits] Initialization complete');

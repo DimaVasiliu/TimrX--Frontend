@@ -11,7 +11,7 @@ import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getCo
 // ============================================================================
 const HISTORY_CACHE_KEY = 'meshy_history_cache';
 const HISTORY_OWNER_KEY = 'meshy_history_owner';
-export const HISTORY_LIMIT = 500;
+export const HISTORY_LIMIT = 50;  // Initial page — keeps first-load query light (was 500)
 export const MAX_DATA_URI_LEN = 50000;
 
 // In-memory cache for history (populated from DB)
