@@ -918,8 +918,34 @@
   function loadOnce() {
     if (_loaded) return;
     _loaded = true;
-    loadFeatured();
-    load('all', 0, false);
+    // Single fetch for both featured carousel and main grid.
+    // Featured uses the first FEATURED_SIZE posts from the same response,
+    // avoiding a duplicate /api/_mod/community/feed request.
+    load('all', 0, false).then(() => {
+      // Populate featured from the already-cached posts
+      if (featuredTrack && allPostsCache.length > 0) {
+        featuredPosts = allPostsCache.slice(0, FEATURED_SIZE).filter(p => !isExcludedPost(p));
+        if (featuredPosts.length > 0) {
+          featuredTrack.innerHTML = featuredPosts.map(p => buildFeaturedCard(p)).join('');
+          wireVideoAutoplay(featuredTrack);
+          wireImageReveal(featuredTrack);
+          if (featuredSection) featuredSection.hidden = false;
+          // Wire click handlers for featured cards
+          featuredTrack.addEventListener('click', e => {
+            const card = e.target.closest('.ccg-featured__card[data-post-id]');
+            if (!card) return;
+            const postId = card.dataset.postId;
+            const post = featuredPosts.find(p => String(p.id) === postId);
+            if (post) openDetailView(post);
+          });
+        } else if (featuredSection) {
+          featuredSection.hidden = true;
+        }
+      }
+    }).catch(() => {
+      // Main grid load failed — loadFeatured as independent fallback
+      loadFeatured();
+    });
   }
 
   function init() {
