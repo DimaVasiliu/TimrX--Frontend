@@ -1653,11 +1653,17 @@
       console.log('[Inspire] Rendered cached content');
     }
 
-    // Load the full pool. Always delay the API fetch to avoid competing
-    // with essential auth/wallet/history requests during page startup.
-    // History settles at ~T+2-3s, so 4-5s delay keeps inspire out of the burst.
-    const poolDelay = hasContentReady ? 5000 : 4000;
-    const poolLoader = new Promise(r => setTimeout(r, poolDelay)).then(() => ensurePoolLoaded());
+    // Load the full pool AFTER critical startup (auth/history/wallet/jobs)
+    // completes. main.js dispatches 'timrx:startup-complete' when Phase 3
+    // finishes. We wait for that signal (with a 6s fallback if it never
+    // fires) plus a short additional delay so inspire doesn't immediately
+    // compete with the first user interaction.
+    const poolLoader = new Promise(resolve => {
+      let resolved = false;
+      const go = () => { if (!resolved) { resolved = true; resolve(); } };
+      window.addEventListener('timrx:startup-complete', () => setTimeout(go, 1500), { once: true });
+      setTimeout(go, 8000); // fallback if startup-complete never fires
+    }).then(() => ensurePoolLoaded());
     const poolLoadPromise = poolLoader.then(success => {
       if (success && INSPIRE_POOL.length > 0) {
         // If no cards were rendered yet, show from pool

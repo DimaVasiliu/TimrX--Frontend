@@ -1814,6 +1814,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // ── Phase 3: Resume any pending jobs (credits + history ready) ──
     await API.resumePendingJobs({ skipEmptyUI: true });
 
+    // Signal that critical startup is complete. Secondary modules (inspire,
+    // community, subscription summary) listen for this to avoid competing
+    // with auth/history/wallet for pool connections.
+    window.dispatchEvent(new Event('timrx:startup-complete'));
+
     // After login/restore/identity swap, re-run job recovery for the new identity.
     // Use a timestamp guard: skip identity_changed events within 15s of startup
     // (the initial null→realId bootstrap transition), and also prevent rapid-fire
