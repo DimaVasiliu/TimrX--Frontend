@@ -1391,7 +1391,12 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
 
       if (st.message) prog.label(st.message);
       if (typeof st.pct === 'number') {
-        const pct = Math.min(98, Math.max(0, st.pct));
+        // Meshy often reports 0% throughout generation, then jumps to 100.
+        // Simulate progress based on elapsed time so the user sees movement.
+        // Preview typically takes 1-3 minutes; ramp to 85% over 2 minutes.
+        const elapsed = Date.now() - pollStartedAt;
+        const simulated = Math.min(85, Math.floor((elapsed / 120000) * 85));
+        const pct = Math.min(98, Math.max(simulated, st.pct));
         prog.jump(pct);
         updateThumbnailProgress(job_id, pct);
       }
@@ -1474,6 +1479,10 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           prog.jump(99, 'Downloading model...');
           await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
           prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
+          // Re-render after async model load to ensure the card shows
+          // the finished thumbnail (the microtask render before the await
+          // may have been blocked or dropped by rapid state changes).
+          renderHistory();
         } else {
           prog.clear();
         }
