@@ -4952,18 +4952,22 @@
   // UPDATED INIT: Also update secure credits UI
   // ─────────────────────────────────────────────────────────────
 
-  // Initial secure credits UI update.
-  // Email state is already available from the workspace-credits bootstrap
-  // (/api/me via initCredits → fetchWallet) which writes to WalletStore.
-  // We read from WalletStore instead of making a duplicate /api/me call.
-  setTimeout(() => {
+  // Update secure credits UI whenever WalletStore gets identity data.
+  // The timrx:wallet event fires on every WalletStore.update(), so this
+  // catches the Hub boot /api/me response, restore success, and any later
+  // refresh — without relying on a fixed timer that races the boot fetch.
+  function _syncBeaconFromStore() {
     const snap = WalletStore.getSnapshot();
-    if (snap.email !== null || snap.emailVerified) {
-      userEmail = snap.email || '';
-      emailVerified = snap.emailVerified || false;
-    }
+    // Only upgrade identity state, never downgrade (prevents anonymous boot
+    // event from overwriting a post-restore verified state).
+    if (snap.email && snap.email !== null) userEmail = snap.email;
+    if (snap.emailVerified) emailVerified = true;
     updateSecureCreditsUI();
-  }, 500);
+  }
+  window.addEventListener('timrx:wallet', _syncBeaconFromStore);
+  // Also run once after a short delay for the initial render (covers the case
+  // where WalletStore was already populated before this listener was attached).
+  setTimeout(_syncBeaconFromStore, 800);
 
   // ─────────────────────────────────────────────────────────────
   // Subscription Management
