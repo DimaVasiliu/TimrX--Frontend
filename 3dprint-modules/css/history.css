@@ -997,6 +997,10 @@
     outline-offset: 2px;
   }
   
+  .expanded-thumb.is-gallery-hidden {
+    display: none;
+  }
+  
   /* Image wrapper inside expanded thumbnail */
   .expanded-thumb__image {
     width: 100%;

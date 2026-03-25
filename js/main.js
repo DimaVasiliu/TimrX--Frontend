@@ -1149,11 +1149,8 @@ function wireGallery() {
         const thumbsGrid = grid.querySelector('.expanded-thumbs-grid');
         if (thumbsGrid) {
           thumbsGrid.querySelectorAll('.expanded-thumb').forEach(thumb => {
-            if (filterType === 'all') {
-              thumb.style.display = '';
-            } else {
-              thumb.style.display = thumb.getAttribute('data-asset-type') === filterType ? '' : 'none';
-            }
+            const hidden = filterType !== 'all' && thumb.getAttribute('data-asset-type') !== filterType;
+            thumb.classList.toggle('is-gallery-hidden', hidden);
           });
         }
         return;

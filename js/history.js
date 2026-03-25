@@ -1257,6 +1257,16 @@ function _renderHistoryImpl() {
   const activeJobs = typeof getActiveJobs === 'function' ? getActiveJobs() : [];
   const isLoading = Array.isArray(activeJobs) && activeJobs.length > 0;
 
+  // If a media tab hasn't fetched its own data yet, show a loading skeleton
+  // instead of rendering stale/empty fallback data from the global cache.
+  // The 'all' tab is always loaded first via loadHistoryFromDB(), so skip it.
+  if (historyState.filter !== 'all' && !historyTabLoaded()) {
+    grid.innerHTML = buildHistorySkeleton(2, 3);
+    if (pageLabel) pageLabel.textContent = 'Loading...';
+    [prevBtn, nextBtn, firstBtn, lastBtn].forEach(btn => btn?.setAttribute('disabled', ''));
+    return;
+  }
+
   const src = getFilteredHistory();
 
   // IMAGE FILTER - simple grid
@@ -1588,7 +1598,35 @@ function _renderHistoryImpl() {
       }
     }
   } else {
+    // Preserve which lineage collections are expanded before DOM rebuild.
+    // Without this, expanded collections snap back to collapsed on every
+    // poll tick or re-render (innerHTML destroys the is-expanded class).
+    const _expandedRoots = new Set();
+    grid.querySelectorAll('.history-collection.is-expanded').forEach(el => {
+      const root = el.dataset.lineageRoot;
+      if (root) _expandedRoots.add(root);
+    });
+
     grid.innerHTML = (skeletonMarkup || '') + timelineMarkup;
+
+    // Restore expanded state after rebuild
+    if (_expandedRoots.size) {
+      _expandedRoots.forEach(root => {
+        const collection = grid.querySelector(`.history-collection[data-lineage-root="${CSS.escape(root)}"]`);
+        if (!collection) return;
+        collection.classList.add('is-expanded');
+        const toggleBtn = collection.querySelector('[data-action="toggle-collection"]');
+        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+        // Inflate lazy <template> so the extra thumbs are visible
+        const tmpl = collection.querySelector('template.history-collection__thumbs-lazy');
+        if (tmpl) {
+          const extra = document.createElement('div');
+          extra.className = 'history-collection__thumbs-extra';
+          extra.innerHTML = tmpl.innerHTML;
+          tmpl.replaceWith(extra);
+        }
+      });
+    }
   }
 
   const serverHasMore = historyHasMore();
