@@ -534,9 +534,12 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const overlayVisible = hasVariants || (Math.max(1, parseInt(displayModel.batch_count, 10) || 1) > 1);
   // IMAGE TYPE
   if (itemType === 'image') {
-    const imgSrc = displayModel.thumbnail_url || displayModel.image_url || '';
+    // Use smallest available URL for card display (saves bandwidth),
+    // but always use full-quality URL for downloads and actions.
+    const thumbSrc = displayModel.thumbnail_url || displayModel.image_url || '';
+    const fullSrc = displayModel.image_url || displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
-    const imgCanDownload = !!imgSrc && _hasCredits;
+    const imgCanDownload = !!fullSrc && _hasCredits;
     const isImageFailed = status === 'failed';
 
     // Failed image card
@@ -593,7 +596,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   data-act="open"
                   data-id="${displayModel.id}"
                   aria-label="Open ${name}">
-            ${imgSrc ? `<img src="${imgSrc}" alt="${name}" loading="lazy">` : ''}
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : ''}
           </button>
         </div>
         ${isProcessing ? `
@@ -617,14 +620,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </button>
           <div class="card-menu" role="menu" aria-label="Image actions">
             <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${imgSrc}">
+              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}">
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127912;</span>
                   <span>Create 3D Model</span>
                 </span>
                 <span class="card-menu__arrow">></span>
               </button>
-              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${imgSrc}">
+              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}">
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127909;</span>
                   <span>Create Video</span>
@@ -632,7 +635,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span class="card-menu__badge">45c</span>
               </button>
               <div class="card-menu__divider"></div>
-              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${imgSrc}" ${!imgCanDownload ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#8595;</span>
                   <span>Download</span>

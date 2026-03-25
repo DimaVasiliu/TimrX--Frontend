@@ -2891,7 +2891,7 @@
     flex: 1;
     overflow: hidden;
     border-radius: 8px;
-    background: linear-gradient(135deg, #0a0e15 0%, #151922 100%);
+    background-color: #1a1a2e;
   }
   
   .history-thumb--image .history-thumb__image {
@@ -4258,3 +4258,4 @@
       display: none;
     }
   }
+  

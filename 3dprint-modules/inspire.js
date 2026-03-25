@@ -512,7 +512,7 @@
   // RENDER FUNCTIONS
   // =========================================================================
 
-  function renderCard(card) {
+  function renderCard(card, index) {
     const tags = card.tags || ['community'];
     const tagsHTML = tags.map(tag =>
       `<span class="inspire-card__tag ${tag}">${tag.replace('-', ' ')}</span>`
@@ -526,13 +526,25 @@
     const prompt = card.prompt || card.title || 'Untitled creation';
     const aspect = card.aspect || 'square';
 
+    // Map aspect to intrinsic dimensions so the browser can reserve space
+    // before the image loads (eliminates layout shift). Actual pixel values
+    // don't matter — the ratio does, combined with object-fit: cover CSS.
+    const dims = { landscape: { w: 320, h: 200 }, portrait: { w: 240, h: 320 }, square: { w: 280, h: 280 } };
+    const d = dims[aspect] || dims.square;
+
+    // First ~6 cards are above the fold — load eagerly with high priority
+    const isAboveFold = typeof index === 'number' && index < 6;
+    const loadAttr = isAboveFold ? '' : 'loading="lazy"';
+    const priorityAttr = isAboveFold ? 'fetchpriority="high"' : '';
+
     // Pure thumbnail-based cards - NO WebGL, NO Three.js
     // Store both thumbnail URLs in data attributes for hover swap
     const videoUrl = card.video_url || '';
 
-    // Model cards with refined: second <img> behind the main one for crossfade
+    // Model cards with refined: use data-src (NOT src) so the refined image
+    // only loads on first hover, cutting initial bandwidth nearly in half.
     const refinedLayer = (card.type === 'model' && hasRefine && thumbRefined)
-      ? `<img class="inspire-card__image-refined" src="${thumbRefined}" alt="" loading="lazy" decoding="async"/>`
+      ? `<img class="inspire-card__image-refined" data-src="${thumbRefined}" alt="" loading="lazy" decoding="async"/>`
       : '';
 
     // Video cards: inline <video> element for autoplay
@@ -552,7 +564,9 @@
           <img class="inspire-card__image"
                src="${thumbPreview}"
                alt="${prompt}"
-               loading="lazy"
+               width="${d.w}" height="${d.h}"
+               ${loadAttr}
+               ${priorityAttr}
                decoding="async"
                onload="(function(img){var c=img.closest('.inspire-card');if(!c)return;var r=img.naturalWidth/img.naturalHeight;var a=r>1.3?'landscape':r<0.77?'portrait':'square';c.classList.remove('landscape','portrait','square');c.classList.add(a)})(this)"
                onerror="this.closest('.inspire-card').style.display='none'"/>
@@ -776,6 +790,7 @@
       }
 
       // Update refined image layer (for model crossfade)
+      // Use data-src so refined image only loads on first hover (not eagerly).
       let refinedImg = el.querySelector('.inspire-card__image-refined');
       const thumbRefined = card.thumb_refined || '';
       if (card.type === 'model' && hasRefine && thumbRefined) {
@@ -786,7 +801,7 @@
           refinedImg.decoding = 'async';
           el.querySelector('.inspire-card__media').prepend(refinedImg);
         }
-        if (refinedImg.src !== thumbRefined) refinedImg.src = thumbRefined;
+        refinedImg.dataset.src = thumbRefined;
       } else if (refinedImg) {
         refinedImg.remove();
       }
@@ -1599,6 +1614,15 @@
       if (!img.dataset.originalSrc) {
         img.dataset.originalSrc = img.src;
       }
+
+      // Lazy-load the refined <img> layer on first hover (data-src → src).
+      // This defers ~50% of image bandwidth until user actually interacts.
+      const refinedImg = card.querySelector('.inspire-card__image-refined');
+      if (refinedImg && refinedImg.dataset.src && !refinedImg.src) {
+        refinedImg.src = refinedImg.dataset.src;
+        delete refinedImg.dataset.src;
+      }
+
       // Preload refined image before swapping to prevent flash
       await preloadImage(refined);
       // Only swap if still hovering (check card is still hovered)
