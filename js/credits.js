@@ -3139,18 +3139,35 @@
   // Initialize
   // ─────────────────────────────────────────────────────────────
 
-  // NOTE: Do NOT call fetchWallet() here at module load.
-  // workspace-credits.js initCredits() already fetches /api/me on startup.
-  // A duplicate /api/me doubles DB pool pressure during page load.
+  // ── Hub page boot: fetch wallet + subscription directly ──
+  // On the workspace page, workspace-credits.js handles /api/me and
+  // main.js dispatches timrx:startup-complete for subscription timing.
+  // But on hub.html, those modules don't load. So credits.js must
+  // bootstrap itself when it detects it's on the Hub page.
   //
-  // Periodic refresh is handled by workspace-credits.js visibility/focus
-  // handlers (refreshCredits → /api/credits/wallet, 30s throttle).
-  // That's sufficient — no need for a blind 2-minute interval that fires
-  // /api/me even when the tab is in the background.
-  // This module's wallet data refreshes on:
-  //   - tab focus/visibility (via workspace-credits.js)
-  //   - credits panel open (fetchWallet call in openSecureCredits)
-  //   - any explicit user action that needs fresh data
+  // Detection: hub.html sets creditsValue element but does NOT load
+  // workspace-credits.js or main.js.  We check for the absence of the
+  // workspace init flag to know we need to self-boot.
+  const _isWorkspace = typeof window.WorkspaceCredits !== 'undefined'
+    || document.querySelector('script[src*="workspace-credits"]') !== null
+    || document.getElementById('generateModelBtn') !== null;
+
+  if (!_isWorkspace && creditsValue) {
+    // Show loading state instead of "0"
+    creditsValue.textContent = '...';
+    console.log('[Credits][Hub] Self-booting: fetching /api/me for wallet');
+
+    // Fetch wallet immediately
+    fetchWallet().then(() => {
+      console.log('[Credits][Hub] Wallet fetched, pill updated');
+    }).catch(err => {
+      console.warn('[Credits][Hub] Wallet fetch failed:', err.message);
+      // Show 0 only if fetch actually failed
+      if (creditsValue.textContent === '...') {
+        creditsValue.textContent = '0';
+      }
+    });
+  }
 
   // Handle checkout return (check URL params)
   const urlParams = new URLSearchParams(window.location.search);
@@ -5291,10 +5308,9 @@
     }
   }
 
-  // Load subscription summary AFTER critical startup completes.
-  // main.js dispatches 'timrx:startup-complete' when auth/history/wallet/jobs
-  // are done. We wait for that + 2s buffer so subscriptions don't compete
-  // with inspire for pool connections. 8s fallback if event never fires.
+  // Load subscription summary after the wallet/auth bootstrap settles.
+  // On workspace: main.js dispatches 'timrx:startup-complete' after Phase 3.
+  // On Hub: that event never fires, so we use a shorter direct fallback.
   let _subSummaryScheduled = false;
   const _scheduleSubSummary = () => {
     if (_subSummaryScheduled) return;
@@ -5302,7 +5318,10 @@
     setTimeout(() => loadSubscriptionSummary(), 2000);
   };
   window.addEventListener('timrx:startup-complete', _scheduleSubSummary, { once: true });
-  setTimeout(_scheduleSubSummary, 8000); // fallback
+  // On Hub, wallet fetch takes ~200-700ms. Schedule subscription 2s after
+  // that completes, or 3s from page load (whichever is first).
+  const _hubFallbackMs = _isWorkspace ? 8000 : 3000;
+  setTimeout(_scheduleSubSummary, _hubFallbackMs);
 
   // ─────────────────────────────────────────────────────────────
   // MANAGE SUBSCRIPTION MODAL (standalone, opened from pill)
