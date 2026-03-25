@@ -1313,12 +1313,28 @@ function wireGallery() {
           alert('No image available to download.');
           return;
         }
-        const a = document.createElement('a');
-        a.href = imageUrl;
-        a.download = `${shortTitle(item)}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        // Fetch as blob to force download (a.download is ignored for cross-origin URLs)
+        try {
+          const resp = await fetch(imageUrl);
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `${shortTitle(item)}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+          console.warn('[Download] Blob fetch failed, falling back to direct link:', err);
+          const a = document.createElement('a');
+          a.href = imageUrl;
+          a.download = `${shortTitle(item)}.png`;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
         return;
       }
 
