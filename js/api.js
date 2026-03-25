@@ -6124,17 +6124,22 @@ async function _doResumePendingJobs(options = {}) {
         log(`[Recovery] Discovered job ${id} strategy=${strategy} (${job.action_code || ''})`);
       }
       // Ensure pendingMeta exists for watcher selection
+      const meta = job.meta || {};
       State.savePendingMeta(id, {
         stage,
         resume_strategy: strategy,
         type: stage === 'video' ? 'video' : stage === 'image' ? 'image' : 'model',
-        prompt: job.prompt || '',
-        root_prompt: job.prompt || '',
+        prompt: meta.prompt || job.prompt || '',
+        root_prompt: meta.root_prompt || meta.prompt || job.prompt || '',
         job_type: job.job_type || '',
         provider: job.provider || '',
         internal_job_id: job.id,
         provider_job_id: job.provider_job_id || job.upstream_job_id || null,
         created_at: job.created_at || null,
+        lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.source_task_id || null,
+        lineage_root_id: meta.lineage_root_id || meta.lineage_origin_id || meta.source_task_id || null,
+        source_task_id: meta.source_task_id || meta.preview_task_id || meta.rig_task_id || null,
+        thumbnail_url: meta.thumbnail_url || meta.source_thumbnail_url || '',
       });
     }
   } else if (backendJobs && backendJobs.length === 0) {
@@ -6193,7 +6198,9 @@ async function _doResumePendingJobs(options = {}) {
             prompt: item.prompt || '',
             root_prompt: item.root_prompt || item.prompt || '',
             title: item.title || '',
-            thumbnail_url: item.thumbnail_url || ''
+            thumbnail_url: item.thumbnail_url || '',
+            lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || null,
+            lineage_root_id: item.lineage_root_id || item.lineage_origin_id || null,
           });
         }
       });
@@ -6215,7 +6222,9 @@ async function _doResumePendingJobs(options = {}) {
         prompt: item.prompt || '',
         root_prompt: item.root_prompt || item.prompt || '',
         title: item.title || '',
-        thumbnail_url: item.thumbnail_url || ''
+        thumbnail_url: item.thumbnail_url || '',
+        lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || null,
+        lineage_root_id: item.lineage_root_id || item.lineage_origin_id || null,
       });
     }
     pendingMeta = State.getPendingMeta();
