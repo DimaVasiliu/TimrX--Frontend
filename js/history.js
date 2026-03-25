@@ -187,7 +187,7 @@ function groupByLineage(items = []) {
     const lineageKey = getLineageKey(item);
     const hasExplicitLineage = !!(item.lineage_origin_id || item.lineage_root_id);
     const fingerprint = itemPromptFingerprint(item);
-    const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 2;
+    const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 3;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
     const rootKey = (hasExplicitLineage ? lineageKey : '') || promptKey || lineageKey || String(item.id || '');
 
@@ -1050,18 +1050,17 @@ function _getItemAssetType(item) {
   return 'model';
 }
 
-function buildExpandedHistoryGallery(lineages = []) {
-  if (!lineages.length) return '';
-
+/**
+ * Build individual gallery card objects from lineages.
+ * Each card has { id, status, html } for surgical DOM patching.
+ */
+function _buildGalleryCards(lineages) {
   let globalIndex = 0;
-  const contentParts = [];
-
+  const cards = [];
   lineages.forEach((lineage, groupIndex) => {
     if (!lineage || !Array.isArray(lineage.models) || !lineage.models.length) return;
-
     const models = lineage.models.sort(compareHistoryModels);
     const bundles = buildLineageBundles(models);
-
     bundles.forEach((b, bundleIndex) => {
       const delay = globalIndex * 0.03;
       globalIndex++;
@@ -1070,14 +1069,30 @@ function buildExpandedHistoryGallery(lineages = []) {
       const thumbHtml = buildHistoryThumb(b, true);
       const isGroupStart = groupIndex > 0 && bundleIndex === 0;
       const groupClass = isGroupStart ? ' expanded-thumb--group-start' : '';
-      contentParts.push(
-        thumbHtml.replace(
-          /class="expanded-thumb/,
-          `style="animation-delay: ${delay}s" data-asset-type="${assetType}" class="expanded-thumb${groupClass}`
-        )
+      const html = thumbHtml.replace(
+        /class="expanded-thumb/,
+        `style="animation-delay: ${delay}s" data-asset-type="${assetType}" data-gid="${displayModel.id || ''}" class="expanded-thumb${groupClass}`
       );
+      cards.push({ id: displayModel.id || '', status: displayModel.status || 'finished', html });
     });
   });
+  return cards;
+}
+
+/**
+ * Check if existing gallery grid children match the expected card IDs.
+ * Used to decide whether we can patch in-place vs full rebuild.
+ */
+function _galleryIdsMatch(gridEl, cards) {
+  if (gridEl.children.length !== cards.length) return false;
+  for (let i = 0; i < cards.length; i++) {
+    if ((gridEl.children[i].dataset.gid || '') !== cards[i].id) return false;
+  }
+  return true;
+}
+
+function buildExpandedHistoryGallery(cards = []) {
+  if (!cards.length) return '';
 
   const filterBar = `
     <div class="expanded-filter-bar">
@@ -1093,7 +1108,7 @@ function buildExpandedHistoryGallery(lineages = []) {
     <div class="expanded-section" data-lineage-root="gallery-view">
       ${filterBar}
       <div class="expanded-thumbs-grid">
-        ${contentParts.join('')}
+        ${cards.map(c => c.html).join('')}
       </div>
     </div>
   `;
@@ -1418,13 +1433,12 @@ function _renderHistoryImpl() {
   }
 
   // MODEL/ALL FILTER - lineage grouping
-  // Filter out images when in 'all' filter and not in gallery mode.
-  // Images live in the dedicated Image tab; the "All" tab shows models + videos.
-  // Gallery (expanded) mode still shows everything.
+  // "All" tab (non-gallery) shows only models. Images and videos have their
+  // own dedicated tabs. Gallery (expanded) mode still shows everything.
   const srcForLineage = (historyState.filter === 'all' && !isGallery)
     ? src.filter(item => {
         const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
-        return type !== 'image';
+        return type === 'model';
       })
     : src;
   const lineages = groupByLineage(srcForLineage);
@@ -1500,13 +1514,31 @@ function _renderHistoryImpl() {
     const hiddenThumbsMarkup = hiddenBundles.map((b) => buildHistoryThumb(b, false)).join('');
     const lineageTitle = shortTitle(lineage.title || sortedModels[0] || '');
 
+    // Type breakdown for the count label (e.g. "3 models, 1 video" for mixed lineages)
+    const _typeCounts = {};
+    lineage.models.forEach(m => {
+      const t = m.type || (m.glb_url ? 'model' : m.image_url ? 'image' : m.video_url ? 'video' : 'model');
+      _typeCounts[t] = (_typeCounts[t] || 0) + 1;
+    });
+    const _typeKeys = Object.keys(_typeCounts);
+    let _countLabel;
+    if (_typeKeys.length > 1) {
+      const _parts = [];
+      for (const t of ['model', 'video', 'image']) {
+        if (_typeCounts[t]) _parts.push(`${_typeCounts[t]} ${t}${_typeCounts[t] > 1 ? 's' : ''}`);
+      }
+      _countLabel = _parts.join(', ');
+    } else {
+      _countLabel = `All ${lineage.models.length} asset${lineage.models.length === 1 ? '' : 's'}`;
+    }
+
     const countElement = hasMore
       ? `<button class="history-collection__count" type="button" data-action="toggle-collection" data-lineage-key="${rowKey}" aria-expanded="false">
-          All ${lineage.models.length} asset${lineage.models.length === 1 ? '' : 's'} <span class="history-collection__arrow">&#8250;</span>
+          ${_countLabel} <span class="history-collection__arrow">&#8250;</span>
           ${showBump ? `<span class="history-collection__counter">+${delta}</span>` : ''}
         </button>`
       : `<span class="history-collection__count">
-          All ${lineage.models.length} asset${lineage.models.length === 1 ? '' : 's'} &#8250;
+          ${_countLabel} &#8250;
           ${showBump ? `<span class="history-collection__counter">+${delta}</span>` : ''}
         </span>`;
 
@@ -1520,13 +1552,44 @@ function _renderHistoryImpl() {
         <div class="history-collection__thumbs">
           ${visibleThumbsMarkup}
         </div>
-        ${hasMore ? `<div class="history-collection__thumbs-extra">${hiddenThumbsMarkup}</div>` : ''}
+        ${hasMore ? `<template class="history-collection__thumbs-lazy">${hiddenThumbsMarkup}</template>` : ''}
       </div>
     `;
   }).join('');
 
-  const rowsMarkup = isGallery ? buildExpandedHistoryGallery(sortedLineages) : timelineMarkup;
-  grid.innerHTML = (skeletonMarkup || '') + rowsMarkup;
+  // Gallery mode: surgical DOM patching to prevent thumbnail flicker during poll ticks.
+  // On first render (or structural change): full rebuild.
+  // On subsequent renders with same items: only patch cards whose status changed.
+  if (isGallery) {
+    const galleryCards = _buildGalleryCards(sortedLineages);
+    const existingGrid = grid.querySelector('.expanded-thumbs-grid');
+    const canPatch = existingGrid && _galleryIdsMatch(existingGrid, galleryCards);
+
+    if (canPatch) {
+      for (let i = 0; i < galleryCards.length; i++) {
+        const child = existingGrid.children[i];
+        const prevStatus = child.dataset._gs || '';
+        if (prevStatus === galleryCards[i].status && galleryCards[i].status === 'finished') continue;
+        const temp = document.createElement('div');
+        temp.innerHTML = galleryCards[i].html;
+        const replacement = temp.firstElementChild;
+        if (replacement) {
+          replacement.dataset._gs = galleryCards[i].status;
+          existingGrid.replaceChild(replacement, child);
+        }
+      }
+    } else {
+      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
+      const builtGrid = grid.querySelector('.expanded-thumbs-grid');
+      if (builtGrid) {
+        Array.from(builtGrid.children).forEach((child, i) => {
+          if (galleryCards[i]) child.dataset._gs = galleryCards[i].status;
+        });
+      }
+    }
+  } else {
+    grid.innerHTML = (skeletonMarkup || '') + timelineMarkup;
+  }
 
   const serverHasMore = historyHasMore();
   const tabLoaded = historyTabLoaded();

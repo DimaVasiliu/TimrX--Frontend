@@ -1125,6 +1125,16 @@ function wireGallery() {
         if (collection) {
           const isExpanded = collection.classList.toggle('is-expanded');
           toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          // Lazy-render: inflate hidden thumbs from <template> on first expand
+          if (isExpanded) {
+            const tmpl = collection.querySelector('template.history-collection__thumbs-lazy');
+            if (tmpl) {
+              const extra = document.createElement('div');
+              extra.className = 'history-collection__thumbs-extra';
+              extra.innerHTML = tmpl.innerHTML;
+              tmpl.replaceWith(extra);
+            }
+          }
         }
         e.stopPropagation();
         return;
