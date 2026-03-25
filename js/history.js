@@ -1267,6 +1267,7 @@ function _renderHistoryImpl() {
     let pages = Math.max(1, Math.ceil(totalImages / pageSize));
     if (historyState.page > pages) historyState.page = pages;
     if (historyState.page < 1) historyState.page = 1;
+    historyState._renderedTotalPages = pages;
 
     let start = (historyState.page - 1) * pageSize;
     let end = Math.min(start + pageSize, totalImages);
@@ -1336,6 +1337,7 @@ function _renderHistoryImpl() {
     let pages = Math.max(1, Math.ceil(totalVideos / pageSize));
     if (historyState.page > pages) historyState.page = pages;
     if (historyState.page < 1) historyState.page = 1;
+    historyState._renderedTotalPages = pages;
 
     let start = (historyState.page - 1) * pageSize;
     let end = Math.min(start + pageSize, totalVideos);
@@ -1458,6 +1460,7 @@ function _renderHistoryImpl() {
   let pages = Math.max(1, Math.ceil(totalRows / pageSize));
   if (historyState.page > pages) historyState.page = pages;
   if (historyState.page < 1) historyState.page = 1;
+  historyState._renderedTotalPages = pages;
 
   let start = (historyState.page - 1) * pageSize;
   let end = Math.min(start + pageSize, totalRows);

@@ -16,7 +16,6 @@ import {
   openHistoryMenu,
   openHistorySubmenu,
   updateActiveHistoryMenuPosition,
-  getFilteredHistory,
   getActiveHistoryMenu,
   getActiveHistorySubmenu
 } from './history.js';
@@ -1062,49 +1061,53 @@ function wireGallery() {
     }
   });
   if (next) next.addEventListener('click', async () => {
-    const filtered = getFilteredHistory();
-    const ps = State.historyState.pageSize;
-    const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
+    const filter = State.historyState.filter;
+    // Use the page count from the last render — this accounts for lineage
+    // grouping (all/model tabs) vs flat item count (image/video tabs).
+    const totalPages = State.historyState._renderedTotalPages || 1;
+    const hasMore = State.historyHasMore();
+    const tabLoaded = State.historyTabLoaded();
+
+    log(`[Pagination] NEXT: filter=${filter} page=${State.historyState.page}/${totalPages}${hasMore ? '+' : ''} tabLoaded=${tabLoaded}`);
 
     if (State.historyState.page < totalPages) {
       // More cached pages available — navigate locally
       State.historyState.page++;
       renderHistory();
       scrollHistoryToTop();
-    } else {
+    } else if (hasMore || !tabLoaded) {
       // On last cached page — try to fetch more from DB.
       next.setAttribute('disabled', '');
       next.classList.add('loading');
 
       let added = [];
-      if (State.historyTabLoaded()) {
-        // Tab is loaded — fetch the next page
+      if (tabLoaded) {
         added = await State.loadMoreHistory();
       } else {
-        // Tab hasn't loaded yet — fetch its first DB page
-        const tabItems = await State.loadHistoryTab(State.historyState.filter);
+        const tabItems = await State.loadHistoryTab(filter);
         added = tabItems || [];
       }
 
       next.classList.remove('loading');
       next.removeAttribute('disabled');
-      if (added.length > 0 && State.historyTabLoaded()) {
-        // Only advance page if we actually loaded new data beyond what was shown
-        const newFiltered = getFilteredHistory();
-        const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / ps));
+
+      // Re-render first so _renderedTotalPages is updated with the new data
+      renderHistory();
+
+      if (added.length > 0) {
+        const newTotalPages = State.historyState._renderedTotalPages || 1;
         if (State.historyState.page < newTotalPages) {
           State.historyState.page++;
+          renderHistory(); // re-render with advanced page
         }
+        log(`[Pagination] After load: filter=${filter} page=${State.historyState.page}/${newTotalPages}${State.historyHasMore() ? '+' : ''}`);
       }
-      renderHistory();
       scrollHistoryToTop();
     }
+    // else: no more data, button should already be disabled by renderHistory
   });
   if (last) last.addEventListener('click', () => {
-    const filtered = getFilteredHistory();
-    const ps = State.historyState.pageSize;
-    const totalPages = Math.max(1, Math.ceil(filtered.length / ps));
-
+    const totalPages = State.historyState._renderedTotalPages || 1;
     if (State.historyState.page < totalPages) {
       State.historyState.page = totalPages;
       renderHistory();
@@ -1187,8 +1190,11 @@ function wireGallery() {
 
       const id = btn.getAttribute('data-id');
       const act = btn.getAttribute('data-act');
-      const item = State.getHistory().find(x => x.id === id);
-      if (!item) return;
+      const item = State.findHistoryItem(id);
+      if (!item) {
+        log(`[Viewer] Item not found in any cache: id=${id} act=${act} filter=${State.historyState.filter}`);
+        return;
+      }
 
       const glbUrl = item.glb_proxy || item.glb_url;
 
@@ -1544,7 +1550,7 @@ function wireGallery() {
       if (act === 'delete') {
         // Check if this is a local-only placeholder (generating/processing) —
         // these are keyed by job_id and have no persisted history_items row
-        const item = State.getHistory().find(h => h && h.id === id);
+        const item = State.findHistoryItem(id);
         const isLocalOnly = item && ['generating', 'refining', 'remeshing',
           'texturing', 'rigging', 'animating'].includes(item.status);
 
@@ -1785,7 +1791,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const modelRail = document.querySelector('[data-panel="model"]');
     const videoRail = document.querySelector('[data-panel="video"]');
     if (imageRail) imageRail.addEventListener('click', () => switchHistoryFilter('image'));
-    if (modelRail) modelRail.addEventListener('click', () => switchHistoryFilter('all'));
+    if (modelRail) modelRail.addEventListener('click', () => switchHistoryFilter('model'));
     if (videoRail) videoRail.addEventListener('click', () => switchHistoryFilter('video'));
 
     // MY ASSETS nav link → open expanded history gallery

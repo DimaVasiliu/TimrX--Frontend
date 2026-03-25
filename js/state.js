@@ -512,7 +512,7 @@ export async function loadHistoryTab(tab) {
       ts.hasMore = page.hasMore;
       ts.nextCursor = page.nextCursor;
       ts.nextOffset = page.nextOffset;
-      log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}`);
+      log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}, cursor=${ts.nextCursor ? 'yes' : 'null'}`);
       return ts.items;
     } catch (err) {
       console.warn(`[History] loadTab(${tab}) error:`, err.message);
@@ -584,7 +584,7 @@ export async function loadMoreHistory() {
         saveHistoryCache(historyCache);
       }
 
-      log(`[History] loadMore(${tab}): +${newItems.length} items (total=${ts.items.length}, has_more=${ts.hasMore})`);
+      log(`[History] loadMore(${tab}): +${newItems.length} items (total=${ts.items.length}, has_more=${ts.hasMore}, cursor=${ts.nextCursor ? 'yes' : 'null'})`);
       return newItems;
     } catch (err) {
       console.warn(`[History] loadMore(${tab}) error:`, err.message);
@@ -642,6 +642,37 @@ export function getHistory() {
   // Trigger background refresh from DB
   loadHistoryFromDB().catch(() => {});
   return historyCache;
+}
+
+/**
+ * Find a history item by ID across ALL loaded caches (current tab, other tabs, global).
+ * This is the correct way to resolve an item for viewer opening — it covers
+ * items loaded via pagination or tab-specific fetches that aren't in the
+ * global "all" cache.
+ */
+export function findHistoryItem(id) {
+  if (!id) return null;
+  // 1. Check current tab first (most likely match)
+  const currentItems = _ts(_currentTab()).items;
+  if (currentItems) {
+    const found = currentItems.find(x => x.id === id);
+    if (found) return found;
+  }
+  // 2. Check all other tab caches
+  for (const key of Object.keys(_tabState)) {
+    const items = _tabState[key].items;
+    if (items && items !== currentItems) {
+      const found = items.find(x => x.id === id);
+      if (found) return found;
+    }
+  }
+  // 3. Fall back to global cache (covers localStorage fallback)
+  const global = getHistory();
+  if (global) {
+    const found = global.find(x => x.id === id);
+    if (found) return found;
+  }
+  return null;
 }
 
 /**
@@ -862,7 +893,8 @@ export const historyState = {
   query: '',
   filter: 'all',
   galleryExpanded: false,
-  sort: 'desc'
+  sort: 'desc',
+  _renderedTotalPages: 1,  // Updated by renderHistory — used by next-page handler
 };
 
 // ============================================================================
@@ -1394,6 +1426,7 @@ window.getPendingMeta = getPendingMeta;
 window.savePendingMeta = savePendingMeta;
 window.deletePendingMeta = deletePendingMeta;
 window.getHistory = getHistory;
+window.findHistoryItem = findHistoryItem;
 window.saveHistory = saveHistory;
 window.addHistoryItem = addHistoryItem;
 window.updateHistoryItem = updateHistoryItem;

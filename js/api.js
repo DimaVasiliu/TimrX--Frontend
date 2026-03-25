@@ -1235,7 +1235,7 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   if (State.historyHasJobId(jobId)) {
     // Don't overwrite completed/failed items with a generating overlay —
     // this prevents flicker on reload when recovery touches finished cards
-    const existing = State.getHistory().find(h => h && h.id === jobId);
+    const existing = State.findHistoryItem(jobId);
     if (existing && (existing.status === 'finished' || existing.status === 'failed')) {
       return;
     }
@@ -1688,7 +1688,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           || '';
         // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
         const glbProxy = glbDirect ? getLoadableModelUrl(glbDirect) : '';
-        const existingItem = State.getHistory().find((x) => x.id === job_id) || {};
+        const existingItem = State.findHistoryItem(job_id) || {};
         const existingPrompt = existingItem.prompt || '';
         const existingRootPrompt = existingItem.root_prompt || '';
         const existingTitle = existingItem.title || '';
@@ -3958,7 +3958,7 @@ function _friendlyVideoError(errorCode, rawMsg) {
 async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } = {}) {
   // Resolve the real videos.id for history_items FK.
   // meta.video_uuid is set by the initial dispatch; falls back to jobId for recovery polls.
-  const videoUuid = meta.video_uuid || State.getHistory().find(x => x.id === jobId)?.video_id || jobId;
+  const videoUuid = meta.video_uuid || State.findHistoryItem(jobId)?.video_id || jobId;
 
   // D2: Exponential backoff — start at 5s, cap at 15s
   // 55 min frontend budget — backend Seedance preview can take 30 min pending
@@ -6144,7 +6144,7 @@ async function _doResumePendingJobs(options = {}) {
     const staleLocal = ids.filter(id => !backendIds.has(id));
     for (const id of staleLocal) {
       // Keep if history shows it finished (avoid flicker on completed jobs)
-      const hist = State.getHistory().find(h => h && h.id === id);
+      const hist = State.findHistoryItem(id);
       if (hist && (hist.status === 'finished' || hist.status === 'failed')) {
         State.removeActiveJob(id);
         log(`[Recovery] Cleared completed local job ${id}`);
