@@ -493,47 +493,25 @@
     });
 
     if (data.ok) {
-      // Read credits from top-level fields (new format)
-      const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
-      const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
-      const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
       const id = data.identity_id || null;
-      const videoBalance = data.balance_video_credits ?? 0;
-      const videoReserved = data.reserved_video_credits ?? 0;
-      const videoAvailable = data.available_video_credits ?? Math.max(0, videoBalance - videoReserved);
 
-      // Update WalletStore (this also broadcasts the event and updates module vars)
+      // /api/me returns identity only — wallet fields are 0.
+      // Update identity state; wallet comes from /api/credits/wallet.
       WalletStore.update({
-        balance,
-        reserved,
-        available,
-        videoBalance,
-        videoReserved,
-        videoAvailable,
         identityId: id,
         email: data.email || null,
         emailVerified: data.email_verified || false,
       });
       WalletStore.setFetching(false);
 
-      // Debug: Log identity info for session diagnostics
-      console.log('[Session Debug] identity_id:', id, 'credits:', available, 'apiBase:', API_BASE);
+      console.log('[Session Debug] identity_id:', id, 'apiBase:', API_BASE);
 
-      // Expose identity for debugging (compare with workspace to verify same session)
       window.__TIMRX_SESSION__ = {
         identity_id: id,
-        credits: available,
         apiBase: API_BASE,
         page: 'hub',
         fetchedAt: new Date().toISOString(),
       };
-
-      // Write to cross-page wallet cache (for instant display on workspace after purchase)
-      if (window.TimrXApi?.writeWalletCache && id) {
-        window.TimrXApi.writeWalletCache(id, available);
-      }
-
-      updateCreditsDisplay(available, balance, reserved);
 
       // Store email if available
       if (data.email) {
@@ -543,7 +521,10 @@
         }
       }
 
-      return { balance, reserved, available };
+      // Refresh real wallet balances from /api/credits/wallet
+      refreshCredits({ maxRetries: 1 }).catch(() => {});
+
+      return { balance: 0, reserved: 0, available: 0 };
     } else {
       console.warn('[Credits] /api/me returned ok:false');
       WalletStore.setFetching(false);
@@ -1120,25 +1101,21 @@
    */
   async function refreshIdentityAndCheckout() {
     try {
-      // Refresh session to get updated identity
+      // Refresh session to get updated identity (identity fields only)
       const meResult = await apiFetch('/api/me', { timeout: 15000 });
       if (meResult.ok && meResult.data?.ok) {
         userEmail = meResult.data.email;
         emailVerified = meResult.data.email_verified || false;
         identityId = meResult.data.identity_id;
-
+        // Update identity fields in WalletStore without touching balances
         WalletStore.update({
-          balance: meResult.data.balance_credits ?? 0,
-          reserved: meResult.data.reserved_credits ?? 0,
-          available: meResult.data.available_credits ?? 0,
-          videoBalance: meResult.data.balance_video_credits ?? 0,
-          videoReserved: meResult.data.reserved_video_credits ?? 0,
-          videoAvailable: meResult.data.available_video_credits ?? 0,
           identityId: meResult.data.identity_id,
           email: meResult.data.email,
           emailVerified: meResult.data.email_verified,
         });
       }
+      // Refresh wallet separately for real balances
+      await refreshCredits({ maxRetries: 1 });
 
       // Now execute the checkout
       await executeSubCheckout();
@@ -2677,18 +2654,15 @@
           userEmail = meResult.data.email;
           emailVerified = meResult.data.email_verified || false;
           identityId = meResult.data.identity_id;
+          // Identity fields only — wallet comes from /api/credits/wallet
           WalletStore.update({
-            balance: meResult.data.balance_credits ?? 0,
-            reserved: meResult.data.reserved_credits ?? 0,
-            available: meResult.data.available_credits ?? 0,
-            videoBalance: meResult.data.balance_video_credits ?? 0,
-            videoReserved: meResult.data.reserved_video_credits ?? 0,
-            videoAvailable: meResult.data.available_video_credits ?? 0,
             identityId: meResult.data.identity_id,
             email: meResult.data.email,
             emailVerified: meResult.data.email_verified,
           });
         }
+        // Refresh wallet separately
+        refreshCredits({ maxRetries: 1 }).catch(() => {});
       } catch (meErr) {
         console.warn(`[Credits] ${cfg.name}: /api/me refresh after verify failed:`, meErr);
         userEmail = pendingEmail;
@@ -4510,15 +4484,14 @@
             userEmail = pendingEmail;
             emailVerified = true;
             isRestoreMode = false;
-            const restoredCredits = meResult.data.available_credits ?? 0;
+            // Identity fields only — wallet comes from /api/credits/wallet
             WalletStore.update({
-              balance: meResult.data.balance_credits ?? 0,
-              reserved: meResult.data.reserved_credits ?? 0,
-              available: restoredCredits,
               identityId: meResult.data.identity_id,
               email: meResult.data.email,
               emailVerified: true,
             });
+            // Refresh wallet for real balances
+            refreshCredits({ maxRetries: 1 }).catch(() => {});
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
             verifyCodeBtn?.classList.remove('loading');
@@ -4530,8 +4503,10 @@
             }
             // Show restore success popup if this was a restore operation
             if (wasRestoreMode) {
-              const restoredVideoCredits = meResult.data.available_video_credits ?? 0;
-              openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
+              // Wait briefly for wallet refresh to complete, then show modal with real balances
+              await refreshCredits({ maxRetries: 1 }).catch(() => {});
+              const snap = WalletStore.getSnapshot();
+              openRestoreSuccessModal(snap.available || 0, snap.videoAvailable || 0);
             }
             return;
           }

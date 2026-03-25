@@ -231,19 +231,7 @@ export async function fetchWallet() {
       });
 
       if (data.ok) {
-        // Read credits from top-level fields (new format) with fallback to nested wallet object
-        const balance = data.balance_credits ?? data.wallet?.balance ?? 0;
-        const reserved = data.reserved_credits ?? data.wallet?.reserved ?? 0;
-        const available = data.available_credits ?? data.wallet?.available ?? Math.max(0, balance - reserved);
         const serverIdentityId = data.identity_id || null;
-
-        // Video credits (separate pool)
-        // /api/me uses balance_video_credits / available_video_credits
-        // /api/credits/wallet uses video_credits_balance / video_available_credits
-        // Accept both naming conventions with proper priority order
-        const videoBalance = data.balance_video_credits ?? data.video_credits_balance ?? data.video_balance_credits ?? 0;
-        const videoReserved = data.reserved_video_credits ?? data.video_reserved_credits ?? 0;
-        const videoAvailable = data.available_video_credits ?? data.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
 
         // AUTH-6: Cross-subdomain freshness check.
         // Compare server state against locally stored auth stamp.
@@ -265,15 +253,10 @@ export async function fetchWallet() {
           }
         }
 
-        creditsState.wallet = {
-          balance,
-          reserved,
-          available,
-          // Video credits
-          videoBalance,
-          videoReserved,
-          videoAvailable,
-        };
+        // /api/me returns 0 for all wallet fields (wallet data moved to
+        // /api/credits/wallet). Only set identity state here — wallet
+        // state is populated by _fetchRealWalletBalances() below.
+        // Keep existing wallet values intact to avoid 0-flicker.
         creditsState.identityId = serverIdentityId;
         creditsState.identityConfirmed = true;  // AUTH-7: identity now server-confirmed
         setConfirmedIdentity(serverIdentityId);  // AUTH-7: shared trust store
@@ -288,18 +271,10 @@ export async function fetchWallet() {
         // Update email beacon visibility
         updateEmailBeaconUI();
 
-        // Cache balance for next page load (perceived performance)
-        cacheCreditsBalance(available, videoAvailable);
+        pendingRetry = false;
+        lastRefreshTime = Date.now();
 
-        // Also write to cross-page wallet cache
-        if (serverIdentityId) {
-          writeWalletCache(serverIdentityId, available);
-        }
-
-        pendingRetry = false; // Clear retry flag on success
-        lastRefreshTime = Date.now(); // Track for visibility throttling
-
-        log('[Credits] Identity loaded from /api/me:', creditsState.wallet);
+        log('[Credits] Identity loaded from /api/me (wallet via /api/credits/wallet)');
 
         // Update global session info for debugging
         updateSessionInfo(data, 'workspace');

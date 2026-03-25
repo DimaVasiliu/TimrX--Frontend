@@ -663,8 +663,8 @@ export function clearWalletCache() {
 }
 
 /**
- * Poll for credits update after purchase
- * Polls /api/me every 500ms until credits increase or timeout
+ * Poll for credits update after purchase.
+ * Uses /api/credits/wallet (lightweight, authoritative for balances).
  *
  * @param {number} previousCredits - Credits before purchase
  * @param {number} maxWaitMs - Maximum wait time (default 10s)
@@ -673,32 +673,24 @@ export function clearWalletCache() {
  */
 export async function pollForCreditsUpdate(previousCredits, maxWaitMs = 10000, onUpdate = null) {
   const startTime = Date.now();
-  const pollInterval = 500;
+  const pollInterval = 1500;  // 1.5s — wallet cache has 5s TTL, so faster polling just hits cache
   let lastCredits = previousCredits;
 
   log('[WalletCache] Polling for credits update, previous:', previousCredits);
 
   while (Date.now() - startTime < maxWaitMs) {
     try {
-      const result = await apiFetch('/api/me', { timeout: 3000 });
+      const result = await apiFetch('/api/credits/wallet', { timeout: 5000 });
 
       if (result.ok && result.data?.ok) {
-        const newCredits = result.data.available_credits ?? result.data.balance_credits ?? 0;
-        const identityId = result.data.identity_id;
+        const d = result.data;
+        const newCredits = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
+        const identityId = d.identity_id;
 
-        // Credits increased - purchase confirmed!
         if (newCredits > previousCredits) {
           log('[WalletCache] Credits updated:', previousCredits, '→', newCredits);
-
-          // Update cache immediately
-          writeWalletCache(identityId, newCredits);
-
-          // Update global session info
-          updateSessionInfo(result.data, 'hub');
-
-          // Callback with new credits
+          if (identityId) writeWalletCache(identityId, newCredits);
           if (onUpdate) onUpdate(newCredits, identityId);
-
           return { credits: newCredits, updated: true, identity_id: identityId };
         }
 
@@ -708,7 +700,6 @@ export async function pollForCreditsUpdate(previousCredits, maxWaitMs = 10000, o
       log('[WalletCache] Poll error:', err.message);
     }
 
-    // Wait before next poll
     await new Promise(r => setTimeout(r, pollInterval));
   }
 
