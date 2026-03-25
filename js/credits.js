@@ -3745,6 +3745,7 @@
   const raConfirmCredits = document.getElementById('raConfirmCredits');
 
   let raPendingEmail = '';
+  let _raRedeemData = null; // Stashed redeem response for confirm-switch handler
   let raResendCooldown = 0;
   let raResendTimer = null;
 
@@ -3932,7 +3933,8 @@
         return;
       }
 
-      // Success — code is valid. Show final confirmation (Step 4)
+      // Success — code is valid. Stash redeem data for confirm-switch handler.
+      _raRedeemData = result?.data || null;
       if (raConfirmEmail) raConfirmEmail.textContent = raPendingEmail;
 
       // Show credit context in confirmation
@@ -4036,10 +4038,39 @@
       if (window.loadHistoryFromDB) {
         window.loadHistoryFromDB().then(() => { window.renderHistory?.(); }).catch(() => {});
       }
-      // hydrateAndShowRestoreModal handles /api/me + /api/credits/wallet internally
-      await hydrateAndShowRestoreModal('confirm_switch');
-      // Refresh subscription in background (after modal is shown)
+
+      // Use wallet + identity data from the redeem response (stashed in step 3).
+      // This avoids extra API calls that may hit stale process cache.
+      const rd = _raRedeemData;
+      const me = rd?.me || {};
+      const wallet = rd?.wallet || {};
+      const restoreEmail = me.email || raPendingEmail || userEmail;
+      const restoreCredits = wallet.available ?? 0;
+      const restoreVideo = wallet.video_available ?? 0;
+
+      console.log(`[RESTORE_UI] confirm_switch: email=${restoreEmail} credits=${restoreCredits}`);
+
+      if (me.identity_id) {
+        identityId = me.identity_id;
+        WalletStore.update({ identityId: me.identity_id, email: restoreEmail, emailVerified: true });
+      }
+      if (typeof restoreCredits === 'number') {
+        WalletStore.update({
+          balance: wallet.balance ?? restoreCredits,
+          reserved: wallet.reserved ?? 0,
+          available: restoreCredits,
+          videoBalance: wallet.video_balance ?? 0,
+          videoReserved: wallet.video_reserved ?? 0,
+          videoAvailable: restoreVideo,
+        });
+        updateCreditsDisplay(restoreCredits, wallet.balance ?? restoreCredits, wallet.reserved ?? 0);
+      }
+      openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
+
+      // Background refresh for authoritative data
+      refreshCredits({ maxRetries: 1 }).catch(() => {});
       fetchSubscription().catch(() => {});
+      _raRedeemData = null; // Clear stashed data
 
     } catch (err) {
       console.error('[RestoreAccount] confirm switch error:', err);
@@ -4605,8 +4636,41 @@
     }
 
     if (wasRestoreMode) {
-      // hydrateAndShowRestoreModal handles /api/me + /api/credits/wallet internally
-      await hydrateAndShowRestoreModal('verify_success');
+      // The redeem response already contains wallet + identity data.
+      // Use it directly for the modal — no extra API calls needed.
+      const me = result?.data?.me || {};
+      const wallet = result?.data?.wallet || {};
+      const restoreEmail = me.email || pendingEmail || userEmail;
+      const restoreCredits = wallet.available ?? 0;
+      const restoreVideo = wallet.video_available ?? 0;
+
+      console.log(`[RESTORE_UI] verify_success: using redeem response directly email=${restoreEmail} credits=${restoreCredits}`);
+
+      // Update canonical state from redeem response
+      if (me.identity_id) {
+        identityId = me.identity_id;
+        WalletStore.update({
+          identityId: me.identity_id,
+          email: restoreEmail,
+          emailVerified: true,
+        });
+      }
+      if (typeof restoreCredits === 'number') {
+        WalletStore.update({
+          balance: wallet.balance ?? restoreCredits,
+          reserved: wallet.reserved ?? 0,
+          available: restoreCredits,
+          videoBalance: wallet.video_balance ?? 0,
+          videoReserved: wallet.video_reserved ?? 0,
+          videoAvailable: restoreVideo,
+        });
+        updateCreditsDisplay(restoreCredits, wallet.balance ?? restoreCredits, wallet.reserved ?? 0);
+      }
+
+      openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
+
+      // Background refresh for authoritative wallet (may differ slightly from redeem response)
+      refreshCredits({ maxRetries: 1 }).catch(() => {});
       fetchSubscription().catch(() => {});
     } else if (subscriptionsResumed > 0) {
       refreshCredits({ maxRetries: 1 }).catch(() => {});
