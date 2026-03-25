@@ -3541,62 +3541,87 @@
    * commits to canonical state, updates the pill, then opens the modal.
    * The modal NEVER renders before BOTH fetches resolve — no stale 0, no "(unknown)".
    */
-  async function hydrateAndShowRestoreModal(reason = 'restore') {
-    console.log(`[RESTORE_UI] ${reason}: hydrating identity + wallet`);
+  /**
+   * Single post-auth hydration: commits identity + wallet + subscription,
+   * updates ALL navbar elements, then opens the welcome-back modal.
+   * Nothing renders until every data source is committed.
+   *
+   * @param {object} opts
+   * @param {string}      opts.reason       - Log label
+   * @param {object|null} opts.redeemData   - Redeem response .data (.me + .wallet) if available
+   * @param {string|null} opts.fallbackEmail - Email fallback
+   */
+  async function hydratePostAuthUI({ reason = 'restore', redeemData = null, fallbackEmail = null } = {}) {
+    console.log(`[AUTH_UI] hydrate start reason=${reason}`);
 
-    // Fire both in parallel — wallet and identity are independent
-    const [walletResult, meResult] = await Promise.allSettled([
-      apiFetch('/api/credits/wallet', { timeout: 10000 }),
-      apiFetch('/api/me', { timeout: 10000 }),
-    ]);
-
-    // 1) Process identity from /api/me
-    let resolvedEmail = userEmail; // fallback to module-level (set by verify flow)
-    if (meResult.status === 'fulfilled' && meResult.value.ok && meResult.value.data?.ok) {
-      const me = meResult.value.data;
-      identityId = me.identity_id || identityId;
-      if (me.email) {
-        userEmail = me.email;
-        resolvedEmail = me.email;
-        emailVerified = me.email_verified ?? true;
-      }
-      WalletStore.update({
-        identityId: me.identity_id,
-        email: me.email,
-        emailVerified: me.email_verified,
-      });
-      console.log(`[RESTORE_UI] identity: ${resolvedEmail} id=${me.identity_id?.slice(0, 8)}`);
-    }
-
-    // 2) Process wallet from /api/credits/wallet
+    let resolvedEmail = fallbackEmail || userEmail;
     let credits = null;
     let videoCredits = null;
-    if (walletResult.status === 'fulfilled' && walletResult.value.ok && walletResult.value.data?.ok) {
-      const d = walletResult.value.data;
-      const bal = d.credits_balance ?? 0;
-      const res = d.reserved_credits ?? 0;
-      credits = d.available_credits ?? Math.max(0, bal - res);
-      const vBal = d.video_credits_balance ?? 0;
-      const vRes = d.video_reserved_credits ?? 0;
-      videoCredits = d.video_available_credits ?? Math.max(0, vBal - vRes);
 
+    // ── 1. Seed from redeem response if available (instant, no network) ──
+    if (redeemData) {
+      const me = redeemData.me || {};
+      const w = redeemData.wallet || {};
+      if (me.identity_id) identityId = me.identity_id;
+      if (me.email) { userEmail = me.email; resolvedEmail = me.email; }
+      emailVerified = me.email_verified ?? true;
+      credits = w.available ?? null;
+      videoCredits = w.video_available ?? 0;
       WalletStore.update({
-        balance: bal, reserved: res, available: credits,
-        videoBalance: vBal, videoReserved: vRes, videoAvailable: videoCredits,
+        identityId: me.identity_id, email: resolvedEmail, emailVerified: true,
+        balance: w.balance ?? (credits || 0), reserved: w.reserved ?? 0, available: credits ?? 0,
+        videoBalance: w.video_balance ?? 0, videoReserved: w.video_reserved ?? 0, videoAvailable: videoCredits,
       });
-      updateCreditsDisplay(credits, bal, res);
-      console.log(`[RESTORE_UI] wallet: general=${credits} video=${videoCredits}`);
-    } else {
-      console.warn('[RESTORE_UI] wallet fetch failed');
+      console.log(`[AUTH_UI] seeded from redeem: email=${resolvedEmail} credits=${credits}`);
     }
 
-    // 3) Open modal from canonical state — pill and modal use the same snapshot
-    const snap = WalletStore.getSnapshot();
-    const mc = credits ?? snap.available ?? null;
-    const mv = videoCredits ?? snap.videoAvailable ?? 0;
-    console.log(`[RESTORE_UI] modal render: account=${resolvedEmail} balance=${mc} video=${mv}`);
+    // ── 2. If no usable redeem data, fetch fresh from APIs ──
+    if (!redeemData || credits === null) {
+      console.log('[AUTH_UI] fetching /api/me + /api/credits/wallet');
+      const [walletR, meR] = await Promise.allSettled([
+        apiFetch('/api/credits/wallet', { timeout: 10000 }),
+        apiFetch('/api/me', { timeout: 10000 }),
+      ]);
+      if (meR.status === 'fulfilled' && meR.value.ok && meR.value.data?.ok) {
+        const m = meR.value.data;
+        if (m.identity_id) identityId = m.identity_id;
+        if (m.email) { userEmail = m.email; resolvedEmail = m.email; }
+        emailVerified = m.email_verified ?? emailVerified;
+        WalletStore.update({ identityId: m.identity_id, email: m.email, emailVerified: m.email_verified });
+        console.log(`[AUTH_UI] me loaded email=${resolvedEmail} verified=${emailVerified}`);
+      }
+      if (walletR.status === 'fulfilled' && walletR.value.ok && walletR.value.data?.ok) {
+        const d = walletR.value.data;
+        const bal = d.credits_balance ?? 0, res = d.reserved_credits ?? 0;
+        credits = d.available_credits ?? Math.max(0, bal - res);
+        const vB = d.video_credits_balance ?? 0, vR = d.video_reserved_credits ?? 0;
+        videoCredits = d.video_available_credits ?? Math.max(0, vB - vR);
+        WalletStore.update({ balance: bal, reserved: res, available: credits,
+          videoBalance: vB, videoReserved: vR, videoAvailable: videoCredits });
+        console.log(`[AUTH_UI] wallet loaded general=${credits} video=${videoCredits}`);
+      }
+    }
+
+    // ── 3. Await subscription summary ──
+    try { await loadSubscriptionSummary(0, true); console.log('[AUTH_UI] subscription loaded'); }
+    catch (_) { /* non-fatal */ }
+
+    // ── 4. Commit ALL navbar UI at once ──
+    if (credits != null) {
+      updateCreditsDisplay(credits, WalletStore._state.balance || 0, WalletStore._state.reserved || 0);
+    }
+    updateEmailBeaconUI();
+    console.log(`[AUTH_UI] navbar rendered credits=${credits} verified=${emailVerified}`);
+
+    // ── 5. Open modal LAST — everything is committed ──
+    const mc = credits ?? WalletStore.getSnapshot().available ?? null;
+    const mv = videoCredits ?? WalletStore.getSnapshot().videoAvailable ?? 0;
+    console.log(`[AUTH_UI] modal opening balance=${mc} video=${mv} account=${resolvedEmail}`);
     openRestoreSuccessModal(mc, mv, resolvedEmail);
   }
+
+  // Legacy alias — poll-verify path still uses this name
+  const hydrateAndShowRestoreModal = (reason) => hydratePostAuthUI({ reason });
 
   function openRestoreSuccessModal(credits, videoCredits, email) {
     if (!restoreSuccessModal) return;
@@ -4039,40 +4064,12 @@
         window.loadHistoryFromDB().then(() => { window.renderHistory?.(); }).catch(() => {});
       }
 
-      // Use wallet + identity data from the redeem response (stashed in step 3).
-      // This avoids extra API calls that may hit stale process cache.
-      const rd = _raRedeemData;
-      const me = rd?.me || {};
-      const wallet = rd?.wallet || {};
-      const restoreEmail = me.email || raPendingEmail || userEmail;
-      const restoreCredits = wallet.available ?? 0;
-      const restoreVideo = wallet.video_available ?? 0;
-
-      console.log(`[RESTORE_UI] confirm_switch: email=${restoreEmail} credits=${restoreCredits}`);
-
-      if (me.identity_id) {
-        identityId = me.identity_id;
-        WalletStore.update({ identityId: me.identity_id, email: restoreEmail, emailVerified: true });
-      }
-      if (typeof restoreCredits === 'number') {
-        WalletStore.update({
-          balance: wallet.balance ?? restoreCredits,
-          reserved: wallet.reserved ?? 0,
-          available: restoreCredits,
-          videoBalance: wallet.video_balance ?? 0,
-          videoReserved: wallet.video_reserved ?? 0,
-          videoAvailable: restoreVideo,
-        });
-        updateCreditsDisplay(restoreCredits, wallet.balance ?? restoreCredits, wallet.reserved ?? 0);
-      }
-      openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
-
-      // Do NOT fire refreshCredits() here — the backend session process cache
-      // may still have the OLD anonymous identity (120s TTL). A /api/credits/wallet
-      // call right now could return 0 and overwrite the correct pill.
-      // The redeem response wallet data is authoritative. The next focus/visibility
-      // refresh (after cache expires) will confirm the balance.
-      fetchSubscription().catch(() => {});
+      // Single hydration: commits identity+wallet+subscription, renders navbar, opens modal
+      await hydratePostAuthUI({
+        reason: 'confirm_switch',
+        redeemData: _raRedeemData,
+        fallbackEmail: raPendingEmail,
+      });
       _raRedeemData = null;
 
     } catch (err) {
@@ -4582,6 +4579,8 @@
             }
             if (wasRestoreMode) {
               await hydrateAndShowRestoreModal('poll_verify');
+            } else {
+              updateEmailBeaconUI();
             }
             return;
           }
@@ -4639,45 +4638,20 @@
     }
 
     if (wasRestoreMode) {
-      // The redeem response already contains wallet + identity data.
-      // Use it directly for the modal — no extra API calls needed.
-      const me = result?.data?.me || {};
-      const wallet = result?.data?.wallet || {};
-      const restoreEmail = me.email || pendingEmail || userEmail;
-      const restoreCredits = wallet.available ?? 0;
-      const restoreVideo = wallet.video_available ?? 0;
-
-      console.log(`[RESTORE_UI] verify_success: using redeem response directly email=${restoreEmail} credits=${restoreCredits}`);
-
-      // Update canonical state from redeem response
-      if (me.identity_id) {
-        identityId = me.identity_id;
-        WalletStore.update({
-          identityId: me.identity_id,
-          email: restoreEmail,
-          emailVerified: true,
-        });
-      }
-      if (typeof restoreCredits === 'number') {
-        WalletStore.update({
-          balance: wallet.balance ?? restoreCredits,
-          reserved: wallet.reserved ?? 0,
-          available: restoreCredits,
-          videoBalance: wallet.video_balance ?? 0,
-          videoReserved: wallet.video_reserved ?? 0,
-          videoAvailable: restoreVideo,
-        });
-        updateCreditsDisplay(restoreCredits, wallet.balance ?? restoreCredits, wallet.reserved ?? 0);
-      }
-
-      openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
-
-      // Do NOT fire refreshCredits() — session cache may return stale 0.
-      // Redeem response wallet is authoritative.
-      fetchSubscription().catch(() => {});
+      // Single hydration: commits identity+wallet+subscription, renders navbar, opens modal
+      await hydratePostAuthUI({
+        reason: 'verify_success',
+        redeemData: result?.data,
+        fallbackEmail: pendingEmail,
+      });
     } else if (subscriptionsResumed > 0) {
       refreshCredits({ maxRetries: 1 }).catch(() => {});
+      updateEmailBeaconUI();
+      loadSubscriptionSummary(0, true);
       showToast('Email verified. Subscription resumed.', 'success');
+    } else {
+      // Simple email verify (no restore) — just refresh shield
+      updateEmailBeaconUI();
     }
   }
 
@@ -5334,7 +5308,7 @@
   let _subSummaryInFlight = null;
   let _subSummaryFetchedAt = 0;
 
-  async function loadSubscriptionSummary(retryCount = 0) {
+  async function loadSubscriptionSummary(retryCount = 0, force = false) {
     if (!subscriptionStatusPill) return;
 
     // Dedupe: return in-flight promise or skip if fetched recently (10s)
