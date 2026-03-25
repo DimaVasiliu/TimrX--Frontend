@@ -4,7 +4,7 @@
  * and sets up the primary event listeners.
  */
 
-import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
+import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
 import * as UI from './ui-utils.js';
@@ -1313,9 +1313,13 @@ function wireGallery() {
           alert('No image available to download.');
           return;
         }
-        // Fetch as blob to force download (a.download is ignored for cross-origin URLs)
+        // Route through backend proxy to avoid CORS issues with cross-origin
+        // CDN URLs (browser ignores a.download on cross-origin hrefs).
+        // download=1 tells the proxy to stream content instead of 302 redirect.
+        const proxyUrl = `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(imageUrl)}&download=1`;
         try {
-          const resp = await fetch(imageUrl);
+          const resp = await fetch(proxyUrl, { credentials: 'include' });
+          if (!resp.ok) throw new Error(`Proxy returned ${resp.status}`);
           const blob = await resp.blob();
           const blobUrl = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -1326,11 +1330,11 @@ function wireGallery() {
           a.remove();
           URL.revokeObjectURL(blobUrl);
         } catch (err) {
-          console.warn('[Download] Blob fetch failed, falling back to direct link:', err);
+          console.warn('[Download] Proxy blob fetch failed:', err);
+          // Last resort: direct link (may open in new tab)
           const a = document.createElement('a');
           a.href = imageUrl;
           a.download = `${shortTitle(item)}.png`;
-          a.target = '_blank';
           document.body.appendChild(a);
           a.click();
           a.remove();
@@ -1349,12 +1353,28 @@ function wireGallery() {
           alert('No video available to download.');
           return;
         }
-        const a = document.createElement('a');
-        a.href = videoUrl;
-        a.download = `${shortTitle(item)}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const proxyUrl = `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(videoUrl)}&download=1`;
+        try {
+          const resp = await fetch(proxyUrl, { credentials: 'include' });
+          if (!resp.ok) throw new Error(`Proxy returned ${resp.status}`);
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `${shortTitle(item)}.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+          console.warn('[Download] Proxy blob fetch failed:', err);
+          const a = document.createElement('a');
+          a.href = videoUrl;
+          a.download = `${shortTitle(item)}.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
         return;
       }
 
