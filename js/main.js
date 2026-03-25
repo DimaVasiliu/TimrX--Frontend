@@ -1815,16 +1815,18 @@ window.addEventListener('DOMContentLoaded', () => {
     await API.resumePendingJobs({ skipEmptyUI: true });
 
     // After login/restore/identity swap, re-run job recovery for the new identity.
-    // The identity_changed event also fires on first bootstrap (null → realId);
-    // skip that initial fire since resumePendingJobs just ran above.
-    let startupRecoveryDone = true;
+    // Use a timestamp guard: skip identity_changed events within 15s of startup
+    // (the initial null→realId bootstrap transition), and also prevent rapid-fire
+    // recovery if multiple identity events arrive close together.
+    const _recoveryStartedAt = Date.now();
+    let _lastRecoveryAt = _recoveryStartedAt; // resumePendingJobs just ran
     window.addEventListener('timrx:identity_changed', () => {
-      if (startupRecoveryDone) {
-        // Skip the first fire — it's the initial null→realId transition
-        // that happens when /api/me returns during this same startup.
-        startupRecoveryDone = false;
-        return;
-      }
+      const now = Date.now();
+      // Skip during startup window (bootstrap null→realId fires here)
+      if (now - _recoveryStartedAt < 15000) return;
+      // Throttle: don't re-run if recovery ran less than 10s ago
+      if (now - _lastRecoveryAt < 10000) return;
+      _lastRecoveryAt = now;
       log('[Recovery] Identity changed — re-running job recovery');
       API.resumePendingJobs({ skipEmptyUI: true });
     });
