@@ -993,6 +993,11 @@ function wireGallery() {
       }
       State.historyState.page = 1;
       renderHistory();
+      // If a media tab hasn't fetched its own data yet, load it from DB
+      // then re-render to replace the skeleton with actual content.
+      if (filterType !== 'all' && !State.historyTabLoaded()) {
+        State.loadHistoryTab(filterType).then(() => renderHistory());
+      }
     });
   });
 
