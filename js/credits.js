@@ -3975,8 +3975,10 @@
       emailVerified = true;
       isRestoreMode = false;
 
-      const wallet = await fetchWallet();
-      await fetchSubscription();
+      // Refresh identity (fire-and-forget — just sets session/email state)
+      fetchWallet().catch(() => {});
+      // Refresh subscription in background
+      fetchSubscription().catch(() => {});
 
       if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
 
@@ -3989,9 +3991,28 @@
         }).catch(() => {});
       }
 
-      // Show restore success celebration
-      const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-      const restoredVideoCredits = wallet?.videoAvailable ?? 0;
+      // Fetch REAL wallet from /api/credits/wallet (not /api/me which returns 0),
+      // then show the restore success modal with actual balances.
+      console.log('[Restore] Fetching real wallet for success modal...');
+      const walletResult = await apiFetch('/api/credits/wallet', { timeout: 10000 });
+      let restoredCredits = 0;
+      let restoredVideoCredits = 0;
+      if (walletResult.ok && walletResult.data?.ok) {
+        const d = walletResult.data;
+        restoredCredits = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
+        restoredVideoCredits = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
+        // Also update the pill immediately
+        WalletStore.update({
+          balance: d.credits_balance || 0,
+          reserved: d.reserved_credits || 0,
+          available: restoredCredits,
+          videoBalance: d.video_credits_balance || 0,
+          videoReserved: d.video_reserved_credits || 0,
+          videoAvailable: restoredVideoCredits,
+        });
+        updateCreditsDisplay(restoredCredits, d.credits_balance || 0, d.reserved_credits || 0);
+        console.log(`[Restore] Wallet loaded: general=${restoredCredits} video=${restoredVideoCredits}`);
+      }
       openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
 
     } catch (err) {
@@ -4490,8 +4511,6 @@
               email: meResult.data.email,
               emailVerified: true,
             });
-            // Refresh wallet for real balances
-            refreshCredits({ maxRetries: 1 }).catch(() => {});
             if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
             showSecureState(3);
             verifyCodeBtn?.classList.remove('loading');
@@ -4556,11 +4575,9 @@
     // Clear any messages and show success briefly
     clearSecureMessages();
 
-    // Refresh wallet to get updated state (especially for restore)
-    const wallet = await fetchWallet();
-
-    // Refresh subscription status
-    await fetchSubscription();
+    // Refresh identity (fire-and-forget) + subscription in background
+    fetchWallet().catch(() => {});
+    fetchSubscription().catch(() => {});
 
     // Show verified state
     if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
@@ -4574,13 +4591,28 @@
       }).catch(() => {});
     }
 
-    // Show restore success popup if this was a restore operation
+    // Show restore success popup with real wallet from /api/credits/wallet
     if (wasRestoreMode) {
-      const restoredCredits = wallet?.available ?? walletAvailable ?? 0;
-      const restoredVideoCredits = wallet?.videoAvailable ?? 0;
+      console.log('[Restore] Fetching real wallet for success modal...');
+      const walletResult = await apiFetch('/api/credits/wallet', { timeout: 10000 });
+      let restoredCredits = 0;
+      let restoredVideoCredits = 0;
+      if (walletResult.ok && walletResult.data?.ok) {
+        const d = walletResult.data;
+        restoredCredits = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
+        restoredVideoCredits = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
+        WalletStore.update({
+          balance: d.credits_balance || 0,
+          reserved: d.reserved_credits || 0,
+          available: restoredCredits,
+          videoBalance: d.video_credits_balance || 0,
+          videoReserved: d.video_reserved_credits || 0,
+          videoAvailable: restoredVideoCredits,
+        });
+        updateCreditsDisplay(restoredCredits, d.credits_balance || 0, d.reserved_credits || 0);
+      }
       openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
     } else if (subscriptionsResumed > 0) {
-      // Show subscription resumed toast
       showToast('Email verified. Subscription resumed.', 'success');
     }
   }

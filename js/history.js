@@ -901,14 +901,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     </div>
   ` : '';
 
-  const stageLabel = stageVal === 'preview' ? 'Preview'
-    : stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
+  const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
     : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
     : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
     : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
-    : '';
+    : 'Preview';
 
   return `
     <div class="${thumbPrefix} ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}">
