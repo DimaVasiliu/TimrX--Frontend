@@ -919,10 +919,23 @@
     // Convert existing 3D viewers to thumbnail cards
     convertViewersToThumbnails();
 
-    // Fetch fresh content in background
-    fetchTutorials({ forceRefresh: false });
+    // DO NOT fetch from API on boot — the endpoint returns 404 and
+    // wastes a request.  Fetch only when the user actually opens the
+    // tutorials panel (detected by MutationObserver on body class).
+    const _tutContainer = document.getElementById('tutorialsGallery');
+    if (document.body.classList.contains('tutorials-view')) {
+      fetchTutorials({ forceRefresh: false });
+    } else if (_tutContainer) {
+      const _mo = new MutationObserver(() => {
+        if (document.body.classList.contains('tutorials-view')) {
+          _mo.disconnect();
+          fetchTutorials({ forceRefresh: false });
+        }
+      });
+      _mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
 
-    console.log('[Tutorials] Initialized');
+    console.log('[Tutorials] Initialized (API fetch deferred until panel open)');
   }
 
   // =========================================================================

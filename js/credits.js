@@ -3153,16 +3153,44 @@
     || document.getElementById('generateModelBtn') !== null;
 
   if (!_isWorkspace && creditsValue) {
-    // Show loading state instead of "0"
+    // ── Hub boot: fetch identity + wallet in parallel ──
+    // /api/me → identity only (fast, no wallet DB queries)
+    // /api/credits/wallet → authoritative wallet balances
+    // Both fire in parallel so the pill updates as fast as possible.
     creditsValue.textContent = '...';
-    console.log('[Credits][Hub] Self-booting: fetching /api/me for wallet');
+    console.log('[Credits][Hub] Self-booting: /api/me + /api/credits/wallet in parallel');
 
-    // Fetch wallet immediately
-    fetchWallet().then(() => {
-      console.log('[Credits][Hub] Wallet fetched, pill updated');
+    // 1) Identity (for email, session confirmation)
+    fetchWallet().catch(err => {
+      console.warn('[Credits][Hub] /api/me failed:', err.message);
+    });
+
+    // 2) Wallet (for pill balances) — this is the authoritative source
+    apiFetch('/api/credits/wallet', { timeout: 10000 }).then(result => {
+      if (result.ok && result.data?.ok) {
+        const d = result.data;
+        const available = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
+        const videoAvail = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
+
+        WalletStore.update({
+          balance: d.credits_balance || 0,
+          reserved: d.reserved_credits || 0,
+          available,
+          videoBalance: d.video_credits_balance || 0,
+          videoReserved: d.video_reserved_credits || 0,
+          videoAvailable: videoAvail,
+        });
+        updateCreditsDisplay(available, d.credits_balance || 0, d.reserved_credits || 0);
+        console.log(`[Credits][Hub] Wallet pill updated: general=${available} video=${videoAvail}`);
+      } else {
+        console.warn('[Credits][Hub] /api/credits/wallet failed:', result.status, result.error);
+        // Only show 0 if nothing else has already populated the pill
+        if (creditsValue.textContent === '...') {
+          creditsValue.textContent = '0';
+        }
+      }
     }).catch(err => {
-      console.warn('[Credits][Hub] Wallet fetch failed:', err.message);
-      // Show 0 only if fetch actually failed
+      console.warn('[Credits][Hub] Wallet fetch error:', err.message);
       if (creditsValue.textContent === '...') {
         creditsValue.textContent = '0';
       }

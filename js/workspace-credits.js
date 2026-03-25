@@ -299,10 +299,15 @@ export async function fetchWallet() {
         pendingRetry = false; // Clear retry flag on success
         lastRefreshTime = Date.now(); // Track for visibility throttling
 
-        log('[Credits] Wallet loaded:', creditsState.wallet);
+        log('[Credits] Identity loaded from /api/me:', creditsState.wallet);
 
         // Update global session info for debugging
         updateSessionInfo(data, 'workspace');
+
+        // /api/me no longer returns real wallet balances (returns 0 for all).
+        // Fire /api/credits/wallet in background to get authoritative balances.
+        // This is non-blocking — the identity bootstrap is already complete.
+        _fetchRealWalletBalances();
       } else {
         log('[Credits] /api/me returned ok:false');
         creditsState.wallet = { balance: 0, reserved: 0, available: 0, videoBalance: 0, videoReserved: 0, videoAvailable: 0 };
@@ -322,6 +327,35 @@ export async function fetchWallet() {
   })();
 
   return walletFetchInFlight;
+}
+
+/**
+ * Fetch real wallet balances from /api/credits/wallet.
+ * Called after /api/me bootstrap completes. Non-blocking — updates
+ * creditsState and UI when the response arrives.
+ */
+async function _fetchRealWalletBalances() {
+  try {
+    const result = await apiFetch('/api/credits/wallet', { timeout: 10000 });
+    if (!result.ok || !result.data?.ok) {
+      log('[Credits] /api/credits/wallet failed:', result.status, result.error);
+      return;
+    }
+    const d = result.data;
+    const balance = d.credits_balance ?? 0;
+    const reserved = d.reserved_credits ?? 0;
+    const available = d.available_credits ?? Math.max(0, balance - reserved);
+    const videoBalance = d.video_credits_balance ?? 0;
+    const videoReserved = d.video_reserved_credits ?? 0;
+    const videoAvailable = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+
+    creditsState.wallet = { balance, reserved, available, videoBalance, videoReserved, videoAvailable };
+    cacheCreditsBalance(available, videoAvailable);
+    updateCreditsUI();
+    log(`[Credits] Real wallet loaded: general=${available} video=${videoAvailable}`);
+  } catch (err) {
+    log('[Credits] /api/credits/wallet error (non-fatal):', err.message);
+  }
 }
 
 /**

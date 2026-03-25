@@ -4979,6 +4979,8 @@ export async function startRigFromPanel() {
     type: 'model',
     source_thumbnail_url: sourceThumbnail,
     thumbnail_url: sourceThumbnail,
+    lineage_origin_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
+    lineage_root_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
   };
   addGeneratingPlaceholder(tempId, rigMeta);
   State.savePendingMeta(tempId, rigMeta);
@@ -5175,7 +5177,9 @@ async function _handleRigComplete(job_id, st, prog) {
     glb_url: glbUrl,
     glb_proxy: glbProxy || '',
     thumbnail_url: thumbnail,
-    model: 'latest'
+    model: 'latest',
+    lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,
+    lineage_root_id: pendingMeta.lineage_root_id || pendingMeta.lineage_origin_id || null,
   };
   if (State.historyHasJobId(job_id)) {
     State.updateHistoryItem(job_id, rigHistoryData);
@@ -5288,6 +5292,8 @@ async function _handleRigComplete(job_id, st, prog) {
       is_rigged: true,
       selected_action_id: null,
       selected_animation: null,
+      lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,
+      lineage_root_id: pendingMeta.lineage_root_id || pendingMeta.lineage_origin_id || null,
     });
   }
 
@@ -5498,6 +5504,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     status_label: 'Starting animation...',
     type: 'model',
     thumbnail_url: animState.thumbnail_url || '',
+    lineage_origin_id: animState.lineage_origin_id || animState.lineage_root_id || animState.model_id || null,
+    lineage_root_id: animState.lineage_root_id || animState.lineage_origin_id || animState.model_id || null,
   };
   addGeneratingPlaceholder(tempId, animMeta);
   State.savePendingMeta(tempId, animMeta);
@@ -5641,7 +5649,9 @@ async function _handleAnimComplete(job_id, st, prog) {
     glb_url: animGlbUrl,
     glb_proxy: glbProxy || '',
     thumbnail_url: thumbnail,
-    model: 'latest'
+    model: 'latest',
+    lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,
+    lineage_root_id: pendingMeta.lineage_root_id || pendingMeta.lineage_origin_id || null,
   };
   if (State.historyHasJobId(job_id)) {
     State.updateHistoryItem(job_id, animHistoryData);
