@@ -878,10 +878,16 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   };
 
   const stageVal = (displayModel.stage || '').toLowerCase();
+  const failLabel = stageVal === 'rig' || stageVal === 'rigged' ? 'Rigging failed'
+    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animation failed'
+    : stageVal === 'texture' || stageVal === 'textured' ? 'Texturing failed'
+    : stageVal === 'refine' || stageVal === 'refined' ? 'Refining failed'
+    : stageVal === 'image3d' ? 'Image to 3D failed'
+    : 'Generation failed';
   const previewMarkup = status === 'failed'
     ? `<div class="${thumbPrefix}__error-card">
         <span class="${thumbPrefix}__error-icon">:(</span>
-        <span class="${thumbPrefix}__error-text">Remeshing failed</span>
+        <span class="${thumbPrefix}__error-text">${failLabel}</span>
       </div>`
     : isProcessing
       ? `<div class="${thumbPrefix}__processing-placeholder"></div>`
