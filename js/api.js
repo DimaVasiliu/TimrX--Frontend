@@ -30,6 +30,126 @@ let postProcessLock = false;
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
 
+// ── Retry infrastructure for status polling ──
+// When polling stops after MAX_CONSECUTIVE_ERRORS, register the job here
+// so the UI can offer a manual "Check Status" button + auto-retry after 30s.
+const _retryableJobs = new Map(); // job_id -> { endpoint, resumeFn, autoRetryTimer }
+
+/**
+ * Offer a manual retry after polling stops due to consecutive errors.
+ * Shows a "Check Status" button on the job card and auto-retries once after 30s.
+ *
+ * @param {string} jobId - The job ID
+ * @param {string} endpoint - The status endpoint URL (without job_id)
+ * @param {Function} resumeFn - Function to call to resume full polling (e.g., () => watchJob(jobId))
+ * @param {string} label - Human-readable job type label (e.g., "Text-to-3D")
+ */
+function offerStatusRetry(jobId, endpoint, resumeFn, label = 'Generation') {
+  // Update card to show retryable state (not permanent failure)
+  State.updateHistoryItem(jobId, {
+    status: 'generating',
+    status_label: 'Status checks paused — connection issue'
+  });
+
+  // Show retry button on the card
+  _showRetryButton(jobId, endpoint, resumeFn, label);
+
+  // Auto-retry once after 30s (catches brief server restarts / deploys)
+  const autoRetryTimer = setTimeout(async () => {
+    const entry = _retryableJobs.get(jobId);
+    if (!entry) return; // already resolved or manually retried
+
+    console.log(`[${label}] Auto-retry status check for ${jobId}`);
+    const ok = await _singleStatusRetry(jobId, endpoint, resumeFn, label);
+    if (!ok) {
+      // Still failing — leave button visible for manual retry
+      _updateRetryButtonState(jobId, 'idle');
+    }
+  }, 30000);
+
+  _retryableJobs.set(jobId, { endpoint, resumeFn, autoRetryTimer, label });
+}
+
+/**
+ * Perform a single status check. If successful, resume full polling.
+ */
+async function _singleStatusRetry(jobId, endpoint, resumeFn, label) {
+  try {
+    const result = await apiFetch(`${endpoint}/${jobId}`);
+    if (result.ok || (result.data && result.data.status)) {
+      console.log(`[${label}] Retry succeeded for ${jobId}, resuming polling`);
+      _cleanupRetry(jobId);
+      // Remove from watchers so resumeFn can re-register
+      State.watchers.delete(jobId);
+      resumeFn();
+      return true;
+    }
+    console.warn(`[${label}] Retry failed for ${jobId}:`, result.error || result.status);
+    return false;
+  } catch (err) {
+    console.warn(`[${label}] Retry error for ${jobId}:`, err);
+    return false;
+  }
+}
+
+function _cleanupRetry(jobId) {
+  const entry = _retryableJobs.get(jobId);
+  if (entry?.autoRetryTimer) clearTimeout(entry.autoRetryTimer);
+  _retryableJobs.delete(jobId);
+  // Remove retry button from card
+  const btn = document.querySelector(`[data-retry-job="${jobId}"]`);
+  if (btn) btn.remove();
+}
+
+function _showRetryButton(jobId, endpoint, resumeFn, label) {
+  const card = document.querySelector(`[data-job-id="${jobId}"]`);
+  if (!card) return;
+
+  // Remove existing retry button if any
+  const existing = card.querySelector(`[data-retry-job="${jobId}"]`);
+  if (existing) existing.remove();
+
+  const btn = document.createElement('button');
+  btn.setAttribute('data-retry-job', jobId);
+  btn.className = 'retry-status-btn';
+  btn.textContent = 'Check Status';
+  btn.style.cssText = `
+    display: block; margin: 6px auto 0; padding: 5px 14px;
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 6px;
+    font-size: 12px; cursor: pointer; transition: background 0.2s;
+  `;
+  btn.onmouseenter = () => { btn.style.background = 'rgba(255,255,255,0.22)'; };
+  btn.onmouseleave = () => { btn.style.background = 'rgba(255,255,255,0.12)'; };
+
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    btn.style.opacity = '0.6';
+
+    const ok = await _singleStatusRetry(jobId, endpoint, resumeFn, label);
+    if (!ok) {
+      btn.disabled = false;
+      btn.textContent = 'Check Status';
+      btn.style.opacity = '1';
+    }
+    // If ok, _cleanupRetry already removed the button
+  });
+
+  card.appendChild(btn);
+}
+
+function _updateRetryButtonState(jobId, state) {
+  const btn = document.querySelector(`[data-retry-job="${jobId}"]`);
+  if (!btn) return;
+  if (state === 'idle') {
+    btn.disabled = false;
+    btn.textContent = 'Check Status';
+    btn.style.opacity = '1';
+  }
+}
+
 // Show Discord share modal sparingly — once per 7 days max
 const DISCORD_PROMPT_KEY = 'timrx_discord_prompt_ts';
 const DISCORD_PROMPT_COOLDOWN = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1224,13 +1344,15 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
 
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(`[Text-to-3D] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
-          State.removeActiveJob(job_id);
           State.watchers.delete(job_id);
-          prog.fail('Generation failed - server error');
-          handleJobFailure(result.error || `Server error (${result.status})`, 'text-to-3d', { isRecovery });
-          if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend();
-          }
+          // Don't removeActiveJob — job may still be running on server
+          // Offer manual retry instead of permanent failure
+          offerStatusRetry(
+            job_id,
+            '/api/_mod/text-to-3d/status',
+            () => watchJob(job_id, { isRecovery: true }),
+            'Text-to-3D'
+          );
           return;
         }
 
@@ -1407,10 +1529,13 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
 
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
         console.error(`[Text-to-3D] Too many consecutive errors, stopping poll`);
-        State.removeActiveJob(job_id);
         State.watchers.delete(job_id);
-        prog.fail('Generation failed - connection error');
-        handleJobFailure('Connection error while polling', 'text-to-3d', { isRecovery });
+        offerStatusRetry(
+          job_id,
+          '/api/_mod/text-to-3d/status',
+          () => watchJob(job_id, { isRecovery: true }),
+          'Text-to-3D'
+        );
         return;
       }
 
@@ -1488,14 +1613,13 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
 
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(`[${stageLabel}] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
-          State.removeActiveJob(job_id);
           State.watchers.delete(job_id);
-          prog.fail(`${stageLabel} failed - server error`);
-          handleJobFailure(result.error || `Server error (${result.status})`, kind, { isRecovery });
-          // Sync credits from backend
-          if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend();
-          }
+          offerStatusRetry(
+            job_id,
+            endpoint,
+            () => watchMeshyTask(job_id, kind, { isRecovery: true }),
+            stageLabel
+          );
           return;
         }
 
@@ -1668,10 +1792,13 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
 
       if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
         console.error(`[${stageLabel}] Too many consecutive errors, stopping poll`);
-        State.removeActiveJob(job_id);
         State.watchers.delete(job_id);
-        prog.fail(`${stageLabel} failed - connection error`);
-        handleJobFailure('Connection error while polling', kind, { isRecovery });
+        offerStatusRetry(
+          job_id,
+          endpoint,
+          () => watchMeshyTask(job_id, kind, { isRecovery: true }),
+          stageLabel
+        );
         return;
       }
 
@@ -3870,14 +3997,12 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
         console.warn(`[Video] Status check failed (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}):`, result.error);
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error('[Video] Too many consecutive errors, stopping poll for', jobId);
-          State.updateHistoryItem(jobId, {
-            status: 'failed',
-            status_label: 'Video status unavailable — check history later',
-            type: 'video'
-          });
-          State.removeActiveJob(jobId);
-          renderHistory();
-          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          offerStatusRetry(
+            jobId,
+            '/api/video/status',
+            () => watchVideoJob(jobId, reservationId, meta, { isRecovery: true }),
+            'Video'
+          );
           return;
         }
         continue;
@@ -5259,8 +5384,12 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
         consecutiveErrors++;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           cleanup();
-          prog.fail('Rigging failed - server error');
-          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          offerStatusRetry(
+            job_id,
+            '/api/_mod/rig/status',
+            () => watchRigJob(job_id),
+            'Rigging'
+          );
           return;
         }
         setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
@@ -5608,8 +5737,12 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
         consecutiveErrors++;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           cleanup();
-          prog.fail('Animation failed - server error');
-          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          offerStatusRetry(
+            job_id,
+            '/api/_mod/rig/animate/status',
+            () => watchAnimationJob(job_id),
+            'Animation'
+          );
           return;
         }
         setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
