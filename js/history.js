@@ -901,12 +901,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     </div>
   ` : '';
 
-  const stageLabel = stageVal === 'refine' ? 'Refined'
-    : stageVal === 'remesh' ? 'Remeshed'
-    : stageVal === 'texture' ? 'Textured'
+  const stageLabel = stageVal === 'preview' ? 'Preview'
+    : stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
+    : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
+    : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
-    : stageVal === 'rig' ? 'Rigged'
-    : stageVal === 'animate' || stageVal === 'animation' ? 'Animated'
+    : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
+    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
     : '';
 
   return `
