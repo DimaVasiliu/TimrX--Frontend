@@ -1418,12 +1418,13 @@ function _renderHistoryImpl() {
   }
 
   // MODEL/ALL FILTER - lineage grouping
-  // Filter out videos when in 'all' filter and not in gallery mode
-  // Videos should only be visible in video tab or expanded gallery view
+  // Filter out images when in 'all' filter and not in gallery mode.
+  // Images live in the dedicated Image tab; the "All" tab shows models + videos.
+  // Gallery (expanded) mode still shows everything.
   const srcForLineage = (historyState.filter === 'all' && !isGallery)
     ? src.filter(item => {
         const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
-        return type !== 'video';
+        return type !== 'image';
       })
     : src;
   const lineages = groupByLineage(srcForLineage);
