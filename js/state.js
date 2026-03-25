@@ -21,6 +21,11 @@ let historyLoadPromise = null;
 let _historyLastFetchedAt = 0; // monotonic timestamp of last successful fetch
 const _HISTORY_DEDUP_MS = 5000; // skip duplicate calls within 5s
 
+// Global single-flight gate: only ONE history API request in flight at a time.
+// Prevents tab-switch + load-more from running concurrent history queries
+// that compete for the same pool connections.
+let _historyFetchInFlight = null; // Promise | null
+
 // ============================================================================
 // JOB WATCHERS (shared Map for tracking active job polling)
 // ============================================================================
@@ -486,29 +491,40 @@ export async function loadHistoryTab(tab) {
   // If already loaded, return cached items
   if (ts.items !== null) return ts.items;
 
+  // Wait for any other history request to finish first (prevents concurrent
+  // history API calls from competing for the same pool connections).
+  if (_historyFetchInFlight) {
+    try { await _historyFetchInFlight; } catch (_) { /* ignore */ }
+  }
+
   ts.loading = true;
-  try {
-    const typeParam = tab === 'all' ? 'all' : tab;
-    const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0&type=${typeParam}`);
-    if (!result.ok) {
-      console.warn(`[History] loadTab(${tab}) failed:`, result.error);
+  const fetchPromise = (async () => {
+    try {
+      const typeParam = tab === 'all' ? 'all' : tab;
+      const result = await apiFetch(`/api/_mod/history?limit=${HISTORY_LIMIT}&offset=0&type=${typeParam}`);
+      if (!result.ok) {
+        console.warn(`[History] loadTab(${tab}) failed:`, result.error);
+        ts.items = [];
+        return [];
+      }
+      const page = _parseHistoryResponse(result.data);
+      ts.items = page.items;
+      ts.hasMore = page.hasMore;
+      ts.nextCursor = page.nextCursor;
+      ts.nextOffset = page.nextOffset;
+      log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}`);
+      return ts.items;
+    } catch (err) {
+      console.warn(`[History] loadTab(${tab}) error:`, err.message);
       ts.items = [];
       return [];
+    } finally {
+      ts.loading = false;
+      _historyFetchInFlight = null;
     }
-    const page = _parseHistoryResponse(result.data);
-    ts.items = page.items;
-    ts.hasMore = page.hasMore;
-    ts.nextCursor = page.nextCursor;
-    ts.nextOffset = page.nextOffset;
-    log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}`);
-    return ts.items;
-  } catch (err) {
-    console.warn(`[History] loadTab(${tab}) error:`, err.message);
-    ts.items = [];
-    return [];
-  } finally {
-    ts.loading = false;
-  }
+  })();
+  _historyFetchInFlight = fetchPromise;
+  return fetchPromise;
 }
 
 /**
@@ -523,53 +539,63 @@ export async function loadMoreHistory() {
     return [];
   }
 
-  ts.loading = true;
-  try {
-    const typeParam = tab === 'all' ? 'all' : tab;
-    // Prefer cursor-based pagination (avoids OFFSET row-scan); fall back to offset
-    const paginationParam = ts.nextCursor
-      ? `cursor=${encodeURIComponent(ts.nextCursor)}`
-      : `offset=${ts.nextOffset}`;
-    const result = await apiFetch(
-      `/api/_mod/history?limit=${HISTORY_LIMIT}&${paginationParam}&type=${typeParam}`
-    );
-    if (!result.ok) {
-      console.warn(`[History] loadMore(${tab}) failed:`, result.error);
-      return [];
-    }
-
-    const page = _parseHistoryResponse(result.data);
-    if (!page.items.length) {
-      ts.hasMore = false;
-      return [];
-    }
-
-    // Append to tab cache (dedupe by id)
-    const existingIds = new Set((ts.items || []).map(h => h.id));
-    const newItems = page.items.filter(h => !existingIds.has(h.id));
-    if (ts.items) {
-      ts.items.push(...newItems);
-    } else {
-      ts.items = newItems;
-    }
-    ts.hasMore = page.hasMore;
-    ts.nextCursor = page.nextCursor;
-    ts.nextOffset = page.nextOffset;
-
-    // Also update the global historyCache if this is the "all" tab
-    if (tab === 'all') {
-      historyCache = ts.items;
-      saveHistoryCache(historyCache);
-    }
-
-    log(`[History] loadMore(${tab}): +${newItems.length} items (total=${ts.items.length}, has_more=${ts.hasMore})`);
-    return newItems;
-  } catch (err) {
-    console.warn(`[History] loadMore(${tab}) error:`, err.message);
-    return [];
-  } finally {
-    ts.loading = false;
+  // Wait for any other history request to finish first
+  if (_historyFetchInFlight) {
+    try { await _historyFetchInFlight; } catch (_) { /* ignore */ }
   }
+
+  ts.loading = true;
+  const fetchPromise = (async () => {
+    try {
+      const typeParam = tab === 'all' ? 'all' : tab;
+      // Prefer cursor-based pagination (avoids OFFSET row-scan); fall back to offset
+      const paginationParam = ts.nextCursor
+        ? `cursor=${encodeURIComponent(ts.nextCursor)}`
+        : `offset=${ts.nextOffset}`;
+      const result = await apiFetch(
+        `/api/_mod/history?limit=${HISTORY_LIMIT}&${paginationParam}&type=${typeParam}`
+      );
+      if (!result.ok) {
+        console.warn(`[History] loadMore(${tab}) failed:`, result.error);
+        return [];
+      }
+
+      const page = _parseHistoryResponse(result.data);
+      if (!page.items.length) {
+        ts.hasMore = false;
+        return [];
+      }
+
+      // Append to tab cache (dedupe by id)
+      const existingIds = new Set((ts.items || []).map(h => h.id));
+      const newItems = page.items.filter(h => !existingIds.has(h.id));
+      if (ts.items) {
+        ts.items.push(...newItems);
+      } else {
+        ts.items = newItems;
+      }
+      ts.hasMore = page.hasMore;
+      ts.nextCursor = page.nextCursor;
+      ts.nextOffset = page.nextOffset;
+
+      // Also update the global historyCache if this is the "all" tab
+      if (tab === 'all') {
+        historyCache = ts.items;
+        saveHistoryCache(historyCache);
+      }
+
+      log(`[History] loadMore(${tab}): +${newItems.length} items (total=${ts.items.length}, has_more=${ts.hasMore})`);
+      return newItems;
+    } catch (err) {
+      console.warn(`[History] loadMore(${tab}) error:`, err.message);
+      return [];
+    } finally {
+      ts.loading = false;
+      _historyFetchInFlight = null;
+    }
+  })();
+  _historyFetchInFlight = fetchPromise;
+  return fetchPromise;
 }
 
 /**
