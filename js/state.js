@@ -726,6 +726,8 @@ export function addHistoryItem(item) {
   // This is a soft cap — the user's full history is always reachable via load-more.
   if (historyCache.length > 500) historyCache.length = 500;
   saveHistoryCache(historyCache);
+  // Invalidate tab caches so getTabHistory() re-derives from updated global cache
+  invalidateTabCaches();
 
   if (shouldSkipRemoteHistoryItem(sanitized)) {
     return true;
@@ -764,6 +766,8 @@ export function updateHistoryItem(jobId, updates = {}) {
     const updated = { ...historyCache[idx], ...updates, status: updates.status || 'finished' };
     historyCache[idx] = updated;
     saveHistoryCache(historyCache);
+    // Invalidate tab caches so getTabHistory() re-derives from updated global cache
+    invalidateTabCaches();
 
     if (shouldSkipRemoteHistoryItem(updated)) {
       return true;
@@ -793,6 +797,8 @@ export function deleteHistoryItem(jobId, options = {}) {
   if (historyCache === null) historyCache = getHistoryCache();
   historyCache = historyCache.filter(x => x.id !== jobId);
   saveHistoryCache(historyCache);
+  // Invalidate tab caches so getTabHistory() re-derives from updated global cache
+  invalidateTabCaches();
 
   if (!options.skipRemote) {
     // Delete from database
