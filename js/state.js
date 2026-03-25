@@ -11,7 +11,7 @@ import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getCo
 // ============================================================================
 const HISTORY_CACHE_KEY = 'meshy_history_cache';
 const HISTORY_OWNER_KEY = 'meshy_history_owner';
-export const HISTORY_LIMIT = 250;
+export const HISTORY_LIMIT = 50;
 export const MAX_DATA_URI_LEN = 50000;
 
 // In-memory cache for history (populated from DB)
@@ -665,7 +665,9 @@ export function addHistoryItem(item) {
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
   historyCache.unshift(sanitized);
-  if (historyCache.length > HISTORY_LIMIT) historyCache.length = HISTORY_LIMIT;
+  // Cap in-memory cache at 500 to prevent unbounded growth.
+  // This is a soft cap — the user's full history is always reachable via load-more.
+  if (historyCache.length > 500) historyCache.length = 500;
   saveHistoryCache(historyCache);
 
   if (shouldSkipRemoteHistoryItem(sanitized)) {
