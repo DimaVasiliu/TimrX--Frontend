@@ -3534,40 +3534,60 @@
    * @param {number} credits - The restored general credits balance to display
    * @param {number} [videoCredits] - The restored video credits balance (optional)
    */
+  /**
+   * Central post-restore/verify hydration.
+   * Fetches real wallet from /api/credits/wallet, commits to WalletStore,
+   * updates the credits pill, then opens the welcome-back modal.
+   * The modal NEVER renders before the wallet fetch resolves.
+   */
+  async function hydrateAndShowRestoreModal(reason = 'restore') {
+    console.log(`[RESTORE_UI] ${reason}: hydrating wallet + modal`);
+    let credits = null;
+    let videoCredits = null;
+    try {
+      const r = await apiFetch('/api/credits/wallet', { timeout: 10000 });
+      if (r.ok && r.data?.ok) {
+        const d = r.data;
+        const bal = d.credits_balance ?? 0;
+        const res = d.reserved_credits ?? 0;
+        credits = d.available_credits ?? Math.max(0, bal - res);
+        const vBal = d.video_credits_balance ?? 0;
+        const vRes = d.video_reserved_credits ?? 0;
+        videoCredits = d.video_available_credits ?? Math.max(0, vBal - vRes);
+        WalletStore.update({ balance: bal, reserved: res, available: credits,
+          videoBalance: vBal, videoReserved: vRes, videoAvailable: videoCredits });
+        updateCreditsDisplay(credits, bal, res);
+        console.log(`[RESTORE_UI] wallet: general=${credits} video=${videoCredits}`);
+      }
+    } catch (e) { console.warn('[RESTORE_UI] wallet error:', e.message); }
+    const snap = WalletStore.getSnapshot();
+    const mc = credits ?? snap.available ?? null;
+    const mv = videoCredits ?? snap.videoAvailable ?? 0;
+    console.log(`[RESTORE_UI] modal render: account=${userEmail} balance=${mc} video=${mv}`);
+    openRestoreSuccessModal(mc, mv);
+  }
+
   function openRestoreSuccessModal(credits, videoCredits) {
     if (!restoreSuccessModal) return;
-
-    // Store current focus before opening
     lastFocusBeforeRestoreModal = document.activeElement;
 
-    // Show which account was switched to
     const successEmail = document.getElementById('restoreSuccessEmail');
     if (successEmail) successEmail.textContent = userEmail || '(unknown)';
 
-    // Update general credits display
     if (restoreCreditsValue) {
-      restoreCreditsValue.textContent = credits != null ? credits.toLocaleString() : '--';
+      restoreCreditsValue.textContent = credits != null ? credits.toLocaleString() : 'Balance updating\u2026';
     }
 
-    // Show video credits row only when user has video credits
     const videoAmt = Number(videoCredits) || 0;
     if (restoreVideoRow) restoreVideoRow.style.display = videoAmt > 0 ? 'flex' : 'none';
     if (restoreVideoValue) restoreVideoValue.textContent = videoAmt.toLocaleString();
 
-    // Force reflow to restart animations
     restoreSuccessModal.classList.remove('open');
     void restoreSuccessModal.offsetWidth;
-
-    // Open modal
     restoreSuccessModal.classList.add('open');
     restoreSuccessModal.inert = false;
-
-    // Focus the close button
-    requestAnimationFrame(() => {
-      restoreSuccessCloseBtn?.focus();
-    });
-
-    console.log('[Credits] Restore success modal opened with', credits, 'credits');
+    requestAnimationFrame(() => { restoreSuccessCloseBtn?.focus(); });
+    console.log(`[RESTORE_UI] modal opened: credits=${credits} video=${videoCredits}`);
   }
 
   /**
@@ -3975,45 +3995,14 @@
       emailVerified = true;
       isRestoreMode = false;
 
-      // Refresh identity (fire-and-forget — just sets session/email state)
-      fetchWallet().catch(() => {});
-      // Refresh subscription in background
-      fetchSubscription().catch(() => {});
-
+      fetchWallet().catch(() => {});          // identity refresh (fire-and-forget)
+      fetchSubscription().catch(() => {});     // subscription refresh (fire-and-forget)
       if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-
       closeRestoreAccountModal();
-
-      // Reload history from DB for the new identity and re-render
       if (window.loadHistoryFromDB) {
-        window.loadHistoryFromDB().then(() => {
-          if (window.renderHistory) window.renderHistory();
-        }).catch(() => {});
+        window.loadHistoryFromDB().then(() => { window.renderHistory?.(); }).catch(() => {});
       }
-
-      // Fetch REAL wallet from /api/credits/wallet (not /api/me which returns 0),
-      // then show the restore success modal with actual balances.
-      console.log('[Restore] Fetching real wallet for success modal...');
-      const walletResult = await apiFetch('/api/credits/wallet', { timeout: 10000 });
-      let restoredCredits = 0;
-      let restoredVideoCredits = 0;
-      if (walletResult.ok && walletResult.data?.ok) {
-        const d = walletResult.data;
-        restoredCredits = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
-        restoredVideoCredits = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
-        // Also update the pill immediately
-        WalletStore.update({
-          balance: d.credits_balance || 0,
-          reserved: d.reserved_credits || 0,
-          available: restoredCredits,
-          videoBalance: d.video_credits_balance || 0,
-          videoReserved: d.video_reserved_credits || 0,
-          videoAvailable: restoredVideoCredits,
-        });
-        updateCreditsDisplay(restoredCredits, d.credits_balance || 0, d.reserved_credits || 0);
-        console.log(`[Restore] Wallet loaded: general=${restoredCredits} video=${restoredVideoCredits}`);
-      }
-      openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
+      await hydrateAndShowRestoreModal('confirm_switch');
 
     } catch (err) {
       console.error('[RestoreAccount] confirm switch error:', err);
@@ -4520,12 +4509,8 @@
                 if (window.renderHistory) window.renderHistory();
               }).catch(() => {});
             }
-            // Show restore success popup if this was a restore operation
             if (wasRestoreMode) {
-              // Wait briefly for wallet refresh to complete, then show modal with real balances
-              await refreshCredits({ maxRetries: 1 }).catch(() => {});
-              const snap = WalletStore.getSnapshot();
-              openRestoreSuccessModal(snap.available || 0, snap.videoAvailable || 0);
+              await hydrateAndShowRestoreModal('poll_verify');
             }
             return;
           }
@@ -4591,28 +4576,11 @@
       }).catch(() => {});
     }
 
-    // Show restore success popup with real wallet from /api/credits/wallet
     if (wasRestoreMode) {
-      console.log('[Restore] Fetching real wallet for success modal...');
-      const walletResult = await apiFetch('/api/credits/wallet', { timeout: 10000 });
-      let restoredCredits = 0;
-      let restoredVideoCredits = 0;
-      if (walletResult.ok && walletResult.data?.ok) {
-        const d = walletResult.data;
-        restoredCredits = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
-        restoredVideoCredits = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
-        WalletStore.update({
-          balance: d.credits_balance || 0,
-          reserved: d.reserved_credits || 0,
-          available: restoredCredits,
-          videoBalance: d.video_credits_balance || 0,
-          videoReserved: d.video_reserved_credits || 0,
-          videoAvailable: restoredVideoCredits,
-        });
-        updateCreditsDisplay(restoredCredits, d.credits_balance || 0, d.reserved_credits || 0);
-      }
-      openRestoreSuccessModal(restoredCredits, restoredVideoCredits);
+      await hydrateAndShowRestoreModal('verify_success');
     } else if (subscriptionsResumed > 0) {
+      // Not a restore — just a verify. Refresh wallet in background.
+      refreshCredits({ maxRetries: 1 }).catch(() => {});
       showToast('Email verified. Subscription resumed.', 'success');
     }
   }
