@@ -4067,10 +4067,13 @@
       }
       openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
 
-      // Background refresh for authoritative data
-      refreshCredits({ maxRetries: 1 }).catch(() => {});
+      // Do NOT fire refreshCredits() here — the backend session process cache
+      // may still have the OLD anonymous identity (120s TTL). A /api/credits/wallet
+      // call right now could return 0 and overwrite the correct pill.
+      // The redeem response wallet data is authoritative. The next focus/visibility
+      // refresh (after cache expires) will confirm the balance.
       fetchSubscription().catch(() => {});
-      _raRedeemData = null; // Clear stashed data
+      _raRedeemData = null;
 
     } catch (err) {
       console.error('[RestoreAccount] confirm switch error:', err);
@@ -4669,11 +4672,10 @@
 
       openRestoreSuccessModal(restoreCredits, restoreVideo, restoreEmail);
 
-      // Background refresh for authoritative wallet (may differ slightly from redeem response)
-      refreshCredits({ maxRetries: 1 }).catch(() => {});
+      // Do NOT fire refreshCredits() — session cache may return stale 0.
+      // Redeem response wallet is authoritative.
       fetchSubscription().catch(() => {});
     } else if (subscriptionsResumed > 0) {
-      refreshCredits({ maxRetries: 1 }).catch(() => {});
       refreshCredits({ maxRetries: 1 }).catch(() => {});
       showToast('Email verified. Subscription resumed.', 'success');
     }
