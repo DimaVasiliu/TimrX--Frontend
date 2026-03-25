@@ -4349,7 +4349,9 @@ export async function startImageTo3DFromHistory(item) {
     root_prompt: prompt,
     model: 'latest',
     stage: 'image3d',
-    thumbnail_url: item.thumbnail_url || item.image_url || ''
+    thumbnail_url: item.thumbnail_url || item.image_url || '',
+    lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || item.id || null,
+    lineage_root_id: item.lineage_root_id || item.lineage_origin_id || item.id || null,
   };
 
   const prog = UI.makeProgressDriver();
@@ -4373,7 +4375,7 @@ export async function startImageTo3DFromHistory(item) {
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: item.image_url, prompt },
+      body: { image_url: item.image_url, prompt, source_image_history_id: item.id },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 

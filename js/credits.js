@@ -558,10 +558,9 @@
    * @returns {Promise<number>} - Available credits
    */
   async function refreshCredits(options = {}) {
-    const { force = false, maxRetries = 3 } = options;
+    const { maxRetries = 3 } = options;
 
-    let lastResult = null;
-    const delays = [0, 500, 1500]; // Progressive backoff
+    const delays = [0, 500, 1500];
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       if (attempt > 0) {
@@ -570,16 +569,33 @@
         await new Promise(r => setTimeout(r, delay));
       }
 
-      const wallet = await fetchWallet({ force, timeout: 15000 });
-      lastResult = wallet;
+      try {
+        // Use /api/credits/wallet directly — /api/me no longer returns wallet data
+        const result = await apiFetch('/api/credits/wallet', { timeout: 10000 });
+        if (result.ok && result.data?.ok) {
+          const d = result.data;
+          const balance = d.credits_balance ?? 0;
+          const reserved = d.reserved_credits ?? 0;
+          const available = d.available_credits ?? Math.max(0, balance - reserved);
+          const videoBalance = d.video_credits_balance ?? 0;
+          const videoReserved = d.video_reserved_credits ?? 0;
+          const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
 
-      if (wallet) {
-        return wallet.available;
+          WalletStore.update({
+            balance, reserved, available,
+            videoBalance, videoReserved, videoAvailable: videoAvail,
+          });
+          updateCreditsDisplay(available, balance, reserved);
+          console.log(`[Credits] Refresh OK: general=${available} video=${videoAvail}`);
+          return available;
+        }
+      } catch (err) {
+        console.warn(`[Credits] Refresh attempt ${attempt + 1} error:`, err.message);
       }
     }
 
     console.warn('[Credits] All refresh attempts failed');
-    return lastResult ? lastResult.available : 0;
+    return 0;
   }
 
   function updateCreditsDisplay(available, total, reserved) {
@@ -3153,47 +3169,54 @@
     || document.getElementById('generateModelBtn') !== null;
 
   if (!_isWorkspace && creditsValue) {
-    // ── Hub boot: fetch identity + wallet in parallel ──
-    // /api/me → identity only (fast, no wallet DB queries)
-    // /api/credits/wallet → authoritative wallet balances
-    // Both fire in parallel so the pill updates as fast as possible.
+    // ── Hub boot: identity + wallet as separate independent requests ──
+    // /api/me → identity only (session bootstrap, email, no wallet data)
+    // /api/credits/wallet → authoritative wallet balances (credits pill)
+    // These are independent — the pill renders from /api/credits/wallet ONLY.
+    // /api/me is fire-and-forget for identity; its response does NOT touch
+    // the pill, preventing race-condition overwrites.
     creditsValue.textContent = '...';
-    console.log('[Credits][Hub] Self-booting: /api/me + /api/credits/wallet in parallel');
+    console.log('[Credits][Hub] Boot: /api/me (identity) + /api/credits/wallet (pill)');
 
-    // 1) Identity (for email, session confirmation)
-    fetchWallet().catch(err => {
-      console.warn('[Credits][Hub] /api/me failed:', err.message);
+    // 1) Identity — fire-and-forget, only for session/email confirmation.
+    //    Do NOT use fetchWallet() here — that reads wallet fields from /api/me
+    //    and would overwrite the real values from /api/credits/wallet.
+    apiFetch('/api/me', { timeout: 15000 }).then(result => {
+      if (result.ok && result.data?.ok) {
+        const data = result.data;
+        identityId = data.identity_id || null;
+        userEmail = data.email || null;
+        emailVerified = data.email_verified || false;
+        console.log('[Credits][Hub] Identity confirmed:', identityId?.slice(0, 8));
+      }
+    }).catch(err => {
+      console.warn('[Credits][Hub] /api/me failed (non-fatal):', err.message);
     });
 
-    // 2) Wallet (for pill balances) — this is the authoritative source
+    // 2) Wallet — authoritative source for pill display
     apiFetch('/api/credits/wallet', { timeout: 10000 }).then(result => {
       if (result.ok && result.data?.ok) {
         const d = result.data;
-        const available = d.available_credits ?? Math.max(0, (d.credits_balance || 0) - (d.reserved_credits || 0));
-        const videoAvail = d.video_available_credits ?? Math.max(0, (d.video_credits_balance || 0) - (d.video_reserved_credits || 0));
+        const balance = d.credits_balance ?? 0;
+        const reserved = d.reserved_credits ?? 0;
+        const available = d.available_credits ?? Math.max(0, balance - reserved);
+        const videoBalance = d.video_credits_balance ?? 0;
+        const videoReserved = d.video_reserved_credits ?? 0;
+        const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
 
         WalletStore.update({
-          balance: d.credits_balance || 0,
-          reserved: d.reserved_credits || 0,
-          available,
-          videoBalance: d.video_credits_balance || 0,
-          videoReserved: d.video_reserved_credits || 0,
-          videoAvailable: videoAvail,
+          balance, reserved, available,
+          videoBalance, videoReserved, videoAvailable: videoAvail,
         });
-        updateCreditsDisplay(available, d.credits_balance || 0, d.reserved_credits || 0);
-        console.log(`[Credits][Hub] Wallet pill updated: general=${available} video=${videoAvail}`);
+        updateCreditsDisplay(available, balance, reserved);
+        console.log(`[Credits][Hub] Pill updated: general=${available} video=${videoAvail}`);
       } else {
-        console.warn('[Credits][Hub] /api/credits/wallet failed:', result.status, result.error);
-        // Only show 0 if nothing else has already populated the pill
-        if (creditsValue.textContent === '...') {
-          creditsValue.textContent = '0';
-        }
+        console.warn('[Credits][Hub] /api/credits/wallet failed:', result.status);
+        if (creditsValue.textContent === '...') creditsValue.textContent = '0';
       }
     }).catch(err => {
-      console.warn('[Credits][Hub] Wallet fetch error:', err.message);
-      if (creditsValue.textContent === '...') {
-        creditsValue.textContent = '0';
-      }
+      console.warn('[Credits][Hub] Wallet error:', err.message);
+      if (creditsValue.textContent === '...') creditsValue.textContent = '0';
     });
   }
 
