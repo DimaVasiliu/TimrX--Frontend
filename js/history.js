@@ -1446,12 +1446,19 @@ function _renderHistoryImpl() {
   }
 
   // MODEL/ALL FILTER - lineage grouping
-  // "All" tab (non-gallery) shows only models. Images and videos have their
-  // own dedicated tabs. Gallery (expanded) mode still shows everything.
+  // "All" tab (non-gallery) shows models + any in-progress items regardless
+  // of type. This ensures generating images/videos appear immediately when
+  // the user clicks Generate from the default tab. Finished images and
+  // videos live in their dedicated tabs. Gallery mode still shows everything.
+  const _IN_PROGRESS_STATUSES = new Set([
+    'generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating',
+    'processing', 'queued', 'pending',
+  ]);
   const srcForLineage = (historyState.filter === 'all' && !isGallery)
     ? src.filter(item => {
         const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
-        return type === 'model';
+        if (type === 'model') return true;
+        return _IN_PROGRESS_STATUSES.has(item.status);
       })
     : src;
   const lineages = groupByLineage(srcForLineage);

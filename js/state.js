@@ -616,16 +616,17 @@ export function getTabHistory() {
 }
 
 /**
- * Invalidate all tab caches (called after new generations, deletes, etc.)
+ * Invalidate all tab caches including 'all' (called after new generations,
+ * deletes, etc.). This ensures newly added items (e.g., generating
+ * placeholders) are visible immediately — getTabHistory() falls back to
+ * the global historyCache which is the source of truth.
  */
 export function invalidateTabCaches() {
   for (const key of Object.keys(_tabState)) {
-    if (key !== 'all') {
-      _tabState[key].items = null;
-      _tabState[key].hasMore = false;
-      _tabState[key].nextCursor = null;
-      _tabState[key].nextOffset = 0;
-    }
+    _tabState[key].items = null;
+    _tabState[key].hasMore = false;
+    _tabState[key].nextCursor = null;
+    _tabState[key].nextOffset = 0;
   }
 }
 
