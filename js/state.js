@@ -441,10 +441,20 @@ export async function loadHistoryFromDB() {
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
           const page = await attemptFetch();
-          historyCache = page.items;
+
+          // Preserve in-flight generating items that were added to historyCache
+          // while the DB fetch was running. Without this merge, items added by
+          // addHistoryItem() (e.g., generating placeholders) would be silently
+          // dropped when the DB response overwrites historyCache.
+          const dbIds = new Set(page.items.map(i => i.id));
+          const inFlightItems = (historyCache || []).filter(
+            i => i && !dbIds.has(i.id) && i.status && i.status !== 'finished'
+          );
+          historyCache = [...inFlightItems, ...page.items];
+
           _historyLastFetchedAt = Date.now();
           const ts = _ts('all');
-          ts.items = page.items;
+          ts.items = null;  // Force getTabHistory() to use merged historyCache
           ts.hasMore = page.hasMore;
           ts.nextCursor = page.nextCursor;
           ts.nextOffset = page.nextOffset;
@@ -578,9 +588,14 @@ export async function loadMoreHistory() {
       ts.nextCursor = page.nextCursor;
       ts.nextOffset = page.nextOffset;
 
-      // Also update the global historyCache if this is the "all" tab
+      // Also update the global historyCache if this is the "all" tab,
+      // preserving any in-flight generating items not yet in DB.
       if (tab === 'all') {
-        historyCache = ts.items;
+        const loadedIds = new Set(ts.items.map(h => h.id));
+        const inFlight = (historyCache || []).filter(
+          h => h && !loadedIds.has(h.id) && h.status && h.status !== 'finished'
+        );
+        historyCache = [...inFlight, ...ts.items];
         saveHistoryCache(historyCache);
       }
 

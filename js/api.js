@@ -1280,7 +1280,11 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   if (meta.type === 'image') statusType = 'generating';
   const stage = meta.stage || (isRefine ? 'refine' : isRemesh ? 'remesh' : 'preview');
 
+  // Spread meta first so extra fields (provider, provider_used, image_url,
+  // idempotency_key for image jobs) are included, then set computed fields
+  // that must not be overridden by the spread.
   const placeholder = {
+    ...meta,
     id: jobId,
     type: meta.type || 'model',
     status: statusType,
@@ -1296,13 +1300,14 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
     batch_group_id: meta.batch_group_id || null,
     stage,
     thumbnail_url: meta.thumbnail_url || '',
-    glb_url: '',
-    glb_proxy: '',
+    glb_url: meta.glb_url ?? '',
+    glb_proxy: meta.glb_proxy ?? '',
     lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.batch_group_id || jobId,
     lineage_root_id: meta.lineage_origin_id || meta.lineage_root_id || meta.batch_group_id || jobId,
   };
 
   State.addHistoryItem(placeholder);
+  State.setHistoryActiveModelId(jobId);
   State.historyFreshThumbs.add(jobId);
   renderHistory();
 }
@@ -2262,26 +2267,16 @@ export async function startOpenAIImageGeneration() {
     window.ImageJobControl.lock('openai', settingsSnapshot, tempId, reservation.reservationId);
   }
 
-  renderHistory();
-
-  const placeholder = {
-    id: tempId,
+  addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status: 'generating',
     status_label: 'Generating image...',
-    idempotency_key: idempotencyKey,
-    created_at: Date.now(),
     prompt: promptRaw,
-    title: shortTitle(promptRaw),
-    image_url: '',
-    thumbnail_url: '',
     stage: 'image',
     provider: 'openai',
-    provider_used: 'openai'  // Locked provider for this job
-  };
-  State.addHistoryItem(placeholder);
-  State.setHistoryActiveModelId(tempId);
-  renderHistory();
+    provider_used: 'openai',
+    idempotency_key: idempotencyKey,
+    image_url: '',
+  });
 
   let activeHistoryId = tempId;
 
@@ -2334,23 +2329,16 @@ export async function startOpenAIImageGeneration() {
     if (jobId !== tempId) {
       State.deleteHistoryItem(tempId, { skipRemote: true });
       activeHistoryId = jobId;
+      addGeneratingPlaceholder(activeHistoryId, {
+        type: 'image',
+        status_label: 'Generating image...',
+        prompt: promptRaw,
+        stage: 'image',
+        provider: 'openai',
+        provider_used: 'openai',
+        image_url: '',
+      });
     }
-
-    const queuedPlaceholder = {
-      ...placeholder,
-      id: activeHistoryId,
-      status: 'generating',
-      status_label: 'Generating image...'
-    };
-
-    if (State.historyHasJobId(activeHistoryId)) {
-      State.updateHistoryItem(activeHistoryId, queuedPlaceholder);
-    } else {
-      State.addHistoryItem(queuedPlaceholder);
-    }
-
-    State.setHistoryActiveModelId(activeHistoryId);
-    renderHistory();
 
     // Track as active job for recovery and indicator
     State.addActiveJob(activeHistoryId);
@@ -2481,26 +2469,16 @@ export async function startGeminiImageGeneration() {
     window.ImageJobControl.lock('google', settingsSnapshot, tempId, reservation.reservationId);
   }
 
-  renderHistory();
-
-  const placeholder = {
-    id: tempId,
+  addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status: 'generating',
     status_label: 'Generating image with Imagen...',
-    created_at: Date.now(),
     prompt: promptRaw,
-    title: shortTitle(promptRaw),
-    image_url: '',
-    thumbnail_url: '',
     stage: 'image',
     provider: 'google',
-    provider_used: 'google',  // Locked provider for this job
-    idempotency_key: idempotencyKey
-  };
-  State.addHistoryItem(placeholder);
-  State.setHistoryActiveModelId(tempId);
-  renderHistory();
+    provider_used: 'google',
+    idempotency_key: idempotencyKey,
+    image_url: '',
+  });
 
   try {
     prog.label('Generating image with Gemini...');
@@ -2564,26 +2542,19 @@ export async function startGeminiImageGeneration() {
     if (jobStatus === 'queued' && imageId) {
       console.log('[Gemini Image] Job queued, starting watcher:', imageId);
 
-      // Update placeholder with real job ID
+      // Replace temp placeholder with real job ID
       if (imageId !== tempId) {
         State.deleteHistoryItem(tempId, { skipRemote: true });
-        State.addHistoryItem({
-          id: imageId,
+        addGeneratingPlaceholder(imageId, {
           type: 'image',
-          status: 'generating',
           status_label: 'Generating image with Gemini...',
-          created_at: Date.now(),
           prompt: promptRaw,
-          title: shortTitle(promptRaw),
-          image_url: '',
-          thumbnail_url: '',
           stage: 'image',
           provider: 'google',
           provider_used: 'google',
-          model: 'imagen-4.0'
+          model: 'imagen-4.0',
+          image_url: '',
         });
-        State.setHistoryActiveModelId(imageId);
-        renderHistory();
       }
 
       // Use backend reservation_id if provided, otherwise use local
@@ -2767,26 +2738,16 @@ export async function startNanoBananaImageGeneration() {
     window.ImageJobControl.lock('nano_banana', settingsSnapshot, tempId, reservation.reservationId);
   }
 
-  renderHistory();
-
-  const placeholder = {
-    id: tempId,
+  addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status: 'generating',
     status_label: 'Generating image with Nano Banana...',
-    created_at: Date.now(),
     prompt: promptRaw,
-    title: shortTitle(promptRaw),
-    image_url: '',
-    thumbnail_url: '',
     stage: 'image',
     provider: 'nano_banana',
     provider_used: 'nano_banana',
-    idempotency_key: idempotencyKey
-  };
-  State.addHistoryItem(placeholder);
-  State.setHistoryActiveModelId(tempId);
-  renderHistory();
+    idempotency_key: idempotencyKey,
+    image_url: '',
+  });
 
   try {
     prog.label('Generating image with Nano Banana...');
@@ -2847,26 +2808,19 @@ export async function startNanoBananaImageGeneration() {
     if (jobStatus === 'queued' && imageId) {
       console.log('[Nano Banana] Job queued, starting watcher:', imageId);
 
-      // Update placeholder with real job ID
+      // Replace temp placeholder with real job ID
       if (imageId !== tempId) {
         State.deleteHistoryItem(tempId, { skipRemote: true });
-        State.addHistoryItem({
-          id: imageId,
+        addGeneratingPlaceholder(imageId, {
           type: 'image',
-          status: 'generating',
           status_label: 'Generating image with Nano Banana...',
-          created_at: Date.now(),
           prompt: promptRaw,
-          title: shortTitle(promptRaw),
-          image_url: '',
-          thumbnail_url: '',
           stage: 'image',
           provider: 'nano_banana',
           provider_used: 'nano_banana',
-          model: 'nano-banana-2'
+          model: 'nano-banana-2',
+          image_url: '',
         });
-        State.setHistoryActiveModelId(imageId);
-        renderHistory();
       }
 
       const backendReservationId = data.reservation_id || reservation.reservationId;
