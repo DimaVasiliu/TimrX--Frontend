@@ -1225,8 +1225,13 @@ function wireGallery() {
       // Handle actions
       if (act === 'open') {
         const wasGallery = !!State.historyState.galleryExpanded;
+
+        // Close expanded gallery FIRST — remove body class + re-render immediately
+        // so the viewer panel becomes visible before we load content into it.
         if (wasGallery) {
           State.historyState.galleryExpanded = false;
+          renderHistory();                        // toggles body.history-expanded off
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Handle video type
@@ -1249,17 +1254,16 @@ function wireGallery() {
 
         // Handle image type
         if (!glbUrl && (item.type === 'image' || item.image_url)) {
-            State.setHistoryActiveModelId(id);
-            const imgSrc = item.image_url || item.thumbnail_url || '';
+          State.setHistoryActiveModelId(id);
+          const imgSrc = item.image_url || item.thumbnail_url || '';
           if (imgSrc) {
             _suppressHistoryFilterReset = true;
             const imageRailBtn = document.querySelector('[data-panel="image"]');
             if (imageRailBtn) imageRailBtn.click();
             _suppressHistoryFilterReset = false;
             Viewer.showImageInViewer(imgSrc);
-          } else {
-            renderHistory(); // only render if no rail switch (which triggers its own render)
           }
+          if (!wasGallery) renderHistory();
           return;
         }
 
@@ -1273,7 +1277,6 @@ function wireGallery() {
         const genHintEl = byId('genHint');
         if (genHintEl) genHintEl.textContent = 'Loading model...';
         State.setHistoryActiveModelId(id);
-        // Rail button click above already triggers renderHistory via switchHistoryFilter
 
         // Reset version stack for this model and hide action bar
         const loadUrl = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
@@ -1286,12 +1289,6 @@ function wireGallery() {
         });
         const actionBar = byId('viewerActionBar');
         if (actionBar) actionBar.classList.add('hidden');
-
-        if (wasGallery) {
-          requestAnimationFrame(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-        }
 
         // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
         const primary = loadUrl;
@@ -1392,8 +1389,11 @@ function wireGallery() {
 
       if (act === 'open-video') {
         // Collapse expanded gallery first (viewer is hidden in expanded mode)
-        if (State.historyState.galleryExpanded) {
+        const wasGalleryV = !!State.historyState.galleryExpanded;
+        if (wasGalleryV) {
           State.historyState.galleryExpanded = false;
+          renderHistory();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (videoUrl) {
@@ -1401,15 +1401,13 @@ function wireGallery() {
           const videoRailBtn = document.querySelector('[data-panel="video"]');
           if (videoRailBtn) videoRailBtn.click();
           _suppressHistoryFilterReset = false;
-          // Show video in the viewer panel
           Viewer.showVideoInViewer(videoUrl, {
             title: shortTitle(item) || 'Video Preview',
             hint: item.prompt || 'Generated video',
             autoplay: true
           });
-          // Update active state
           State.setHistoryActiveModelId(item.id);
-          renderHistory();
+          if (!wasGalleryV) renderHistory();
         }
         return;
       }
