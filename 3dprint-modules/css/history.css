@@ -848,7 +848,7 @@
   
   /* ╔════════════════════════════════════════════════════════════════════╗
      ║  EXPANDED HISTORY VIEW (Full-page gallery mode)                    ║
-     ║  Isolated styles - only active when body.history-expanded          ║
+     ║  Modern waterfall design with glass morphism & premium dark theme   ║
      ╚════════════════════════════════════════════════════════════════════╝ */
   
   /* Grid collapses into a single full-width column */
@@ -869,10 +869,11 @@
   /* History panel becomes full-width primary content */
   body.history-expanded .timrx-3dprint .ws-right {
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     height: auto;
     min-height: 0;
+    padding: 0 24px;
   }
   
   /* History grid becomes free-flowing, no internal scroll */
@@ -887,59 +888,77 @@
   }
   
   /* ╔════════════════════════════════════════════════════════════════════╗
-     ║  EXPANDED VIEW - Dedicated Thumbnail Classes                       ║
-     ║  These classes are separate from the regular history thumbnails    ║
+     ║  EXPANDED VIEW - Modern Filter Bar with Glass Morphism             ║
      ╚════════════════════════════════════════════════════════════════════╝ */
   
-  /* ── Expanded gallery filter bar ── */
+  /* Glass morphism filter bar */
   .expanded-filter-bar {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
-    padding: 8px 0 4px;
+    padding: 12px 0;
     position: sticky;
     top: 0;
-    z-index: 5;
-    background: linear-gradient(180deg, #0a0a0a 70%, transparent 100%);
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.5);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 0 -24px;
+    padding-left: 24px;
+    padding-right: 24px;
   }
   
+  /* Enhanced filter buttons */
   .expanded-filter-btn {
-    padding: 6px 14px;
+    padding: 8px 18px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: transparent;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
+    white-space: nowrap;
   }
   
   .expanded-filter-btn:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.7);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
   }
   
   .expanded-filter-btn.active {
-    background: rgba(14, 165, 233, 0.1);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(14, 165, 233, 0.15));
     color: #38bdf8;
-    border-color: rgba(14, 165, 233, 0.3);
+    border-color: rgba(14, 165, 233, 0.4);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
   }
+  
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  EXPANDED VIEW - Modern Grid Container                             ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
   
   /* Grid container for expanded view thumbnails */
   .expanded-thumbs-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-    padding: 12px 0;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    padding: 20px 0;
   }
+  
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  EXPANDED VIEW - Modern Card Styles                                ║
+     ║  Rectangular aspect ratio with premium shadows and animations      ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
   
   /* Staggered entrance animation for expanded thumbnails */
   @keyframes expandedThumbEnter {
     0% {
       opacity: 0;
-      transform: translateY(12px) scale(0.95);
+      transform: translateY(20px) scale(0.95);
     }
     100% {
       opacity: 1;
@@ -947,49 +966,28 @@
     }
   }
   
-  /* Individual expanded thumbnail — forced square via aspect-ratio + overflow clip */
+  /* Individual expanded thumbnail — modern rectangular design */
   .expanded-thumb {
     width: 100%;
     min-width: 0;
     max-width: none;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 3;
     position: relative;
-    border-radius: 10px;
-    background: #0c1018;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    border-radius: 14px;
+    background: #0e1117;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
     cursor: pointer;
     overflow: clip;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     opacity: 0;
-    animation: expandedThumbEnter 0.35s ease-out forwards;
-  }
-  
-  @media (max-width: 1024px) {
-    .expanded-thumbs-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .expanded-thumbs-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-    }
-    .expanded-filter-bar {
-      gap: 4px;
-    }
-    .expanded-filter-btn {
-      padding: 5px 10px;
-      font-size: 10px;
-    }
+    animation: expandedThumbEnter 0.4s ease-out forwards;
   }
   
   .expanded-thumb:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-    border-color: rgba(14, 165, 233, 0.4);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(14, 165, 233, 0.1);
+    border-color: rgba(14, 165, 233, 0.3);
   }
   
   .expanded-thumb:focus-visible {
@@ -1016,11 +1014,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.35s ease;
   }
   
   .expanded-thumb:hover .expanded-thumb__image img {
-    transform: scale(1.05);
+    transform: scale(1.08);
   }
   
   /* Preview canvas/video for expanded thumbnail */
@@ -1052,7 +1050,7 @@
   
   /* Loading state for expanded thumbnail */
   .expanded-thumb--loading {
-    background: linear-gradient(110deg, #0c1018 8%, #151c28 18%, #0c1018 33%);
+    background: linear-gradient(110deg, #0e1117 8%, #1a2332 18%, #0e1117 33%);
     background-size: 200% 100%;
     animation: expandedThumbShimmer 1.5s infinite;
   }
@@ -1104,6 +1102,114 @@
     display: none;
   }
   
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  EXPANDED VIEW - Gallery Header with Stats                        ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+  
+  @keyframes expandedHeaderFade {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  
+  .expanded-gallery-header {
+    padding: 28px 0 16px;
+    animation: expandedHeaderFade 0.5s ease-out;
+  }
+  
+  .expanded-gallery-header__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .expanded-gallery-header__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .expanded-gallery-header__stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .expanded-gallery-header__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+  }
+  
+  .expanded-gallery-header__stat svg {
+    opacity: 0.7;
+  }
+  
+  .expanded-gallery-header__stat strong {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+  }
+  
+  .expanded-gallery-header__stat--total {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(14, 165, 233, 0.06));
+    border-color: rgba(14, 165, 233, 0.2);
+    color: rgba(56, 189, 248, 0.8);
+  }
+  
+  .expanded-gallery-header__stat--total strong {
+    color: #38bdf8;
+  }
+  
+  /* Filter bar pills wrapper */
+  .expanded-filter-bar__pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  /* Filter count badge */
+  .expanded-filter-btn__count {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-left: 2px;
+  }
+  
+  .expanded-filter-btn.active .expanded-filter-btn__count {
+    opacity: 0.8;
+  }
+  
+  .expanded-filter-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  
+  .expanded-filter-btn.active svg {
+    opacity: 1;
+  }
+  
+  .expanded-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
   /* Group start — no extra margin in grid layout (breaks alignment) */
   .expanded-thumb--group-start {
     /* removed margin-left — incompatible with CSS grid */
@@ -1134,12 +1240,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 8px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
-    font-size: 9px;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+    font-size: 10px;
     color: rgba(255,255,255,0.7);
     z-index: 2;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .expanded-thumb:hover .expanded-thumb__status-bar {
+    opacity: 1;
   }
   
   .expanded-thumb__status-date {
@@ -1148,38 +1260,43 @@
   
   .expanded-thumb__stage {
     position: absolute;
-    bottom: 6px;
-    left: 6px;
+    bottom: 8px;
+    left: 8px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     background: linear-gradient(135deg, #a855f7, #06b6d4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     z-index: 5;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
     pointer-events: none;
   }
   
   .expanded-thumb__name {
     position: absolute;
-    bottom: 24px;
-    left: 6px;
-    right: 6px;
-    font-size: 10px;
+    bottom: 28px;
+    left: 8px;
+    right: 8px;
+    font-size: 12px;
     color: rgba(255,255,255,0.9);
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     z-index: 2;
     pointer-events: none;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%);
+    padding-bottom: 4px;
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     EXPANDED THUMB — Processing Overlay (Apple/Revolut Style)
+     EXPANDED THUMB — Processing Overlay (Modern Style)
      Centered, clean, subtle glass effect
      ═══════════════════════════════════════════════════════════════ */
   
@@ -1191,10 +1308,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    background: rgba(0, 0, 0, 0.7);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.75);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     border-radius: inherit;
     z-index: 10;
   }
@@ -1210,7 +1327,7 @@
   
   .expanded-thumb__processing-pct {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 600;
     letter-spacing: -0.02em;
     color: #ffffff;
@@ -1227,11 +1344,11 @@
     letter-spacing: 0.1em;
   }
   
-  /* Progress bar - thin, elegant */
+  /* Progress bar - modern, elegant */
   .expanded-thumb__progress-bar {
     width: 60%;
-    max-width: 120px;
-    height: 3px;
+    max-width: 140px;
+    height: 4px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 2px;
     overflow: hidden;
@@ -1239,7 +1356,7 @@
   
   .expanded-thumb__progress-fill {
     height: 100%;
-    background: #ffffff;
+    background: linear-gradient(90deg, #ffffff, #e0e0e0);
     border-radius: 2px;
     transition: width 0.3s ease-out;
   }
@@ -1255,7 +1372,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(110deg, #0c1018 8%, #1a1f2e 18%, #0c1018 33%);
+    background: linear-gradient(110deg, #0e1117 8%, #1a2332 18%, #0e1117 33%);
     background-size: 200% 100%;
     animation: processingShimmer 1.8s ease-in-out infinite;
   }
@@ -1273,7 +1390,7 @@
   .expanded-thumb__composite-tile {
     position: relative;
     overflow: hidden;
-    background: #0c1018;
+    background: #0e1117;
     border: none;
     padding: 0;
     cursor: pointer;
@@ -1407,7 +1524,7 @@
   
   /* ╔════════════════════════════════════════════════════════════════════╗
      ║  EXPANDED VIEW – Video Thumbnail Styles                           ║
-     ║  Mirrors history-thumb--video but sized for 100px expanded grid  ║
+     ║  Modern design with enhanced play button                          ║
      ╚════════════════════════════════════════════════════════════════════╝ */
   
   .expanded-thumb--video {
@@ -1445,17 +1562,17 @@
     filter: brightness(1);
   }
   
-  /* Play button overlay */
+  /* Play button overlay - larger and with pulse ring */
   .expanded-thumb__play-btn {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 28px;
-    height: 28px;
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
@@ -1464,19 +1581,46 @@
     pointer-events: none;
     z-index: 5;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
   
-  .expanded-thumb__play-btn svg {
-    width: 12px;
-    height: 12px;
-    color: #fff;
-    margin-left: 1px;
+  .expanded-thumb__play-btn::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: rgba(251, 146, 60, 0);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.2);
   }
   
   .expanded-thumb:hover .expanded-thumb__play-btn {
-    transform: translate(-50%, -50%) scale(1.1);
-    background: rgba(251, 146, 60, 0.8);
-    border-color: rgba(251, 146, 60, 0.9);
+    transform: translate(-50%, -50%) scale(1.15);
+    background: rgba(251, 146, 60, 0.9);
+    border-color: rgba(251, 146, 60, 0.95);
+    box-shadow: 0 8px 24px rgba(251, 146, 60, 0.3);
+  }
+  
+  .expanded-thumb:hover .expanded-thumb__play-btn::before {
+    animation: playButtonPulse 0.6s ease-out;
+  }
+  
+  @keyframes playButtonPulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.4);
+    }
+    100% {
+      box-shadow: 0 0 0 12px rgba(251, 146, 60, 0);
+    }
+  }
+  
+  .expanded-thumb__play-btn svg {
+    width: 14px;
+    height: 14px;
+    color: #fff;
+    margin-left: 1px;
+    z-index: 1;
+    position: relative;
   }
   
   /* Video name overlay at bottom */
@@ -1636,6 +1780,277 @@
     font-weight: 600;
     color: rgba(239, 68, 68, 0.8);
     text-transform: uppercase;
+  }
+  
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  EXPANDED VIEW – Comprehensive Responsive Design                  ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+  
+  /* 1400px breakpoint */
+  @media (max-width: 1400px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+  
+    body.history-expanded .timrx-3dprint .ws-right {
+      padding: 0 20px;
+    }
+  
+    .expanded-filter-bar {
+      margin: 0 -20px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+  
+  /* 1024px breakpoint */
+  @media (max-width: 1024px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+  
+    .expanded-filter-btn {
+      padding: 7px 16px;
+      font-size: 11px;
+    }
+  
+    .expanded-thumb {
+      aspect-ratio: 4 / 3;
+    }
+  }
+  
+  /* 768px breakpoint */
+  @media (max-width: 768px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+  
+    .expanded-thumb {
+      border-radius: 12px;
+    }
+  
+    .expanded-filter-bar {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+  
+    .expanded-filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+  
+    .expanded-filter-bar__pills {
+      flex-wrap: nowrap;
+    }
+  
+    .expanded-filter-btn {
+      padding: 7px 14px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+  
+    body.history-expanded .timrx-3dprint .ws-right {
+      padding: 0 16px;
+    }
+  
+    .expanded-filter-bar {
+      margin: 0 -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  
+    .expanded-gallery-header {
+      padding: 20px 0 12px;
+    }
+  
+    .expanded-gallery-header__title {
+      font-size: 18px;
+    }
+  
+    .expanded-gallery-header__content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  
+    .expanded-gallery-header__stats {
+      gap: 8px;
+    }
+  
+    .expanded-gallery-header__stat {
+      font-size: 11px;
+      padding: 5px 10px;
+    }
+  }
+  
+  /* 640px breakpoint */
+  @media (max-width: 640px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+  
+    .expanded-thumb {
+      aspect-ratio: 1 / 1;
+    }
+  
+    .expanded-filter-btn {
+      padding: 6px 12px;
+      font-size: 10px;
+    }
+  }
+  
+  /* 480px breakpoint */
+  @media (max-width: 480px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+  
+    .expanded-thumb {
+      border-radius: 10px;
+    }
+  
+    .expanded-filter-btn {
+      padding: 6px 12px;
+      font-size: 10px;
+    }
+  
+    .expanded-filter-bar {
+      padding: 10px 0;
+    }
+  
+    body.history-expanded .timrx-3dprint .ws-right {
+      padding: 0 12px;
+    }
+  
+    .expanded-filter-bar {
+      margin: 0 -12px;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  
+    .expanded-thumb__name {
+      font-size: 10px;
+      bottom: 26px;
+    }
+  
+    .expanded-thumb__stage {
+      font-size: 10px;
+    }
+  
+    .expanded-gallery-header {
+      padding: 16px 0 10px;
+    }
+  
+    .expanded-gallery-header__title {
+      font-size: 16px;
+    }
+  
+    .expanded-gallery-header__stats {
+      gap: 6px;
+    }
+  
+    .expanded-gallery-header__stat {
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+  
+    .expanded-gallery-header__stat svg {
+      width: 12px;
+      height: 12px;
+    }
+  
+    .expanded-filter-btn__count {
+      display: none;
+    }
+  
+    .expanded-filter-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+  
+  /* 360px breakpoint */
+  @media (max-width: 360px) {
+    .expanded-thumbs-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+    }
+  
+    body.history-expanded .timrx-3dprint .ws-right {
+      padding: 0 8px;
+    }
+  
+    .expanded-filter-bar {
+      margin: 0 -8px;
+      padding-left: 8px;
+      padding-right: 8px;
+      gap: 4px;
+    }
+  
+    .expanded-filter-btn {
+      padding: 5px 10px;
+      font-size: 9px;
+    }
+  }
+  
+  /* Touch devices - always show overlays and adjust interactions */
+  @media (hover: none) and (pointer: coarse) {
+    .expanded-thumb__status-bar {
+      opacity: 1;
+    }
+  
+    .expanded-thumb:active {
+      transform: scale(0.97);
+    }
+  
+    .expanded-filter-btn,
+    .expanded-thumb {
+      min-height: 44px;
+    }
+  }
+  
+  /* Safe area support for notched devices */
+  @supports (padding: env(safe-area-inset-left)) {
+    body.history-expanded .timrx-3dprint .ws-right {
+      padding-left: max(24px, env(safe-area-inset-left));
+      padding-right: max(24px, env(safe-area-inset-right));
+    }
+  
+    .expanded-filter-bar {
+      margin-left: calc(-1 * max(24px, env(safe-area-inset-left)));
+      margin-right: calc(-1 * max(24px, env(safe-area-inset-right)));
+      padding-left: max(24px, env(safe-area-inset-left));
+      padding-right: max(24px, env(safe-area-inset-right));
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .expanded-thumb {
+      animation: none;
+      opacity: 1;
+    }
+  
+    .expanded-thumb,
+    .expanded-thumb:hover,
+    .expanded-thumb__image img,
+    .expanded-thumb__play-btn,
+    .expanded-filter-btn,
+    .expanded-filter-btn:hover {
+      transition: none;
+      transform: none;
+    }
+  
+    .expanded-thumb__play-btn::before {
+      animation: none;
+    }
   }
   
   /* ╔════════════════════════════════════════════════════════════════════╗
@@ -4231,25 +4646,34 @@
   
     body.history-expanded .expanded-thumbs-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
-      padding: 10px 0 6px;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 20px 0;
     }
   
     body.history-expanded .expanded-thumb {
-      --expanded-thumb-size: auto;
       width: 100%;
       min-width: 0;
       max-width: none;
-      border-radius: 8px;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
     }
   
     body.history-expanded .expanded-thumb__status {
-      left: 5px;
-      right: 5px;
-      bottom: 5px;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
       padding: 3px 6px;
       font-size: 9px;
+    }
+  
+    body.history-expanded .expanded-thumb__name {
+      font-size: 11px;
+      bottom: 26px;
+    }
+  
+    body.history-expanded .expanded-thumb__stage {
+      font-size: 11px;
     }
   
     /* Hide image & video dropdown menus on mobile — thumbs too small for tap targets */
@@ -4258,3 +4682,4 @@
       display: none;
     }
   }
+  

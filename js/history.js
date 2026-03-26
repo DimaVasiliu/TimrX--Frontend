@@ -1097,18 +1097,73 @@ function _galleryIdsMatch(gridEl, cards) {
 function buildExpandedHistoryGallery(cards = []) {
   if (!cards.length) return '';
 
+  // Count by type for badge stats
+  const counts = { all: cards.length, model: 0, image: 0, animated: 0, video: 0 };
+  cards.forEach(c => {
+    const el = document.createElement('div');
+    el.innerHTML = c.html;
+    const thumb = el.firstElementChild;
+    const type = thumb?.dataset?.assetType || '';
+    if (type === 'model') counts.model++;
+    else if (type === 'image') counts.image++;
+    else if (type === 'animated') counts.animated++;
+    else if (type === 'video') counts.video++;
+  });
+
+  const galleryHeader = `
+    <div class="expanded-gallery-header">
+      <div class="expanded-gallery-header__content">
+        <h2 class="expanded-gallery-header__title">Your Creations</h2>
+        <div class="expanded-gallery-header__stats">
+          <span class="expanded-gallery-header__stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <strong>${counts.model}</strong> Models
+          </span>
+          <span class="expanded-gallery-header__stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <strong>${counts.image}</strong> Images
+          </span>
+          <span class="expanded-gallery-header__stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <strong>${counts.video + counts.animated}</strong> Videos
+          </span>
+          <span class="expanded-gallery-header__stat expanded-gallery-header__stat--total">
+            <strong>${counts.all}</strong> Total
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+
   const filterBar = `
     <div class="expanded-filter-bar">
-      <button type="button" class="expanded-filter-btn active" data-gallery-filter="all">All</button>
-      <button type="button" class="expanded-filter-btn" data-gallery-filter="model">Models</button>
-      <button type="button" class="expanded-filter-btn" data-gallery-filter="image">Images</button>
-      <button type="button" class="expanded-filter-btn" data-gallery-filter="animated">Animated</button>
-      <button type="button" class="expanded-filter-btn" data-gallery-filter="video">Videos</button>
+      <div class="expanded-filter-bar__pills">
+        <button type="button" class="expanded-filter-btn active" data-gallery-filter="all">
+          All <span class="expanded-filter-btn__count">${counts.all}</span>
+        </button>
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="model">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          Models <span class="expanded-filter-btn__count">${counts.model}</span>
+        </button>
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Images <span class="expanded-filter-btn__count">${counts.image}</span>
+        </button>
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="animated">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Animated <span class="expanded-filter-btn__count">${counts.animated}</span>
+        </button>
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="video">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          Videos <span class="expanded-filter-btn__count">${counts.video}</span>
+        </button>
+      </div>
     </div>
   `;
 
   return `
     <div class="expanded-section" data-lineage-root="gallery-view">
+      ${galleryHeader}
       ${filterBar}
       <div class="expanded-thumbs-grid">
         ${cards.map(c => c.html).join('')}
