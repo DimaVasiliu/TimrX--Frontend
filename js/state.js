@@ -518,11 +518,25 @@ export async function loadHistoryTab(tab) {
         return [];
       }
       const page = _parseHistoryResponse(result.data);
-      ts.items = page.items;
+      // Preserve in-flight generating items from historyCache that aren't
+      // in the DB yet (same merge pattern as loadHistoryFromDB).  Without
+      // this, generating placeholders disappear when the tab loads DB data.
+      const dbIds = new Set(page.items.map(i => i.id));
+      const tabType = tab === 'all' ? null : tab;
+      const inFlight = (historyCache || []).filter(i => {
+        if (!i || dbIds.has(i.id)) return false;
+        if (!i.status || i.status === 'finished') return false;
+        if (tabType) {
+          const type = i.type || (i.glb_url ? 'model' : i.image_url ? 'image' : i.video_url ? 'video' : 'model');
+          return type === tabType;
+        }
+        return true;
+      });
+      ts.items = [...inFlight, ...page.items];
       ts.hasMore = page.hasMore;
       ts.nextCursor = page.nextCursor;
       ts.nextOffset = page.nextOffset;
-      log(`[History] tab=${tab} loaded: ${page.items.length} items, has_more=${ts.hasMore}, cursor=${ts.nextCursor ? 'yes' : 'null'}`);
+      log(`[History] tab=${tab} loaded: ${page.items.length} DB + ${inFlight.length} in-flight items, has_more=${ts.hasMore}`);
       return ts.items;
     } catch (err) {
       console.warn(`[History] loadTab(${tab}) error:`, err.message);
