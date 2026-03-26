@@ -273,7 +273,12 @@ export async function loadGlbFromUrl(url) {
             byId('viewerToolbar')?.classList.add('visible');
             updatePlaceholder();
             resolve();
-        }, undefined, reject);
+        }, undefined, (err) => {
+            // Clean up any partially-allocated Three.js resources (geometries,
+            // materials, textures) from a failed load to prevent VRAM leaks.
+            clearModel();
+            reject(err);
+        });
     });
 }
 

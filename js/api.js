@@ -50,6 +50,52 @@ function releaseSubmitLock() {
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
 
+// ── Cross-tab poll deduplication via BroadcastChannel ──
+// When multiple tabs watch the same job, only one tab needs to fetch.
+// After each poll, the result is broadcast. Other tabs use the broadcast
+// and reset their own poll timer, avoiding redundant API calls.
+const _pollChannel = (typeof BroadcastChannel !== 'undefined')
+  ? new BroadcastChannel('timrx-poll-dedup')
+  : null;
+
+// job_id → { data, timestamp } — recent results received from other tabs
+const _crossTabResults = new Map();
+const _CROSS_TAB_FRESHNESS_MS = 4000; // accept broadcast if < 4s old
+
+if (_pollChannel) {
+  _pollChannel.onmessage = (evt) => {
+    const { jobId, data, ts } = evt.data || {};
+    if (jobId && data) {
+      _crossTabResults.set(jobId, { data, ts });
+    }
+  };
+}
+
+/**
+ * Check if another tab recently polled this job and broadcast a fresh result.
+ * Returns the cached result data or null if stale/missing.
+ */
+function _getCrossTabResult(jobId) {
+  const entry = _crossTabResults.get(jobId);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > _CROSS_TAB_FRESHNESS_MS) {
+    _crossTabResults.delete(jobId);
+    return null;
+  }
+  return entry.data;
+}
+
+/**
+ * Broadcast a poll result so other tabs can skip their next fetch.
+ */
+function _broadcastPollResult(jobId, data) {
+  if (_pollChannel) {
+    try {
+      _pollChannel.postMessage({ jobId, data, ts: Date.now() });
+    } catch (_) { /* channel closed or serialization error — ignore */ }
+  }
+}
+
 // ── Retry infrastructure for status polling ──
 // When polling stops after MAX_CONSECUTIVE_ERRORS, register the job here
 // so the UI can offer a manual "Check Status" button + auto-retry after 30s.
@@ -1360,7 +1406,12 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
     }
 
     try {
-      const result = await apiFetch(`/api/_mod/text-to-3d/status/${job_id}`);
+      // Cross-tab dedup: use broadcast from another tab if fresh
+      const _xtab = _getCrossTabResult(job_id);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`/api/_mod/text-to-3d/status/${job_id}`);
+      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
 
       // Fatal errors: stop polling immediately
       if (result.status >= 500 || result.isHtml) {
@@ -1638,7 +1689,12 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
     }
 
     try {
-      const result = await apiFetch(`${endpoint}/${job_id}`);
+      // Cross-tab dedup: use broadcast from another tab if fresh
+      const _xtab = _getCrossTabResult(job_id);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`${endpoint}/${job_id}`);
+      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
 
       // Fatal errors: stop polling immediately
       if (result.status >= 500 || result.isHtml) {
@@ -2945,7 +3001,12 @@ export function watchImageJob(jobId, reservationId, meta = {}) {
     }
 
     try {
-      const result = await apiFetch(`/api/_mod/image/status/${jobId}`);
+      // Cross-tab dedup: use broadcast from another tab if fresh
+      const _xtab = _getCrossTabResult(jobId);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`/api/_mod/image/status/${jobId}`);
+      if (!_xtab && result.ok) _broadcastPollResult(jobId, result.data);
 
       if (result.status === 404) {
         notFoundCount++;
@@ -3646,7 +3707,12 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
     interval = Math.min(interval * 1.3, MAX_INTERVAL);
 
     try {
-      const result = await apiFetch(`/api/video/status/${encodeURIComponent(jobId)}`);
+      // Cross-tab dedup: use broadcast from another tab if fresh
+      const _xtab = _getCrossTabResult(jobId);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`/api/video/status/${encodeURIComponent(jobId)}`);
+      if (!_xtab && result.ok) _broadcastPollResult(jobId, result.data);
 
       if (!result.ok) {
         // Job not found on backend — stop polling immediately
@@ -5059,7 +5125,11 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
     }
 
     try {
-      const result = await apiFetch(`/api/_mod/rig/status/${job_id}`);
+      const _xtab = _getCrossTabResult(job_id);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`/api/_mod/rig/status/${job_id}`);
+      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
 
       if (result.status >= 500 || result.isHtml) {
         consecutiveErrors++;
@@ -5416,7 +5486,11 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
     }
 
     try {
-      const result = await apiFetch(`/api/_mod/rig/animate/status/${job_id}`);
+      const _xtab = _getCrossTabResult(job_id);
+      const result = _xtab
+        ? { ok: true, data: _xtab, status: 200 }
+        : await apiFetch(`/api/_mod/rig/animate/status/${job_id}`);
+      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
 
       if (result.status >= 500 || result.isHtml) {
         consecutiveErrors++;
