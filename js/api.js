@@ -4704,6 +4704,8 @@ export async function startRigFromPanel() {
   } else if (baseItem) {
     const source = buildMeshySourceFromItem(baseItem);
     Object.assign(payload, source);
+    // Pass history item ID for reliable lineage linking (survives ID resolution)
+    if (baseItem.id) payload.source_history_id = String(baseItem.id);
     labelPrompt = `Rig ${shortTitle(baseItem)}`;
   }
 
@@ -5273,6 +5275,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     prompt: animLabel,
   };
   if (postProcess) payload.post_process = postProcess;
+  // Pass rig history item ID for reliable lineage linking
+  if (riggingTaskId) payload.source_history_id = String(riggingTaskId);
 
   let result;
   try {
