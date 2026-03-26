@@ -13,9 +13,11 @@ import {
   historyActiveModelId,
   setHistoryActiveModelId,
   historyHasMore,
+  historyLoadingMore,
   historyTabLoaded,
   getTabHistory,
-  loadHistoryTab
+  loadHistoryTab,
+  loadMoreHistory
 } from './state.js';
 
 // ============================================================================
@@ -29,93 +31,83 @@ let activeHistorySubmenu = null;
 // ============================================================================
 // INFINITE SCROLL STATE (expanded gallery)
 // ============================================================================
-const GALLERY_PAGE_SIZE = 24;        // cards per batch
-const GALLERY_SCROLL_THRESHOLD = 400; // px from bottom to trigger load
-let _galleryAllCards = [];            // full card list (unfiltered)
-let _galleryRenderedCount = 0;        // how many cards are in DOM
-let _galleryActiveFilter = 'all';     // current filter tab
+const GALLERY_SCROLL_THRESHOLD = 600; // px from bottom to trigger load
+let _galleryAllCards = [];            // full card list from current data
+let _galleryActiveFilter = 'all';     // current gallery filter tab
 let _galleryScrollBound = false;      // scroll listener attached
-let _galleryLoading = false;          // prevent concurrent loads
+let _galleryFetching = false;         // prevent concurrent DB fetches
 
-function _getFilteredGalleryCards() {
-  if (_galleryActiveFilter === 'all') return _galleryAllCards;
-  return _galleryAllCards.filter(c => {
-    const el = document.createElement('div');
-    el.innerHTML = c.html;
-    const thumb = el.firstElementChild;
-    return thumb?.dataset?.assetType === _galleryActiveFilter;
-  });
-}
-
-function _appendGalleryBatch(grid, count) {
-  if (!grid || _galleryLoading) return;
-  _galleryLoading = true;
-  const filtered = _getFilteredGalleryCards();
-  const start = _galleryRenderedCount;
-  const end = Math.min(start + count, filtered.length);
-  if (start >= filtered.length) { _galleryLoading = false; return; }
-
-  const fragment = document.createDocumentFragment();
-  for (let i = start; i < end; i++) {
-    const temp = document.createElement('div');
-    temp.innerHTML = filtered[i].html;
-    const card = temp.firstElementChild;
-    if (card) {
-      card.dataset._gs = filtered[i].status;
-      card.style.animationDelay = `${(i - start) * 0.03}s`;
-      fragment.appendChild(card);
-    }
-  }
-  grid.appendChild(fragment);
-  _galleryRenderedCount = end;
-  _galleryLoading = false;
-
-  // Update load-more sentinel
-  _updateGalleryLoadMore(grid);
-}
-
-function _updateGalleryLoadMore(grid) {
-  const section = grid?.closest('.expanded-section');
+/**
+ * Show / hide / update the loading sentinel at the bottom of the gallery.
+ */
+function _updateGallerySentinel(show, rendered, total) {
+  const section = document.querySelector('.expanded-section');
   if (!section) return;
   let sentinel = section.querySelector('.expanded-gallery-sentinel');
-  const filtered = _getFilteredGalleryCards();
-  const hasMore = _galleryRenderedCount < filtered.length;
 
-  if (hasMore) {
+  if (show) {
     if (!sentinel) {
       sentinel = document.createElement('div');
       sentinel.className = 'expanded-gallery-sentinel';
-      sentinel.innerHTML = `
-        <div class="expanded-gallery-loader">
-          <div class="expanded-gallery-loader__dot"></div>
-          <div class="expanded-gallery-loader__dot"></div>
-          <div class="expanded-gallery-loader__dot"></div>
-        </div>
-        <span class="expanded-gallery-loader__text">${_galleryRenderedCount} of ${filtered.length}</span>
-      `;
       section.appendChild(sentinel);
-    } else {
-      const textEl = sentinel.querySelector('.expanded-gallery-loader__text');
-      if (textEl) textEl.textContent = `${_galleryRenderedCount} of ${filtered.length}`;
     }
+    const moreLabel = total ? `${rendered} of ${total}+` : 'Loading more…';
+    sentinel.innerHTML = `
+      <div class="expanded-gallery-loader">
+        <div class="expanded-gallery-loader__dot"></div>
+        <div class="expanded-gallery-loader__dot"></div>
+        <div class="expanded-gallery-loader__dot"></div>
+      </div>
+      <span class="expanded-gallery-loader__text">${moreLabel}</span>
+    `;
   } else if (sentinel) {
     sentinel.remove();
   }
 }
 
+/**
+ * Fetch more history items from the DB, rebuild cards, and append the NEW
+ * cards into the already-rendered grid (so existing cards don't flicker).
+ */
+async function _fetchAndAppendMore() {
+  if (_galleryFetching || !historyState.galleryExpanded) return;
+  if (!historyHasMore() && !historyLoadingMore()) return;
+
+  _galleryFetching = true;
+  const grid = document.querySelector('.expanded-thumbs-grid');
+  const renderedBefore = grid ? grid.children.length : 0;
+
+  _updateGallerySentinel(true, renderedBefore);
+
+  try {
+    const newItems = await loadMoreHistory();
+    if (!newItems.length) {
+      _updateGallerySentinel(false);
+      return;
+    }
+
+    // Full re-render is called by the polling cycle after state changes,
+    // but we can trigger it now for immediate feedback.
+    renderHistory();
+  } catch (err) {
+    console.warn('[Gallery] loadMore error:', err);
+  } finally {
+    _galleryFetching = false;
+    _updateGallerySentinel(historyHasMore(), 0);
+  }
+}
+
 function _onGalleryScroll() {
   if (!historyState.galleryExpanded) return;
-  const grid = document.querySelector('.expanded-thumbs-grid');
-  if (!grid) return;
-  const filtered = _getFilteredGalleryCards();
-  if (_galleryRenderedCount >= filtered.length) return;
+  if (_galleryFetching) return;
 
   const scrollY = window.scrollY || window.pageYOffset;
   const windowH = window.innerHeight;
   const docH = document.documentElement.scrollHeight;
 
+  // Near the bottom? Fetch more from DB
   if (docH - scrollY - windowH < GALLERY_SCROLL_THRESHOLD) {
-    _appendGalleryBatch(grid, GALLERY_PAGE_SIZE);
+    _fetchAndAppendMore();
   }
 }
 
@@ -157,16 +149,57 @@ function _unbindGalleryScroll() {
 }
 
 /**
- * Reset gallery to show first batch, optionally changing filter.
- * Called on initial render and on filter tab click.
+ * Update the "Your Creations" header stat pills and filter-btn counts
+ * after new cards have been appended to the grid.
+ */
+function _updateGalleryHeaderStats(gridEl) {
+  if (!gridEl) return;
+  const thumbs = gridEl.querySelectorAll('.expanded-thumb');
+  const counts = { all: thumbs.length, model: 0, image: 0, animated: 0, video: 0 };
+  thumbs.forEach(t => {
+    const type = t.getAttribute('data-asset-type') || '';
+    if (counts[type] !== undefined) counts[type]++;
+  });
+
+  // Update header stat pills
+  const header = document.querySelector('.expanded-gallery-header__stats');
+  if (header) {
+    const statEls = header.querySelectorAll('.expanded-gallery-header__stat strong');
+    if (statEls[0]) statEls[0].textContent = counts.model;
+    if (statEls[1]) statEls[1].textContent = counts.image;
+    if (statEls[2]) statEls[2].textContent = counts.video + counts.animated;
+    if (statEls[3]) statEls[3].textContent = counts.all;
+  }
+
+  // Update filter pill counts
+  document.querySelectorAll('.expanded-filter-btn').forEach(btn => {
+    const f = btn.getAttribute('data-gallery-filter');
+    const countEl = btn.querySelector('.expanded-filter-btn__count');
+    if (!countEl || !f) return;
+    if (f === 'all') countEl.textContent = counts.all;
+    else if (counts[f] !== undefined) countEl.textContent = counts[f];
+  });
+}
+
+/**
+ * Reset gallery filter tab — re-filters already-loaded cards client-side
+ * and shows/hides them. Does NOT re-fetch from DB (that happens on scroll).
  */
 export function resetGalleryInfiniteScroll(filter) {
   _galleryActiveFilter = filter || 'all';
-  _galleryRenderedCount = 0;
   const grid = document.querySelector('.expanded-thumbs-grid');
-  if (grid) {
-    grid.innerHTML = '';
-    _appendGalleryBatch(grid, GALLERY_PAGE_SIZE);
+  if (!grid) return;
+
+  // Client-side show/hide by asset type
+  grid.querySelectorAll('.expanded-thumb').forEach(thumb => {
+    const hidden = filter !== 'all' && thumb.getAttribute('data-asset-type') !== filter;
+    thumb.classList.toggle('is-gallery-hidden', hidden);
+  });
+
+  // If few visible cards remain, try fetching more
+  const visible = grid.querySelectorAll('.expanded-thumb:not(.is-gallery-hidden)').length;
+  if (visible < 12 && historyHasMore()) {
+    _fetchAndAppendMore();
   }
 }
 
@@ -1814,48 +1847,87 @@ function _renderHistoryImpl() {
     `;
   }).join('');
 
-  // Gallery mode: infinite-scroll batching with surgical in-place patches
-  // for status changes during poll ticks.
+  // Gallery mode: render all cards, fetch more on scroll.
+  // Uses surgical DOM patching to prevent flicker during poll ticks.
   if (isGallery) {
     const galleryCards = _buildGalleryCards(sortedLineages);
     const existingGrid = grid.querySelector('.expanded-thumbs-grid');
 
-    // Check if the card set changed (new/removed items)
-    const prevIds = _galleryAllCards.map(c => c.id).join(',');
-    const newIds = galleryCards.map(c => c.id).join(',');
-    const structureChanged = prevIds !== newIds;
+    // Build lookup of existing card IDs already in the DOM
+    const existingIdSet = new Set();
+    if (existingGrid) {
+      Array.from(existingGrid.children).forEach(el => {
+        if (el.dataset.gid) existingIdSet.add(el.dataset.gid);
+      });
+    }
 
-    if (structureChanged) {
-      // Full rebuild: store all cards, render first batch via infinite scroll
+    const newCardIds = new Set(galleryCards.map(c => c.id));
+    const isFirstRender = !existingGrid;
+    const hasNewCards = galleryCards.some(c => !existingIdSet.has(c.id));
+
+    if (isFirstRender) {
+      // First render: build shell + all cards
       _galleryAllCards = galleryCards;
-      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
-      _galleryRenderedCount = 0;
       _galleryActiveFilter = 'all';
-
-      // Restore active filter from DOM if available
-      const activeBtn = grid.querySelector('.expanded-filter-btn.active');
-      if (activeBtn) {
-        _galleryActiveFilter = activeBtn.getAttribute('data-gallery-filter') || 'all';
-      }
-
+      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
       const builtGrid = grid.querySelector('.expanded-thumbs-grid');
       if (builtGrid) {
-        _appendGalleryBatch(builtGrid, GALLERY_PAGE_SIZE);
+        // Render ALL current cards into the grid
+        const fragment = document.createDocumentFragment();
+        galleryCards.forEach((c, i) => {
+          const temp = document.createElement('div');
+          temp.innerHTML = c.html;
+          const card = temp.firstElementChild;
+          if (card) {
+            card.dataset._gs = c.status;
+            card.style.animationDelay = `${i * 0.03}s`;
+            // Apply filter visibility
+            if (_galleryActiveFilter !== 'all' && card.getAttribute('data-asset-type') !== _galleryActiveFilter) {
+              card.classList.add('is-gallery-hidden');
+            }
+            fragment.appendChild(card);
+          }
+        });
+        builtGrid.appendChild(fragment);
       }
       _bindGalleryScroll();
-    } else if (existingGrid) {
-      // Same structure — patch status changes in-place for rendered cards
+      // Show sentinel if DB has more pages
+      _updateGallerySentinel(historyHasMore(), galleryCards.length);
+    } else if (hasNewCards && existingGrid) {
+      // Append only the NEW cards (from loadMoreHistory) without disturbing existing ones
       _galleryAllCards = galleryCards;
-      const renderedCount = Math.min(_galleryRenderedCount, existingGrid.children.length);
-      const filtered = _getFilteredGalleryCards();
-      for (let i = 0; i < renderedCount; i++) {
-        const child = existingGrid.children[i];
-        if (!child) continue;
+      const fragment = document.createDocumentFragment();
+      let appendCount = 0;
+      galleryCards.forEach((c) => {
+        if (existingIdSet.has(c.id)) return; // already in DOM
+        const temp = document.createElement('div');
+        temp.innerHTML = c.html;
+        const card = temp.firstElementChild;
+        if (card) {
+          card.dataset._gs = c.status;
+          card.style.animationDelay = `${appendCount * 0.03}s`;
+          if (_galleryActiveFilter !== 'all' && card.getAttribute('data-asset-type') !== _galleryActiveFilter) {
+            card.classList.add('is-gallery-hidden');
+          }
+          fragment.appendChild(card);
+          appendCount++;
+        }
+      });
+      existingGrid.appendChild(fragment);
+      // Update sentinel
+      _updateGallerySentinel(historyHasMore(), existingGrid.children.length);
+      // Update header stats count
+      _updateGalleryHeaderStats(existingGrid);
+    } else if (existingGrid) {
+      // Same card set — patch status changes in-place (poll tick)
+      _galleryAllCards = galleryCards;
+      const cardById = new Map(galleryCards.map(c => [c.id, c]));
+      Array.from(existingGrid.children).forEach(child => {
+        const gid = child.dataset.gid || '';
+        const card = cardById.get(gid);
+        if (!card) return;
         const prevStatus = child.dataset._gs || '';
-        // Find matching card
-        const card = filtered[i];
-        if (!card) continue;
-        if (prevStatus === card.status && card.status === 'finished') continue;
+        if (prevStatus === card.status && card.status === 'finished') return;
         const temp = document.createElement('div');
         temp.innerHTML = card.html;
         const replacement = temp.firstElementChild;
@@ -1863,9 +1935,12 @@ function _renderHistoryImpl() {
           replacement.dataset._gs = card.status;
           replacement.style.animationDelay = '0s';
           replacement.style.opacity = '1';
+          if (_galleryActiveFilter !== 'all' && replacement.getAttribute('data-asset-type') !== _galleryActiveFilter) {
+            replacement.classList.add('is-gallery-hidden');
+          }
           existingGrid.replaceChild(replacement, child);
         }
-      }
+      });
     }
   } else {
     _unbindGalleryScroll();
