@@ -1210,6 +1210,93 @@
     gap: 6px;
   }
   
+  /* ╔════════════════════════════════════════════════════════════════════╗
+     ║  EXPANDED VIEW - Infinite Scroll Loading Sentinel                  ║
+     ╚════════════════════════════════════════════════════════════════════╝ */
+  
+  .expanded-gallery-sentinel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 0 24px;
+    width: 100%;
+  }
+  
+  .expanded-gallery-loader {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  
+  @keyframes galleryLoaderBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  
+  .expanded-gallery-loader__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(14, 165, 233, 0.6);
+    animation: galleryLoaderBounce 1.2s ease-in-out infinite;
+  }
+  
+  .expanded-gallery-loader__dot:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  
+  .expanded-gallery-loader__dot:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  
+  .expanded-gallery-loader__text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 500;
+  }
+  
+  /* Scroll-to-top FAB for expanded gallery */
+  .expanded-gallery-scroll-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(14, 165, 233, 0.2);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  
+  .expanded-gallery-scroll-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  
+  .expanded-gallery-scroll-top:hover {
+    background: rgba(14, 165, 233, 0.35);
+    border-color: rgba(14, 165, 233, 0.5);
+    transform: translateY(-2px);
+  }
+  
+  .expanded-gallery-scroll-top svg {
+    width: 20px;
+    height: 20px;
+  }
+  
   /* Group start — no extra margin in grid layout (breaks alignment) */
   .expanded-thumb--group-start {
     /* removed margin-left — incompatible with CSS grid */
@@ -2028,6 +2115,11 @@
       margin-right: calc(-1 * max(24px, env(safe-area-inset-right)));
       padding-left: max(24px, env(safe-area-inset-left));
       padding-right: max(24px, env(safe-area-inset-right));
+    }
+  
+    .expanded-gallery-scroll-top {
+      right: max(24px, env(safe-area-inset-right));
+      bottom: max(24px, env(safe-area-inset-bottom));
     }
   }
   

@@ -26,6 +26,150 @@ let activeHistoryMenu = null;
 let activeHistorySubmenuBtn = null;
 let activeHistorySubmenu = null;
 
+// ============================================================================
+// INFINITE SCROLL STATE (expanded gallery)
+// ============================================================================
+const GALLERY_PAGE_SIZE = 24;        // cards per batch
+const GALLERY_SCROLL_THRESHOLD = 400; // px from bottom to trigger load
+let _galleryAllCards = [];            // full card list (unfiltered)
+let _galleryRenderedCount = 0;        // how many cards are in DOM
+let _galleryActiveFilter = 'all';     // current filter tab
+let _galleryScrollBound = false;      // scroll listener attached
+let _galleryLoading = false;          // prevent concurrent loads
+
+function _getFilteredGalleryCards() {
+  if (_galleryActiveFilter === 'all') return _galleryAllCards;
+  return _galleryAllCards.filter(c => {
+    const el = document.createElement('div');
+    el.innerHTML = c.html;
+    const thumb = el.firstElementChild;
+    return thumb?.dataset?.assetType === _galleryActiveFilter;
+  });
+}
+
+function _appendGalleryBatch(grid, count) {
+  if (!grid || _galleryLoading) return;
+  _galleryLoading = true;
+  const filtered = _getFilteredGalleryCards();
+  const start = _galleryRenderedCount;
+  const end = Math.min(start + count, filtered.length);
+  if (start >= filtered.length) { _galleryLoading = false; return; }
+
+  const fragment = document.createDocumentFragment();
+  for (let i = start; i < end; i++) {
+    const temp = document.createElement('div');
+    temp.innerHTML = filtered[i].html;
+    const card = temp.firstElementChild;
+    if (card) {
+      card.dataset._gs = filtered[i].status;
+      card.style.animationDelay = `${(i - start) * 0.03}s`;
+      fragment.appendChild(card);
+    }
+  }
+  grid.appendChild(fragment);
+  _galleryRenderedCount = end;
+  _galleryLoading = false;
+
+  // Update load-more sentinel
+  _updateGalleryLoadMore(grid);
+}
+
+function _updateGalleryLoadMore(grid) {
+  const section = grid?.closest('.expanded-section');
+  if (!section) return;
+  let sentinel = section.querySelector('.expanded-gallery-sentinel');
+  const filtered = _getFilteredGalleryCards();
+  const hasMore = _galleryRenderedCount < filtered.length;
+
+  if (hasMore) {
+    if (!sentinel) {
+      sentinel = document.createElement('div');
+      sentinel.className = 'expanded-gallery-sentinel';
+      sentinel.innerHTML = `
+        <div class="expanded-gallery-loader">
+          <div class="expanded-gallery-loader__dot"></div>
+          <div class="expanded-gallery-loader__dot"></div>
+          <div class="expanded-gallery-loader__dot"></div>
+        </div>
+        <span class="expanded-gallery-loader__text">${_galleryRenderedCount} of ${filtered.length}</span>
+      `;
+      section.appendChild(sentinel);
+    } else {
+      const textEl = sentinel.querySelector('.expanded-gallery-loader__text');
+      if (textEl) textEl.textContent = `${_galleryRenderedCount} of ${filtered.length}`;
+    }
+  } else if (sentinel) {
+    sentinel.remove();
+  }
+}
+
+function _onGalleryScroll() {
+  if (!historyState.galleryExpanded) return;
+  const grid = document.querySelector('.expanded-thumbs-grid');
+  if (!grid) return;
+  const filtered = _getFilteredGalleryCards();
+  if (_galleryRenderedCount >= filtered.length) return;
+
+  const scrollY = window.scrollY || window.pageYOffset;
+  const windowH = window.innerHeight;
+  const docH = document.documentElement.scrollHeight;
+
+  if (docH - scrollY - windowH < GALLERY_SCROLL_THRESHOLD) {
+    _appendGalleryBatch(grid, GALLERY_PAGE_SIZE);
+  }
+}
+
+function _ensureScrollTopFab() {
+  let fab = document.querySelector('.expanded-gallery-scroll-top');
+  if (!fab) {
+    fab = document.createElement('button');
+    fab.className = 'expanded-gallery-scroll-top';
+    fab.setAttribute('aria-label', 'Scroll to top');
+    fab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>`;
+    fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.body.appendChild(fab);
+  }
+  return fab;
+}
+
+function _onGalleryScrollFab() {
+  const fab = document.querySelector('.expanded-gallery-scroll-top');
+  if (!fab) return;
+  const scrollY = window.scrollY || window.pageYOffset;
+  fab.classList.toggle('is-visible', scrollY > 400);
+}
+
+function _bindGalleryScroll() {
+  if (_galleryScrollBound) return;
+  window.addEventListener('scroll', _onGalleryScroll, { passive: true });
+  window.addEventListener('scroll', _onGalleryScrollFab, { passive: true });
+  _ensureScrollTopFab();
+  _galleryScrollBound = true;
+}
+
+function _unbindGalleryScroll() {
+  if (!_galleryScrollBound) return;
+  window.removeEventListener('scroll', _onGalleryScroll);
+  window.removeEventListener('scroll', _onGalleryScrollFab);
+  const fab = document.querySelector('.expanded-gallery-scroll-top');
+  if (fab) fab.remove();
+  _galleryScrollBound = false;
+}
+
+/**
+ * Reset gallery to show first batch, optionally changing filter.
+ * Called on initial render and on filter tab click.
+ */
+export function resetGalleryInfiniteScroll(filter) {
+  _galleryActiveFilter = filter || 'all';
+  _galleryRenderedCount = 0;
+  const grid = document.querySelector('.expanded-thumbs-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    _appendGalleryBatch(grid, GALLERY_PAGE_SIZE);
+  }
+}
+
 function getHistoryMenuHost(node) {
   return node?.closest?.('.history-thumb, .expanded-thumb') || null;
 }
@@ -1165,9 +1309,7 @@ function buildExpandedHistoryGallery(cards = []) {
     <div class="expanded-section" data-lineage-root="gallery-view">
       ${galleryHeader}
       ${filterBar}
-      <div class="expanded-thumbs-grid">
-        ${cards.map(c => c.html).join('')}
-      </div>
+      <div class="expanded-thumbs-grid"></div>
     </div>
   `;
 }
@@ -1672,37 +1814,61 @@ function _renderHistoryImpl() {
     `;
   }).join('');
 
-  // Gallery mode: surgical DOM patching to prevent thumbnail flicker during poll ticks.
-  // On first render (or structural change): full rebuild.
-  // On subsequent renders with same items: only patch cards whose status changed.
+  // Gallery mode: infinite-scroll batching with surgical in-place patches
+  // for status changes during poll ticks.
   if (isGallery) {
     const galleryCards = _buildGalleryCards(sortedLineages);
     const existingGrid = grid.querySelector('.expanded-thumbs-grid');
-    const canPatch = existingGrid && _galleryIdsMatch(existingGrid, galleryCards);
 
-    if (canPatch) {
-      for (let i = 0; i < galleryCards.length; i++) {
+    // Check if the card set changed (new/removed items)
+    const prevIds = _galleryAllCards.map(c => c.id).join(',');
+    const newIds = galleryCards.map(c => c.id).join(',');
+    const structureChanged = prevIds !== newIds;
+
+    if (structureChanged) {
+      // Full rebuild: store all cards, render first batch via infinite scroll
+      _galleryAllCards = galleryCards;
+      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
+      _galleryRenderedCount = 0;
+      _galleryActiveFilter = 'all';
+
+      // Restore active filter from DOM if available
+      const activeBtn = grid.querySelector('.expanded-filter-btn.active');
+      if (activeBtn) {
+        _galleryActiveFilter = activeBtn.getAttribute('data-gallery-filter') || 'all';
+      }
+
+      const builtGrid = grid.querySelector('.expanded-thumbs-grid');
+      if (builtGrid) {
+        _appendGalleryBatch(builtGrid, GALLERY_PAGE_SIZE);
+      }
+      _bindGalleryScroll();
+    } else if (existingGrid) {
+      // Same structure — patch status changes in-place for rendered cards
+      _galleryAllCards = galleryCards;
+      const renderedCount = Math.min(_galleryRenderedCount, existingGrid.children.length);
+      const filtered = _getFilteredGalleryCards();
+      for (let i = 0; i < renderedCount; i++) {
         const child = existingGrid.children[i];
+        if (!child) continue;
         const prevStatus = child.dataset._gs || '';
-        if (prevStatus === galleryCards[i].status && galleryCards[i].status === 'finished') continue;
+        // Find matching card
+        const card = filtered[i];
+        if (!card) continue;
+        if (prevStatus === card.status && card.status === 'finished') continue;
         const temp = document.createElement('div');
-        temp.innerHTML = galleryCards[i].html;
+        temp.innerHTML = card.html;
         const replacement = temp.firstElementChild;
         if (replacement) {
-          replacement.dataset._gs = galleryCards[i].status;
+          replacement.dataset._gs = card.status;
+          replacement.style.animationDelay = '0s';
+          replacement.style.opacity = '1';
           existingGrid.replaceChild(replacement, child);
         }
       }
-    } else {
-      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
-      const builtGrid = grid.querySelector('.expanded-thumbs-grid');
-      if (builtGrid) {
-        Array.from(builtGrid.children).forEach((child, i) => {
-          if (galleryCards[i]) child.dataset._gs = galleryCards[i].status;
-        });
-      }
     }
   } else {
+    _unbindGalleryScroll();
     // Preserve which lineage collections are expanded before DOM rebuild.
     // Without this, expanded collections snap back to collapsed on every
     // poll tick or re-render (innerHTML destroys the is-expanded class).

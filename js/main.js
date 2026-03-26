@@ -17,7 +17,8 @@ import {
   openHistorySubmenu,
   updateActiveHistoryMenuPosition,
   getActiveHistoryMenu,
-  getActiveHistorySubmenu
+  getActiveHistorySubmenu,
+  resetGalleryInfiniteScroll
 } from './history.js';
 import * as API from './api.js';
 import * as Converter from './converter.js';
@@ -1145,19 +1146,17 @@ function wireGallery() {
         return;
       }
 
-      // Gallery expanded view filter
+      // Gallery expanded view filter — uses infinite scroll batching
       const galleryFilterBtn = e.target.closest('[data-gallery-filter]');
       if (galleryFilterBtn) {
         const filterType = galleryFilterBtn.getAttribute('data-gallery-filter');
         const bar = galleryFilterBtn.closest('.expanded-filter-bar');
         if (bar) bar.querySelectorAll('.expanded-filter-btn').forEach(b => b.classList.toggle('active', b === galleryFilterBtn));
-        const thumbsGrid = grid.querySelector('.expanded-thumbs-grid');
-        if (thumbsGrid) {
-          thumbsGrid.querySelectorAll('.expanded-thumb').forEach(thumb => {
-            const hidden = filterType !== 'all' && thumb.getAttribute('data-asset-type') !== filterType;
-            thumb.classList.toggle('is-gallery-hidden', hidden);
-          });
-        }
+        // Reset infinite scroll with the selected filter
+        resetGalleryInfiniteScroll(filterType);
+        // Scroll to top of grid smoothly
+        const section = grid.querySelector('.expanded-section');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
 

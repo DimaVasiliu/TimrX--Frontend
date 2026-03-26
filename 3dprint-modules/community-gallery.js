@@ -402,9 +402,14 @@
       emptyState.hidden = true;
       loadMoreWrap.hidden = !data.has_more;
 
-      // Update hero stats from first load
-      if (!append && data.stats) {
-        updateHeroStats(data.stats);
+      // Update hero stats from API response or fallback
+      if (!append) {
+        if (data.stats) {
+          updateHeroStats(data.stats);
+        } else if (!_statsLoaded) {
+          // API didn't include stats — try dedicated endpoint, then compute from cache
+          fetchAndUpdateStats();
+        }
       }
     } catch (err) {
       console.warn('[CommunityGallery] load error:', err);
@@ -420,6 +425,8 @@
 
   // ─── Hero stats ────────────────────────────────────────────────────────────
 
+  let _statsLoaded = false;
+
   function updateHeroStats(stats) {
     const creationsEl = document.getElementById('ccgStatCreations');
     const creatorsEl = document.getElementById('ccgStatCreators');
@@ -434,12 +441,65 @@
     if (reactionsEl && stats.total_reactions != null) {
       animateCounter(reactionsEl, stats.total_reactions);
     }
+    _statsLoaded = true;
+  }
+
+  /**
+   * Compute stats from the locally cached posts when the API doesn't
+   * include a stats object. This is a best-effort fallback — the numbers
+   * reflect only the posts that have been loaded so far.
+   */
+  function computeStatsFromCache() {
+    const posts = allPostsCache;
+    if (!posts.length) return null;
+    const creatorSet = new Set();
+    let totalReactions = 0;
+    posts.forEach(p => {
+      if (p.display_name) creatorSet.add(p.display_name);
+      else if (p.user_id) creatorSet.add(p.user_id);
+      // Sum all reaction counts on each post
+      if (p.reactions && typeof p.reactions === 'object') {
+        Object.values(p.reactions).forEach(v => { totalReactions += (Number(v) || 0); });
+      } else if (typeof p.reaction_count === 'number') {
+        totalReactions += p.reaction_count;
+      }
+    });
+    return {
+      total_posts: posts.length,
+      total_creators: creatorSet.size,
+      total_reactions: totalReactions
+    };
+  }
+
+  /**
+   * Try to fetch stats from the dedicated endpoint.
+   * Falls back to computing from cache if the endpoint doesn't exist.
+   */
+  async function fetchAndUpdateStats() {
+    if (_statsLoaded) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/_mod/community/stats`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && (data.total_posts != null || data.stats)) {
+          updateHeroStats(data.stats || data);
+          return;
+        }
+      }
+    } catch (e) {
+      // Endpoint may not exist — that's fine
+    }
+    // Fallback: compute from whatever posts we have cached
+    const computed = computeStatsFromCache();
+    if (computed) updateHeroStats(computed);
   }
 
   function animateCounter(el, target) {
+    if (target == null || isNaN(target)) return;
     const duration = 1200;
     const start = performance.now();
-    const from = 0;
+    const from = parseInt(el.textContent.replace(/,/g, ''), 10) || 0;
+    if (from === target) return; // no change
     function step(now) {
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
