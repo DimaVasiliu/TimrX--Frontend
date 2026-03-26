@@ -1262,8 +1262,11 @@ function _renderHistoryImpl() {
 
   // If a media tab hasn't fetched its own data yet, show a loading skeleton
   // instead of rendering stale/empty fallback data from the global cache.
-  // The 'all' tab is always loaded first via loadHistoryFromDB(), so skip it.
-  if (historyState.filter !== 'all' && !historyTabLoaded()) {
+  // EXCEPT: skip the skeleton when the global historyCache has items for this
+  // tab type (e.g., a generation just added a placeholder, or a job just
+  // completed). getTabHistory() handles the fallback automatically — when
+  // ts.items is null it filters historyCache by tab type.
+  if (historyState.filter !== 'all' && !historyTabLoaded() && !getFilteredHistory().length) {
     grid.innerHTML = buildHistorySkeleton(2, 3);
     if (pageLabel) pageLabel.textContent = 'Loading...';
     [prevBtn, nextBtn, firstBtn, lastBtn].forEach(btn => btn?.setAttribute('disabled', ''));
