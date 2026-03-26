@@ -29,7 +29,7 @@
   .ws-header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     justify-self: start;
   }
   
@@ -41,12 +41,13 @@
     gap: 0 8px;
     font-weight: 900;
     letter-spacing: 0.03em;
-    font-size: clamp(18px, 1.4vw, 24px);
+    font-size: clamp(30px, 1.4vw, 24px);
     line-height: 1;
     cursor: pointer;
     position: relative;
     color: inherit;
     text-decoration: none;
+    padding-left: 5px;
   }
   
   .ws-nav-logo {
@@ -91,15 +92,15 @@
   .ws-brand .b-dima { color: var(--text); opacity: 0.9; font-weight: 800; }
   .ws-brand .b-surname { color: #ff4d4d; font-weight: 900; letter-spacing: 0.04em; font-size: 1.06em; }
   
-  /* --- Blogs CTA (next to brand) --- */
+  /* --- Blogs CTA (inside ws-nav, next to MENU) --- */
   .ws-blog-cta {
     padding: 8px 16px;
     font-size: 13px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    color: #38bdf8;
     border-radius: 20px;
-    border: 1px solid transparent;
-    background: transparent;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    background: rgba(56, 189, 248, 0.06);
     text-decoration: none;
     transition: all 0.2s ease;
     animation: blogAura 4.8s ease-in-out infinite;
@@ -107,23 +108,23 @@
   
   .ws-blog-cta:hover,
   .ws-blog-cta:focus-visible {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.03);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(56, 189, 248, 0.12);
     transform: scale(1.05);
     animation: none;
   }
   
   @keyframes blogAura {
     0%, 100% {
-      color: rgba(255, 255, 255, 0.7);
-      border-color: transparent;
-      background: transparent;
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.2);
+      background: rgba(56, 189, 248, 0.06);
     }
     50% {
-      color: rgba(255, 255, 255, 0.95);
-      border-color: rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.03);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.12);
     }
   }
   
@@ -1321,9 +1322,9 @@
     background: transparent;
     font-size: 15px;
     cursor: pointer;
-    transition: transform .2s ease;
+    transition: transform .2s ease, opacity 0.3s ease;
     flex-shrink: 0;
-    margin: 0 10px;
+    margin: 0;
   }
   .account-shield-ws:hover { transform: scale(1.12); }
   .account-shield-ws:focus { outline: none; box-shadow: 0 0 0 2px rgba(148,163,184,.4); }
@@ -1349,7 +1350,7 @@
       width: 30px;
       height: 30px;
       font-size: 13px;
-      margin: 0 6px;
+      margin: 0;
     }
   }
   
@@ -1594,7 +1595,6 @@
       display: flex;
     }
     .ws-nav,
-    .ws-blog-cta,
     .ticker-header,
     .inspire-trigger-btn,
     .account-shield-ws {

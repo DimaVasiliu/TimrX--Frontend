@@ -38,6 +38,15 @@
   pointer-events: none;
 }
 
+.account-shield-ws {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.account-shield-ws.nav-hidden {
+  transform: translateY(-20px);
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ===== Body State ===== */
 body.tutorials-view {
   min-height: 100vh;

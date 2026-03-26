@@ -143,29 +143,29 @@
       border: 0;
     }
 
-    /* Header ticker (inline between nav and credits) */
+    /* Header ticker (centered between brand and nav) */
     .ticker-header {
       position: absolute;
-      right: 280px; /* Space for credits section */
+      left: 12%;
+      right: 64%;
       top: 50%;
       transform: translateY(-50%);
-      max-width: clamp(280px, 25vw, 380px);
       overflow: hidden;
-      -webkit-mask-image: linear-gradient(to right, transparent 0, black 10%, black 90%, transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0, black 10%, black 90%, transparent 100%);
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
     .ticker-header.nav-hidden {
-      transform: translateY(calc(-50% - 20px));
       opacity: 0;
+      transform: translateY(calc(-50% - 20px));
       pointer-events: none;
     }
     .ticker-header-track {
       display: flex;
-      gap: 40px;
       white-space: nowrap;
       will-change: transform;
-      animation: tickerHeaderMove 20s linear infinite;
+      /* calc: each item + gap; translate one full item width for seamless loop */
+      animation: tickerHeaderMove 18s linear infinite;
     }
     .ticker-header-item {
       font-size: 0.65rem;
@@ -173,16 +173,15 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.35);
+      padding-right: 50px;
+      flex-shrink: 0;
     }
     @keyframes tickerHeaderMove {
       from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
+      to { transform: translateX(calc(-100% / 3)); }
     }
     @media (prefers-reduced-motion: reduce) {
       .ticker-header-track { animation: none; }
-    }
-    @media (max-width: 900px) {
-      .ticker-header { display: none; }
     }
   </style>
 </head>
@@ -201,9 +200,15 @@
           <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
         </span>
       </span>
-      <a class="ws-blog-cta" href="/blogs?tag=TimrX#filter-strip" aria-label="Blogs">
-        Blogs
-      </a>
+    </div>
+
+    <!-- SEO Ticker (absolutely centered between brand and nav) -->
+    <div class="ticker-header" aria-label="AI 3D generation features">
+      <div class="ticker-header-track">
+        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
+        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
+        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
+      </div>
     </div>
 
     <!-- Center Links -->
@@ -227,23 +232,18 @@
           <a href="/privacy" class="ws-dropdown-item ws-dropdown-item--muted">Privacy</a>
         </div>
       </div>
+
+      <a class="ws-blog-cta" href="/blogs?tag=TimrX#filter-strip" aria-label="Blogs">
+        Blogs
+      </a>
     </nav>
-
-    <!-- Account safety shield — always visible, color reflects state -->
-    <button type="button" id="emailBeacon" class="account-shield-ws" aria-label="Account status" title="Account status">
-      <i class="fa-solid fa-shield-halved"></i>
-    </button>
-
-    <!-- SEO Ticker (inline between nav and credits) -->
-    <div class="ticker-header" aria-label="AI 3D generation features">
-      <div class="ticker-header-track">
-        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
-        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
-      </div>
-    </div>
 
     <!-- Credits & Actions (top-right) -->
     <div class="ws-credits" id="workspaceCreditsGroup">
+      <!-- Account safety shield — next to Inspire button -->
+      <button type="button" id="emailBeacon" class="account-shield-ws" aria-label="Account status" title="Account status">
+        <i class="fa-solid fa-shield-halved"></i>
+      </button>
       <!-- Inspire Button -->
       <button type="button" id="inspireTriggerBtn" class="inspire-trigger-btn" aria-label="Open inspiration gallery" title="Get inspired">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -3293,7 +3293,8 @@
       const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
       const tickerHeader = document.querySelector('.ticker-header');
-      const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader].filter(Boolean);
+      const accountShield = document.querySelector('.account-shield-ws');
+      const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader, accountShield].filter(Boolean);
 
       if (wsHeader) {
         let ticking = false;
