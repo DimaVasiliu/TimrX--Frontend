@@ -2911,10 +2911,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       }
 
       /**
-       * Check if image generation is in flight
+       * Check if image generation is in flight.
+       * Uses the unified isGenerating() which covers both submit lock
+       * (request in progress) and UI lock (job in progress).
        */
       function isImageGenerating() {
-        return window.GenerationState.isLocked();
+        return window.GenerationState?.isGenerating?.() || false;
       }
 
       // Expose job state functions globally for api.js

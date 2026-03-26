@@ -1255,11 +1255,43 @@ export function unlockGeneration() {
 }
 
 /**
- * Check if generation is locked
+ * Check if the UI-level generation lock is active (job in progress).
  * @returns {boolean}
  */
 export function isLocked() {
   return generation.locked;
+}
+
+// ── Submit lock: request-level mutex for duplicate-click prevention ──
+// This is the centralized version of the module-scoped startLock in api.js.
+// It covers the synchronous portion of a generate function (validation →
+// API call → watcher handoff). Released in the finally block.
+let _submitLock = false;
+
+/**
+ * Set the submit lock (call at top of generate functions).
+ * @param {boolean} locked
+ */
+export function setSubmitLock(locked) {
+  _submitLock = !!locked;
+}
+
+/**
+ * Check if a generation submit is in progress (request-level).
+ * @returns {boolean}
+ */
+export function isSubmitting() {
+  return _submitLock;
+}
+
+/**
+ * Check if ANY generation activity is happening — either a request is
+ * being submitted (submit lock) or a job is in progress (UI lock).
+ * This is the single authority for "should we block a new generation?".
+ * @returns {boolean}
+ */
+export function isGenerating() {
+  return _submitLock || generation.locked;
 }
 
 /**
@@ -1273,10 +1305,11 @@ export function isLocked() {
  * Active job polling and localStorage recovery data are unaffected.
  */
 export function resetTransientGenerationState() {
-  if (generation.locked) {
-    console.log('[GEN] Rail switch: clearing stale lock (currentJob:', generation.currentJob?.jobId || 'none', ')');
+  if (generation.locked || _submitLock) {
+    console.log('[GEN] Rail switch: clearing stale lock (currentJob:', generation.currentJob?.jobId || 'none', ', submitLock:', _submitLock, ')');
     generation.locked = false;
     generation.currentJob = null;
+    _submitLock = false;
   }
 }
 
@@ -1493,6 +1526,9 @@ window.GenerationState = {
   lockGeneration,
   unlockGeneration,
   resetTransientGenerationState,
+  setSubmitLock,
+  isSubmitting,
+  isGenerating,
 
   // Provider change notifications
   onProviderChange

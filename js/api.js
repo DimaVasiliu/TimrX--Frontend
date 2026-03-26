@@ -26,6 +26,26 @@ import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js'
 let startLock = false;
 let postProcessLock = false;
 
+/**
+ * Acquire the submit lock — prevents duplicate generation requests.
+ * Mirrors the lock into GenerationState so there is one queryable authority.
+ * @returns {boolean} true if lock was acquired, false if already held.
+ */
+function acquireSubmitLock() {
+  if (startLock) return false;
+  startLock = true;
+  window.GenerationState?.setSubmitLock?.(true);
+  return true;
+}
+
+/**
+ * Release the submit lock. Safe to call multiple times (idempotent).
+ */
+function releaseSubmitLock() {
+  startLock = false;
+  window.GenerationState?.setSubmitLock?.(false);
+}
+
 // Track jobs that have already had credits refreshed on completion/failure
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
@@ -2175,10 +2195,8 @@ export async function startOpenAIImageGeneration() {
 
   console.log('[Image] OpenAI generation started (provider=openai, state=' + stateProvider + ')');
 
-  if (startLock) return;
-
-  // Check if already generating (job state lock)
-  if (window.ImageJobControl?.isGenerating?.()) {
+  // Single generation guard: covers both submit lock and UI-level lock
+  if (window.GenerationState?.isGenerating?.()) {
     console.warn('[OpenAI Image] Generation already in progress');
     return;
   }
@@ -2202,7 +2220,7 @@ export async function startOpenAIImageGeneration() {
     return;
   }
 
-  startLock = true;
+  acquireSubmitLock();
 
   const prog = UI.makeProgressDriver();
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
@@ -2230,7 +2248,7 @@ export async function startOpenAIImageGeneration() {
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
-    startLock = false;
+    releaseSubmitLock();
     showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
     return;
   }
@@ -2366,7 +2384,7 @@ export async function startOpenAIImageGeneration() {
       window.ImageJobControl.unlock();
     }
   } finally {
-    startLock = false;
+    releaseSubmitLock();
   }
 }
 
@@ -2397,10 +2415,8 @@ export async function startGeminiImageGeneration() {
 
   console.log('[Image] Gemini generation started (provider=google, state=' + stateProvider + ')');
 
-  if (startLock) return;
-
-  // Check if already generating (job state lock)
-  if (window.ImageJobControl?.isGenerating?.()) {
+  // Single generation guard: covers both submit lock and UI-level lock
+  if (window.GenerationState?.isGenerating?.()) {
     console.warn('[Gemini Image] Generation already in progress');
     return;
   }
@@ -2424,7 +2440,7 @@ export async function startGeminiImageGeneration() {
     return;
   }
 
-  startLock = true;
+  acquireSubmitLock();
 
   const prog = UI.makeProgressDriver();
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
@@ -2451,7 +2467,7 @@ export async function startGeminiImageGeneration() {
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
-    startLock = false;
+    releaseSubmitLock();
     showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
     return;
   }
@@ -2649,7 +2665,7 @@ export async function startGeminiImageGeneration() {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
-    startLock = false;
+    releaseSubmitLock();
     // Only unlock if we didn't start a watcher (watcher handles its own unlock)
     // The watcher path returns early, so if we're here, unlock is needed
     if (window.ImageJobControl?.unlock) {
@@ -2686,10 +2702,8 @@ export async function startNanoBananaImageGeneration() {
 
   console.log('[Image] Nano Banana generation started (provider=nano_banana, state=' + stateProvider + ')');
 
-  if (startLock) return;
-
-  // Check if already generating (job state lock)
-  if (window.ImageJobControl?.isGenerating?.()) {
+  // Single generation guard: covers both submit lock and UI-level lock
+  if (window.GenerationState?.isGenerating?.()) {
     console.warn('[Nano Banana] Generation already in progress');
     return;
   }
@@ -2713,7 +2727,7 @@ export async function startNanoBananaImageGeneration() {
     return;
   }
 
-  startLock = true;
+  acquireSubmitLock();
 
   const prog = UI.makeProgressDriver();
   let promptRaw = (byId('imagePrompt')?.value || '').trim();
@@ -2739,7 +2753,7 @@ export async function startNanoBananaImageGeneration() {
   prog.label('Reserving credits...');
   const reservation = reserveExactAmount(imageActionKey, imageCredits);
   if (reservation.insufficient) {
-    startLock = false;
+    releaseSubmitLock();
     showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
     return;
   }
@@ -2926,7 +2940,7 @@ export async function startNanoBananaImageGeneration() {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
-    startLock = false;
+    releaseSubmitLock();
     if (window.ImageJobControl?.unlock) {
       window.ImageJobControl.unlock();
     }
