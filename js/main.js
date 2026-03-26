@@ -1194,6 +1194,19 @@ function wireGallery() {
         return;
       }
 
+      // Expanded gallery: clicking ANYWHERE on a card opens it in the viewer
+      // Delegate to the first data-act button inside the card.
+      if (State.historyState.galleryExpanded) {
+        const expandedCard = e.target.closest('.expanded-thumb');
+        if (expandedCard && !e.target.closest('[data-act]') && !e.target.closest('[data-history-menu]')) {
+          const innerBtn = expandedCard.querySelector('[data-act="open"], [data-act="open-video"]');
+          if (innerBtn && !innerBtn.disabled) {
+            innerBtn.click();
+            return;
+          }
+        }
+      }
+
       // Action buttons
       const btn = e.target.closest('[data-act]');
       if (!btn || btn.disabled) return;
