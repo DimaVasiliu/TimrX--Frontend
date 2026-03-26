@@ -4195,13 +4195,24 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     function handleRailButtonClick(event) {
       const targetButton = event.currentTarget;
       const panelType = targetButton.getAttribute('data-panel');
-  
+
       railButtons.forEach((button) => {
         const isActive = button === targetButton;
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
-  
+
+      // ── Clear transient generation state on rail switch ──
+      // Prevents stale lock/provider/mode from bleeding into the next panel.
+      // Does NOT clear per-mode settings, active job polling, or recovery data.
+      if (window.GenerationState?.resetTransientGenerationState) {
+        window.GenerationState.resetTransientGenerationState();
+      }
+      // Release image UI lock if it was held (e.g. user navigated away mid-generation)
+      if (window.ImageJobControl?.unlock && window.GenerationState?.isLocked?.() === false) {
+        window.ImageJobControl.unlock();
+      }
+
       updateLeftPanel(panelType);
       switchViewer(panelType);
     }

@@ -1263,6 +1263,24 @@ export function isLocked() {
 }
 
 /**
+ * Reset transient generation state on rail/tab switch.
+ *
+ * Clears the lock and currentJob so stale provider/mode state cannot
+ * bleed into the next panel. Does NOT touch per-mode settings (provider,
+ * shape, quality, etc.) — those are intentionally persistent so users
+ * keep their selections when switching back.
+ *
+ * Active job polling and localStorage recovery data are unaffected.
+ */
+export function resetTransientGenerationState() {
+  if (generation.locked) {
+    console.log('[GEN] Rail switch: clearing stale lock (currentJob:', generation.currentJob?.jobId || 'none', ')');
+    generation.locked = false;
+    generation.currentJob = null;
+  }
+}
+
+/**
  * Set current mode
  * @param {string} mode - 'image' | 'video' | 'model'
  */
@@ -1474,6 +1492,7 @@ window.GenerationState = {
   // Lock/unlock
   lockGeneration,
   unlockGeneration,
+  resetTransientGenerationState,
 
   // Provider change notifications
   onProviderChange
