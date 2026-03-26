@@ -1820,311 +1820,15 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
 }
 
 /**
- * Watch an OpenAI image generation job until completion
+ * @deprecated Use watchImageJob() instead — delegates to unified handler.
  */
 export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
-  if (State.watchers.has(jobId)) return;
-  let aborted = false;
-  const ctl = { abort() { aborted = true; } };
-  State.watchers.set(jobId, ctl);
-
-  const prog = UI.makeProgressDriver();
-  const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
-  const estimatedDuration = 45000;
-
-  const poll = async (delay = 900) => {
-    if (aborted) return;
-    try {
-      const result = await apiFetch(`/api/_mod/image/openai/status/${jobId}`);
-      if (result.status === 404) {
-        setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-        return;
-      }
-
-      const st = result.data || {};
-      if (st.message) prog.label(st.message);
-
-      if (st.status !== 'done' && st.status !== 'failed') {
-        const elapsed = Date.now() - startTime;
-        const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
-        prog.jump(pct);
-        updateThumbnailProgress(jobId, pct);
-      }
-
-      if (st.status === 'done') {
-        let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
-        if (!imageUrl && st.image_base64) {
-          imageUrl = `data:image/png;base64,${st.image_base64}`;
-        }
-        if (!imageUrl) {
-          throw new Error('OpenAI did not return an image URL');
-        }
-
-        const historyData = {
-          id: jobId,
-          type: 'image',
-          status: 'finished',
-          created_at: Date.now(),
-          prompt: meta.prompt || '',
-          title: shortTitle(meta.prompt || 'Generated image'),
-          image_url: imageUrl,
-          thumbnail_url: imageUrl,
-          stage: 'image',
-          provider: 'openai',
-          provider_used: meta.provider_used || 'openai'  // Locked provider for this job
-        };
-
-        if (State.historyHasJobId(jobId)) {
-          State.updateHistoryItem(jobId, historyData);
-        } else {
-          State.addHistoryItem(historyData);
-        }
-
-        State.setHistoryActiveModelId(jobId);
-        renderHistory();
-        Viewer.showImageInViewer(imageUrl);
-        prog.done('Image ready.');
-
-        confirmCreditsReservation(reservationId, jobId);
-
-        // Apply new_balance immediately if returned in status, then sync with backend
-        if (st.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
-          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'openai_image_done');
-        } else if (window.WorkspaceCredits?.syncWithBackend) {
-          // Force sync with backend to ensure UI matches DB (backend is truth)
-          window.WorkspaceCredits.syncWithBackend();
-        } else {
-          refreshCreditsInBackground();
-        }
-
-        // Unlock UI after job completes
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
-        State.removeActiveJob(jobId);
-        return;
-      }
-
-      if (st.status === 'failed') {
-        releaseCreditsReservation(reservationId);
-        // Force sync with backend after failure to ensure UI matches DB (backend is truth)
-        if (window.WorkspaceCredits?.syncWithBackend) {
-          window.WorkspaceCredits.syncWithBackend();
-        } else {
-          refreshCreditsInBackground();
-        }
-
-        const errorMsg = st.error || 'Image generation failed';
-        prog.fail(errorMsg);
-
-        // Update history with failure status (no alert - inline status only)
-        State.updateHistoryItem(jobId, {
-          status: 'failed',
-          status_label: errorMsg
-        });
-        renderHistory();
-
-        // Unlock UI after job fails
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
-        State.watchers.delete(jobId);
-        State.removeActiveJob(jobId);
-        return;
-      }
-
-      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-    } catch (err) {
-      setTimeout(() => poll(1500), 1500);
-    }
-  };
-
-  poll();
+  watchImageJob(jobId, reservationId, { ...meta, provider: meta.provider || 'openai' });
 }
 
-/**
- * Watch a Gemini image generation job until completion
- * Polls /api/image/gemini/status/<job_id> until ready/failed (max 120s)
- */
+/** @deprecated Use watchImageJob() instead — delegates to unified handler. */
 export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
-  if (State.watchers.has(jobId)) return;
-  let aborted = false;
-  const ctl = { abort() { aborted = true; } };
-  State.watchers.set(jobId, ctl);
-
-  const prog = UI.makeProgressDriver();
-  const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
-  const estimatedDuration = 30000; // Gemini is typically faster
-  const maxPollingDuration = 120000; // Max 120 seconds of polling
-  let notFoundCount = 0;
-  const maxNotFoundRetries = meta.isTimeoutRecovery ? 10 : 5; // More retries for timeout recovery
-
-  const poll = async (delay = 2000) => {
-    if (aborted) return;
-
-    // Check if we've exceeded max polling time
-    const elapsed = Date.now() - startTime;
-    if (elapsed > maxPollingDuration) {
-      console.log('[Gemini Image] Max polling duration exceeded');
-      prog.fail('Generation timed out. Your credits will be refunded if generation failed.');
-      State.updateHistoryItem(jobId, {
-        status: 'failed',
-        status_label: 'Generation timed out'
-      });
-      renderHistory();
-      // Sync with backend to get actual credit status
-      if (window.WorkspaceCredits?.syncWithBackend) {
-        window.WorkspaceCredits.syncWithBackend();
-      }
-      if (window.ImageJobControl?.unlock) {
-        window.ImageJobControl.unlock();
-      }
-      State.watchers.delete(jobId);
-      State.removeActiveJob(jobId);
-      return;
-    }
-
-    try {
-      const result = await apiFetch(`/api/_mod/image/gemini/status/${jobId}`);
-
-      if (result.status === 404) {
-        notFoundCount++;
-        console.log(`[Gemini Image] Job not found (attempt ${notFoundCount}/${maxNotFoundRetries})`);
-
-        // Update inline status
-        const pct = Math.min(90, Math.floor(90 * (elapsed / estimatedDuration)));
-        prog.jump(pct);
-        prog.label('Still generating...');
-        updateThumbnailProgress(jobId, pct);
-
-        if (notFoundCount >= maxNotFoundRetries) {
-          // Job likely wasn't created - clean up
-          console.log('[Gemini Image] Job not found after retries, cleaning up');
-          prog.fail('Generation failed - job not found on server');
-          State.updateHistoryItem(jobId, {
-            status: 'failed',
-            status_label: 'Job not found'
-          });
-          renderHistory();
-          releaseCreditsReservation(reservationId);
-          if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend();
-          }
-          if (window.ImageJobControl?.unlock) {
-            window.ImageJobControl.unlock();
-          }
-          State.watchers.delete(jobId);
-          State.removeActiveJob(jobId);
-          return;
-        }
-
-        setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-        return;
-      }
-
-      // Reset not found counter on successful response
-      notFoundCount = 0;
-
-      const st = result.data || {};
-      if (st.message) prog.label(st.message);
-
-      if (st.status !== 'done' && st.status !== 'failed') {
-        const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
-        prog.jump(pct);
-        prog.label('Generating image...');
-        updateThumbnailProgress(jobId, pct);
-      }
-
-      if (st.status === 'done') {
-        let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
-        if (!imageUrl && st.image_base64) {
-          imageUrl = `data:image/png;base64,${st.image_base64}`;
-        }
-        if (!imageUrl) {
-          throw new Error('Gemini did not return an image URL');
-        }
-
-        const historyData = {
-          id: jobId,
-          type: 'image',
-          status: 'finished',
-          status_label: '',
-          created_at: Date.now(),
-          prompt: meta.prompt || '',
-          title: shortTitle(meta.prompt || 'Generated image'),
-          image_url: imageUrl,
-          thumbnail_url: imageUrl,
-          stage: 'image',
-          provider: 'google',
-          provider_used: meta.provider_used || 'google',
-          model: st.model || 'imagen-4.0'
-        };
-
-        if (State.historyHasJobId(jobId)) {
-          State.updateHistoryItem(jobId, historyData);
-        } else {
-          State.addHistoryItem(historyData);
-        }
-
-        State.setHistoryActiveModelId(jobId);
-        renderHistory();
-        Viewer.showImageInViewer(imageUrl);
-        prog.done('Image ready.');
-
-        confirmCreditsReservation(reservationId, jobId);
-
-        // Apply new_balance immediately if returned in status, then sync with backend
-        if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
-          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'gemini_image_done');
-        } else if (window.WorkspaceCredits?.syncWithBackend) {
-          window.WorkspaceCredits.syncWithBackend();
-        } else {
-          refreshCreditsInBackground();
-        }
-
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
-        State.watchers.delete(jobId);
-        State.removeActiveJob(jobId);
-        return;
-      }
-
-      if (st.status === 'failed') {
-        releaseCreditsReservation(reservationId);
-        if (window.WorkspaceCredits?.syncWithBackend) {
-          window.WorkspaceCredits.syncWithBackend();
-        } else {
-          refreshCreditsInBackground();
-        }
-
-        const errorMsg = st.error || 'Image generation failed';
-        prog.fail(errorMsg);
-
-        // Update history with failure status (no alert)
-        State.updateHistoryItem(jobId, {
-          status: 'failed',
-          status_label: errorMsg
-        });
-        renderHistory();
-
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
-        State.watchers.delete(jobId);
-        State.removeActiveJob(jobId);
-        return;
-      }
-
-      // Still processing - continue polling
-      setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
-    } catch (err) {
-      console.error('[Gemini Image] Poll error:', err);
-      setTimeout(() => poll(2000), 2000);
-    }
-  };
-
-  poll();
+  watchImageJob(jobId, reservationId, { ...meta, provider: meta.provider || 'google' });
 }
 
 // ============================================================================
@@ -2642,13 +2346,14 @@ export async function startOpenAIImageGeneration() {
     });
 
     // Pass provider info to watcher for proper unlock
-    watchOpenAIImageJob(activeHistoryId, reservation.reservationId, {
+    watchImageJob(activeHistoryId, reservation.reservationId, {
       prompt: promptRaw,
       model,
       size: resolution,
+      provider: 'openai',
       provider_used: 'openai'
     });
-    // Note: UI unlock will happen in watchOpenAIImageJob when job completes
+    // Note: UI unlock will happen in watchImageJob when job completes
   } catch (err) {
     console.error('[OpenAI] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
@@ -2815,8 +2520,9 @@ export async function startGeminiImageGeneration() {
 
         // Try polling with tempId - backend may have created job with our client_id
         // Use a longer polling interval since we're in timeout recovery mode
-        watchGeminiImageJob(tempId, reservation.reservationId, {
+        watchImageJob(tempId, reservation.reservationId, {
           prompt: promptRaw,
+          provider: 'google',
           provider_used: 'google',
           isTimeoutRecovery: true
         });
@@ -2881,9 +2587,10 @@ export async function startGeminiImageGeneration() {
         provider: 'google'
       });
 
-      // Start polling - watchGeminiImageJob handles unlock on completion/failure
-      watchGeminiImageJob(imageId, backendReservationId, {
+      // Start polling - watchImageJob handles unlock on completion/failure
+      watchImageJob(imageId, backendReservationId, {
         prompt: promptRaw,
+        provider: 'google',
         provider_used: 'google'
       });
 
@@ -3098,8 +2805,9 @@ export async function startNanoBananaImageGeneration() {
         renderHistory();
         prog.label('Still generating...');
 
-        watchNanoBananaImageJob(tempId, reservation.reservationId, {
+        watchImageJob(tempId, reservation.reservationId, {
           prompt: promptRaw,
+          provider: 'nano_banana',
           provider_used: 'nano_banana',
           isTimeoutRecovery: true
         });
@@ -3162,8 +2870,9 @@ export async function startNanoBananaImageGeneration() {
       });
 
       // Start polling
-      watchNanoBananaImageJob(imageId, backendReservationId, {
+      watchImageJob(imageId, backendReservationId, {
         prompt: promptRaw,
+        provider: 'nano_banana',
         provider_used: 'nano_banana'
       });
 
@@ -3224,102 +2933,94 @@ export async function startNanoBananaImageGeneration() {
   }
 }
 
-/**
- * Watch a Nano Banana (PiAPI) image generation job until completion
- * Polls /api/_mod/image/piapi/status/<job_id> until ready/failed (max 180s)
- */
+/** @deprecated Use watchImageJob() instead — delegates to unified handler. */
 export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
+  watchImageJob(jobId, reservationId, { ...meta, provider: meta.provider || 'nano_banana' });
+}
+
+
+/**
+ * Unified image job watcher — works for all image providers.
+ * Polls the canonical /api/_mod/image/status/<job_id> endpoint which
+ * resolves the provider server-side from the DB job row.
+ *
+ * Replaces the need to choose between watchOpenAIImageJob, watchGeminiImageJob,
+ * and watchNanoBananaImageJob on the frontend.
+ */
+export function watchImageJob(jobId, reservationId, meta = {}) {
   if (State.watchers.has(jobId)) return;
   let aborted = false;
   const ctl = { abort() { aborted = true; } };
   State.watchers.set(jobId, ctl);
 
   const prog = UI.makeProgressDriver();
-  // Use job creation time for progress if recovering, so progress continues
-  // from where it was instead of resetting to 0%
   const startTime = meta.created_at ? new Date(meta.created_at).getTime() : Date.now();
-  const estimatedDuration = 45000; // ~45s typical for PiAPI
-  const maxPollingDuration = 180000; // 180s max (PiAPI can be slower)
+  const estimatedDuration = 45000;
+  const maxPollingDuration = 180000; // 3 minutes max
   let notFoundCount = 0;
   const maxNotFoundRetries = meta.isTimeoutRecovery ? 10 : 5;
 
-  const poll = async (delay = 2000) => {
+  const poll = async (delay = 1500) => {
     if (aborted) return;
 
     const elapsed = Date.now() - startTime;
     if (elapsed > maxPollingDuration) {
-      console.log('[Nano Banana] Max polling duration exceeded');
+      console.log('[Image] Max polling duration exceeded');
       prog.fail('Generation timed out. Your credits will be refunded if generation failed.');
-      State.updateHistoryItem(jobId, {
-        status: 'failed',
-        status_label: 'Generation timed out'
-      });
+      State.updateHistoryItem(jobId, { status: 'failed', status_label: 'Generation timed out' });
       renderHistory();
-      if (window.WorkspaceCredits?.syncWithBackend) {
-        window.WorkspaceCredits.syncWithBackend();
-      }
-      if (window.ImageJobControl?.unlock) {
-        window.ImageJobControl.unlock();
-      }
+      if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+      if (window.ImageJobControl?.unlock) window.ImageJobControl.unlock();
       State.watchers.delete(jobId);
       State.removeActiveJob(jobId);
       return;
     }
 
     try {
-      const result = await apiFetch(`/api/_mod/image/piapi/status/${jobId}`);
+      const result = await apiFetch(`/api/_mod/image/status/${jobId}`);
 
       if (result.status === 404) {
         notFoundCount++;
-        console.log(`[Nano Banana] Job not found (attempt ${notFoundCount}/${maxNotFoundRetries})`);
-
         const pct = Math.min(90, Math.floor(90 * (elapsed / estimatedDuration)));
         prog.jump(pct);
         prog.label('Still generating...');
         updateThumbnailProgress(jobId, pct);
 
         if (notFoundCount >= maxNotFoundRetries) {
-          console.log('[Nano Banana] Job not found after retries, cleaning up');
           prog.fail('Generation failed - job not found on server');
-          State.updateHistoryItem(jobId, {
-            status: 'failed',
-            status_label: 'Job not found'
-          });
+          State.updateHistoryItem(jobId, { status: 'failed', status_label: 'Job not found' });
           renderHistory();
           releaseCreditsReservation(reservationId);
-          if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend();
-          }
-          if (window.ImageJobControl?.unlock) {
-            window.ImageJobControl.unlock();
-          }
+          if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+          if (window.ImageJobControl?.unlock) window.ImageJobControl.unlock();
           State.watchers.delete(jobId);
           State.removeActiveJob(jobId);
           return;
         }
-
         setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
         return;
       }
 
       notFoundCount = 0;
-
       const st = result.data || {};
       if (st.message) prog.label(st.message);
 
       if (st.status !== 'done' && st.status !== 'failed') {
         const pct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
         prog.jump(pct);
-        prog.label('Generating image...');
         updateThumbnailProgress(jobId, pct);
       }
 
       if (st.status === 'done') {
         let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
+        if (!imageUrl && st.image_base64) {
+          imageUrl = `data:image/png;base64,${st.image_base64}`;
+        }
         if (!imageUrl) {
-          throw new Error('Nano Banana did not return an image URL');
+          throw new Error('Provider did not return an image URL');
         }
 
+        const provider = st.provider || meta.provider || 'unknown';
         const historyData = {
           id: jobId,
           type: 'image',
@@ -3329,11 +3030,11 @@ export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
           prompt: meta.prompt || '',
           title: shortTitle(meta.prompt || 'Generated image'),
           image_url: imageUrl,
-          thumbnail_url: imageUrl,
+          thumbnail_url: st.thumbnail_url || imageUrl,
           stage: 'image',
-          provider: 'nano_banana',
-          provider_used: meta.provider_used || 'nano_banana',
-          model: st.model || 'nano-banana-2'
+          provider: provider,
+          provider_used: meta.provider_used || provider,
+          model: st.model || meta.model || ''
         };
 
         if (State.historyHasJobId(jobId)) {
@@ -3346,21 +3047,17 @@ export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
         renderHistory();
         Viewer.showImageInViewer(imageUrl);
         prog.done('Image ready.');
-
         confirmCreditsReservation(reservationId, jobId);
 
         if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
-          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'nano_banana_image_done');
+          window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'image_done');
         } else if (window.WorkspaceCredits?.syncWithBackend) {
           window.WorkspaceCredits.syncWithBackend();
         } else {
           refreshCreditsInBackground();
         }
 
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
-        State.watchers.delete(jobId);
+        if (window.ImageJobControl?.unlock) window.ImageJobControl.unlock();
         State.removeActiveJob(jobId);
         return;
       }
@@ -3375,31 +3072,25 @@ export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
 
         const errorMsg = st.error || 'Image generation failed';
         prog.fail(errorMsg);
-
-        State.updateHistoryItem(jobId, {
-          status: 'failed',
-          status_label: errorMsg
-        });
+        State.updateHistoryItem(jobId, { status: 'failed', status_label: errorMsg });
         renderHistory();
 
-        if (window.ImageJobControl?.unlock) {
-          window.ImageJobControl.unlock();
-        }
+        if (window.ImageJobControl?.unlock) window.ImageJobControl.unlock();
         State.watchers.delete(jobId);
         State.removeActiveJob(jobId);
         return;
       }
 
-      // Still processing - continue polling
       setTimeout(() => poll(Math.min(4000, delay * 1.2)), delay);
     } catch (err) {
-      console.error('[Nano Banana] Poll error:', err);
+      console.error('[Image] Poll error:', err);
       setTimeout(() => poll(2000), 2000);
     }
   };
 
   poll();
 }
+
 
 /**
  * Start image generation by selected provider
@@ -6303,18 +5994,9 @@ async function _doResumePendingJobs(options = {}) {
     watchAnimationJob(id);
   }
   for (const id of buckets.image) {
-    // Route to provider-specific image watcher based on pendingMeta.provider
     const meta = pendingMeta[id] || {};
-    const prov = (meta.provider || '').toLowerCase();
-    if (prov === 'nano_banana' || prov === 'piapi') {
-      watchNanoBananaImageJob(id, null, meta);
-    } else if (prov === 'google' || prov === 'gemini') {
-      watchGeminiImageJob(id, null, meta);
-    } else {
-      // OpenAI or unknown — use OpenAI watcher as default
-      watchOpenAIImageJob(id, null, meta);
-    }
-    log(`[Recovery] Resumed image job ${id} provider=${prov}`);
+    watchImageJob(id, null, meta);
+    log(`[Recovery] Resumed image job ${id} (unified watcher)`);
   }
 }
 

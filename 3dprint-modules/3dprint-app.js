@@ -1917,6 +1917,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             { value: '1080p', text: 'Pro (Full HD) — Slower', riskNote: 'Higher resolutions may take longer and can fail more often.' },
             { value: '4k', text: 'Ultra (4K) — Experimental', experimental: true, riskNote: 'Higher resolutions may take longer and can fail more often.' },
           ],
+          showStyle: 'text2video',  // style only affects text-to-video (backend prompt enrichment)
+          styleLabel: 'Style Preset',
           showQuality: true,
           showMotion: true,
           showTier: false,
@@ -1946,6 +1948,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             { value: 'cyberpunk', text: 'Cyberpunk' },
             { value: 'cartoon', text: 'Cartoon' },
           ],
+          showStyle: true,  // style appended to prompt client-side for all modes
+          styleLabel: 'Style Hint',
           showQuality: false,
           showMotion: false,
           showTier: false,
@@ -1976,6 +1980,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             { value: 'cyberpunk', text: 'Cyberpunk' },
             { value: 'cartoon', text: 'Cartoon' },
           ],
+          showStyle: true,  // style appended to prompt client-side for all modes
+          styleLabel: 'Style Hint',
           showQuality: false,
           showMotion: false,
           showTier: true,
@@ -2311,6 +2317,16 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
               image2videoContent.classList.toggle('hidden', mode !== 'image2video');
             }
 
+            // Update style row visibility (Vertex hides style in image mode)
+            const currentProvider = videoAIProvider?.value || 'vertex';
+            const provCfg = VIDEO_PROVIDER_CONFIG[currentProvider];
+            const styleRowEl = leftStack.querySelector('.video-style-row');
+            if (styleRowEl && provCfg) {
+              const showStyle = provCfg.showStyle === true
+                || (provCfg.showStyle === 'text2video' && mode === 'text2video');
+              styleRowEl.classList.toggle('hidden', !showStyle);
+            }
+
             // Re-validate form
             validateVideoForm();
 
@@ -2337,11 +2353,20 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const styleRow = leftStack.querySelector('.video-style-row');
         const stylePreset = leftStack.querySelector('#videoStylePreset');
 
-        // Duration, aspect, style — rebuild from config
+        // Duration, aspect — rebuild from config
         if (videoDuration) videoDuration.innerHTML = buildOptionsHTML(cfg.durations);
         if (videoAspectRatio) videoAspectRatio.innerHTML = buildOptionsHTML(cfg.aspects);
-        if (styleRow) styleRow.classList.remove('hidden');
-        if (stylePreset) stylePreset.innerHTML = buildOptionsHTML(cfg.styles);
+
+        // Style row — visibility depends on provider's showStyle flag.
+        // showStyle: true = always show, 'text2video' = show only in text mode, false = hide.
+        const currentVideoMode = leftStack.querySelector('#videoModeValue')?.value || 'text2video';
+        const styleVisible = cfg.showStyle === true
+          || (cfg.showStyle === 'text2video' && currentVideoMode === 'text2video');
+        if (styleRow) styleRow.classList.toggle('hidden', !styleVisible);
+        if (stylePreset && cfg.styles) stylePreset.innerHTML = buildOptionsHTML(cfg.styles);
+        // Update style label to reflect provider mechanism
+        const styleLabel = styleRow?.querySelector('label[for="videoStylePreset"]');
+        if (styleLabel && cfg.styleLabel) styleLabel.textContent = cfg.styleLabel;
 
         // Quality wrap (Veo only) — rebuild from config like duration/aspect
         if (videoQualityWrap) videoQualityWrap.classList.toggle('hidden', !cfg.showQuality);
