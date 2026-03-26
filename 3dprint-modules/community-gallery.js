@@ -1,8 +1,8 @@
 /**
- * community-gallery.js — v2 Premium Showcase
+ * community-gallery.js — v3 Awe Redesign
  * Community Creations Gallery — loads posts from /api/_mod/community/feed,
- * renders a filterable card grid with reactions, tipping, featured carousel,
- * and expanded detail view.
+ * renders a masonry grid with search, sort, reactions, tipping, featured
+ * carousel, creator spotlight, activity ticker, and expanded detail view.
  */
 
 (function () {
@@ -16,8 +16,6 @@
   const TIP_AMOUNTS = [5, 10, 25, 50];
 
   // Content types excluded from public community display.
-  // Animated items look rough/inconsistent and weaken perceived quality.
-  // Set to [] to re-enable all types.
   const EXCLUDED_DISPLAY_TYPES = ['animated'];
 
   function isExcludedPost(post) {
@@ -26,10 +24,12 @@
 
   // State
   let currentFilter = 'all';
+  let currentSort = 'newest';
+  let currentSearch = '';
   let currentOffset = 0;
   let isLoading = false;
-  let featuredPosts = [];      // cached featured data
-  let allPostsCache = [];      // full posts for detail view lookup
+  let featuredPosts = [];
+  let allPostsCache = [];
 
   // Track current user's reactions per post (postId → reaction string)
   const userReactions = new Map();
@@ -38,6 +38,11 @@
   let grid, skeleton, emptyState, loadMoreWrap, loadMoreBtn, filterBar;
   let featuredTrack, featuredPrev, featuredNext, featuredSection;
   let detailEl, detailBackdrop, detailClose, detailMedia, detailInfo;
+  let searchInput, sortSelect, tickerTrack, spotlightTrack, spotlightSection;
+  let heroFloaters, fabBtn;
+
+  // Search debounce
+  let searchTimer = null;
 
   // ─── Utilities ────────────────────────────────────────────────────────────
 
@@ -74,7 +79,6 @@
     return d.innerHTML;
   }
 
-  // Derive gen_type CSS modifier class: model | image | video | animated
   function genTypeCls(genType) {
     if (!genType) return 'model';
     const t = genType.toLowerCase();
@@ -84,7 +88,7 @@
     return 'image';
   }
 
-  // ─── Card rendering ───────────────────────────────────────────────────────
+  // ─── Card rendering — Masonry (no fixed aspect ratio) ────────────────────
 
   function buildCard(post) {
     const asset = post.asset || {};
@@ -122,6 +126,9 @@
         <div class="ccg-card__media">
           ${thumbEl}
           ${genType ? `<div class="ccg-card__type-badge ${typeCls}">${sanitize(genType)}</div>` : ''}
+          <button class="ccg-card__bookmark" data-post-id="${postId}" type="button" title="Save" aria-label="Bookmark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </button>
           <div class="ccg-card__overlay">
             <div class="ccg-card__info">
               ${prompt ? `<p class="ccg-card__prompt">${prompt}</p>` : ''}
@@ -205,7 +212,6 @@
       const prev = userReactions.get(postId);
       userReactions.set(postId, reaction);
 
-      // Update all instances (grid + detail view)
       document.querySelectorAll(`.ccg-reaction[data-post-id="${postId}"]`).forEach(btn => {
         const r = btn.dataset.reaction;
         const countEl = btn.querySelector('.ccg-reaction__count');
@@ -312,6 +318,8 @@
   async function fetchPage(filter, offset) {
     const params = new URLSearchParams({ limit: PAGE_SIZE, offset });
     if (filter && filter !== 'all') params.set('type', filter);
+    if (currentSort && currentSort !== 'newest') params.set('sort', currentSort);
+    if (currentSearch) params.set('q', currentSearch);
     const res = await fetch(`${API_BASE}/api/_mod/community/feed?${params}`, { credentials: 'include' });
     if (!res.ok) throw new Error(`Feed error ${res.status}`);
     return res.json();
@@ -393,6 +401,11 @@
       renderPosts(posts, append);
       emptyState.hidden = true;
       loadMoreWrap.hidden = !data.has_more;
+
+      // Update hero stats from first load
+      if (!append && data.stats) {
+        updateHeroStats(data.stats);
+      }
     } catch (err) {
       console.warn('[CommunityGallery] load error:', err);
       hideSkeleton();
@@ -405,11 +418,123 @@
     }
   }
 
+  // ─── Hero stats ────────────────────────────────────────────────────────────
+
+  function updateHeroStats(stats) {
+    const creationsEl = document.getElementById('ccgStatCreations');
+    const creatorsEl = document.getElementById('ccgStatCreators');
+    const reactionsEl = document.getElementById('ccgStatReactions');
+
+    if (creationsEl && stats.total_posts != null) {
+      animateCounter(creationsEl, stats.total_posts);
+    }
+    if (creatorsEl && stats.total_creators != null) {
+      animateCounter(creatorsEl, stats.total_creators);
+    }
+    if (reactionsEl && stats.total_reactions != null) {
+      animateCounter(reactionsEl, stats.total_reactions);
+    }
+  }
+
+  function animateCounter(el, target) {
+    const duration = 1200;
+    const start = performance.now();
+    const from = 0;
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = Math.round(from + (target - from) * eased);
+      el.textContent = current.toLocaleString();
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ─── Activity Ticker ──────────────────────────────────────────────────────
+
+  function populateTicker(posts) {
+    if (!tickerTrack) return;
+    const recent = posts.slice(0, 12);
+    if (recent.length === 0) {
+      const tickerEl = document.getElementById('ccgTicker');
+      if (tickerEl) tickerEl.hidden = true;
+      return;
+    }
+
+    const items = recent.map(p => {
+      const name = sanitize(p.display_name || 'Someone');
+      const type = genTypeCls(p.gen_type);
+      const typeLabel = { model: 'a 3D model', image: 'an image', video: 'a video', animated: 'an animation' }[type] || 'a creation';
+      return `<span class="ccg-ticker__item"><span class="ccg-ticker__dot"></span><strong>${name}</strong> shared ${typeLabel} · ${timeAgo(p.created_at)}</span>`;
+    }).join('');
+
+    // Double items for seamless infinite scroll
+    tickerTrack.innerHTML = items + items;
+  }
+
+  // ─── Creator Spotlight ─────────────────────────────────────────────────────
+
+  function populateSpotlight(posts) {
+    if (!spotlightTrack || !spotlightSection) return;
+
+    // Aggregate creators from posts
+    const creatorMap = new Map();
+    posts.forEach(p => {
+      const name = p.display_name || 'Anonymous';
+      if (!creatorMap.has(name)) {
+        creatorMap.set(name, { name, count: 0 });
+      }
+      creatorMap.get(name).count++;
+    });
+
+    const creators = Array.from(creatorMap.values())
+      .filter(c => c.count >= 1)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    if (creators.length < 2) {
+      spotlightSection.hidden = true;
+      return;
+    }
+
+    spotlightTrack.innerHTML = creators.map(c => {
+      const initials = getInitials(c.name);
+      const color = avatarColor(c.name);
+      return `
+        <div class="ccg-spotlight__card">
+          <div class="ccg-spotlight__avatar" style="background:${color}">${initials}</div>
+          <span class="ccg-spotlight__name">${sanitize(c.name)}</span>
+          <span class="ccg-spotlight__count">${c.count} creation${c.count !== 1 ? 's' : ''}</span>
+        </div>`;
+    }).join('');
+
+    spotlightSection.hidden = false;
+  }
+
+  // ─── Hero Floating Thumbnails ──────────────────────────────────────────────
+
+  function populateHeroFloaters(posts) {
+    if (!heroFloaters) return;
+    const thumbPosts = posts.filter(p => p.asset?.thumbnail_url).slice(0, 4);
+    if (thumbPosts.length === 0) return;
+
+    heroFloaters.innerHTML = thumbPosts.map(p =>
+      `<div class="community-hero-floater"><img src="${sanitize(p.asset.thumbnail_url)}" alt="" loading="lazy" decoding="async"></div>`
+    ).join('');
+  }
+
   // ─── Grid event delegation ────────────────────────────────────────────────
 
   function wireGrid() {
     if (!grid) return;
     grid.addEventListener('click', e => {
+      // Bookmark
+      const bookmarkBtn = e.target.closest('.ccg-card__bookmark');
+      if (bookmarkBtn) {
+        e.stopPropagation();
+        bookmarkBtn.classList.toggle('ccg-card__bookmark--saved');
+        return;
+      }
       // Reactions
       const reactionBtn = e.target.closest('.ccg-reaction[data-reaction]');
       if (reactionBtn) {
@@ -464,6 +589,31 @@
     });
   }
 
+  // ─── Search ────────────────────────────────────────────────────────────────
+
+  function wireSearch() {
+    if (!searchInput) return;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        currentSearch = searchInput.value.trim();
+        currentOffset = 0;
+        load(currentFilter, 0, false);
+      }, 400);
+    });
+  }
+
+  // ─── Sort ──────────────────────────────────────────────────────────────────
+
+  function wireSort() {
+    if (!sortSelect) return;
+    sortSelect.addEventListener('change', () => {
+      currentSort = sortSelect.value;
+      currentOffset = 0;
+      load(currentFilter, 0, false);
+    });
+  }
+
   // ─── Featured Carousel ────────────────────────────────────────────────────
 
   function buildFeaturedCard(post) {
@@ -496,64 +646,12 @@
       </div>`;
   }
 
-  async function loadFeatured() {
-    if (!featuredTrack) return;
-
-    // Show skeletons
-    featuredTrack.innerHTML = Array.from({ length: 4 }, () =>
-      '<div class="ccg-featured__skeleton"></div>'
-    ).join('');
-
-    try {
-      // TODO: Replace with dedicated featured endpoint when available
-      // For now, use the first page of the feed as featured content
-      const params = new URLSearchParams({ limit: FEATURED_SIZE, offset: 0 });
-      const res = await fetch(`${API_BASE}/api/_mod/community/feed?${params}`, { credentials: 'include' });
-      if (!res.ok) throw new Error(`Featured feed error ${res.status}`);
-      const data = await res.json();
-
-      if (!data.ok || !data.posts || data.posts.length === 0) {
-        if (featuredSection) featuredSection.hidden = true;
-        return;
-      }
-
-      featuredPosts = (data.posts || []).filter(p => !isExcludedPost(p));
-
-      // Cache these posts too
-      featuredPosts.forEach(p => {
-        if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
-      });
-
-      if (featuredPosts.length === 0) {
-        if (featuredSection) featuredSection.hidden = true;
-        return;
-      }
-
-      featuredTrack.innerHTML = featuredPosts.map(p => buildFeaturedCard(p)).join('');
-      wireVideoAutoplay(featuredTrack);
-      wireImageReveal(featuredTrack);
-
-      // Click handler for featured cards
-      featuredTrack.addEventListener('click', e => {
-        const card = e.target.closest('.ccg-featured__card[data-post-id]');
-        if (!card) return;
-        const postId = card.dataset.postId;
-        const post = allPostsCache.find(p => String(p.id) === String(postId));
-        if (post) openDetailView(post);
-      });
-
-    } catch (err) {
-      console.warn('[CommunityGallery] featured load error:', err);
-      if (featuredSection) featuredSection.hidden = true;
-    }
-  }
-
   function wireFeaturedNav() {
     if (!featuredTrack || !featuredPrev || !featuredNext) return;
 
     const scrollAmount = () => {
       const card = featuredTrack.querySelector('.ccg-featured__card');
-      return card ? card.offsetWidth + 16 : 320;
+      return card ? card.offsetWidth + 14 : 320;
     };
 
     featuredPrev.addEventListener('click', () => {
@@ -651,7 +749,6 @@
       if (detailMedia) detailMedia.innerHTML = '';
       if (detailInfo) detailInfo.innerHTML = '';
     }, 300);
-    // Restore scroll only if still in community view
     if (document.body.classList.contains('community-view')) {
       document.body.style.overflow = '';
     }
@@ -660,7 +757,6 @@
   function wireDetailInteractions() {
     if (!detailInfo) return;
 
-    // Reactions in detail view
     detailInfo.querySelectorAll('.ccg-reaction[data-reaction]').forEach(btn => {
       btn.addEventListener('click', () => {
         const postId = btn.dataset.postId;
@@ -669,7 +765,6 @@
       });
     });
 
-    // Tip button in detail view
     const tipBtn = detailInfo.querySelector('[data-action="tip"]');
     if (tipBtn) {
       tipBtn.addEventListener('click', () => {
@@ -679,7 +774,6 @@
       });
     }
 
-    // Remix button — routes back to workspace with prompt prefilled
     const remixBtn = detailInfo.querySelector('[data-action="remix"]');
     if (remixBtn && !remixBtn.disabled) {
       remixBtn.addEventListener('click', () => {
@@ -692,22 +786,14 @@
 
   // ─── Remix flow ────────────────────────────────────────────────────────────
 
-  /**
-   * Routes the user back to the workspace with prompt + mode prefilled.
-   * Uses sessionStorage for clean handoff across the community→workspace
-   * transition. The workspace init picks up the remix data after the
-   * community view is closed.
-   */
   function handleRemix(post) {
     const prompt = post.prompt_public || post.prompt || '';
     if (!prompt) return;
 
-    // Determine target workspace panel based on asset/gen type
     const genCls = genTypeCls(post.gen_type);
     const modeMap = { model: 'model', image: 'image', video: 'video', animated: 'model' };
     const targetPanel = modeMap[genCls] || 'model';
 
-    // Determine the prompt textarea ID for the target panel
     const promptIdMap = {
       model: 'modelPrompt',
       image: 'imagePrompt',
@@ -715,27 +801,21 @@
     };
     const targetPromptId = promptIdMap[targetPanel] || 'modelPrompt';
 
-    // Close detail view first
     closeDetailView();
 
-    // Exit community view → return to workspace
     const exitBtn = document.getElementById('communityExit');
     if (exitBtn) exitBtn.click();
 
-    // After the community→workspace transition settles, switch mode and prefill
     setTimeout(() => {
-      // Click the target rail button to switch to the correct panel
       const railBtn = document.querySelector(`.rail-btn[data-panel="${targetPanel}"]`);
       if (railBtn) railBtn.click();
 
-      // Wait for panel injection, then set the prompt
       setTimeout(() => {
         const textarea = document.getElementById(targetPromptId);
         if (textarea) {
           textarea.value = prompt;
           textarea.dispatchEvent(new Event('input', { bubbles: true }));
           textarea.focus();
-          // Place cursor at end
           textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
         }
       }, 150);
@@ -752,7 +832,6 @@
       detailClose.addEventListener('click', closeDetailView);
     }
 
-    // ESC key
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && detailEl.classList.contains('ccg-detail--open')) {
         closeDetailView();
@@ -763,7 +842,6 @@
   // ─── Hero CTA wiring ─────────────────────────────────────────────────────
 
   function wireHeroCTAs() {
-    // "Explore Creations" scroll to gallery
     const scrollBtn = document.querySelector('[data-ccg-scroll="gallery"]');
     if (scrollBtn) {
       scrollBtn.addEventListener('click', () => {
@@ -772,7 +850,6 @@
       });
     }
 
-    // "Open Workspace" returns to workspace
     const backBtn = document.getElementById('communityBackToWorkspace');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -780,6 +857,17 @@
         if (exitBtn) exitBtn.click();
       });
     }
+  }
+
+  // ─── FAB — Quick Share ─────────────────────────────────────────────────────
+
+  function wireFAB() {
+    if (!fabBtn) return;
+    fabBtn.addEventListener('click', () => {
+      // Return to workspace to share from there
+      const exitBtn = document.getElementById('communityExit');
+      if (exitBtn) exitBtn.click();
+    });
   }
 
   // ─── Share modal ──────────────────────────────────────────────────────────
@@ -918,11 +1006,9 @@
   function loadOnce() {
     if (_loaded) return;
     _loaded = true;
-    // Single fetch for both featured carousel and main grid.
-    // Featured uses the first FEATURED_SIZE posts from the same response,
-    // avoiding a duplicate /api/_mod/community/feed request.
+    // Single fetch for featured carousel, main grid, ticker, and spotlight.
     load('all', 0, false).then(() => {
-      // Populate featured from the already-cached posts
+      // Populate featured from cached posts
       if (featuredTrack && allPostsCache.length > 0) {
         featuredPosts = allPostsCache.slice(0, FEATURED_SIZE).filter(p => !isExcludedPost(p));
         if (featuredPosts.length > 0) {
@@ -930,7 +1016,6 @@
           wireVideoAutoplay(featuredTrack);
           wireImageReveal(featuredTrack);
           if (featuredSection) featuredSection.hidden = false;
-          // Wire click handlers for featured cards
           featuredTrack.addEventListener('click', e => {
             const card = e.target.closest('.ccg-featured__card[data-post-id]');
             if (!card) return;
@@ -942,9 +1027,15 @@
           featuredSection.hidden = true;
         }
       }
+
+      // Populate new v3 features
+      populateTicker(allPostsCache);
+      populateSpotlight(allPostsCache);
+      populateHeroFloaters(allPostsCache);
+
     }).catch(() => {
-      // Main grid load failed — loadFeatured as independent fallback
-      loadFeatured();
+      // Fallback
+      console.warn('[CommunityGallery] initial load failed');
     });
   }
 
@@ -970,6 +1061,15 @@
     detailMedia = document.getElementById('ccgDetailMedia');
     detailInfo = document.getElementById('ccgDetailInfo');
 
+    // v3 new refs
+    searchInput = document.getElementById('ccgSearchInput');
+    sortSelect = document.getElementById('ccgSortSelect');
+    tickerTrack = document.getElementById('ccgTickerTrack');
+    spotlightTrack = document.getElementById('ccgSpotlightTrack');
+    spotlightSection = document.getElementById('ccgSpotlight');
+    heroFloaters = document.getElementById('ccgHeroFloaters');
+    fabBtn = document.getElementById('ccgFab');
+
     if (!grid) return;
 
     wireFilters();
@@ -978,6 +1078,9 @@
     wireFeaturedNav();
     wireDetailView();
     wireHeroCTAs();
+    wireSearch();
+    wireSort();
+    wireFAB();
 
     if (document.body.classList.contains('community-view')) {
       loadOnce();

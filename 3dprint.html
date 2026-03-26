@@ -1803,30 +1803,42 @@
     </div>
   </section>
 
-  <!-- Community Expanded View — v2 -->
+  <!-- Community Expanded View — v3 Awe Redesign -->
   <section id="communityGallery" class="community-expanded-view" aria-labelledby="communityTitle" hidden inert>
     <div class="community-expanded-shell">
+
+      <!-- ===== HERO — Immersive animated gradient mesh ===== -->
       <header class="community-hero">
+        <div class="community-hero-grid-overlay"></div>
+        <div class="community-hero-floaters" id="ccgHeroFloaters">
+          <!-- Floating thumbnails populated by JS -->
+        </div>
         <div class="community-hero-text" id="communityFocus" data-community-focus tabindex="-1">
-          <span class="community-pill">Community Showcase</span>
-          <h1 class="community-title" id="communityTitle">Made with TimrX</h1>
-          <p class="community-hero-sub">Explore what creators are building — 3D models, images, videos, and animations generated entirely with AI. Get inspired, remix ideas, and share your own.</p>
+          <span class="community-pill">
+            Community Showcase
+            <span class="community-pill-live">Live</span>
+          </span>
+          <h1 class="community-title" id="communityTitle">Discover <span class="community-title-accent">Amazing</span> Creations</h1>
+          <p class="community-hero-sub">Explore AI-generated 3D models, images, videos, and animations from creators around the world. Get inspired, remix, and share your own masterpieces.</p>
           <div class="community-hero-actions">
-            <button type="button" class="community-primary-btn" data-ccg-scroll="gallery">Explore Creations</button>
+            <button type="button" class="community-primary-btn" data-ccg-scroll="gallery">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Explore Creations
+            </button>
             <button type="button" class="community-secondary-btn" id="communityBackToWorkspace">Open Workspace</button>
           </div>
           <ul class="community-hero-stats">
             <li>
-              <span>Open</span>
-              <small>Free core tools</small>
+              <span id="ccgStatCreations">—</span>
+              <small>Creations shared</small>
             </li>
             <li>
-              <span>Growing</span>
-              <small>New creators daily</small>
+              <span id="ccgStatCreators">—</span>
+              <small>Active creators</small>
             </li>
             <li>
-              <span>Global</span>
-              <small>Makers worldwide</small>
+              <span id="ccgStatReactions">—</span>
+              <small>Reactions given</small>
             </li>
           </ul>
         </div>
@@ -1834,7 +1846,14 @@
         <span class="community-watermark">COMMUNITY</span>
       </header>
 
-      <!-- Featured Showcase Strip -->
+      <!-- ===== ACTIVITY TICKER ===== -->
+      <div class="ccg-ticker" id="ccgTicker">
+        <div class="ccg-ticker__track" id="ccgTickerTrack">
+          <!-- Populated by JS with recent activity -->
+        </div>
+      </div>
+
+      <!-- ===== FEATURED — Editorial showcase strip ===== -->
       <section class="ccg-featured" id="ccgFeatured" aria-label="Featured creations">
         <div class="ccg-featured__header">
           <h2 class="ccg-featured__title">Featured</h2>
@@ -1853,21 +1872,45 @@
         </div>
       </section>
 
-      <!-- Section: Community Creations Gallery -->
+      <!-- ===== CREATOR SPOTLIGHT ===== -->
+      <section class="ccg-spotlight" id="ccgSpotlight" hidden>
+        <div class="ccg-spotlight__header">
+          <h2 class="ccg-spotlight__title">Top Creators</h2>
+          <span class="ccg-spotlight__badge">This Week</span>
+        </div>
+        <div class="ccg-spotlight__track" id="ccgSpotlightTrack">
+          <!-- Creator cards populated by JS -->
+        </div>
+      </section>
+
+      <!-- ===== COMMUNITY CREATIONS GALLERY ===== -->
       <section class="community-section community-creations-section" id="communityCreationsSection">
         <div class="community-section-header">
           <div class="community-section-content">
             <h2>All Creations</h2>
-            <p>Browse everything the community has shared — filter by type to find what inspires you.</p>
+            <p>Browse everything the community has shared — search, sort, and filter to find what inspires you.</p>
           </div>
         </div>
 
-        <!-- Filter tabs -->
-        <div class="ccg-filter-bar" role="tablist" aria-label="Filter creations">
-          <button class="ccg-filter-tab ccg-filter-tab--active" role="tab" aria-selected="true"  data-ccg-filter="all">All</button>
-          <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="model">3D Models</button>
-          <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="image">Images</button>
-          <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="video">Videos</button>
+        <!-- Toolbar: Search + Sort + Filters -->
+        <div class="ccg-toolbar">
+          <div class="ccg-search">
+            <input type="text" class="ccg-search__input" id="ccgSearchInput" placeholder="Search creations, prompts, creators..." autocomplete="off" spellcheck="false">
+            <svg class="ccg-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <div class="ccg-sort">
+            <select class="ccg-sort__select" id="ccgSortSelect" aria-label="Sort creations">
+              <option value="newest">Newest First</option>
+              <option value="popular">Most Popular</option>
+              <option value="trending">Trending</option>
+            </select>
+          </div>
+          <div class="ccg-filter-bar" role="tablist" aria-label="Filter creations">
+            <button class="ccg-filter-tab ccg-filter-tab--active" role="tab" aria-selected="true"  data-ccg-filter="all">All</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="model">3D Models</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="image">Images</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="video">Videos</button>
+          </div>
         </div>
 
         <!-- Grid -->
@@ -2006,6 +2049,13 @@
           </div>
         </div>
       </section>
+
+      <!-- Floating Action Button — Quick Share -->
+      <button type="button" class="ccg-fab" id="ccgFab" title="Share your creation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="ccg-fab__tooltip">Share a Creation</span>
+      </button>
+
     </div>
   </section>
 
