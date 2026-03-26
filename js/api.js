@@ -1131,7 +1131,7 @@ function showExpiredModelError(operation = 'process') {
 
   showErrorModal(
     'Model No Longer Available',
-    `This model's original data has expired on Meshy's servers and can no longer be ${opName}d.`,
+    `This model's source data has expired and can no longer be ${opName}d. Models typically expire after 7 days.`,
     `<strong>What you can do:</strong><br>
     • Generate a new model with the same prompt<br>
     • Use a recently created model instead<br>
@@ -2009,13 +2009,14 @@ async function beginMeshyTask(kind, payload, meta = {}) {
  * Start text-to-3D or image-to-3D generation
  */
 export async function onGenerateClick() {
-  if (startLock) return;
+  if (!acquireSubmitLock()) return;
 
   // Check if Multi-Image to 3D tab is active
   const multiImage3dTab = byId('multiimage3d');
   const isMultiImage3dMode = multiImage3dTab && !multiImage3dTab.classList.contains('hidden');
 
   if (isMultiImage3dMode) {
+    releaseSubmitLock();
     return startMultiImageTo3D();
   }
 
@@ -2024,6 +2025,7 @@ export async function onGenerateClick() {
   const isImage3dMode = image3dTab && !image3dTab.classList.contains('hidden');
 
   if (isImage3dMode) {
+    releaseSubmitLock();
     return startImageTo3DFromUpload();
   }
 
@@ -2033,10 +2035,9 @@ export async function onGenerateClick() {
 
   // Check credits for entire batch before proceeding
   if (!checkCreditsFor('text-to-3d', batchCount)) {
+    releaseSubmitLock();
     return;
   }
-
-  startLock = true;
 
   // Dispatch generation:start event (e.g., to close Inspire panel)
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'text-to-3d' } }));
@@ -2194,7 +2195,7 @@ export async function onGenerateClick() {
       if (r.reservationId) releaseCreditsReservation(r.reservationId);
     });
   } finally {
-    startLock = false;
+    releaseSubmitLock();
     const allGenBtns = document.querySelectorAll('button[id*="generate"]');
     allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
   }
@@ -3280,7 +3281,7 @@ function _composeSeedancePrompt(mainPrompt, stylePreset, motionText, settings) {
  * Start video generation
  */
 export async function startVideoGeneration() {
-  if (startLock) return;
+  if (!acquireSubmitLock()) return;
 
   // Dispatch generation:start event (e.g., to close Inspire panel)
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'video' } }));
@@ -3321,11 +3322,10 @@ export async function startVideoGeneration() {
   const creditCheck = checkCreditsForGeneration(totalCredits, 'video');
   if (creditCheck.shouldBlock) {
     console.warn('[VIDEO] Credit check blocked:', creditCheck);
+    releaseSubmitLock();
     showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'video');
     return;
   }
-
-  startLock = true;
 
   const prog = UI.makeProgressDriver();
 
@@ -3335,7 +3335,7 @@ export async function startVideoGeneration() {
   const reservation = reserveExactAmount('video', totalCredits);
   if (reservation.insufficient) {
     console.warn('[VIDEO] Reservation failed:', reservation);
-    startLock = false;
+    releaseSubmitLock();
     showInsufficientCreditsModal(totalCredits, creditCheck.available, 'video');
     return;
   }
@@ -3388,7 +3388,7 @@ export async function startVideoGeneration() {
         const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
 
         if (!hasStart || !hasEnd) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Please upload both a start and end image', 'error');
           return;
@@ -3396,7 +3396,7 @@ export async function startVideoGeneration() {
 
         const transitionPrompt = (byId('videoTransitionPrompt')?.value || '').trim();
         if (!transitionPrompt) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Describe how the first image should transition into the second', 'error');
           return;
@@ -3426,7 +3426,7 @@ export async function startVideoGeneration() {
         const mHasEnd = mEndSrc.startsWith('data:') || mEndSrc.startsWith('http');
 
         if (!mHasStart || !mHasEnd) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Please upload both images for morph', 'error');
           return;
@@ -3434,7 +3434,7 @@ export async function startVideoGeneration() {
 
         const morphPrompt = (byId('morphPrompt')?.value || '').trim();
         if (!morphPrompt) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Describe how the two images should morph together', 'error');
           return;
@@ -3463,7 +3463,7 @@ export async function startVideoGeneration() {
         const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
 
         if (!isValidImage) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Please upload a reference image for Image to Video mode', 'error');
           return;
@@ -3471,7 +3471,7 @@ export async function startVideoGeneration() {
 
         const animationPrompt = (byId('videoAnimationPrompt')?.value || '').trim();
         if (_isSeedanceProvider(settings.provider) && !animationPrompt) {
-          startLock = false;
+          releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
           UI.toast('Describe how the image should animate', 'error');
           return;
@@ -3624,7 +3624,7 @@ export async function startVideoGeneration() {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
-    startLock = false;
+    releaseSubmitLock();
   }
 }
 

@@ -1610,7 +1610,7 @@ function wireGallery() {
           return;
         }
 
-        if (!confirm('Delete from database and S3 permanently?')) return;
+        if (!confirm('This will permanently delete this item and all associated files. This action cannot be undone.')) return;
         try {
           const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
             method: 'DELETE'
