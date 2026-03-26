@@ -1222,7 +1222,6 @@ function wireGallery() {
           const videoUrl = item.video_url;
           if (videoUrl) {
             State.setHistoryActiveModelId(id);
-            renderHistory();
             _suppressHistoryFilterReset = true;
             const videoRailBtn = document.querySelector('[data-panel="video"]');
             if (videoRailBtn) videoRailBtn.click();
@@ -1239,7 +1238,6 @@ function wireGallery() {
         // Handle image type
         if (!glbUrl && (item.type === 'image' || item.image_url)) {
             State.setHistoryActiveModelId(id);
-            renderHistory();
             const imgSrc = item.image_url || item.thumbnail_url || '';
           if (imgSrc) {
             _suppressHistoryFilterReset = true;
@@ -1247,6 +1245,8 @@ function wireGallery() {
             if (imageRailBtn) imageRailBtn.click();
             _suppressHistoryFilterReset = false;
             Viewer.showImageInViewer(imgSrc);
+          } else {
+            renderHistory(); // only render if no rail switch (which triggers its own render)
           }
           return;
         }
@@ -1261,7 +1261,7 @@ function wireGallery() {
         const genHintEl = byId('genHint');
         if (genHintEl) genHintEl.textContent = 'Loading model...';
         State.setHistoryActiveModelId(id);
-        renderHistory();
+        // Rail button click above already triggers renderHistory via switchHistoryFilter
 
         // Reset version stack for this model and hide action bar
         const loadUrl = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));

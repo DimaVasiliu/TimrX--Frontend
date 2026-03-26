@@ -1260,17 +1260,20 @@ function _renderHistoryImpl() {
   const activeJobs = typeof getActiveJobs === 'function' ? getActiveJobs() : [];
   const isLoading = Array.isArray(activeJobs) && activeJobs.length > 0;
 
-  // If a media tab hasn't fetched its own data yet, show a loading skeleton
-  // instead of rendering stale/empty fallback data from the global cache.
-  // EXCEPT: skip the skeleton when the global historyCache has items for this
-  // tab type (e.g., a generation just added a placeholder, or a job just
-  // completed). getTabHistory() handles the fallback automatically — when
-  // ts.items is null it filters historyCache by tab type.
-  if (historyState.filter !== 'all' && !historyTabLoaded() && !getFilteredHistory().length) {
-    grid.innerHTML = buildHistorySkeleton(2, 3);
-    if (pageLabel) pageLabel.textContent = 'Loading...';
-    [prevBtn, nextBtn, firstBtn, lastBtn].forEach(btn => btn?.setAttribute('disabled', ''));
-    return;
+  // If a media tab hasn't fetched its own data yet, show a loading skeleton —
+  // UNLESS the global historyCache already has items for this tab (generating
+  // placeholders, recently completed assets, or items loaded from localStorage).
+  // getTabHistory() falls back to filtering historyCache when ts.items is null.
+  if (historyState.filter !== 'all' && !historyTabLoaded()) {
+    const hasCacheItems = getFilteredHistory().length > 0;
+    console.log('[History] Skeleton gate:', { filter: historyState.filter, tabLoaded: false, hasCacheItems, isLoading });
+    if (!hasCacheItems && !isLoading) {
+      grid.innerHTML = buildHistorySkeleton(2, 3);
+      if (pageLabel) pageLabel.textContent = 'Loading...';
+      [prevBtn, nextBtn, firstBtn, lastBtn].forEach(btn => btn?.setAttribute('disabled', ''));
+      return;
+    }
+    // If we have items OR active jobs, fall through to render from cache
   }
 
   const src = getFilteredHistory();
@@ -1316,12 +1319,46 @@ function _renderHistoryImpl() {
       slice = sortedImages;
     }
 
-    const imageGridMarkup = slice.map(img => {
+    const activeId = historyActiveModelId;
+    const imageCards = slice.map(img => {
       const bundle = { models: [img], isBundle: false };
-      return buildHistoryThumb(bundle, false);
-    }).join('');
+      // fingerprint: status + active flag — if either changes, card must be replaced
+      const fp = (img.status || 'finished') + (img.id === activeId ? ':A' : '');
+      return { id: img.id, fp, html: buildHistoryThumb(bundle, false) };
+    });
 
-    grid.innerHTML = `<div class="history-image-grid">${imageGridMarkup}</div>`;
+    // Surgical update: if the grid already shows the same image IDs in the
+    // same order, patch only the cards whose fingerprint changed.  This
+    // prevents thumbnail images from flickering on every re-render (innerHTML
+    // destroys <img> elements causing them to re-download).
+    const existingImageGrid = grid.querySelector('.history-image-grid');
+    const canPatchImages = existingImageGrid
+      && existingImageGrid.children.length === imageCards.length
+      && _videoGridIdsMatch(existingImageGrid, imageCards);
+
+    if (canPatchImages) {
+      for (let i = 0; i < imageCards.length; i++) {
+        const child = existingImageGrid.children[i];
+        if (child.dataset._fp === imageCards[i].fp) continue; // unchanged — skip
+        const temp = document.createElement('div');
+        temp.innerHTML = imageCards[i].html;
+        const replacement = temp.firstElementChild;
+        if (replacement) {
+          replacement.dataset._fp = imageCards[i].fp;
+          existingImageGrid.replaceChild(replacement, child);
+        }
+      }
+    } else {
+      // Full rebuild — tag each child with fingerprint for future patches
+      const markup = imageCards.map(c => c.html).join('');
+      grid.innerHTML = `<div class="history-image-grid">${markup}</div>`;
+      const builtGrid = grid.querySelector('.history-image-grid');
+      if (builtGrid) {
+        Array.from(builtGrid.children).forEach((child, i) => {
+          if (imageCards[i]) child.dataset._fp = imageCards[i].fp;
+        });
+      }
+    }
 
     if (pageLabel) {
       const imgTabLoaded = historyTabLoaded();

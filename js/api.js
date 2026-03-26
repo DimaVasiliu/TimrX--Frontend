@@ -3966,6 +3966,7 @@ async function startImageTo3DFromUpload() {
     }
 
     // Clean up temp placeholder
+    console.log('[Image3D] Replacing temp placeholder', tempId, '→', job_id);
     State.deleteHistoryItem(tempId, { skipRemote: true });
     State.deletePendingMeta(tempId);
 
@@ -3975,6 +3976,10 @@ async function startImageTo3DFromUpload() {
     State.addActiveJob(job_id);
     State.savePendingMeta(job_id, { ...meta, type: 'model' });
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from image...', type: 'model' });
+    console.log('[Image3D] Placeholder added, filter=', State.historyState.filter,
+      'tabLoaded=', State.historyTabLoaded?.(),
+      'cacheHas=', State.historyHasJobId(job_id),
+      'activeJobs=', State.getActiveJobs().length);
     watchMeshyTask(job_id, 'image3d');
 
     // Update balance if returned - backend is authoritative
