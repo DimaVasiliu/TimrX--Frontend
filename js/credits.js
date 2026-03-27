@@ -1582,7 +1582,7 @@
 
     // Handoff guard: ensure verified identity still matches current session
     if (!validateCheckoutHandoff('video')) {
-      showVideoBuyError('Your account changed during verification. Please confirm checkout again.');
+      showVideoBuyError('Session expired. Please try again.');
       videoVerifier.reset();
       return;
     }
@@ -2294,16 +2294,16 @@
   }
 
   /**
-   * Validate that current session still matches the verified handoff state.
+   * Validate that current session still matches the checkout handoff state.
    * Returns true if checkout may proceed, false if stale.
    * @param {string} expectedFlow - 'general' or 'video'
    */
   function validateCheckoutHandoff(expectedFlow) {
     if (!checkoutHandoff) {
-      // No handoff — user is already-verified (fast path) or direct click.
-      // Check live state instead.
-      if (!emailVerified) {
-        console.warn('[Handoff] No handoff and email not verified');
+      // No handoff — already-verified user clicking buy directly.
+      // Allow if they have an email (verified or not — auto-verified on purchase).
+      if (!emailVerified && !userEmail) {
+        console.warn('[Handoff] No handoff, no email');
         return false;
       }
       return true;
@@ -2333,16 +2333,10 @@
       return false;
     }
 
-    // Check email still matches
-    if (h.email?.toLowerCase() !== userEmail?.toLowerCase()) {
+    // Email check: accept if handoff email matches session email OR if
+    // session email isn't set yet (will be attached by checkout endpoint).
+    if (userEmail && h.email && h.email.toLowerCase() !== userEmail.toLowerCase()) {
       console.warn('[Handoff] Email mismatch: handoff=%s current=%s', h.email, userEmail);
-      clearCheckoutHandoff();
-      return false;
-    }
-
-    // Check emailVerified is still true
-    if (!emailVerified) {
-      console.warn('[Handoff] emailVerified became false after handoff was set');
       clearCheckoutHandoff();
       return false;
     }
@@ -2372,7 +2366,7 @@
 
     // Handoff guard: ensure verified identity still matches current session
     if (!validateCheckoutHandoff('general')) {
-      showCheckoutError('Your account changed during verification. Please confirm checkout again.');
+      showCheckoutError('Session expired. Please try again.');
       setCheckoutLoading(false);
       generalVerifier.reset();
       return;
@@ -2714,26 +2708,23 @@
         const flow = cfg.flowType || 'unknown';
         trackCheckoutEvent('email_continue_clicked', { flow, path: 'direct' });
 
-        // Attach email to identity if not already attached (non-blocking)
-        // The checkout endpoint also handles this inline, but pre-attaching
-        // ensures /api/me returns the email for session consistency.
-        if (!userEmail || userEmail.toLowerCase() !== email.toLowerCase()) {
-          try {
-            await apiFetch('/api/auth/email/attach', {
-              method: 'POST',
-              body: { email }
-            });
-          } catch (e) {
-            // Non-fatal — checkout endpoint will handle attachment
-            console.warn(`[Credits] ${cfg.name}: email attach failed (non-fatal):`, e);
-          }
-        }
-
-        // Proceed directly to checkout — no verification code needed.
-        // Email is auto-verified on successful purchase completion.
+        // No verification code needed — email is auto-verified on purchase.
+        // The checkout endpoint attaches email to identity inline if needed.
+        // Do NOT call /api/auth/email/attach here (it sends unnecessary codes).
         console.log(`[Credits] ${cfg.name}: proceeding to checkout with ${email}`);
         pendingEmail = email;
-        setCheckoutHandoff(flow);
+
+        // Set handoff with the typed email so the checkout guard passes
+        clearCheckoutHandoff();
+        checkoutHandoff = {
+          identityId: identityId,
+          email: email,
+          flow,
+          nonce: Math.random().toString(36).slice(2, 10),
+          ts: Date.now(),
+          timer: setTimeout(() => { checkoutHandoff = null; }, HANDOFF_TTL_MS),
+        };
+
         cfg.onCheckout();
       },
 
