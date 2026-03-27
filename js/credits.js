@@ -1815,10 +1815,16 @@
       if (successCard) successCard.classList.add('celebrate');
 
       // Show "+N credits" badge
-      const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
-      if (addedBadge && planCredits > 0) {
-        addedBadge.textContent = `+${planCredits.toLocaleString()} ${poolLabel}`;
+      const modalPlanCredits = successModalState.planCredits || parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+      if (addedBadge && modalPlanCredits > 0) {
+        addedBadge.textContent = `+${modalPlanCredits.toLocaleString()} ${poolLabel}`;
         addedBadge.classList.add('visible');
+      }
+      // Check if welcome bonus was included (balance higher than expected)
+      const preBalance = successModalState.preCheckoutBalance || 0;
+      if (addedBadge && credits != null && modalPlanCredits > 0 && credits > preBalance + modalPlanCredits) {
+        const bonusAmount = credits - preBalance - modalPlanCredits;
+        addedBadge.textContent = `+${modalPlanCredits.toLocaleString()} ${poolLabel} · +${bonusAmount}c first buy bonus`;
       }
 
       // Count-up animation for the balance value
@@ -2022,6 +2028,17 @@
     } else if (!successModalState.isPending && successCreditsValue) {
       // Update balance display if modal is showing success
       successCreditsValue.textContent = relevantBalance.toLocaleString();
+
+      // Check if welcome bonus was included (balance higher than plan credits alone)
+      const preBalance = successModalState.preCheckoutBalance || 0;
+      const modalPlanCredits = successModalState.planCredits || 0;
+      const addedBadge = document.getElementById('successAddedBadge');
+      if (addedBadge && modalPlanCredits > 0 && relevantBalance > preBalance + modalPlanCredits) {
+        const isVideo = successModalState.isVideoPlan;
+        const poolLabel = isVideo ? 'video credits' : 'general credits';
+        const bonusAmount = relevantBalance - preBalance - modalPlanCredits;
+        addedBadge.textContent = `+${modalPlanCredits.toLocaleString()} ${poolLabel} · +${bonusAmount}c first buy bonus`;
+      }
     }
   });
 
@@ -3271,9 +3288,10 @@
     console.log('[Credits] Checkout success - plan:', pendingPlanCode, 'isVideo:', isVideoPlan,
       'pre:', initialBalance, 'credits:', planCredits, 'optimistic:', optimisticBalance);
 
-    // Store pre-checkout balance in modal state for event listener comparison
+    // Store pre-checkout balance and plan credits in modal state for event listener comparison
     successModalState.preCheckoutBalance = isVideoPlan ? preCheckoutVideoBalance : preCheckoutBalance;
     successModalState.isVideoPlan = isVideoPlan;
+    successModalState.planCredits = planCredits;
 
     // IMMEDIATELY show success modal with OPTIMISTIC balance (not pending state)
     // This gives instant feedback - user sees expected new balance right away
@@ -3282,12 +3300,14 @@
       openSuccessModal(optimisticBalance, false);  // false = not pending, show as complete
       console.log('[Credits] Showing optimistic balance:', optimisticBalance, isVideoPlan ? '(video pool)' : '(general pool)');
 
-      // Update local wallet state optimistically — only touch the correct credit pool
+      // Update local wallet state optimistically — only touch the correct credit pool.
+      // Also mark emailVerified=true since purchase auto-verifies the email.
       if (isVideoPlan) {
         WalletStore.update({
           videoBalance: optimisticBalance,
           videoReserved: 0,
           videoAvailable: optimisticBalance,
+          emailVerified: true,
         });
       } else {
         walletAvailable = optimisticBalance;
@@ -3296,18 +3316,30 @@
           balance: optimisticBalance,
           reserved: 0,
           available: optimisticBalance,
+          emailVerified: true,
         });
       }
+      emailVerified = true;
+
+      // Update the credits pill immediately so the header reflects the purchase
+      updateCreditsDisplay(
+        isVideoPlan ? (WalletStore._state.available || 0) : optimisticBalance,
+        isVideoPlan ? (WalletStore._state.balance || 0) : optimisticBalance,
+        0
+      );
     } else {
       // Fallback: no plan credits stored, show pending state
       openSuccessModal(displayBalance, true);
     }
 
-    // Clean up stored values
+    // Clean up stored values (keep plan credits in successModalState for badge)
     sessionStorage.removeItem('timrx_pre_checkout_balance');
     sessionStorage.removeItem('timrx_pre_checkout_video_balance');
     sessionStorage.removeItem('timrx_pending_plan_credits');
     sessionStorage.removeItem('timrx_pending_plan_code');
+
+    // Quick delayed refresh to pick up welcome bonus and real balance
+    setTimeout(() => refreshCredits({ force: true, maxRetries: 2 }), 2000);
 
     // Run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
