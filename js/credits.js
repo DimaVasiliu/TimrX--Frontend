@@ -5723,4 +5723,3 @@
   console.log('[Credits] Hub credits module ready');
 
 })();
-
