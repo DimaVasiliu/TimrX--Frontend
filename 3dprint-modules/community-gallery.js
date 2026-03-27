@@ -1155,9 +1155,35 @@
     }
   }
 
+  // ─── Deep-link: open a specific post by ID ─────────────────────────────
+
+  async function openPostById(postId) {
+    if (!postId) return;
+    // Try cache first
+    let post = allPostsCache.find(p => String(p.id) === String(postId));
+    if (post) { openDetailView(post); return; }
+
+    // Not cached — fetch the feed (which populates cache) then retry
+    try {
+      const res = await fetch(`${API_BASE}/api/_mod/community/feed?limit=50&offset=0`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        (data.posts || []).forEach(p => {
+          if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
+        });
+        post = allPostsCache.find(p => String(p.id) === String(postId));
+        if (post) { openDetailView(post); return; }
+      }
+    } catch (_) { /* silent */ }
+
+    // Post not in feed (deleted / too old) — still scroll to community
+    const section = document.getElementById('communityCreationsSection');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   // ─── Public API ───────────────────────────────────────────────────────────
 
-  window.CommunityGallery = { init, openShareModal };
+  window.CommunityGallery = { init, openShareModal, openPostById };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

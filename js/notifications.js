@@ -448,12 +448,27 @@ async function handleNotificationClick(n) {
   // Navigate if link provided
   if (n.link) {
     closeDropdown();
-    // Extract hash from links like "/3dprint#community" when already on 3dprint
+
+    // Community post deep-link: open community view then jump to the specific post
+    const postId = n.meta?.post_id;
+    if (postId && n.link.includes('#community')) {
+      const trigger = document.querySelector('[data-open-community]');
+      if (trigger) {
+        trigger.click();
+        // Wait for community view to mount, then open the post detail
+        setTimeout(() => {
+          if (window.CommunityGallery?.openPostById) {
+            window.CommunityGallery.openPostById(postId);
+          }
+        }, 400);
+        return;
+      }
+    }
+
+    // Generic hash navigation (e.g. #history, #docs)
     const hashMatch = n.link.match(/#(.+)$/);
     const hash = hashMatch ? hashMatch[1] : null;
-
     if (hash) {
-      // Try to open the corresponding expanded view via trigger button
       const trigger = document.querySelector(`[data-open-${hash}]`);
       if (trigger) {
         trigger.click();
