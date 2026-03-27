@@ -2703,7 +2703,7 @@
         showEmailState();
       },
 
-      /** Step 1: Send verification code. */
+      /** Step 1: Validate email and proceed directly to checkout. */
       async handleEmailContinue() {
         if (!cfg.validateForm()) {
           cfg.showEmailError('Please enter a valid email.');
@@ -2712,50 +2712,29 @@
 
         const email = cfg.emailInput.value.trim();
         const flow = cfg.flowType || 'unknown';
-        trackCheckoutEvent('email_continue_clicked', { flow, path: emailVerified ? 'fast' : 'verify' });
+        trackCheckoutEvent('email_continue_clicked', { flow, path: 'direct' });
 
-        // Fast path: already verified with same email → skip to checkout
-        if (emailVerified && userEmail && userEmail.toLowerCase() === email.toLowerCase()) {
-          console.log(`[Credits] ${cfg.name}: email already verified, proceeding to checkout`);
-          cfg.onCheckout();
-          return;
+        // Attach email to identity if not already attached (non-blocking)
+        // The checkout endpoint also handles this inline, but pre-attaching
+        // ensures /api/me returns the email for session consistency.
+        if (!userEmail || userEmail.toLowerCase() !== email.toLowerCase()) {
+          try {
+            await apiFetch('/api/auth/email/attach', {
+              method: 'POST',
+              body: { email }
+            });
+          } catch (e) {
+            // Non-fatal — checkout endpoint will handle attachment
+            console.warn(`[Credits] ${cfg.name}: email attach failed (non-fatal):`, e);
+          }
         }
 
-        active = true;  // Mark as in-use for identity-change detection
+        // Proceed directly to checkout — no verification code needed.
+        // Email is auto-verified on successful purchase completion.
+        console.log(`[Credits] ${cfg.name}: proceeding to checkout with ${email}`);
         pendingEmail = email;
-        cfg.setEmailLoading(true);
-        cfg.clearEmailError();
-
-        try {
-          const result = await apiFetch('/api/auth/email/attach', {
-            method: 'POST',
-            body: { email }
-          });
-
-          cfg.setEmailLoading(false);
-
-          if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
-            cfg.showEmailError(result.data.error.message || 'Please wait before requesting another code.');
-            return;
-          }
-
-          if (result.data?.hint === 'account_switch_required') {
-            // Email belongs to another account — do NOT show verify state
-            // (no code was sent for this identity). Guide to restore instead.
-            cfg.showEmailError('This email belongs to another account. Use Restore to switch accounts.');
-            return;
-          }
-
-          trackCheckoutEvent('code_sent', { flow });
-          showVerifyState();
-          startResendCooldown();
-        } catch (err) {
-          cfg.setEmailLoading(false);
-          // Proceed optimistically — code may have been sent
-          trackCheckoutEvent('code_sent', { flow, optimistic: true });
-          showVerifyState();
-          startResendCooldown();
-        }
+        setCheckoutHandoff(flow);
+        cfg.onCheckout();
       },
 
       /** Step 2: Verify 6-digit code, refresh session, then call onCheckout. */
@@ -5721,3 +5700,4 @@
   console.log('[Credits] Hub credits module ready');
 
 })();
+

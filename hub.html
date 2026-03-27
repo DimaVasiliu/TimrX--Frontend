@@ -879,7 +879,7 @@
         </div>
       </div>
 
-      <!-- State 1: Email Input -->
+      <!-- Email Input + Subscribe -->
       <div id="subEmailState" class="sub-state">
         <div class="field">
           <input type="email" id="subCheckoutEmail" placeholder="Email for receipt" autocomplete="email" />
@@ -888,28 +888,21 @@
         <p class="sub-modal-error" id="subCheckoutError" style="display:none"></p>
         <div class="cta-row">
           <button type="button" class="btn" id="subCheckoutBtn" disabled>
-            <span class="btn-text">Continue</span>
+            <span class="btn-text">Subscribe</span>
             <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
           </button>
         </div>
       </div>
 
-      <!-- State 2: Code Verification -->
-      <div id="subVerifyState" class="sub-state" style="display:none">
-        <p class="sub-verify-info">Enter the 6-digit code sent to <strong id="subSentToEmail"></strong></p>
-        <div class="field">
-          <input type="text" id="subVerifyCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
-        </div>
-        <p class="sub-modal-message" id="subVerifyMessage" style="display:none"></p>
-        <p class="sub-modal-error" id="subVerifyError" style="display:none"></p>
-        <div class="cta-row">
-          <button type="button" class="btn" id="subVerifyBtn">
-            <span class="btn-text">Verify & Subscribe</span>
-            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
-          </button>
-        </div>
-        <button type="button" class="btn-link sub-resend-link" id="subResendCode">Resend code</button>
-        <button type="button" class="btn-link sub-back-link" id="subBackToEmail">Use different email</button>
+      <!-- Hidden stubs: kept so credits.js refs don't throw -->
+      <div id="subVerifyState" class="sub-state" style="display:none" aria-hidden="true">
+        <strong id="subSentToEmail"></strong>
+        <input type="hidden" id="subVerifyCode" />
+        <span id="subVerifyMessage"></span>
+        <span id="subVerifyError"></span>
+        <button type="button" id="subVerifyBtn" style="display:none"></button>
+        <button type="button" id="subResendCode" style="display:none"></button>
+        <button type="button" id="subBackToEmail" style="display:none"></button>
       </div>
     </div>
   </div>
@@ -936,37 +929,29 @@
         </div>
       </div>
 
-      <!-- State 1: Email Input -->
+      <!-- Email Input + Checkout -->
       <div id="videoBuyEmailState">
         <div class="field">
-          <input type="email" id="videoBuyEmail" placeholder="Email address" autocomplete="email" />
+          <input type="email" id="videoBuyEmail" placeholder="Email for receipt" autocomplete="email" />
         </div>
         <p class="sub-modal-error" id="videoBuyError" style="display:none"></p>
         <div class="cta-row">
           <button type="button" class="btn" id="videoBuyBtn" disabled>
-            <span class="btn-text">Continue</span>
+            <span class="btn-text">Buy Video Credits</span>
             <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
           </button>
         </div>
       </div>
 
-      <!-- State 2: Code Verification -->
-      <div id="videoBuyVerifyState" style="display:none">
-        <p class="checkout-verify-info">Enter the 6-digit code sent to <strong id="videoBuySentToEmail"></strong></p>
-        <div class="field">
-          <input type="text" id="videoBuyVerifyCode" placeholder="000000" maxlength="6"
-                 inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
-        </div>
-        <p class="checkout-verify-message" id="videoBuyVerifyMessage" style="display:none"></p>
-        <p class="checkout-verify-error" id="videoBuyVerifyError" style="display:none"></p>
-        <div class="cta-row">
-          <button type="button" class="btn" id="videoBuyVerifyBtn">
-            <span class="btn-text">Verify &amp; Buy</span>
-            <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
-          </button>
-        </div>
-        <button type="button" class="checkout-link-btn" id="videoBuyResendCode">Resend code</button>
-        <button type="button" class="checkout-link-btn" id="videoBuyBackToEmail">Use different email</button>
+      <!-- Hidden stubs: kept so credits.js refs don't throw -->
+      <div id="videoBuyVerifyState" style="display:none" aria-hidden="true">
+        <strong id="videoBuySentToEmail"></strong>
+        <input type="hidden" id="videoBuyVerifyCode" />
+        <span id="videoBuyVerifyMessage"></span>
+        <span id="videoBuyVerifyError"></span>
+        <button type="button" id="videoBuyVerifyBtn" style="display:none"></button>
+        <button type="button" id="videoBuyResendCode" style="display:none"></button>
+        <button type="button" id="videoBuyBackToEmail" style="display:none"></button>
       </div>
     </div>
   </div>
@@ -1377,15 +1362,15 @@
             <span class="selected-plan-price" id="selectedPlanPrice">-</span>
           </div>
 
-          <!-- State 1: Email Input -->
+          <!-- Email Input + Checkout -->
           <div id="checkoutEmailState">
             <div class="field">
-              <input type="email" id="checkoutEmail" placeholder="Email address" autocomplete="email" />
+              <input type="email" id="checkoutEmail" placeholder="Email for receipt" autocomplete="email" />
             </div>
             <div class="checkout-error" id="checkoutError"></div>
             <div class="cta-row">
               <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
-                <span class="btn-text">Continue</span>
+                <span class="btn-text">Buy Credits</span>
                 <span class="btn-loader" style="display:none;">
                   <i class="fa-solid fa-spinner fa-spin"></i> Processing...
                 </span>
@@ -1393,23 +1378,15 @@
             </div>
           </div>
 
-          <!-- State 2: Code Verification -->
-          <div id="checkoutVerifyState" style="display:none">
-            <p class="checkout-verify-info">Enter the 6-digit code sent to <strong id="checkoutSentToEmail"></strong></p>
-            <div class="field">
-              <input type="text" id="checkoutVerifyCode" placeholder="000000" maxlength="6"
-                     inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
-            </div>
-            <p class="checkout-verify-message" id="checkoutVerifyMessage" style="display:none"></p>
-            <p class="checkout-verify-error" id="checkoutVerifyError" style="display:none"></p>
-            <div class="cta-row">
-              <button type="button" class="btn checkout-btn" id="checkoutVerifyBtn">
-                <span class="btn-text">Verify &amp; Buy</span>
-                <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>
-              </button>
-            </div>
-            <button type="button" class="checkout-link-btn" id="checkoutResendCode">Resend code</button>
-            <button type="button" class="checkout-link-btn" id="checkoutBackToEmail">Use different email</button>
+          <!-- Hidden stubs: kept so credits.js refs don't throw -->
+          <div id="checkoutVerifyState" style="display:none" aria-hidden="true">
+            <strong id="checkoutSentToEmail"></strong>
+            <input type="hidden" id="checkoutVerifyCode" />
+            <span id="checkoutVerifyMessage"></span>
+            <span id="checkoutVerifyError"></span>
+            <button type="button" id="checkoutVerifyBtn" style="display:none"></button>
+            <button type="button" id="checkoutResendCode" style="display:none"></button>
+            <button type="button" id="checkoutBackToEmail" style="display:none"></button>
           </div>
         </div>
 
