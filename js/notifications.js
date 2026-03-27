@@ -31,6 +31,17 @@ const CATEGORY_LABELS = {
   system: 'System',
 };
 
+// Fallback icons when notification has no icon set
+const CATEGORY_ICONS = {
+  credit: 'fa-coins',
+  tip: 'fa-hand-holding-dollar',
+  community: 'fa-users',
+  job: 'fa-wand-magic-sparkles',
+  account: 'fa-user-shield',
+  system: 'fa-bullhorn',
+  promo: 'fa-tag',
+};
+
 // ============================================================================
 // STATE
 // ============================================================================
@@ -411,7 +422,7 @@ function createNotificationItem(n) {
   item.className = `notif-item${n.is_read ? '' : ' is-unread'}${isRich ? ' is-rich' : ''}`;
   item.dataset.id = n.id;
 
-  const iconClass = n.icon || 'fa-bell';
+  const iconClass = n.icon || CATEGORY_ICONS[n.category] || 'fa-bell';
   const timeAgo = formatTimeAgo(n.created_at);
 
   // Emoji prefix
