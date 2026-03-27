@@ -3441,12 +3441,27 @@
 
             <!-- ═══ Direct Actions Panel ═══ -->
             <div class="nc-panel" id="nc-direct">
+
+              <!-- User Lookup Widget -->
+              <div class="nc-user-lookup">
+                <div class="nc-user-lookup-header">
+                  <h4>Find User</h4>
+                  <span style="font-size:11px;color:#6b7280;">Search by email, then select to auto-fill all fields below</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="text" id="ncUserSearch" class="form-input" placeholder="Search by email..." style="flex:1;" />
+                  <button class="btn small" id="ncUserSearchBtn">Search</button>
+                </div>
+                <div id="ncUserSearchResults" style="margin-top:8px;"></div>
+                <div id="ncSelectedUser" class="nc-selected-user" style="display:none;"></div>
+              </div>
+
               <div class="nc-direct-grid">
                 <div class="nc-direct-section">
                   <h4>Send Notification to User</h4>
                   <div class="nc-form-row">
                     <label>Identity ID</label>
-                    <input type="text" id="ncDirectIdentity" class="form-input" placeholder="UUID" />
+                    <input type="text" id="ncDirectIdentity" class="form-input" placeholder="UUID — or use search above" />
                   </div>
                   <div class="nc-form-row">
                     <label>Title</label>
@@ -3479,7 +3494,7 @@
                   <h4>Grant Credits to User</h4>
                   <div class="nc-form-row">
                     <label>Identity ID</label>
-                    <input type="text" id="ncGrantIdentity" class="form-input" placeholder="UUID" />
+                    <input type="text" id="ncGrantIdentity" class="form-input" placeholder="UUID — or use search above" />
                   </div>
                   <div class="nc-form-row-inline">
                     <div>
@@ -10057,6 +10072,116 @@
 
     // ── Direct Actions ──
     function _ncSetupDirect() {
+      // ── User Search / Lookup ──
+      const _ncDoSearch = async () => {
+        const q = $('#ncUserSearch').value.trim();
+        if (!q) return;
+        const results = $('#ncUserSearchResults');
+        results.innerHTML = '<span style="color:#666;font-size:11px;">Searching...</span>';
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/identities?email=${encodeURIComponent(q)}&limit=8`);
+          const d = await r.json();
+          if (!d.ok || !d.identities?.length) {
+            results.innerHTML = '<span style="color:#666;font-size:11px;">No users found</span>';
+            return;
+          }
+          let html = '<div class="nc-search-results">';
+          for (const u of d.identities) {
+            const bal = u.wallet?.balance ?? '-';
+            const avail = u.wallet?.available ?? '-';
+            const email = u.email || '<no email>';
+            const verified = u.email_verified ? '✓' : '';
+            const lastSeen = u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'never';
+            html += `<div class="nc-search-result" data-id="${u.id}" data-email="${escapeHtmlText(u.email || '')}">
+              <div class="nc-sr-main">
+                <span class="nc-sr-email">${escapeHtmlText(email)}</span>
+                ${verified ? '<span class="nc-sr-verified">verified</span>' : ''}
+              </div>
+              <div class="nc-sr-meta">
+                <span>Balance: <strong>${avail}</strong></span>
+                <span>Last seen: ${lastSeen}</span>
+                <span class="nc-sr-id">${u.id.substring(0,8)}...</span>
+              </div>
+            </div>`;
+          }
+          html += '</div>';
+          results.innerHTML = html;
+
+          // Click to select user
+          results.querySelectorAll('.nc-search-result').forEach(el => {
+            el.onclick = () => _ncSelectUser(el.dataset.id, el.dataset.email);
+          });
+        } catch(e) {
+          results.innerHTML = `<span style="color:#ef4444;font-size:11px;">Error: ${escapeHtmlText(e.message)}</span>`;
+        }
+      };
+
+      $('#ncUserSearchBtn').onclick = _ncDoSearch;
+      $('#ncUserSearch').addEventListener('keydown', e => { if (e.key === 'Enter') _ncDoSearch(); });
+
+      async function _ncSelectUser(identityId, email) {
+        // Auto-fill all identity fields
+        $('#ncDirectIdentity').value = identityId;
+        $('#ncGrantIdentity').value = identityId;
+        $('#ncHistoryIdentity').value = identityId;
+        $('#ncUserSearchResults').innerHTML = '';
+
+        // Fetch full detail for the selected user
+        const sel = $('#ncSelectedUser');
+        sel.style.display = 'block';
+        sel.innerHTML = '<span style="color:#666;font-size:11px;">Loading user detail...</span>';
+
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/identities/${identityId}`);
+          const d = await r.json();
+          if (!d.ok) { sel.innerHTML = '<span style="color:#ef4444;font-size:11px;">Failed to load</span>'; return; }
+
+          const u = d.identity;
+          const w = u.wallet || {};
+          const purchases = u.purchases || [];
+          const totalSpent = purchases.reduce((s, p) => s + (p.amount_gbp || 0), 0);
+          const totalCredits = purchases.reduce((s, p) => s + (p.credits_granted || 0), 0);
+
+          let purchaseHtml = '';
+          if (purchases.length) {
+            purchaseHtml = `<div class="nc-su-purchases"><strong>Recent Purchases (${purchases.length}):</strong><div style="margin-top:4px;">`;
+            for (const p of purchases.slice(0, 5)) {
+              const dt = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '-';
+              purchaseHtml += `<div class="nc-su-purchase-row">
+                <span>${dt}</span>
+                <span>£${(p.amount_gbp || 0).toFixed(2)}</span>
+                <span>${p.credits_granted || 0} cr</span>
+                <span class="nc-status-badge nc-badge-${p.status === 'paid' ? 'published' : 'draft'}">${p.status}</span>
+              </div>`;
+            }
+            purchaseHtml += '</div></div>';
+          }
+
+          sel.innerHTML = `
+            <div class="nc-su-header">
+              <div class="nc-su-email">${escapeHtmlText(u.email || 'Anonymous')}</div>
+              <button class="btn small" id="ncDeselectUser" title="Clear selection">&times;</button>
+            </div>
+            <div class="nc-su-stats">
+              <div class="nc-su-stat"><strong>${w.available ?? w.balance ?? '-'}</strong><span>Available</span></div>
+              <div class="nc-su-stat"><strong>${w.balance ?? '-'}</strong><span>Balance</span></div>
+              <div class="nc-su-stat"><strong>${purchases.length}</strong><span>Purchases</span></div>
+              <div class="nc-su-stat"><strong>£${totalSpent.toFixed(2)}</strong><span>Total Spent</span></div>
+              <div class="nc-su-stat"><strong>${totalCredits}</strong><span>Credits Bought</span></div>
+            </div>
+            <div class="nc-su-id">ID: <code>${identityId}</code></div>
+            ${purchaseHtml}
+          `;
+
+          sel.querySelector('#ncDeselectUser').onclick = () => {
+            sel.style.display = 'none';
+            sel.innerHTML = '';
+          };
+        } catch(e) {
+          sel.innerHTML = `<span style="color:#ef4444;font-size:11px;">Error: ${escapeHtmlText(e.message)}</span>`;
+        }
+      }
+
       // Send direct notification
       $('#ncDirectSendBtn').onclick = async () => {
         const identity_id = $('#ncDirectIdentity').value.trim();

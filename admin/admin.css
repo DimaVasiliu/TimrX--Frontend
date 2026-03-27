@@ -1786,6 +1786,147 @@
      font-size: 11px;
    }
    
+   /* ── User Lookup Widget ──────────────────────────────────────────────────── */
+   
+   .nc-user-lookup {
+     margin-bottom: 16px;
+     padding: 14px;
+     background: rgba(255,255,255,0.02);
+     border: 1px solid rgba(255,255,255,0.05);
+     border-radius: 8px;
+   }
+   .nc-user-lookup-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: baseline;
+     margin-bottom: 8px;
+   }
+   .nc-user-lookup-header h4 {
+     font-size: 12px;
+     font-weight: 600;
+     color: #ccc;
+     margin: 0;
+   }
+   
+   /* Search results list */
+   .nc-search-results {
+     display: flex;
+     flex-direction: column;
+     gap: 2px;
+   }
+   .nc-search-result {
+     padding: 8px 10px;
+     border-radius: 6px;
+     cursor: pointer;
+     transition: background 0.12s;
+     border: 1px solid transparent;
+   }
+   .nc-search-result:hover {
+     background: rgba(255,255,255,0.05);
+     border-color: rgba(255,255,255,0.08);
+   }
+   .nc-sr-main {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+   }
+   .nc-sr-email {
+     font-size: 12px;
+     font-weight: 600;
+     color: #e5e7eb;
+   }
+   .nc-sr-verified {
+     font-size: 9px;
+     padding: 1px 5px;
+     border-radius: 3px;
+     background: rgba(34,197,94,0.15);
+     color: #4ade80;
+     font-weight: 600;
+     text-transform: uppercase;
+   }
+   .nc-sr-meta {
+     display: flex;
+     gap: 12px;
+     font-size: 10px;
+     color: #6b7280;
+     margin-top: 2px;
+   }
+   .nc-sr-meta strong { color: #9ca3af; }
+   .nc-sr-id {
+     font-family: monospace;
+     opacity: 0.6;
+   }
+   
+   /* Selected user card */
+   .nc-selected-user {
+     margin-top: 10px;
+     padding: 12px;
+     background: rgba(59,130,246,0.06);
+     border: 1px solid rgba(59,130,246,0.15);
+     border-radius: 8px;
+   }
+   .nc-su-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 8px;
+   }
+   .nc-su-email {
+     font-size: 13px;
+     font-weight: 600;
+     color: #e5e7eb;
+   }
+   .nc-su-id {
+     font-size: 10px;
+     color: #6b7280;
+     margin-top: 6px;
+   }
+   .nc-su-id code {
+     font-size: 10px;
+     background: rgba(0,0,0,0.3);
+     padding: 1px 4px;
+     border-radius: 3px;
+     color: #9ca3af;
+   }
+   .nc-su-stats {
+     display: flex;
+     gap: 10px;
+     flex-wrap: wrap;
+   }
+   .nc-su-stat {
+     text-align: center;
+     min-width: 60px;
+   }
+   .nc-su-stat strong {
+     display: block;
+     font-size: 15px;
+     color: #fff;
+   }
+   .nc-su-stat span {
+     font-size: 9px;
+     color: #6b7280;
+     text-transform: uppercase;
+     letter-spacing: 0.04em;
+   }
+   .nc-su-purchases {
+     margin-top: 8px;
+     padding-top: 8px;
+     border-top: 1px solid rgba(255,255,255,0.06);
+     font-size: 11px;
+     color: #9ca3af;
+   }
+   .nc-su-purchases strong { color: #ccc; }
+   .nc-su-purchase-row {
+     display: flex;
+     gap: 12px;
+     padding: 3px 0;
+     align-items: center;
+   }
+   .nc-su-purchase-row .nc-status-badge {
+     font-size: 8px;
+     padding: 1px 5px;
+   }
+   
    /* Reduced Motion */
    @media (prefers-reduced-motion: reduce) {
      *, *::before, *::after {
@@ -1793,3 +1934,4 @@
        transition-duration: 0.01ms !important;
      }
    }
+   
