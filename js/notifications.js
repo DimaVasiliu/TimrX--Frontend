@@ -51,18 +51,20 @@ let fetchInFlight = null;
  * Initialize the notification system.
  * Call after DOM is ready and identity is bootstrapped.
  */
-export async function initNotifications() {
+export function initNotifications() {
+  console.log('[Notifications] Setting up bell listener...');
   setupBellListener();
   setupOutsideClickClose();
   setupMobileBellListener();
+  console.log('[Notifications] Bell listener attached');
 
-  // Initial fetch
-  await fetchUnreadCount();
+  // Initial fetch (non-blocking — must not break init)
+  fetchUnreadCount().catch(() => {});
 
   // Start polling
   startPolling();
 
-  log('[Notifications] Initialized');
+  console.log('[Notifications] Initialized');
 }
 
 // ============================================================================
@@ -152,10 +154,25 @@ function pulseBell() {
 
 function setupBellListener() {
   const bell = document.getElementById('notificationBell');
-  bell?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleDropdown();
-  });
+  if (bell) {
+    bell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('[Notifications] Bell clicked');
+      toggleDropdown();
+    });
+    console.log('[Notifications] Bell listener attached to #notificationBell');
+  } else {
+    // Bell not in DOM yet — use delegated listener on body
+    console.warn('[Notifications] #notificationBell not found, using delegation');
+    document.addEventListener('click', (e) => {
+      const bellEl = e.target.closest('#notificationBell');
+      if (bellEl) {
+        e.stopPropagation();
+        console.log('[Notifications] Bell clicked (delegated)');
+        toggleDropdown();
+      }
+    });
+  }
 }
 
 function setupMobileBellListener() {
@@ -179,9 +196,10 @@ function setupOutsideClickClose() {
     if (!isDropdownOpen) return;
     const panel = document.getElementById('notifDropdown');
     const bell = document.getElementById('notificationBell');
-    if (panel && !panel.contains(e.target) && e.target !== bell && !bell?.contains(e.target)) {
-      closeDropdown();
-    }
+    // Don't close if click is on bell or inside panel
+    if (e.target.closest('#notificationBell')) return;
+    if (panel && panel.contains(e.target)) return;
+    closeDropdown();
   });
 
   // Close on Escape
@@ -200,7 +218,24 @@ function toggleDropdown() {
   }
 }
 
-async function openDropdown() {
+/**
+ * Position the dropdown using fixed coordinates so it sits
+ * directly below the bell icon, with the panel extending to the left.
+ */
+function positionDropdown(panel, bell) {
+  if (!bell || !panel) return;
+  const rect = bell.getBoundingClientRect();
+  const panelWidth = 340;
+  // Right edge of panel aligns with the right edge of the bell + small offset
+  const rightEdge = rect.right + 8;
+  let left = rightEdge - panelWidth;
+  // Don't overflow left edge of viewport
+  if (left < 8) left = 8;
+  panel.style.top = `${rect.bottom + 8}px`;
+  panel.style.left = `${left}px`;
+}
+
+function openDropdown() {
   isDropdownOpen = true;
   currentCategory = 'all';
   currentOffset = 0;
@@ -212,26 +247,44 @@ async function openDropdown() {
   let panel = document.getElementById('notifDropdown');
   if (!panel) {
     panel = createDropdownPanel();
-    // Position relative to bell
-    const bellRect = bell?.getBoundingClientRect();
-    if (bellRect) {
-      const credits = document.getElementById('workspaceCreditsGroup');
-      if (credits) {
-        credits.appendChild(panel);
-      } else {
-        document.body.appendChild(panel);
-      }
-    } else {
-      document.body.appendChild(panel);
-    }
+    document.body.appendChild(panel);
   }
 
+  // Position fixed directly under the bell, extending to the left
+  positionDropdown(panel, bell);
+
+  // Force browser to paint the hidden state first (required for transition)
+  void panel.offsetHeight;
+
+  // Show panel — inline ALL critical styles so it works even if CSS fails
   panel.classList.add('is-open');
+  Object.assign(panel.style, {
+    position:       'fixed',
+    display:        'flex',
+    flexDirection:  'column',
+    opacity:        '1',
+    pointerEvents:  'auto',
+    width:          '340px',
+    maxHeight:      '65vh',
+    zIndex:         '999999',
+    background:     'rgba(14,14,14,0.94)',
+    border:         '1px solid rgba(255,255,255,0.08)',
+    borderRadius:   '12px',
+    boxShadow:      '0 20px 50px rgba(0,0,0,0.55)',
+    overflow:       'hidden',
+    transform:      'translateY(0)',
+  });
   panel.setAttribute('aria-hidden', 'false');
 
-  // Fetch notifications
-  await fetchNotifications();
+  // Render empty state right away, then fetch in background
   renderNotifications();
+
+  // Fetch real data (non-blocking)
+  fetchNotifications().then(() => {
+    renderNotifications();
+  }).catch(e => {
+    console.warn('[Notifications] Fetch failed:', e);
+  });
 }
 
 function closeDropdown() {
@@ -242,7 +295,14 @@ function closeDropdown() {
 
   if (panel) {
     panel.classList.remove('is-open');
+    panel.style.opacity = '0';
+    panel.style.pointerEvents = 'none';
+    panel.style.transform = 'translateY(-4px)';
     panel.setAttribute('aria-hidden', 'true');
+    // Hide after transition completes
+    setTimeout(() => {
+      if (!isDropdownOpen) panel.style.display = 'none';
+    }, 200);
   }
 }
 
@@ -254,6 +314,9 @@ function createDropdownPanel() {
   const panel = document.createElement('div');
   panel.id = 'notifDropdown';
   panel.className = 'notif-dropdown';
+  panel.style.display = 'none';          // hidden until openDropdown()
+  panel.style.opacity = '0';
+  panel.style.pointerEvents = 'none';
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-label', 'Notifications');
   panel.setAttribute('aria-hidden', 'true');

@@ -3424,5 +3424,96 @@
       updateBackToTopButtons();
     })();
   </script>
+
+  <!-- Notification bell handler (standalone — no module/CSS dependency) -->
+  <script>
+  (function(){
+    var bell = document.getElementById('notificationBell');
+    if (!bell) return;
+    var open = false;
+
+    bell.addEventListener('click', function(e){
+      e.stopPropagation();
+      var panel = document.getElementById('notifDropdown');
+
+      if (open && panel) {
+        // Close
+        panel.style.display = 'none';
+        open = false;
+        bell.classList.remove('is-active');
+        return;
+      }
+
+      // If module already created the panel, just force-show it
+      if (panel) {
+        showPanel(panel);
+        return;
+      }
+
+      // Create panel from scratch (module hasn't loaded or failed)
+      panel = document.createElement('div');
+      panel.id = 'notifDropdown';
+      panel.className = 'notif-dropdown is-open';
+      panel.innerHTML =
+        '<div style="padding:12px 14px 8px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:12px;font-weight:600;color:#a9a9a9;text-transform:uppercase;letter-spacing:.06em">Notifications</span>' +
+        '</div>' +
+        '<div style="padding:36px 20px;text-align:center;color:#a9a9a9;font-size:12px;opacity:.5">' +
+          '<i class="fa-regular fa-bell-slash" style="font-size:22px;display:block;margin-bottom:8px;opacity:.25"></i>' +
+          'You\'re all caught up!' +
+        '</div>';
+      document.body.appendChild(panel);
+      showPanel(panel);
+    });
+
+    function showPanel(panel){
+      var rect = bell.getBoundingClientRect();
+      var left = rect.right + 8 - 340;
+      if (left < 8) left = 8;
+      Object.assign(panel.style, {
+        position:      'fixed',
+        top:           (rect.bottom + 8) + 'px',
+        left:          left + 'px',
+        display:       'flex',
+        flexDirection: 'column',
+        width:         '340px',
+        maxHeight:     '65vh',
+        opacity:       '1',
+        pointerEvents: 'auto',
+        zIndex:        '999999',
+        background:    'rgba(14,14,14,0.94)',
+        border:        '1px solid rgba(255,255,255,0.08)',
+        borderRadius:  '12px',
+        boxShadow:     '0 20px 50px rgba(0,0,0,0.55)',
+        overflow:      'hidden',
+        transform:     'translateY(0)',
+        backdropFilter:'blur(16px)',
+        WebkitBackdropFilter:'blur(16px)'
+      });
+      panel.classList.add('is-open');
+      open = true;
+      bell.classList.add('is-active');
+    }
+
+    document.addEventListener('click', function(e){
+      if (!open) return;
+      var panel = document.getElementById('notifDropdown');
+      if (e.target.closest('#notificationBell')) return;
+      if (panel && panel.contains(e.target)) return;
+      if (panel) panel.style.display = 'none';
+      open = false;
+      bell.classList.remove('is-active');
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && open) {
+        var panel = document.getElementById('notifDropdown');
+        if (panel) panel.style.display = 'none';
+        open = false;
+        bell.classList.remove('is-active');
+      }
+    });
+  })();
+  </script>
 </body>
 </html>

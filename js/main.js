@@ -1793,12 +1793,13 @@ window.addEventListener('DOMContentLoaded', () => {
     console.error('Credits init failed:', e);
   });
 
-  // Initialize notification center (after credits so identity is bootstrapped)
-  creditsPromise.then(() => {
-    Notifications.initNotifications().catch(e => {
-      console.error('Notifications init failed:', e);
-    });
-  });
+  // Initialize notification center — attach bell listener immediately,
+  // don't wait for credits (bell must work even if credits fail/hang)
+  try {
+    Notifications.initNotifications();
+  } catch (e) {
+    console.error('Notifications init failed:', e);
+  }
 
   // Initialize converter tool
   try {
