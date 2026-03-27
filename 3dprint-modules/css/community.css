@@ -789,11 +789,12 @@ video.ccg-featured__card-media {
 
 
 /* ===========================================================
-   CREATOR SPOTLIGHT — Runway-inspired editorial strip
+   CREATOR SPOTLIGHT — Organic floating bubble marquee
    =========================================================== */
 .ccg-spotlight {
   padding: clamp(28px, 4vh, 48px) var(--ccg-pad);
   border-bottom: 1px solid var(--ccg-border);
+  overflow: hidden;
 }
 
 .ccg-spotlight__header {
@@ -825,46 +826,191 @@ video.ccg-featured__card-media {
 
 .ccg-spotlight__track {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 4px;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  padding: 16px 0;
+  min-height: 120px;
+  position: relative;
 }
-.ccg-spotlight__track::-webkit-scrollbar { display: none; }
 
+/* Inner belt that slides right-to-left continuously */
+.ccg-spotlight__belt {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  animation: spotlightMarquee var(--marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+.ccg-spotlight__belt:hover { animation-play-state: paused; }
+
+@keyframes spotlightMarquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Card base ── */
 .ccg-spotlight__card {
   flex: 0 0 auto;
-  width: 200px;
-  padding: 16px;
-  border-radius: var(--ccg-radius);
-  background: var(--ccg-surface);
-  border: 1px solid var(--ccg-border);
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 10px;
-  text-align: center;
   cursor: pointer;
-  transition: all 0.25s var(--ccg-ease);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  color: #fff;
 }
 .ccg-spotlight__card:hover {
-  border-color: var(--ccg-border-hover);
-  background: var(--ccg-surface-2);
-  transform: translateY(-2px);
+  transform: scale(1.08);
+  z-index: 2;
 }
 
+/* ── Shape variants ── */
+
+/* Circle — avatar-only bubble */
+.ccg-spotlight__card--circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  justify-content: center;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  flex-direction: column;
+  gap: 0;
+  animation: spotBounce 3.2s ease-in-out infinite;
+}
+.ccg-spotlight__card--circle .ccg-spotlight__avatar { width: 38px; height: 38px; font-size: 13px; }
+.ccg-spotlight__card--circle .ccg-spotlight__name  { display: none; }
+.ccg-spotlight__card--circle .ccg-spotlight__count { display: none; }
+
+/* Circle-lg — large avatar bubble with name */
+.ccg-spotlight__card--circle-lg {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  justify-content: center;
+  flex-direction: column;
+  background: var(--ccg-surface);
+  border: 2px solid var(--ccg-border);
+  gap: 2px;
+  animation: spotFloat 4s ease-in-out infinite;
+}
+.ccg-spotlight__card--circle-lg .ccg-spotlight__avatar { width: 40px; height: 40px; font-size: 14px; }
+.ccg-spotlight__card--circle-lg .ccg-spotlight__name  { font-size: 9px; text-align: center; max-width: 70px; }
+.ccg-spotlight__card--circle-lg .ccg-spotlight__count { font-size: 8px; }
+
+/* Pill — horizontal capsule */
+.ccg-spotlight__card--pill {
+  padding: 8px 18px 8px 8px;
+  border-radius: 50px;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  flex-direction: row;
+  gap: 10px;
+  animation: spotBounce 3.6s ease-in-out infinite;
+}
+.ccg-spotlight__card--pill .ccg-spotlight__avatar { width: 36px; height: 36px; font-size: 13px; flex-shrink: 0; }
+.ccg-spotlight__card--pill .ccg-spotlight__meta { display: flex; flex-direction: column; gap: 1px; }
+.ccg-spotlight__card--pill .ccg-spotlight__name  { font-size: 12px; font-weight: 600; }
+.ccg-spotlight__card--pill .ccg-spotlight__count { font-size: 10px; }
+
+/* Square — rounded square tile */
+.ccg-spotlight__card--square {
+  width: 80px; height: 80px;
+  border-radius: 16px;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  gap: 4px;
+  animation: spotFloat 3.8s ease-in-out infinite;
+}
+.ccg-spotlight__card--square .ccg-spotlight__avatar { width: 34px; height: 34px; font-size: 12px; }
+.ccg-spotlight__card--square .ccg-spotlight__name  { font-size: 10px; text-align: center; max-width: 68px; }
+.ccg-spotlight__card--square .ccg-spotlight__count { display: none; }
+
+/* Hex — hexagonal feel via clip-path */
+.ccg-spotlight__card--hex {
+  width: 78px; height: 86px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  flex-direction: column;
+  justify-content: center;
+  background: var(--ccg-surface);
+  gap: 2px;
+  animation: spotBounce 4.2s ease-in-out infinite;
+}
+.ccg-spotlight__card--hex .ccg-spotlight__avatar { width: 32px; height: 32px; font-size: 11px; }
+.ccg-spotlight__card--hex .ccg-spotlight__name  { font-size: 9px; text-align: center; max-width: 60px; }
+.ccg-spotlight__card--hex .ccg-spotlight__count { display: none; }
+
+/* Tall — vertical card */
+.ccg-spotlight__card--tall {
+  width: 72px; height: 100px;
+  border-radius: 36px;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  gap: 4px;
+  animation: spotFloat 3.4s ease-in-out infinite;
+}
+.ccg-spotlight__card--tall .ccg-spotlight__avatar { width: 36px; height: 36px; font-size: 13px; }
+.ccg-spotlight__card--tall .ccg-spotlight__name  { font-size: 9px; text-align: center; max-width: 58px; }
+.ccg-spotlight__card--tall .ccg-spotlight__count { font-size: 8px; }
+
+/* Wide — wide landscape chip */
+.ccg-spotlight__card--wide {
+  padding: 10px 20px;
+  border-radius: 14px;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  flex-direction: row;
+  gap: 12px;
+  min-width: 160px;
+  animation: spotBounce 4s ease-in-out infinite;
+}
+.ccg-spotlight__card--wide .ccg-spotlight__avatar { width: 42px; height: 42px; font-size: 14px; flex-shrink: 0; }
+.ccg-spotlight__card--wide .ccg-spotlight__meta { display: flex; flex-direction: column; gap: 2px; }
+.ccg-spotlight__card--wide .ccg-spotlight__name  { font-size: 13px; font-weight: 700; }
+.ccg-spotlight__card--wide .ccg-spotlight__count { font-size: 10px; }
+
+/* Diamond — rotated square */
+.ccg-spotlight__card--diamond {
+  width: 70px; height: 70px;
+  border-radius: 14px;
+  transform-origin: center;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--ccg-surface);
+  border: 1px solid var(--ccg-border);
+  gap: 2px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: spotFloat 3.6s ease-in-out infinite;
+}
+.ccg-spotlight__card--diamond .ccg-spotlight__avatar { width: 28px; height: 28px; font-size: 10px; }
+.ccg-spotlight__card--diamond .ccg-spotlight__name  { font-size: 8px; text-align: center; max-width: 44px; }
+.ccg-spotlight__card--diamond .ccg-spotlight__count { display: none; }
+
+/* ── Bounce & float keyframes (staggered via animation-delay inline) ── */
+@keyframes spotBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes spotFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33%      { transform: translateY(-6px) rotate(1.5deg); }
+  66%      { transform: translateY(4px) rotate(-1deg); }
+}
+
+/* ── Avatar (shared) ── */
 .ccg-spotlight__avatar {
-  width: 48px;
-  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   font-weight: 700;
   color: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   position: relative;
+  flex-shrink: 0;
 }
 
 .ccg-spotlight__avatar::after {
@@ -876,19 +1022,41 @@ video.ccg-featured__card-media {
   opacity: 0.3;
 }
 
+/* ── Text (shared) ── */
 .ccg-spotlight__name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  line-height: 1.2;
 }
 
 .ccg-spotlight__count {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--ccg-text-3);
+  line-height: 1.2;
+}
+
+/* Gradient fade edges on the track */
+.ccg-spotlight__track::before,
+.ccg-spotlight__track::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 60px;
+  z-index: 3;
+  pointer-events: none;
+}
+.ccg-spotlight__track::before {
+  left: 0;
+  background: linear-gradient(to right, var(--ccg-bg, #0a0a0a), transparent);
+}
+.ccg-spotlight__track::after {
+  right: 0;
+  background: linear-gradient(to left, var(--ccg-bg, #0a0a0a), transparent);
 }
 
 
@@ -2250,10 +2418,6 @@ video.ccg-card__image {
   .ccg-featured__card {
     width: clamp(260px, 28vw, 340px);
   }
-  .ccg-spotlight__card {
-    width: 180px;
-    padding: 14px;
-  }
 }
 
 /* ── TABLET PORTRAIT (≤1024px) ── */
@@ -2316,10 +2480,6 @@ video.ccg-card__image {
   .ccg-spotlight {
     padding-left: var(--ccg-pad);
     padding-right: var(--ccg-pad);
-  }
-  .ccg-spotlight__card {
-    width: 170px;
-    padding: 12px;
   }
 
   /* Content grids */
@@ -2418,17 +2578,19 @@ video.ccg-card__image {
   .ccg-spotlight {
     padding: clamp(20px, 3vh, 32px) var(--ccg-pad);
   }
-  .ccg-spotlight__card {
-    width: 150px;
-    padding: 12px 10px;
-    gap: 8px;
-  }
-  .ccg-spotlight__avatar { width: 40px; height: 40px; font-size: 14px; }
-  .ccg-spotlight__name { font-size: 12px; }
-  .ccg-spotlight__count { font-size: 10px; }
+  .ccg-spotlight__track { min-height: 100px; }
+  .ccg-spotlight__belt { gap: 14px; }
+  .ccg-spotlight__card--circle { width: 56px; height: 56px; }
+  .ccg-spotlight__card--circle .ccg-spotlight__avatar { width: 32px; height: 32px; font-size: 11px; }
+  .ccg-spotlight__card--circle-lg { width: 76px; height: 76px; }
+  .ccg-spotlight__card--circle-lg .ccg-spotlight__avatar { width: 34px; height: 34px; font-size: 12px; }
+  .ccg-spotlight__card--square { width: 68px; height: 68px; }
+  .ccg-spotlight__card--hex { width: 66px; height: 72px; }
+  .ccg-spotlight__card--tall { width: 60px; height: 84px; }
+  .ccg-spotlight__card--wide { min-width: 140px; padding: 8px 14px; }
+  .ccg-spotlight__card--diamond { width: 60px; height: 60px; }
   .ccg-spotlight__title { font-size: 14px; }
   .ccg-spotlight__badge { font-size: 8px; padding: 2px 8px; }
-  .ccg-spotlight__track { gap: 8px; }
 
   /* Toolbar */
   .ccg-toolbar { gap: 8px; padding-bottom: 20px; }
@@ -2586,9 +2748,18 @@ video.ccg-card__image {
   .ccg-featured__card-title { font-size: 11px; -webkit-line-clamp: 1; }
 
   /* Spotlight — compact */
-  .ccg-spotlight__card { width: 130px; padding: 10px 8px; gap: 6px; }
-  .ccg-spotlight__avatar { width: 36px; height: 36px; font-size: 12px; }
-  .ccg-spotlight__name { font-size: 11px; }
+  .ccg-spotlight__track { min-height: 90px; }
+  .ccg-spotlight__belt { gap: 12px; }
+  .ccg-spotlight__card--circle { width: 50px; height: 50px; }
+  .ccg-spotlight__card--circle .ccg-spotlight__avatar { width: 28px; height: 28px; font-size: 10px; }
+  .ccg-spotlight__card--circle-lg { width: 68px; height: 68px; }
+  .ccg-spotlight__card--pill { padding: 6px 14px 6px 6px; }
+  .ccg-spotlight__card--pill .ccg-spotlight__avatar { width: 30px; height: 30px; }
+  .ccg-spotlight__card--wide { min-width: 130px; padding: 8px 12px; }
+  .ccg-spotlight__card--tall { width: 54px; height: 76px; }
+  .ccg-spotlight__card--square { width: 60px; height: 60px; }
+  .ccg-spotlight__card--hex { width: 58px; height: 64px; }
+  .ccg-spotlight__card--diamond { width: 54px; height: 54px; }
 
   /* Cards — compact footer */
   .ccg-card__footer { padding: 8px 8px; gap: 5px; }
@@ -2692,11 +2863,28 @@ video.ccg-card__image {
 
   /* Spotlight */
   .ccg-spotlight { padding: 14px var(--ccg-pad); }
-  .ccg-spotlight__card { width: 110px; padding: 10px 6px; }
-  .ccg-spotlight__avatar { width: 32px; height: 32px; font-size: 11px; }
+  .ccg-spotlight__track { min-height: 76px; padding: 10px 0; }
+  .ccg-spotlight__track::before,
+  .ccg-spotlight__track::after { width: 30px; }
+  .ccg-spotlight__belt { gap: 10px; }
+  .ccg-spotlight__card--circle { width: 44px; height: 44px; }
+  .ccg-spotlight__card--circle .ccg-spotlight__avatar { width: 26px; height: 26px; font-size: 9px; }
+  .ccg-spotlight__card--circle-lg { width: 58px; height: 58px; }
+  .ccg-spotlight__card--circle-lg .ccg-spotlight__avatar { width: 28px; height: 28px; font-size: 10px; }
+  .ccg-spotlight__card--circle-lg .ccg-spotlight__name { font-size: 7px; max-width: 48px; }
+  .ccg-spotlight__card--pill { padding: 5px 10px 5px 5px; gap: 6px; }
+  .ccg-spotlight__card--pill .ccg-spotlight__avatar { width: 26px; height: 26px; font-size: 9px; }
+  .ccg-spotlight__card--pill .ccg-spotlight__name { font-size: 10px; }
+  .ccg-spotlight__card--wide { min-width: 110px; padding: 6px 10px; gap: 8px; }
+  .ccg-spotlight__card--wide .ccg-spotlight__avatar { width: 30px; height: 30px; font-size: 10px; }
+  .ccg-spotlight__card--wide .ccg-spotlight__name { font-size: 11px; }
+  .ccg-spotlight__card--tall { width: 46px; height: 66px; }
+  .ccg-spotlight__card--tall .ccg-spotlight__avatar { width: 28px; height: 28px; font-size: 10px; }
+  .ccg-spotlight__card--square { width: 52px; height: 52px; border-radius: 12px; }
+  .ccg-spotlight__card--square .ccg-spotlight__avatar { width: 26px; height: 26px; font-size: 9px; }
+  .ccg-spotlight__card--hex { width: 50px; height: 56px; }
+  .ccg-spotlight__card--diamond { width: 46px; height: 46px; }
   .ccg-spotlight__avatar::after { inset: -2px; border-width: 1.5px; }
-  .ccg-spotlight__name { font-size: 10px; }
-  .ccg-spotlight__count { font-size: 9px; }
   .ccg-spotlight__header { margin-bottom: 12px; }
   .ccg-spotlight__title { font-size: 13px; }
   .ccg-spotlight__badge { font-size: 7px; padding: 2px 6px; }
@@ -2804,7 +2992,16 @@ video.ccg-card__image {
   .community-hero-stats li small { font-size: 7px; }
 
   .ccg-featured__card { width: clamp(140px, 42vw, 170px); }
-  .ccg-spotlight__card { width: 100px; }
+  .ccg-spotlight__track { min-height: 66px; padding: 8px 0; }
+  .ccg-spotlight__belt { gap: 8px; }
+  .ccg-spotlight__card--circle { width: 40px; height: 40px; }
+  .ccg-spotlight__card--circle-lg { width: 52px; height: 52px; }
+  .ccg-spotlight__card--pill { padding: 4px 8px 4px 4px; }
+  .ccg-spotlight__card--wide { min-width: 96px; }
+  .ccg-spotlight__card--tall { width: 40px; height: 58px; }
+  .ccg-spotlight__card--square { width: 44px; height: 44px; }
+  .ccg-spotlight__card--hex { width: 44px; height: 48px; }
+  .ccg-spotlight__card--diamond { width: 40px; height: 40px; }
 
   .ccg-card__footer { padding: 6px 5px; }
   .ccg-card__avatar { width: 18px; height: 18px; font-size: 7px; }
@@ -2841,8 +3038,8 @@ video.ccg-card__image {
     transform: scale(0.97);
     transition-duration: 0.1s;
   }
-  .ccg-spotlight__card:hover { transform: none; }
-  .ccg-spotlight__card:active { transform: scale(0.97); }
+  .ccg-spotlight__card:hover { z-index: auto; }
+  .ccg-spotlight__card:active { transform: scale(0.95); }
 
   .community-card:hover { transform: none; }
   .community-card:active { transform: scale(0.99); transition-duration: 0.1s; }
@@ -2860,14 +3057,13 @@ video.ccg-card__image {
 
   /* Smooth scrolling for horizontal elements */
   .ccg-featured__track,
-  .ccg-spotlight__track,
+  /* Spotlight belt keeps animating on touch — no snap needed */
   .ccg-filter-bar,
   .community-hero-stats {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
   }
   .ccg-featured__card { scroll-snap-align: start; }
-  .ccg-spotlight__card { scroll-snap-align: start; }
   .ccg-filter-tab { scroll-snap-align: start; }
 
   /* Prevent pull-to-refresh interfering with scroll */

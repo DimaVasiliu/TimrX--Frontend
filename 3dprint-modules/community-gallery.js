@@ -532,41 +532,121 @@
     tickerTrack.innerHTML = items + items;
   }
 
-  // ─── Creator Spotlight ─────────────────────────────────────────────────────
+  // ─── Creator Spotlight — Organic floating bubble marquee ────────────────────
+
+  const SPOTLIGHT_SHAPES = [
+    'circle', 'circle-lg', 'pill', 'square', 'hex', 'tall', 'wide', 'diamond'
+  ];
+
+  // Filler names used when real creators are fewer than 50
+  const SPOTLIGHT_FILLER_NAMES = [
+    'PixelForge', 'NovaPrint', '3DWizard', 'MeshMaster', 'VoxelKing',
+    'LayerCraft', 'PrintNinja', 'PolyGuru', 'FilaFlow', 'ResinRider',
+    'NozzleNerd', 'ExtrudeX', 'SliceQueen', 'BuildBot', 'PrintPunk',
+    'ModelMaverick', 'SolidState', 'DesignDojo', 'InfillPro', 'SupportStar',
+    'BedLevelBoss', 'GCodeGhost', 'HotEndHero', 'RaftRunner', 'BrimBandit',
+    'SkirtSage', 'TowerTitan', 'BridgeBuilder', 'OozeMaster', 'RetractKing',
+    'CoolDown', 'HeatCreep', 'ZHopper', 'WarpGuard', 'AdhesionAce',
+    'CaliCube', 'BenchyBoss', 'StrungOut', 'LayerOne', 'DualDrive',
+    'DirectFeed', 'BowdenBeast', 'TempTower', 'FlowRate', 'SpeedDemon',
+    'QualityFirst', 'DraftMode', 'UltraFine', 'TreeSupport', 'OrganicMesh',
+  ];
+
+  /** Seeded PRNG so the shuffle is stable within a 3-hour window */
+  function spotlightSeed() {
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+    return Math.floor(Date.now() / THREE_HOURS_MS);
+  }
+
+  function seededShuffle(arr, seed) {
+    const a = [...arr];
+    let s = seed;
+    for (let i = a.length - 1; i > 0; i--) {
+      s = (s * 16807 + 0) % 2147483647;           // Park-Miller LCG
+      const j = s % (i + 1);
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
   function populateSpotlight(posts) {
     if (!spotlightTrack || !spotlightSection) return;
 
-    // Aggregate creators from posts
+    // 1. Aggregate real creators from posts
     const creatorMap = new Map();
     posts.forEach(p => {
       const name = p.display_name || 'Anonymous';
       if (!creatorMap.has(name)) {
-        creatorMap.set(name, { name, count: 0 });
+        creatorMap.set(name, { name, count: 0, real: true });
       }
       creatorMap.get(name).count++;
     });
 
-    const creators = Array.from(creatorMap.values())
+    let pool = Array.from(creatorMap.values())
       .filter(c => c.count >= 1)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
+      .sort((a, b) => b.count - a.count);
 
-    if (creators.length < 2) {
+    // 2. Pad to 50 with filler names (count shown as random 1-12)
+    const existingNames = new Set(pool.map(c => c.name.toLowerCase()));
+    const seed = spotlightSeed();
+    let fillerSeed = seed;
+    for (const fName of SPOTLIGHT_FILLER_NAMES) {
+      if (pool.length >= 50) break;
+      if (existingNames.has(fName.toLowerCase())) continue;
+      fillerSeed = (fillerSeed * 16807) % 2147483647;
+      pool.push({ name: fName, count: 1 + (fillerSeed % 12), real: false });
+    }
+
+    // 3. Deterministic shuffle that changes every 3 hours
+    pool = seededShuffle(pool, seed).slice(0, 50);
+
+    if (pool.length < 2) {
       spotlightSection.hidden = true;
       return;
     }
 
-    spotlightTrack.innerHTML = creators.map(c => {
+    // 4. Assign a shape to each card (deterministic per name so it feels consistent)
+    function shapeFor(name, idx) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      return SPOTLIGHT_SHAPES[(h + idx) % SPOTLIGHT_SHAPES.length];
+    }
+
+    // 5. Build card HTML
+    function cardHTML(c, idx) {
+      const shape = shapeFor(c.name, idx);
       const initials = getInitials(c.name);
       const color = avatarColor(c.name);
-      return `
-        <div class="ccg-spotlight__card">
+      const delay = ((idx * 0.37) % 3).toFixed(2);   // stagger bounce/float
+      const needsMeta = shape === 'pill' || shape === 'wide';
+      const nameEl = `<span class="ccg-spotlight__name">${sanitize(c.name)}</span>`;
+      const countEl = `<span class="ccg-spotlight__count">${c.count} creation${c.count !== 1 ? 's' : ''}</span>`;
+
+      if (needsMeta) {
+        return `<div class="ccg-spotlight__card ccg-spotlight__card--${shape}" style="animation-delay:${delay}s">
           <div class="ccg-spotlight__avatar" style="background:${color}">${initials}</div>
-          <span class="ccg-spotlight__name">${sanitize(c.name)}</span>
-          <span class="ccg-spotlight__count">${c.count} creation${c.count !== 1 ? 's' : ''}</span>
+          <div class="ccg-spotlight__meta">${nameEl}${countEl}</div>
         </div>`;
-    }).join('');
+      }
+      return `<div class="ccg-spotlight__card ccg-spotlight__card--${shape}" style="animation-delay:${delay}s">
+        <div class="ccg-spotlight__avatar" style="background:${color}">${initials}</div>
+        ${nameEl}${countEl}
+      </div>`;
+    }
+
+    const cards = pool.map((c, i) => cardHTML(c, i)).join('');
+
+    // 6. Double the cards for seamless infinite marquee
+    const beltHTML = `<div class="ccg-spotlight__belt">${cards}${cards}</div>`;
+    spotlightTrack.innerHTML = beltHTML;
+
+    // 7. Calculate marquee duration based on card count (≈1.2s per card)
+    const duration = Math.max(40, pool.length * 1.2);
+    spotlightTrack.querySelector('.ccg-spotlight__belt')
+      .style.setProperty('--marquee-duration', duration + 's');
+    // Also set on the belt element directly for the animation
+    spotlightTrack.querySelector('.ccg-spotlight__belt')
+      .style.animationDuration = duration + 's';
 
     spotlightSection.hidden = false;
   }
