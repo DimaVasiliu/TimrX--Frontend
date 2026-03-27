@@ -407,19 +407,57 @@ function renderNotifications() {
 
 function createNotificationItem(n) {
   const item = document.createElement('div');
-  item.className = `notif-item${n.is_read ? '' : ' is-unread'}`;
+  const isRich = n.media_type && n.media_type !== 'none' && n.media_url;
+  item.className = `notif-item${n.is_read ? '' : ' is-unread'}${isRich ? ' is-rich' : ''}`;
   item.dataset.id = n.id;
 
   const iconClass = n.icon || 'fa-bell';
   const timeAgo = formatTimeAgo(n.created_at);
+
+  // Emoji prefix
+  const emojiHtml = n.emoji ? `<span class="notif-item-emoji">${n.emoji}</span>` : '';
+
+  // Badge pill
+  const badgeHtml = n.badge
+    ? `<span class="notif-item-badge">${escapeHtml(n.badge)}</span>`
+    : '';
+
+  // Media preview
+  let mediaHtml = '';
+  if (n.media_type === 'image' && n.media_url) {
+    const src = n.thumbnail_url || n.media_url;
+    mediaHtml = `<div class="notif-item-media"><img src="${escapeHtml(src)}" alt="" loading="lazy" /></div>`;
+  } else if (n.media_type === 'video' && (n.thumbnail_url || n.media_url)) {
+    const poster = n.thumbnail_url || '';
+    mediaHtml = `<div class="notif-item-media notif-item-media-video">${
+      poster ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy" />` : ''
+    }<span class="notif-media-play">▶</span></div>`;
+  }
+
+  // CTA buttons
+  let ctaHtml = '';
+  if (n.action_label && n.action_link) {
+    ctaHtml = `<div class="notif-item-ctas">`;
+    ctaHtml += `<button class="notif-cta-btn notif-cta-primary" data-link="${escapeHtml(n.action_link)}">${escapeHtml(n.action_label)}</button>`;
+    if (n.secondary_action_label && n.secondary_action_link) {
+      ctaHtml += `<button class="notif-cta-btn notif-cta-secondary" data-link="${escapeHtml(n.secondary_action_link)}">${escapeHtml(n.secondary_action_label)}</button>`;
+    }
+    ctaHtml += `</div>`;
+  }
 
   item.innerHTML = `
     <div class="notif-item-icon">
       <i class="fa-solid ${iconClass}"></i>
     </div>
     <div class="notif-item-content">
-      <div class="notif-item-title">${escapeHtml(n.title)}</div>
+      <div class="notif-item-title-row">
+        ${emojiHtml}
+        <span class="notif-item-title">${escapeHtml(n.title)}</span>
+        ${badgeHtml}
+      </div>
       ${n.body ? `<div class="notif-item-body">${escapeHtml(n.body)}</div>` : ''}
+      ${mediaHtml}
+      ${ctaHtml}
       <div class="notif-item-time">${timeAgo}</div>
     </div>
     ${!n.is_read ? '<div class="notif-item-dot"></div>' : ''}
@@ -435,8 +473,63 @@ function createNotificationItem(n) {
     handleDismiss(n, item);
   });
 
+  // CTA button clicks — track click + navigate
+  item.querySelectorAll('.notif-cta-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const link = btn.dataset.link;
+      // Track click for campaign notifications
+      if (n.campaign_id) {
+        apiFetch(`${BACKEND}/api/_mod/notifications/${n.id}/click`, { method: 'POST' }).catch(() => {});
+      }
+      // Mark as read
+      if (!n.is_read) {
+        apiFetch(`${BACKEND}/api/_mod/notifications/${n.id}/read`, { method: 'POST' }).catch(() => {});
+        n.is_read = true;
+        unreadCount = Math.max(0, unreadCount - 1);
+        updateBadge();
+      }
+      closeDropdown();
+      if (link) navigateToLink(link, n);
+    });
+  });
+
   item.addEventListener('click', () => handleNotificationClick(n));
   return item;
+}
+
+/**
+ * Navigate to a notification link (extracted from handleNotificationClick for reuse).
+ */
+function navigateToLink(link, n) {
+  // Community post deep-link
+  const postId = n?.meta?.post_id;
+  if (postId && link.includes('#community')) {
+    const trigger = document.querySelector('[data-open-community]');
+    if (trigger) {
+      trigger.click();
+      setTimeout(() => {
+        if (window.CommunityGallery?.openPostById) {
+          window.CommunityGallery.openPostById(postId);
+        }
+      }, 400);
+      return;
+    }
+  }
+
+  // Generic hash navigation
+  const hashMatch = link.match(/#(.+)$/);
+  const hash = hashMatch ? hashMatch[1] : null;
+  if (hash) {
+    const trigger = document.querySelector(`[data-open-${hash}]`);
+    if (trigger) { trigger.click(); return; }
+  }
+
+  if (link.startsWith('/') || link.startsWith('http')) {
+    window.location.href = link;
+  } else if (link.startsWith('#')) {
+    window.location.hash = link;
+  }
 }
 
 // ============================================================================
@@ -479,6 +572,11 @@ async function handleNotificationClick(n) {
     } catch (e) { /* silent */ }
   }
 
+  // Track click for campaign notifications
+  if (n.campaign_id) {
+    apiFetch(`${BACKEND}/api/_mod/notifications/${n.id}/click`, { method: 'POST' }).catch(() => {});
+  }
+
   // Auto-dismiss community/tip notifications once read
   if (AUTO_DISMISS_CATEGORIES.includes(n.category)) {
     notifications = notifications.filter(x => x.id !== n.id);
@@ -490,39 +588,7 @@ async function handleNotificationClick(n) {
   // Navigate if link provided
   if (n.link) {
     closeDropdown();
-
-    // Community post deep-link: open community view then jump to the specific post
-    const postId = n.meta?.post_id;
-    if (postId && n.link.includes('#community')) {
-      const trigger = document.querySelector('[data-open-community]');
-      if (trigger) {
-        trigger.click();
-        // Wait for community view to mount, then open the post detail
-        setTimeout(() => {
-          if (window.CommunityGallery?.openPostById) {
-            window.CommunityGallery.openPostById(postId);
-          }
-        }, 400);
-        return;
-      }
-    }
-
-    // Generic hash navigation (e.g. #history, #docs)
-    const hashMatch = n.link.match(/#(.+)$/);
-    const hash = hashMatch ? hashMatch[1] : null;
-    if (hash) {
-      const trigger = document.querySelector(`[data-open-${hash}]`);
-      if (trigger) {
-        trigger.click();
-        return;
-      }
-    }
-
-    if (n.link.startsWith('/') || n.link.startsWith('http')) {
-      window.location.href = n.link;
-    } else if (n.link.startsWith('#')) {
-      window.location.hash = n.link;
-    }
+    navigateToLink(n.link, n);
   }
 }
 

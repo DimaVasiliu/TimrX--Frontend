@@ -2259,6 +2259,7 @@
           <button class="tab" data-tab="billing">Billing</button>
           <button class="tab" data-tab="merge">Merge</button>
           <button class="tab" data-tab="orphans">Orphans</button>
+          <button class="tab" data-tab="notifications">Notifs</button>
         </div>
 
         <!-- Ops Tab -->
@@ -3193,6 +3194,334 @@
             <div class="ops-section" id="orphanActionSection" style="display:none;margin-top:12px;">
               <div class="ops-section-header"><h4>Action Result</h4></div>
               <div id="orphanActionResult" style="font-size:11px;line-height:1.6;"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- Notifications Tab — Campaign Console -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="tab-content" id="tab-notifications">
+          <div class="notif-admin">
+
+            <!-- Overview Cards -->
+            <div class="notif-overview-cards" id="notifOverviewCards">
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncDrafts">-</div><div class="notif-stat-label">Drafts</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncScheduled">-</div><div class="notif-stat-label">Scheduled</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncPublished">-</div><div class="notif-stat-label">Published</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncDelivered7d">-</div><div class="notif-stat-label">Delivered (7d)</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncReadRate">-</div><div class="notif-stat-label">Read Rate</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncClickRate">-</div><div class="notif-stat-label">Click Rate</div></div>
+              <div class="notif-stat-card"><div class="notif-stat-value" id="ncCredits7d">-</div><div class="notif-stat-label">Credits (7d)</div></div>
+            </div>
+
+            <!-- Sub-tabs -->
+            <div class="notif-subtabs">
+              <button class="notif-subtab active" data-nc-tab="campaigns">Campaigns</button>
+              <button class="notif-subtab" data-nc-tab="composer">Create Campaign</button>
+              <button class="notif-subtab" data-nc-tab="direct">Direct Actions</button>
+            </div>
+
+            <!-- ═══ Campaigns List Panel ═══ -->
+            <div class="nc-panel active" id="nc-campaigns">
+              <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+                <button class="nc-filter-chip active" data-status="">All</button>
+                <button class="nc-filter-chip" data-status="draft">Draft</button>
+                <button class="nc-filter-chip" data-status="scheduled">Scheduled</button>
+                <button class="nc-filter-chip" data-status="published">Published</button>
+                <button class="nc-filter-chip" data-status="archived">Archived</button>
+              </div>
+              <div class="nc-campaign-table" id="ncCampaignList">
+                <div style="color:#666;font-size:12px;padding:20px;text-align:center;">Loading campaigns...</div>
+              </div>
+            </div>
+
+            <!-- ═══ Campaign Composer Panel ═══ -->
+            <div class="nc-panel" id="nc-composer">
+              <div class="nc-composer-grid">
+                <!-- Left: Form -->
+                <div class="nc-composer-form">
+                  <div class="nc-form-section">
+                    <h4>Content</h4>
+                    <div class="nc-form-row">
+                      <label>Internal Name</label>
+                      <input type="text" id="ncInternalName" class="form-input" placeholder="e.g. March Promo" />
+                    </div>
+                    <div class="nc-form-row">
+                      <label>Title</label>
+                      <input type="text" id="ncTitle" class="form-input" placeholder="Notification title shown to users" />
+                    </div>
+                    <div class="nc-form-row">
+                      <label>Body</label>
+                      <textarea id="ncBody" class="form-input" rows="2" placeholder="Short body text"></textarea>
+                    </div>
+                    <div class="nc-form-row">
+                      <label>Rich Body (optional)</label>
+                      <textarea id="ncRichBody" class="form-input" rows="3" placeholder="Longer/formatted body (optional)"></textarea>
+                    </div>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Emoji</label>
+                        <input type="text" id="ncEmoji" class="form-input" placeholder="e.g. 🎁" style="width:80px;" />
+                      </div>
+                      <div>
+                        <label>Badge</label>
+                        <select id="ncBadge" class="form-input">
+                          <option value="">None</option>
+                          <option value="New">New</option>
+                          <option value="Bonus">Bonus</option>
+                          <option value="Limited">Limited</option>
+                          <option value="Fix">Fix</option>
+                          <option value="Creator Reward">Creator Reward</option>
+                          <option value="Free">Free</option>
+                          <option value="Update">Update</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>Icon (FA)</label>
+                        <input type="text" id="ncIcon" class="form-input" placeholder="fa-gift" style="width:120px;" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="nc-form-section">
+                    <h4>Media</h4>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Type</label>
+                        <select id="ncMediaType" class="form-input">
+                          <option value="none">None</option>
+                          <option value="image">Image</option>
+                          <option value="video">Video</option>
+                        </select>
+                      </div>
+                      <div style="flex:2;">
+                        <label>Media URL</label>
+                        <input type="text" id="ncMediaUrl" class="form-input" placeholder="https://..." />
+                      </div>
+                    </div>
+                    <div class="nc-form-row">
+                      <label>Thumbnail URL (optional)</label>
+                      <input type="text" id="ncThumbnailUrl" class="form-input" placeholder="https://..." />
+                    </div>
+                  </div>
+
+                  <div class="nc-form-section">
+                    <h4>CTA Buttons</h4>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Primary Label</label>
+                        <input type="text" id="ncActionLabel" class="form-input" placeholder="e.g. Try Now" />
+                      </div>
+                      <div style="flex:2;">
+                        <label>Primary Link</label>
+                        <input type="text" id="ncActionLink" class="form-input" placeholder="/3dprint#workspace" />
+                      </div>
+                    </div>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Secondary Label</label>
+                        <input type="text" id="ncSecondaryLabel" class="form-input" placeholder="Learn More" />
+                      </div>
+                      <div style="flex:2;">
+                        <label>Secondary Link</label>
+                        <input type="text" id="ncSecondaryLink" class="form-input" placeholder="/3dprint#docs" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="nc-form-section">
+                    <h4>Audience</h4>
+                    <div class="nc-form-row">
+                      <label>Target</label>
+                      <select id="ncAudienceTarget" class="form-input">
+                        <option value="all">All Users</option>
+                        <option value="verified_email">Verified Email</option>
+                        <option value="unverified_email">Unverified Email</option>
+                        <option value="low_credits">Low Credits</option>
+                        <option value="zero_credits">Zero Credits</option>
+                        <option value="active">Active (recent)</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="paid_users">Paid Users</option>
+                        <option value="subscription_users">Subscribers</option>
+                        <option value="free_only">Free Only</option>
+                        <option value="generated_video">Generated Video</option>
+                        <option value="generated_3d">Generated 3D</option>
+                        <option value="generated_image">Generated Image</option>
+                        <option value="manual">Manual (specific users)</option>
+                      </select>
+                    </div>
+                    <div class="nc-form-row" id="ncAudienceThresholdRow" style="display:none;">
+                      <label>Threshold / Days</label>
+                      <input type="number" id="ncAudienceThreshold" class="form-input" value="10" />
+                    </div>
+                    <div class="nc-form-row" id="ncManualIdsRow" style="display:none;">
+                      <label>Identity IDs (one per line)</label>
+                      <textarea id="ncManualIds" class="form-input" rows="3" placeholder="paste identity UUIDs"></textarea>
+                    </div>
+                    <div class="nc-audience-preview">
+                      <button class="btn small" id="ncPreviewAudienceBtn">Preview Audience</button>
+                      <span id="ncAudienceCount" style="font-size:12px;color:#9ca3af;">-</span>
+                    </div>
+                  </div>
+
+                  <div class="nc-form-section">
+                    <h4>Credits Grant</h4>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Mode</label>
+                        <select id="ncGrantMode" class="form-input">
+                          <option value="none">No Credits</option>
+                          <option value="on_delivery">Auto on Delivery</option>
+                          <option value="on_click">On Click/Claim</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>General Credits</label>
+                        <input type="number" id="ncGrantGeneral" class="form-input" value="0" min="0" />
+                      </div>
+                      <div>
+                        <label>Video Credits</label>
+                        <input type="number" id="ncGrantVideo" class="form-input" value="0" min="0" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="nc-form-section">
+                    <h4>Delivery</h4>
+                    <div class="nc-form-row-inline">
+                      <div>
+                        <label>Category</label>
+                        <select id="ncCategory" class="form-input">
+                          <option value="system">System</option>
+                          <option value="promo">Promo</option>
+                          <option value="credit">Credit</option>
+                          <option value="community">Community</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>Delivery Mode</label>
+                        <select id="ncDeliveryMode" class="form-input">
+                          <option value="standard">Standard</option>
+                          <option value="rich_card">Rich Card</option>
+                          <option value="pinned">Pinned Announcement</option>
+                          <option value="reward">Reward</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="nc-form-row">
+                      <label>Expires At (optional)</label>
+                      <input type="datetime-local" id="ncExpiresAt" class="form-input" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Preview -->
+                <div class="nc-composer-preview">
+                  <h4>Preview</h4>
+                  <div class="nc-preview-modes">
+                    <button class="nc-preview-mode active" data-mode="desktop">Desktop</button>
+                    <button class="nc-preview-mode" data-mode="mobile">Mobile</button>
+                  </div>
+                  <div class="nc-preview-frame" id="ncPreviewFrame">
+                    <div class="nc-preview-card" id="ncPreviewCard">
+                      <div class="nc-preview-empty">Configure campaign to see preview</div>
+                    </div>
+                  </div>
+                  <div class="nc-composer-actions">
+                    <button class="btn" id="ncSaveDraftBtn">Save Draft</button>
+                    <button class="btn small" id="ncTestSendBtn">Test Send</button>
+                    <button class="action-btn" id="ncPublishBtn">Publish Now</button>
+                  </div>
+                  <div id="ncComposerStatus" style="font-size:11px;margin-top:8px;color:#9ca3af;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ Direct Actions Panel ═══ -->
+            <div class="nc-panel" id="nc-direct">
+              <div class="nc-direct-grid">
+                <div class="nc-direct-section">
+                  <h4>Send Notification to User</h4>
+                  <div class="nc-form-row">
+                    <label>Identity ID</label>
+                    <input type="text" id="ncDirectIdentity" class="form-input" placeholder="UUID" />
+                  </div>
+                  <div class="nc-form-row">
+                    <label>Title</label>
+                    <input type="text" id="ncDirectTitle" class="form-input" placeholder="Notification title" />
+                  </div>
+                  <div class="nc-form-row">
+                    <label>Body</label>
+                    <textarea id="ncDirectBody" class="form-input" rows="2" placeholder="Message body"></textarea>
+                  </div>
+                  <div class="nc-form-row-inline">
+                    <div>
+                      <label>Icon</label>
+                      <input type="text" id="ncDirectIcon" class="form-input" placeholder="fa-bell" />
+                    </div>
+                    <div>
+                      <label>Badge</label>
+                      <select id="ncDirectBadge" class="form-input">
+                        <option value="">None</option>
+                        <option value="New">New</option>
+                        <option value="Bonus">Bonus</option>
+                        <option value="Fix">Fix</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button class="action-btn" id="ncDirectSendBtn" style="margin-top:8px;">Send Notification</button>
+                  <div id="ncDirectSendStatus" style="font-size:11px;margin-top:6px;color:#9ca3af;"></div>
+                </div>
+
+                <div class="nc-direct-section">
+                  <h4>Grant Credits to User</h4>
+                  <div class="nc-form-row">
+                    <label>Identity ID</label>
+                    <input type="text" id="ncGrantIdentity" class="form-input" placeholder="UUID" />
+                  </div>
+                  <div class="nc-form-row-inline">
+                    <div>
+                      <label>General Credits</label>
+                      <input type="number" id="ncGrantDirectGeneral" class="form-input" value="0" min="0" />
+                    </div>
+                    <div>
+                      <label>Video Credits</label>
+                      <input type="number" id="ncGrantDirectVideo" class="form-input" value="0" min="0" />
+                    </div>
+                  </div>
+                  <div class="nc-form-row">
+                    <label>Reason</label>
+                    <input type="text" id="ncGrantReason" class="form-input" placeholder="e.g. Customer satisfaction" />
+                  </div>
+                  <div class="nc-form-row" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="ncGrantNotify" checked />
+                    <label for="ncGrantNotify" style="margin:0;font-size:12px;">Send notification to user</label>
+                  </div>
+                  <button class="action-btn" id="ncGrantDirectBtn" style="margin-top:8px;">Grant Credits</button>
+                  <div id="ncGrantDirectStatus" style="font-size:11px;margin-top:6px;color:#9ca3af;"></div>
+                </div>
+
+                <div class="nc-direct-section" style="grid-column:1/-1;">
+                  <h4>User Notification History</h4>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="ncHistoryIdentity" class="form-input" placeholder="Identity ID" style="flex:1;" />
+                    <button class="btn small" id="ncHistoryBtn">Fetch</button>
+                  </div>
+                  <div id="ncHistoryResult" style="font-size:11px;margin-top:8px;max-height:300px;overflow-y:auto;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campaign Detail / Analytics Overlay -->
+            <div class="nc-panel" id="nc-detail" style="display:none;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h4 id="ncDetailTitle">Campaign Detail</h4>
+                <button class="btn small" id="ncDetailBackBtn">Back</button>
+              </div>
+              <div class="notif-overview-cards" id="ncDetailStats"></div>
+              <div id="ncDetailContent" style="margin-top:12px;font-size:12px;"></div>
             </div>
 
           </div>
@@ -9224,7 +9553,592 @@
       } else {
         tab.addEventListener('click', stopOpsPolling);
       }
+      // Load notifications data when tab clicked
+      if (tab.dataset.tab === 'notifications') {
+        tab.addEventListener('click', () => { ncInit(); });
+      }
     });
+
+    // ========== NOTIFICATION CAMPAIGN CONSOLE ==========
+
+    let _ncInitialized = false;
+    let _ncCurrentFilter = '';
+    let _ncEditingId = null;
+
+    function ncInit() {
+      if (!_ncInitialized) {
+        _ncInitialized = true;
+        _ncSetupSubtabs();
+        _ncSetupComposer();
+        _ncSetupDirect();
+      }
+      ncLoadOverview();
+      ncLoadCampaigns();
+    }
+
+    // ── Sub-tab switching ──
+    function _ncSetupSubtabs() {
+      $$('.notif-subtab').forEach(btn => {
+        btn.onclick = () => {
+          $$('.notif-subtab').forEach(b => b.classList.remove('active'));
+          $$('.nc-panel').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const panel = $(`#nc-${btn.dataset.ncTab}`);
+          if (panel) panel.classList.add('active');
+          // Hide detail overlay
+          const detail = $('#nc-detail');
+          if (detail) detail.style.display = 'none';
+        };
+      });
+
+      // Filter chips
+      $$('.nc-filter-chip').forEach(chip => {
+        chip.onclick = () => {
+          $$('.nc-filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          _ncCurrentFilter = chip.dataset.status;
+          ncLoadCampaigns();
+        };
+      });
+    }
+
+    // ── Overview stats ──
+    async function ncLoadOverview() {
+      try {
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/overview`);
+        const d = await r.json();
+        if (!d.ok) return;
+        $('#ncDrafts').textContent = d.drafts || 0;
+        $('#ncScheduled').textContent = d.scheduled || 0;
+        $('#ncPublished').textContent = d.published || 0;
+        $('#ncDelivered7d').textContent = d.delivered_7d || 0;
+        $('#ncReadRate').textContent = d.read_rate ? d.read_rate + '%' : '-';
+        $('#ncClickRate').textContent = d.click_rate ? d.click_rate + '%' : '-';
+        const c = (d.credits_general_7d || 0) + (d.credits_video_7d || 0);
+        $('#ncCredits7d').textContent = c || 0;
+      } catch(e) { console.warn('[NC] overview error:', e); }
+    }
+
+    // ── Campaign list ──
+    async function ncLoadCampaigns() {
+      const list = $('#ncCampaignList');
+      list.innerHTML = '<div style="color:#666;font-size:12px;padding:20px;text-align:center;">Loading...</div>';
+      try {
+        let url = `${BACKEND}/api/admin/campaigns?limit=50`;
+        if (_ncCurrentFilter) url += `&status=${_ncCurrentFilter}`;
+        const r = await meshAdminFetch(url);
+        const d = await r.json();
+        if (!d.ok || !d.campaigns.length) {
+          list.innerHTML = '<div style="color:#666;font-size:12px;padding:20px;text-align:center;">No campaigns found</div>';
+          return;
+        }
+        list.innerHTML = _ncRenderCampaignTable(d.campaigns);
+        _ncWireCampaignActions();
+      } catch(e) {
+        list.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:10px;">Error: ${escapeHtmlText(e.message)}</div>`;
+      }
+    }
+
+    function _ncStatusBadge(status) {
+      const map = {
+        draft: ['nc-badge-draft', 'Draft'],
+        scheduled: ['nc-badge-scheduled', 'Scheduled'],
+        publishing: ['nc-badge-publishing', 'Publishing...'],
+        published: ['nc-badge-published', 'Published'],
+        expired: ['nc-badge-expired', 'Expired'],
+        archived: ['nc-badge-archived', 'Archived'],
+      };
+      const [cls, label] = map[status] || ['', status];
+      return `<span class="nc-status-badge ${cls}">${label}</span>`;
+    }
+
+    function _ncRenderCampaignTable(campaigns) {
+      let html = `<table class="nc-table"><thead><tr>
+        <th>Name</th><th>Status</th><th>Audience</th><th>Sent</th><th>Read</th><th>Clicks</th><th>Credits</th><th>Date</th><th>Actions</th>
+      </tr></thead><tbody>`;
+      for (const c of campaigns) {
+        const audience = c.audience_rules?.target || 'all';
+        const date = c.published_at || c.scheduled_at || c.created_at;
+        const dateStr = date ? new Date(date).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '-';
+        html += `<tr data-id="${c.id}">
+          <td><strong>${escapeHtmlText(c.internal_name || c.title)}</strong></td>
+          <td>${_ncStatusBadge(c.status)}</td>
+          <td style="font-size:11px;">${escapeHtmlText(audience)}</td>
+          <td>${c.delivered_count || 0}</td>
+          <td>${c.read_count || 0}</td>
+          <td>${c.click_count || 0}</td>
+          <td>${c.credits_granted || 0}</td>
+          <td style="font-size:11px;">${dateStr}</td>
+          <td class="nc-actions-cell">
+            <button class="btn small nc-view-btn" data-id="${c.id}" title="View">📊</button>
+            ${c.status === 'draft' ? `<button class="btn small nc-edit-btn" data-id="${c.id}" title="Edit">✏️</button>` : ''}
+            <button class="btn small nc-dup-btn" data-id="${c.id}" title="Duplicate">📋</button>
+            ${c.status === 'draft' ? `<button class="action-btn small nc-pub-btn" data-id="${c.id}" title="Publish">🚀</button>` : ''}
+            ${c.status !== 'archived' ? `<button class="btn small nc-arch-btn" data-id="${c.id}" title="Archive">📦</button>` : ''}
+          </td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function _ncWireCampaignActions() {
+      $$('.nc-view-btn').forEach(btn => btn.onclick = () => ncViewCampaign(btn.dataset.id));
+      $$('.nc-edit-btn').forEach(btn => btn.onclick = () => ncEditCampaign(btn.dataset.id));
+      $$('.nc-dup-btn').forEach(btn => btn.onclick = () => ncDuplicateCampaign(btn.dataset.id));
+      $$('.nc-pub-btn').forEach(btn => btn.onclick = () => ncPublishCampaign(btn.dataset.id));
+      $$('.nc-arch-btn').forEach(btn => btn.onclick = () => ncArchiveCampaign(btn.dataset.id));
+    }
+
+    async function ncViewCampaign(id) {
+      try {
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}`);
+        const d = await r.json();
+        if (!d.ok) return;
+        const c = d.campaign;
+        const a = c.analytics || {};
+
+        // Show detail panel
+        $$('.nc-panel').forEach(p => p.classList.remove('active'));
+        const detail = $('#nc-detail');
+        detail.style.display = 'block';
+        detail.classList.add('active');
+
+        $('#ncDetailTitle').textContent = c.internal_name || c.title;
+        $('#ncDetailStats').innerHTML = `
+          <div class="notif-stat-card"><div class="notif-stat-value">${a.delivered || 0}</div><div class="notif-stat-label">Delivered</div></div>
+          <div class="notif-stat-card"><div class="notif-stat-value">${a.read_count || 0}</div><div class="notif-stat-label">Read</div></div>
+          <div class="notif-stat-card"><div class="notif-stat-value">${a.click_count || 0}</div><div class="notif-stat-label">Clicked</div></div>
+          <div class="notif-stat-card"><div class="notif-stat-value">${a.dismiss_count || 0}</div><div class="notif-stat-label">Dismissed</div></div>
+          <div class="notif-stat-card"><div class="notif-stat-value">${(a.total_general_credits || 0) + (a.total_video_credits || 0)}</div><div class="notif-stat-label">Credits Granted</div></div>
+        `;
+
+        const delivered = a.delivered || 0;
+        const readRate = delivered > 0 ? ((a.read_count || 0) / delivered * 100).toFixed(1) : 0;
+        const clickRate = delivered > 0 ? ((a.click_count || 0) / delivered * 100).toFixed(1) : 0;
+
+        $('#ncDetailContent').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="nc-detail-field"><strong>Status:</strong> ${_ncStatusBadge(c.status)}</div>
+            <div class="nc-detail-field"><strong>Category:</strong> ${c.category}</div>
+            <div class="nc-detail-field"><strong>Delivery Mode:</strong> ${c.delivery_mode}</div>
+            <div class="nc-detail-field"><strong>Audience:</strong> ${JSON.stringify(c.audience_rules)}</div>
+            <div class="nc-detail-field"><strong>Read Rate:</strong> ${readRate}%</div>
+            <div class="nc-detail-field"><strong>Click Rate:</strong> ${clickRate}%</div>
+            <div class="nc-detail-field"><strong>Title:</strong> ${escapeHtmlText(c.title)}</div>
+            <div class="nc-detail-field"><strong>Body:</strong> ${escapeHtmlText(c.body || '-')}</div>
+            ${c.grant_mode !== 'none' ? `<div class="nc-detail-field"><strong>Grant:</strong> ${c.grant_general_credits || 0} general + ${c.grant_video_credits || 0} video (${c.grant_mode})</div>` : ''}
+            <div class="nc-detail-field"><strong>Created:</strong> ${c.created_at ? new Date(c.created_at).toLocaleString() : '-'}</div>
+            <div class="nc-detail-field"><strong>Published:</strong> ${c.published_at ? new Date(c.published_at).toLocaleString() : '-'}</div>
+          </div>
+        `;
+
+        $('#ncDetailBackBtn').onclick = () => {
+          detail.style.display = 'none';
+          $$('.notif-subtab').forEach(b => b.classList.remove('active'));
+          $$('.notif-subtab')[0].classList.add('active');
+          $('#nc-campaigns').classList.add('active');
+        };
+      } catch(e) { console.warn('[NC] view error:', e); }
+    }
+
+    async function ncEditCampaign(id) {
+      try {
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}`);
+        const d = await r.json();
+        if (!d.ok) return;
+        const c = d.campaign;
+        _ncEditingId = id;
+
+        // Fill composer form
+        $('#ncInternalName').value = c.internal_name || '';
+        $('#ncTitle').value = c.title || '';
+        $('#ncBody').value = c.body || '';
+        $('#ncRichBody').value = c.rich_body || '';
+        $('#ncEmoji').value = c.emoji || '';
+        $('#ncBadge').value = c.badge || '';
+        $('#ncIcon').value = c.icon || '';
+        $('#ncMediaType').value = c.media_type || 'none';
+        $('#ncMediaUrl').value = c.media_url || '';
+        $('#ncThumbnailUrl').value = c.thumbnail_url || '';
+        $('#ncActionLabel').value = c.action_label || '';
+        $('#ncActionLink').value = c.action_link || '';
+        $('#ncSecondaryLabel').value = c.secondary_action_label || '';
+        $('#ncSecondaryLink').value = c.secondary_action_link || '';
+        const rules = c.audience_rules || {target:'all'};
+        $('#ncAudienceTarget').value = rules.target || 'all';
+        _ncToggleAudienceFields();
+        if (rules.threshold) $('#ncAudienceThreshold').value = rules.threshold;
+        if (rules.days) $('#ncAudienceThreshold').value = rules.days;
+        if (rules.identity_ids) $('#ncManualIds').value = rules.identity_ids.join('\n');
+        $('#ncGrantMode').value = c.grant_mode || 'none';
+        $('#ncGrantGeneral').value = c.grant_general_credits || 0;
+        $('#ncGrantVideo').value = c.grant_video_credits || 0;
+        $('#ncCategory').value = c.category || 'system';
+        $('#ncDeliveryMode').value = c.delivery_mode || 'standard';
+
+        // Switch to composer tab
+        $$('.notif-subtab').forEach(b => b.classList.remove('active'));
+        $$('.nc-panel').forEach(p => p.classList.remove('active'));
+        $$('.notif-subtab')[1].classList.add('active');
+        $('#nc-composer').classList.add('active');
+
+        _ncUpdatePreview();
+        $('#ncComposerStatus').textContent = 'Editing existing campaign';
+        $('#ncComposerStatus').style.color = '#fbbf24';
+      } catch(e) { console.warn('[NC] edit error:', e); }
+    }
+
+    async function ncDuplicateCampaign(id) {
+      if (!confirm('Duplicate this campaign?')) return;
+      try {
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}/duplicate`, {
+          method: 'POST', headers: {'Content-Type':'application/json'}
+        });
+        const d = await r.json();
+        if (d.ok) { ncLoadCampaigns(); ncLoadOverview(); }
+      } catch(e) { console.warn('[NC] duplicate error:', e); }
+    }
+
+    async function ncPublishCampaign(id) {
+      // Get campaign detail first
+      try {
+        const dr = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}`);
+        const dd = await dr.json();
+        if (!dd.ok) return;
+        const c = dd.campaign;
+        const rules = c.audience_rules || {target:'all'};
+
+        // Preview audience count
+        const ar = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/preview-audience`, {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({audience_rules: rules})
+        });
+        const ad = await ar.json();
+        const count = ad.ok ? ad.count : '?';
+
+        let grantSummary = '';
+        if (c.grant_mode !== 'none' && (c.grant_general_credits > 0 || c.grant_video_credits > 0)) {
+          const parts = [];
+          if (c.grant_general_credits > 0) parts.push(`${c.grant_general_credits} general`);
+          if (c.grant_video_credits > 0) parts.push(`${c.grant_video_credits} video`);
+          grantSummary = `\n\nCredits: +${parts.join(' + ')} per user (${c.grant_mode})`;
+          grantSummary += `\nTotal potential: ${count * ((c.grant_general_credits||0) + (c.grant_video_credits||0))} credits`;
+        }
+
+        const msg = `Publish campaign "${c.internal_name || c.title}"?\n\nTarget: ${count} users (${rules.target})${grantSummary}\n\nThis action cannot be undone.`;
+        if (!confirm(msg)) return;
+
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}/publish`, {
+          method: 'POST', headers: {'Content-Type':'application/json'}
+        });
+        const d = await r.json();
+        if (d.ok) {
+          alert(`Published! Delivered: ${d.delivered}, Skipped: ${d.skipped}, Failed: ${d.failed}, Credits: ${d.credits_granted}`);
+          ncLoadCampaigns();
+          ncLoadOverview();
+        } else {
+          alert('Publish failed: ' + (d.error || 'Unknown error'));
+        }
+      } catch(e) { alert('Publish error: ' + e.message); }
+    }
+
+    async function ncArchiveCampaign(id) {
+      if (!confirm('Archive this campaign?')) return;
+      try {
+        const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}/archive`, {
+          method: 'POST', headers: {'Content-Type':'application/json'}
+        });
+        const d = await r.json();
+        if (d.ok) { ncLoadCampaigns(); ncLoadOverview(); }
+      } catch(e) { console.warn('[NC] archive error:', e); }
+    }
+
+    // ── Composer ──
+    function _ncSetupComposer() {
+      // Audience target changes
+      $('#ncAudienceTarget').onchange = _ncToggleAudienceFields;
+
+      // Preview audience button
+      $('#ncPreviewAudienceBtn').onclick = async () => {
+        const rules = _ncBuildAudienceRules();
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/preview-audience`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({audience_rules: rules})
+          });
+          const d = await r.json();
+          $('#ncAudienceCount').textContent = d.ok ? `${d.count} matching users` : 'Error';
+          $('#ncAudienceCount').style.color = d.ok ? '#4ade80' : '#ef4444';
+        } catch(e) { $('#ncAudienceCount').textContent = 'Error'; }
+      };
+
+      // Live preview
+      ['ncTitle','ncBody','ncEmoji','ncBadge','ncIcon','ncMediaType','ncMediaUrl','ncActionLabel'].forEach(id => {
+        const el = $(`#${id}`);
+        if (el) el.addEventListener('input', _ncUpdatePreview);
+      });
+
+      // Preview mode toggle
+      $$('.nc-preview-mode').forEach(btn => {
+        btn.onclick = () => {
+          $$('.nc-preview-mode').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const frame = $('#ncPreviewFrame');
+          frame.classList.toggle('nc-preview-mobile', btn.dataset.mode === 'mobile');
+        };
+      });
+
+      // Save Draft
+      $('#ncSaveDraftBtn').onclick = async () => {
+        const payload = _ncBuildPayload();
+        if (!payload.internal_name || !payload.title) {
+          _ncStatus('Name and title required', '#ef4444'); return;
+        }
+        try {
+          let url, method;
+          if (_ncEditingId) {
+            url = `${BACKEND}/api/admin/campaigns/${_ncEditingId}`;
+            method = 'PUT';
+          } else {
+            url = `${BACKEND}/api/admin/campaigns`;
+            method = 'POST';
+          }
+          const r = await meshAdminFetch(url, {
+            method, headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const d = await r.json();
+          if (d.ok) {
+            _ncEditingId = d.campaign?.id || _ncEditingId;
+            _ncStatus('Draft saved!', '#4ade80');
+            ncLoadCampaigns(); ncLoadOverview();
+          } else {
+            _ncStatus('Save failed: ' + (d.error || ''), '#ef4444');
+          }
+        } catch(e) { _ncStatus('Error: ' + e.message, '#ef4444'); }
+      };
+
+      // Test Send
+      $('#ncTestSendBtn').onclick = async () => {
+        const id = _ncEditingId;
+        if (!id) { _ncStatus('Save draft first', '#fbbf24'); return; }
+        const identity = prompt('Identity ID to test-send to:');
+        if (!identity) return;
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns/${id}/test-send`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({identity_id: identity})
+          });
+          const d = await r.json();
+          _ncStatus(d.ok ? `Test sent: ${d.status}` : 'Test failed: ' + (d.error || ''), d.ok ? '#4ade80' : '#ef4444');
+        } catch(e) { _ncStatus('Error: ' + e.message, '#ef4444'); }
+      };
+
+      // Publish
+      $('#ncPublishBtn').onclick = async () => {
+        const id = _ncEditingId;
+        if (!id) {
+          // Save first, then publish
+          const payload = _ncBuildPayload();
+          if (!payload.internal_name || !payload.title) {
+            _ncStatus('Name and title required', '#ef4444'); return;
+          }
+          try {
+            const r = await meshAdminFetch(`${BACKEND}/api/admin/campaigns`, {
+              method: 'POST', headers: {'Content-Type':'application/json'},
+              body: JSON.stringify(payload)
+            });
+            const d = await r.json();
+            if (d.ok && d.campaign?.id) {
+              _ncEditingId = d.campaign.id;
+              await ncPublishCampaign(d.campaign.id);
+            }
+          } catch(e) { _ncStatus('Error: ' + e.message, '#ef4444'); }
+          return;
+        }
+        await ncPublishCampaign(id);
+      };
+    }
+
+    function _ncToggleAudienceFields() {
+      const target = $('#ncAudienceTarget').value;
+      const threshRow = $('#ncAudienceThresholdRow');
+      const manualRow = $('#ncManualIdsRow');
+      threshRow.style.display = ['low_credits','active','inactive'].includes(target) ? '' : 'none';
+      manualRow.style.display = target === 'manual' ? '' : 'none';
+      if (target === 'low_credits') $('label', threshRow).textContent = 'Credit Threshold';
+      else if (target === 'active') $('label', threshRow).textContent = 'Active in last N days';
+      else if (target === 'inactive') $('label', threshRow).textContent = 'Inactive for N days';
+    }
+
+    function _ncBuildAudienceRules() {
+      const target = $('#ncAudienceTarget').value;
+      const rules = {target};
+      if (target === 'low_credits') rules.threshold = parseInt($('#ncAudienceThreshold').value) || 10;
+      if (target === 'active' || target === 'inactive') rules.days = parseInt($('#ncAudienceThreshold').value) || 7;
+      if (target === 'manual') {
+        rules.identity_ids = $('#ncManualIds').value.split('\n').map(s=>s.trim()).filter(Boolean);
+      }
+      return rules;
+    }
+
+    function _ncBuildPayload() {
+      return {
+        internal_name: $('#ncInternalName').value.trim(),
+        title: $('#ncTitle').value.trim(),
+        body: $('#ncBody').value.trim() || null,
+        rich_body: $('#ncRichBody').value.trim() || null,
+        emoji: $('#ncEmoji').value.trim() || null,
+        badge: $('#ncBadge').value || null,
+        icon: $('#ncIcon').value.trim() || null,
+        media_type: $('#ncMediaType').value,
+        media_url: $('#ncMediaUrl').value.trim() || null,
+        thumbnail_url: $('#ncThumbnailUrl').value.trim() || null,
+        action_label: $('#ncActionLabel').value.trim() || null,
+        action_link: $('#ncActionLink').value.trim() || null,
+        secondary_action_label: $('#ncSecondaryLabel').value.trim() || null,
+        secondary_action_link: $('#ncSecondaryLink').value.trim() || null,
+        link: $('#ncActionLink').value.trim() || null,
+        audience_rules: _ncBuildAudienceRules(),
+        grant_mode: $('#ncGrantMode').value,
+        grant_general_credits: parseInt($('#ncGrantGeneral').value) || 0,
+        grant_video_credits: parseInt($('#ncGrantVideo').value) || 0,
+        category: $('#ncCategory').value,
+        delivery_mode: $('#ncDeliveryMode').value,
+        expires_at: $('#ncExpiresAt').value || null,
+      };
+    }
+
+    function _ncUpdatePreview() {
+      const card = $('#ncPreviewCard');
+      const title = $('#ncTitle').value || 'Notification Title';
+      const body = $('#ncBody').value || '';
+      const emoji = $('#ncEmoji').value || '';
+      const badge = $('#ncBadge').value;
+      const icon = $('#ncIcon').value || 'fa-bell';
+      const media = $('#ncMediaType').value;
+      const mediaUrl = $('#ncMediaUrl').value;
+      const cta = $('#ncActionLabel').value;
+
+      let mediaHtml = '';
+      if (media === 'image' && mediaUrl) {
+        mediaHtml = `<div class="nc-preview-media"><img src="${escapeHtmlText(mediaUrl)}" alt="" style="width:100%;border-radius:6px;max-height:120px;object-fit:cover;" /></div>`;
+      } else if (media === 'video' && mediaUrl) {
+        mediaHtml = `<div class="nc-preview-media" style="background:#1a1a2e;border-radius:6px;padding:20px;text-align:center;color:#666;font-size:11px;">▶ Video: ${escapeHtmlText(mediaUrl.substring(0,40))}...</div>`;
+      }
+
+      let badgeHtml = badge ? `<span class="nc-preview-badge">${escapeHtmlText(badge)}</span>` : '';
+      let ctaHtml = cta ? `<div class="nc-preview-cta"><button class="nc-preview-cta-btn">${escapeHtmlText(cta)}</button></div>` : '';
+
+      card.innerHTML = `
+        <div class="nc-preview-item">
+          <div class="nc-preview-icon"><i class="fa-solid ${escapeHtmlText(icon)}"></i></div>
+          <div class="nc-preview-content">
+            <div class="nc-preview-title-row">
+              ${emoji ? `<span style="margin-right:4px;">${emoji}</span>` : ''}
+              <span class="nc-preview-title">${escapeHtmlText(title)}</span>
+              ${badgeHtml}
+            </div>
+            ${body ? `<div class="nc-preview-body">${escapeHtmlText(body)}</div>` : ''}
+            ${mediaHtml}
+            ${ctaHtml}
+            <div class="nc-preview-time">just now</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function _ncStatus(msg, color) {
+      const el = $('#ncComposerStatus');
+      el.textContent = msg;
+      el.style.color = color || '#9ca3af';
+    }
+
+    // ── Direct Actions ──
+    function _ncSetupDirect() {
+      // Send direct notification
+      $('#ncDirectSendBtn').onclick = async () => {
+        const identity_id = $('#ncDirectIdentity').value.trim();
+        const title = $('#ncDirectTitle').value.trim();
+        if (!identity_id || !title) { _ncDirectStatus('#ncDirectSendStatus', 'ID and title required', '#ef4444'); return; }
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/notifications/send-direct`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              identity_id, title,
+              body: $('#ncDirectBody').value.trim() || null,
+              icon: $('#ncDirectIcon').value.trim() || null,
+              badge: $('#ncDirectBadge').value || null,
+            })
+          });
+          const d = await r.json();
+          _ncDirectStatus('#ncDirectSendStatus', d.ok ? 'Sent!' : 'Error: '+(d.error||''), d.ok ? '#4ade80' : '#ef4444');
+        } catch(e) { _ncDirectStatus('#ncDirectSendStatus', 'Error: '+e.message, '#ef4444'); }
+      };
+
+      // Grant credits
+      $('#ncGrantDirectBtn').onclick = async () => {
+        const identity_id = $('#ncGrantIdentity').value.trim();
+        const general = parseInt($('#ncGrantDirectGeneral').value) || 0;
+        const video = parseInt($('#ncGrantDirectVideo').value) || 0;
+        if (!identity_id || (general <= 0 && video <= 0)) {
+          _ncDirectStatus('#ncGrantDirectStatus', 'ID and amount required', '#ef4444'); return;
+        }
+        const msg = `Grant ${general} general + ${video} video credits to ${identity_id}?`;
+        if (!confirm(msg)) return;
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/notifications/grant-credits`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              identity_id,
+              general_credits: general,
+              video_credits: video,
+              reason: $('#ncGrantReason').value.trim() || 'admin_grant',
+              send_notification: $('#ncGrantNotify').checked,
+            })
+          });
+          const d = await r.json();
+          _ncDirectStatus('#ncGrantDirectStatus',
+            d.ok ? `Granted! General: ${d.general_granted}, Video: ${d.video_granted}` : 'Error: '+(d.error||''),
+            d.ok ? '#4ade80' : '#ef4444');
+        } catch(e) { _ncDirectStatus('#ncGrantDirectStatus', 'Error: '+e.message, '#ef4444'); }
+      };
+
+      // Fetch user notification history
+      $('#ncHistoryBtn').onclick = async () => {
+        const identity_id = $('#ncHistoryIdentity').value.trim();
+        if (!identity_id) return;
+        const result = $('#ncHistoryResult');
+        result.innerHTML = '<span style="color:#666;">Loading...</span>';
+        try {
+          const r = await meshAdminFetch(`${BACKEND}/api/admin/notifications/user/${identity_id}?limit=30`);
+          const d = await r.json();
+          if (!d.ok || !d.notifications?.length) {
+            result.innerHTML = '<span style="color:#666;">No notifications found</span>';
+            return;
+          }
+          let html = '<table style="width:100%;font-size:11px;"><thead><tr><th>Title</th><th>Type</th><th>Source</th><th>Read</th><th>Date</th></tr></thead><tbody>';
+          for (const n of d.notifications) {
+            const date = n.created_at ? new Date(n.created_at).toLocaleString() : '-';
+            html += `<tr>
+              <td>${escapeHtmlText(n.title||'-')}</td>
+              <td>${escapeHtmlText(n.notif_type||'-')}</td>
+              <td>${escapeHtmlText(n.source_kind||'transactional')}</td>
+              <td>${n.is_read ? '✓' : '—'}</td>
+              <td>${date}</td>
+            </tr>`;
+          }
+          html += '</tbody></table>';
+          result.innerHTML = html;
+        } catch(e) { result.innerHTML = `<span style="color:#ef4444;">Error: ${escapeHtmlText(e.message)}</span>`; }
+      };
+    }
+
+    function _ncDirectStatus(selector, msg, color) {
+      const el = $(selector);
+      if (el) { el.textContent = msg; el.style.color = color || '#9ca3af'; }
+    }
 
     (async function(){ if(await ensureAuth()){ await bootstrapAdminPage(); } })();
   </script>
