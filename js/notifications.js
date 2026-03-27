@@ -423,7 +423,17 @@ function createNotificationItem(n) {
       <div class="notif-item-time">${timeAgo}</div>
     </div>
     ${!n.is_read ? '<div class="notif-item-dot"></div>' : ''}
+    <button type="button" class="notif-item-dismiss" title="Dismiss" aria-label="Dismiss notification">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   `;
+
+  // Dismiss button — stop propagation so the click doesn't also navigate
+  const dismissBtn = item.querySelector('.notif-item-dismiss');
+  dismissBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleDismiss(n, item);
+  });
 
   item.addEventListener('click', () => handleNotificationClick(n));
   return item;
@@ -433,6 +443,31 @@ function createNotificationItem(n) {
 // ACTIONS
 // ============================================================================
 
+// Categories that auto-dismiss from the list once read
+const AUTO_DISMISS_CATEGORIES = ['community', 'tip'];
+
+async function handleDismiss(n, itemEl) {
+  // Animate out
+  itemEl.style.transition = 'opacity .2s ease, max-height .25s ease, padding .25s ease';
+  itemEl.style.opacity = '0';
+  itemEl.style.maxHeight = '0';
+  itemEl.style.padding = '0 14px';
+  itemEl.style.overflow = 'hidden';
+
+  // Remove from local list immediately
+  notifications = notifications.filter(x => x.id !== n.id);
+  if (!n.is_read) {
+    unreadCount = Math.max(0, unreadCount - 1);
+    updateBadge();
+  }
+
+  // After animation, re-render (handles empty state)
+  setTimeout(() => renderNotifications(), 280);
+
+  // Delete on server (fire-and-forget)
+  apiFetch(`${BACKEND}/api/_mod/notifications/${n.id}`, { method: 'DELETE' }).catch(() => {});
+}
+
 async function handleNotificationClick(n) {
   // Mark as read
   if (!n.is_read) {
@@ -441,8 +476,15 @@ async function handleNotificationClick(n) {
       n.is_read = true;
       unreadCount = Math.max(0, unreadCount - 1);
       updateBadge();
-      renderNotifications();
     } catch (e) { /* silent */ }
+  }
+
+  // Auto-dismiss community/tip notifications once read
+  if (AUTO_DISMISS_CATEGORIES.includes(n.category)) {
+    notifications = notifications.filter(x => x.id !== n.id);
+    apiFetch(`${BACKEND}/api/_mod/notifications/${n.id}`, { method: 'DELETE' }).catch(() => {});
+  } else {
+    renderNotifications();
   }
 
   // Navigate if link provided
