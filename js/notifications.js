@@ -90,9 +90,9 @@ async function fetchUnreadCount() {
   try {
     fetchInFlight = true;
     const res = await apiFetch(`${BACKEND}/api/_mod/notifications/unread-count`);
-    if (res && res.ok) {
+    if (res && res.ok && res.data) {
       const prev = unreadCount;
-      unreadCount = res.count || 0;
+      unreadCount = res.data.count || 0;
       updateBadge();
 
       // If count increased, pulse the bell
@@ -448,17 +448,23 @@ async function handleNotificationClick(n) {
   // Navigate if link provided
   if (n.link) {
     closeDropdown();
+    // Extract hash from links like "/3dprint#community" when already on 3dprint
+    const hashMatch = n.link.match(/#(.+)$/);
+    const hash = hashMatch ? hashMatch[1] : null;
+
+    if (hash) {
+      // Try to open the corresponding expanded view via trigger button
+      const trigger = document.querySelector(`[data-open-${hash}]`);
+      if (trigger) {
+        trigger.click();
+        return;
+      }
+    }
+
     if (n.link.startsWith('/') || n.link.startsWith('http')) {
       window.location.href = n.link;
     } else if (n.link.startsWith('#')) {
-      // Handle hash navigation (e.g. #history, #community)
-      const target = n.link.replace('#', '');
-      const trigger = document.querySelector(`[data-open-${target}]`);
-      if (trigger) {
-        trigger.click();
-      } else {
-        window.location.hash = n.link;
-      }
+      window.location.hash = n.link;
     }
   }
 }
@@ -498,11 +504,11 @@ async function fetchNotifications(append = false) {
     }
 
     const res = await apiFetch(`${BACKEND}/api/_mod/notifications?${params}`);
-    if (res && res.ok) {
+    if (res && res.ok && res.data) {
       if (append) {
-        notifications = [...notifications, ...(res.notifications || [])];
+        notifications = [...notifications, ...(res.data.notifications || [])];
       } else {
-        notifications = res.notifications || [];
+        notifications = res.data.notifications || [];
       }
     }
   } catch (e) {
