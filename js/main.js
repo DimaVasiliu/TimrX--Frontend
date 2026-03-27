@@ -23,6 +23,7 @@ import {
 import * as API from './api.js';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
+import * as Notifications from './notifications.js';
 
 // ============================================================================
 // MODULE STATE
@@ -1790,6 +1791,13 @@ window.addEventListener('DOMContentLoaded', () => {
   //          critical auth bootstrap gets a clear pool lane.
   const creditsPromise = Credits.initCredits().catch(e => {
     console.error('Credits init failed:', e);
+  });
+
+  // Initialize notification center (after credits so identity is bootstrapped)
+  creditsPromise.then(() => {
+    Notifications.initNotifications().catch(e => {
+      console.error('Notifications init failed:', e);
+    });
   });
 
   // Initialize converter tool
