@@ -244,6 +244,11 @@
       <button type="button" id="emailBeacon" class="account-shield-ws" aria-label="Account status" title="Account status">
         <i class="fa-solid fa-shield-halved"></i>
       </button>
+      <!-- Notification Center bell — between shield and inspire -->
+      <button type="button" id="notificationBell" class="notification-bell-ws" aria-label="Notifications" title="Notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span class="notification-badge" id="notifBadge" hidden>0</span>
+      </button>
       <!-- Inspire Button -->
       <button type="button" id="inspireTriggerBtn" class="inspire-trigger-btn" aria-label="Open inspiration gallery" title="Get inspired">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -314,6 +319,10 @@
           <span class="wml-label">About</span>
           <span class="wml-sub">About TimrX</span>
         </a>
+        <button type="button" class="ws-mobile-link" id="mobileNotifBtn">
+          <span class="wml-label">Notifications <span class="notif-mobile-badge" id="mobileNotifBadge" hidden></span></span>
+          <span class="wml-sub">Tips, credits, job updates</span>
+        </button>
         <a href="#inspire" class="ws-mobile-link" id="wsMobileInspire">
           <span class="wml-label">Inspire</span>
           <span class="wml-sub">Discover amazing creations</span>

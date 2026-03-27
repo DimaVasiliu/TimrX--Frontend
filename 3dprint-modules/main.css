@@ -55,3 +55,6 @@
 
 /* 13. Inspire Section (discovery overlay) */
 @import url('css/inspire.css');
+
+/* 14. Notification Center (bell, dropdown, badges) */
+@import url('css/notifications.css');
