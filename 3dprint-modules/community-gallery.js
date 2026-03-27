@@ -532,10 +532,21 @@
     tickerTrack.innerHTML = items + items;
   }
 
-  // ─── Creator Spotlight — Organic floating bubble marquee ────────────────────
+  // ─── Creator Spotlight — Cinematic scrolling creator strip ──────────────────
 
-  const SPOTLIGHT_SHAPES = [
-    'circle', 'circle-lg', 'pill', 'square', 'hex', 'tall', 'wide', 'diamond'
+  const SPOTLIGHT_SIZES = ['sm', 'md', 'lg'];
+
+  // Muted, low-saturation tones that match the dark cinematic page aesthetic.
+  // White initials on these provide subtle contrast without bright pops.
+  const SPOTLIGHT_AVATAR_PALETTE = [
+    'rgba(139,92,246,0.22)',   // violet
+    'rgba(99,102,241,0.22)',   // indigo
+    'rgba(79,70,229,0.22)',    // deep indigo
+    'rgba(167,139,250,0.18)',  // light violet
+    'rgba(59,130,246,0.18)',   // blue
+    'rgba(45,212,191,0.16)',   // teal
+    'rgba(168,85,247,0.20)',   // purple
+    'rgba(100,116,139,0.22)',  // slate
   ];
 
   // Filler names used when real creators are fewer than 50
@@ -605,32 +616,34 @@
       return;
     }
 
-    // 4. Assign a shape to each card (deterministic per name so it feels consistent)
-    function shapeFor(name, idx) {
+    // 4. Assign a size to each card (deterministic per name)
+    function sizeFor(name, idx) {
       let h = 0;
       for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-      return SPOTLIGHT_SHAPES[(h + idx) % SPOTLIGHT_SHAPES.length];
+      return SPOTLIGHT_SIZES[(h + idx) % SPOTLIGHT_SIZES.length];
     }
 
-    // 5. Build card HTML
-    function cardHTML(c, idx) {
-      const shape = shapeFor(c.name, idx);
-      const initials = getInitials(c.name);
-      const color = avatarColor(c.name);
-      const delay = ((idx * 0.37) % 3).toFixed(2);   // stagger bounce/float
-      const needsMeta = shape === 'pill' || shape === 'wide';
-      const nameEl = `<span class="ccg-spotlight__name">${sanitize(c.name)}</span>`;
-      const countEl = `<span class="ccg-spotlight__count">${c.count} creation${c.count !== 1 ? 's' : ''}</span>`;
+    // Muted avatar color for spotlight (uses separate palette)
+    function spotlightColor(name) {
+      let h = 0;
+      for (let i = 0; i < (name || '').length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      return SPOTLIGHT_AVATAR_PALETTE[h % SPOTLIGHT_AVATAR_PALETTE.length];
+    }
 
-      if (needsMeta) {
-        return `<div class="ccg-spotlight__card ccg-spotlight__card--${shape}" style="animation-delay:${delay}s">
-          <div class="ccg-spotlight__avatar" style="background:${color}">${initials}</div>
-          <div class="ccg-spotlight__meta">${nameEl}${countEl}</div>
-        </div>`;
-      }
-      return `<div class="ccg-spotlight__card ccg-spotlight__card--${shape}" style="animation-delay:${delay}s">
+    // 5. Build card HTML — all cards are horizontal chips (avatar + meta)
+    function cardHTML(c, idx) {
+      const size = sizeFor(c.name, idx);
+      const initials = getInitials(c.name);
+      const color = spotlightColor(c.name);
+      const delay = ((idx * 0.4) % 4).toFixed(2);   // stagger drift
+      const nameEl = `<span class="ccg-spotlight__name">${sanitize(c.name)}</span>`;
+      const countEl = size !== 'sm'
+        ? `<span class="ccg-spotlight__count">${c.count} creation${c.count !== 1 ? 's' : ''}</span>`
+        : '';
+
+      return `<div class="ccg-spotlight__card ccg-spotlight__card--${size}" style="animation-delay:${delay}s">
         <div class="ccg-spotlight__avatar" style="background:${color}">${initials}</div>
-        ${nameEl}${countEl}
+        <div class="ccg-spotlight__meta">${nameEl}${countEl}</div>
       </div>`;
     }
 
