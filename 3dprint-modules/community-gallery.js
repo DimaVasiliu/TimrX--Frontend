@@ -146,6 +146,7 @@
           </div>
           <div class="ccg-card__reactions">
             ${reactionsHtml}
+            ${(post.comment_count || 0) > 0 ? `<span class="ccg-card__comment-count" title="Comments">💬 ${post.comment_count}</span>` : ''}
           </div>
         </div>
       </article>`;
@@ -864,6 +865,9 @@
          </div>`
       : `<p class="ccg-detail__no-prompt">Prompt not shared by creator</p>`;
 
+    // Comment count from feed data
+    const commentCount = post.comment_count || 0;
+
     // Info panel
     detailInfo.innerHTML = `
       <div class="ccg-detail__creator">
@@ -881,6 +885,20 @@
       <div class="ccg-detail__actions">
         <button class="ccg-detail__action-btn" data-post-id="${postId}" data-creator="${name}" data-action="tip" type="button">💎 Tip</button>
         <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button"${prompt ? '' : ' disabled title="No prompt available"'}>Remix</button>
+      </div>
+      <div class="ccg-comments" data-post-id="${postId}">
+        <div class="ccg-comments__header">
+          <span class="ccg-comments__title">Comments</span>
+          <span class="ccg-comments__count" id="ccgCommentCount">${commentCount || ''}</span>
+        </div>
+        <div class="ccg-comments__composer">
+          <input type="text" class="ccg-comments__input" id="ccgCommentInput" placeholder="Write a comment..." maxlength="500" />
+          <button class="ccg-comments__submit" id="ccgCommentSubmit" type="button" disabled>Post</button>
+        </div>
+        <div class="ccg-comments__char-count" id="ccgCharCount"></div>
+        <div class="ccg-comments__list" id="ccgCommentList">
+          <div class="ccg-comments__loading">Loading comments...</div>
+        </div>
       </div>`;
 
     // Show
@@ -891,6 +909,10 @@
 
     // Wire detail interactions
     wireDetailInteractions();
+
+    // Load and wire comments
+    loadComments(postId);
+    wireCommentComposer(postId);
   }
 
   function closeDetailView() {
@@ -1272,6 +1294,297 @@
     // Post not in feed (deleted / too old) — still scroll to community
     const section = document.getElementById('communityCreationsSection');
     if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ─── Comments ───────────────────────────────────────────────────────────
+
+  async function loadComments(postId) {
+    const list = document.getElementById('ccgCommentList');
+    const countEl = document.getElementById('ccgCommentCount');
+    if (!list) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/_mod/community/post/${postId}/comments`, { credentials: 'include' });
+      const data = await res.json();
+      if (!data.ok) { list.innerHTML = ''; return; }
+
+      if (countEl) countEl.textContent = data.comment_count || '';
+
+      if (!data.comments || data.comments.length === 0) {
+        list.innerHTML = '<div class="ccg-comments__empty">Be the first to comment</div>';
+        return;
+      }
+
+      list.innerHTML = data.comments.map(c => renderComment(c)).join('');
+      wireCommentActions(postId);
+    } catch (e) {
+      console.warn('[Community] Failed to load comments:', e);
+      list.innerHTML = '';
+    }
+  }
+
+  function renderComment(c) {
+    const name = sanitize(c.display_name || 'Anonymous');
+    const initials = getInitials(c.display_name || 'Anonymous');
+    const color = avatarColor(c.display_name || '');
+    const ago = timeAgo(c.created_at);
+    const edited = c.updated_at && c.created_at && c.updated_at !== c.created_at
+      && new Date(c.updated_at) - new Date(c.created_at) > 5000;
+    const badges = [
+      c.is_post_owner ? '<span class="ccg-comment__badge ccg-comment__badge--creator">Creator</span>' : '',
+      c.is_mine ? '<span class="ccg-comment__badge ccg-comment__badge--you">You</span>' : '',
+    ].filter(Boolean).join('');
+
+    const actions = c.can_edit || c.can_delete ? `
+      <div class="ccg-comment__actions">
+        ${c.can_edit ? `<button class="ccg-comment__action" data-action="edit" data-id="${sanitize(c.id)}" type="button">Edit</button>` : ''}
+        ${c.can_delete ? `<button class="ccg-comment__action ccg-comment__action--delete" data-action="delete" data-id="${sanitize(c.id)}" type="button">Delete</button>` : ''}
+      </div>` : '';
+
+    return `
+      <div class="ccg-comment" data-comment-id="${sanitize(c.id)}">
+        <div class="ccg-comment__avatar" style="background:${color}">${initials}</div>
+        <div class="ccg-comment__content">
+          <div class="ccg-comment__header">
+            <span class="ccg-comment__name">${name}</span>
+            ${badges}
+            <span class="ccg-comment__time">${ago}${edited ? ' · edited' : ''}</span>
+          </div>
+          <p class="ccg-comment__body">${sanitize(c.body)}</p>
+          ${actions}
+        </div>
+      </div>`;
+  }
+
+  function wireCommentComposer(postId) {
+    const input = document.getElementById('ccgCommentInput');
+    const btn = document.getElementById('ccgCommentSubmit');
+    const charCount = document.getElementById('ccgCharCount');
+    if (!input || !btn) return;
+
+    // Enable/disable submit based on input
+    input.addEventListener('input', () => {
+      const val = input.value.trim();
+      btn.disabled = val.length === 0;
+      if (charCount) {
+        charCount.textContent = val.length > 400 ? `${val.length}/500` : '';
+      }
+    });
+
+    // Submit on Enter (not Shift+Enter)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!btn.disabled) btn.click();
+      }
+    });
+
+    let submitting = false;
+    btn.addEventListener('click', async () => {
+      const body = input.value.trim();
+      if (!body || submitting) return;
+
+      const myName = getDisplayNameFromUser() || 'Anonymous';
+
+      submitting = true;
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/_mod/community/post/${postId}/comments`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body, display_name: myName || 'Anonymous' }),
+        });
+        const data = await res.json();
+
+        if (data.ok && data.comment) {
+          // Append comment to list
+          const list = document.getElementById('ccgCommentList');
+          const empty = list?.querySelector('.ccg-comments__empty');
+          if (empty) empty.remove();
+          if (list) {
+            list.insertAdjacentHTML('beforeend', renderComment(data.comment));
+            list.scrollTop = list.scrollHeight;
+          }
+          // Update count
+          const countEl = document.getElementById('ccgCommentCount');
+          if (countEl) {
+            const cur = parseInt(countEl.textContent) || 0;
+            countEl.textContent = cur + 1;
+          }
+          // Update card count in feed
+          updateCardCommentCount(postId, 1);
+          // Clear input
+          input.value = '';
+          if (charCount) charCount.textContent = '';
+          wireCommentActions(postId);
+        } else {
+          alert(data.error?.message || 'Failed to post comment');
+        }
+      } catch (e) {
+        console.error('[Community] Comment submit error:', e);
+        alert('Failed to post comment. Please try again.');
+      } finally {
+        submitting = false;
+        btn.disabled = false;
+        btn.textContent = 'Post';
+      }
+    });
+  }
+
+  function wireCommentActions(postId) {
+    const list = document.getElementById('ccgCommentList');
+    if (!list) return;
+
+    // Edit buttons
+    list.querySelectorAll('.ccg-comment__action[data-action="edit"]').forEach(btn => {
+      btn.onclick = () => {
+        const commentId = btn.dataset.id;
+        const commentEl = list.querySelector(`[data-comment-id="${commentId}"]`);
+        const bodyEl = commentEl?.querySelector('.ccg-comment__body');
+        if (!bodyEl) return;
+
+        const currentText = bodyEl.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'ccg-comments__input ccg-comment__edit-input';
+        input.value = currentText;
+        input.maxLength = 500;
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'ccg-comments__submit';
+        saveBtn.textContent = 'Save';
+        saveBtn.type = 'button';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'ccg-comment__action';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.type = 'button';
+
+        const editRow = document.createElement('div');
+        editRow.className = 'ccg-comment__edit-row';
+        editRow.appendChild(input);
+        editRow.appendChild(saveBtn);
+        editRow.appendChild(cancelBtn);
+
+        bodyEl.replaceWith(editRow);
+        input.focus();
+
+        cancelBtn.onclick = () => {
+          const p = document.createElement('p');
+          p.className = 'ccg-comment__body';
+          p.textContent = currentText;
+          editRow.replaceWith(p);
+        };
+
+        saveBtn.onclick = async () => {
+          const newBody = input.value.trim();
+          if (!newBody) return;
+          saveBtn.disabled = true;
+          try {
+            const res = await fetch(`${API_BASE}/api/_mod/community/comment/${commentId}`, {
+              method: 'PATCH',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ body: newBody }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+              const p = document.createElement('p');
+              p.className = 'ccg-comment__body';
+              p.textContent = data.comment.body;
+              editRow.replaceWith(p);
+              // Update "edited" indicator
+              const timeEl = commentEl.querySelector('.ccg-comment__time');
+              if (timeEl && !timeEl.textContent.includes('edited')) {
+                timeEl.textContent += ' · edited';
+              }
+            }
+          } catch (e) {
+            console.error('[Community] Edit comment error:', e);
+          } finally {
+            saveBtn.disabled = false;
+          }
+        };
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+          if (e.key === 'Escape') cancelBtn.click();
+        });
+      };
+    });
+
+    // Delete buttons
+    list.querySelectorAll('.ccg-comment__action[data-action="delete"]').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('Delete this comment?')) return;
+        const commentId = btn.dataset.id;
+        try {
+          const res = await fetch(`${API_BASE}/api/_mod/community/comment/${commentId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+          const data = await res.json();
+          if (data.ok) {
+            const el = list.querySelector(`[data-comment-id="${commentId}"]`);
+            if (el) {
+              el.style.opacity = '0';
+              el.style.maxHeight = '0';
+              el.style.overflow = 'hidden';
+              el.style.transition = 'opacity .2s, max-height .25s, padding .25s';
+              el.style.padding = '0';
+              setTimeout(() => {
+                el.remove();
+                // Check empty state
+                if (!list.querySelector('.ccg-comment')) {
+                  list.innerHTML = '<div class="ccg-comments__empty">Be the first to comment</div>';
+                }
+              }, 280);
+            }
+            const countEl = document.getElementById('ccgCommentCount');
+            if (countEl) {
+              const cur = parseInt(countEl.textContent) || 0;
+              countEl.textContent = Math.max(0, cur - 1) || '';
+            }
+            updateCardCommentCount(postId, -1);
+          }
+        } catch (e) {
+          console.error('[Community] Delete comment error:', e);
+        }
+      };
+    });
+  }
+
+  function updateCardCommentCount(postId, delta) {
+    const card = document.querySelector(`.ccg-card[data-post-id="${postId}"]`);
+    if (!card) return;
+    let badge = card.querySelector('.ccg-card__comment-count');
+    const reactionsDiv = card.querySelector('.ccg-card__reactions');
+    if (!reactionsDiv) return;
+
+    if (badge) {
+      const cur = parseInt(badge.textContent.replace(/\D/g, '')) || 0;
+      const next = Math.max(0, cur + delta);
+      if (next > 0) {
+        badge.textContent = `💬 ${next}`;
+      } else {
+        badge.remove();
+      }
+    } else if (delta > 0) {
+      const span = document.createElement('span');
+      span.className = 'ccg-card__comment-count';
+      span.title = 'Comments';
+      span.textContent = `💬 ${delta}`;
+      reactionsDiv.appendChild(span);
+    }
+
+    // Also update cached post data
+    if (allPostsCache) {
+      const cached = allPostsCache.find(p => p.id === postId);
+      if (cached) cached.comment_count = (cached.comment_count || 0) + delta;
+    }
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
