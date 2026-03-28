@@ -1596,8 +1596,11 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
             refreshCreditsInBackground();
           }
         }
-        prog.fail(st.message || 'Job failed');
-        handleJobFailure(st.message || 'Job failed', 'refine', { isRecovery });
+        const errorMsg = st.message || 'Job failed';
+        prog.fail(errorMsg);
+        State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
+        renderHistory();
+        handleJobFailure(errorMsg, 'refine', { isRecovery });
         return;
       }
 
@@ -1863,9 +1866,11 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
             refreshCreditsInBackground();
           }
         }
-        prog.fail(st.message || `${stageLabel} failed`);
-        handleJobFailure(st.message || `${stageLabel} failed`, kind, { isRecovery });
-        State.watchers.delete(job_id);
+        const errorMsg = st.message || `${stageLabel} failed`;
+        prog.fail(errorMsg);
+        State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
+        renderHistory();
+        handleJobFailure(errorMsg, kind, { isRecovery });
         return;
       }
 
