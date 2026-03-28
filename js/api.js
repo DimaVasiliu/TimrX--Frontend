@@ -5926,6 +5926,7 @@ async function _doResumePendingJobs(options = {}) {
       [j.id, j.upstream_job_id, j.frontend_resume_id, j.provider_job_id].filter(Boolean)
     ));
     const staleLocal = ids.filter(id => !backendIds.has(id));
+    let staleCleanedUp = false;
     for (const id of staleLocal) {
       // Keep if history shows it finished (avoid flicker on completed jobs)
       const hist = State.findHistoryItem(id);
@@ -5938,9 +5939,16 @@ async function _doResumePendingJobs(options = {}) {
       if (!hist) {
         State.removeActiveJob(id);
         log(`[Recovery] Removed stale local job ${id} (not on server)`);
+        continue;
       }
-      // If in history but not finished — keep it, the status endpoint will resolve it
+      // Backend confirms job is gone but history still shows 'generating' —
+      // mark as failed so the card stops showing "Generating 0%"
+      State.removeActiveJob(id);
+      State.updateHistoryItem(id, { status: 'failed', status_label: 'Generation failed' });
+      staleCleanedUp = true;
+      log(`[Recovery] Marked stale generating job ${id} as failed (not on server)`);
     }
+    if (staleCleanedUp) renderHistory();
     ids = State.getActiveJobs();
     pendingMeta = State.getPendingMeta();
   }
