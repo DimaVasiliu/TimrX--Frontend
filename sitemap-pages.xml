@@ -9,7 +9,7 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://timrx.live/og-image.png</image:loc>
+      <image:loc>https://timrx.live/img/OG_APP.png</image:loc>
       <image:title>TimrX - AI 3D Model Generator & Creative Tools Platform</image:title>
       <image:caption>Create 3D models from text or images with AI. Text-to-3D, image-to-3D, GLB/STL export.</image:caption>
     </image:image>
@@ -22,7 +22,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
-      <image:loc>https://timrx.live/og-image-hub.png</image:loc>
+      <image:loc>https://timrx.live/img/OG_APP.png</image:loc>
       <image:title>TimrX 3D Print Hub - AI 3D Model Generator</image:title>
       <image:caption>Create 3D models from text or images with AI</image:caption>
     </image:image>
@@ -35,7 +35,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
-      <image:loc>https://timrx.live/og-image-workspace.png</image:loc>
+      <image:loc>https://timrx.live/img/OG_APP.png</image:loc>
       <image:title>TimrX 3D Workspace - AI Model Generator</image:title>
       <image:caption>Create 3D models from text or images with AI</image:caption>
     </image:image>
@@ -120,7 +120,7 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://timrx.live/og-image-blog.png</image:loc>
+      <image:loc>https://timrx.live/img/OG_Blogs.png</image:loc>
       <image:title>TimrX Blog - AI, 3D, Web Performance</image:title>
       <image:caption>Expert guides on AI workflows, Three.js, GSAP, and 3D printing</image:caption>
     </image:image>
