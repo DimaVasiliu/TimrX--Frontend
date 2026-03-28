@@ -91,6 +91,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="footer.css">
+  <link rel="stylesheet" href="trustpilot.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
@@ -526,6 +527,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           3D Print Hub
         </a>
+        <a class="connect-link" data-tp="read" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Reviews on Trustpilot
+        </a>
       </div>
 
     </div>
@@ -572,6 +577,14 @@
           </div>
         </nav>
       </div>
+
+      <!-- Trustpilot -->
+      <div class="ft-trust">
+        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
+        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
+        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
+      </div>
+
       <div class="ft-bottom">
         <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
         <span class="ft-meta">Built in London &middot; AI creative tools</span>
@@ -594,6 +607,7 @@
       }, {passive: true});
     })();
   </script>
+  <script src="js/trustpilot.js" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 </body>
 </html>

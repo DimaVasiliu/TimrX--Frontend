@@ -250,6 +250,7 @@
 <link rel="preload" href="./styles.css?v=7" as="style">
 <link rel="stylesheet" href="./styles.css?v=7" />
 <link rel="stylesheet" href="./media/index.css?v=7" />
+<link rel="stylesheet" href="./trustpilot.css" />
 
 <!-- Critical CSS: Above-the-fold styles for faster FCP -->
 <style>
@@ -488,6 +489,16 @@
 
       </div>
     </section>
+
+    <!-- Trustpilot trust strip -->
+    <div class="tp-strip" aria-label="Trustpilot reviews">
+      <p class="tp-strip-label">We welcome honest feedback</p>
+      <div class="tp-strip-actions">
+        <a class="tp-btn tp-btn--pill" data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
+        <span class="tp-strip-sep" aria-hidden="true"></span>
+        <a class="tp-btn tp-btn--pill" data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
+      </div>
+    </div>
 
         <section id="about" class="about-hero">
             <!-- Outside vertical label -->
@@ -1191,6 +1202,13 @@
             </ul>
           </div>
         </nav>
+      </div>
+
+      <!-- Trustpilot -->
+      <div class="ft-trust">
+        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
+        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
+        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
       </div>
 
       <!-- Bottom meta row -->
@@ -1958,6 +1976,7 @@
     }
     </style>
 
+    <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
     </body>
 </html>

@@ -216,6 +216,7 @@
   <link rel="stylesheet" href="hub.css" />
   <link rel="stylesheet" href="media/hub.css" />
   <link rel="stylesheet" href="footer.css" />
+  <link rel="stylesheet" href="trustpilot.css" />
 
   <!-- Visually Hidden Utility -->
   <style>
@@ -1312,6 +1313,14 @@
           </div>
         </nav>
       </div>
+
+      <!-- Trustpilot -->
+      <div class="ft-trust">
+        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
+        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
+        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
+      </div>
+
       <div class="ft-bottom">
         <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
         <span class="ft-meta">Built in London &middot; AI creative tools</span>
@@ -1928,6 +1937,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script src="js/fx.js"></script>
     <script src="js/credits.js"></script>
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
 
     <!-- Lazy-load model-viewer only when the 3D section scrolls into view -->
