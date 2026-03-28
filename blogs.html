@@ -127,7 +127,7 @@
   <!-- MINIMAL HEADER -->
   <header class="blog-header" aria-label="Site header">
     <a class="blog-brand" href="/" aria-label="Home">
-      <img src="img/blogs.png" alt="" class="blog-nav-logo" width="60" height="60">
+      <img src="img/blogs.png" alt="TimrX Blog" class="blog-nav-logo" width="60" height="60">
       <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
     </a>
     <button class="blog-burger" id="blogBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="blogMobileMenu">
@@ -143,10 +143,10 @@
     <div class="blog-mobile-inner">
       <nav class="blog-mobile-nav" aria-label="Mobile navigation">
         <a href="/blogs" class="blog-mobile-link active"><span class="bml-num">01</span><span class="bml-text">Blog</span></a>
-        <a href="blogs.html#filter-strip" class="blog-mobile-link"><span class="bml-num">02</span><span class="bml-text">Archive</span></a>
+        <a href="/blogs#filter-strip" class="blog-mobile-link"><span class="bml-num">02</span><span class="bml-text">Archive</span></a>
         <a href="/hub" class="blog-mobile-link"><span class="bml-num">03</span><span class="bml-text">3D Hub</span></a>
         <a href="/about" class="blog-mobile-link"><span class="bml-num">04</span><span class="bml-text">About</span></a>
-        <a href="blogs.html#submit" class="blog-mobile-link"><span class="bml-num">05</span><span class="bml-text">Write</span></a>
+        <a href="/blogs#submit" class="blog-mobile-link"><span class="bml-num">05</span><span class="bml-text">Write</span></a>
       </nav>
       <div class="blog-mobile-footer">
         <div class="blog-mobile-socials">
@@ -289,7 +289,7 @@
             <div class="featured-tags" id="featuredTags"></div>
             <div class="blog-footer">
               <div class="author-mini">
-                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <img src="/img/dima.jpg" alt="Dima Vasiliu" class="author-mini-avatar" loading="lazy" />
                 <span class="author-mini-name">Dima V</span>
               </div>
               <div class="meta">
@@ -312,7 +312,7 @@
             <p class="excerpt muted">—</p>
             <div class="blog-footer">
               <div class="author-mini">
-                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <img src="/img/dima.jpg" alt="Dima Vasiliu" class="author-mini-avatar" loading="lazy" />
                 <span class="author-mini-name">Dima V</span>
               </div>
               <div class="meta">
@@ -335,7 +335,7 @@
             <p class="excerpt muted">—</p>
             <div class="blog-footer">
               <div class="author-mini">
-                <img src="/img/dima.jpg" alt="" class="author-mini-avatar" loading="lazy" />
+                <img src="/img/dima.jpg" alt="Dima Vasiliu" class="author-mini-avatar" loading="lazy" />
                 <span class="author-mini-name">Dima V</span>
               </div>
               <div class="meta">
@@ -654,7 +654,7 @@
             <p class="excerpt">${p.excerpt || ''}</p>
             <div class="card-footer">
               <div class="author-mini">
-                <img class="author-mini-avatar" src="${p.author_avatar || '/img/dima.jpg'}" alt="" loading="lazy"/>
+                <img class="author-mini-avatar" src="${p.author_avatar || '/img/dima.jpg'}" alt="${p.author || 'Dima Vasiliu'}" loading="lazy"/>
                 <span class="author-mini-name">${p.author || 'Dima V'}</span>
               </div>
               <div class="meta"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
