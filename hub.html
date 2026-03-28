@@ -207,10 +207,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
 
-  <!-- Model Viewer (lightweight GLB renderer) -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <!-- Model Viewer loaded lazily (see bottom of body) -->
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="hub.css" />
@@ -1929,6 +1929,21 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script src="js/credits.js"></script>
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
     <script src="js/cookie-consent.js" defer></script>
+
+    <!-- Lazy-load model-viewer only when the 3D section scrolls into view -->
+    <script>
+      (function() {
+        var mv = document.querySelector('model-viewer');
+        if (!mv) return;
+        var obs = new IntersectionObserver(function(entries) {
+          if (entries[0].isIntersecting) {
+            import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+            obs.disconnect();
+          }
+        }, { rootMargin: '200px' });
+        obs.observe(mv);
+      })();
+    </script>
 
 </body>
 </html>

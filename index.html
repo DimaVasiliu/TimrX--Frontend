@@ -1701,7 +1701,7 @@
                 var allTags = (post.tags || '').split(',').filter(Boolean);
 
                 return '<a class="blog-card'+(isFeatured?' featured':'')+'" href="'+url+'" role="listitem">'
-                  +'<div class="cover"><img src="'+coverUrl+'" '+srcsetAttr+' alt="'+post.title+'" loading="lazy" decoding="async" />'
+                  +'<div class="cover"><img src="'+coverUrl+'" '+srcsetAttr+' alt="'+post.title+'" loading="lazy" decoding="async" width="400" height="225" style="aspect-ratio:16/9;object-fit:cover" />'
                   +(isFeatured?'<span class="pill featured-pill">FEATURED</span>':'')
                   +'<span class="pill category-pill">'+tag+'</span></div>'
                   +'<div class="inner"><h3 class="title">'+post.title+'</h3>'
@@ -1709,7 +1709,7 @@
                   +(isFeatured?'<p class="featured-preview muted" id="featuredPreview"></p>':'')
                   +(isFeatured&&allTags.length>1?'<div class="featured-tags">'+allTags.map(function(t){return '<span class="featured-tag">'+t.trim()+'</span>';}).join('')+'</div>':'')
                   +'<div class="blog-footer"><div class="author-mini">'
-                  +'<img src="img/dima.jpg" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" />'
+                  +'<img src="img/dima.jpg" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" width="32" height="32" />'
                   +'<span class="author-mini-name">'+(post.author||'Dima Vasiliu')+'</span></div>'
                   +'<div class="meta"><span>'+readTime+' min read</span><span>\u2022</span>'
                   +'<time datetime="'+post.created_at+'">'+date+'</time></div></div></div></a>';
