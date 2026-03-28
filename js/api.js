@@ -5962,6 +5962,19 @@ async function _doResumePendingJobs(options = {}) {
       const status = (item.status || '').toLowerCase();
       return status && status !== 'finished' && status !== 'failed';
     });
+
+    // If backend confirmed zero active jobs, these are ghost placeholders from
+    // past failures that never updated the UI. Delete them instead of re-polling.
+    if (resumable.length && backendJobs !== null && backendJobs.length === 0) {
+      log(`[Recovery] Deleting ${resumable.length} stale generating card(s) — backend has no active jobs`);
+      for (const item of resumable) {
+        State.deleteHistoryItem(item.id);
+      }
+      renderHistory();
+      if (!skipEmptyUI) UI.showOutputEmpty();
+      return;
+    }
+
     if (resumable.length) {
       log(`[Recovery] Found ${resumable.length} resumable job(s) in history`);
       ids = resumable.map(item => item.id);
