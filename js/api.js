@@ -5942,11 +5942,12 @@ async function _doResumePendingJobs(options = {}) {
         continue;
       }
       // Backend confirms job is gone but history still shows 'generating' —
-      // mark as failed so the card stops showing "Generating 0%"
+      // these are ghost placeholders from jobs that failed before the UI
+      // could update. Remove them entirely since they have no content.
       State.removeActiveJob(id);
-      State.updateHistoryItem(id, { status: 'failed', status_label: 'Generation failed' });
+      State.deleteHistoryItem(id);
       staleCleanedUp = true;
-      log(`[Recovery] Marked stale generating job ${id} as failed (not on server)`);
+      log(`[Recovery] Removed stale generating job ${id} (not on server)`);
     }
     if (staleCleanedUp) renderHistory();
     ids = State.getActiveJobs();
