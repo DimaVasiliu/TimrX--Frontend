@@ -1164,7 +1164,13 @@ function handleJobFailure(message, operation = '', opts = {}) {
     console.warn(`[Recovery] Silently failed recovered ${operation} job: ${message}`);
     return false;
   }
-  alert(message || 'Job failed');
+  const msg = message || 'Job failed';
+  // Translate prompt-length backend errors into actionable user message
+  if (/prompt.*(too long|too many char|length|exceed)|char.*limit|max.*char/i.test(msg)) {
+    alert('Your prompt is too long. Please shorten it to 800 characters or fewer and try again.');
+  } else {
+    alert(msg);
+  }
   return false;
 }
 
@@ -2061,6 +2067,11 @@ export async function onGenerateClick() {
     if (!prompt) {
       prog.clear();
       alert('Please type a prompt describing what you want to generate.');
+      return;
+    }
+    if (prompt.length > 800) {
+      prog.clear();
+      alert(`Your prompt is ${prompt.length} characters. Please shorten it to 800 characters or fewer.`);
       return;
     }
 
