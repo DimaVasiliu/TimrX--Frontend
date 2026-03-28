@@ -68,7 +68,7 @@
 @media (max-width: 480px) {
   /* -- Tighter gutter -- */
   :root {
-    --gutter: 16px;
+    --gutter: 20px;
   }
 
   /* -- Card images -- */

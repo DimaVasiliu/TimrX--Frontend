@@ -32,17 +32,19 @@
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   z-index: 1001;
   margin-left: auto;
   transition: border-color 0.3s ease, background 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .nav-burger:hover,
@@ -674,6 +676,11 @@ main.page p {
 
 /* Responsive: Extra Small Mobile (<480px) */
 @media (max-width: 480px) {
+  /* Hero title breathing room on narrow screens */
+  .hero-title {
+    padding-inline: 4px;
+  }
+
   .mobile-nav-link {
     padding: 16px 0 16px 40px;
   }

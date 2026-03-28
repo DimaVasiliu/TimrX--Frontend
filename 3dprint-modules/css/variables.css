@@ -65,6 +65,16 @@
   padding: 0;
 }
 
+/* Safari: prevent 300ms tap delay and remove highlight on all interactive elements */
+.timrx-3dprint button,
+.timrx-3dprint a,
+.timrx-3dprint [role="button"],
+.timrx-3dprint select,
+.timrx-3dprint input {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--navH);

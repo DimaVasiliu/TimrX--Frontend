@@ -518,6 +518,11 @@
     min-height: 0;
   }
 
+  /* Safari: allow fixed-position card-menus to escape the panel while a menu is open */
+  body.history-menu-open .timrx-3dprint .ws-right {
+    overflow: visible;
+  }
+
   /* Panel body - scrollable content area */
   .timrx-3dprint .pane-stack {
     flex: 1;
@@ -1379,7 +1384,8 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-    padding: 11px 30px;
+    padding: 12px 30px;
+    min-height: 44px;
     border: 1px solid transparent;
     border-radius: 10px;
     background: transparent;
@@ -1392,6 +1398,7 @@
     cursor: pointer;
     transition: all 0.25s ease;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .ws-mobile-tab svg {
     width: 13px;
@@ -1458,6 +1465,22 @@
   }
 }
 
+/* Phone refinements */
+@media (max-width: 640px) {
+  .timrx-3dprint .viewer-wrap {
+    height: 50vh;
+    min-height: 240px;
+    max-height: 360px;
+  }
+  .timrx-3dprint .ws-left,
+  .timrx-3dprint .ws-right {
+    padding: 0 2px;
+  }
+  .timrx-3dprint .card {
+    padding: 12px 14px;
+  }
+}
+
 /* Small phone refinements */
 @media (max-width: 400px) {
   .timrx-3dprint .rail-btn span {
@@ -1472,7 +1495,8 @@
   }
   .ws-mobile-tab {
     font-size: 11px;
-    padding: 8px 0;
+    padding: 10px 16px;
+    min-height: 44px;
   }
 }
 

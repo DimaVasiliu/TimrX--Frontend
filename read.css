@@ -2396,12 +2396,12 @@ blockquote cite {
 /* ===== MOBILE SMALL (iPhone SE, etc) ===== */
 @media (max-width: 480px) {
   :root {
-    --gutter: 16px;
+    --gutter: 20px;
   }
 
   /* Compact header */
   .read-header {
-    padding: 12px 16px;
+    padding: 12px 20px;
   }
 
   .read-brand {
@@ -2419,7 +2419,7 @@ blockquote cite {
   }
 
   .post-hero-inner {
-    padding: 0 16px;
+    padding: 0 20px;
   }
 
   .post-category {
@@ -2481,7 +2481,7 @@ blockquote cite {
 
   /* Article content */
   .post-article {
-    padding: 20px 16px;
+    padding: 20px 20px;
     border-radius: 14px;
   }
 
@@ -2499,10 +2499,45 @@ blockquote cite {
     font-size: 18px;
   }
 
-  /* TOC card */
+  /* TOC card — collapsible on mobile */
   .toc-card {
     padding: 14px;
     border-radius: 12px;
+  }
+
+  .toc-card h3 {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toc-card h3::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    transform: rotate(45deg);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .toc-card.is-open h3::after {
+    transform: rotate(-135deg);
+  }
+
+  .toc-card #tocList {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+
+  .toc-card.is-open #tocList {
+    max-height: 2000px;
+    margin-top: 12px;
   }
 
   #tocList a {

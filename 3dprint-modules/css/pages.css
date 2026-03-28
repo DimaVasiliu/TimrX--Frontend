@@ -5,22 +5,22 @@
 /* Wrap for the menu button (menu list itself is positioned elsewhere) */
 .history-thumb__menu-wrap {
   position: absolute;
-  right: 10px;
-  bottom: 6px;
+  right: 2px;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
   z-index: 4;
-  padding: 8px;
-  margin: -8px;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
 }
 
 /* Small 3-dots button */
 .history-thumb__menu-btn {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   color: #ffffff;
@@ -31,6 +31,8 @@
   z-index: 100;
   position: relative;
   pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .history-thumb__menu-btn svg {
@@ -45,9 +47,11 @@
   z-index: 1302;
 }
 
-/* Video cards use extra clipping/stacking rules; disable clipping only while menu is open */
+/* Disable overflow clipping on ANY thumb while its menu is open (Safari traps position:fixed inside overflow:hidden) */
+.history-thumb.is-menu-open,
+.expanded-thumb.is-menu-open,
 .history-video-grid .history-thumb--video.is-menu-open {
-  overflow: visible;
+  overflow: visible !important;
 }
 
 
@@ -111,18 +115,21 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(4px);
+    -webkit-transform: translateY(4px) translateZ(0);
+    transform: translateY(4px) translateZ(0);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0.15s;
     z-index: 1200;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    /* Safari: ensure menu escapes any overflow/backdrop-filter containment */
+    will-change: opacity, transform;
   }
 
   .card-menu.is-open {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0s;
   }
   
@@ -141,11 +148,14 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     border: none;
     color: rgba(255, 255, 255, 0.85);
     border-radius: 8px;
-    padding: 9px 10px;
+    padding: 10px 12px;
+    min-height: 44px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
     transition: background 0.12s ease, color 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   .card-menu__item:hover:not([disabled]) {
@@ -239,19 +249,21 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateX(-4px);
+    -webkit-transform: translateX(-4px) translateZ(0);
+    transform: translateX(-4px) translateZ(0);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0.15s;
     z-index: 1201;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    will-change: opacity, transform;
   }
 
   .card-submenu.is-open {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateX(0);
+    transform: translateX(0) translateZ(0);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0s;
   }
   
@@ -260,7 +272,8 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     border: none;
     background: transparent;
     color: rgba(255, 255, 255, 0.85);
-    padding: 8px 10px;
+    padding: 10px 12px;
+    min-height: 44px;
     border-radius: 6px;
     text-align: left;
     font-size: 12px;
@@ -270,6 +283,8 @@ body.history-menu-open .history-thumb.is-menu-open .history-thumb__stage {
     align-items: center;
     gap: 8px;
     transition: background 0.12s ease, color 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   .card-submenu__item:hover:not([disabled]) {

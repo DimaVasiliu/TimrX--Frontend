@@ -721,6 +721,19 @@
     });
     toc.appendChild(frag);
 
+    // Mobile TOC collapse toggle
+    const tocCard = toc.closest('.toc-card');
+    if (tocCard) {
+      const tocH3 = tocCard.querySelector('h3');
+      if (tocH3) {
+        tocH3.addEventListener('click', () => tocCard.classList.toggle('is-open'));
+        // Auto-expand on desktop, keep collapsed on mobile
+        if (window.matchMedia('(min-width: 481px)').matches) {
+          tocCard.classList.add('is-open');
+        }
+      }
+    }
+
     const words = qs('#article').innerText.trim().split(/\s+/).length;
     qs('#readTime').textContent = Math.max(1, Math.round(words/200)) + ' min read';
 

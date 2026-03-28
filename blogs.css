@@ -80,8 +80,8 @@
   /* ===== ORBITAL BURGER ===== */
   .blog-burger {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     background: transparent;
     border: none;
@@ -92,6 +92,8 @@
     flex-direction: column;
     gap: 5px;
     z-index: 1001;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .blog-burger-ring {
@@ -403,8 +405,8 @@
     }
 
     .blog-burger {
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
     }
 
     .hub-hint {

@@ -499,11 +499,16 @@ body.docs-view .docs-expanded-view {
   }
 
   .docs-sidebar-link {
-    padding: 6px 14px;
+    padding: 10px 14px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     border-left: none;
     border-bottom: 2px solid transparent;
     white-space: nowrap;
     font-size: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .docs-sidebar-link.is-active {
@@ -512,7 +517,7 @@ body.docs-view .docs-expanded-view {
   }
 
   .docs-content {
-    padding: 20px 16px 24px;
+    padding: 20px 20px 24px;
   }
 
   .docs-hero h1,

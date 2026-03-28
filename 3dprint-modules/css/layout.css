@@ -269,7 +269,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 10px 16px;
+    min-height: 44px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 999px;
@@ -278,6 +279,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   .ws-credits-pill:hover {
@@ -301,7 +304,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 16px;
+    padding: 10px 18px;
+    min-height: 44px;
     background: #fff;
     border: none;
     border-radius: 999px;
@@ -313,6 +317,8 @@
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   .ws-credits-buy:hover {
@@ -1315,8 +1321,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     border: none;
     border-radius: 50%;
     background: transparent;
@@ -1325,6 +1331,8 @@
     transition: transform .2s ease, opacity 0.3s ease;
     flex-shrink: 0;
     margin: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .account-shield-ws:hover { transform: scale(1.12); }
   .account-shield-ws:focus { outline: none; box-shadow: 0 0 0 2px rgba(148,163,184,.4); }
@@ -1347,8 +1355,8 @@
   /* Mobile responsive */
   @media (max-width: 600px) {
     .account-shield-ws {
-      width: 30px;
-      height: 30px;
+      width: 44px;
+      height: 44px;
       font-size: 13px;
       margin: 0;
     }
@@ -1366,16 +1374,17 @@
     justify-content: center;
     align-items: center;
     gap: 5px;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     background: transparent;
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     z-index: 100001;
     transition: border-color 0.3s ease, background 0.3s ease;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   .ws-burger .burger-line {
