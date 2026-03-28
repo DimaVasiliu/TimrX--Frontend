@@ -822,7 +822,7 @@
     if (!detailEl || !detailMedia || !detailInfo) return;
 
     const asset = post.asset || {};
-    const thumb = asset.thumbnail_url || '';
+    const thumb = asset.image_url || asset.thumbnail_url || '';
     const name = sanitize(post.display_name || 'Anonymous');
     const initials = getInitials(post.display_name || 'Anonymous');
     const color = avatarColor(post.display_name || '');

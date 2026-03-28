@@ -1376,7 +1376,7 @@
     const imageRailBtn = document.querySelector('[data-panel="image"]');
     if (imageRailBtn) imageRailBtn.click();
 
-    const imageUrl = cardData.image_url || cardData.thumbnail || cardData.thumb_url;
+    const imageUrl = cardData.thumb_refined || cardData.image_url || cardData.thumbnail || cardData.thumb_url;
 
     if (!imageUrl) {
       console.warn('[Inspire] No image URL found:', cardData.id);
