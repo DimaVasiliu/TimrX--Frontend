@@ -1164,13 +1164,7 @@ function handleJobFailure(message, operation = '', opts = {}) {
     console.warn(`[Recovery] Silently failed recovered ${operation} job: ${message}`);
     return false;
   }
-  const msg = message || 'Job failed';
-  // Translate prompt-length backend errors into actionable user message
-  if (/prompt.*(too long|too many char|length|exceed)|char.*limit|max.*char/i.test(msg)) {
-    alert('Your prompt is too long. Please shorten it to 800 characters or fewer and try again.');
-  } else {
-    alert(msg);
-  }
+  alert(message || 'Job failed');
   return false;
 }
 
@@ -2067,11 +2061,6 @@ export async function onGenerateClick() {
     if (!prompt) {
       prog.clear();
       alert('Please type a prompt describing what you want to generate.');
-      return;
-    }
-    if (prompt.length > 800) {
-      prog.clear();
-      alert(`Your prompt is ${prompt.length} characters. Please shorten it to 800 characters or fewer.`);
       return;
     }
 
@@ -5926,7 +5915,6 @@ async function _doResumePendingJobs(options = {}) {
       [j.id, j.upstream_job_id, j.frontend_resume_id, j.provider_job_id].filter(Boolean)
     ));
     const staleLocal = ids.filter(id => !backendIds.has(id));
-    let staleCleanedUp = false;
     for (const id of staleLocal) {
       // Keep if history shows it finished (avoid flicker on completed jobs)
       const hist = State.findHistoryItem(id);
@@ -5939,17 +5927,9 @@ async function _doResumePendingJobs(options = {}) {
       if (!hist) {
         State.removeActiveJob(id);
         log(`[Recovery] Removed stale local job ${id} (not on server)`);
-        continue;
       }
-      // Backend confirms job is gone but history still shows 'generating' —
-      // these are ghost placeholders from jobs that failed before the UI
-      // could update. Remove them entirely since they have no content.
-      State.removeActiveJob(id);
-      State.deleteHistoryItem(id);
-      staleCleanedUp = true;
-      log(`[Recovery] Removed stale generating job ${id} (not on server)`);
+      // If in history but not finished — keep it, the status endpoint will resolve it
     }
-    if (staleCleanedUp) renderHistory();
     ids = State.getActiveJobs();
     pendingMeta = State.getPendingMeta();
   }
@@ -5962,19 +5942,6 @@ async function _doResumePendingJobs(options = {}) {
       const status = (item.status || '').toLowerCase();
       return status && status !== 'finished' && status !== 'failed';
     });
-
-    // If backend confirmed zero active jobs, these are ghost placeholders from
-    // past failures that never updated the UI. Delete them instead of re-polling.
-    if (resumable.length && backendJobs !== null && backendJobs.length === 0) {
-      log(`[Recovery] Deleting ${resumable.length} stale generating card(s) — backend has no active jobs`);
-      for (const item of resumable) {
-        State.deleteHistoryItem(item.id);
-      }
-      renderHistory();
-      if (!skipEmptyUI) UI.showOutputEmpty();
-      return;
-    }
-
     if (resumable.length) {
       log(`[Recovery] Found ${resumable.length} resumable job(s) in history`);
       ids = resumable.map(item => item.id);
