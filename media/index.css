@@ -853,23 +853,6 @@ main.page p {
     display: revert !important;
   }
 
-  /* Desktop: Show nav links, hide hamburger */
-  .nav-links {
-    display: flex;
-  }
-
-  .nav-cta-desktop {
-    display: inline-flex;
-  }
-
-  .nav-burger {
-    display: none;
-  }
-
-  .mobile-menu {
-    display: none !important;
-  }
-
   :root {
     --gutter: 28px;
     --navH: 72px;
@@ -972,6 +955,25 @@ main.page p {
   .cf-prism { animation: cfPrism 6s ease-in-out infinite !important; }
   .cf-core { animation: cfPulse 2.8s ease-in-out infinite !important; }
   .cf-spark { animation: cfSpark 3s ease-in-out infinite !important; }
+}
+
+/* Desktop nav: show nav links, hide burger at 1200px+ (keeps burger on iPad Pro 1024px) */
+@media (min-width: 1200px) {
+  .nav-links {
+    display: flex;
+  }
+
+  .nav-cta-desktop {
+    display: inline-flex;
+  }
+
+  .nav-burger {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: none !important;
+  }
 }
 
 /* Responsive: Desktop Refinements (1024-1399px) */
