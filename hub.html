@@ -285,6 +285,19 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    @media (max-width: 1280px) {
+      .subscription-status-pill {
+        padding: 4px 8px;
+        font-size: 10px;
+        gap: 4px;
+      }
+      .subscription-status-pill .subscription-text {
+        max-width: 90px;
+      }
+      .subscription-status-pill .subscription-icon {
+        font-size: 9px;
+      }
+    }
     @media (max-width: 768px) {
       .subscription-status-pill {
         display: none;
