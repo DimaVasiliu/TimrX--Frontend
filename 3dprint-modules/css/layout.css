@@ -1477,6 +1477,12 @@
     transition:
       opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
       transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+    /* Ensure button elements match link styling */
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
   
   .ws-mobile-link:nth-child(odd)  { transform: translateX(-30px); }
@@ -1541,6 +1547,8 @@
   .ws-mobile-menu.is-open .ws-mobile-link:nth-child(6) { transition-delay: 0.38s; }
   .ws-mobile-menu.is-open .ws-mobile-link:nth-child(7) { transition-delay: 0.44s; }
   .ws-mobile-menu.is-open .ws-mobile-link:nth-child(8) { transition-delay: 0.50s; }
+  .ws-mobile-menu.is-open .ws-mobile-link:nth-child(9) { transition-delay: 0.56s; }
+  .ws-mobile-menu.is-open .ws-mobile-link:nth-child(10) { transition-delay: 0.62s; }
   
   /* Hover / focus */
   .ws-mobile-link:hover,
@@ -1597,7 +1605,7 @@
   }
   
   /* Show burger, hide desktop nav on tablet + mobile */
-  @media (max-width: 1024px) {
+  @media (max-width: 1280px) {
     .ws-burger {
       display: flex;
     }

@@ -1250,16 +1250,17 @@
    ========================================================================== */
 
 /* Tablet — stacked layout */
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .timrx-3dprint {
     height: auto;
-    min-height: 100vh;
+    min-height: 0;
     overflow-y: auto;
   }
   .timrx-3dprint .ws-grid {
     display: flex;
     flex-direction: column;
     height: auto;
+    min-height: 0;
     overflow: visible;
   }
   .timrx-3dprint .ws-rail {
@@ -1274,7 +1275,7 @@
     overflow: visible;
   }
   .viewer-canvas-wrapper {
-    height: clamp(300px, 50vh, 600px);
+    height: clamp(260px, 45vh, 450px);
   }
   .timrx-3dprint .pane-head h2 {
     font-size: 18px;
@@ -1298,7 +1299,7 @@
   display: none;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
@@ -1355,12 +1356,14 @@
     position: static;
     height: auto;
     min-height: 0;
+    max-height: none;
+    flex: 0 0 auto;
     margin-bottom: 0;
   }
   .timrx-3dprint .viewer-wrap {
-    height: 55vh;
+    height: clamp(260px, 45vh, 450px);
     min-height: 260px;
-    max-height: 420px;
+    max-height: 450px;
     border-radius: 12px;
   }
   /* Hide viewer pane-head on mobile */
@@ -1373,7 +1376,7 @@
     display: flex;
     gap: 6px;
     padding: 5px 6px;
-    margin: 18px auto 22px;
+    margin: 8px auto 10px;
     width: fit-content;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);

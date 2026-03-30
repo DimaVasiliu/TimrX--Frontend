@@ -146,8 +146,8 @@
     /* Header ticker (centered between brand and nav) */
     .ticker-header {
       position: absolute;
-      left: 12%;
-      right: 64%;
+      left: 16%;
+      right: 62%;
       top: 50%;
       transform: translateY(-50%);
       overflow: hidden;
@@ -3309,7 +3309,7 @@
         let ticking = false;
 
         const handleScroll = () => {
-          const isMobileOrTablet = window.innerWidth <= 1024;
+          const isMobileOrTablet = window.innerWidth <= 1280;
           const revealThreshold = isMobileOrTablet ? 12 : 18;
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
                                   document.body.classList.contains('converter-view') ||

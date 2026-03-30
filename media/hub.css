@@ -323,9 +323,8 @@ body.menu-open {
   }
 }
 
-/* ── Small tablet / large phone (≤ 640px) ── */
-@media (max-width: 640px) {
-  /* Show burger, hide desktop menu + dropdowns */
+/* ── Tablet + mobile: burger replaces nav pills (≤ 1200px) ── */
+@media (max-width: 1200px) {
   .nav-burger {
     display: flex;
   }
@@ -333,6 +332,10 @@ body.menu-open {
   .nav-pills {
     display: none !important;
   }
+}
+
+/* ── Small tablet / large phone (≤ 640px) ── */
+@media (max-width: 640px) {
 
   /* Smaller logo on mobile */
   .idx-nav-logo {
