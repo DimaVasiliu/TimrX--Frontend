@@ -346,9 +346,27 @@ opacity: 1;
 transform: translateY(0);
 }
 
-/* Hide on mobile */
+/* Compact credits group on tablet */
 @media (max-width: 940px) {
-.credits-group { display: none; }
+.credits-pill {
+  padding: 6px 10px;
+  font-size: 12px;
+  gap: 6px;
+}
+.credits-buy-btn {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.account-status-btn {
+  width: 30px;
+  height: 30px;
+}
+}
+/* Hide credits text + buy on very small phones, keep shield + icon-only pill */
+@media (max-width: 400px) {
+.credits-buy-btn { display: none; }
+.credits-pill .credits-value { display: none; }
+.credits-pill { padding: 6px 8px; }
 }
 
 /* Credits syncing indicator */

@@ -299,8 +299,16 @@
       }
     }
     @media (max-width: 768px) {
-      .subscription-status-pill {
+      .subscription-status-pill .subscription-text {
+        max-width: 60px;
+      }
+    }
+    @media (max-width: 480px) {
+      .subscription-status-pill .subscription-text {
         display: none;
+      }
+      .subscription-status-pill {
+        padding: 4px 6px;
       }
     }
     /* Multi-currency price display */
