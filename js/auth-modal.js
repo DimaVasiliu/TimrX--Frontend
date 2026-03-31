@@ -269,8 +269,8 @@ function _ensureInjected() {
   _el('authGoWorkspace').addEventListener('click', () => { closeAuthModal(); window.location.href = '/3dprint'; });
   _el('authBrowsePlans').addEventListener('click', () => { closeAuthModal(); _scrollToPricing(); });
 
-  _el('authWbGoWorkspace').addEventListener('click', () => { closeAuthModal(); window.location.href = '/3dprint?refresh=1'; });
-  _el('authWbBrowsePlans').addEventListener('click', () => { closeAuthModal(); _scrollToPricing(); });
+  _el('authWbGoWorkspace').addEventListener('click', () => { window.location.href = '/3dprint?refresh=1'; });
+  _el('authWbBrowsePlans').addEventListener('click', () => { closeAuthModal(); window.location.reload(); });
 
   _el('authSwitchAccount').addEventListener('click', () => {
     _pendingEmail = '';

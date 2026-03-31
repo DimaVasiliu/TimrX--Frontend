@@ -3161,6 +3161,8 @@
         userEmail = data.email || null;
         emailVerified = data.email_verified || false;
         console.log('[Credits][Hub] Identity confirmed:', identityId?.slice(0, 8));
+        // Update account icon + button states now that we know auth status
+        updateEmailBeaconUI();
       }
     }).catch(err => {
       console.warn('[Credits][Hub] /api/me failed (non-fatal):', err.message);
@@ -3591,7 +3593,30 @@
     updateEmailBeaconUI();
   });
   window.addEventListener('timrx:auth:switched', () => {
-    window.location.reload();
+    // Don't reload immediately — let the auth modal show "Welcome back!"
+    // The modal's buttons (Go to Workspace, Browse Plans) handle navigation.
+    // But if the modal is not open (e.g. programmatic switch), reload.
+    const authCard = document.getElementById('authCard');
+    if (authCard?.classList.contains('expanded')) {
+      // Modal is showing "Welcome back!" — user will navigate from there.
+      // Just refresh identity + wallet state in background.
+      apiFetch('/api/me', { timeout: 15000 }).then(res => {
+        if (res.ok && res.data?.ok) {
+          userEmail = res.data.email || '';
+          emailVerified = res.data.email_verified || false;
+          identityId = res.data.identity_id;
+          WalletStore.update({
+            identityId: res.data.identity_id,
+            email: res.data.email,
+            emailVerified: res.data.email_verified,
+          });
+        }
+      }).catch(() => {});
+      refreshCredits({ force: true }).catch(() => {});
+      updateEmailBeaconUI();
+    } else {
+      window.location.reload();
+    }
   });
 
   if (window.location.hash === '#secure-credits' || window.location.hash === '#sign-in') {
