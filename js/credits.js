@@ -1245,14 +1245,24 @@
     clearSubMessages(false);
     validateSubCheckout();
   });
-  subCheckoutBtn?.addEventListener('click', (e) => {
+  subCheckoutBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
-    handleSubEmailContinue();
-  });
-  subCheckoutEmail?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !subCheckoutBtn?.disabled) {
-      e.preventDefault();
+    if (emailVerified) {
       handleSubEmailContinue();
+    } else {
+      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      if (isAuthenticated()) {
+        emailVerified = true;
+        handleSubEmailContinue();
+      } else {
+        openAuthModal({
+          onSuccess: () => {
+            emailVerified = true;
+            refreshCredits({ force: true });
+            handleSubEmailContinue();
+          },
+        });
+      }
     }
   });
   // Verify state event listeners
@@ -1602,12 +1612,11 @@
     }
 
     try {
-      // Call POST /api/billing/checkout (Mollie) using centralized API client
+      // Call POST /api/billing/checkout (Mollie) — email comes from verified identity
       const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
         body: {
           plan_code: selectedVideoPlan,
-          email: email
         }
       });
 
@@ -1680,13 +1689,25 @@
     validateVideoBuyForm();
   });
 
-  // Video buy button — routes through verification for unverified users
-  videoBuyBtn?.addEventListener('click', (e) => {
+  // Video buy button — requires verified email (opens auth modal if needed)
+  videoBuyBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
     if (emailVerified) {
       startVideoCheckout();
     } else {
-      videoVerifier.handleEmailContinue();
+      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      if (isAuthenticated()) {
+        emailVerified = true;
+        startVideoCheckout();
+      } else {
+        openAuthModal({
+          onSuccess: () => {
+            emailVerified = true;
+            refreshCredits({ force: true });
+            startVideoCheckout();
+          },
+        });
+      }
     }
   });
 
@@ -2176,16 +2197,10 @@
         closeEmailMismatchModal();
       });
 
-      // "Switch Account" button - open restore flow
+      // "Switch Account" button - open auth modal
       document.getElementById('emailMismatchSwitch')?.addEventListener('click', () => {
         closeEmailMismatchModal();
-        // Open the secure credits modal in restore mode
-        openSecureCreditsModal();
-        // Navigate to the restore section if the modal supports it
-        const restoreLink = document.querySelector('[data-action="restore"]');
-        if (restoreLink) {
-          restoreLink.click();
-        }
+        import('./auth-modal.js').then(m => m.openAuthModal());
       });
     }
 
@@ -2389,19 +2404,16 @@
       return;
     }
 
-    const email = checkoutEmail.value.trim();
-
     // Show loading state
     setCheckoutLoading(true);
     clearCheckoutError();
 
     try {
-      // Call POST /api/billing/checkout (Mollie) using centralized API client
+      // Call POST /api/billing/checkout (Mollie) — email comes from verified identity
       const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
         body: {
           plan_code: selectedPlan.id,  // plan_code matches DB: starter_250, creator_900, studio_2200
-          email: email
         }
       });
 
@@ -3054,24 +3066,24 @@
     }
   });
 
-  // Checkout button — routes through verification for unverified users
-  checkoutBtn?.addEventListener('click', (e) => {
+  // Checkout button — requires verified email (opens auth modal if needed)
+  checkoutBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
     if (emailVerified) {
       startCheckout();
     } else {
-      generalVerifier.handleEmailContinue();
-    }
-  });
-
-  // Enter key in email field — same routing as button
-  checkoutEmail?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !checkoutBtn?.disabled) {
-      e.preventDefault();
-      if (emailVerified) {
+      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      if (isAuthenticated()) {
+        emailVerified = true;
         startCheckout();
       } else {
-        generalVerifier.handleEmailContinue();
+        openAuthModal({
+          onSuccess: () => {
+            emailVerified = true;
+            refreshCredits({ force: true });
+            startCheckout();
+          },
+        });
       }
     }
   });
@@ -3482,209 +3494,7 @@
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // EMAIL ATTACH / VERIFY / RESTORE
-  // ─────────────────────────────────────────────────────────────
 
-  // Account modal DOM elements
-  const secureState1 = document.getElementById('secureState1');
-  const secureState2 = document.getElementById('secureState2');
-  const secureState3 = document.getElementById('secureState3');
-  const restorePanel = document.getElementById('restorePanel');
-
-  const secureEmailInput = document.getElementById('secureEmail');
-  const sendCodeBtn = document.getElementById('sendCodeBtn');
-  const secureError = document.getElementById('secureError');
-  const secureMessage = document.getElementById('secureMessage');
-
-  const sentToEmail = document.getElementById('sentToEmail');
-  const verifyCodeInput = document.getElementById('verifyCode');
-  const verifyCodeBtn = document.getElementById('verifyCodeBtn');
-  const verifyError = document.getElementById('verifyError');
-  const verifyMessage = document.getElementById('verifyMessage');
-  const resendCodeBtn = document.getElementById('resendCodeBtn');
-  const changeEmailBtn = document.getElementById('changeEmailBtn');
-
-  const verifiedEmailEl = document.getElementById('verifiedEmail');
-  const changeVerifiedEmailBtn = document.getElementById('changeVerifiedEmailBtn');
-  const showRestoreBtn = document.getElementById('showRestoreBtn');
-
-  // Toggle button and modal elements
-  const secureToggleBtn = document.getElementById('secureToggleBtn');
-  const secureCreditsCard = document.getElementById('secureCreditsCard');
-  const secureModalBackdrop = document.getElementById('secureModalBackdrop');
-  const secureModalClose = document.getElementById('secureModalClose');
-  const secureInfoWrap = document.getElementById('secureInfoWrap');
-  const secureInfoBtn = document.getElementById('secureInfoBtn');
-  const secureInfoPopover = document.getElementById('secureInfoPopover');
-
-  // Track focus before modal opens
-  let lastFocusBeforeSecureModal = null;
-
-  // Restore success modal elements
-  const restoreSuccessModal = document.getElementById('restoreSuccessModal');
-  const restoreCreditsValue = document.getElementById('restoreCreditsValue');
-  const restoreVideoRow = document.getElementById('restoreVideoRow');
-  const restoreVideoValue = document.getElementById('restoreVideoValue');
-  const restoreSuccessCloseBtn = document.getElementById('restoreSuccessCloseBtn');
-
-  // Track focus before restore success modal opens
-  let lastFocusBeforeRestoreModal = null;
-
-  /**
-   * Open the restore success modal with animation
-   * @param {number} credits - The restored general credits balance to display
-   * @param {number} [videoCredits] - The restored video credits balance (optional)
-   */
-  /**
-   * Central post-restore/verify hydration.
-   *
-   * Fetches /api/me (identity) + /api/credits/wallet (balances) in parallel,
-   * commits to canonical state, updates the pill, then opens the modal.
-   * The modal NEVER renders before BOTH fetches resolve — no stale 0, no "(unknown)".
-   */
-  /**
-   * Single post-auth hydration: commits identity + wallet + subscription,
-   * updates ALL navbar elements, then opens the welcome-back modal.
-   * Nothing renders until every data source is committed.
-   *
-   * @param {object} opts
-   * @param {string}      opts.reason       - Log label
-   * @param {object|null} opts.redeemData   - Redeem response .data (.me + .wallet) if available
-   * @param {string|null} opts.fallbackEmail - Email fallback
-   */
-  async function hydratePostAuthUI({ reason = 'restore', redeemData = null, fallbackEmail = null } = {}) {
-    console.log(`[AUTH_UI] hydrate start reason=${reason}`);
-
-    let resolvedEmail = fallbackEmail || userEmail;
-    let credits = null;
-    let videoCredits = null;
-
-    // ── 1. Seed from redeem response if available (instant, no network) ──
-    if (redeemData) {
-      const me = redeemData.me || {};
-      const w = redeemData.wallet || {};
-      if (me.identity_id) identityId = me.identity_id;
-      if (me.email) { userEmail = me.email; resolvedEmail = me.email; }
-      emailVerified = me.email_verified ?? true;
-      credits = w.available ?? null;
-      videoCredits = w.video_available ?? 0;
-      WalletStore.update({
-        identityId: me.identity_id, email: resolvedEmail, emailVerified: true,
-        balance: w.balance ?? (credits || 0), reserved: w.reserved ?? 0, available: credits ?? 0,
-        videoBalance: w.video_balance ?? 0, videoReserved: w.video_reserved ?? 0, videoAvailable: videoCredits,
-      });
-      console.log(`[AUTH_UI] seeded from redeem: email=${resolvedEmail} credits=${credits}`);
-    }
-
-    // ── 2. If no usable redeem data, fetch fresh from APIs ──
-    if (!redeemData || credits === null) {
-      console.log('[AUTH_UI] fetching /api/me + /api/credits/wallet');
-      const [walletR, meR] = await Promise.allSettled([
-        apiFetch('/api/credits/wallet', { timeout: 10000 }),
-        apiFetch('/api/me', { timeout: 10000 }),
-      ]);
-      if (meR.status === 'fulfilled' && meR.value.ok && meR.value.data?.ok) {
-        const m = meR.value.data;
-        if (m.identity_id) identityId = m.identity_id;
-        if (m.email) { userEmail = m.email; resolvedEmail = m.email; }
-        emailVerified = m.email_verified ?? emailVerified;
-        WalletStore.update({ identityId: m.identity_id, email: m.email, emailVerified: m.email_verified });
-        console.log(`[AUTH_UI] me loaded email=${resolvedEmail} verified=${emailVerified}`);
-      }
-      if (walletR.status === 'fulfilled' && walletR.value.ok && walletR.value.data?.ok) {
-        const d = walletR.value.data;
-        const bal = d.credits_balance ?? 0, res = d.reserved_credits ?? 0;
-        credits = d.available_credits ?? Math.max(0, bal - res);
-        const vB = d.video_credits_balance ?? 0, vR = d.video_reserved_credits ?? 0;
-        videoCredits = d.video_available_credits ?? Math.max(0, vB - vR);
-        WalletStore.update({ balance: bal, reserved: res, available: credits,
-          videoBalance: vB, videoReserved: vR, videoAvailable: videoCredits });
-        console.log(`[AUTH_UI] wallet loaded general=${credits} video=${videoCredits}`);
-      }
-    }
-
-    // ── 3. Await subscription summary ──
-    try { await loadSubscriptionSummary(0, true); console.log('[AUTH_UI] subscription loaded'); }
-    catch (_) { /* non-fatal */ }
-
-    // ── 4. Commit ALL navbar UI at once ──
-    if (credits != null) {
-      updateCreditsDisplay(credits, WalletStore._state.balance || 0, WalletStore._state.reserved || 0);
-    }
-    updateEmailBeaconUI();
-    console.log(`[AUTH_UI] navbar rendered credits=${credits} verified=${emailVerified}`);
-
-    // ── 5. Open modal LAST — everything is committed ──
-    const mc = credits ?? WalletStore.getSnapshot().available ?? null;
-    const mv = videoCredits ?? WalletStore.getSnapshot().videoAvailable ?? 0;
-    console.log(`[AUTH_UI] modal opening balance=${mc} video=${mv} account=${resolvedEmail}`);
-    openRestoreSuccessModal(mc, mv, resolvedEmail);
-  }
-
-  // Legacy alias — poll-verify path still uses this name
-  const hydrateAndShowRestoreModal = (reason) => hydratePostAuthUI({ reason });
-
-  function openRestoreSuccessModal(credits, videoCredits, email) {
-    if (!restoreSuccessModal) return;
-    lastFocusBeforeRestoreModal = document.activeElement;
-
-    // Account label — use explicit email param, fallback to module-level, never "(unknown)"
-    const displayEmail = email || userEmail || identityId?.slice(0, 8) || 'your account';
-    const successEmail = document.getElementById('restoreSuccessEmail');
-    if (successEmail) successEmail.textContent = displayEmail;
-
-    // Balance — null means fetch failed, show fallback text instead of fake 0
-    if (restoreCreditsValue) {
-      restoreCreditsValue.textContent = credits != null
-        ? credits.toLocaleString()
-        : 'Balance updating\u2026';
-    }
-
-    const videoAmt = Number(videoCredits) || 0;
-    if (restoreVideoRow) restoreVideoRow.style.display = videoAmt > 0 ? 'flex' : 'none';
-    if (restoreVideoValue) restoreVideoValue.textContent = videoAmt.toLocaleString();
-
-    restoreSuccessModal.classList.remove('open');
-    void restoreSuccessModal.offsetWidth;
-    restoreSuccessModal.classList.add('open');
-    restoreSuccessModal.inert = false;
-    requestAnimationFrame(() => { restoreSuccessCloseBtn?.focus(); });
-    console.log(`[RESTORE_UI] modal opened: account=${displayEmail} credits=${credits} video=${videoCredits}`);
-  }
-
-  /**
-   * Close the restore success modal
-   */
-  function closeRestoreSuccessModal() {
-    if (!restoreSuccessModal) return;
-    // Move focus OUT before hiding
-    if (restoreSuccessModal.contains(document.activeElement)) {
-      (lastFocusBeforeRestoreModal || document.body).focus();
-    }
-    restoreSuccessModal.classList.remove('open');
-    restoreSuccessModal.inert = true;
-  }
-
-  // Restore success modal event listeners
-  restoreSuccessCloseBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeRestoreSuccessModal();
-  });
-
-  // Backdrop click closes modal
-  restoreSuccessModal?.addEventListener('click', (e) => {
-    if (e.target === restoreSuccessModal) {
-      closeRestoreSuccessModal();
-    }
-  });
-
-  // ESC key closes restore modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && restoreSuccessModal?.classList.contains('open')) {
-      closeRestoreSuccessModal();
-    }
-  });
 
   // ─────────────────────────────────────────────────────────────
   // GENERIC CONFIRM MODAL (replaces window.confirm)
@@ -3749,1178 +3559,63 @@
     }
   });
 
-  // ─────────────────────────────────────────────────────────────
-  // RESTORE ACCOUNT MODAL (logged-in 4-step flow)
-  // ─────────────────────────────────────────────────────────────
-  const restoreAccountModal = document.getElementById('restoreAccountModal');
-  const restoreAccountClose = document.getElementById('restoreAccountClose');
-  // Step elements
-  const raStep1 = document.getElementById('raStep1');
-  const raStep2 = document.getElementById('raStep2');
-  const raStep3 = document.getElementById('raStep3');
-  const raStep4 = document.getElementById('raStep4');
-  const raEmailInput = document.getElementById('raEmailInput');
-  const raEmailError = document.getElementById('raEmailError');
-  const raSendCodeBtn = document.getElementById('raSendCodeBtn');
-  const raSentToEmail = document.getElementById('raSentToEmail');
-  const raCodeInput = document.getElementById('raCodeInput');
-  const raCodeError = document.getElementById('raCodeError');
-  const raCodeMessage = document.getElementById('raCodeMessage');
-  const raVerifyBtn = document.getElementById('raVerifyBtn');
-  const raResendBtn = document.getElementById('raResendBtn');
-  const raConfirmEmail = document.getElementById('raConfirmEmail');
-  const raConfirmCredits = document.getElementById('raConfirmCredits');
-
-  let raPendingEmail = '';
-  let _raRedeemData = null; // Stashed redeem response for confirm-switch handler
-  let raResendCooldown = 0;
-  let raResendTimer = null;
-
-  function showRaStep(n) {
-    [raStep1, raStep2, raStep3, raStep4].forEach((el, i) => {
-      if (el) el.style.display = (i === n - 1) ? 'block' : 'none';
-    });
-    // Clear errors when switching steps
-    if (raEmailError) raEmailError.textContent = '';
-    if (raCodeError) raCodeError.textContent = '';
-    if (raCodeMessage) raCodeMessage.textContent = '';
-  }
-
-  function openRestoreAccountModal() {
-    if (!restoreAccountModal) return;
-    raPendingEmail = '';
-    if (raEmailInput) raEmailInput.value = '';
-    if (raCodeInput) raCodeInput.value = '';
-    showRaStep(1);
-    restoreAccountModal.classList.add('open');
-    restoreAccountModal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeRestoreAccountModal() {
-    if (!restoreAccountModal) return;
-    restoreAccountModal.classList.remove('open');
-    restoreAccountModal.setAttribute('aria-hidden', 'true');
-    if (raResendTimer) { clearInterval(raResendTimer); raResendTimer = null; }
-  }
-
-  // Close handlers
-  restoreAccountClose?.addEventListener('click', closeRestoreAccountModal);
-  restoreAccountModal?.addEventListener('click', (e) => {
-    if (e.target === restoreAccountModal) closeRestoreAccountModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && restoreAccountModal?.classList.contains('open')) {
-      closeRestoreAccountModal();
-    }
-  });
-
-  // Step 1 → Step 2
-  document.getElementById('raNextToEmail')?.addEventListener('click', () => {
-    showRaStep(2);
-    raEmailInput?.focus();
-  });
-  document.getElementById('raCancelStep1')?.addEventListener('click', closeRestoreAccountModal);
-
-  // Logout from restore modal — two-click inline confirm (no stacked modal)
-  const raLogoutBtn = document.getElementById('raLogoutBtn');
-  let _logoutArmed = false;
-  let _logoutTimer = null;
-
-  raLogoutBtn?.addEventListener('click', async () => {
-    // First click: arm (change label to "Confirm Log Out?")
-    if (!_logoutArmed) {
-      _logoutArmed = true;
-      raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Confirm Log Out?';
-      raLogoutBtn.classList.add('armed');
-      // Auto-disarm after 3s
-      _logoutTimer = setTimeout(() => {
-        _logoutArmed = false;
-        raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Log Out';
-        raLogoutBtn.classList.remove('armed');
-      }, 3000);
-      return;
-    }
-
-    // Second click: execute logout
-    clearTimeout(_logoutTimer);
-    raLogoutBtn.classList.add('loading');
-    raLogoutBtn.disabled = true;
-
-    try {
-      await apiFetch('/api/me/logout', { method: 'POST' });
-
-      // Clear local state
-      emailVerified = false;
-      userEmail = '';
-      isRestoreMode = false;
-
-      // Clear ALL user-scoped caches (history, wallet, jobs, credits, etc.)
-      // This prevents stale data from leaking to the next user session
-      if (window.TimrXApi?.clearAllUserCaches) {
-        window.TimrXApi.clearAllUserCaches();
-      }
-      // Also clear auth stamp so next session starts completely fresh
-      try { localStorage.removeItem('timrx_auth_stamp'); } catch (_) {}
-
-      closeRestoreAccountModal();
-
-      // Reload to get a fresh anonymous session
-      window.location.reload();
-    } catch (err) {
-      console.error('[RestoreAccount] Logout error:', err);
-      _logoutArmed = false;
-      raLogoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Log Out';
-      raLogoutBtn.classList.remove('loading', 'armed');
-      raLogoutBtn.disabled = false;
-    }
-  });
-
-  // Step 2: Send code
-  async function raSendCode() {
-    const email = raEmailInput?.value?.trim().toLowerCase();
-    if (!email || !email.includes('@') || !email.includes('.')) {
-      if (raEmailError) raEmailError.textContent = 'Please enter a valid email address';
-      return;
-    }
-
-    raPendingEmail = email;
-    raSendCodeBtn?.classList.add('loading');
-    if (raEmailError) raEmailError.textContent = '';
-
-    try {
-      const result = await apiFetch('/api/auth/restore/request', {
-        method: 'POST',
-        body: { email },
-        timeout: 15000
-      });
-
-      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
-        if (raEmailError) raEmailError.textContent = result.data.error.message || 'Please wait before requesting another code';
-        return;
-      }
-
-      if (raSentToEmail) raSentToEmail.textContent = email;
-
-      showRaStep(3);
-      raStartResendCooldown();
-      raCodeInput?.focus();
-
-    } catch (err) {
-      console.error('[RestoreAccount] sendCode error:', err);
-      if (raSentToEmail) raSentToEmail.textContent = email;
-      showRaStep(3);
-      raStartResendCooldown();
-      raCodeInput?.focus();
-    } finally {
-      raSendCodeBtn?.classList.remove('loading');
-    }
-  }
-
-  raSendCodeBtn?.addEventListener('click', raSendCode);
-  raEmailInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); raSendCode(); }
-  });
-
-  // Step 2 back
-  document.getElementById('raBackToIntro')?.addEventListener('click', () => showRaStep(1));
-
-  // Step 3: Verify code → goes to Step 4 for final confirmation
-  async function raVerifyCode() {
-    const code = raCodeInput?.value?.trim();
-    if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
-      if (raCodeError) raCodeError.textContent = 'Code must be 6 digits';
-      return;
-    }
-
-    raVerifyBtn?.classList.add('loading');
-    if (raCodeError) raCodeError.textContent = '';
-    if (raCodeMessage) raCodeMessage.textContent = 'Verifying...';
-
-    try {
-      const result = await apiFetch('/api/auth/restore/redeem', {
-        method: 'POST',
-        body: { email: raPendingEmail, code }
-      });
-
-      if (!result.ok) {
-        const errorCode = result.data?.error?.code;
-        if (errorCode === 'INVALID_CODE') {
-          if (raCodeError) raCodeError.textContent = 'Invalid or expired code';
-        } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
-          if (raCodeError) raCodeError.textContent = 'Too many attempts. Please request a new code.';
-        } else if (errorCode === 'CODE_EXPIRED') {
-          if (raCodeError) raCodeError.textContent = 'Code has expired. Please request a new one.';
-        } else {
-          if (raCodeError) raCodeError.textContent = (result.isHtml || result.status >= 500)
-            ? 'Verification failed. Please try again.'
-            : (result.error || 'Verification failed');
-        }
-        if (raCodeMessage) raCodeMessage.textContent = '';
-        raVerifyBtn?.classList.remove('loading');
-        return;
-      }
-
-      // Success — code is valid. Stash redeem data for confirm-switch handler.
-      _raRedeemData = result?.data || null;
-      if (raConfirmEmail) raConfirmEmail.textContent = raPendingEmail;
-
-      // Show credit context in confirmation
-      const currentCredits = walletAvailable || 0;
-      if (raConfirmCredits && currentCredits > 0) {
-        raConfirmCredits.textContent = `You currently have ${currentCredits.toLocaleString()} credits. They will remain on your current account.`;
-        raConfirmCredits.style.display = 'block';
-      } else if (raConfirmCredits) {
-        raConfirmCredits.style.display = 'none';
-      }
-
-      if (raCodeMessage) raCodeMessage.textContent = '';
-      showRaStep(4);
-
-    } catch (err) {
-      console.error('[RestoreAccount] verifyCode error:', err);
-      if (raCodeError) raCodeError.textContent = 'Verification failed. Please try again.';
-      if (raCodeMessage) raCodeMessage.textContent = '';
-    } finally {
-      raVerifyBtn?.classList.remove('loading');
-    }
-  }
-
-  raVerifyBtn?.addEventListener('click', raVerifyCode);
-  raCodeInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); raVerifyCode(); }
-  });
-
-  // Step 3: Resend
-  function raStartResendCooldown() {
-    raResendCooldown = 60;
-    raUpdateResendBtn();
-    if (raResendTimer) clearInterval(raResendTimer);
-    raResendTimer = setInterval(() => {
-      raResendCooldown--;
-      raUpdateResendBtn();
-      if (raResendCooldown <= 0) { clearInterval(raResendTimer); raResendTimer = null; }
-    }, 1000);
-  }
-
-  function raUpdateResendBtn() {
-    if (!raResendBtn) return;
-    if (raResendCooldown > 0) {
-      raResendBtn.disabled = true;
-      raResendBtn.textContent = `Resend (${raResendCooldown}s)`;
-    } else {
-      raResendBtn.disabled = false;
-      raResendBtn.textContent = 'Resend Code';
-    }
-  }
-
-  raResendBtn?.addEventListener('click', async () => {
-    if (raResendCooldown > 0) return;
-    raResendBtn?.classList.add('loading');
-    try {
-      const result = await apiFetch('/api/auth/restore/request', {
-        method: 'POST',
-        body: { email: raPendingEmail },
-        timeout: 15000
-      });
-      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
-        if (raCodeError) raCodeError.textContent = result.data.error.message || 'Please wait before requesting another code';
-        return;
-      }
-      if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
-      raStartResendCooldown();
-      if (raCodeInput) raCodeInput.value = '';
-    } catch (err) {
-      if (raCodeMessage) raCodeMessage.textContent = 'New code sent! Check your email.';
-      raStartResendCooldown();
-    } finally {
-      raResendBtn?.classList.remove('loading');
-    }
-  });
-
-  // Step 3: Change email → back to step 2
-  document.getElementById('raChangeEmail')?.addEventListener('click', () => {
-    showRaStep(2);
-    raEmailInput?.focus();
-  });
-
-  // Step 4: Confirm switch
-  document.getElementById('raConfirmSwitch')?.addEventListener('click', async () => {
-    const confirmBtn = document.getElementById('raConfirmSwitch');
-    confirmBtn?.classList.add('loading');
-
-    try {
-      // The restore/redeem already executed successfully in step 3.
-      // Refresh wallet and session state.
-      console.log('[RestoreAccount] Account switch confirmed');
-      // NEW-1: Clear stale caches from previous identity before loading new state
-      if (window.TimrXApi?.clearAllUserCaches) window.TimrXApi.clearAllUserCaches();
-      // Also clear in-memory history cache so stale items don't flash
-      if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
-      userEmail = raPendingEmail;
-      emailVerified = true;
-      isRestoreMode = false;
-
-      if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-      closeRestoreAccountModal();
-      if (window.loadHistoryFromDB) {
-        window.loadHistoryFromDB().then(() => { window.renderHistory?.(); }).catch(() => {});
-      }
-
-      // Single hydration: commits identity+wallet+subscription, renders navbar, opens modal
-      await hydratePostAuthUI({
-        reason: 'confirm_switch',
-        redeemData: _raRedeemData,
-        fallbackEmail: raPendingEmail,
-      });
-      _raRedeemData = null;
-
-    } catch (err) {
-      console.error('[RestoreAccount] confirm switch error:', err);
-    } finally {
-      confirmBtn?.classList.remove('loading');
-    }
-  });
-
-  document.getElementById('raCancelSwitch')?.addEventListener('click', closeRestoreAccountModal);
 
   // ─────────────────────────────────────────────────────────────
-  // GUEST CHOOSER MODAL (anonymous users)
+  // SIGN-IN BUTTON + AUTH HASH HANDLER  (new auth-modal.js)
   // ─────────────────────────────────────────────────────────────
-  const guestChooserModal = document.getElementById('guestChooserModal');
-
-  function openGuestChooserModal() {
-    if (!guestChooserModal) return;
-    guestChooserModal.classList.add('open');
-    guestChooserModal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeGuestChooserModal() {
-    if (!guestChooserModal) return;
-    guestChooserModal.classList.remove('open');
-    guestChooserModal.setAttribute('aria-hidden', 'true');
-  }
-
-  document.getElementById('guestChooserClose')?.addEventListener('click', closeGuestChooserModal);
-  guestChooserModal?.addEventListener('click', (e) => {
-    if (e.target === guestChooserModal) closeGuestChooserModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && guestChooserModal?.classList.contains('open')) {
-      closeGuestChooserModal();
-    }
+  const signInBtn = document.getElementById('signInBtn');
+  signInBtn?.addEventListener('click', () => {
+    import('./auth-modal.js').then(m => m.openAuthModal());
   });
 
-  // "Secure Your Account" → open account modal in attach mode
-  document.getElementById('chooserSecure')?.addEventListener('click', () => {
-    closeGuestChooserModal();
-    isRestoreMode = false;
-    resetToAttachMode();
-    openSecureCreditsModal();
+  window.addEventListener('timrx:auth:verified', () => {
+    refreshCredits({ force: true });
+  });
+  window.addEventListener('timrx:auth:switched', () => {
+    window.location.reload();
   });
 
-  // "I Already Have an Account" → open account modal in restore mode
-  document.getElementById('chooserRestore')?.addEventListener('click', () => {
-    closeGuestChooserModal();
-    isRestoreMode = true;
-    if (secureState1) {
-      const h3 = secureState1.querySelector('h3');
-      const subtitle = secureState1.querySelector('.secure-subtitle');
-      if (h3) h3.textContent = 'Restore Your Account';
-      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing account.';
-    }
-    openSecureCreditsModal();
-    secureEmailInput?.focus();
-  });
-
-  /**
-   * Open the secure credits modal
-   */
-  function openSecureCreditsModal() {
-    if (!secureCreditsCard) return;
-
-    // Store current focus before opening
-    lastFocusBeforeSecureModal = document.activeElement;
-
-    // Show backdrop and modal
-    secureModalBackdrop?.classList.add('visible');
-    secureCreditsCard.classList.remove('collapsed');
-    secureCreditsCard.classList.add('expanded');
-    secureToggleBtn?.classList.add('expanded');
-    secureToggleBtn?.setAttribute('aria-expanded', 'true');
-
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
-
-    // Refresh subscription data so the section is visible
-    fetchSubscription();
-
-    // Focus the first input or close button
-    requestAnimationFrame(() => {
-      const firstInput = secureCreditsCard.querySelector('input:not([style*="display: none"])');
-      if (firstInput) {
-        firstInput.focus();
-      } else {
-        secureModalClose?.focus();
-      }
-    });
+  if (window.location.hash === '#secure-credits' || window.location.hash === '#sign-in') {
+    import('./auth-modal.js').then(m => m.openAuthModal());
+    history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 
-  /**
-   * Close the secure credits modal
-   */
-  function closeSecureCreditsModal() {
-    if (!secureCreditsCard) return;
 
-    // Hide backdrop and modal
-    secureModalBackdrop?.classList.remove('visible');
-    secureCreditsCard.classList.remove('expanded');
-    secureCreditsCard.classList.add('collapsed');
-    secureToggleBtn?.classList.remove('expanded');
-    secureToggleBtn?.setAttribute('aria-expanded', 'false');
 
-    // Restore body scroll
-    document.body.style.overflow = '';
-
-    // Restore focus
-    if (lastFocusBeforeSecureModal) {
-      lastFocusBeforeSecureModal.focus();
-      lastFocusBeforeSecureModal = null;
-    }
-  }
-
-  /**
-   * Toggle the secure credits modal visibility.
-   * Routes by user state:
-   *  - logged in → restore-account flow
-   *  - guest → two-option chooser modal
-   */
-  function toggleSecureCredits() {
-    // Logged-in: restore-only flow
-    if (emailVerified) {
-      openRestoreAccountModal();
-      return;
-    }
-
-    // If secure credits modal is already open, close it
-    if (secureCreditsCard?.classList.contains('expanded')) {
-      closeSecureCreditsModal();
-      return;
-    }
-
-    // Guest: show chooser modal
-    openGuestChooserModal();
-  }
-
-  // Toggle button event listener
-  secureToggleBtn?.addEventListener('click', toggleSecureCredits);
-
-  // Close button event listener
-  secureModalClose?.addEventListener('click', closeSecureCreditsModal);
-
-  // Backdrop click closes modal
-  secureModalBackdrop?.addEventListener('click', closeSecureCreditsModal);
-
-  // ESC key closes secure credits modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && secureCreditsCard?.classList.contains('expanded')) {
-      closeSecureCreditsModal();
-    }
-  });
-
-  // Initialize aria-expanded state
-  if (secureToggleBtn && secureCreditsCard) {
-    const isExpanded = secureCreditsCard.classList.contains('expanded');
-    secureToggleBtn.setAttribute('aria-expanded', String(isExpanded));
-  }
-
-  // Open modal if navigated with #secure-credits hash (from 3dprint beacon)
-  if (window.location.hash === '#secure-credits') {
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-      // Route through the same logic as the shield button
-      toggleSecureCredits();
-      // Clear the hash without triggering a scroll
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }, 100);
-  }
-
-  function openSecureInfo() {
-    if (!secureInfoWrap || !secureInfoBtn || !secureInfoPopover) return;
-    secureInfoWrap.classList.add('open');
-    secureInfoPopover.inert = false;
-    secureInfoBtn.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeSecureInfo() {
-    if (!secureInfoWrap || !secureInfoBtn || !secureInfoPopover) return;
-    // Move focus back to button if inside popover
-    if (secureInfoPopover.contains(document.activeElement)) {
-      secureInfoBtn.focus();
-    }
-    secureInfoWrap.classList.remove('open');
-    secureInfoPopover.inert = true;
-    secureInfoBtn.setAttribute('aria-expanded', 'false');
-  }
-
-  function toggleSecureInfo(event) {
-    if (!secureInfoWrap || !secureInfoPopover || !secureInfoBtn) return;
-    event?.stopPropagation();
-    const isOpen = secureInfoWrap.classList.contains('open');
-    if (isOpen) {
-      closeSecureInfo();
-    } else {
-      openSecureInfo();
-    }
-  }
-
-  secureInfoBtn?.addEventListener('click', toggleSecureInfo);
-
-  document.addEventListener('click', (event) => {
-    if (!secureInfoWrap || !secureInfoWrap.classList.contains('open')) return;
-    if (!secureInfoWrap.contains(event.target)) {
-      closeSecureInfo();
-    }
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      closeSecureInfo();
-    }
-  });
-
-  // Email state
-  let pendingEmail = '';
-  let emailVerified = false;
-  let resendCooldown = 0;
-  let resendTimer = null;
-  let isRestoreMode = false;
-
-  /**
-   * Show secure credits section state
-   * @param {1|2|3} stateNum - Which state to show
-   */
-  function showSecureState(stateNum) {
-    if (secureState1) secureState1.style.display = stateNum === 1 ? 'block' : 'none';
-    if (secureState2) secureState2.style.display = stateNum === 2 ? 'block' : 'none';
-    if (secureState3) secureState3.style.display = stateNum === 3 ? 'block' : 'none';
-
-    // Show restore panel only in state 1 (anonymous)
-    if (restorePanel) {
-      restorePanel.style.display = stateNum === 1 ? 'block' : 'none';
-    }
-
-    // Clear error/message when switching states
-    clearSecureMessages();
-  }
-
-  function clearSecureMessages() {
-    if (secureError) secureError.textContent = '';
-    if (secureMessage) secureMessage.textContent = '';
-    if (verifyError) verifyError.textContent = '';
-    if (verifyMessage) verifyMessage.textContent = '';
-    // Clear restore hint
-    const hintEl = document.getElementById('verifyRestoreHint');
-    if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
-  }
-
-  function setSecureError(msg) {
-    if (secureError) secureError.textContent = msg;
-    if (secureMessage) secureMessage.textContent = '';
-  }
-
-  function setSecureMessage(msg) {
-    if (secureMessage) secureMessage.textContent = msg;
-    if (secureError) secureError.textContent = '';
-  }
-
-  function setVerifyError(msg) {
-    if (verifyError) verifyError.textContent = msg;
-    if (verifyMessage) verifyMessage.textContent = '';
-  }
-
-  function setVerifyMessage(msg) {
-    if (verifyMessage) verifyMessage.textContent = msg;
-    if (verifyError) verifyError.textContent = '';
-  }
-
-  /**
-   * Update secure credits UI based on current email state
-   */
-  function updateSecureCreditsUI() {
-    if (!secureState1) return; // Not on hub.html
-
-    if (emailVerified && userEmail) {
-      // State 3: Verified
-      if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-      showSecureState(3);
-    } else if (userEmail && !emailVerified) {
-      // State 2: Email attached but unverified (code sent)
-      pendingEmail = userEmail;
-      if (sentToEmail) sentToEmail.textContent = userEmail;
-      showSecureState(2);
-    } else {
-      // State 1: No email
-      showSecureState(1);
-    }
-
-    // Also update email beacon visibility
-    updateEmailBeaconUI();
-  }
-
-  /**
-   * Send verification code to email
-   * Uses optimistic UI - transitions to code entry immediately even if request times out,
-   * since the email may still arrive (backend might process before timeout).
-   */
-  async function sendCode() {
-    const email = secureEmailInput?.value?.trim().toLowerCase();
-
-    if (!email) {
-      setSecureError('Please enter an email address');
-      return;
-    }
-
-    if (!email.includes('@') || !email.includes('.')) {
-      setSecureError('Please enter a valid email address');
-      return;
-    }
-
-    sendCodeBtn?.classList.add('loading');
-    clearSecureMessages();
-
-    // Store pending email immediately for optimistic UI
-    pendingEmail = email;
-
-    try {
-      const endpoint = isRestoreMode
-        ? '/api/auth/restore/request'
-        : '/api/auth/email/attach';
-
-      const result = await apiFetch(endpoint, {
-        method: 'POST',
-        body: { email },
-        timeout: 15000  // Longer timeout for this endpoint
-      });
-
-      // Handle rate limiting - this is the only case where we show an error and stay on state 1
-      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
-        setSecureError(result.data.error.message || 'Please wait before requesting another code');
-        sendCodeBtn?.classList.remove('loading');
-        return;
-      }
-
-      const responseData = result.data || {};
-
-      // If email belongs to another account, stay on state 1 with guidance
-      if (!isRestoreMode && responseData.hint === 'account_switch_required') {
-        setSecureError('This email belongs to another account. Use Restore Account to switch.');
-        sendCodeBtn?.classList.remove('loading');
-        return;
-      }
-
-      // Code was sent — transition to state 2 (code entry)
-      if (sentToEmail) sentToEmail.textContent = email;
-      showSecureState(2);
-      setVerifyMessage('If an account exists for this email, a code has been sent.');
-
-      // Start resend cooldown
-      startResendCooldown();
-
-      // Focus code input
-      verifyCodeInput?.focus();
-
-      // Log if there was a timeout but we're proceeding anyway
-      if (result.isTimeout) {
-        console.log('[Credits] Send code timed out but proceeding optimistically');
-      }
-
-    } catch (err) {
-      console.error('[Credits] sendCode error:', err);
-      // Even on unexpected errors, proceed to state 2 optimistically
-      // The user can still enter a code if they receive it
-      if (sentToEmail) sentToEmail.textContent = email;
-      showSecureState(2);
-      setVerifyMessage('If an account exists for this email, a code has been sent.');
-      startResendCooldown();
-      verifyCodeInput?.focus();
-    } finally {
-      sendCodeBtn?.classList.remove('loading');
-    }
-  }
-
-  /**
-   * Skip to code entry without sending a new code
-   * For users who already have a code from a previous request
-   */
-  function skipToCodeEntry() {
-    const email = secureEmailInput?.value?.trim().toLowerCase();
-
-    if (!email) {
-      setSecureError('Please enter your email address first');
-      return;
-    }
-
-    if (!email.includes('@') || !email.includes('.')) {
-      setSecureError('Please enter a valid email address');
-      return;
-    }
-
-    pendingEmail = email;
-    if (sentToEmail) sentToEmail.textContent = email;
-    showSecureState(2);
-    setVerifyMessage('Enter the code you received.');
-    verifyCodeInput?.focus();
-  }
-
-  /**
-   * Verify the entered code
-   * Includes robust timeout handling with retry and background polling
-   */
-  async function verifyCode() {
-    const code = verifyCodeInput?.value?.trim();
-
-    if (!code) {
-      setVerifyError('Please enter the code');
-      return;
-    }
-
-    if (code.length !== 6 || !/^\d+$/.test(code)) {
-      setVerifyError('Code must be 6 digits');
-      return;
-    }
-
-    verifyCodeBtn?.classList.add('loading');
-    clearSecureMessages();  // Reset error state before new request
-
-    // Show progress message for long requests
-    setVerifyMessage('Verifying...');
-
-    const endpoint = isRestoreMode
-      ? '/api/auth/restore/redeem'
-      : '/api/auth/email/verify';
-
-    // Retry logic for timeout - backend may be slow but still processing
-    const maxAttempts = 3;
-    let lastResult = null;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (attempt > 0) {
-        console.log(`[Credits] Verify retry ${attempt}/${maxAttempts - 1}`);
-        clearSecureMessages();  // Clear previous error before retry
-        setVerifyMessage(`Still verifying (attempt ${attempt + 1})...`);
-        await new Promise(r => setTimeout(r, 2000));  // Wait longer between retries
-      }
-
-      try {
-        const result = await apiFetch(endpoint, {
-          method: 'POST',
-          body: { email: pendingEmail, code }
-        });
-
-        lastResult = result;
-
-        // If not a timeout, break out of retry loop
-        if (!result.isTimeout) {
-          break;
-        }
-
-        console.log(`[Credits] Verify attempt ${attempt + 1} timed out, will retry`);
-      } catch (err) {
-        console.error(`[Credits] Verify attempt ${attempt + 1} error:`, err);
-        lastResult = { ok: false, error: err.message };
-        break;
-      }
-    }
-
-    const result = lastResult;
-
-    // Handle timeout after all retries - poll /api/me multiple times to detect eventual success
-    if (result?.isTimeout) {
-      console.log('[Credits] Verify timed out after retries, will poll for success');
-      setVerifyMessage('Verification taking longer than expected, checking status...');
-
-      // Poll /api/me multiple times to detect eventual success
-      const pollMaxAttempts = 5;
-      const pollInterval = 3000;  // 3 seconds between polls
-
-      for (let pollAttempt = 0; pollAttempt < pollMaxAttempts; pollAttempt++) {
-        if (pollAttempt > 0) {
-          await new Promise(r => setTimeout(r, pollInterval));
-          setVerifyMessage(`Checking verification status (${pollAttempt + 1}/${pollMaxAttempts})...`);
-        }
-
-        try {
-          const meResult = await apiFetch('/api/me', { timeout: 15000 });
-          if (meResult.ok && meResult.data?.ok && meResult.data.email_verified && meResult.data.email === pendingEmail) {
-            // Verification succeeded in background!
-            console.log('[Credits] Verification confirmed via /api/me poll');
-            // NEW-1: Clear stale caches from previous identity before loading new state
-            if (isRestoreMode && window.TimrXApi?.clearAllUserCaches) {
-              window.TimrXApi.clearAllUserCaches();
-              if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
-            }
-            clearSecureMessages();  // Clear any error messages
-            const wasRestoreMode = isRestoreMode;  // Capture before resetting
-            userEmail = pendingEmail;
-            emailVerified = true;
-            isRestoreMode = false;
-            // Identity fields only — wallet comes from /api/credits/wallet
-            WalletStore.update({
-              identityId: meResult.data.identity_id,
-              email: meResult.data.email,
-              emailVerified: true,
-            });
-            if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-            showSecureState(3);
-            verifyCodeBtn?.classList.remove('loading');
-            // Reload history for the (possibly new) identity
-            if (wasRestoreMode && window.loadHistoryFromDB) {
-              window.loadHistoryFromDB().then(() => {
-                if (window.renderHistory) window.renderHistory();
-              }).catch(() => {});
-            }
-            if (wasRestoreMode) {
-              await hydrateAndShowRestoreModal('poll_verify');
-            } else {
-              updateEmailBeaconUI();
-            }
-            return;
-          }
-        } catch (meErr) {
-          console.warn(`[Credits] /api/me poll ${pollAttempt + 1} failed:`, meErr);
-        }
-      }
-
-      // Still not verified after polling - show friendly error with retry suggestion
-      setVerifyError('Verification is taking too long. Your code may still be processing. Please wait a moment and click Verify again.');
-      verifyCodeBtn?.classList.remove('loading');
-      return;
-    }
-
-    if (!result?.ok) {
-      const errorCode = result?.data?.error?.code;
-      if (errorCode === 'INVALID_CODE') {
-        setVerifyError('Invalid or expired code');
-      } else if (errorCode === 'TOO_MANY_ATTEMPTS') {
-        setVerifyError('Too many attempts. Please request a new code.');
-      } else if (errorCode === 'CODE_EXPIRED') {
-        setVerifyError('Code has expired. Please request a new one.');
-      } else {
-        setVerifyError(result?.error || 'Verification failed');
-      }
-      verifyCodeBtn?.classList.remove('loading');
-      return;
-    }
-
-    // Success!
-    console.log('[Credits] Email verified successfully');
-    const wasRestoreMode = isRestoreMode; // Capture before resetting
-    const identityChanged = result?.data?.identity_changed || false;
-    // Clear stale caches when identity changed (restore or cross-identity account switch)
-    if ((wasRestoreMode || identityChanged) && window.TimrXApi?.clearAllUserCaches) {
-      window.TimrXApi.clearAllUserCaches();
-      if (window.clearLocalHistoryCache) window.clearLocalHistoryCache();
-    }
-    userEmail = pendingEmail;
-    emailVerified = true;
-    isRestoreMode = false;
-
-    // Check if subscriptions were resumed
-    const subscriptionsResumed = result?.data?.subscriptions_resumed || 0;
-    console.log('[Credits] Subscriptions resumed:', subscriptionsResumed);
-
-    clearSecureMessages();
-
-    if (verifiedEmailEl) verifiedEmailEl.textContent = userEmail;
-    showSecureState(3);
-    verifyCodeBtn?.classList.remove('loading');
-
-    if ((wasRestoreMode || identityChanged) && window.loadHistoryFromDB) {
-      window.loadHistoryFromDB().then(() => { window.renderHistory?.(); }).catch(() => {});
-    }
-
-    if (wasRestoreMode) {
-      // Single hydration: commits identity+wallet+subscription, renders navbar, opens modal
-      await hydratePostAuthUI({
-        reason: 'verify_success',
-        redeemData: result?.data,
-        fallbackEmail: pendingEmail,
-      });
-    } else if (subscriptionsResumed > 0) {
-      refreshCredits({ maxRetries: 1 }).catch(() => {});
-      updateEmailBeaconUI();
-      loadSubscriptionSummary(0, true);
-      showToast('Email verified. Subscription resumed.', 'success');
-    } else {
-      // Simple email verify (no restore) — just refresh shield
-      updateEmailBeaconUI();
-    }
-  }
-
-  /**
-   * Start resend cooldown timer (60 seconds)
-   */
-  function startResendCooldown() {
-    resendCooldown = 60;
-    updateResendButton();
-
-    if (resendTimer) clearInterval(resendTimer);
-
-    resendTimer = setInterval(() => {
-      resendCooldown--;
-      updateResendButton();
-
-      if (resendCooldown <= 0) {
-        clearInterval(resendTimer);
-        resendTimer = null;
-      }
-    }, 1000);
-  }
-
-  function updateResendButton() {
-    if (!resendCodeBtn) return;
-
-    if (resendCooldown > 0) {
-      resendCodeBtn.disabled = true;
-      resendCodeBtn.textContent = `Resend (${resendCooldown}s)`;
-    } else {
-      resendCodeBtn.disabled = false;
-      resendCodeBtn.textContent = 'Resend Code';
-    }
-  }
-
-  /**
-   * Resend verification code
-   * Uses optimistic UI - shows success message even on timeout
-   */
-  async function resendCode() {
-    if (resendCooldown > 0) return;
-
-    resendCodeBtn?.classList.add('loading');
-    clearSecureMessages();
-
-    try {
-      const endpoint = isRestoreMode
-        ? '/api/auth/restore/request'
-        : '/api/auth/email/attach';
-
-      const result = await apiFetch(endpoint, {
-        method: 'POST',
-        body: { email: pendingEmail },
-        timeout: 15000  // Longer timeout
-      });
-
-      // Handle rate limiting - show error
-      if (!result.ok && result.data?.error?.code === 'RATE_LIMITED') {
-        setVerifyError(result.data.error.message || 'Please wait before requesting another code');
-        return;
-      }
-
-      setVerifyMessage('New code sent! Check your email.');
-      startResendCooldown();
-
-      // Clear code input
-      if (verifyCodeInput) verifyCodeInput.value = '';
-
-      if (result.isTimeout) {
-        console.log('[Credits] Resend code timed out but proceeding optimistically');
-      }
-
-    } catch (err) {
-      console.error('[Credits] resendCode error:', err);
-      // Even on error, show optimistic message
-      setVerifyMessage('New code sent! Check your email.');
-      startResendCooldown();
-      if (verifyCodeInput) verifyCodeInput.value = '';
-    } finally {
-      resendCodeBtn?.classList.remove('loading');
-    }
-  }
-
-  /**
-   * Go back to change email
-   */
-  function changeEmail() {
-    isRestoreMode = false;
-    showSecureState(1);
-    if (secureEmailInput) {
-      secureEmailInput.value = pendingEmail || '';
-      secureEmailInput.focus();
-    }
-  }
-
-  /**
-   * Switch to restore mode for existing account
-   * Shows warning if user has credits on current identity
-   */
-  async function showRestoreMode() {
-    // Check if user has credits on their current anonymous identity
-    const currentCredits = walletAvailable || 0;
-
-    if (currentCredits > 0 && !emailVerified) {
-      // Warn user about potential credit loss
-      const confirmRestore = await showConfirm({
-        title: 'Switch Account?',
-        message: `You currently have <strong>${currentCredits.toLocaleString()}</strong> credits on this device.<br><br>If you restore a different account, you'll switch to that account's credits instead.`,
-        confirmText: 'Continue with Restore',
-        cancelText: 'Cancel',
-        icon: 'fa-arrow-right-arrow-left'
-      });
-
-      if (!confirmRestore) {
-        return; // User cancelled
-      }
-    }
-
-    isRestoreMode = true;
-    // Update UI to indicate restore mode
-    if (secureState1) {
-      const h3 = secureState1.querySelector('h3');
-      const subtitle = secureState1.querySelector('.secure-subtitle');
-      if (h3) h3.textContent = 'Restore Your Account';
-      if (subtitle) subtitle.textContent = 'Enter the email linked to your existing account.';
-    }
-    secureEmailInput?.focus();
-  }
-
-  /**
-   * Reset to attach mode (from restore mode)
-   */
-  function resetToAttachMode() {
-    isRestoreMode = false;
-    if (secureState1) {
-      const h3 = secureState1.querySelector('h3');
-      const subtitle = secureState1.querySelector('.secure-subtitle');
-      if (h3) h3.textContent = 'Your Account';
-      if (subtitle) subtitle.textContent = 'Add an email to access your account on any device.';
-    }
-  }
-
-  // Event listeners for secure credits section
-  sendCodeBtn?.addEventListener('click', sendCode);
-  verifyCodeBtn?.addEventListener('click', verifyCode);
-  resendCodeBtn?.addEventListener('click', resendCode);
-  changeEmailBtn?.addEventListener('click', changeEmail);
-  changeVerifiedEmailBtn?.addEventListener('click', () => {
-    emailVerified = false;
-    userEmail = '';
-    changeEmail();
-  });
-  showRestoreBtn?.addEventListener('click', showRestoreMode);
-
-  // "I already have a code" link - bind if exists, or add dynamically
-  const alreadyHaveCodeBtn = document.getElementById('alreadyHaveCodeBtn');
-  if (alreadyHaveCodeBtn) {
-    alreadyHaveCodeBtn.addEventListener('click', skipToCodeEntry);
-  } else if (secureState1) {
-    // Create the link dynamically if not in HTML
-    const existingLink = secureState1.querySelector('.already-have-code-link');
-    if (!existingLink) {
-      // Create a subtle text link placed below the email/button row
-      const link = document.createElement('button');
-      link.type = 'button';
-      link.className = 'already-have-code-link';
-      link.textContent = 'I already have a code';
-      link.addEventListener('click', skipToCodeEntry);
-
-      // Style it as a subtle link with tight spacing
-      Object.assign(link.style, {
-        background: 'none',
-        border: 'none',
-        color: 'rgba(255, 255, 255, 0.5)',
-        fontSize: '0.8rem',
-        cursor: 'pointer',
-        padding: '0.25rem 0',
-        marginTop: '0.35rem',
-        marginBottom: '0',
-        display: 'block',
-        width: '100%',
-        textAlign: 'center',
-        transition: 'color 0.2s ease',
-      });
-
-      // Hover effect
-      link.addEventListener('mouseenter', () => {
-        link.style.color = 'rgba(255, 255, 255, 0.8)';
-        link.style.textDecoration = 'underline';
-      });
-      link.addEventListener('mouseleave', () => {
-        link.style.color = 'rgba(255, 255, 255, 0.5)';
-        link.style.textDecoration = 'none';
-      });
-
-      // Insert after the email input row (parent of sendCodeBtn)
-      const sendBtnParent = sendCodeBtn?.parentElement;
-      if (sendBtnParent && sendBtnParent.parentElement) {
-        sendBtnParent.parentElement.insertBefore(link, sendBtnParent.nextSibling);
-      }
-    }
-  }
-
-  // Enter key handlers
-  secureEmailInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendCode();
-    }
-  });
-
-  verifyCodeInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      verifyCode();
-    }
-  });
-
-  // Auto-format code input (numbers only)
-  verifyCodeInput?.addEventListener('input', () => {
-    if (verifyCodeInput) {
-      verifyCodeInput.value = verifyCodeInput.value.replace(/\D/g, '').slice(0, 6);
-    }
-  });
 
   // ─────────────────────────────────────────────────────────────
-  // Account Status Shield (navbar, inside credits group)
-  // Single indicator replaces old emailBeacon + accountStatusBtn.
-  // Shield icon color: red (anonymous) / amber (unverified) / green (verified)
-  // Click: opens secure-credits flow or restore modal depending on state.
+  // Account Status (navbar)
+  // Updates the Sign In button label based on auth state.
   // ─────────────────────────────────────────────────────────────
 
   const accountStatusBtn = document.getElementById('accountStatusBtn');
 
   /**
-   * Update all account-safety UI: navbar shield, checkout button hints.
-   * Called by updateSecureCreditsUI() on every wallet/identity refresh.
+   * Update account UI: navbar button label + checkout button hints.
+   * Called on every wallet/identity refresh.
    */
   function updateEmailBeaconUI() {
-    // Update navbar shield indicator
     updateAccountStatusUI();
-    // Update checkout CTA button hints
     updateCheckoutButtonStates();
   }
 
   function updateAccountStatusUI() {
-    if (!accountStatusBtn) return;
-
-    let status, tooltip;
-
-    if (emailVerified && userEmail) {
-      status = 'verified';
-      tooltip = 'Account secured';
-    } else if (userEmail && !emailVerified) {
-      status = 'unverified';
-      tooltip = 'Verify your email';
-    } else {
-      status = 'anonymous';
-      tooltip = 'Secure your account';
+    // Update the Sign In button label
+    const signInLabel = document.getElementById('signInBtnLabel');
+    if (signInLabel) {
+      if (emailVerified && userEmail) {
+        signInLabel.textContent = userEmail;
+      } else {
+        signInLabel.textContent = 'Sign In';
+      }
     }
 
+    if (!accountStatusBtn) return;
+    const status = (emailVerified && userEmail) ? 'verified' : (!userEmail ? 'anonymous' : 'unverified');
+    const tooltip = (emailVerified && userEmail) ? `Signed in as ${userEmail}` : 'Sign In';
     accountStatusBtn.setAttribute('data-status', status);
     accountStatusBtn.setAttribute('data-tooltip', tooltip);
     accountStatusBtn.setAttribute('aria-label', tooltip);
-
-    // Shield icon stays fa-shield-halved in all states — color does the work
-    // (icon is set in HTML, no className swap needed)
   }
 
   /**
@@ -4943,18 +3638,14 @@
   }
 
   accountStatusBtn?.addEventListener('click', () => {
-    if (emailVerified) {
-      openRestoreAccountModal();
-    } else if (secureCreditsCard && !secureCreditsCard.classList.contains('expanded')) {
-      openSecureCreditsModal();
-    }
+    import('./auth-modal.js').then(m => m.openAuthModal());
   });
 
   // ─────────────────────────────────────────────────────────────
-  // UPDATED INIT: Also update secure credits UI
+  // WALLET → BEACON SYNC
   // ─────────────────────────────────────────────────────────────
 
-  // Update secure credits UI whenever WalletStore gets identity data.
+  // Update beacon UI whenever WalletStore gets identity data.
   // The timrx:wallet event fires on every WalletStore.update(), so this
   // catches the Hub boot /api/me response, restore success, and any later
   // refresh — without relying on a fixed timer that races the boot fetch.
@@ -4964,7 +3655,7 @@
     // event from overwriting a post-restore verified state).
     if (snap.email && snap.email !== null) userEmail = snap.email;
     if (snap.emailVerified) emailVerified = true;
-    updateSecureCreditsUI();
+    updateEmailBeaconUI();
   }
   window.addEventListener('timrx:wallet', _syncBeaconFromStore);
   // Also run once after a short delay for the initial render (covers the case
@@ -5138,13 +3829,7 @@
 
       // Add verify button handler
       document.getElementById('pausedVerifyBtn')?.addEventListener('click', () => {
-        openSecureCreditsModal();
-        if (userEmail && sentToEmail) {
-          pendingEmail = userEmail;
-          sentToEmail.textContent = userEmail;
-          showSecureState(2);
-          verifyCodeInput?.focus();
-        }
+        import('./auth-modal.js').then(m => m.openAuthModal());
       });
     }
 
@@ -5723,3 +4408,4 @@
   console.log('[Credits] Hub credits module ready');
 
 })();
+

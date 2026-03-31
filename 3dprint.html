@@ -18,6 +18,7 @@
   <link rel="alternate" hreflang="en-gb" href="https://timrx.live/3dprint" />
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/3dprint" />
 
+  
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
@@ -240,9 +241,10 @@
 
     <!-- Credits & Actions (top-right) -->
     <div class="ws-credits" id="workspaceCreditsGroup">
-      <!-- Account safety shield — next to Inspire button -->
-      <button type="button" id="emailBeacon" class="account-shield-ws" aria-label="Account status" title="Account status">
-        <i class="fa-solid fa-shield-halved"></i>
+      <!-- Account beacon — next to Inspire button -->
+      <button type="button" id="accountBeacon" class="account-shield-ws" data-status="anonymous" aria-label="Sign In" title="Sign In">
+        <i class="fa-solid fa-user" id="accountBeaconIcon"></i>
+        <span id="accountBeaconInitial" class="account-initial" style="display:none"></span>
       </button>
       <!-- Notification Center bell — between shield and inspire -->
       <button type="button" id="notificationBell" class="notification-bell-ws" aria-label="Notifications" title="Notifications">
@@ -3259,6 +3261,7 @@
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
   <script type="module" src="./js/main.js?v=20260323a"></script>
+  <script type="module" src="./js/auth-modal.js"></script>
 
   <!-- UI helper scripts -->
   <script>

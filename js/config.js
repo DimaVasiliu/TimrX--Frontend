@@ -570,8 +570,6 @@ export function clearAllUserCaches() {
  */
 const AUTH_LOST_EXCLUDE = [
   '/api/auth/restore/',
-  '/api/auth/request-code',
-  '/api/auth/verify-code',
 ];
 
 /**

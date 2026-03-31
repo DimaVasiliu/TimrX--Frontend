@@ -366,8 +366,8 @@
         </button>
         <!-- Credits Pill + Buy Button -->
         <div class="credits-group" id="creditsGroup">
-          <button type="button" class="account-status-btn" id="accountStatusBtn" aria-label="Account status">
-            <i class="fa-solid fa-shield-halved"></i>
+          <button type="button" class="account-status-btn" id="accountStatusBtn" aria-label="Sign In">
+            <i class="fa-solid fa-user"></i>
           </button>
           <span class="credits-pill" id="creditsPill">
             <i class="fa-solid fa-coins"></i>
@@ -674,18 +674,9 @@
     <div class="container">
       <div class="pricing-head">
         <div class="pricing-secure">
-          <button type="button" id="secureToggleBtn" class="secure-toggle-btn compact" aria-label="Account &amp; credits" aria-controls="secureCreditsCard" aria-expanded="false" title="Account &amp; credits">
-            <i class="fa-solid fa-shield-halved"></i>
-            <i class="fa-solid fa-chevron-down toggle-chevron" aria-hidden="true"></i>
+          <button type="button" id="signInBtn" class="btn ghost small" aria-label="Sign In" title="Sign In">
+            <i class="fa-solid fa-user"></i> <span id="signInBtnLabel">Sign In</span>
           </button>
-          <div class="secure-alert-wrap" id="secureInfoWrap">
-            <button type="button" id="secureInfoBtn" class="secure-info-btn" aria-label="Account info" aria-haspopup="dialog" aria-controls="secureInfoPopover" aria-expanded="false">
-              <span class="secure-alert-dot">!</span>
-            </button>
-            <div id="secureInfoPopover" class="secure-info-pop" role="dialog" aria-hidden="true">
-              <p>Your email lets you access your account on any device. On a new browser, use Restore to switch to your account.</p>
-            </div>
-          </div>
         </div>
         <h2 class="grad">Simple Pricing</h2>
         <p class="muted">Built for serious creators. No watermarks. Full ownership.</p>
@@ -901,31 +892,18 @@
         </div>
       </div>
 
-      <!-- Email Input + Subscribe -->
+      <!-- Subscribe Button -->
       <div id="subEmailState" class="sub-state">
-        <div class="field">
-          <input type="email" id="subCheckoutEmail" placeholder="Email for receipt" autocomplete="email" />
-        </div>
         <p class="sub-modal-message" id="subCheckoutMessage" style="display:none"></p>
         <p class="sub-modal-error" id="subCheckoutError" style="display:none"></p>
         <div class="cta-row">
-          <button type="button" class="btn" id="subCheckoutBtn" disabled>
+          <button type="button" class="btn" id="subCheckoutBtn">
             <span class="btn-text">Subscribe</span>
             <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
           </button>
         </div>
       </div>
 
-      <!-- Hidden stubs: kept so credits.js refs don't throw -->
-      <div id="subVerifyState" class="sub-state" style="display:none" aria-hidden="true">
-        <strong id="subSentToEmail"></strong>
-        <input type="hidden" id="subVerifyCode" />
-        <span id="subVerifyMessage"></span>
-        <span id="subVerifyError"></span>
-        <button type="button" id="subVerifyBtn" style="display:none"></button>
-        <button type="button" id="subResendCode" style="display:none"></button>
-        <button type="button" id="subBackToEmail" style="display:none"></button>
-      </div>
     </div>
   </div>
 
@@ -951,30 +929,17 @@
         </div>
       </div>
 
-      <!-- Email Input + Checkout -->
+      <!-- Video Buy Button -->
       <div id="videoBuyEmailState">
-        <div class="field">
-          <input type="email" id="videoBuyEmail" placeholder="Email for receipt" autocomplete="email" />
-        </div>
         <p class="sub-modal-error" id="videoBuyError" style="display:none"></p>
         <div class="cta-row">
-          <button type="button" class="btn" id="videoBuyBtn" disabled>
+          <button type="button" class="btn" id="videoBuyBtn">
             <span class="btn-text">Buy Video Credits</span>
             <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i></span>
           </button>
         </div>
       </div>
 
-      <!-- Hidden stubs: kept so credits.js refs don't throw -->
-      <div id="videoBuyVerifyState" style="display:none" aria-hidden="true">
-        <strong id="videoBuySentToEmail"></strong>
-        <input type="hidden" id="videoBuyVerifyCode" />
-        <span id="videoBuyVerifyMessage"></span>
-        <span id="videoBuyVerifyError"></span>
-        <button type="button" id="videoBuyVerifyBtn" style="display:none"></button>
-        <button type="button" id="videoBuyResendCode" style="display:none"></button>
-        <button type="button" id="videoBuyBackToEmail" style="display:none"></button>
-      </div>
     </div>
   </div>
 
@@ -1050,105 +1015,6 @@
     </div>
   </div>
 
-  <!-- ====================== ACCOUNT MODAL ====================== -->
-  <div id="secureModalBackdrop" class="secure-modal-backdrop"></div>
-  <div id="secureCreditsCard" class="secure-credits-card collapsed" role="dialog" aria-modal="true" aria-labelledby="secureModalTitle">
-    <button type="button" id="secureModalClose" class="secure-modal-close" aria-label="Close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div class="secure-icon">
-      <i class="fa-solid fa-shield-halved"></i>
-    </div>
-
-    <!-- State 1: No email attached -->
-    <div id="secureState1" class="secure-state">
-      <h3 id="secureModalTitle">Your Account</h3>
-      <p class="secure-subtitle">Add an email to access your account on any device.</p>
-
-      <div class="secure-form">
-        <div class="secure-input-group">
-          <input type="email" id="secureEmail" placeholder="your@email.com" autocomplete="email">
-          <button type="button" id="sendCodeBtn" class="btn">Send Code</button>
-        </div>
-        <p id="secureError" class="secure-error"></p>
-        <p id="secureMessage" class="secure-message"></p>
-      </div>
-    </div>
-
-    <!-- State 2: Code sent, awaiting verification -->
-    <div id="secureState2" class="secure-state" style="display: none;">
-      <h3>Enter Verification Code</h3>
-      <p class="secure-subtitle">We sent a 6-digit code to <span id="sentToEmail">your email</span></p>
-
-      <div class="secure-form">
-        <div class="secure-input-group code-input-group">
-          <input type="text" id="verifyCode" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
-          <button type="button" id="verifyCodeBtn" class="btn">Verify</button>
-        </div>
-        <p id="verifyError" class="secure-error"></p>
-        <p id="verifyMessage" class="secure-message"></p>
-        <p id="verifyRestoreHint" class="secure-hint" style="display: none; font-size: 0.85em; opacity: 0.7; margin-top: 4px;"></p>
-        <div class="secure-actions">
-          <button type="button" id="resendCodeBtn" class="btn ghost small" disabled>Resend Code</button>
-          <button type="button" id="changeEmailBtn" class="btn ghost small">Change Email</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- State 3: Verified -->
-    <div id="secureState3" class="secure-state" style="display: none;">
-      <h3>Email Verified</h3>
-      <p class="secure-subtitle"><i class="fa-solid fa-circle-check"></i> <span id="verifiedEmail">your@email.com</span></p>
-      <p class="secure-helper">Use this email to access your account on another device or browser.</p>
-      <button type="button" id="changeVerifiedEmailBtn" class="btn ghost small">Change Email</button>
-    </div>
-
-    <!-- Restore flow (for new devices) -->
-    <div id="restorePanel" class="restore-panel">
-      <div class="restore-divider">
-        <span>or</span>
-      </div>
-      <button type="button" id="showRestoreBtn" class="btn ghost">Restore Existing Account</button>
-    </div>
-
-    <!-- Subscription Section (shown when user has subscription) -->
-    <div id="subscriptionSection" class="subscription-section hidden">
-      <div class="modal-divider"></div>
-
-      <!-- Active Subscription -->
-      <div id="subscriptionCard" class="subscription-inline hidden">
-        <div class="subscription-header">
-          <i class="fa-solid fa-credit-card"></i>
-          <h4>Your Subscription</h4>
-        </div>
-        <div class="subscription-info">
-          <p class="subscription-plan"><i class="fa-solid fa-circle-check"></i> <span id="subscriptionPlanName">--</span></p>
-          <div class="subscription-details">
-            <span class="subscription-credits">
-              <i class="fa-solid fa-coins"></i>
-              <span id="subscriptionCredits">--</span> credits/month
-            </span>
-            <span class="subscription-status" id="subscriptionStatus">Active</span>
-          </div>
-          <p class="subscription-next" id="subscriptionNext">Next credits: --</p>
-        </div>
-        <button type="button" id="cancelSubscriptionBtn" class="btn ghost small">Cancel Subscription</button>
-      </div>
-
-      <!-- Cancelled Subscription -->
-      <div id="subscriptionCancelledCard" class="subscription-inline cancelled hidden">
-        <div class="subscription-header warning">
-          <i class="fa-solid fa-clock"></i>
-          <h4>Subscription Ending</h4>
-        </div>
-        <div class="subscription-info">
-          <p class="subscription-plan warning"><span id="cancelledPlanName">--</span></p>
-          <p class="subscription-ending">Access until: <strong id="subscriptionEndDate">--</strong></p>
-          <p class="subscription-helper">You can still use your remaining credits until this date.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- ====================== COMMUNITY ====================== -->
   <section id="community" class="community-wrap">
@@ -1392,14 +1258,11 @@
             <span class="selected-plan-price" id="selectedPlanPrice">-</span>
           </div>
 
-          <!-- Email Input + Checkout -->
+          <!-- Checkout Button -->
           <div id="checkoutEmailState">
-            <div class="field">
-              <input type="email" id="checkoutEmail" placeholder="Email for receipt" autocomplete="email" />
-            </div>
             <div class="checkout-error" id="checkoutError"></div>
             <div class="cta-row">
-              <button class="btn checkout-btn" id="checkoutBtn" type="button" disabled>
+              <button class="btn checkout-btn" id="checkoutBtn" type="button">
                 <span class="btn-text">Buy Credits</span>
                 <span class="btn-loader" style="display:none;">
                   <i class="fa-solid fa-spinner fa-spin"></i> Processing...
@@ -1408,16 +1271,6 @@
             </div>
           </div>
 
-          <!-- Hidden stubs: kept so credits.js refs don't throw -->
-          <div id="checkoutVerifyState" style="display:none" aria-hidden="true">
-            <strong id="checkoutSentToEmail"></strong>
-            <input type="hidden" id="checkoutVerifyCode" />
-            <span id="checkoutVerifyMessage"></span>
-            <span id="checkoutVerifyError"></span>
-            <button type="button" id="checkoutVerifyBtn" style="display:none"></button>
-            <button type="button" id="checkoutResendCode" style="display:none"></button>
-            <button type="button" id="checkoutBackToEmail" style="display:none"></button>
-          </div>
         </div>
 
         <p class="credits-footer">AI Image from 4 credits · 3D from 3–30 credits · Video sold separately</p>
@@ -1508,107 +1361,7 @@
       </div>
     </div>
 
-    <!-- ====================== GUEST CHOOSER MODAL ====================== -->
-    <div class="modal" id="guestChooserModal" aria-hidden="true">
-      <div class="modal-content modal-sm">
-        <button type="button" class="modal-close" id="guestChooserClose" aria-label="Close">&times;</button>
-        <div class="secure-icon"><i class="fa-solid fa-shield-halved"></i></div>
-        <h3>Your Account</h3>
-        <p class="secure-subtitle">Choose how you'd like to proceed.</p>
-        <div class="guest-chooser-options">
-          <button type="button" class="chooser-option" id="chooserSecure">
-            <div class="chooser-option-icon"><i class="fa-solid fa-lock"></i></div>
-            <div class="chooser-option-text">
-              <strong>Secure Your Account</strong>
-              <span>Add an email so you can access your account on any device.</span>
-            </div>
-            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
-          </button>
-          <button type="button" class="chooser-option" id="chooserRestore">
-            <div class="chooser-option-icon"><i class="fa-solid fa-arrow-rotate-left"></i></div>
-            <div class="chooser-option-text">
-              <strong>I Already Have an Account</strong>
-              <span>Restore your existing TimrX account using your email.</span>
-            </div>
-            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- ====================== RESTORE ACCOUNT MODAL (logged-in users) ====================== -->
-    <div class="modal" id="restoreAccountModal" aria-hidden="true">
-      <div class="modal-content modal-sm">
-        <button type="button" class="modal-close" id="restoreAccountClose" aria-label="Close">&times;</button>
-
-        <!-- Step 1: Intro / explanation -->
-        <div id="raStep1" class="ra-step">
-          <div class="secure-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-          <h3>Restore Another Account</h3>
-          <p class="secure-subtitle">
-            This will <strong>switch</strong> you to a different TimrX account.
-            Your current credits and history will stay on your current account.
-          </p>
-          <div class="modal-actions">
-            <button type="button" class="btn" id="raNextToEmail">Continue</button>
-            <button type="button" class="btn ghost small" id="raCancelStep1">Cancel</button>
-          </div>
-          <div class="ra-logout-divider"><span>or</span></div>
-          <button type="button" class="btn ghost small ra-logout-btn" id="raLogoutBtn">
-            <i class="fa-solid fa-right-from-bracket"></i> Log Out
-          </button>
-        </div>
-
-        <!-- Step 2: Email entry -->
-        <div id="raStep2" class="ra-step" style="display:none">
-          <div class="secure-icon"><i class="fa-solid fa-envelope"></i></div>
-          <h3>Enter Account Email</h3>
-          <p class="secure-subtitle">Enter the email linked to the account you want to restore.</p>
-          <div class="ra-input-group">
-            <input type="email" id="raEmailInput" placeholder="your@email.com" autocomplete="email">
-          </div>
-          <p id="raEmailError" class="secure-error"></p>
-          <div class="modal-actions">
-            <button type="button" class="btn" id="raSendCodeBtn">Send Code</button>
-            <button type="button" class="btn ghost small" id="raBackToIntro">Back</button>
-          </div>
-        </div>
-
-        <!-- Step 3: Code sent / verification -->
-        <div id="raStep3" class="ra-step" style="display:none">
-          <div class="secure-icon"><i class="fa-solid fa-key"></i></div>
-          <h3>Enter Verification Code</h3>
-          <p class="secure-subtitle">We sent a 6-digit code to <strong id="raSentToEmail">your email</strong></p>
-          <div class="ra-input-group ra-code-input-group">
-            <input type="text" id="raCodeInput" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
-          </div>
-          <p id="raCodeError" class="secure-error"></p>
-          <p id="raCodeMessage" class="secure-message"></p>
-          <div class="modal-actions">
-            <button type="button" class="btn" id="raVerifyBtn">Verify</button>
-            <div class="ra-code-actions">
-              <button type="button" class="btn ghost small" id="raResendBtn" disabled>Resend Code</button>
-              <button type="button" class="btn ghost small" id="raChangeEmail">Change Email</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4: Final confirmation before switching -->
-        <div id="raStep4" class="ra-step" style="display:none">
-          <div class="secure-icon" style="color: #f0ad4e"><i class="fa-solid fa-triangle-exclamation"></i></div>
-          <h3>Switch Account?</h3>
-          <p class="secure-subtitle" id="raConfirmMessage">
-            You are about to switch to the account linked to <strong id="raConfirmEmail">email</strong>.
-          </p>
-          <p class="modal-note" id="raConfirmCredits"></p>
-          <p class="modal-note">Your current credits and history will remain on your current account. This action switches your active session.</p>
-          <div class="modal-actions">
-            <button type="button" class="btn" id="raConfirmSwitch">Switch Account</button>
-            <button type="button" class="btn ghost small" id="raCancelSwitch">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- ====================== GENERIC CONFIRM MODAL ====================== -->
     <div class="modal" id="confirmModal" aria-hidden="true">
@@ -1960,6 +1713,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
+    <script type="module" src="js/auth-modal.js"></script>
 
     <!-- Lazy-load model-viewer only when the 3D section scrolls into view -->
     <script>

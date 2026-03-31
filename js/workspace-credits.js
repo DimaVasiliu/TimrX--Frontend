@@ -1346,38 +1346,56 @@ export function updateWallet(wallet) {
 // ============================================================================
 
 /**
- * Update account shield status indicator (workspace navbar).
- * Always visible. Color reflects account safety state.
- * Click navigates to hub account section.
+ * Update account beacon status indicator (workspace navbar).
+ * Shows person icon for anonymous, email initial for verified.
  */
 function updateEmailBeaconUI() {
-  const shield = document.getElementById('emailBeacon');
-  if (!shield) return;
+  const beacon = document.getElementById('accountBeacon');
+  const icon = document.getElementById('accountBeaconIcon');
+  const initial = document.getElementById('accountBeaconInitial');
+  if (!beacon) return;
 
-  let status;
   if (creditsState.emailVerified && creditsState.email) {
-    status = 'verified';
-  } else if (creditsState.email && !creditsState.emailVerified) {
-    status = 'unverified';
+    beacon.setAttribute('data-status', 'verified');
+    beacon.setAttribute('title', `Signed in as ${creditsState.email}`);
+    beacon.setAttribute('aria-label', `Account: ${creditsState.email}`);
+    if (icon) icon.style.display = 'none';
+    if (initial) {
+      initial.textContent = creditsState.email[0].toUpperCase();
+      initial.style.display = '';
+    }
   } else {
-    status = 'anonymous';
+    beacon.setAttribute('data-status', 'anonymous');
+    beacon.setAttribute('title', 'Sign In');
+    beacon.setAttribute('aria-label', 'Sign In');
+    if (icon) icon.style.display = '';
+    if (initial) initial.style.display = 'none';
   }
-  shield.setAttribute('data-status', status);
 }
 
-function handleBeaconClick() {
-  window.location.href = '/hub#secure-credits';
+async function handleBeaconClick() {
+  const { openAuthModal } = await import('./auth-modal.js');
+  openAuthModal();
 }
 
-function setupEmailBeaconListeners() {
-  const shield = document.getElementById('emailBeacon');
-  shield?.addEventListener('click', handleBeaconClick);
+function setupAccountBeaconListeners() {
+  const beacon = document.getElementById('accountBeacon');
+  beacon?.addEventListener('click', handleBeaconClick);
 }
+
+// Listen for auth events to refresh wallet
+window.addEventListener('timrx:auth:verified', async () => {
+  await fetchWallet();
+  updateEmailBeaconUI();
+});
+window.addEventListener('timrx:auth:switched', () => {
+  window.location.reload();
+});
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupEmailBeaconListeners);
+  document.addEventListener('DOMContentLoaded', setupAccountBeaconListeners);
 } else {
-  setupEmailBeaconListeners();
+  setupAccountBeaconListeners();
 }
 
 // ============================================================================
