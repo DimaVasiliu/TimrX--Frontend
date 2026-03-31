@@ -1362,7 +1362,7 @@ function updateEmailBeaconUI() {
     if (icon) icon.style.display = 'none';
     if (initial) {
       initial.textContent = creditsState.email[0].toUpperCase();
-      initial.style.display = '';
+      initial.style.display = 'flex';
     }
   } else {
     beacon.setAttribute('data-status', 'anonymous');

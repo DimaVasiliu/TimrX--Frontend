@@ -1350,6 +1350,23 @@
     filter: drop-shadow(0 0 3px rgba(52,211,153,.3));
   }
   
+  /* Verified state: show initial avatar instead of icon */
+  .account-shield-ws .account-initial {
+    display: none;  /* toggled to flex by JS when verified */
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34d399, #059669);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    box-shadow: 0 0 0 2px rgba(52,211,153,.25);
+  }
+  
   /* Mobile responsive */
   @media (max-width: 600px) {
     .account-shield-ws {
@@ -1357,6 +1374,12 @@
       height: 44px;
       font-size: 13px;
       margin: 0;
+    }
+    .account-shield-ws .account-initial {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+      line-height: 28px;
     }
   }
   

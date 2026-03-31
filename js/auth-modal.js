@@ -477,11 +477,19 @@ async function _fetchWallet() {
 }
 
 async function _fetchWalletAndShow(elementId) {
+  // Try the page's existing WalletStore first (already loaded, avoids race conditions)
+  const creditsEl = document.getElementById('creditsValue');
+  const existingBalance = creditsEl ? parseInt(creditsEl.textContent, 10) : NaN;
+
   const wallet = await _fetchWallet();
-  const balance = wallet?.balance ?? wallet?.available ?? 0;
+  const apiBal = wallet?.balance ?? wallet?.available ?? 0;
   const video = wallet?.video_balance ?? 0;
-  let text = `${balance} credits`;
-  if (video > 0) text += ` + ${video} video credits`;
+
+  // Use whichever is higher — avoids showing 0 when WalletStore has the real balance
+  const balance = (!isNaN(existingBalance) && existingBalance > apiBal) ? existingBalance : apiBal;
+
+  let text = `${balance.toLocaleString()} credits`;
+  if (video > 0) text += ` + ${video.toLocaleString()} video credits`;
   _setText(elementId, text);
 }
 
