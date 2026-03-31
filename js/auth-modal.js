@@ -164,6 +164,7 @@ function _ensureInjected() {
         <p id="authAccountBalance" style="font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 0"></p>
         <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:16px">
           <button type="button" id="authSwitchAccount" class="btn ghost small">Switch to a different account</button>
+          <button type="button" id="authLogoutBtn" class="auth-logout-btn">Log out</button>
         </div>
       </div>
 
@@ -228,6 +229,24 @@ function _ensureInjected() {
     #authCard .secure-input-group input {
       width: 100%;
     }
+
+    /* Logout button — subtle, bottom of account view */
+    #authCard .auth-logout-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+      margin-top: 4px;
+    }
+    #authCard .auth-logout-btn:hover {
+      background: rgba(239,68,68,.1);
+      color: #f87171;
+    }
   `;
   document.head.appendChild(style);
 
@@ -257,6 +276,23 @@ function _ensureInjected() {
     _pendingEmail = '';
     _showStep('email');
   });
+
+  _el('authLogoutBtn').addEventListener('click', _handleLogout);
+}
+
+async function _handleLogout() {
+  _setLoading('authLogoutBtn', true, 'Logging out\u2026');
+  try {
+    await api('/api/me/logout', { method: 'POST' });
+  } catch { /* ignore errors — clear local state regardless */ }
+
+  // Clear all local auth state
+  window.TimrXApi?.clearAllUserCaches?.();
+  window.TimrXApi?.clearConfirmedIdentity?.();
+  try { localStorage.removeItem('timrx_auth_stamp'); } catch {}
+
+  // Reload the page to get a fresh anonymous session
+  window.location.reload();
 }
 
 // ── Step management ─────────────────────────────────────────────────────────
@@ -477,16 +513,17 @@ async function _fetchWallet() {
 }
 
 async function _fetchWalletAndShow(elementId) {
-  // Try the page's existing WalletStore first (already loaded, avoids race conditions)
-  const creditsEl = document.getElementById('creditsValue');
-  const existingBalance = creditsEl ? parseInt(creditsEl.textContent, 10) : NaN;
+  // Read the credits pill already on the page (most reliable, already formatted)
+  const creditsEl = document.getElementById('creditsValue') || document.getElementById('workspaceCredits');
+  const pillText = creditsEl?.textContent?.replace(/,/g, '').trim();
+  const pillBalance = pillText ? parseInt(pillText, 10) : NaN;
 
   const wallet = await _fetchWallet();
   const apiBal = wallet?.balance ?? wallet?.available ?? 0;
   const video = wallet?.video_balance ?? 0;
 
-  // Use whichever is higher — avoids showing 0 when WalletStore has the real balance
-  const balance = (!isNaN(existingBalance) && existingBalance > apiBal) ? existingBalance : apiBal;
+  // Use pill value if available and higher (avoids stale/partial API response)
+  const balance = (!isNaN(pillBalance) && pillBalance > apiBal) ? pillBalance : apiBal;
 
   let text = `${balance.toLocaleString()} credits`;
   if (video > 0) text += ` + ${video.toLocaleString()} video credits`;
@@ -502,13 +539,13 @@ function _setText(id, text) {
   if (el) el.textContent = text;
 }
 
-function _setLoading(btnId, loading) {
+function _setLoading(btnId, loading, loadingText) {
   const btn = _el(btnId);
   if (!btn) return;
   btn.disabled = loading;
   if (loading) {
     btn.dataset.originalText = btn.textContent;
-    btn.textContent = 'Please wait\u2026';
+    btn.textContent = loadingText || 'Please wait\u2026';
   } else {
     btn.textContent = btn.dataset.originalText || btn.textContent;
   }

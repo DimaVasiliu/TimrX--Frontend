@@ -3568,8 +3568,27 @@
     import('./auth-modal.js').then(m => m.openAuthModal());
   });
 
-  window.addEventListener('timrx:auth:verified', () => {
-    refreshCredits({ force: true });
+  window.addEventListener('timrx:auth:verified', async () => {
+    // Refresh identity first so emailVerified + userEmail update
+    try {
+      const meResult = await apiFetch('/api/me', { timeout: 15000 });
+      if (meResult.ok && meResult.data?.ok) {
+        userEmail = meResult.data.email || '';
+        emailVerified = meResult.data.email_verified || false;
+        identityId = meResult.data.identity_id;
+        WalletStore.update({
+          identityId: meResult.data.identity_id,
+          email: meResult.data.email,
+          emailVerified: meResult.data.email_verified,
+        });
+      }
+    } catch (e) {
+      console.warn('[Credits] Post-auth identity refresh failed:', e.message);
+    }
+    // Then refresh wallet balances
+    await refreshCredits({ force: true });
+    // Update all UI (icon, buttons, labels)
+    updateEmailBeaconUI();
   });
   window.addEventListener('timrx:auth:switched', () => {
     window.location.reload();
