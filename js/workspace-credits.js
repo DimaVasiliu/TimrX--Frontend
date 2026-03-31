@@ -45,6 +45,7 @@ const creditsState = {
   actionCosts: {},
   loaded: false,
   loading: false,
+  serverConfirmed: false,  // True only after server balance response received
   error: null,
   // Optimistic updates tracking
   pendingDeductions: [],  // Array of { id, amount, action, timestamp }
@@ -137,12 +138,12 @@ function renderCachedCreditsEarly() {
 
   if (walletCache && typeof walletCache.available_credits === 'number' && walletCache.identity_id) {
     displayValue = walletCache.available_credits.toLocaleString();
-    // Pre-populate wallet amounts for hasCreditsFor() — but NOT identityId
-    creditsState.wallet.available = walletCache.available_credits;
-    creditsState.wallet.balance = walletCache.available_credits;
+    // Display only — do NOT pre-populate creditsState.wallet.available from cache.
+    // Affordability checks must wait for server confirmation to prevent users
+    // acting on stale balance (e.g., clicking Generate with 0 real credits).
     cacheSource = 'cross-page';
     log('[Credits] Early render from cross-page cache:', walletCache.available_credits,
-        '(owner:', walletCache.identity_id.slice(0, 8) + '..., unconfirmed)');
+        '(owner:', walletCache.identity_id.slice(0, 8) + '..., display only, not authoritative)');
   }
   // NOTE: local credits cache (CREDITS_CACHE_KEY) has NO identity_id tag,
   // so it is not trustworthy for early render. We skip it — /api/me will
@@ -571,7 +572,8 @@ export async function initCredits() {
     }, 1500);
 
     creditsState.loaded = true;
-    log('[Credits] Initialization complete');
+    creditsState.serverConfirmed = true;
+    log('[Credits] Initialization complete (balance is server-confirmed)');
 
     // Update any UI elements
     updateCreditsUI();
@@ -648,9 +650,15 @@ export function getActionCost(action) {
 }
 
 /**
- * Check if user has enough credits for an action (pool-aware)
+ * Check if user has enough credits for an action (pool-aware).
+ * Returns false if balance has not been confirmed by the server yet,
+ * preventing actions based on stale cached values.
  */
 export function hasCreditsFor(action) {
+  if (!creditsState.serverConfirmed) {
+    log('[Credits] hasCreditsFor() blocked — balance not yet confirmed by server');
+    return false;
+  }
   const cost = getActionCost(action);
   if (isVideoAction(action)) {
     return creditsState.wallet.videoAvailable >= cost;
@@ -695,6 +703,20 @@ export function getActionCosts() {
  */
 export function isLoaded() {
   return creditsState.loaded;
+}
+
+/**
+ * Check if balance has been confirmed by the server
+ */
+export function isBalanceConfirmed() {
+  return creditsState.serverConfirmed;
+}
+
+/**
+ * Get server-confirmed balance, or null if not yet confirmed.
+ */
+export function getConfirmedBalance() {
+  return creditsState.serverConfirmed ? creditsState.wallet.available : null;
 }
 
 // ============================================================================
@@ -881,7 +903,7 @@ export function showInsufficientVideoCreditsMessage(required, available = null) 
   modal.querySelector('#video-credits-modal-buy').addEventListener('click', () => {
     closeModal();
     // Navigate to hub pricing section for video credits
-    window.location.href = 'hub.html#pricing';
+    window.location.href = '/hub#pricing';
   });
 
   // Close on Escape key
@@ -1344,7 +1366,7 @@ function updateEmailBeaconUI() {
 }
 
 function handleBeaconClick() {
-  window.location.href = 'hub.html#secure-credits';
+  window.location.href = '/hub#secure-credits';
 }
 
 function setupEmailBeaconListeners() {
@@ -1412,7 +1434,7 @@ export function updateCreditsUI() {
       creditsPill.style.cursor = 'pointer';
       creditsPill.addEventListener('click', () => {
         // Redirect to pricing section
-        window.location.href = 'hub.html#pricing';
+        window.location.href = '/hub#pricing';
       });
     }
 
@@ -1649,11 +1671,59 @@ export function showInsufficientCreditsMessage(action) {
     return;
   }
 
-  // Simple confirm dialog and redirect to pricing
-  const msg = `Insufficient credits.\n\nYou need ${cost} credits for this action but only have ${available} available.\nYou need ${needed} more credits.`;
-  if (confirm(msg + '\n\nWould you like to buy more credits?')) {
-    window.location.href = 'hub.html#pricing';
-  }
+  // Styled modal fallback (same design as the video credits modal in api.js)
+  _showStyledCreditsModal(cost, available, needed);
+}
+
+/**
+ * Dynamically-created styled modal for general insufficient credits.
+ * Used when the DOM-based modal and hub buy modal are both unavailable.
+ */
+function _showStyledCreditsModal(required, available, needed) {
+  const closeModal = () => {
+    const m = document.getElementById('insufficientGeneralCreditsModal');
+    if (m) m.remove();
+    document.removeEventListener('keydown', escHandler);
+  };
+  window._closeGeneralCreditsModal = closeModal;
+
+  document.getElementById('insufficientGeneralCreditsModal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'insufficientGeneralCreditsModal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:999999;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 700px at 50% 10%,rgba(255,255,255,.06),transparent 60%),rgba(0,0,0,.75);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);margin:0;padding:0';
+
+  modal.innerHTML = `
+    <div style="max-width:420px;text-align:center;padding:32px;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,0)),#0f0f0f;border:1px solid rgba(255,255,255,.14);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1)">
+      <button onclick="window._closeGeneralCreditsModal()" aria-label="Close" style="position:absolute;top:12px;right:12px;background:transparent;border:0;color:#cfcfcf;font-size:22px;line-height:1;cursor:pointer;padding:6px;border-radius:10px">&times;</button>
+      <div style="width:72px;height:72px;margin:0 auto 20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)">
+        <i class="fa-solid fa-coins" style="font-size:28px;color:#f0f0f0" aria-hidden="true"></i>
+      </div>
+      <h4 style="margin:0 0 16px;font-family:'Bebas Neue',system-ui,sans-serif;font-size:28px;letter-spacing:.5px;color:#f5f5f5">Not Enough Credits</h4>
+      <p style="margin:0 0 20px;color:rgba(255,255,255,.72);font-size:15px;line-height:1.6">
+        This action requires <strong style="color:#f0f0f0">${required}</strong> credits.<br>
+        You currently have <strong style="color:#f0f0f0">${available}</strong> credits.
+      </p>
+      <div style="margin:0 0 24px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+        <span style="font-size:14px;color:rgba(255,255,255,.6)">You need </span>
+        <strong style="color:#f0f0f0;font-size:15px">${needed}</strong>
+        <span style="font-size:14px;color:rgba(255,255,255,.6)"> more credits to continue.</span>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button onclick="window._closeGeneralCreditsModal()" style="padding:14px 24px;background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.72);border-radius:12px;cursor:pointer;font-weight:600;font-size:14px">Cancel</button>
+        <a href="/hub#pricing" style="padding:14px 24px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0)),#1a1a1a;border:1px solid rgba(255,255,255,.18);color:#f5f5f5;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 8px 20px rgba(0,0,0,.4)">Buy Credits</a>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  const escHandler = (e) => { if (e.key === 'Escape') closeModal(); };
+  document.addEventListener('keydown', escHandler);
 }
 
 // ============================================================================
@@ -1924,6 +1994,7 @@ export function applyBackendBalance(newBalance, source = 'api_response') {
   creditsState.wallet.available = balance;
   creditsState.wallet.balance = balance;
   creditsState.lastServerBalance = balance;
+  creditsState.serverConfirmed = true;
 
   // Cache for next page load
   cacheCreditsBalance(balance);
@@ -1991,6 +2062,8 @@ window.WorkspaceCredits = {
   setupBatchListeners: setupBatchCountListeners,
   showInsufficientCreditsMessage,
   isLoaded,
+  isBalanceConfirmed,
+  getConfirmedBalance,
   getIdentityId,
   canDownloadAssets,
   // Video credits API (separate pool)

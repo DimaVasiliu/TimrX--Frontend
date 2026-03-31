@@ -257,6 +257,60 @@ function checkCreditsFor(action, count = 1) {
 }
 
 /**
+ * Show a lightweight cost confirmation before a paid action.
+ * Returns a Promise that resolves to true (confirmed) or false (cancelled).
+ *
+ * @param {string} action - Action key (e.g., 'text-to-3d')
+ * @param {number} count - Batch count (default 1)
+ * @returns {Promise<boolean>}
+ */
+function confirmCostBeforeAction(action, count = 1) {
+  // If credits system isn't loaded or balance not confirmed, skip confirmation
+  // (checkCreditsFor or the server will catch the real issue)
+  if (!window.WorkspaceCredits?.isBalanceConfirmed?.()) {
+    return Promise.resolve(true);
+  }
+
+  const costPer = window.WorkspaceCredits.getActionCost(action) || 0;
+  const totalCost = costPer * count;
+  const balance = window.WorkspaceCredits.getAvailableCredits() || 0;
+  const balanceAfter = Math.max(0, balance - totalCost);
+
+  if (totalCost === 0) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    // Remove any existing confirmation bar
+    document.querySelector('.cost-confirm-bar')?.remove();
+
+    const bar = document.createElement('div');
+    bar.className = 'cost-confirm-bar';
+    bar.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;margin:8px 0;background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.3);border-radius:10px;font-size:13px;color:#e0e0e0;animation:fadeIn .15s ease';
+    bar.innerHTML = `
+      <span>${count > 1 ? count + '× ' : ''}${action.replace(/-/g,' ')} — <strong>${totalCost} credits</strong> (balance after: ${balanceAfter})</span>
+      <button class="cost-confirm-yes" style="padding:6px 16px;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:none;border-radius:8px;color:#fff;font-weight:600;font-size:13px;cursor:pointer">Confirm</button>
+      <button class="cost-confirm-no" style="padding:6px 16px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#aaa;font-size:13px;cursor:pointer">Cancel</button>
+    `;
+
+    const cleanup = (result) => {
+      bar.remove();
+      resolve(result);
+    };
+
+    bar.querySelector('.cost-confirm-yes').onclick = () => cleanup(true);
+    bar.querySelector('.cost-confirm-no').onclick = () => cleanup(false);
+
+    // Insert near the generate button
+    const target = document.querySelector('.gen-footer-card') || document.querySelector('.card:has(.gen-btn)') || document.querySelector('.gen-btn')?.parentElement;
+    if (target) {
+      target.prepend(bar);
+    } else {
+      // No DOM target found — auto-confirm
+      resolve(true);
+    }
+  });
+}
+
+/**
  * Reserve credits BEFORE making API call (optimistic reservation)
  * Shows "Reserving credits..." status and immediately reduces available
  *
@@ -374,11 +428,95 @@ function showInsufficientCreditsModal(cost, available, actionType = 'generation'
     return;
   }
 
-  // Final fallback: confirm dialog (never show negative numbers)
-  const msg = `This ${actionType} requires ${numCost} credits.\n\nYou currently have ${numAvailable} credits.\nYou need ${missing} more credits.`;
-  if (confirm(msg + '\n\nWould you like to buy more credits?')) {
-    window.location.href = '/pricing';
-  }
+  // Final fallback: dynamically-created styled modal (same design as video credits modal)
+  _showStyledGeneralCreditsModal(numCost, numAvailable, missing);
+}
+
+/**
+ * Dynamically-created styled modal for general insufficient credits.
+ * Mirrors showInsufficientVideoCreditsModal design but for general credits:
+ * - fa-coins icon instead of fa-video
+ * - Links to /hub#pricing instead of #video-pricing
+ * - No "separate from video credits" footer
+ *
+ * @param {number} required - Credits required
+ * @param {number} available - Credits the user has
+ * @param {number} needed - Additional credits needed (required - available)
+ */
+function _showStyledGeneralCreditsModal(required, available, needed) {
+  const closeModal = () => {
+    const m = document.getElementById('insufficientGeneralCreditsModal');
+    if (m) m.remove();
+    document.removeEventListener('keydown', escHandler);
+  };
+  window._closeGeneralCreditsModal = closeModal;
+
+  // Remove existing
+  document.getElementById('insufficientGeneralCreditsModal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'insufficientGeneralCreditsModal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-labelledby', 'insuffGeneralCreditsTitle');
+  modal.setAttribute('aria-modal', 'true');
+
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100vw';
+  modal.style.height = '100vh';
+  modal.style.zIndex = '999999';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.background = 'radial-gradient(1200px 700px at 50% 10%, rgba(255,255,255,0.06), transparent 60%), rgba(0,0,0,0.75)';
+  modal.style.backdropFilter = 'blur(10px) saturate(120%)';
+  modal.style.webkitBackdropFilter = 'blur(10px) saturate(120%)';
+  modal.style.margin = '0';
+  modal.style.padding = '0';
+
+  const hasNumbers = required > 0 || available > 0;
+  const bodyText = hasNumbers
+    ? `This action requires <strong style="color: #f0f0f0;">${required}</strong> credits.<br>You currently have <strong style="color: #f0f0f0;">${available}</strong> credits.`
+    : `You don't have enough credits for this action.`;
+  const neededBox = hasNumbers
+    ? `<div style="margin: 0 0 24px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
+        <span style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">You need </span>
+        <strong style="color: #f0f0f0; font-size: 15px;">${needed}</strong>
+        <span style="font-size: 14px; color: rgba(255, 255, 255, 0.6);"> more credits to continue.</span>
+      </div>`
+    : '';
+
+  modal.innerHTML = `
+    <div style="max-width: 420px; text-align: center; padding: 32px; position: relative; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0)), #0f0f0f; border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; box-shadow: 0 24px 80px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.10);">
+      <button onclick="window._closeGeneralCreditsModal()" aria-label="Close" style="position: absolute; top: 12px; right: 12px; background: transparent; border: 0; color: #cfcfcf; font-size: 22px; line-height: 1; cursor: pointer; padding: 6px; border-radius: 10px;">&times;</button>
+      <div style="width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);">
+        <i class="fa-solid fa-coins" style="font-size: 28px; color: #f0f0f0;" aria-hidden="true"></i>
+      </div>
+      <h4 id="insuffGeneralCreditsTitle" style="margin: 0 0 16px; font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 28px; letter-spacing: 0.5px; color: #f5f5f5;">Not Enough Credits</h4>
+      <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.72); font-size: 15px; line-height: 1.6;">
+        ${bodyText}
+      </p>
+      ${neededBox}
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button onclick="window._closeGeneralCreditsModal()" style="padding: 14px 24px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.72); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
+        <a href="/hub#pricing" id="insuffGeneralCreditsCtaBtn" style="padding: 14px 24px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)), #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.18); color: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);">Buy Credits</a>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  const escHandler = (e) => {
+    if (e.key === 'Escape') closeModal();
+  };
+  document.addEventListener('keydown', escHandler);
+
+  document.getElementById('insuffGeneralCreditsCtaBtn')?.focus();
 }
 
 /**
@@ -492,7 +630,8 @@ function handleApiError(response, action, reservationId = null) {
     if (window.WorkspaceCredits) {
       window.WorkspaceCredits.showInsufficientCreditsMessage(action);
     } else {
-      alert('Insufficient credits. Please purchase more credits to continue.');
+      // Styled modal fallback (no parsed values available — show generic message)
+      _showStyledGeneralCreditsModal(0, 0, 0);
     }
     return true;
   }
@@ -776,7 +915,7 @@ function showInsufficientVideoCreditsModal(required, available) {
       </div>
       <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button onclick="window.closeVideoCreditsModal()" style="padding: 14px 24px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.72); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
-        <a href="hub.html#video-pricing" id="insuffVideoCreditsCtaBtn" style="padding: 14px 24px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)), #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.18); color: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);">Buy Video Credits</a>
+        <a href="/hub#video-pricing" id="insuffVideoCreditsCtaBtn" style="padding: 14px 24px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)), #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.18); color: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);">Buy Video Credits</a>
       </div>
       <p style="margin: 20px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.45);">
         Video credits are separate from general credits.
@@ -975,10 +1114,80 @@ function handleGenerationTimeout(result, action) {
 
   log(`[Timeout] ${action} request timed out - job may still be processing on server`);
 
-  // NO ALERT - caller handles inline UI update and potential polling
-  // Credits will only be charged if generation succeeds on backend
+  // Show user-visible recovery message
+  showTimeoutRecoveryBanner(action);
 
   return true;
+}
+
+/**
+ * Show contextual next-step suggestions after model generation completes.
+ * Helps users discover Refine, Remesh, Rig, and STL export features.
+ */
+function showNextStepSuggestions(jobId, stage) {
+  // Only show for preview stage — refined models already went through this
+  if (stage && stage !== 'preview') return;
+
+  // Remove existing panel
+  document.querySelector('.next-steps-panel')?.remove();
+
+  const panel = document.createElement('div');
+  panel.className = 'next-steps-panel';
+  panel.style.cssText = 'padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-top:10px;font-size:13px;color:#ccc';
+  panel.innerHTML = `
+    <div style="font-weight:600;margin-bottom:8px;color:#e0e0e0">Model generated! Next steps:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);border-radius:8px;color:#7dd3fc;font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">10 cr</span></button>
+      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">6 cr</span></button>
+      <button class="next-step-btn" data-action="rig" style="padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:8px;color:#6ee7b7;font-size:12px;cursor:pointer">Rig <span class="btn-cost-badge">5 cr</span></button>
+      <button class="next-step-btn" data-action="export-stl" style="padding:6px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:12px;cursor:pointer">Export STL</button>
+    </div>
+  `;
+
+  // Wire up button clicks to switch tabs
+  panel.querySelectorAll('.next-step-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      panel.remove();
+      // Dispatch tab-switch event that 3dprint-app.js listens for
+      const tabMap = { refine: 'model', remesh: 'remesh', rig: 'rig', 'export-stl': 'export' };
+      const tabId = tabMap[action];
+      if (tabId) {
+        const tabBtn = document.querySelector(`[data-tab="${tabId}"]`);
+        if (tabBtn) tabBtn.click();
+      }
+    });
+  });
+
+  const target = document.querySelector('.gen-footer-card') || document.querySelector('.workspace-controls');
+  if (target) {
+    target.appendChild(panel);
+    // Auto-dismiss after 30 seconds
+    setTimeout(() => panel.remove(), 30000);
+  }
+}
+
+/**
+ * Show a visible banner when a generation request times out but
+ * the job may still be running server-side.
+ */
+function showTimeoutRecoveryBanner(action) {
+  // Remove existing banner
+  document.querySelector('.timeout-recovery-banner')?.remove();
+
+  const banner = document.createElement('div');
+  banner.className = 'timeout-recovery-banner';
+  banner.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 16px;margin:8px 0;background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);border-radius:10px;color:#e0e0e0;font-size:13px;animation:fadeIn .2s ease';
+  banner.innerHTML = `
+    <span style="font-size:18px;animation:spin 1.5s linear infinite">&#9203;</span>
+    <span>Your ${action.replace(/-/g, ' ')} is still generating on our servers. This typically takes 1-3 minutes. We'll update you when it's ready.</span>
+    <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:#888;font-size:16px;cursor:pointer">&times;</button>
+  `;
+
+  const target = document.querySelector('.gen-footer-card') || document.querySelector('.workspace-controls') || document.querySelector('.card:has(.gen-btn)');
+  if (target) {
+    target.prepend(banner);
+  }
 }
 
 // ============================================================================
@@ -1363,120 +1572,203 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
 // ============================================================================
 
 /**
- * Watch a text-to-3D job until completion
+ * Shared polling skeleton for all job watchers.
+ *
+ * Handles: dedup guard, abort control, cross-tab dedup, 500/403/404 handling,
+ * consecutive error tracking, adaptive delay, exponential backoff, offerStatusRetry.
+ *
+ * Each watcher provides its custom logic via the onStatus callback, which receives
+ * the status response and returns 'done' (stop polling) or 'continue'.
+ *
+ * @param {Object} opts
+ * @param {string} opts.jobId
+ * @param {string} opts.endpoint         - e.g. '/api/_mod/text-to-3d/status'
+ * @param {string} opts.label            - e.g. 'Text-to-3D' (for logs/error messages)
+ * @param {number} [opts.initialDelay=5000]
+ * @param {number} [opts.steadyDelay=10000]
+ * @param {number} [opts.rampUpAfter=30000]
+ * @param {number} [opts.maxAttempts=120]
+ * @param {number} [opts.maxConsecutiveErrors=5]
+ * @param {number} [opts.notFoundRetries=5]
+ * @param {number} [opts.abandonAfterSec]  - if set, stop polling after this many seconds
+ * @param {(st: object, prog: object, elapsed: number) => 'done'|'continue'|Promise<'done'|'continue'>} opts.onStatus
+ * @param {() => void} [opts.onTimeout]    - called when maxAttempts exceeded
+ * @param {() => void} [opts.onAbandon]    - called when abandonAfterSec exceeded
+ * @param {(msg: string) => void} [opts.onFatalError]
+ * @param {() => void} opts.restartFn      - passed to offerStatusRetry
+ * @param {() => void} [opts.onCleanup]    - called on any terminal exit (for interval cleanup)
+ * @returns {{ prog: object, ctl: { abort(): void } } | null}
  */
-export function watchJob(job_id, { isRecovery = false } = {}) {
-  if (State.watchers.has(job_id)) return;
+function createPoller({
+  jobId,
+  endpoint,
+  label,
+  initialDelay = 5000,
+  steadyDelay = 10000,
+  rampUpAfter = 30000,
+  maxAttempts = 120,
+  maxConsecutiveErrors = 5,
+  notFoundRetries = 5,
+  abandonAfterSec,
+  onStatus,
+  onTimeout,
+  onAbandon,
+  onFatalError,
+  restartFn,
+  onCleanup,
+  externalProg,
+}) {
+  if (State.watchers.has(jobId)) return null;
 
   let aborted = false;
   const ctl = { abort() { aborted = true; } };
-  State.watchers.set(job_id, ctl);
+  State.watchers.set(jobId, ctl);
 
-  const prog = UI.makeProgressDriver();
+  const prog = externalProg || UI.makeProgressDriver();
   let notFoundAttempts = 0;
-
-  // Polling safety: max attempts and error tracking
-  // Adaptive polling: 5s for first 30s (catch quick failures), then 10s steady state.
-  // 3D generation takes 1-5 minutes — frequent polls waste DB connections.
-  const MAX_POLL_ATTEMPTS = 120;
-  const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 5000;       // 5s — catch early failures quickly
-  const STEADY_DELAY = 10000;       // 10s — steady state during generation
-  const RAMP_UP_AFTER = 30000;      // switch to steady after 30s elapsed
-  const pollStartedAt = Date.now();
   let pollAttempts = 0;
   let consecutiveErrors = 0;
+  const pollStartedAt = Date.now();
 
-  const poll = async (delay = INITIAL_DELAY) => {
-    if (aborted) {
-      State.watchers.delete(job_id);
-      return;
-    }
+  const _cleanup = () => {
+    State.watchers.delete(jobId);
+    onCleanup?.();
+  };
+
+  const poll = async (delay = initialDelay) => {
+    if (aborted) { _cleanup(); return; }
 
     pollAttempts++;
 
-    // Safety: stop after max attempts
-    if (pollAttempts > MAX_POLL_ATTEMPTS) {
-      console.error(`[Text-to-3D] Max poll attempts (${MAX_POLL_ATTEMPTS}) exceeded for job ${job_id}`);
-      State.removeActiveJob(job_id);
-      State.watchers.delete(job_id);
-      prog.fail('Generation timed out - please try again');
-      handleJobFailure('Generation timed out after max attempts', 'text-to-3d', { isRecovery });
+    // Abandon policy (rig/animate): stop after N seconds, move to background
+    if (abandonAfterSec != null) {
+      const elapsedSec = (Date.now() - pollStartedAt) / 1000;
+      if (elapsedSec > abandonAfterSec) {
+        _cleanup();
+        onAbandon?.();
+        return;
+      }
+    }
+
+    // Max attempts exceeded
+    if (pollAttempts > maxAttempts) {
+      console.error(`[${label}] Max poll attempts (${maxAttempts}) exceeded for job ${jobId}`);
+      State.removeActiveJob(jobId);
+      _cleanup();
+      prog.fail(`${label} timed out - please try again`);
+      onTimeout?.();
       return;
     }
 
     try {
-      // Cross-tab dedup: use broadcast from another tab if fresh
-      const _xtab = _getCrossTabResult(job_id);
+      // Cross-tab dedup
+      const _xtab = _getCrossTabResult(jobId);
       const result = _xtab
         ? { ok: true, data: _xtab, status: 200 }
-        : await apiFetch(`/api/_mod/text-to-3d/status/${job_id}`);
-      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
+        : await apiFetch(`${endpoint}/${jobId}`);
+      if (!_xtab && result.ok) _broadcastPollResult(jobId, result.data);
 
-      // Fatal errors: stop polling immediately
+      // 500+ / HTML error page
       if (result.status >= 500 || result.isHtml) {
         consecutiveErrors++;
-        console.error(`[Text-to-3D] Server error (${result.status}) for job ${job_id}:`, result.error);
-
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          console.error(`[Text-to-3D] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
-          State.watchers.delete(job_id);
-          // Don't removeActiveJob — job may still be running on server
-          // Offer manual retry instead of permanent failure
-          offerStatusRetry(
-            job_id,
-            '/api/_mod/text-to-3d/status',
-            () => watchJob(job_id, { isRecovery: true }),
-            'Text-to-3D'
-          );
+        console.error(`[${label}] Server error (${result.status}) for job ${jobId}:`, result.error);
+        if (consecutiveErrors >= maxConsecutiveErrors) {
+          console.error(`[${label}] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
+          _cleanup();
+          offerStatusRetry(jobId, endpoint, restartFn, label);
           return;
         }
-
-        // Retry with exponential backoff for server errors
         const nextDelay = Math.min(MAX_DELAY, delay * 2);
         setTimeout(() => poll(nextDelay), nextDelay);
         return;
       }
 
-      // 403 Forbidden: access denied, stop polling
+      // 403 Forbidden
       if (result.status === 403) {
-        console.error(`[Text-to-3D] Access denied for job ${job_id}`);
-        State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
-        prog.fail('Generation failed - access denied');
+        console.error(`[${label}] Access denied for job ${jobId}`);
+        State.removeActiveJob(jobId);
+        _cleanup();
+        prog.fail(`${label} failed - access denied`);
+        onFatalError?.('Access denied');
         return;
       }
 
+      // 404 Not Found
       if (result.status === 404) {
-        notFoundAttempts += 1;
-        if (notFoundAttempts <= 5) {
+        notFoundAttempts++;
+        if (notFoundAttempts <= notFoundRetries) {
           setTimeout(() => poll(Math.min(1500, delay)), 1000);
           return;
         }
-        State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
+        State.removeActiveJob(jobId);
+        _cleanup();
         prog.clear();
         return;
       }
 
-      // Reset error counters on successful response
+      // Success — reset counters, delegate to watcher callback
       notFoundAttempts = 0;
       consecutiveErrors = 0;
-
       const st = result.data;
+      const elapsed = Date.now() - pollStartedAt;
 
-      if (st.message) prog.label(st.message);
-      if (typeof st.pct === 'number') {
-        // Meshy often reports 0% throughout generation, then jumps to 100.
-        // Simulate progress based on elapsed time so the user sees movement.
-        // Preview typically takes 1-3 minutes; ramp to 85% over 2 minutes.
-        const elapsed = Date.now() - pollStartedAt;
-        const simulated = Math.min(85, Math.floor((elapsed / 120000) * 85));
-        const pct = Math.min(98, Math.max(simulated, st.pct));
-        prog.jump(pct);
-        updateThumbnailProgress(job_id, pct);
+      const action = await onStatus(st, prog, elapsed);
+      if (action === 'done') {
+        _cleanup();
+        return;
       }
 
+      // Adaptive delay
+      const nextDelay = elapsed < rampUpAfter ? initialDelay : steadyDelay;
+      setTimeout(() => poll(nextDelay), nextDelay);
+
+    } catch (err) {
+      consecutiveErrors++;
+      console.error(`[${label}] Unexpected error polling job ${jobId}:`, err);
+      if (consecutiveErrors >= maxConsecutiveErrors) {
+        _cleanup();
+        offerStatusRetry(jobId, endpoint, restartFn, label);
+        return;
+      }
+      const retryDelay = Math.min(steadyDelay * 2, delay * 2);
+      setTimeout(() => poll(retryDelay), retryDelay);
+    }
+  };
+
+  poll();
+  return { prog, ctl };
+}
+
+
+/**
+ * Watch a text-to-3D job until completion
+ */
+export function watchJob(job_id, { isRecovery = false } = {}) {
+  createPoller({
+    jobId: job_id,
+    endpoint: '/api/_mod/text-to-3d/status',
+    label: 'Text-to-3D',
+    notFoundRetries: 5,
+    restartFn: () => watchJob(job_id, { isRecovery: true }),
+    onTimeout: () => {
+      handleJobFailure('Generation timed out after max attempts', 'text-to-3d', { isRecovery });
+    },
+    onStatus: async (st, prog, elapsed) => {
+      // --- progress ---
+      if (st.message) prog.label(st.message);
+      if (typeof st.pct === 'number') {
+        if (st.pct > 0) {
+          const pct = Math.min(98, st.pct);
+          prog.jump(pct);
+          updateThumbnailProgress(job_id, pct);
+        } else {
+          const gentle = Math.min(15, Math.floor((elapsed / 120000) * 15));
+          prog.jump(gentle);
+          updateThumbnailProgress(job_id, gentle);
+        }
+      }
+
+      // --- done ---
       if (st.status === 'done' && st.glb_url) {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
@@ -1484,19 +1776,17 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         // Update wallet - backend is authoritative (once per job)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          // Prefer new_balance from response, then wallet object, then force sync
           if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
             window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'text_to_3d_done');
           } else if (st.wallet?.available !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
             window.WorkspaceCredits.applyBackendBalance(st.wallet.available, 'text_to_3d_done_wallet');
           } else if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend(); // Force sync - backend is truth
+            window.WorkspaceCredits.syncWithBackend();
           } else {
             refreshCreditsInBackground();
           }
         }
 
-        // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
         const glbProxy = getLoadableModelUrl(st.glb_url);
         log('Job done:', { st, glbProxy, isS3: isTimrxS3Url(st.glb_url) });
 
@@ -1545,7 +1835,6 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           State.historyFreshThumbs.delete(job_id);
           renderHistory();
         }, 1800);
-        // Recovery: update history only, don't hijack the viewer
         if (!isRecovery) {
           State.setHistoryActiveModelId(job_id);
         }
@@ -1554,16 +1843,16 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         if (!isRecovery) {
           prog.jump(99, 'Downloading model...');
           await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
-          prog.done(st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
-          // Re-render after async model load to ensure the card shows
-          // the finished thumbnail (the microtask render before the await
-          // may have been blocked or dropped by rapid state changes).
+          const doneLabel = st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.';
+          const durationSuffix = st.generation_duration_ms
+            ? ` Generated in ${Math.round(st.generation_duration_ms / 1000)}s.`
+            : '';
+          prog.done(doneLabel + durationSuffix);
           renderHistory();
         } else {
           prog.clear();
         }
 
-        // Version stack: push for edit operations, dispatch event for action bar
         if (!isRecovery && (stage === 'remesh' || stage === 'texture')) {
           State.pushModelVersion({
             id: job_id,
@@ -1575,19 +1864,20 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           window.dispatchEvent(new CustomEvent('model:edited', { detail: { id: job_id, stage } }));
         }
 
-        // Show Discord share modal sparingly (once per 7 days, not on recovery)
+        if (!isRecovery) {
+          showNextStepSuggestions(job_id, stage);
+        }
+
         if (!isRecovery && shouldShowDiscordPrompt()) {
           markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || '', st.thumbnail_url || '');
         }
-        State.watchers.delete(job_id);
-        return;
+        return 'done';
       }
 
+      // --- failed ---
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
-        // Force sync with backend to show released credits (backend is truth)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
           if (window.WorkspaceCredits?.syncWithBackend) {
@@ -1601,49 +1891,18 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
         renderHistory();
         handleJobFailure(errorMsg, 'refine', { isRecovery });
-        return;
+        return 'done';
       }
 
-      // Adaptive polling: fast for first 30s, then steady 8s
-      const elapsed = Date.now() - pollStartedAt;
-      const nextDelay = elapsed < RAMP_UP_AFTER
-        ? Math.min(INITIAL_DELAY, delay)   // stay at 3s during ramp-up
-        : STEADY_DELAY;                    // 8s steady state
-      setTimeout(() => poll(nextDelay), nextDelay);
-    } catch (err) {
-      // Unexpected error - increment error counter and retry with backoff
-      consecutiveErrors++;
-      console.error(`[Text-to-3D] Unexpected error polling job ${job_id}:`, err);
-
-      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        console.error(`[Text-to-3D] Too many consecutive errors, stopping poll`);
-        State.watchers.delete(job_id);
-        offerStatusRetry(
-          job_id,
-          '/api/_mod/text-to-3d/status',
-          () => watchJob(job_id, { isRecovery: true }),
-          'Text-to-3D'
-        );
-        return;
-      }
-
-      // Retry with longer backoff on errors
-      const retryDelay = Math.min(STEADY_DELAY * 2, delay * 2);
-      setTimeout(() => poll(retryDelay), retryDelay);
-    }
-  };
-  poll();
+      return 'continue';
+    },
+  });
 }
 
 /**
  * Watch a Meshy task (remesh, texture, rig, image3d)
  */
 export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } = {}) {
-  if (State.watchers.has(job_id)) return;
-  let aborted = false;
-  const ctl = { abort() { aborted = true; } };
-  State.watchers.set(job_id, ctl);
-
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
     : kind === 'image3d'
@@ -1656,130 +1915,52 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
       ? 'Image to 3D'
       : 'Remeshing';
 
-  const prog = UI.makeProgressDriver();
-
   // For image3d, simulate progress since Meshy API doesn't return real progress
   const startTime = Date.now();
-  const estimatedDuration = kind === 'image3d' ? 120000 : 60000; // 2 mins for image3d, 1 min for others
+  const estimatedDuration = kind === 'image3d' ? 120000 : 60000;
   let simulatedPct = 0;
 
-  // Polling safety: adaptive timing to reduce DB pressure
-  const MAX_POLL_ATTEMPTS = 120;
-  const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 5000;
-  const STEADY_DELAY = 10000;
-  const RAMP_UP_AFTER = 30000;
-  const pollStartedAt = Date.now();
-  let pollAttempts = 0;
-  let consecutiveErrors = 0;
-
-  const poll = async (delay = INITIAL_DELAY) => {
-    if (aborted) {
-      State.watchers.delete(job_id);
-      return;
-    }
-
-    pollAttempts++;
-
-    // Safety: stop after max attempts
-    if (pollAttempts > MAX_POLL_ATTEMPTS) {
-      console.error(`[${stageLabel}] Max poll attempts (${MAX_POLL_ATTEMPTS}) exceeded for job ${job_id}`);
-      State.removeActiveJob(job_id);
-      State.watchers.delete(job_id);
-      prog.fail(`${stageLabel} timed out - please try again`);
+  createPoller({
+    jobId: job_id,
+    endpoint,
+    label: stageLabel,
+    notFoundRetries: 0,
+    restartFn: () => watchMeshyTask(job_id, kind, { isRecovery: true }),
+    onTimeout: () => {
       handleJobFailure(`${stageLabel} timed out after max attempts`, kind, { isRecovery });
-      return;
-    }
-
-    try {
-      // Cross-tab dedup: use broadcast from another tab if fresh
-      const _xtab = _getCrossTabResult(job_id);
-      const result = _xtab
-        ? { ok: true, data: _xtab, status: 200 }
-        : await apiFetch(`${endpoint}/${job_id}`);
-      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
-
-      // Fatal errors: stop polling immediately
-      if (result.status >= 500 || result.isHtml) {
-        consecutiveErrors++;
-        console.error(`[${stageLabel}] Server error (${result.status}) for job ${job_id}:`, result.error);
-
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          console.error(`[${stageLabel}] Too many consecutive errors (${consecutiveErrors}), stopping poll`);
-          State.watchers.delete(job_id);
-          offerStatusRetry(
-            job_id,
-            endpoint,
-            () => watchMeshyTask(job_id, kind, { isRecovery: true }),
-            stageLabel
-          );
-          return;
-        }
-
-        // Retry with exponential backoff for server errors
-        const nextDelay = Math.min(MAX_DELAY, delay * 2);
-        setTimeout(() => poll(nextDelay), nextDelay);
-        return;
-      }
-
-      // 403 Forbidden: access denied, stop polling
-      if (result.status === 403) {
-        console.error(`[${stageLabel}] Access denied for job ${job_id}`);
-        State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
-        prog.fail(`${stageLabel} failed - access denied`);
-        return;
-      }
-
-      // 404 Not Found: job doesn't exist, stop polling
-      if (result.status === 404) {
-        State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
-        prog.clear();
-        return;
-      }
-
-      // Reset error counter on successful response
-      consecutiveErrors = 0;
-
-      const st = result.data;
-
-      // Use real progress if available, otherwise simulate for image3d
+    },
+    onStatus: async (st, prog, elapsed) => {
+      // --- progress ---
       if (typeof st.pct === 'number' && st.pct > 0) {
         const pct = Math.min(98, Math.max(0, st.pct));
         prog.jump(pct);
         updateThumbnailProgress(job_id, pct);
       } else if (kind === 'image3d' && st.status !== 'done' && st.status !== 'failed') {
-        // Simulate progress for image3d (asymptotic approach to 95%)
-        const elapsed = Date.now() - startTime;
-        simulatedPct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsed / estimatedDuration))));
+        const elapsedMs = Date.now() - startTime;
+        simulatedPct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsedMs / estimatedDuration))));
         prog.jump(simulatedPct);
         updateThumbnailProgress(job_id, simulatedPct);
       }
 
+      // --- done ---
       if (st.status === 'done') {
         const meta = State.getPendingMeta()[job_id] || {};
         State.removeActiveJob(job_id);
 
-        // Update wallet - backend is authoritative (once per job)
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
-          // Prefer new_balance from response, then wallet object, then force sync
           if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
             window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'meshy_done');
           } else if (st.wallet?.available !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
             window.WorkspaceCredits.applyBackendBalance(st.wallet.available, 'meshy_done_wallet');
           } else if (window.WorkspaceCredits?.syncWithBackend) {
-            window.WorkspaceCredits.syncWithBackend(); // Force sync - backend is truth
+            window.WorkspaceCredits.syncWithBackend();
           } else {
             refreshCreditsInBackground();
           }
         }
 
-        const glbDirect = st.glb_url
-          || (st.model_urls && st.model_urls.glb)
-          || '';
-        // Use S3 URL directly if available (no proxy needed), otherwise proxy Meshy URLs
+        const glbDirect = st.glb_url || (st.model_urls && st.model_urls.glb) || '';
         const glbProxy = glbDirect ? getLoadableModelUrl(glbDirect) : '';
         const existingItem = State.findHistoryItem(job_id) || {};
         const existingPrompt = existingItem.prompt || '';
@@ -1824,7 +2005,6 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         if (State.historyHasJobId(job_id)) State.updateHistoryItem(job_id, historyData);
         else State.addHistoryItem(historyData);
 
-        // Recovery: update history only, don't hijack the viewer
         if (!isRecovery) {
           State.setHistoryActiveModelId(job_id);
         }
@@ -1845,19 +2025,16 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           prog.done(`${stageLabel} complete.`);
         }
 
-        // Show Discord share modal for texture completions (respects cooldown, not on recovery)
         if (!isRecovery && kind === 'texture' && shouldShowDiscordPrompt()) {
           markDiscordPromptShown();
           UI.showDiscordSharePrompt('model', meta.prompt || promptCandidate || '', st.thumbnail_url || meta.thumbnail_url || '');
         }
-        State.watchers.delete(job_id);
-        return;
+        return 'done';
       }
 
+      // --- failed ---
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
-        State.watchers.delete(job_id);
-        // Sync credits from backend (once per job) to show released credits
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
           if (window.WorkspaceCredits?.syncWithBackend) {
@@ -1871,38 +2048,12 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
         renderHistory();
         handleJobFailure(errorMsg, kind, { isRecovery });
-        return;
+        return 'done';
       }
 
-      // Adaptive polling: fast for first 30s, then steady 8s
-      const elapsed = Date.now() - pollStartedAt;
-      const nextDelay = elapsed < RAMP_UP_AFTER
-        ? Math.min(INITIAL_DELAY, delay)
-        : STEADY_DELAY;
-      setTimeout(() => poll(nextDelay), nextDelay);
-    } catch (err) {
-      // Unexpected error - increment error counter and retry with backoff
-      consecutiveErrors++;
-      console.error(`[${stageLabel}] Unexpected error polling job ${job_id}:`, err);
-
-      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        console.error(`[${stageLabel}] Too many consecutive errors, stopping poll`);
-        State.watchers.delete(job_id);
-        offerStatusRetry(
-          job_id,
-          endpoint,
-          () => watchMeshyTask(job_id, kind, { isRecovery: true }),
-          stageLabel
-        );
-        return;
-      }
-
-      // Retry with longer backoff on errors
-      const retryDelay = Math.min(STEADY_DELAY * 2, delay * 2);
-      setTimeout(() => poll(retryDelay), retryDelay);
-    }
-  };
-  poll();
+      return 'continue';
+    },
+  });
 }
 
 /**
@@ -2040,6 +2191,13 @@ export async function onGenerateClick() {
 
   // Check credits for entire batch before proceeding
   if (!checkCreditsFor('text-to-3d', batchCount)) {
+    releaseSubmitLock();
+    return;
+  }
+
+  // Show cost confirmation before charging
+  const confirmed = await confirmCostBeforeAction('text-to-3d', batchCount);
+  if (!confirmed) {
     releaseSubmitLock();
     return;
   }
@@ -5109,73 +5267,43 @@ export function watchRigJob(job_id) {
  * Poll rigging job with timing, stuck-job thresholds, and abandon policy.
  */
 function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
-  const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 5000;
-  const STEADY_DELAY = 10000;
-  const RAMP_UP_AFTER = 30000;
-  let consecutiveErrors = 0;
-
-  const poll = async (delay = INITIAL_DELAY) => {
-    const elapsedSec = (Date.now() - startedAt) / 1000;
-
-    // Abandon policy: stop active polling after threshold, move to background
-    if (elapsedSec > _RIG_THRESHOLDS.abandon) {
-      cleanup();
+  createPoller({
+    jobId: job_id,
+    endpoint: '/api/_mod/rig/status',
+    label: 'Rigging',
+    notFoundRetries: 0,
+    externalProg: prog,
+    abandonAfterSec: _RIG_THRESHOLDS.abandon,
+    restartFn: () => watchRigJob(job_id),
+    onCleanup: cleanup,
+    onAbandon: () => {
       prog.pct(95, 'Rigging moved to background — check history for results.');
       State.updateHistoryItem(job_id, {
         status: 'generating',
         status_label: 'Processing in background...'
       });
-      // Keep job in active list so history shows it, but stop polling
-      console.warn(`[Rig] Abandoned active polling for ${job_id} after ${Math.round(elapsedSec)}s`);
-      return;
-    }
-
-    try {
-      const _xtab = _getCrossTabResult(job_id);
-      const result = _xtab
-        ? { ok: true, data: _xtab, status: 200 }
-        : await apiFetch(`/api/_mod/rig/status/${job_id}`);
-      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
-
-      if (result.status >= 500 || result.isHtml) {
-        consecutiveErrors++;
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          cleanup();
-          offerStatusRetry(
-            job_id,
-            '/api/_mod/rig/status',
-            () => watchRigJob(job_id),
-            'Rigging'
-          );
-          return;
-        }
-        setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
-        return;
-      }
-
-      if (result.status === 403 || result.status === 404) {
-        cleanup();
-        prog.fail('Rigging job not found');
-        return;
-      }
-
-      consecutiveErrors = 0;
-      const st = result.data;
-
-      // Feed real API progress — overrides estimate when > 0
+      console.warn(`[Rig] Abandoned active polling for ${job_id}`);
+    },
+    onFatalError: () => {
+      cleanup();
+      prog.fail('Rigging job not found');
+    },
+    onStatus: async (st, prog, elapsed) => {
+      // Feed real API progress
       const realPct = st.pct ?? st.progress ?? 0;
       est.feedReal(realPct);
 
-      // Track queue position for UX messaging (shared with interval timer)
+      // Track queue position
       if (st.preceding_tasks != null) shared.queuePos = st.preceding_tasks;
 
+      // --- done ---
       if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
         cleanup();
         await _handleRigComplete(job_id, st, prog);
-        return;
+        return 'done';
       }
 
+      // --- failed ---
       if (st.status === 'FAILED' || st.status === 'failed') {
         cleanup();
         prog.fail(st.message || st.error || 'Rigging failed');
@@ -5184,25 +5312,12 @@ function _pollRigJob(job_id, prog, est, cleanup, startedAt, shared) {
         State.deletePendingMeta(job_id);
         renderHistory();
         if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        return;
+        return 'done';
       }
 
-      // Adaptive polling: fast for first 30s, then steady 8s
-      const elapsed = Date.now() - startedAt;
-      const nextDelay = elapsed < RAMP_UP_AFTER ? INITIAL_DELAY : STEADY_DELAY;
-      setTimeout(() => poll(nextDelay), nextDelay);
-    } catch (err) {
-      consecutiveErrors++;
-      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        cleanup();
-        prog.fail('Rigging failed - network error');
-        return;
-      }
-      setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
-    }
-  };
-
-  poll();
+      return 'continue';
+    },
+  });
 }
 
 /**
@@ -5474,69 +5589,41 @@ export function watchAnimationJob(job_id) {
  * Poll animation job with stuck-job thresholds and abandon policy.
  */
 function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
-  const MAX_CONSECUTIVE_ERRORS = 5;
-  const INITIAL_DELAY = 5000;
-  const STEADY_DELAY = 10000;
-  const RAMP_UP_AFTER = 30000;
-  let consecutiveErrors = 0;
-
-  const poll = async (delay = INITIAL_DELAY) => {
-    const elapsedSec = (Date.now() - startedAt) / 1000;
-
-    if (elapsedSec > _ANIM_THRESHOLDS.abandon) {
-      cleanup();
+  createPoller({
+    jobId: job_id,
+    endpoint: '/api/_mod/rig/animate/status',
+    label: 'Animation',
+    notFoundRetries: 0,
+    externalProg: prog,
+    abandonAfterSec: _ANIM_THRESHOLDS.abandon,
+    restartFn: () => watchAnimationJob(job_id),
+    onCleanup: cleanup,
+    onAbandon: () => {
       prog.pct(95, 'Animation moved to background — check history for results.');
       State.updateHistoryItem(job_id, {
         status: 'generating',
         status_label: 'Processing in background...'
       });
-      console.warn(`[Anim] Abandoned active polling for ${job_id} after ${Math.round(elapsedSec)}s`);
-      return;
-    }
-
-    try {
-      const _xtab = _getCrossTabResult(job_id);
-      const result = _xtab
-        ? { ok: true, data: _xtab, status: 200 }
-        : await apiFetch(`/api/_mod/rig/animate/status/${job_id}`);
-      if (!_xtab && result.ok) _broadcastPollResult(job_id, result.data);
-
-      if (result.status >= 500 || result.isHtml) {
-        consecutiveErrors++;
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          cleanup();
-          offerStatusRetry(
-            job_id,
-            '/api/_mod/rig/animate/status',
-            () => watchAnimationJob(job_id),
-            'Animation'
-          );
-          return;
-        }
-        setTimeout(() => poll(Math.min(MAX_DELAY, delay * 2)), delay);
-        return;
-      }
-
-      if (result.status === 403 || result.status === 404) {
-        cleanup();
-        prog.fail('Animation job not found');
-        return;
-      }
-
-      consecutiveErrors = 0;
-      const st = result.data;
-
+      console.warn(`[Anim] Abandoned active polling for ${job_id}`);
+    },
+    onFatalError: () => {
+      cleanup();
+      prog.fail('Animation job not found');
+    },
+    onStatus: async (st, prog, elapsed) => {
       const realPct = st.pct ?? st.progress ?? 0;
       est.feedReal(realPct);
 
       if (st.preceding_tasks != null) shared.queuePos = st.preceding_tasks;
 
+      // --- done ---
       if (st.status === 'done' || st.status === 'SUCCEEDED' || st.status === 'succeeded') {
         cleanup();
         await _handleAnimComplete(job_id, st, prog);
-        return;
+        return 'done';
       }
 
+      // --- failed ---
       if (st.status === 'FAILED' || st.status === 'failed') {
         cleanup();
         prog.fail(st.message || st.error || 'Animation failed');
@@ -5545,23 +5632,12 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
         State.deletePendingMeta(job_id);
         renderHistory();
         if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-        return;
+        return 'done';
       }
 
-      // Adaptive polling: fast for first 30s, then steady 8s
-      const elapsed = Date.now() - startedAt;
-      const nextDelay = elapsed < RAMP_UP_AFTER ? INITIAL_DELAY : STEADY_DELAY;
-      setTimeout(() => poll(nextDelay), nextDelay);
-    } catch (err) {
-      consecutiveErrors++;
-      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        cleanup();
-        prog.fail('Animation failed - network error');
-        return;
-      }
-      setTimeout(() => poll(Math.min(STEADY_DELAY * 2, delay * 2)), delay);
-    }
-  };
+      return 'continue';
+    },
+  });
 
   poll();
 }

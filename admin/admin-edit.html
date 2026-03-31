@@ -236,7 +236,8 @@
 
   <script>
     const API = '/api';
-    const BACKEND = 'https://3d.timrx.live';
+    const _isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const BACKEND = _isLocalDev ? 'http://localhost:5001' : 'https://3d.timrx.live';
     const $ = s => document.querySelector(s);
 
     // API warmup

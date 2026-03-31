@@ -105,6 +105,14 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Primary 3D demo watch page -->
+  <url>
+    <loc>https://timrx.live/3dprint-demo-video</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- AI Knowledge Hub -->
   <url>
     <loc>https://timrx.live/ai-knowledge</loc>

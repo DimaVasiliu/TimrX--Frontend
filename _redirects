@@ -23,6 +23,7 @@
 /text-to-3d.html                /text-to-3d               301
 /image-to-3d.html               /image-to-3d              301
 /3d-print-model-generator.html  /3d-print-model-generator 301
+/3dprint-demo-video.html        /3dprint-demo-video       301
 /ai-tools.html                  /ai-tools                 301
 /ai-knowledge.html              /ai-knowledge             301
 
@@ -52,5 +53,6 @@
 /text-to-3d/                /text-to-3d               301
 /image-to-3d/               /image-to-3d              301
 /3d-print-model-generator/  /3d-print-model-generator 301
+/3dprint-demo-video/        /3dprint-demo-video       301
 /ai-tools/                  /ai-tools                 301
 /ai-knowledge/              /ai-knowledge             301

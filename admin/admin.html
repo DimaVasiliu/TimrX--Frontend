@@ -3995,9 +3995,10 @@
 
   <script>
     const API = `${location.origin}/api`;
-    // Backend servers for different API endpoints
-    const BACKEND = 'https://3d.timrx.live';    // Meshy backend (Flask) - billing, 3D
-    const CHAT_API = 'https://chat.timrx.live'; // Chat server (FastAPI) - usage stats
+    // Backend servers — auto-detect local dev vs production
+    const _isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const BACKEND = _isLocalDev ? 'http://localhost:5001' : 'https://3d.timrx.live';    // Meshy backend (Flask) - billing, 3D
+    const CHAT_API = _isLocalDev ? 'http://localhost:8000' : 'https://chat.timrx.live'; // Chat server (FastAPI) - usage stats
     const $$ = s => Array.from(document.querySelectorAll(s));
     const $ = s => document.querySelector(s);
     const tokenKey = 'TX_ADMIN_TOKEN';

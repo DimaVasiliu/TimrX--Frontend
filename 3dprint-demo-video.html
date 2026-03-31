@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>TimrX 3D Print Demo Video | AI 3D Model Creation Walkthrough</title>
+  <meta name="description" content="Watch the TimrX 3D print demo video covering AI-powered 3D model creation, prompt workflow, and print-ready output from text to final model." />
+  <meta name="robots" content="index, follow, max-video-preview:-1, max-image-preview:large" />
+  <link rel="canonical" href="https://timrx.live/3dprint-demo-video" />
+
+  <meta property="og:type" content="video.other" />
+  <meta property="og:url" content="https://timrx.live/3dprint-demo-video" />
+  <meta property="og:title" content="TimrX 3D Print Demo Video | AI 3D Model Creation Walkthrough" />
+  <meta property="og:description" content="A dedicated watch page for the primary TimrX 3D print demo video." />
+  <meta property="og:image" content="https://i.ytimg.com/vi/O24vOtyz3PE/maxresdefault.jpg" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/3dprint-demo-video" />
+  <meta name="twitter:title" content="TimrX 3D Print Demo Video | AI 3D Model Creation Walkthrough" />
+  <meta name="twitter:description" content="Watch the primary TimrX 3D print workflow demo on its dedicated watch page." />
+  <meta name="twitter:image" content="https://i.ytimg.com/vi/O24vOtyz3PE/maxresdefault.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "Everyone's Doing It: The EASIEST Way to Create Custom 3D Prints (ChatGPT + Meshy AI)",
+    "description": "Dedicated TimrX watch page for an AI-powered 3D print workflow demo covering prompt creation, model generation, and print-ready output.",
+    "thumbnailUrl": [
+      "https://i.ytimg.com/vi/O24vOtyz3PE/maxresdefault.jpg"
+    ],
+    "duration": "PT19M15S",
+    "embedUrl": "https://www.youtube.com/embed/O24vOtyz3PE",
+    "contentUrl": "https://www.youtube.com/watch?v=O24vOtyz3PE",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TimrX",
+      "url": "https://timrx.live"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "TimrX",
+        "item": "https://timrx.live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "3D Print Hub",
+        "item": "https://timrx.live/3dprint"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Demo Video",
+        "item": "https://timrx.live/3dprint-demo-video"
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #060606;
+      --panel: #101010;
+      --text: #f4f4f4;
+      --muted: #a8a8a8;
+      --line: rgba(255, 255, 255, 0.12);
+      --accent: #d7f758;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(215, 247, 88, 0.08), transparent 38%),
+        linear-gradient(180deg, #090909 0%, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand span:last-child {
+      color: var(--accent);
+    }
+
+    .backlink {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero {
+      padding: 56px 0 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 36px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 18px 0 18px;
+      max-width: 12ch;
+      font-size: clamp(2.4rem, 6vw, 4.8rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .lede {
+      max-width: 720px;
+      font-size: 1.08rem;
+      color: var(--muted);
+    }
+
+    .video-card {
+      margin: 34px 0 44px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-frame {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #000;
+    }
+
+    .video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .meta {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .meta strong {
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      padding-bottom: 64px;
+    }
+
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .button {
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      color: #111;
+      border-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a href="/" class="brand"><span>Timr</span><span>X</span></a>
+      <a href="/3dprint" class="backlink">Back to 3D Print Hub</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Watch Page</div>
+        <h1>AI 3D model creation demo</h1>
+        <p class="lede">This page isolates the primary TimrX 3D print workflow demo so search engines and users get a single-purpose video destination instead of finding the video buried inside a broader product page.</p>
+
+        <article class="video-card">
+          <div class="video-frame">
+            <iframe src="https://www.youtube.com/embed/O24vOtyz3PE" title="TimrX AI 3D model creation walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="meta">
+            <div><strong>Video:</strong> Everyone's Doing It: The EASIEST Way to Create Custom 3D Prints (ChatGPT + Meshy AI)</div>
+            <div><strong>Focus:</strong> Prompt-to-model workflow, printable output, and practical AI 3D creation steps.</div>
+            <div><strong>Duration:</strong> 19 minutes 15 seconds.</div>
+          </div>
+
+          <div class="actions">
+            <a class="button primary" href="/3dprint">Try TimrX 3D Print Hub</a>
+            <a class="button" href="https://www.youtube.com/watch?v=O24vOtyz3PE" rel="noopener">Open on YouTube</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Why this page exists</h2>
+          <p>The `/3dprint` page contains multiple videos and broader product content. This watch page gives the primary demo a dedicated URL, clearer intent, and focused metadata.</p>
+        </article>
+        <article class="panel">
+          <h2>What users learn</h2>
+          <p>The demo shows how AI-assisted prompting can move from concept to printable 3D output, which fits the main TimrX search intent far better than generic embedded tutorials.</p>
+        </article>
+        <article class="panel">
+          <h2>Next step</h2>
+          <p>If Google Search Console flags missing video fields, verify the YouTube publish date and add the exact `uploadDate` to the `VideoObject` block on this page.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
