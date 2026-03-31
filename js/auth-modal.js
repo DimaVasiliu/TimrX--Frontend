@@ -16,6 +16,7 @@
 // ── State ───────────────────────────────────────────────────────────────────
 let _currentStep = 'email';
 let _pendingEmail = '';
+let _isRestoreFlow = false;  // true when email belongs to another identity
 let _resendTimer = null;
 let _resendCooldown = 0;
 let _options = {};
@@ -304,18 +305,36 @@ async function _handleContinue() {
 
   _setText('authEmailError', '');
   _setLoading('authContinueBtn', true);
+  _isRestoreFlow = false;
 
   try {
+    // Step 1: Try to attach email to current identity
     const res = await api('/api/auth/email/attach', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
 
-    if (res.data?.ok || res.ok) {
+    const data = res.data || {};
+
+    if (data.hint === 'account_switch_required' || data.merge_disabled) {
+      // Email belongs to another account — use restore flow to send the code
+      _isRestoreFlow = true;
+      const restoreRes = await api('/api/auth/restore/request', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      if (restoreRes.data?.ok || restoreRes.ok) {
+        _pendingEmail = email;
+        _showStep('code');
+      } else {
+        _setText('authEmailError', restoreRes.data?.error?.message || 'Failed to send code. Please try again.');
+      }
+    } else if (data.ok || res.ok) {
+      // Email attached to current identity — code was sent by attach endpoint
       _pendingEmail = email;
       _showStep('code');
     } else {
-      _setText('authEmailError', res.data?.error?.message || res.data?.message || 'Failed to send code. Please try again.');
+      _setText('authEmailError', data.error?.message || data.message || 'Failed to send code. Please try again.');
     }
   } catch (err) {
     _setText('authEmailError', 'Network error. Please try again.');
@@ -336,7 +355,10 @@ async function _handleVerify() {
   _setLoading('authVerifyBtn', true);
 
   try {
-    const res = await api('/api/auth/email/verify', {
+    // Use restore/redeem for accounts that belong to another identity,
+    // email/verify for same-identity verification
+    const verifyUrl = _isRestoreFlow ? '/api/auth/restore/redeem' : '/api/auth/email/verify';
+    const res = await api(verifyUrl, {
       method: 'POST',
       body: JSON.stringify({ email: _pendingEmail, code }),
     });
@@ -347,12 +369,15 @@ async function _handleVerify() {
       _clearResendTimer();
       window.TimrXApi?.clearConfirmedIdentity?.();
 
-      const switched = data.identity_changed || data.switched || false;
-      const identityId = data.identity_id || '';
+      // restore/redeem always switches identity; email/verify may or may not
+      const switched = _isRestoreFlow || data.identity_changed || data.switched || false;
+      const identityId = data.identity_id || data.me?.identity_id || '';
 
       if (switched) {
         window.TimrXApi?.clearAllUserCaches?.();
-        const walletData = await _fetchWallet();
+        // restore/redeem includes wallet inline; email/verify needs a fetch
+        const inlineWallet = data.wallet;
+        const walletData = inlineWallet || await _fetchWallet();
         _setText('authWbEmail', _pendingEmail);
         const balance = walletData?.balance ?? walletData?.available ?? 0;
         _setText('authWbBalance', `Balance: ${balance} credits`);
@@ -394,8 +419,10 @@ async function _handleResend() {
   _setText('authCodeMessage', '');
   _setText('authCodeError', '');
 
+  // Use the same endpoint that originally sent the code
+  const resendUrl = _isRestoreFlow ? '/api/auth/restore/request' : '/api/auth/email/attach';
   try {
-    const res = await api('/api/auth/email/attach', {
+    const res = await api(resendUrl, {
       method: 'POST',
       body: JSON.stringify({ email: _pendingEmail }),
     });
