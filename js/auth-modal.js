@@ -14,20 +14,19 @@
  */
 
 // ── State ───────────────────────────────────────────────────────────────────
-let _currentStep = 'email'; // 'email' | 'code' | 'welcome' | 'welcome-back' | 'account'
+let _currentStep = 'email';
 let _pendingEmail = '';
 let _resendTimer = null;
 let _resendCooldown = 0;
-let _options = {};          // { onSuccess, onClose, redirectAfter }
+let _options = {};
 let _injected = false;
-let _identityCache = null;  // last /api/me response
+let _identityCache = null;
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 // ── API helper ──────────────────────────────────────────────────────────────
 function api(url, opts = {}) {
   if (window.TimrXApi?.apiFetch) return window.TimrXApi.apiFetch(url, opts);
-  // Fallback: direct fetch (shouldn't happen in practice)
   const base = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
   return fetch(`${base}${url}`, {
     credentials: 'include',
@@ -38,22 +37,14 @@ function api(url, opts = {}) {
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
-/**
- * Open the auth modal.
- * @param {Object} options
- * @param {Function} [options.onSuccess] — called after successful verify/switch
- * @param {Function} [options.onClose]   — called if user closes without completing
- * @param {string}   [options.redirectAfter] — URL to navigate to after success
- */
 export function openAuthModal(options = {}) {
   _options = options;
   _ensureInjected();
 
-  const modal = document.getElementById('authModal');
-  const backdrop = document.getElementById('authModalBackdrop');
-  if (!modal) return;
+  const backdrop = _el('authBackdrop');
+  const card = _el('authCard');
+  if (!backdrop || !card) return;
 
-  // Decide which step to show
   _fetchIdentity().then(identity => {
     _identityCache = identity;
     if (identity?.email_verified && identity?.email) {
@@ -61,43 +52,32 @@ export function openAuthModal(options = {}) {
     } else {
       _showStep('email');
     }
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-    if (backdrop) backdrop.classList.add('open');
-    // Focus first input
+    backdrop.classList.add('visible');
+    card.classList.remove('collapsed');
+    card.classList.add('expanded');
     setTimeout(() => {
-      const input = modal.querySelector('.auth-step:not([style*="display: none"]) input');
+      const input = card.querySelector('.auth-step:not([style*="display: none"]) input');
       input?.focus();
-    }, 100);
+    }, 120);
   });
 }
 
 export function closeAuthModal() {
-  const modal = document.getElementById('authModal');
-  const backdrop = document.getElementById('authModalBackdrop');
-  if (modal) {
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
-  }
-  if (backdrop) backdrop.classList.remove('open');
+  const backdrop = _el('authBackdrop');
+  const card = _el('authCard');
+  if (backdrop) backdrop.classList.remove('visible');
+  if (card) { card.classList.remove('expanded'); card.classList.add('collapsed'); }
   _clearResendTimer();
   if (_options.onClose && _currentStep !== 'welcome' && _currentStep !== 'welcome-back') {
     _options.onClose();
   }
 }
 
-/**
- * Returns true if the current identity has a verified email.
- */
 export function isAuthenticated() {
   if (_identityCache?.email_verified) return true;
-  // Fallback: check localStorage stamp
   try {
     const stamp = localStorage.getItem('timrx_auth_stamp');
-    if (stamp) {
-      const parsed = JSON.parse(stamp);
-      return !!parsed.emailVerified;
-    }
+    if (stamp) { return !!JSON.parse(stamp).emailVerified; }
   } catch { /* ignore */ }
   return false;
 }
@@ -109,168 +89,152 @@ function _ensureInjected() {
   _injected = true;
 
   const html = `
-    <div id="authModalBackdrop" class="auth-modal-backdrop"></div>
-    <div id="authModal" class="modal auth-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Sign In">
-      <div class="card auth-card">
-        <button type="button" class="auth-modal-close" id="authModalClose" aria-label="Close">&times;</button>
+    <div id="authBackdrop" class="secure-modal-backdrop"></div>
+    <div id="authCard" class="secure-credits-card collapsed" role="dialog" aria-modal="true" aria-label="Sign In">
 
-        <!-- Step 1: Email -->
-        <div id="authStep1" class="auth-step">
-          <h2 class="auth-heading">Sign in to TimrX</h2>
-          <p class="auth-subtitle">Enter your email to sign in or create an account.</p>
-          <div class="auth-field">
-            <input type="email" id="authEmailInput" class="auth-input" placeholder="you@example.com"
+      <button type="button" class="secure-modal-close" id="authClose" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Step 1: Email -->
+      <div id="authStep1" class="auth-step secure-state" style="text-align:center">
+        <div class="secure-icon"><i class="fa-solid fa-envelope"></i></div>
+        <h3>Sign in to TimrX</h3>
+        <p class="secure-subtitle">Enter your email to sign in or create an account</p>
+        <div class="secure-form">
+          <div class="secure-input-group" style="max-width:100%">
+            <input type="email" id="authEmailInput" placeholder="you@example.com"
                    autocomplete="email" required />
           </div>
-          <div id="authEmailError" class="auth-error" role="alert"></div>
-          <button type="button" id="authContinueBtn" class="btn auth-btn-primary">Continue</button>
+          <p id="authEmailError" class="secure-error"></p>
+          <button type="button" id="authContinueBtn" class="btn auth-action-btn" style="margin-top:4px">Continue</button>
         </div>
+      </div>
 
-        <!-- Step 2: Verify Code -->
-        <div id="authStep2" class="auth-step" style="display:none">
-          <h2 class="auth-heading">Enter verification code</h2>
-          <p class="auth-subtitle">We sent a 6-digit code to <strong id="authSentToEmail"></strong></p>
-          <div class="auth-field">
-            <input type="text" id="authCodeInput" class="auth-input auth-code-input"
+      <!-- Step 2: Verify Code -->
+      <div id="authStep2" class="auth-step secure-state" style="display:none;text-align:center">
+        <div class="secure-icon"><i class="fa-solid fa-key"></i></div>
+        <h3>Enter verification code</h3>
+        <p class="secure-subtitle">We sent a 6-digit code to <strong id="authSentToEmail"></strong></p>
+        <div class="secure-form">
+          <div class="secure-input-group code-input-group" style="max-width:100%;justify-content:center">
+            <input type="text" id="authCodeInput"
                    maxlength="6" inputmode="numeric" pattern="[0-9]*"
-                   autocomplete="one-time-code" placeholder="123456" />
+                   autocomplete="one-time-code" placeholder="000000" />
           </div>
-          <div id="authCodeError" class="auth-error" role="alert"></div>
-          <div id="authCodeMessage" class="auth-message"></div>
-          <button type="button" id="authVerifyBtn" class="btn auth-btn-primary">Verify</button>
-          <div class="auth-links">
-            <button type="button" id="authResendBtn" class="btn ghost small" disabled>Resend code (<span id="authResendCountdown">60</span>s)</button>
+          <p id="authCodeError" class="secure-error"></p>
+          <p id="authCodeMessage" class="secure-message"></p>
+          <button type="button" id="authVerifyBtn" class="btn auth-action-btn">Verify</button>
+          <div class="secure-actions" style="margin-top:10px">
+            <button type="button" id="authResendBtn" class="btn ghost small" disabled>Resend (<span id="authResendCountdown">60</span>s)</button>
             <button type="button" id="authChangeEmailBtn" class="btn ghost small">Change email</button>
           </div>
         </div>
+      </div>
 
-        <!-- Step 3A: Welcome (new user) -->
-        <div id="authStep3a" class="auth-step" style="display:none">
-          <div class="auth-icon-check">&#10003;</div>
-          <h2 class="auth-heading">Welcome to TimrX!</h2>
-          <p class="auth-subtitle">50 free credits have been added to your account.</p>
-          <div class="auth-actions">
-            <button type="button" id="authGoWorkspace" class="btn auth-btn-primary">Start Creating</button>
-            <button type="button" id="authBrowsePlans" class="btn ghost">Browse Plans</button>
-          </div>
-        </div>
-
-        <!-- Step 3B: Welcome Back (session switched) -->
-        <div id="authStep3b" class="auth-step" style="display:none">
-          <div class="auth-icon-check">&#10003;</div>
-          <h2 class="auth-heading">Welcome back!</h2>
-          <p class="auth-subtitle" id="authWbEmail"></p>
-          <p class="auth-balance" id="authWbBalance"></p>
-          <div class="auth-actions">
-            <button type="button" id="authWbGoWorkspace" class="btn auth-btn-primary">Go to Workspace</button>
-            <button type="button" id="authWbBrowsePlans" class="btn ghost">Browse Plans</button>
-          </div>
-        </div>
-
-        <!-- Step 3C: Already Verified (account view) -->
-        <div id="authStep3c" class="auth-step" style="display:none">
-          <div class="auth-icon-check">&#10003;</div>
-          <h2 class="auth-heading">Your Account</h2>
-          <p class="auth-subtitle">Signed in as <strong id="authAccountEmail"></strong></p>
-          <p class="auth-balance" id="authAccountBalance"></p>
-          <div class="auth-actions">
-            <button type="button" id="authSwitchAccount" class="btn ghost small">Switch to a different account</button>
-          </div>
+      <!-- Step 3A: Welcome (new user) -->
+      <div id="authStep3a" class="auth-step secure-state" style="display:none;text-align:center">
+        <div class="secure-icon" style="color:#4ade80"><i class="fa-solid fa-circle-check"></i></div>
+        <h3>Welcome to TimrX!</h3>
+        <p class="secure-subtitle">50 free credits have been added to your account</p>
+        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:12px">
+          <button type="button" id="authGoWorkspace" class="btn auth-action-btn">Start Creating</button>
+          <button type="button" id="authBrowsePlans" class="btn ghost small">Browse Plans</button>
         </div>
       </div>
+
+      <!-- Step 3B: Welcome Back (session switched) -->
+      <div id="authStep3b" class="auth-step secure-state" style="display:none;text-align:center">
+        <div class="secure-icon" style="color:#4ade80"><i class="fa-solid fa-circle-check"></i></div>
+        <h3>Welcome back!</h3>
+        <p class="secure-subtitle" id="authWbEmail"></p>
+        <p id="authWbBalance" style="font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 0"></p>
+        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:12px">
+          <button type="button" id="authWbGoWorkspace" class="btn auth-action-btn">Go to Workspace</button>
+          <button type="button" id="authWbBrowsePlans" class="btn ghost small">Browse Plans</button>
+        </div>
+      </div>
+
+      <!-- Step 3C: Already Verified (account view) -->
+      <div id="authStep3c" class="auth-step secure-state" style="display:none;text-align:center">
+        <div class="secure-icon" style="color:#4ade80"><i class="fa-solid fa-circle-check"></i></div>
+        <h3>Your Account</h3>
+        <p class="secure-subtitle"><i class="fa-circle-check fa-solid" style="color:#4ade80;margin-right:4px"></i> Signed in as <strong id="authAccountEmail"></strong></p>
+        <p id="authAccountBalance" style="font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 0"></p>
+        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:16px">
+          <button type="button" id="authSwitchAccount" class="btn ghost small">Switch to a different account</button>
+        </div>
+      </div>
+
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', html);
 
-  // ── Inline styles ──
+  // Minimal CSS — only what hub.css secure-credits styles don't already cover
   const style = document.createElement('style');
   style.textContent = `
-    .auth-modal-backdrop {
+    /* Auth modal — primary action button (matches checkout-btn pattern) */
+    #authCard .btn.auth-action-btn {
+      background: #fff;
+      color: #0b0b0b;
+      border-color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      padding: 12px 28px;
+      width: auto;
+      align-self: center;
+    }
+    #authCard .btn.auth-action-btn:hover {
+      background: #7dd3fc;
+      border-color: #7dd3fc;
+      color: #0b0b0b;
+      box-shadow: 0 8px 24px rgba(125,211,252,.3);
+    }
+    #authCard .btn.auth-action-btn:disabled {
+      background: rgba(255,255,255,.3);
+      border-color: transparent;
+      color: rgba(0,0,0,.5);
+      cursor: not-allowed;
+      transform: none;
+    }
+    #authCard .btn.auth-action-btn:disabled:hover {
+      background: rgba(255,255,255,.3);
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Code input — wider centered field */
+    #authCard .code-input-group input {
+      max-width: 220px;
+    }
+
+    /* Error/success text — match existing secure-error/secure-message */
+    #authCard .secure-error:empty,
+    #authCard .secure-message:empty {
       display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.55);
-      z-index: 9998;
     }
-    .auth-modal-backdrop.open { display: block; }
-    .auth-modal.open { display: grid; z-index: 9999; }
-    .auth-card {
-      position: relative;
-      max-width: 420px; width: 90vw;
-      padding: 2rem 2rem 1.5rem;
-      border-radius: 16px;
+
+    /* Form layout */
+    #authCard .secure-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .auth-modal-close {
-      position: absolute; top: 12px; right: 16px;
-      background: none; border: none;
-      font-size: 1.5rem; cursor: pointer;
-      color: var(--text-secondary, #888);
-      line-height: 1;
+    #authCard .secure-input-group {
+      width: 100%;
     }
-    .auth-modal-close:hover { color: var(--text-primary, #fff); }
-    .auth-heading { margin: 0 0 .25rem; font-size: 1.35rem; }
-    .auth-subtitle { margin: 0 0 1.25rem; opacity: .7; font-size: .95rem; line-height: 1.4; }
-    .auth-field { margin-bottom: .5rem; }
-    .auth-input {
-      width: 100%; padding: .65rem .85rem;
-      border: 1px solid var(--border, #333);
-      border-radius: 8px;
-      background: var(--surface, #1a1a1a);
-      color: var(--text-primary, #fff);
-      font-size: 1rem;
-      outline: none;
-      box-sizing: border-box;
-    }
-    .auth-input:focus { border-color: var(--accent, #C97A2B); }
-    .auth-code-input {
-      text-align: center; letter-spacing: .5em;
-      font-size: 1.5rem; font-family: monospace;
-    }
-    .auth-error {
-      color: #e74c3c; font-size: .85rem;
-      min-height: 1.2em; margin-bottom: .5rem;
-    }
-    .auth-message {
-      color: var(--accent, #C97A2B); font-size: .85rem;
-      min-height: 1.2em; margin-bottom: .5rem;
-    }
-    .auth-btn-primary {
-      width: 100%; padding: .7rem;
-      border: none; border-radius: 8px;
-      background: var(--accent, #C97A2B);
-      color: #fff; font-size: 1rem; font-weight: 600;
-      cursor: pointer; margin-top: .25rem;
-    }
-    .auth-btn-primary:hover { filter: brightness(1.1); }
-    .auth-btn-primary:disabled { opacity: .5; cursor: not-allowed; }
-    .auth-links {
-      display: flex; justify-content: space-between;
-      margin-top: .75rem; gap: .5rem;
-    }
-    .auth-links .btn { font-size: .82rem; }
-    .auth-actions {
-      display: flex; flex-direction: column; gap: .5rem;
-      margin-top: 1rem;
-    }
-    .auth-icon-check {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: var(--accent, #C97A2B);
-      color: #fff; font-size: 1.5rem;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 0 .75rem;
-    }
-    .auth-balance {
-      font-size: 1.1rem; font-weight: 600;
-      margin: .25rem 0 0;
+    #authCard .secure-input-group input {
+      width: 100%;
     }
   `;
   document.head.appendChild(style);
 
-  // ── Wire up events ──
-  _el('authModalClose').addEventListener('click', closeAuthModal);
-  _el('authModalBackdrop').addEventListener('click', closeAuthModal);
+  // ── Events ──
+  _el('authClose').addEventListener('click', closeAuthModal);
+  _el('authBackdrop').addEventListener('click', closeAuthModal);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && _el('authModal')?.classList.contains('open')) closeAuthModal();
+    if (e.key === 'Escape' && _el('authCard')?.classList.contains('expanded')) closeAuthModal();
   });
 
   _el('authContinueBtn').addEventListener('click', _handleContinue);
@@ -288,7 +252,10 @@ function _ensureInjected() {
   _el('authWbGoWorkspace').addEventListener('click', () => { closeAuthModal(); window.location.href = '/3dprint?refresh=1'; });
   _el('authWbBrowsePlans').addEventListener('click', () => { closeAuthModal(); _scrollToPricing(); });
 
-  _el('authSwitchAccount').addEventListener('click', () => _showStep('email'));
+  _el('authSwitchAccount').addEventListener('click', () => {
+    _pendingEmail = '';
+    _showStep('email');
+  });
 }
 
 // ── Step management ─────────────────────────────────────────────────────────
@@ -305,7 +272,6 @@ function _showStep(step) {
   const target = _el(steps[step]);
   if (target) target.style.display = '';
 
-  // Clear errors
   _setText('authEmailError', '');
   _setText('authCodeError', '');
   _setText('authCodeMessage', '');
@@ -379,16 +345,12 @@ async function _handleVerify() {
 
     if (data.ok || data.verified) {
       _clearResendTimer();
-
-      // Clear auth caches so fresh identity is loaded
       window.TimrXApi?.clearConfirmedIdentity?.();
 
-      // Determine if this was a session switch (identity changed)
       const switched = data.identity_changed || data.switched || false;
       const identityId = data.identity_id || '';
 
       if (switched) {
-        // Session switched to different identity — full refresh needed
         window.TimrXApi?.clearAllUserCaches?.();
         const walletData = await _fetchWallet();
         _setText('authWbEmail', _pendingEmail);
@@ -400,8 +362,7 @@ async function _handleVerify() {
           detail: { email: _pendingEmail, identityId },
         }));
       } else {
-        // Normal verification — same identity
-        const walletData = await _fetchWallet();
+        await _fetchWallet();
         const creditsGranted = data.welcome_bonus_credits || 50;
         _showStep('welcome');
 
@@ -410,10 +371,8 @@ async function _handleVerify() {
         }));
       }
 
-      // Update identity cache
       _identityCache = await _fetchIdentity();
 
-      // Callback
       if (_options.onSuccess) {
         _options.onSuccess({ email: _pendingEmail, identityId, switched });
       }
@@ -441,7 +400,7 @@ async function _handleResend() {
       body: JSON.stringify({ email: _pendingEmail }),
     });
     if (res.data?.ok || res.ok) {
-      _setText('authCodeMessage', 'Code resent!');
+      _setText('authCodeMessage', 'New code sent!');
       _startResendCooldown();
     } else {
       _setText('authCodeError', 'Failed to resend. Please try again.');
@@ -494,7 +453,7 @@ async function _fetchWalletAndShow(elementId) {
   const wallet = await _fetchWallet();
   const balance = wallet?.balance ?? wallet?.available ?? 0;
   const video = wallet?.video_balance ?? 0;
-  let text = `Balance: ${balance} credits`;
+  let text = `${balance} credits`;
   if (video > 0) text += ` + ${video} video credits`;
   _setText(elementId, text);
 }
@@ -514,7 +473,7 @@ function _setLoading(btnId, loading) {
   btn.disabled = loading;
   if (loading) {
     btn.dataset.originalText = btn.textContent;
-    btn.textContent = 'Please wait...';
+    btn.textContent = 'Please wait\u2026';
   } else {
     btn.textContent = btn.dataset.originalText || btn.textContent;
   }
