@@ -660,7 +660,7 @@ let _printToastTimer = null;
 
 function closeViewerPopovers() {
   document.getElementById('viewerSharePopover')?.classList.remove('is-visible');
-  document.getElementById('viewerPrintToast')?.classList.remove('is-visible');
+  document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
   if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
 }
 
@@ -669,7 +669,120 @@ function initViewerToolbar() {
   if (!toolbar) return;
 
   const sharePopover = document.getElementById('viewerSharePopover');
-  const printToast = document.getElementById('viewerPrintToast');
+  const printPanel = document.getElementById('viewerPrintPanel');
+
+  // ── Print Readiness Check ──
+  let _printCheckInFlight = false;
+
+  function showPrintPanelState(state) {
+    const loading = document.getElementById('printPanelLoading');
+    const error   = document.getElementById('printPanelError');
+    const results = document.getElementById('printPanelResults');
+    if (loading) loading.style.display = state === 'loading' ? '' : 'none';
+    if (error)   error.style.display   = state === 'error'   ? '' : 'none';
+    if (results) results.style.display = state === 'results' ? '' : 'none';
+  }
+
+  function renderPrintResults(data) {
+    // Score badge
+    const badge = document.getElementById('printScoreBadge');
+    const verdict = document.getElementById('printVerdict');
+    if (badge) {
+      badge.textContent = data.score;
+      badge.className = 'print-panel-score-badge';
+      if (data.score >= 70)      badge.classList.add('score-good');
+      else if (data.score >= 50) badge.classList.add('score-warn');
+      else                       badge.classList.add('score-bad');
+    }
+    if (verdict) {
+      verdict.textContent = data.is_printable ? 'Print-Ready' : 'Not Print-Ready';
+      verdict.style.color = data.is_printable ? '#4ade80' : '#f87171';
+    }
+
+    // Checks grid
+    const grid = document.getElementById('printChecksGrid');
+    if (grid) {
+      const c = data.checks || {};
+      const rows = [
+        { label: 'Watertight',    ok: c.is_manifold,          detail: c.is_manifold ? 'Yes' : 'No' },
+        { label: 'Face count',    ok: c.face_count_ok,        detail: c.face_count ? c.face_count.toLocaleString() : '—' },
+        { label: 'Clean faces',   ok: !c.has_degenerate_faces, detail: c.degenerate_face_count ? `${c.degenerate_face_count} bad` : 'All clean' },
+        { label: 'Volume',        ok: c.is_volume_positive,   detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³` : '—' },
+        { label: 'Dimensions',    ok: true,                   detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : '—' },
+      ];
+      grid.innerHTML = rows.map(r => `
+        <div class="print-check-row">
+          <span class="print-check-icon">${r.ok === true ? '✓' : r.ok === false ? '✗' : '—'}</span>
+          <span class="print-check-label">${r.label}</span>
+          <span class="print-check-detail">${r.detail}</span>
+        </div>
+      `).join('');
+    }
+
+    // Issues
+    const issuesList = document.getElementById('printIssuesList');
+    if (issuesList) {
+      if (data.issues?.length) {
+        issuesList.style.display = '';
+        issuesList.innerHTML = '<p class="print-section-title">Issues</p>' +
+          data.issues.map(i => `<p class="print-issue-item">• ${i}</p>`).join('');
+      } else {
+        issuesList.style.display = 'none';
+      }
+    }
+
+    // Suggestions
+    const suggestionsList = document.getElementById('printSuggestionsList');
+    if (suggestionsList) {
+      if (data.suggestions?.length) {
+        suggestionsList.style.display = '';
+        suggestionsList.innerHTML = '<p class="print-section-title">Suggestions</p>' +
+          data.suggestions.map(s => `<p class="print-suggestion-item">→ ${s}</p>`).join('');
+      } else {
+        suggestionsList.style.display = 'none';
+      }
+    }
+
+    showPrintPanelState('results');
+  }
+
+  async function runPrintCheck(item) {
+    if (_printCheckInFlight) return;
+    _printCheckInFlight = true;
+
+    const printBtn = toolbar.querySelector('[data-action="print"]');
+    if (printBtn) printBtn.classList.add('is-loading');
+
+    // Show panel with loading state
+    showPrintPanelState('loading');
+    printPanel?.classList.add('is-visible');
+
+    try {
+      const jobId = item.id || item.model_id;
+      const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(jobId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Server error (${res.status})`);
+      }
+      renderPrintResults(data);
+    } catch (err) {
+      showPrintPanelState('error');
+      const errMsg = document.getElementById('printPanelErrorMsg');
+      if (errMsg) errMsg.textContent = err.message || 'Analysis failed. Please try again.';
+    } finally {
+      _printCheckInFlight = false;
+      if (printBtn) printBtn.classList.remove('is-loading');
+    }
+  }
+
+  // Retry button inside error state
+  document.getElementById('printPanelRetryBtn')?.addEventListener('click', () => {
+    const item = API.getActiveHistoryItem();
+    if (item) runPrintCheck(item);
+  });
 
   // Share popover button clicks
   if (sharePopover) {
@@ -718,9 +831,8 @@ function initViewerToolbar() {
     if (!e.target.closest('#viewerSharePopover') && !e.target.closest('[data-action="share"]')) {
       sharePopover?.classList.remove('is-visible');
     }
-    if (!e.target.closest('#viewerPrintToast') && !e.target.closest('[data-action="print"]')) {
-      printToast?.classList.remove('is-visible');
-      if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
+    if (!e.target.closest('#viewerPrintPanel') && !e.target.closest('[data-action="print"]')) {
+      printPanel?.classList.remove('is-visible');
     }
   });
 
@@ -759,13 +871,10 @@ function initViewerToolbar() {
 
     if (action === 'print') {
       sharePopover?.classList.remove('is-visible');
-      const showing = printToast?.classList.toggle('is-visible');
-      if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
-      if (showing) {
-        _printToastTimer = setTimeout(() => {
-          printToast?.classList.remove('is-visible');
-          _printToastTimer = null;
-        }, 8000);
+      if (printPanel?.classList.contains('is-visible')) {
+        printPanel.classList.remove('is-visible');
+      } else if (activeItem) {
+        runPrintCheck(activeItem);
       }
     }
 
@@ -841,7 +950,7 @@ function initViewerActionBar() {
     actionBtns.forEach(btn => {
       const act = btn.dataset.action;
       // download, share, print, remesh, texture, evolve, retry all need a model
-      if (['download', 'remesh', 'texture', 'evolve', 'retry'].includes(act)) {
+      if (['download', 'remesh', 'texture', 'evolve', 'retry', 'print'].includes(act)) {
         btn.disabled = !hasModel;
       }
     });

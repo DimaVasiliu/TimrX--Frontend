@@ -673,10 +673,23 @@
 <section id="pricing" class="pricing-wrap">
     <div class="container">
       <div class="pricing-head">
-        <div class="pricing-secure">
-          <button type="button" id="signInBtn" class="btn ghost small" aria-label="Sign In" title="Sign In">
-            <i class="fa-solid fa-user"></i> <span id="signInBtnLabel">Sign In</span>
-          </button>
+        <!-- Auth banner — prominent for anon, subtle for signed-in -->
+        <div class="auth-banner" id="authBanner">
+          <div class="auth-banner-anon" id="authBannerAnon">
+            <div class="auth-banner-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <div class="auth-banner-content">
+              <span class="auth-banner-title">Sign in to get <strong>50 free credits</strong></span>
+              <span class="auth-banner-sub">Create AI images, 3D models & videos instantly</span>
+            </div>
+            <button type="button" id="signInBtn" class="auth-banner-btn" aria-label="Sign In">
+              <span id="signInBtnLabel">Sign In</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="auth-banner-verified" id="authBannerVerified" style="display:none">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="authBannerEmail"></span>
+          </div>
         </div>
         <h2 class="grad">Simple Pricing</h2>
         <p class="muted">Built for serious creators. No watermarks. Full ownership.</p>
@@ -1709,8 +1722,8 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
 
     <script src="hub.js"></script>
     <script src="js/fx.js"></script>
-    <script src="js/auth-modal.js?v=20260401f"></script>
-    <script src="js/credits.js?v=20260401f"></script>
+    <script src="js/auth-modal.js?v=20260401g"></script>
+    <script src="js/credits.js?v=20260401g"></script>
     <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>

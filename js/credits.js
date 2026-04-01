@@ -3706,7 +3706,12 @@
   // SIGN-IN BUTTON + AUTH HASH HANDLER  (new auth-modal.js)
   // ─────────────────────────────────────────────────────────────
   const signInBtn = document.getElementById('signInBtn');
-  signInBtn?.addEventListener('click', () => {
+  signInBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    Promise.resolve(window.TimrXAuth || {}).then(m => m.openAuthModal());
+  });
+  // Make the whole anon banner clickable too
+  document.getElementById('authBannerAnon')?.addEventListener('click', () => {
     Promise.resolve(window.TimrXAuth || {}).then(m => m.openAuthModal());
   });
 
@@ -3789,12 +3794,28 @@
     const isVerified = emailVerified || wsSnap.emailVerified;
     const email = userEmail || wsSnap.email || '';
 
-    // Update the Sign In button label
+    // Update the Sign In button label (inside auth banner)
     const signInLabel = document.getElementById('signInBtnLabel');
     if (signInLabel) {
       signInLabel.textContent = (isVerified && email) ? email : 'Sign In';
     }
 
+    // Toggle auth banner between anon and verified states
+    const bannerAnon = document.getElementById('authBannerAnon');
+    const bannerVerified = document.getElementById('authBannerVerified');
+    const bannerEmail = document.getElementById('authBannerEmail');
+    if (bannerAnon && bannerVerified) {
+      if (isVerified && email) {
+        bannerAnon.style.display = 'none';
+        bannerVerified.style.display = '';
+        if (bannerEmail) bannerEmail.textContent = email;
+      } else {
+        bannerAnon.style.display = '';
+        bannerVerified.style.display = 'none';
+      }
+    }
+
+    // Update navbar account icon
     if (!accountStatusBtn) return;
     const status = (isVerified && email) ? 'verified' : (!email ? 'anonymous' : 'unverified');
     const tooltip = (isVerified && email) ? `Signed in as ${email}` : 'Sign In';
