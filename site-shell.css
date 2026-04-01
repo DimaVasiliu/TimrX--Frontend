@@ -64,6 +64,7 @@
     justify-content: space-between;
     gap: 18px;
     min-height: var(--site-shell-nav-height);
+    position: relative;
   }
   
   .site-shell-nav-left,
@@ -110,8 +111,9 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    flex: 1 1 auto;
-    min-width: 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .site-shell-nav-link {
@@ -224,6 +226,50 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    position: relative;
+  }
+  
+  /* Account status colors */
+  .site-shell-account-btn[data-status="anonymous"] i {
+    color: #f87171;
+    filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.4));
+  }
+  
+  .site-shell-account-btn[data-status="unverified"] i {
+    color: #fbbf24;
+    filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.4));
+  }
+  
+  .site-shell-account-btn[data-status="verified"] i {
+    color: #34d399;
+    filter: drop-shadow(0 0 3px rgba(52, 211, 153, 0.3));
+  }
+  
+  /* Tooltip on hover */
+  .site-shell-account-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    white-space: nowrap;
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(10, 10, 12, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--site-shell-muted);
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1001;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+  
+  .site-shell-account-btn:hover::after {
+    opacity: 1;
+    transform: translateY(0);
   }
   
   .site-shell-credits-group {
@@ -558,12 +604,12 @@
   
   @media (max-width: 1120px) {
     .site-shell-nav-links {
-      gap: 6px;
+      gap: 4px;
     }
   
     .site-shell-nav-link {
-      padding: 0 12px;
-      font-size: 12px;
+      padding: 0 10px;
+      font-size: 11px;
     }
   
     .site-shell-footer-main {
