@@ -574,9 +574,9 @@
       </div>
     </div>
     <div class="demo-examples">
-      <button class="demo-chip active" data-prompt="A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes" type="button">Winged Pegasus</button>
+      <button class="demo-chip active" data-prompt="A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes" data-model="img/uni-web.glb" type="button">Winged Pegasus</button>
+      <button class="demo-chip" data-prompt="An aristocratic rabbit in a baroque blue coat with gold embroidery, standing upright on an ornate scrollwork pedestal, reading a royal decree" data-model="img/rabbit-web.glb" type="button">Royal Rabbit</button>
       <button class="demo-chip" data-prompt="Futuristic mech warrior suit with titanium armor and glowing joints" type="button">Mech Warrior</button>
-      <button class="demo-chip" data-prompt="Ancient bonsai tree growing from a cracked geode crystal" type="button">Bonsai Geode</button>
       <button class="demo-chip" data-prompt="Greek temple ruins with marble columns and overgrown vines" type="button">Temple Ruins</button>
     </div>
     <div style="text-align:center;margin-top:28px">
@@ -1675,6 +1675,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
 (function(){
   var chips = document.querySelectorAll('.demo-chip');
   var text = document.getElementById('demoPromptText');
+  var viewer = document.getElementById('demoModelViewer');
   if (!chips.length || !text) return;
   var activeInterval = null;
   chips.forEach(function(chip){
@@ -1684,6 +1685,12 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       // Clear any running typewriter
       if (activeInterval) clearInterval(activeInterval);
       var prompt = chip.getAttribute('data-prompt');
+      var model = chip.getAttribute('data-model');
+      // Swap 3D model if chip has one
+      if (model && viewer) {
+        viewer.setAttribute('src', model);
+      }
+      // Typewriter effect
       text.textContent = '';
       var i = 0;
       activeInterval = setInterval(function(){
