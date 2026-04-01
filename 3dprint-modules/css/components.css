@@ -2160,6 +2160,30 @@ textarea {
   gap: 8px;
 }
 
+.image-asset-header-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.image-asset-cap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  background: rgba(56, 189, 248, 0.08);
+  color: #bfeaff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .image-asset-badge {
   display: inline-flex;
   align-items: center;
@@ -2233,6 +2257,7 @@ textarea {
 
 .image-upload-status {
   min-width: 0;
+  max-width: 100%;
   padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -2253,6 +2278,48 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.image-upload-list--preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.image-upload-preview {
+  width: 72px;
+  flex: 0 0 72px;
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.image-upload-preview__image {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.image-upload-preview__caption {
+  width: 100%;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 8px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .image-upload-chip {
@@ -2291,6 +2358,47 @@ textarea {
 .image-upload-clear:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+}
+
+#imageReferenceAssetGroup {
+  gap: 6px;
+}
+
+#imageReferenceAssetGroup .image-asset-header {
+  align-items: flex-start;
+}
+
+#imageReferenceAssetGroup .image-upload-control {
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+#imageReferenceAssetGroup .image-upload-trigger {
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 7px 10px;
+}
+
+#imageReferenceAssetGroup .image-upload-trigger__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+#imageReferenceAssetGroup .image-upload-trigger__text small {
+  display: block;
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+#imageReferenceAssetGroup .image-upload-status {
+  min-height: 34px;
+}
+
+.image-upload-list.hidden {
+  display: none;
 }
 
 .image-upload-clear:disabled {

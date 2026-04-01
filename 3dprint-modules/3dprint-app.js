@@ -283,7 +283,10 @@
             <div class="image-asset-group hidden" id="imageReferenceAssetGroup">
               <div class="image-asset-header">
                 <label for="imageReferenceUpload">Reference Images</label>
-                <span class="image-asset-badge">Optional</span>
+                <div class="image-asset-header-meta">
+                  <span class="image-asset-cap">Up to 8</span>
+                  <span class="image-asset-badge">Optional</span>
+                </div>
               </div>
               <div class="image-upload-control">
                 <input id="imageReferenceUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp" multiple>
@@ -299,14 +302,14 @@
                   </span>
                   <span class="image-upload-trigger__text">
                     <strong>Add</strong>
-                    <small>Add one or more references</small>
+                    <small>Add up to 8 reference images</small>
                   </span>
                 </label>
                 <div class="image-upload-status is-empty" id="imageReferenceUploadStatus">No references selected</div>
                 <button type="button" class="image-upload-clear hidden" id="imageReferenceUploadClear">Clear</button>
               </div>
               <div class="image-upload-list hidden" id="imageReferenceUploadList"></div>
-              <span class="field-hint" id="imageReferenceUploadHint">Used by FLUX.2 and reference-guided modes.</span>
+              <span class="field-hint" id="imageReferenceUploadHint">Add up to 8 references to guide composition, style, pose, or materials.</span>
             </div>
 
             <div class="image-asset-group hidden" id="imageStyleReferenceAssetGroup">
@@ -3493,12 +3496,20 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         return Array.isArray(names) ? names.filter(Boolean) : (names ? [names] : []);
       }
 
+      function normalizeUploadAssets(assets) {
+        return Array.isArray(assets) ? assets.filter(Boolean) : (assets ? [assets] : []);
+      }
+
       function truncateUploadName(name) {
         return name && name.length > 28 ? `${name.slice(0, 25)}...` : name;
       }
 
-      function renderImageUploadGroup(groupEl, statusEl, listEl, clearBtn, names, emptyText, required = false) {
+      function renderImageUploadGroup(groupEl, statusEl, listEl, clearBtn, names, emptyText, required = false, options = {}) {
         const clean = normalizeUploadNames(names);
+        const cleanAssets = normalizeUploadAssets(options.assets);
+        const listMode = options.listMode || 'chips';
+        const previewMode = listMode === 'thumbs';
+        const maxCount = Number.isFinite(options.maxCount) ? options.maxCount : null;
         const badgeEl = groupEl?.querySelector('.image-asset-badge');
 
         groupEl?.classList.toggle('is-required', required);
@@ -3523,13 +3534,38 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (statusEl) {
           statusEl.textContent = clean.length === 0
             ? emptyText
-            : (clean.length === 1 ? truncateUploadName(clean[0]) : `${clean.length} selected`);
+            : (previewMode
+              ? (clean.length === 1 ? '1 selected' : (maxCount ? `${clean.length} of ${maxCount} selected` : `${clean.length} selected`))
+              : (clean.length === 1
+                ? truncateUploadName(clean[0])
+                : (maxCount ? `${clean.length} of ${maxCount} selected` : `${clean.length} selected`)));
           statusEl.classList.toggle('is-empty', clean.length === 0);
+          statusEl.title = clean.length ? clean.join(', ') : emptyText;
         }
 
         if (listEl) {
           listEl.innerHTML = '';
-          if (clean.length > 1) {
+          listEl.classList.toggle('image-upload-list--preview', previewMode && cleanAssets.length > 0);
+          if (previewMode && cleanAssets.length > 0) {
+            cleanAssets.forEach((asset, index) => {
+              const tile = document.createElement('figure');
+              tile.className = 'image-upload-preview';
+
+              const preview = document.createElement('img');
+              preview.className = 'image-upload-preview__image';
+              preview.src = asset;
+              preview.alt = clean[index] || `Reference ${index + 1}`;
+              tile.appendChild(preview);
+
+              const caption = document.createElement('figcaption');
+              caption.className = 'image-upload-preview__caption';
+              caption.textContent = truncateUploadName(clean[index] || `Reference ${index + 1}`);
+              tile.appendChild(caption);
+
+              listEl.appendChild(tile);
+            });
+            listEl.classList.remove('hidden');
+          } else if (clean.length > 1) {
             const visibleNames = clean.slice(0, 2);
             visibleNames.forEach((name) => {
               const chip = document.createElement('span');
@@ -3545,6 +3581,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             }
             listEl.classList.remove('hidden');
           } else {
+            listEl.classList.remove('image-upload-list--preview');
             listEl.classList.add('hidden');
           }
         }
@@ -3579,7 +3616,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         if (imageSourceUploadHint) imageSourceUploadHint.textContent = 'Shown for edit, remix, reframe, upscale, and utility modes.';
         if (imageMaskUploadHint) imageMaskUploadHint.textContent = 'White changes, black protects.';
-        if (imageReferenceUploadHint) imageReferenceUploadHint.textContent = 'Used by FLUX.2 and reference-guided modes.';
+        if (imageReferenceUploadHint) {
+          const maxRefs = caps?.maxReferenceImages || 8;
+          imageReferenceUploadHint.textContent = `Add up to ${maxRefs} references to guide composition, style, pose, or materials.`;
+        }
         if (imageStyleReferenceUploadHint) imageStyleReferenceUploadHint.textContent = 'Optional Ideogram style guides.';
         if (imageCharacterReferenceUploadHint) imageCharacterReferenceUploadHint.textContent = 'Use one image to keep a character consistent.';
         if (imageCharacterMaskUploadHint) imageCharacterMaskUploadHint.textContent = 'Optional mask for the character reference.';
@@ -3591,7 +3631,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageSourceUploadClear,
           settings.sourceImageName,
           'No source selected',
-          requiresSource
+          requiresSource,
+          {
+            assets: settings.sourceImage,
+            listMode: 'thumbs',
+          }
         );
         renderImageUploadGroup(
           imageMaskAssetGroup,
@@ -3600,7 +3644,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageMaskUploadClear,
           settings.maskImageName,
           'No mask selected',
-          requiresMask
+          requiresMask,
+          {
+            assets: settings.maskImage,
+            listMode: 'thumbs',
+          }
         );
         renderImageUploadGroup(
           imageReferenceAssetGroup,
@@ -3608,7 +3656,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageReferenceUploadList,
           imageReferenceUploadClear,
           settings.referenceImageNames,
-          'No references selected'
+          'No references selected',
+          false,
+          {
+            assets: settings.referenceImages,
+            listMode: 'thumbs',
+            maxCount: caps?.maxReferenceImages || 8,
+          }
         );
         renderImageUploadGroup(
           imageStyleReferenceAssetGroup,
@@ -3616,7 +3670,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageStyleReferenceUploadList,
           imageStyleReferenceUploadClear,
           settings.styleReferenceNames,
-          'No style refs selected'
+          'No style refs selected',
+          false,
+          {
+            assets: settings.styleReferenceImages,
+            listMode: 'thumbs',
+          }
         );
         renderImageUploadGroup(
           imageCharacterReferenceAssetGroup,
@@ -3624,7 +3683,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageCharacterReferenceUploadList,
           imageCharacterReferenceUploadClear,
           settings.characterReferenceNames,
-          'No character selected'
+          'No character selected',
+          false,
+          {
+            assets: settings.characterReferenceImages,
+            listMode: 'thumbs',
+          }
         );
         renderImageUploadGroup(
           imageCharacterMaskAssetGroup,
@@ -3632,7 +3696,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageCharacterMaskUploadList,
           imageCharacterMaskUploadClear,
           settings.characterReferenceMaskNames,
-          'No mask selected'
+          'No mask selected',
+          false,
+          {
+            assets: settings.characterReferenceMasks,
+            listMode: 'thumbs',
+          }
         );
       }
 
@@ -3820,6 +3889,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       async function bindMultiImageUpload(input, clearBtn, settingKey, nameKey) {
         if (!input) return;
+        const getMaxAllowed = () => {
+          if (settingKey === 'referenceImages') {
+            return getImageCaps()?.maxReferenceImages || 8;
+          }
+          return null;
+        };
         const clearSelection = () => {
           input.value = '';
           window.GenerationState.setSetting('image', settingKey, []);
@@ -3836,8 +3911,22 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           }
           try {
             const dataUrls = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
-            window.GenerationState.setSetting('image', settingKey, dataUrls);
-            window.GenerationState.setSetting('image', nameKey, files.map((file) => file.name));
+            const snapshot = window.GenerationState.getGenerationSnapshot('image');
+            const existingAssets = normalizeUploadAssets(snapshot?.settings?.[settingKey]);
+            const existingNames = normalizeUploadNames(snapshot?.settings?.[nameKey]);
+            const maxAllowed = getMaxAllowed();
+
+            let nextAssets = existingAssets.concat(dataUrls);
+            let nextNames = existingNames.concat(files.map((file) => file.name));
+
+            if (maxAllowed && nextAssets.length > maxAllowed) {
+              nextAssets = nextAssets.slice(0, maxAllowed);
+              nextNames = nextNames.slice(0, maxAllowed);
+            }
+
+            window.GenerationState.setSetting('image', settingKey, nextAssets);
+            window.GenerationState.setSetting('image', nameKey, nextNames);
+            input.value = '';
             refreshImageAssetGroups();
           } catch (err) {
             console.warn('[Image Upload] Failed to read files:', err);
