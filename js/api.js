@@ -278,35 +278,147 @@ function confirmCostBeforeAction(action, count = 1) {
 
   if (totalCost === 0) return Promise.resolve(true);
 
-  return new Promise((resolve) => {
-    // Remove any existing confirmation bar
-    document.querySelector('.cost-confirm-bar')?.remove();
+  // Inject styles once
+  if (!document.getElementById('costConfirmStyles')) {
+    const style = document.createElement('style');
+    style.id = 'costConfirmStyles';
+    style.textContent = `
+      .cost-confirm-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        animation: ccFadeIn .15s ease;
+      }
+      @keyframes ccFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    const bar = document.createElement('div');
-    bar.className = 'cost-confirm-bar';
-    bar.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;margin:8px 0;background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.3);border-radius:10px;font-size:13px;color:#e0e0e0;animation:fadeIn .15s ease';
-    bar.innerHTML = `
-      <span>${count > 1 ? count + '× ' : ''}${action.replace(/-/g,' ')} — <strong>${totalCost} credits</strong> (balance after: ${balanceAfter})</span>
-      <button class="cost-confirm-yes" style="padding:6px 16px;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:none;border-radius:8px;color:#fff;font-weight:600;font-size:13px;cursor:pointer">Confirm</button>
-      <button class="cost-confirm-no" style="padding:6px 16px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#aaa;font-size:13px;cursor:pointer">Cancel</button>
+      .cost-confirm-card {
+        width: min(380px, 88vw);
+        background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(0,0,0,0)), #111;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 16px;
+        padding: 28px 24px 22px;
+        text-align: center;
+        animation: ccPop .2s cubic-bezier(.34,1.56,.64,1) both;
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      }
+      @keyframes ccPop { from { transform: scale(.92) translateY(8px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+      .cost-confirm-card .cc-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(14,165,233,.15), rgba(139,92,246,.10));
+        border: 1px solid rgba(14,165,233,.20);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; color: #7dd3fc;
+        margin: 0 auto 14px;
+      }
+      .cost-confirm-card .cc-action {
+        font-size: 15px; font-weight: 600; color: #e2e8f0;
+        margin: 0 0 16px;
+        text-transform: capitalize;
+      }
+      .cost-confirm-card .cc-breakdown {
+        display: flex; flex-direction: column; gap: 0;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 18px;
+      }
+      .cost-confirm-card .cc-row {
+        display: flex; justify-content: space-between;
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #94a3b8;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+      }
+      .cost-confirm-card .cc-row:last-child { border-bottom: none; }
+      .cost-confirm-card .cc-row span:last-child {
+        font-weight: 600; color: #e2e8f0;
+      }
+      .cost-confirm-card .cc-row.cc-after span:last-child {
+        color: ${balanceAfter < 50 ? '#fbbf24' : '#e2e8f0'};
+      }
+      .cost-confirm-card .cc-btns {
+        display: flex; gap: 10px; justify-content: center;
+      }
+      .cost-confirm-card .cc-btn {
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .15s;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+      }
+      .cost-confirm-card .cc-yes {
+        background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+        border: none;
+        color: #fff;
+        flex: 1;
+      }
+      .cost-confirm-card .cc-yes:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 4px 16px rgba(14,165,233,.3);
+      }
+      .cost-confirm-card .cc-no {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,.12);
+        color: #94a3b8;
+        flex: 1;
+      }
+      .cost-confirm-card .cc-no:hover {
+        background: rgba(255,255,255,.06);
+        color: #e2e8f0;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  return new Promise((resolve) => {
+    // Remove any existing
+    document.querySelector('.cost-confirm-overlay')?.remove();
+
+    const actionLabel = action.replace(/-/g, ' ');
+    const overlay = document.createElement('div');
+    overlay.className = 'cost-confirm-overlay';
+    overlay.innerHTML = `
+      <div class="cost-confirm-card">
+        <div class="cc-icon"><i class="fa-solid fa-coins"></i></div>
+        <p class="cc-action">${count > 1 ? count + '× ' : ''}${actionLabel}</p>
+        <div class="cc-breakdown">
+          <div class="cc-row"><span>Cost</span><span>${totalCost} credits</span></div>
+          <div class="cc-row"><span>Current balance</span><span>${balance.toLocaleString()}</span></div>
+          <div class="cc-row cc-after"><span>Balance after</span><span>${balanceAfter.toLocaleString()}</span></div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn cc-yes">Confirm</button>
+          <button class="cc-btn cc-no">Cancel</button>
+        </div>
+      </div>
     `;
 
     const cleanup = (result) => {
-      bar.remove();
+      overlay.style.animation = 'ccFadeIn .1s ease reverse';
+      setTimeout(() => overlay.remove(), 100);
       resolve(result);
     };
 
-    bar.querySelector('.cost-confirm-yes').onclick = () => cleanup(true);
-    bar.querySelector('.cost-confirm-no').onclick = () => cleanup(false);
+    overlay.querySelector('.cc-yes').onclick = () => cleanup(true);
+    overlay.querySelector('.cc-no').onclick = () => cleanup(false);
+    // Backdrop click = cancel
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(false); });
+    // Escape = cancel
+    const escHandler = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', escHandler); cleanup(false); } };
+    document.addEventListener('keydown', escHandler);
 
-    // Insert near the generate button
-    const target = document.querySelector('.gen-footer-card') || document.querySelector('.card:has(.gen-btn)') || document.querySelector('.gen-btn')?.parentElement;
-    if (target) {
-      target.prepend(bar);
-    } else {
-      // No DOM target found — auto-confirm
-      resolve(true);
-    }
+    document.body.appendChild(overlay);
+
+    // Focus the confirm button
+    setTimeout(() => overlay.querySelector('.cc-yes')?.focus(), 50);
   });
 }
 
