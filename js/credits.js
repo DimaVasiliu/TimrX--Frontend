@@ -3352,7 +3352,27 @@
     sessionStorage.removeItem('timrx_pending_plan_code');
 
     // Quick delayed refresh to pick up welcome bonus and real balance
-    setTimeout(() => refreshCredits({ force: true, maxRetries: 2 }), 2000);
+    setTimeout(async () => {
+      const newAvail = await refreshCredits({ force: true, maxRetries: 3 });
+      // Update success modal if still open and balance changed
+      if (successModalState.isOpen && successCreditsValue && newAvail > 0) {
+        const currentDisplayed = parseInt((successCreditsValue.textContent || '0').replace(/,/g, ''), 10);
+        if (newAvail > currentDisplayed) {
+          animateCountUp(successCreditsValue, currentDisplayed, newAvail, 500);
+          console.log('[Credits] Updated success modal balance:', currentDisplayed, '->', newAvail);
+        }
+      }
+    }, 2000);
+    // Second retry at 5s in case webhook was slow
+    setTimeout(async () => {
+      const newAvail = await refreshCredits({ force: true, maxRetries: 2 });
+      if (successModalState.isOpen && successCreditsValue && newAvail > 0) {
+        const currentDisplayed = parseInt((successCreditsValue.textContent || '0').replace(/,/g, ''), 10);
+        if (newAvail > currentDisplayed) {
+          animateCountUp(successCreditsValue, currentDisplayed, newAvail, 500);
+        }
+      }
+    }, 5000);
 
     // Run reconciliation in background (non-blocking)
     (async function reconcilePayment() {
