@@ -1435,14 +1435,29 @@ function wireGallery() {
         // CDN URLs (browser ignores a.download on cross-origin hrefs).
         // download=1 tells the proxy to stream content instead of 302 redirect.
         const proxyUrl = `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(imageUrl)}&download=1`;
+        const artifactFormat = String(item.artifact_format || item.meta?.artifact_format || item.format || '').toLowerCase();
+        const downloadExt = artifactFormat === 'svg'
+          ? 'svg'
+          : artifactFormat === 'jpg' || artifactFormat === 'jpeg'
+            ? 'jpg'
+            : artifactFormat === 'webp'
+              ? 'webp'
+              : 'png';
         try {
           const resp = await fetch(proxyUrl, { credentials: 'include' });
           if (!resp.ok) throw new Error(`Proxy returned ${resp.status}`);
           const blob = await resp.blob();
+          const blobExt = !artifactFormat && blob.type === 'image/svg+xml'
+            ? 'svg'
+            : !artifactFormat && blob.type === 'image/jpeg'
+              ? 'jpg'
+              : !artifactFormat && blob.type === 'image/webp'
+                ? 'webp'
+                : downloadExt;
           const blobUrl = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = blobUrl;
-          a.download = `${shortTitle(item)}.png`;
+          a.download = `${shortTitle(item)}.${blobExt}`;
           document.body.appendChild(a);
           a.click();
           a.remove();
@@ -1452,7 +1467,7 @@ function wireGallery() {
           // Last resort: direct link (may open in new tab)
           const a = document.createElement('a');
           a.href = imageUrl;
-          a.download = `${shortTitle(item)}.png`;
+          a.download = `${shortTitle(item)}.${downloadExt}`;
           document.body.appendChild(a);
           a.click();
           a.remove();

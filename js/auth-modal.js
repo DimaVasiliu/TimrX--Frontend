@@ -186,7 +186,8 @@ function _ensureInjected() {
 
     </div>
   `;
-  document.body.insertAdjacentHTML('beforeend', html);
+  // Append to <html> to escape any transformed parents that break position:fixed
+  document.documentElement.insertAdjacentHTML('beforeend', html);
 
   // Minimal CSS — only what hub.css secure-credits styles don't already cover
   const style = document.createElement('style');

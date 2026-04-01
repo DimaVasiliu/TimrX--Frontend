@@ -5105,11 +5105,12 @@ transform: rotate(180deg);
 /* Modal Backdrop */
 .secure-modal-backdrop {
 position: fixed;
-inset: 0;
+top: 0; left: 0;
+width: 100vw; height: 100vh;
 background: rgba(0, 0, 0, 0.6);
 -webkit-backdrop-filter: blur(4px);
 backdrop-filter: blur(4px);
-z-index: 999;
+z-index: 999998;
 opacity: 0;
 visibility: hidden;
 transition: opacity 0.25s ease, visibility 0.25s ease;
@@ -5135,7 +5136,7 @@ background: var(--surface, #1a1a1a);
 border: 1px solid var(--line);
 border-radius: 14px;
 text-align: center;
-z-index: 1000;
+z-index: 999999;
 opacity: 0;
 visibility: hidden;
 transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;

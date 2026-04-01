@@ -717,6 +717,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const fullSrc = displayModel.image_url || displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
     const imgCanDownload = !!fullSrc && _hasCredits;
+    const artifactFormat = (displayModel.artifact_format || displayModel.meta?.artifact_format || displayModel.format || 'png').toLowerCase();
+    const isVectorImage = artifactFormat === 'svg';
     const isImageFailed = status === 'failed';
 
     // Failed image card
@@ -797,17 +799,17 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </button>
           <div class="card-menu" role="menu" aria-label="Image actions">
             <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}">
+              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127912;</span>
-                  <span>Create 3D Model</span>
+                  <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
                 </span>
                 <span class="card-menu__arrow">></span>
               </button>
-              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}">
+              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127909;</span>
-                  <span>Create Video</span>
+                  <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
                 </span>
                 <span class="card-menu__badge">45c</span>
               </button>

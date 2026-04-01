@@ -144,7 +144,7 @@
      * ---------------------------------------------------------------------- */
     const panelContent = {
       image: `
-        <div class="card">
+        <div class="card image-gen-card">
           <h3>Generate Image</h3>
           <label for="imagePrompt">Describe Your Image</label>
           <textarea id="imagePrompt" placeholder="A futuristic cityscape at sunset with flying cars..."></textarea>
@@ -158,44 +158,434 @@
           <div class="enhance-feedback hidden" data-enhance-feedback="image"></div>
 
           <div class="card-divider"></div>
-          <div class="inline-field">
-            <label for="imageAIProvider">Provider</label>
-            <select id="imageAIProvider">
-              <option value="nano_banana" selected>Nano Banana</option>
-              <option value="openai">OpenAI</option>
-              <option value="google">Google (Imagen)</option>
-            </select>
+          <div class="image-settings-grid">
+            <div class="inline-field">
+              <label for="imageAIProvider">Provider</label>
+              <select id="imageAIProvider">
+                <option value="nano_banana" selected>Nano Banana</option>
+                <option value="openai">OpenAI</option>
+                <option value="google">Google Imagen</option>
+                <option value="google_nano">Google Nano</option>
+                <option value="flux_pro">FLUX.2</option>
+                <option value="ideogram_v3">Ideogram</option>
+                <option value="recraft_v4">Recraft</option>
+              </select>
+            </div>
+
+            <div class="inline-field hidden" id="imageOperationRow">
+              <label for="imageOperation">Mode</label>
+              <select id="imageOperation">
+                <option value="generate" selected>Generate</option>
+              </select>
+            </div>
+
+            <div class="inline-field hidden" id="imageModelVariantRow">
+              <label for="imageModelVariant">Model</label>
+              <select id="imageModelVariant">
+                <option value="">Default</option>
+              </select>
+            </div>
+
+            <!-- Shape (controls aspect ratio only) -->
+            <div class="inline-field" id="imageShapeRow">
+              <label for="imageShape">Shape</label>
+              <select id="imageShape">
+                <option value="square" selected>Square</option>
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+              </select>
+            </div>
+
+            <!-- Quality (controls resolution per provider) -->
+            <div class="inline-field" id="imageQualityRow">
+              <label for="imageQuality">Quality</label>
+              <select id="imageQuality">
+                <option value="standard" selected>Standard (4c)</option>
+                <option value="high">2K (8c)</option>
+              </select>
+            </div>
+
+            <div class="inline-field hidden" id="imageOutputModeRow">
+              <label for="imageOutputMode">Output</label>
+              <select id="imageOutputMode">
+                <option value="raster" selected>Raster</option>
+                <option value="vector_svg">SVG</option>
+              </select>
+            </div>
           </div>
           <div class="provider-lock-hint hidden" id="imageProviderLockHint">
             <i class="fa-solid fa-lock"></i> <span id="imageProviderLockText">Provider locked while generating.</span>
           </div>
-
-          <!-- Shape (controls aspect ratio only) -->
-          <div class="inline-field" id="imageShapeRow">
-            <label for="imageShape">Shape</label>
-            <select id="imageShape">
-              <option value="square" selected>Square</option>
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-            </select>
+          <div class="image-settings-meta">
+            <span class="field-hint" id="imageShapeHint">Shape controls layout, not quality.</span>
+            <span class="field-hint" id="imageQualityHint">Standard 4c · 2K 8c</span>
+            <span class="field-hint hidden" id="imageOutputModeHint">Vector output is only available with Recraft V4.</span>
           </div>
-          <span class="field-hint" id="imageShapeHint">Shape controls layout, not quality.</span>
-
-          <!-- Quality (controls resolution per provider) -->
-          <div class="inline-field" id="imageQualityRow">
-            <label for="imageQuality">Quality</label>
-            <select id="imageQuality">
-              <option value="standard" selected>Standard (4c)</option>
-              <option value="high">2K (8c)</option>
-            </select>
-          </div>
-          <span class="field-hint" id="imageQualityHint">Standard 4c · 2K 8c</span>
           <div class="premium-quality-hint" id="premiumQualityHint"></div>
+
+          <div class="card-divider"></div>
+
+          <div class="image-assets-stack">
+            <div class="image-asset-group hidden" id="imageSourceAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageSourceUpload">Source Image</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageSourceUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp">
+                <label class="image-upload-trigger" for="imageSourceUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M12 16V5"></path>
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M4 19h16"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Upload</strong>
+                    <small>PNG, JPG or WebP</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageSourceUploadStatus">No source selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageSourceUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageSourceUploadList"></div>
+              <span class="field-hint" id="imageSourceUploadHint">Shown for edit, remix, reframe, upscale, and utility modes.</span>
+            </div>
+
+            <div class="image-asset-group hidden" id="imageMaskAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageMaskUpload">Mask Image</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageMaskUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp">
+                <label class="image-upload-trigger" for="imageMaskUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M12 16V5"></path>
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M4 19h16"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Upload</strong>
+                    <small>High-contrast PNG, JPG or WebP</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageMaskUploadStatus">No mask selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageMaskUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageMaskUploadList"></div>
+              <span class="field-hint" id="imageMaskUploadHint">White changes, black protects.</span>
+            </div>
+
+            <div class="image-asset-group hidden" id="imageReferenceAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageReferenceUpload">Reference Images</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageReferenceUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+                <label class="image-upload-trigger" for="imageReferenceUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <rect x="4" y="5" width="6" height="6" rx="1"></rect>
+                      <rect x="14" y="5" width="6" height="6" rx="1"></rect>
+                      <path d="M4 16h16"></path>
+                      <path d="M9 16v3"></path>
+                      <path d="M15 16v3"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Add</strong>
+                    <small>Add one or more references</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageReferenceUploadStatus">No references selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageReferenceUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageReferenceUploadList"></div>
+              <span class="field-hint" id="imageReferenceUploadHint">Used by FLUX.2 and reference-guided modes.</span>
+            </div>
+
+            <div class="image-asset-group hidden" id="imageStyleReferenceAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageStyleReferenceUpload">Style References</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageStyleReferenceUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+                <label class="image-upload-trigger" for="imageStyleReferenceUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <circle cx="8" cy="8" r="3"></circle>
+                      <circle cx="16" cy="8" r="3"></circle>
+                      <path d="M4 18c1.2-2.7 3-4 4-4s2.8 1.3 4 4"></path>
+                      <path d="M12 18c1.2-2.7 3-4 4-4s2.8 1.3 4 4"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Add</strong>
+                    <small>Guide the visual style</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageStyleReferenceUploadStatus">No style refs selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageStyleReferenceUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageStyleReferenceUploadList"></div>
+              <span class="field-hint" id="imageStyleReferenceUploadHint">Optional Ideogram style guides.</span>
+            </div>
+
+            <div class="image-asset-group hidden" id="imageCharacterReferenceAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageCharacterReferenceUpload">Character Reference</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageCharacterReferenceUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp">
+                <label class="image-upload-trigger" for="imageCharacterReferenceUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <circle cx="12" cy="8" r="3"></circle>
+                      <path d="M6 19c1.5-3.2 3.8-4.8 6-4.8S16.5 15.8 18 19"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Upload</strong>
+                    <small>Keep one character consistent</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageCharacterReferenceUploadStatus">No character selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageCharacterReferenceUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageCharacterReferenceUploadList"></div>
+              <span class="field-hint" id="imageCharacterReferenceUploadHint">Use one image to keep a character consistent.</span>
+            </div>
+
+            <div class="image-asset-group hidden" id="imageCharacterMaskAssetGroup">
+              <div class="image-asset-header">
+                <label for="imageCharacterMaskUpload">Character Mask</label>
+                <span class="image-asset-badge">Optional</span>
+              </div>
+              <div class="image-upload-control">
+                <input id="imageCharacterMaskUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg,image/webp">
+                <label class="image-upload-trigger" for="imageCharacterMaskUpload">
+                  <span class="image-upload-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M12 4l7 4v4c0 4.5-2.8 7.7-7 8-4.2-.3-7-3.5-7-8V8l7-4z"></path>
+                      <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                  </span>
+                  <span class="image-upload-trigger__text">
+                    <strong>Upload</strong>
+                    <small>Optional mask for the character reference</small>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="imageCharacterMaskUploadStatus">No mask selected</div>
+                <button type="button" class="image-upload-clear hidden" id="imageCharacterMaskUploadClear">Clear</button>
+              </div>
+              <div class="image-upload-list hidden" id="imageCharacterMaskUploadList"></div>
+              <span class="field-hint" id="imageCharacterMaskUploadHint">Optional mask for the character reference.</span>
+            </div>
+          </div>
+
+          <details id="imageAdvancedDetails" class="advanced-toggles image-advanced-panel">
+            <summary class="image-advanced-summary">
+              <span class="image-advanced-summary__title">Advanced Options</span>
+              <span class="image-advanced-summary__chevron" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M5 7.5L10 12.5L15 7.5"></path>
+                </svg>
+              </span>
+            </summary>
+            <div class="image-advanced-body">
+              <div class="hidden image-advanced-wide" id="imageNegativePromptGroup">
+                <label for="imageNegativePrompt">Negative Prompt</label>
+                <textarea id="imageNegativePrompt" rows="2" placeholder="Things to avoid in the image"></textarea>
+              </div>
+
+              <div class="inline-field hidden" id="imageRenderingSpeedRow">
+                <label for="imageRenderingSpeed">Speed</label>
+                <select id="imageRenderingSpeed">
+                  <option value="FLASH">Flash</option>
+                  <option value="TURBO">Turbo</option>
+                  <option value="DEFAULT" selected>Default</option>
+                  <option value="QUALITY">Quality</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageMagicPromptRow">
+                <label for="imageMagicPrompt">Magic Prompt</label>
+                <select id="imageMagicPrompt">
+                  <option value="AUTO" selected>Auto</option>
+                  <option value="ON">On</option>
+                  <option value="OFF">Off</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageStyleTypeRow">
+                <label for="imageStyleType">Style Type</label>
+                <select id="imageStyleType">
+                  <option value="">Default</option>
+                  <option value="AUTO">Auto</option>
+                  <option value="GENERAL">General</option>
+                  <option value="REALISTIC">Realistic</option>
+                  <option value="DESIGN">Design</option>
+                  <option value="FICTION">Fiction</option>
+                </select>
+              </div>
+
+              <div class="hidden" id="imageStylePresetGroup">
+                <label for="imageStylePreset">Style Preset</label>
+                <input id="imageStylePreset" type="text" placeholder="Enter an official provider style preset">
+              </div>
+
+              <div class="hidden" id="imageStyleNameGroup">
+                <label for="imageStyleName">Style Name</label>
+                <input id="imageStyleName" type="text" placeholder="e.g. Photorealism, Illustration, Vector art">
+              </div>
+
+              <div class="hidden" id="imageStyleIdGroup">
+                <label for="imageStyleId">Style ID</label>
+                <input id="imageStyleId" type="text" placeholder="Custom provider style ID">
+              </div>
+
+              <div class="hidden" id="imageStyleCodesGroup">
+                <label for="imageStyleCodes">Style Codes</label>
+                <input id="imageStyleCodes" type="text" placeholder="Comma-separated 8-char style codes">
+              </div>
+
+              <div class="hidden" id="imageColorPaletteNameGroup">
+                <label for="imageColorPaletteName">Palette Name</label>
+                <input id="imageColorPaletteName" type="text" placeholder="Named palette preset">
+              </div>
+
+              <div class="hidden" id="imageColorPaletteMembersGroup">
+                <label for="imageColorPaletteMembers">Palette Colors</label>
+                <input id="imageColorPaletteMembers" type="text" placeholder="#FFAA00,#2244DD or #FFAA00:0.7">
+              </div>
+
+              <div class="inline-field hidden" id="imageSeedRow">
+                <label for="imageSeed">Seed</label>
+                <input id="imageSeed" type="number" min="0" step="1" placeholder="Optional">
+              </div>
+
+              <div class="inline-field hidden" id="imageImageWeightRow">
+                <label for="imageImageWeight">Image Weight</label>
+                <input id="imageImageWeight" type="number" min="1" max="100" step="1" value="50">
+              </div>
+
+              <div class="inline-field hidden" id="imageStrengthRow">
+                <label for="imageStrength">Strength</label>
+                <input id="imageStrength" type="number" min="0" max="1" step="0.05" value="0.35">
+              </div>
+
+              <div class="inline-field hidden" id="imagePromptUpsamplingRow">
+                <label for="imagePromptUpsampling">Upsampling</label>
+                <select id="imagePromptUpsampling">
+                  <option value="on" selected>On</option>
+                  <option value="off">Off</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageGuidanceRow">
+                <label for="imageGuidance">Guidance</label>
+                <input id="imageGuidance" type="number" min="1.5" max="10" step="0.1" placeholder="5">
+              </div>
+
+              <div class="inline-field hidden" id="imageStepsRow">
+                <label for="imageSteps">Steps</label>
+                <input id="imageSteps" type="number" min="1" max="50" step="1" placeholder="50">
+              </div>
+
+              <div class="inline-field hidden" id="imageSafetyToleranceRow">
+                <label for="imageSafetyTolerance">Safety</label>
+                <input id="imageSafetyTolerance" type="number" min="0" max="5" step="1" value="2">
+              </div>
+
+              <div class="inline-field hidden" id="imageOutputFormatRow">
+                <label for="imageOutputFormat">Format</label>
+                <select id="imageOutputFormat">
+                  <option value="jpeg" selected>JPEG</option>
+                  <option value="png">PNG</option>
+                  <option value="webp">WebP</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageTransparentBackgroundRow">
+                <label for="imageTransparentBackground">Transparent</label>
+                <select id="imageTransparentBackground">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageUpscaleDetailRow">
+                <label for="imageUpscaleDetail">Upscale Detail</label>
+                <input id="imageUpscaleDetail" type="number" min="0" max="100" step="1" value="50">
+              </div>
+
+              <div class="inline-field hidden" id="imageUpscaleResemblanceRow">
+                <label for="imageUpscaleResemblance">Resemblance</label>
+                <input id="imageUpscaleResemblance" type="number" min="0" max="100" step="1" value="50">
+              </div>
+
+              <div class="hidden" id="imageBackgroundColorGroup">
+                <label for="imageBackgroundColor">Background Color</label>
+                <input id="imageBackgroundColor" type="text" placeholder="#FFFFFF">
+              </div>
+
+              <div class="hidden" id="imagePreferredColorsGroup">
+                <label for="imagePreferredColors">Preferred Colors</label>
+                <input id="imagePreferredColors" type="text" placeholder="#E60023,#1D4ED8">
+              </div>
+
+              <div class="inline-field hidden" id="imageArtisticLevelRow">
+                <label for="imageArtisticLevel">Artistic Level</label>
+                <input id="imageArtisticLevel" type="number" min="0" max="5" step="1" placeholder="0-5">
+              </div>
+
+              <div class="inline-field hidden" id="imageNoTextRow">
+                <label for="imageNoText">No Text</label>
+                <select id="imageNoText">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div class="hidden image-advanced-wide" id="imageTextLayoutGroup">
+                <label for="imageTextLayout">Text Layout</label>
+                <textarea id="imageTextLayout" rows="3" placeholder='[{"text":"SALE","bbox":[[0.1,0.1],[0.8,0.1],[0.8,0.3],[0.1,0.3]]}]'></textarea>
+              </div>
+
+              <div class="inline-field hidden" id="imageSvgCompressionRow">
+                <label for="imageSvgCompression">SVG Compression</label>
+                <select id="imageSvgCompression">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageLimitShapesRow">
+                <label for="imageLimitShapes">Limit Shapes</label>
+                <select id="imageLimitShapes">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div class="inline-field hidden" id="imageMaxShapesRow">
+                <label for="imageMaxShapes">Max Shapes</label>
+                <input id="imageMaxShapes" type="number" min="1" step="1" placeholder="Optional">
+              </div>
+            </div>
+          </details>
 
           <div class="provider-hint" id="imageProviderHint"></div>
         </div>
 
-        <div class="card gen-footer-card">
+        <div class="card gen-footer-card image-gen-footer-card">
           <div class="gen-meta">
             <span class="gen-time" id="imageGenTime">45 sec</span>
             <span class="gen-divider">|</span>
@@ -2820,10 +3210,115 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // IMAGE: Provider Switching & Credits Logic
       // ========================================
       const imageAIProvider = leftStack.querySelector('#imageAIProvider');
+      const imageOperation = leftStack.querySelector('#imageOperation');
+      const imageOperationRow = leftStack.querySelector('#imageOperationRow');
+      const imageModelVariant = leftStack.querySelector('#imageModelVariant');
+      const imageModelVariantRow = leftStack.querySelector('#imageModelVariantRow');
+      const imageShapeRow = leftStack.querySelector('#imageShapeRow');
       const imageShape = leftStack.querySelector('#imageShape');
+      const imageQualityRow = leftStack.querySelector('#imageQualityRow');
       const imageQuality = leftStack.querySelector('#imageQuality');
+      const imageOutputMode = leftStack.querySelector('#imageOutputMode');
+      const imageOutputModeRow = leftStack.querySelector('#imageOutputModeRow');
+      const imageOutputModeHint = leftStack.querySelector('#imageOutputModeHint');
       const imageProviderHint = leftStack.querySelector('#imageProviderHint');
       const imagePrompt = leftStack.querySelector('#imagePrompt');
+      const imageSourceAssetGroup = leftStack.querySelector('#imageSourceAssetGroup');
+      const imageSourceUpload = leftStack.querySelector('#imageSourceUpload');
+      const imageSourceUploadStatus = leftStack.querySelector('#imageSourceUploadStatus');
+      const imageSourceUploadList = leftStack.querySelector('#imageSourceUploadList');
+      const imageSourceUploadClear = leftStack.querySelector('#imageSourceUploadClear');
+      const imageSourceUploadHint = leftStack.querySelector('#imageSourceUploadHint');
+      const imageMaskAssetGroup = leftStack.querySelector('#imageMaskAssetGroup');
+      const imageMaskUpload = leftStack.querySelector('#imageMaskUpload');
+      const imageMaskUploadStatus = leftStack.querySelector('#imageMaskUploadStatus');
+      const imageMaskUploadList = leftStack.querySelector('#imageMaskUploadList');
+      const imageMaskUploadClear = leftStack.querySelector('#imageMaskUploadClear');
+      const imageMaskUploadHint = leftStack.querySelector('#imageMaskUploadHint');
+      const imageReferenceAssetGroup = leftStack.querySelector('#imageReferenceAssetGroup');
+      const imageReferenceUpload = leftStack.querySelector('#imageReferenceUpload');
+      const imageReferenceUploadStatus = leftStack.querySelector('#imageReferenceUploadStatus');
+      const imageReferenceUploadList = leftStack.querySelector('#imageReferenceUploadList');
+      const imageReferenceUploadClear = leftStack.querySelector('#imageReferenceUploadClear');
+      const imageReferenceUploadHint = leftStack.querySelector('#imageReferenceUploadHint');
+      const imageStyleReferenceAssetGroup = leftStack.querySelector('#imageStyleReferenceAssetGroup');
+      const imageStyleReferenceUpload = leftStack.querySelector('#imageStyleReferenceUpload');
+      const imageStyleReferenceUploadStatus = leftStack.querySelector('#imageStyleReferenceUploadStatus');
+      const imageStyleReferenceUploadList = leftStack.querySelector('#imageStyleReferenceUploadList');
+      const imageStyleReferenceUploadClear = leftStack.querySelector('#imageStyleReferenceUploadClear');
+      const imageStyleReferenceUploadHint = leftStack.querySelector('#imageStyleReferenceUploadHint');
+      const imageCharacterReferenceAssetGroup = leftStack.querySelector('#imageCharacterReferenceAssetGroup');
+      const imageCharacterReferenceUpload = leftStack.querySelector('#imageCharacterReferenceUpload');
+      const imageCharacterReferenceUploadStatus = leftStack.querySelector('#imageCharacterReferenceUploadStatus');
+      const imageCharacterReferenceUploadList = leftStack.querySelector('#imageCharacterReferenceUploadList');
+      const imageCharacterReferenceUploadClear = leftStack.querySelector('#imageCharacterReferenceUploadClear');
+      const imageCharacterReferenceUploadHint = leftStack.querySelector('#imageCharacterReferenceUploadHint');
+      const imageCharacterMaskAssetGroup = leftStack.querySelector('#imageCharacterMaskAssetGroup');
+      const imageCharacterMaskUpload = leftStack.querySelector('#imageCharacterMaskUpload');
+      const imageCharacterMaskUploadStatus = leftStack.querySelector('#imageCharacterMaskUploadStatus');
+      const imageCharacterMaskUploadList = leftStack.querySelector('#imageCharacterMaskUploadList');
+      const imageCharacterMaskUploadClear = leftStack.querySelector('#imageCharacterMaskUploadClear');
+      const imageCharacterMaskUploadHint = leftStack.querySelector('#imageCharacterMaskUploadHint');
+      const imageUploadClearButtons = leftStack.querySelectorAll('.image-upload-clear');
+      const imageAdvancedDetails = leftStack.querySelector('#imageAdvancedDetails');
+      const imageNegativePromptGroup = leftStack.querySelector('#imageNegativePromptGroup');
+      const imageNegativePrompt = leftStack.querySelector('#imageNegativePrompt');
+      const imageRenderingSpeedRow = leftStack.querySelector('#imageRenderingSpeedRow');
+      const imageRenderingSpeed = leftStack.querySelector('#imageRenderingSpeed');
+      const imageMagicPromptRow = leftStack.querySelector('#imageMagicPromptRow');
+      const imageMagicPrompt = leftStack.querySelector('#imageMagicPrompt');
+      const imageStyleTypeRow = leftStack.querySelector('#imageStyleTypeRow');
+      const imageStyleType = leftStack.querySelector('#imageStyleType');
+      const imageStylePresetGroup = leftStack.querySelector('#imageStylePresetGroup');
+      const imageStylePreset = leftStack.querySelector('#imageStylePreset');
+      const imageStyleNameGroup = leftStack.querySelector('#imageStyleNameGroup');
+      const imageStyleName = leftStack.querySelector('#imageStyleName');
+      const imageStyleIdGroup = leftStack.querySelector('#imageStyleIdGroup');
+      const imageStyleId = leftStack.querySelector('#imageStyleId');
+      const imageStyleCodesGroup = leftStack.querySelector('#imageStyleCodesGroup');
+      const imageStyleCodes = leftStack.querySelector('#imageStyleCodes');
+      const imageColorPaletteNameGroup = leftStack.querySelector('#imageColorPaletteNameGroup');
+      const imageColorPaletteName = leftStack.querySelector('#imageColorPaletteName');
+      const imageColorPaletteMembersGroup = leftStack.querySelector('#imageColorPaletteMembersGroup');
+      const imageColorPaletteMembers = leftStack.querySelector('#imageColorPaletteMembers');
+      const imageSeedRow = leftStack.querySelector('#imageSeedRow');
+      const imageSeed = leftStack.querySelector('#imageSeed');
+      const imageImageWeightRow = leftStack.querySelector('#imageImageWeightRow');
+      const imageImageWeight = leftStack.querySelector('#imageImageWeight');
+      const imageStrengthRow = leftStack.querySelector('#imageStrengthRow');
+      const imageStrength = leftStack.querySelector('#imageStrength');
+      const imagePromptUpsamplingRow = leftStack.querySelector('#imagePromptUpsamplingRow');
+      const imagePromptUpsampling = leftStack.querySelector('#imagePromptUpsampling');
+      const imageGuidanceRow = leftStack.querySelector('#imageGuidanceRow');
+      const imageGuidance = leftStack.querySelector('#imageGuidance');
+      const imageStepsRow = leftStack.querySelector('#imageStepsRow');
+      const imageSteps = leftStack.querySelector('#imageSteps');
+      const imageSafetyToleranceRow = leftStack.querySelector('#imageSafetyToleranceRow');
+      const imageSafetyTolerance = leftStack.querySelector('#imageSafetyTolerance');
+      const imageOutputFormatRow = leftStack.querySelector('#imageOutputFormatRow');
+      const imageOutputFormat = leftStack.querySelector('#imageOutputFormat');
+      const imageTransparentBackgroundRow = leftStack.querySelector('#imageTransparentBackgroundRow');
+      const imageTransparentBackground = leftStack.querySelector('#imageTransparentBackground');
+      const imageUpscaleDetailRow = leftStack.querySelector('#imageUpscaleDetailRow');
+      const imageUpscaleDetail = leftStack.querySelector('#imageUpscaleDetail');
+      const imageUpscaleResemblanceRow = leftStack.querySelector('#imageUpscaleResemblanceRow');
+      const imageUpscaleResemblance = leftStack.querySelector('#imageUpscaleResemblance');
+      const imageBackgroundColorGroup = leftStack.querySelector('#imageBackgroundColorGroup');
+      const imageBackgroundColor = leftStack.querySelector('#imageBackgroundColor');
+      const imagePreferredColorsGroup = leftStack.querySelector('#imagePreferredColorsGroup');
+      const imagePreferredColors = leftStack.querySelector('#imagePreferredColors');
+      const imageArtisticLevelRow = leftStack.querySelector('#imageArtisticLevelRow');
+      const imageArtisticLevel = leftStack.querySelector('#imageArtisticLevel');
+      const imageNoTextRow = leftStack.querySelector('#imageNoTextRow');
+      const imageNoText = leftStack.querySelector('#imageNoText');
+      const imageTextLayoutGroup = leftStack.querySelector('#imageTextLayoutGroup');
+      const imageTextLayout = leftStack.querySelector('#imageTextLayout');
+      const imageSvgCompressionRow = leftStack.querySelector('#imageSvgCompressionRow');
+      const imageSvgCompression = leftStack.querySelector('#imageSvgCompression');
+      const imageLimitShapesRow = leftStack.querySelector('#imageLimitShapesRow');
+      const imageLimitShapes = leftStack.querySelector('#imageLimitShapes');
+      const imageMaxShapesRow = leftStack.querySelector('#imageMaxShapesRow');
+      const imageMaxShapes = leftStack.querySelector('#imageMaxShapes');
       const imageCreditsDisplay = leftStack.querySelector('#imageCreditsDisplay');
       const imageGenTime = leftStack.querySelector('#imageGenTime');
       const generateImageBtn = leftStack.querySelector('#generateImageBtn');
@@ -2859,9 +3354,24 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         // Disable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = true;
+        if (imageOperation) imageOperation.disabled = true;
+        if (imageModelVariant) imageModelVariant.disabled = true;
         if (imageShape) imageShape.disabled = true;
         if (imageQuality) imageQuality.disabled = true;
+        if (imageOutputMode) imageOutputMode.disabled = true;
         if (imagePrompt) imagePrompt.disabled = true;
+        [imageSourceUpload, imageMaskUpload, imageReferenceUpload, imageStyleReferenceUpload, imageCharacterReferenceUpload, imageCharacterMaskUpload]
+          .forEach((el) => { if (el) el.disabled = true; });
+        imageUploadClearButtons.forEach((el) => {
+          el.dataset.forceDisabled = 'true';
+          el.disabled = true;
+        });
+        [imageNegativePrompt, imageRenderingSpeed, imageMagicPrompt, imageStyleType, imageStylePreset, imageStyleName, imageStyleId,
+          imageStyleCodes, imageColorPaletteName, imageColorPaletteMembers, imageSeed, imageImageWeight, imageStrength,
+          imagePromptUpsampling, imageGuidance, imageSteps, imageSafetyTolerance, imageOutputFormat, imageTransparentBackground,
+          imageUpscaleDetail, imageUpscaleResemblance, imageBackgroundColor, imagePreferredColors, imageArtisticLevel,
+          imageNoText, imageTextLayout, imageSvgCompression, imageLimitShapes, imageMaxShapes]
+          .forEach((el) => { if (el) el.disabled = true; });
 
         // Show lock hint with provider name
         if (imageProviderLockHint) {
@@ -2871,6 +3381,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           imageProviderLockText.textContent = `Provider locked: ${caps?.name || provider}`;
         }
 
+        refreshImageAssetGroups();
         console.log('[GEN] Image UI locked for provider:', provider);
       }
 
@@ -2883,15 +3394,31 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         // Re-enable all image settings inputs
         if (imageAIProvider) imageAIProvider.disabled = false;
+        if (imageOperation) imageOperation.disabled = false;
+        if (imageModelVariant) imageModelVariant.disabled = false;
         if (imageShape) imageShape.disabled = false;
         if (imageQuality) imageQuality.disabled = false;
+        if (imageOutputMode) imageOutputMode.disabled = false;
         if (imagePrompt) imagePrompt.disabled = false;
+        [imageSourceUpload, imageMaskUpload, imageReferenceUpload, imageStyleReferenceUpload, imageCharacterReferenceUpload, imageCharacterMaskUpload]
+          .forEach((el) => { if (el) el.disabled = false; });
+        imageUploadClearButtons.forEach((el) => {
+          delete el.dataset.forceDisabled;
+          el.disabled = false;
+        });
+        [imageNegativePrompt, imageRenderingSpeed, imageMagicPrompt, imageStyleType, imageStylePreset, imageStyleName, imageStyleId,
+          imageStyleCodes, imageColorPaletteName, imageColorPaletteMembers, imageSeed, imageImageWeight, imageStrength,
+          imagePromptUpsampling, imageGuidance, imageSteps, imageSafetyTolerance, imageOutputFormat, imageTransparentBackground,
+          imageUpscaleDetail, imageUpscaleResemblance, imageBackgroundColor, imagePreferredColors, imageArtisticLevel,
+          imageNoText, imageTextLayout, imageSvgCompression, imageLimitShapes, imageMaxShapes]
+          .forEach((el) => { if (el) el.disabled = false; });
 
         // Hide lock hint
         if (imageProviderLockHint) {
           imageProviderLockHint.classList.add('hidden');
         }
 
+        refreshImageAssetGroups();
         console.log('[GEN] Image UI unlocked');
       }
 
@@ -2937,8 +3464,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         return {
           provider: snapshot.provider,
-          shape: snapshot.settings.shape,
-          quality: snapshot.settings.quality,
+          ...snapshot.settings,
           // Map to provider-specific format
           aspectRatio: caps?.shapeMap?.[snapshot.settings.shape] || '1024x1024',
           qualityValue: caps?.qualityMap?.[snapshot.settings.quality] || 'standard',
@@ -2949,6 +3475,377 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Expose settings getter globally
       window.ImageJobControl.getSettings = getImageSettings;
 
+      function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function toggleHidden(el, hidden) {
+        if (!el) return;
+        el.classList.toggle('hidden', !!hidden);
+      }
+
+      function normalizeUploadNames(names) {
+        return Array.isArray(names) ? names.filter(Boolean) : (names ? [names] : []);
+      }
+
+      function truncateUploadName(name) {
+        return name && name.length > 28 ? `${name.slice(0, 25)}...` : name;
+      }
+
+      function renderImageUploadGroup(groupEl, statusEl, listEl, clearBtn, names, emptyText, required = false) {
+        const clean = normalizeUploadNames(names);
+        const badgeEl = groupEl?.querySelector('.image-asset-badge');
+
+        groupEl?.classList.toggle('is-required', required);
+        groupEl?.classList.toggle('has-selection', clean.length > 0);
+
+        if (badgeEl) {
+          if (required) {
+            badgeEl.textContent = 'Required';
+            badgeEl.classList.add('is-required');
+            badgeEl.classList.remove('is-ready');
+          } else if (clean.length) {
+            badgeEl.textContent = clean.length > 1 ? `${clean.length} Files` : 'Ready';
+            badgeEl.classList.remove('is-required');
+            badgeEl.classList.add('is-ready');
+          } else {
+            badgeEl.textContent = 'Optional';
+            badgeEl.classList.remove('is-required');
+            badgeEl.classList.remove('is-ready');
+          }
+        }
+
+        if (statusEl) {
+          statusEl.textContent = clean.length === 0
+            ? emptyText
+            : (clean.length === 1 ? truncateUploadName(clean[0]) : `${clean.length} selected`);
+          statusEl.classList.toggle('is-empty', clean.length === 0);
+        }
+
+        if (listEl) {
+          listEl.innerHTML = '';
+          if (clean.length > 1) {
+            const visibleNames = clean.slice(0, 2);
+            visibleNames.forEach((name) => {
+              const chip = document.createElement('span');
+              chip.className = 'image-upload-chip';
+              chip.textContent = truncateUploadName(name);
+              listEl.appendChild(chip);
+            });
+            if (clean.length > visibleNames.length) {
+              const extraChip = document.createElement('span');
+              extraChip.className = 'image-upload-chip image-upload-chip--muted';
+              extraChip.textContent = `+${clean.length - visibleNames.length} more`;
+              listEl.appendChild(extraChip);
+            }
+            listEl.classList.remove('hidden');
+          } else {
+            listEl.classList.add('hidden');
+          }
+        }
+
+        if (clearBtn) {
+          clearBtn.classList.toggle('hidden', clean.length === 0);
+          clearBtn.disabled = clean.length === 0 || !!clearBtn.dataset.forceDisabled;
+        }
+      }
+
+      function getImageCaps() {
+        const provider = window.GenerationState?.getProvider?.('image') || imageAIProvider?.value || 'nano_banana';
+        return window.GenerationState?.getProviderCapabilities?.('image', provider) || null;
+      }
+
+      function getImageOperationSpec(caps, operation) {
+        return (caps?.operations || []).find((item) => item?.value === operation) || null;
+      }
+
+      function getAllowedModelVariants(caps, operation) {
+        return Array.isArray(caps?.modelVariants)
+          ? caps.modelVariants.filter((item) => !Array.isArray(item?.operations) || item.operations.includes(operation))
+          : [];
+      }
+
+      function refreshImageAssetGroups(snapshot = window.GenerationState.getGenerationSnapshot('image')) {
+        const caps = snapshot?.capabilities || {};
+        const settings = snapshot?.settings || {};
+        const opSpec = getImageOperationSpec(caps, settings.operation || 'generate');
+        const requiresSource = !!opSpec?.requiresSource;
+        const requiresMask = !!opSpec?.requiresMask;
+
+        if (imageSourceUploadHint) imageSourceUploadHint.textContent = 'Shown for edit, remix, reframe, upscale, and utility modes.';
+        if (imageMaskUploadHint) imageMaskUploadHint.textContent = 'White changes, black protects.';
+        if (imageReferenceUploadHint) imageReferenceUploadHint.textContent = 'Used by FLUX.2 and reference-guided modes.';
+        if (imageStyleReferenceUploadHint) imageStyleReferenceUploadHint.textContent = 'Optional Ideogram style guides.';
+        if (imageCharacterReferenceUploadHint) imageCharacterReferenceUploadHint.textContent = 'Use one image to keep a character consistent.';
+        if (imageCharacterMaskUploadHint) imageCharacterMaskUploadHint.textContent = 'Optional mask for the character reference.';
+
+        renderImageUploadGroup(
+          imageSourceAssetGroup,
+          imageSourceUploadStatus,
+          imageSourceUploadList,
+          imageSourceUploadClear,
+          settings.sourceImageName,
+          'No source selected',
+          requiresSource
+        );
+        renderImageUploadGroup(
+          imageMaskAssetGroup,
+          imageMaskUploadStatus,
+          imageMaskUploadList,
+          imageMaskUploadClear,
+          settings.maskImageName,
+          'No mask selected',
+          requiresMask
+        );
+        renderImageUploadGroup(
+          imageReferenceAssetGroup,
+          imageReferenceUploadStatus,
+          imageReferenceUploadList,
+          imageReferenceUploadClear,
+          settings.referenceImageNames,
+          'No references selected'
+        );
+        renderImageUploadGroup(
+          imageStyleReferenceAssetGroup,
+          imageStyleReferenceUploadStatus,
+          imageStyleReferenceUploadList,
+          imageStyleReferenceUploadClear,
+          settings.styleReferenceNames,
+          'No style refs selected'
+        );
+        renderImageUploadGroup(
+          imageCharacterReferenceAssetGroup,
+          imageCharacterReferenceUploadStatus,
+          imageCharacterReferenceUploadList,
+          imageCharacterReferenceUploadClear,
+          settings.characterReferenceNames,
+          'No character selected'
+        );
+        renderImageUploadGroup(
+          imageCharacterMaskAssetGroup,
+          imageCharacterMaskUploadStatus,
+          imageCharacterMaskUploadList,
+          imageCharacterMaskUploadClear,
+          settings.characterReferenceMaskNames,
+          'No mask selected'
+        );
+      }
+
+      function syncImageAdvancedFromUI() {
+        const set = (key, value) => window.GenerationState.setSetting('image', key, value);
+        if (imageOperation) set('operation', imageOperation.value || 'generate');
+        if (imageModelVariant) set('modelVariant', imageModelVariant.value || '');
+        if (imageNegativePrompt) set('negativePrompt', imageNegativePrompt.value || '');
+        if (imageRenderingSpeed) set('renderingSpeed', imageRenderingSpeed.value || 'DEFAULT');
+        if (imageMagicPrompt) set('magicPrompt', imageMagicPrompt.value || 'AUTO');
+        if (imageStyleType) set('styleType', imageStyleType.value || '');
+        if (imageStylePreset) set('stylePreset', imageStylePreset.value || '');
+        if (imageStyleName) set('style', imageStyleName.value || '');
+        if (imageStyleId) set('styleId', imageStyleId.value || '');
+        if (imageStyleCodes) set('styleCodes', imageStyleCodes.value || '');
+        if (imageColorPaletteName) set('colorPaletteName', imageColorPaletteName.value || '');
+        if (imageColorPaletteMembers) set('colorPaletteMembers', imageColorPaletteMembers.value || '');
+        if (imageSeed) set('seed', imageSeed.value || '');
+        if (imageImageWeight) set('imageWeight', imageImageWeight.value || '50');
+        if (imageStrength) set('strength', imageStrength.value || '0.35');
+        if (imagePromptUpsampling) set('promptUpsampling', imagePromptUpsampling.value !== 'off');
+        if (imageGuidance) set('guidance', imageGuidance.value || '');
+        if (imageSteps) set('steps', imageSteps.value || '');
+        if (imageSafetyTolerance) set('safetyTolerance', imageSafetyTolerance.value || '2');
+        if (imageOutputFormat) set('outputFormat', imageOutputFormat.value || 'jpeg');
+        if (imageTransparentBackground) set('transparentBackground', imageTransparentBackground.value === 'on');
+        if (imageUpscaleDetail) set('detail', imageUpscaleDetail.value || '50');
+        if (imageUpscaleResemblance) set('resemblance', imageUpscaleResemblance.value || '50');
+        if (imageBackgroundColor) set('backgroundColor', imageBackgroundColor.value || '');
+        if (imagePreferredColors) set('preferredColors', imagePreferredColors.value || '');
+        if (imageArtisticLevel) set('artisticLevel', imageArtisticLevel.value || '');
+        if (imageNoText) set('noText', imageNoText.value === 'on');
+        if (imageTextLayout) set('textLayout', imageTextLayout.value || '');
+        if (imageSvgCompression) set('svgCompression', imageSvgCompression.value === 'on');
+        if (imageLimitShapes) set('limitNumShapes', imageLimitShapes.value === 'on');
+        if (imageMaxShapes) set('maxNumShapes', imageMaxShapes.value || '');
+      }
+
+      function populateImageOperationOptions(caps) {
+        if (!imageOperation || !imageOperationRow) return;
+        const operations = caps?.operations || [{ value: 'generate', label: 'Generate' }];
+        const currentValue = imageOperation.value;
+        imageOperation.innerHTML = '';
+        operations.forEach((item) => {
+          const opt = document.createElement('option');
+          opt.value = item.value;
+          opt.textContent = item.label;
+          imageOperation.appendChild(opt);
+        });
+        imageOperation.value = operations.some((item) => item.value === currentValue)
+          ? currentValue
+          : (caps?.defaultOperation || operations[0]?.value || 'generate');
+        toggleHidden(imageOperationRow, operations.length <= 1);
+        if (window.GenerationState?.getSettings?.('image')?.operation !== imageOperation.value) {
+          window.GenerationState.setSetting('image', 'operation', imageOperation.value);
+        }
+      }
+
+      function populateImageModelVariantOptions(caps) {
+        if (!imageModelVariant || !imageModelVariantRow) return;
+        const currentOperation = window.GenerationState?.getSettings?.('image')?.operation || imageOperation?.value || 'generate';
+        const variants = getAllowedModelVariants(caps, currentOperation);
+        const currentValue = imageModelVariant.value;
+        imageModelVariant.innerHTML = '';
+        variants.forEach((item) => {
+          const opt = document.createElement('option');
+          opt.value = item.value;
+          opt.textContent = item.label;
+          imageModelVariant.appendChild(opt);
+        });
+        imageModelVariant.value = variants.some((item) => item.value === currentValue)
+          ? currentValue
+          : (variants[0]?.value || '');
+        toggleHidden(imageModelVariantRow, variants.length <= 1);
+        if (window.GenerationState?.getSettings?.('image')?.modelVariant !== imageModelVariant.value) {
+          window.GenerationState.setSetting('image', 'modelVariant', imageModelVariant.value);
+        }
+      }
+
+      function updateImageAdvancedUI() {
+        const snapshot = window.GenerationState.getGenerationSnapshot('image');
+        const caps = snapshot.capabilities || {};
+        const settings = snapshot.settings || {};
+        const opSpec = getImageOperationSpec(caps, settings.operation || 'generate');
+        const requiresSource = !!opSpec?.requiresSource;
+        const requiresMask = !!opSpec?.requiresMask;
+        const usesShape = !['upscale', 'remove_background', 'crisp_upscale', 'creative_upscale', 'erase_region', 'vectorize'].includes(settings.operation || 'generate');
+
+        populateImageOperationOptions(caps);
+        populateImageModelVariantOptions(caps);
+
+        if (snapshot.provider === 'recraft_v4') {
+          const shouldUseVector = settings.operation === 'vectorize' || /vector/i.test(settings.modelVariant || '');
+          const desiredOutputMode = shouldUseVector ? 'vector_svg' : (settings.outputMode || 'raster');
+          if (desiredOutputMode !== settings.outputMode) {
+            window.GenerationState.setSetting('image', 'outputMode', desiredOutputMode);
+          }
+          if (imageOutputMode && imageOutputMode.value !== desiredOutputMode) {
+            imageOutputMode.value = desiredOutputMode;
+          }
+        }
+
+        toggleHidden(imageShapeRow, !usesShape);
+        const showQuality = Array.isArray(caps?.qualities) && caps.qualities.length > 1;
+        toggleHidden(imageQualityRow, !showQuality);
+
+        toggleHidden(imageSourceAssetGroup, !caps?.supportsSourceImage && !requiresSource);
+        toggleHidden(imageMaskAssetGroup, !(caps?.supportsMaskImage || requiresMask));
+        toggleHidden(imageReferenceAssetGroup, !caps?.supportsReferenceImages);
+        toggleHidden(imageStyleReferenceAssetGroup, !caps?.supportsStyleReferenceImages);
+        toggleHidden(imageCharacterReferenceAssetGroup, !caps?.supportsCharacterReferenceImages);
+        toggleHidden(imageCharacterMaskAssetGroup, !caps?.supportsCharacterReferenceImages);
+        toggleHidden(imageNegativePromptGroup, !caps?.supportsNegativePrompt);
+        toggleHidden(imageRenderingSpeedRow, !caps?.supportsRenderingSpeed);
+        toggleHidden(imageMagicPromptRow, !caps?.supportsMagicPrompt);
+        toggleHidden(imageStyleTypeRow, !caps?.supportsStyleType);
+        toggleHidden(imageStylePresetGroup, !caps?.supportsStylePreset);
+        toggleHidden(imageStyleNameGroup, !caps?.supportsStyleName);
+        toggleHidden(imageStyleIdGroup, !caps?.supportsStyleId);
+        toggleHidden(imageStyleCodesGroup, !caps?.supportsStyleCodes);
+        toggleHidden(imageColorPaletteNameGroup, !caps?.supportsColorPalette);
+        toggleHidden(imageColorPaletteMembersGroup, !caps?.supportsColorPalette);
+        toggleHidden(imageSeedRow, !caps?.supportsSeed);
+        toggleHidden(imageImageWeightRow, !(caps?.supportsImageWeight && settings.operation === 'remix'));
+        toggleHidden(imageStrengthRow, !(caps?.supportsStrength && settings.operation === 'image_to_image'));
+        toggleHidden(imagePromptUpsamplingRow, !caps?.supportsPromptUpsampling);
+        toggleHidden(imageGuidanceRow, !(caps?.supportsGuidance && settings.modelVariant === 'flex'));
+        toggleHidden(imageStepsRow, !(caps?.supportsSteps && settings.modelVariant === 'flex'));
+        toggleHidden(imageSafetyToleranceRow, !caps?.supportsSafetyTolerance);
+        toggleHidden(imageOutputFormatRow, !caps?.supportsOutputFormat);
+        toggleHidden(imageTransparentBackgroundRow, !caps?.supportsTransparentBackground);
+        toggleHidden(imageUpscaleDetailRow, !(caps?.supportsUpscaleTuning && settings.operation === 'upscale'));
+        toggleHidden(imageUpscaleResemblanceRow, !(caps?.supportsUpscaleTuning && settings.operation === 'upscale'));
+        toggleHidden(imageBackgroundColorGroup, !caps?.supportsBackgroundColor);
+        toggleHidden(imagePreferredColorsGroup, !caps?.supportsPreferredColors);
+        toggleHidden(imageArtisticLevelRow, !caps?.supportsArtisticLevel);
+        toggleHidden(imageNoTextRow, !caps?.supportsNoText);
+        toggleHidden(imageTextLayoutGroup, !caps?.supportsTextLayout);
+        toggleHidden(imageSvgCompressionRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
+        toggleHidden(imageLimitShapesRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
+        toggleHidden(imageMaxShapesRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
+
+        refreshImageAssetGroups(snapshot);
+
+        if (imageAdvancedDetails) {
+          const anyAdvancedVisible = [
+            imageNegativePromptGroup, imageRenderingSpeedRow, imageMagicPromptRow, imageStyleTypeRow, imageStylePresetGroup,
+            imageStyleNameGroup, imageStyleIdGroup, imageStyleCodesGroup, imageColorPaletteNameGroup, imageColorPaletteMembersGroup,
+            imageSeedRow, imageImageWeightRow, imageStrengthRow, imagePromptUpsamplingRow, imageGuidanceRow, imageStepsRow,
+            imageSafetyToleranceRow, imageOutputFormatRow, imageTransparentBackgroundRow, imageUpscaleDetailRow,
+            imageUpscaleResemblanceRow, imageBackgroundColorGroup, imagePreferredColorsGroup, imageArtisticLevelRow,
+            imageNoTextRow, imageTextLayoutGroup, imageSvgCompressionRow, imageLimitShapesRow, imageMaxShapesRow
+          ].some((el) => el && !el.classList.contains('hidden'));
+          toggleHidden(imageAdvancedDetails, !anyAdvancedVisible);
+        }
+      }
+
+      async function bindSingleImageUpload(input, clearBtn, settingKey, nameKey) {
+        if (!input) return;
+        const clearSelection = () => {
+          input.value = '';
+          window.GenerationState.setSetting('image', settingKey, '');
+          window.GenerationState.setSetting('image', nameKey, '');
+          refreshImageAssetGroups();
+          validateImageForm();
+        };
+        clearBtn?.addEventListener('click', clearSelection);
+        input.addEventListener('change', async () => {
+          const file = input.files?.[0];
+          if (!file) {
+            clearSelection();
+            return;
+          }
+          try {
+            const dataUrl = await readFileAsDataUrl(file);
+            window.GenerationState.setSetting('image', settingKey, dataUrl);
+            window.GenerationState.setSetting('image', nameKey, file.name);
+            refreshImageAssetGroups();
+          } catch (err) {
+            console.warn('[Image Upload] Failed to read file:', err);
+          }
+          validateImageForm();
+        });
+      }
+
+      async function bindMultiImageUpload(input, clearBtn, settingKey, nameKey) {
+        if (!input) return;
+        const clearSelection = () => {
+          input.value = '';
+          window.GenerationState.setSetting('image', settingKey, []);
+          window.GenerationState.setSetting('image', nameKey, []);
+          refreshImageAssetGroups();
+          validateImageForm();
+        };
+        clearBtn?.addEventListener('click', clearSelection);
+        input.addEventListener('change', async () => {
+          const files = Array.from(input.files || []);
+          if (!files.length) {
+            clearSelection();
+            return;
+          }
+          try {
+            const dataUrls = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
+            window.GenerationState.setSetting('image', settingKey, dataUrls);
+            window.GenerationState.setSetting('image', nameKey, files.map((file) => file.name));
+            refreshImageAssetGroups();
+          } catch (err) {
+            console.warn('[Image Upload] Failed to read files:', err);
+          }
+          validateImageForm();
+        });
+      }
+
       /**
        * Update image credits display using GenerationState
        */
@@ -2956,11 +3853,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const snapshot = window.GenerationState.getGenerationSnapshot('image');
         const caps = snapshot.capabilities;
         const currentQuality = snapshot.settings?.quality || 'standard';
+        const currentOutputMode = snapshot.settings?.outputMode || 'raster';
 
         if (imageCreditsDisplay) {
           imageCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${snapshot.credits}`;
           // Premium glow on credits badge when 4K is selected
-          imageCreditsDisplay.classList.toggle('premium-glow', currentQuality === '4k');
+          imageCreditsDisplay.classList.toggle('premium-glow', currentQuality === '4k' || currentOutputMode === 'vector_svg');
         }
         if (imageGenTime) {
           imageGenTime.textContent = caps?.genTime || '30 sec';
@@ -2973,46 +3871,47 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         // Rebuild quality dropdown fully from provider capabilities (no stale options)
         if (caps?.creditsByQuality && imageQuality) {
-          const supportedQualities = caps.qualities || ['standard', 'high'];
+          const supportedQualities = caps.qualities || ['standard'];
           const currentVal = imageQuality.value;
           const cbq = caps.creditsByQuality;
 
           // Clear and rebuild all options from scratch
           imageQuality.innerHTML = '';
 
-          // Standard (always present)
-          const stdOpt = document.createElement('option');
-          stdOpt.value = 'standard';
-          stdOpt.textContent = `Standard (${cbq.standard ?? 4}c)`;
-          imageQuality.appendChild(stdOpt);
+          supportedQualities.forEach((qualityValue) => {
+            const opt = document.createElement('option');
+            opt.value = qualityValue;
+            if (qualityValue === '4k') {
+              opt.textContent = `\u2728 4K Ultra (${cbq[qualityValue] ?? 18}c)`;
+            } else if (qualityValue === 'high') {
+              opt.textContent = `2K (${cbq[qualityValue] ?? 8}c)`;
+            } else {
+              opt.textContent = `Standard (${cbq[qualityValue] ?? cbq.standard ?? 4}c)`;
+            }
+            imageQuality.appendChild(opt);
+          });
 
-          // 2K (always present)
-          const highOpt = document.createElement('option');
-          highOpt.value = 'high';
-          highOpt.textContent = `2K (${cbq.high ?? 8}c)`;
-          imageQuality.appendChild(highOpt);
+          imageQuality.disabled = supportedQualities.length <= 1;
 
-          // 4K — only for providers that support it (Nano Banana exclusive)
-          if (supportedQualities.includes('4k')) {
-            const fourKOpt = document.createElement('option');
-            fourKOpt.value = '4k';
-            fourKOpt.textContent = `\u2728 4K Ultra (${cbq['4k'] ?? 18}c)`;
-            imageQuality.appendChild(fourKOpt);
-          }
-
-          // Restore previous selection if still valid, otherwise fall back
           if (supportedQualities.includes(currentVal)) {
             imageQuality.value = currentVal;
           } else {
-            imageQuality.value = 'standard';
-            window.GenerationState.setSetting('image', 'quality', 'standard');
+            imageQuality.value = caps.defaultQuality || supportedQualities[0] || 'standard';
+            window.GenerationState.setSetting('image', 'quality', imageQuality.value);
           }
 
           // Update hint text
           const hintEl = document.getElementById('imageQualityHint');
           if (hintEl) {
-            let hint = `Standard ${cbq.standard ?? 4}c \u00b7 2K ${cbq.high ?? 8}c`;
-            if (supportedQualities.includes('4k')) hint += ` \u00b7 4K ${cbq['4k'] ?? 18}c`;
+            const parts = [];
+            if (supportedQualities.includes('standard')) parts.push(`Standard ${cbq.standard ?? snapshot.credits}c`);
+            if (supportedQualities.includes('high')) parts.push(`2K ${cbq.high ?? 8}c`);
+            if (supportedQualities.includes('4k')) parts.push(`4K ${cbq['4k'] ?? 18}c`);
+            if (!parts.length) parts.push(`Standard ${snapshot.credits}c`);
+            let hint = parts.join(' \u00b7 ');
+            if (caps.creditsByOutputMode?.vector_svg != null) {
+              hint += ` \u00b7 SVG ${caps.creditsByOutputMode.vector_svg}c`;
+            }
             hintEl.textContent = hint;
           }
 
@@ -3029,9 +3928,80 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           }
         }
 
+        if (imageOutputMode && imageOutputModeRow) {
+          const supportedOutputModes = caps?.outputModes || ['raster'];
+          const currentValue = imageOutputMode.value;
+          imageOutputMode.innerHTML = '';
+          supportedOutputModes.forEach((modeValue) => {
+            const opt = document.createElement('option');
+            opt.value = modeValue;
+            const credits = caps?.creditsByOutputMode?.[modeValue];
+            if (modeValue === 'vector_svg') {
+              opt.textContent = credits != null ? `SVG Vector (${credits}c)` : 'SVG Vector';
+            } else {
+              opt.textContent = credits != null ? `Raster (${credits}c)` : 'Raster';
+            }
+            imageOutputMode.appendChild(opt);
+          });
+          imageOutputMode.value = supportedOutputModes.includes(currentValue)
+            ? currentValue
+            : (caps?.defaultOutputMode || supportedOutputModes[0] || 'raster');
+          imageOutputMode.disabled = supportedOutputModes.length <= 1;
+          imageOutputModeRow.classList.toggle('hidden', supportedOutputModes.length <= 1);
+          if (imageOutputModeHint) {
+            imageOutputModeHint.classList.toggle('hidden', supportedOutputModes.length <= 1);
+            imageOutputModeHint.textContent = supportedOutputModes.includes('vector_svg')
+              ? 'Raster works with downstream image tools. SVG is ideal for logos and vector design.'
+              : 'Vector output is only available with Recraft V4.';
+          }
+          if (snapshot.settings?.outputMode !== imageOutputMode.value) {
+            window.GenerationState.setSetting('image', 'outputMode', imageOutputMode.value);
+          }
+        }
+
+        updateImageAdvancedUI();
+
         // Trigger workspace credits update if available
         if (window.WorkspaceCredits?.updateButtonCosts) {
           window.WorkspaceCredits.updateButtonCosts();
+        }
+      }
+
+      async function syncEnabledImageProviders() {
+        if (!imageAIProvider || !window.TimrXApi?.apiFetch) return;
+
+        try {
+          const result = await window.TimrXApi.apiFetch('/api/image/providers');
+          if (!result?.ok) return;
+
+          const enabledProviders = Array.isArray(result.data?.enabled_providers)
+            ? result.data.enabled_providers.filter(Boolean)
+            : [];
+          if (!enabledProviders.length) return;
+
+          const enabledSet = new Set(enabledProviders);
+          Array.from(imageAIProvider.options).forEach((option) => {
+            if (!enabledSet.has(option.value)) {
+              option.remove();
+            }
+          });
+
+          const fallbackProvider = result.data?.default_provider || imageAIProvider.options[0]?.value || null;
+          if (!fallbackProvider) return;
+
+          const currentStateProvider = window.GenerationState?.getProvider?.('image');
+          const targetProvider = enabledSet.has(currentStateProvider)
+            ? currentStateProvider
+            : (enabledSet.has(imageAIProvider.value) ? imageAIProvider.value : fallbackProvider);
+
+          if (targetProvider && imageAIProvider.value !== targetProvider) {
+            imageAIProvider.value = targetProvider;
+          }
+          if (targetProvider && currentStateProvider !== targetProvider) {
+            window.GenerationState.setProvider('image', targetProvider, 'init');
+          }
+        } catch (err) {
+          console.warn('[Provider UI] Failed to fetch image provider catalog:', err);
         }
       }
 
@@ -3066,14 +4036,16 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         // Provider-specific hints
         const currentProvider = window.GenerationState?.getProvider?.('image') || provider;
-        const hint = currentProvider === 'google' ? 'Style is controlled via prompt text.' : '';
+        const hint = window.GenerationState?.getProviderCapabilities?.('image', currentProvider)?.hint || '';
         if (imageProviderHint) {
           imageProviderHint.textContent = hint;
           imageProviderHint.style.display = hint ? 'block' : 'none';
         }
 
         // Update credits display
+        syncImageAdvancedFromUI();
         updateImageCreditsDisplay();
+        validateImageForm();
       }
 
       /**
@@ -3083,7 +4055,16 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (!generateImageBtn) return;
 
         const prompt = imagePrompt?.value?.trim() || '';
-        const isValid = prompt.length > 0;
+        const snapshot = window.GenerationState.getGenerationSnapshot('image');
+        const caps = snapshot.capabilities || {};
+        const opSpec = getImageOperationSpec(caps, snapshot.settings?.operation || 'generate');
+        const requiresPrompt = !['reframe', 'upscale', 'remove_background', 'crisp_upscale', 'creative_upscale', 'erase_region', 'vectorize', 'remix'].includes(snapshot.settings?.operation || 'generate')
+          || snapshot.settings?.operation === 'remix';
+        const requiresSource = !!opSpec?.requiresSource;
+        const requiresMask = !!opSpec?.requiresMask;
+        const hasSource = !!snapshot.settings?.sourceImage;
+        const hasMask = !!snapshot.settings?.maskImage;
+        const isValid = (!requiresPrompt || prompt.length > 0) && (!requiresSource || hasSource) && (!requiresMask || hasMask);
 
         // Only manage disabled state for validation - don't override credits check
         const disabledForCredits = generateImageBtn.getAttribute('data-disabled-reason') === 'insufficient-credits';
@@ -3104,13 +4085,15 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Wire up provider change handler
       if (imageAIProvider) {
         imageAIProvider.addEventListener('change', () => updateImageProviderOptions('user'));
-        // Initial setup - sync default UI value to GenerationState (don't override if already set)
-        const currentProvider = window.GenerationState?.getProvider?.('image');
-        if (currentProvider && imageAIProvider.value !== currentProvider) {
-          // Sync UI to match existing state (don't override state)
-          imageAIProvider.value = currentProvider;
-        }
-        updateImageProviderOptions('init');
+        void (async () => {
+          await syncEnabledImageProviders();
+          const currentProvider = window.GenerationState?.getProvider?.('image');
+          const hasCurrentProviderOption = Array.from(imageAIProvider.options).some((opt) => opt.value === currentProvider);
+          if (currentProvider && hasCurrentProviderOption && imageAIProvider.value !== currentProvider) {
+            imageAIProvider.value = currentProvider;
+          }
+          updateImageProviderOptions('init');
+        })();
       }
 
       // Register provider change callback to handle cleanup when provider switches
@@ -3123,14 +4106,32 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
               imageAIProvider.value = newProvider;
             }
             // Update provider hint
-            const hint = newProvider === 'google' ? 'Style is controlled via prompt text.' : '';
+            const hint = window.GenerationState?.getProviderCapabilities?.('image', newProvider)?.hint || '';
             if (imageProviderHint) {
               imageProviderHint.textContent = hint;
               imageProviderHint.style.display = hint ? 'block' : 'none';
             }
             // Update credits display for new provider
             updateImageCreditsDisplay();
+            validateImageForm();
           }
+        });
+      }
+
+      if (imageOperation) {
+        imageOperation.addEventListener('change', () => {
+          window.GenerationState.setSetting('image', 'operation', imageOperation.value || 'generate');
+          updateImageAdvancedUI();
+          updateImageCreditsDisplay();
+          validateImageForm();
+        });
+      }
+
+      if (imageModelVariant) {
+        imageModelVariant.addEventListener('change', () => {
+          window.GenerationState.setSetting('image', 'modelVariant', imageModelVariant.value || '');
+          updateImageAdvancedUI();
+          updateImageCreditsDisplay();
         });
       }
 
@@ -3156,9 +4157,76 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         updateImageCreditsDisplay();
       }
 
+      if (imageOutputMode) {
+        imageOutputMode.addEventListener('change', () => {
+          const outputMode = imageOutputMode.value || 'raster';
+          window.GenerationState.setSetting('image', 'outputMode', outputMode);
+          updateImageCreditsDisplay();
+        });
+        const initialOutputMode = imageOutputMode.value || 'raster';
+        window.GenerationState.setSetting('image', 'outputMode', initialOutputMode);
+      }
+
+      const syncFieldsOnInput = [
+        imageNegativePrompt, imageRenderingSpeed, imageMagicPrompt, imageStyleType, imageStylePreset, imageStyleName,
+        imageStyleId, imageStyleCodes, imageColorPaletteName, imageColorPaletteMembers, imageSeed, imageImageWeight,
+        imageStrength, imagePromptUpsampling, imageGuidance, imageSteps, imageSafetyTolerance, imageOutputFormat,
+        imageTransparentBackground, imageUpscaleDetail, imageUpscaleResemblance, imageBackgroundColor, imagePreferredColors,
+        imageArtisticLevel, imageNoText, imageTextLayout, imageSvgCompression, imageLimitShapes, imageMaxShapes
+      ].filter(Boolean);
+      syncFieldsOnInput.forEach((el) => {
+        el.addEventListener('input', syncImageAdvancedFromUI);
+        el.addEventListener('change', () => {
+          syncImageAdvancedFromUI();
+          updateImageAdvancedUI();
+          validateImageForm();
+        });
+      });
+
+      void bindSingleImageUpload(
+        imageSourceUpload,
+        imageSourceUploadClear,
+        'sourceImage',
+        'sourceImageName'
+      );
+      void bindSingleImageUpload(
+        imageMaskUpload,
+        imageMaskUploadClear,
+        'maskImage',
+        'maskImageName'
+      );
+      void bindMultiImageUpload(
+        imageReferenceUpload,
+        imageReferenceUploadClear,
+        'referenceImages',
+        'referenceImageNames'
+      );
+      void bindMultiImageUpload(
+        imageStyleReferenceUpload,
+        imageStyleReferenceUploadClear,
+        'styleReferenceImages',
+        'styleReferenceNames'
+      );
+      void bindSingleImageUpload(
+        imageCharacterReferenceUpload,
+        imageCharacterReferenceUploadClear,
+        'characterReferenceImages',
+        'characterReferenceNames'
+      );
+      void bindSingleImageUpload(
+        imageCharacterMaskUpload,
+        imageCharacterMaskUploadClear,
+        'characterReferenceMasks',
+        'characterReferenceMaskNames'
+      );
+
       // Wire up form validation
       if (imagePrompt) {
-        imagePrompt.addEventListener('input', validateImageForm);
+        imagePrompt.addEventListener('input', () => {
+          window.GenerationState.setSetting('image', 'prompt', imagePrompt.value || '');
+          validateImageForm();
+        });
+        window.GenerationState.setSetting('image', 'prompt', imagePrompt.value || '');
         validateImageForm();
       }
 

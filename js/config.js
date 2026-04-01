@@ -258,7 +258,11 @@ export async function apiFetch(url, options = {}) {
         ok: response.ok,
         status: response.status,
         data,
-        error: response.ok ? null : (data?.error?.message || data?.message || `HTTP ${response.status}`),
+        error: response.ok ? null : (
+          (typeof data?.error === 'string' ? data.error : data?.error?.message)
+          || data?.message
+          || `HTTP ${response.status}`
+        ),
       };
 
       // AUTH-5: detect 401 and trigger global auth-loss handler

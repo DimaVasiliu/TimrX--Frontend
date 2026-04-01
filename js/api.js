@@ -2479,11 +2479,6 @@ export async function onGenerateClick() {
   }
 }
 
-// Image credits — provider-specific (reads from GenerationState capabilities)
-// Nano Banana (premium): standard 15c, high 20c, 4k 30c (EXCLUSIVE)
-// OpenAI / Google:       standard 10c, high 15c (no 4K)
-const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_generate_2k', '4k': 'image_generate_4k' };
-
 /**
  * Get image credits for the current quality + provider from GenerationState
  * @param {string} quality - 'standard' or 'high'
@@ -2492,6 +2487,10 @@ const IMAGE_ACTION_BY_QUALITY = { standard: 'image_generate', high: 'image_gener
 function getImageCredits(quality = 'standard') {
   const snapshot = window.GenerationState?.getGenerationSnapshot?.('image');
   if (snapshot?.capabilities?.creditsByQuality) {
+    const outputMode = snapshot?.settings?.outputMode || 'raster';
+    if (snapshot.capabilities.creditsByOutputMode?.[outputMode] != null) {
+      return snapshot.capabilities.creditsByOutputMode[outputMode];
+    }
     return snapshot.capabilities.creditsByQuality[quality] ?? snapshot.capabilities.credits ?? 4;
   }
   // Fallback: cheapest tier (OpenAI/Gemini)
@@ -2504,11 +2503,20 @@ function getImageCredits(quality = 'standard') {
  * @returns {string}
  */
 function getImageActionKey(quality = 'standard') {
-  return IMAGE_ACTION_BY_QUALITY[quality] || 'image_generate';
+  const snapshot = window.GenerationState?.getGenerationSnapshot?.('image');
+  const outputMode = snapshot?.settings?.outputMode || 'raster';
+  const caps = snapshot?.capabilities || {};
+  if (caps.actionKeyByOutputMode?.[outputMode]) {
+    return caps.actionKeyByOutputMode[outputMode];
+  }
+  if (caps.actionKeyByQuality?.[quality]) {
+    return caps.actionKeyByQuality[quality];
+  }
+  return 'image_generate';
 }
 
-// Map shape to OpenAI gpt-image-1 resolution
-// gpt-image-1 only supports: 1024x1024, 1024x1536, 1536x1024
+// Map shape to OpenAI gpt-image-1.5 resolution
+// gpt-image-1/1.5 supports: 1024x1024, 1024x1536, 1536x1024
 const OPENAI_SHAPE_MAP = {
   square: '1024x1024',      // 1:1
   portrait: '1024x1536',    // 2:3 (portrait)
@@ -2571,7 +2579,7 @@ export async function startOpenAIImageGeneration() {
   // Map shape to OpenAI resolution, quality to image_size tier (for pricing)
   const resolution = OPENAI_SHAPE_MAP[settings.shape] || '1024x1024';
   const imageSize = OPENAI_QUALITY_MAP[settings.quality] || '1K';
-  const model = 'gpt-image-1';
+  const model = 'gpt-image-1.5';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
@@ -2994,6 +3002,349 @@ const NANO_BANANA_QUALITY_MAP = {
   '4k': '4K'
 };
 
+const GOOGLE_NANO_SHAPE_MAP = {
+  square: '1:1',
+  portrait: '9:16',
+  landscape: '16:9',
+};
+
+const FLUX_PRO_SHAPE_MAP = {
+  square: '1024x1024',
+  portrait: '1024x1536',
+  landscape: '1536x1024',
+};
+
+const IDEOGRAM_V3_SHAPE_MAP = {
+  square: '1024x1024',
+  portrait: '1024x1536',
+  landscape: '1536x1024',
+};
+
+const IDEOGRAM_V3_ASPECT_MAP = {
+  square: '1:1',
+  portrait: '2:3',
+  landscape: '3:2',
+};
+
+const RECRAFT_V4_SHAPE_MAP = {
+  square: '1024x1024',
+  portrait: '1024x1536',
+  landscape: '1536x1024',
+};
+
+function normalizeImageAssetList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return [value].filter(Boolean);
+}
+
+function buildFluxRequestFromState(stateSettings = {}) {
+  const shape = stateSettings.shape || 'square';
+  const resolution = FLUX_PRO_SHAPE_MAP[shape] || '1024x1024';
+  return {
+    provider: 'flux_pro',
+    prompt: (byId('imagePrompt')?.value || '').trim() || 'Generated image',
+    shape,
+    resolution,
+    image_size: '1K',
+    operation: stateSettings.operation || (stateSettings.sourceImage ? 'edit' : 'generate'),
+    model_variant: stateSettings.modelVariant || 'pro',
+    source_image: stateSettings.sourceImage || '',
+    reference_images: normalizeImageAssetList(stateSettings.referenceImages),
+    prompt_upsampling: stateSettings.promptUpsampling !== false,
+    seed: stateSettings.seed || undefined,
+    guidance: stateSettings.guidance || undefined,
+    steps: stateSettings.steps || undefined,
+    safety_tolerance: stateSettings.safetyTolerance || 2,
+    output_format: stateSettings.outputFormat || 'jpeg',
+    transparent_background: !!stateSettings.transparentBackground,
+  };
+}
+
+function buildIdeogramRequestFromState(stateSettings = {}) {
+  const shape = stateSettings.shape || 'square';
+  const resolution = IDEOGRAM_V3_SHAPE_MAP[shape] || '1024x1024';
+  const operation = stateSettings.operation || 'generate';
+  return {
+    provider: 'ideogram_v3',
+    prompt: (byId('imagePrompt')?.value || '').trim() || '',
+    shape,
+    resolution,
+    aspect_ratio: IDEOGRAM_V3_ASPECT_MAP[shape] || '1:1',
+    image_size: '1K',
+    operation,
+    source_image: stateSettings.sourceImage || '',
+    mask_image: stateSettings.maskImage || '',
+    style_reference_images: normalizeImageAssetList(stateSettings.styleReferenceImages),
+    character_reference_images: normalizeImageAssetList(stateSettings.characterReferenceImages),
+    character_reference_masks: normalizeImageAssetList(stateSettings.characterReferenceMasks),
+    negative_prompt: stateSettings.negativePrompt || '',
+    seed: stateSettings.seed || undefined,
+    rendering_speed: stateSettings.renderingSpeed || 'DEFAULT',
+    magic_prompt: stateSettings.magicPrompt || 'AUTO',
+    style_type: stateSettings.styleType || '',
+    style_preset: stateSettings.stylePreset || '',
+    style_codes: stateSettings.styleCodes || '',
+    color_palette_name: stateSettings.colorPaletteName || '',
+    color_palette_members: stateSettings.colorPaletteMembers || '',
+    image_weight: stateSettings.imageWeight || 50,
+    upscale_factor: stateSettings.transparentBackground ? 'X2' : 'X1',
+    detail: stateSettings.detail || 50,
+    resemblance: stateSettings.resemblance || 50,
+  };
+}
+
+function buildRecraftRequestFromState(stateSettings = {}) {
+  const shape = stateSettings.shape || 'square';
+  const size = RECRAFT_V4_SHAPE_MAP[shape] || '1024x1024';
+  const operation = stateSettings.operation || 'generate';
+  const modelVariant = stateSettings.modelVariant || (stateSettings.outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4');
+  const isVectorModel = /vector/i.test(modelVariant);
+  return {
+    provider: 'recraft_v4',
+    prompt: (byId('imagePrompt')?.value || '').trim() || '',
+    shape,
+    size,
+    resolution: size,
+    image_size: '1K',
+    operation,
+    model_variant: modelVariant,
+    output_mode: operation === 'vectorize' || isVectorModel ? 'vector_svg' : (stateSettings.outputMode || 'raster'),
+    source_image: stateSettings.sourceImage || '',
+    mask_image: stateSettings.maskImage || '',
+    style: stateSettings.style || '',
+    style_id: stateSettings.styleId || '',
+    negative_prompt: stateSettings.negativePrompt || '',
+    strength: stateSettings.strength || undefined,
+    seed: stateSettings.seed || undefined,
+    background_color: stateSettings.backgroundColor || '',
+    preferred_colors: stateSettings.preferredColors || '',
+    artistic_level: stateSettings.artisticLevel || undefined,
+    no_text: !!stateSettings.noText,
+    response_format: 'url',
+    svg_compression: !!stateSettings.svgCompression,
+    limit_num_shapes: !!stateSettings.limitNumShapes,
+    max_num_shapes: stateSettings.maxNumShapes || undefined,
+    text_layout: stateSettings.textLayout || '',
+  };
+}
+
+function buildImageFinalItem(id, prompt, imageUrl, data = {}, meta = {}) {
+  const provider = data.provider || meta.provider || 'unknown';
+  return {
+    id,
+    type: 'image',
+    status: 'finished',
+    status_label: '',
+    created_at: Date.now(),
+    prompt,
+    title: shortTitle(prompt),
+    image_url: imageUrl,
+    image_urls: data.image_urls || meta.image_urls || [imageUrl],
+    thumbnail_url: data.thumbnail_url || imageUrl,
+    stage: 'image',
+    provider,
+    provider_used: meta.provider_used || provider,
+    model: data.model || meta.model || '',
+    artifact_format: data.artifact_format || meta.artifact_format || data.format || 'png',
+    provider_variant: data.provider_variant || meta.provider_variant || '',
+    output_mode: data.output_mode || meta.output_mode || 'raster',
+    operation: data.operation || meta.operation || '',
+    upstream_request_id: data.upstream_request_id || meta.upstream_request_id || '',
+    upstream_cost: data.upstream_cost ?? meta.upstream_cost ?? null,
+    meta: {
+      artifact_format: data.artifact_format || meta.artifact_format || data.format || 'png',
+      provider_variant: data.provider_variant || meta.provider_variant || '',
+      output_mode: data.output_mode || meta.output_mode || 'raster',
+      operation: data.operation || meta.operation || '',
+      upstream_request_id: data.upstream_request_id || meta.upstream_request_id || '',
+      upstream_cost: data.upstream_cost ?? meta.upstream_cost ?? null,
+    }
+  };
+}
+
+async function startAsyncImageProvider({
+  provider,
+  providerLabel,
+  logPrefix,
+  prompt,
+  settingsSnapshot,
+  requestBody,
+  placeholderLabel,
+  queuedLabel,
+  successLabel,
+  tempIdPrefix,
+  pendingMeta = {},
+  responseModel,
+}) {
+  const imageCredits = settingsSnapshot.credits;
+  const imageActionKey = getImageActionKey(settingsSnapshot.quality || 'standard');
+  const creditCheck = checkCreditsForGeneration(imageCredits, 'image');
+  if (creditCheck.shouldBlock) {
+    showInsufficientCreditsModal(creditCheck.cost, creditCheck.available, 'image');
+    return;
+  }
+
+  acquireSubmitLock();
+  const prog = UI.makeProgressDriver();
+  const idempotencyKey = State.generateIdempotencyKey();
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `${tempIdPrefix}-${Date.now()}`);
+  let handoffToWatcher = false;
+
+  prog.label('Reserving credits...');
+  const reservation = reserveExactAmount(imageActionKey, imageCredits);
+  if (reservation.insufficient) {
+    releaseSubmitLock();
+    showInsufficientCreditsModal(imageCredits, creditCheck.available, 'image');
+    return;
+  }
+
+  if (window.ImageJobControl?.lock) {
+    window.ImageJobControl.lock(provider, settingsSnapshot, tempId, reservation.reservationId);
+  }
+
+  addGeneratingPlaceholder(tempId, {
+    type: 'image',
+    status_label: placeholderLabel,
+    prompt,
+    stage: 'image',
+    provider,
+    provider_used: provider,
+    idempotency_key: idempotencyKey,
+    image_url: '',
+    output_mode: settingsSnapshot.outputMode || 'raster',
+  });
+
+  try {
+    prog.label(queuedLabel);
+    console.log(`[GEN] mode=image provider=${provider} cost=${imageCredits} available=${creditCheck.available} payload=${JSON.stringify(requestBody)}`);
+
+    const result = await apiFetch('/api/image/generate', {
+      method: 'POST',
+      body: requestBody,
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
+
+    if (!result.ok) {
+      if (handleGenerationTimeout(result, 'image_generate')) {
+        State.updateHistoryItem(tempId, {
+          status: 'generating',
+          status_label: 'Still generating... (checking server)'
+        });
+        renderHistory();
+        prog.label('Still generating...');
+        watchImageJob(tempId, reservation.reservationId, {
+          prompt,
+          provider,
+          provider_used: provider,
+          model: responseModel,
+          output_mode: settingsSnapshot.outputMode || 'raster',
+          isTimeoutRecovery: true
+        });
+        handoffToWatcher = true;
+        return;
+      }
+      if (handleApiError(result, 'image_generate', reservation.reservationId)) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        renderHistory();
+        return;
+      }
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error(result.error?.message || result.error || `${providerLabel} image failed: HTTP ${result.status}`);
+    }
+
+    const data = result.data || {};
+    const imageId = data.image_id || data.job_id;
+    const imageUrl = data.image_url;
+    const jobStatus = data.status;
+
+    if (jobStatus === 'queued' && imageId) {
+      if (imageId !== tempId) {
+        State.deleteHistoryItem(tempId, { skipRemote: true });
+        addGeneratingPlaceholder(imageId, {
+          type: 'image',
+          status_label: placeholderLabel,
+          prompt,
+          stage: 'image',
+          provider,
+          provider_used: provider,
+          model: responseModel,
+          image_url: '',
+          output_mode: settingsSnapshot.outputMode || 'raster',
+        });
+      }
+
+      const backendReservationId = data.reservation_id || reservation.reservationId;
+      if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+        window.WorkspaceCredits.applyBackendBalance(data.new_balance, `${provider}_image_queued`);
+      }
+
+      State.addActiveJob(imageId);
+      State.savePendingMeta(imageId, {
+        prompt,
+        stage: 'image',
+        type: 'image',
+        provider,
+        model: responseModel,
+        output_mode: settingsSnapshot.outputMode || 'raster',
+        ...pendingMeta
+      });
+
+      watchImageJob(imageId, backendReservationId, {
+        prompt,
+        provider,
+        provider_used: provider,
+        model: responseModel,
+        output_mode: settingsSnapshot.outputMode || 'raster',
+        ...pendingMeta
+      });
+      handoffToWatcher = true;
+      return;
+    }
+
+    if (!imageUrl) {
+      releaseCreditsReservation(reservation.reservationId);
+      throw new Error(`No image returned from ${providerLabel}`);
+    }
+
+    const finalItem = buildImageFinalItem(imageId || tempId, prompt, imageUrl, data, {
+      provider,
+      provider_used: provider,
+      model: responseModel,
+      output_mode: settingsSnapshot.outputMode || 'raster',
+      ...pendingMeta
+    });
+
+    if (imageId && imageId !== tempId) {
+      State.deleteHistoryItem(tempId, { skipRemote: true });
+      State.addHistoryItem(finalItem);
+      State.setHistoryActiveModelId(imageId);
+    } else {
+      State.updateHistoryItem(tempId, finalItem);
+    }
+
+    renderHistory();
+    prog.done(successLabel);
+
+    if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+      window.WorkspaceCredits.applyBackendBalance(data.new_balance, `${provider}_image_response`);
+    } else if (window.WorkspaceCredits?.syncWithBackend) {
+      window.WorkspaceCredits.syncWithBackend();
+    }
+  } catch (err) {
+    console.error(`[${logPrefix}] Error:`, err);
+    prog.fail(err?.message || `${providerLabel} image generation failed`);
+    alert(err?.message || `${providerLabel} image generation failed.`);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+  } finally {
+    releaseSubmitLock();
+    if (!handoffToWatcher && window.ImageJobControl?.unlock) {
+      window.ImageJobControl.unlock();
+    }
+  }
+}
+
 /**
  * Start Nano Banana (PiAPI) image generation
  * IMPORTANT: Provider must be 'nano_banana' in GenerationState before calling this.
@@ -3153,7 +3504,7 @@ export async function startNanoBananaImageGeneration() {
           stage: 'image',
           provider: 'nano_banana',
           provider_used: 'nano_banana',
-          model: 'nano-banana-2',
+          model: 'gemini-2.5-flash-image',
           image_url: '',
         });
       }
@@ -3202,7 +3553,7 @@ export async function startNanoBananaImageGeneration() {
       stage: 'image',
       provider: 'nano_banana',
       provider_used: 'nano_banana',
-      model: 'nano-banana-2'
+      model: 'gemini-2.5-flash-image'
     };
 
     if (imageId && imageId !== tempId) {
@@ -3239,6 +3590,202 @@ export async function startNanoBananaImageGeneration() {
 /** @deprecated Use watchImageJob() instead — delegates to unified handler. */
 export function watchNanoBananaImageJob(jobId, reservationId, meta = {}) {
   watchImageJob(jobId, reservationId, { ...meta, provider: meta.provider || 'nano_banana' });
+}
+
+
+export async function startGoogleNanoImageGeneration() {
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'google_nano') {
+    console.error(`[Google Nano] BLOCKED: State provider is '${stateProvider}', not 'google_nano'`);
+    return;
+  }
+  if (window.GenerationState?.isGenerating?.()) {
+    console.warn('[Google Nano] Generation already in progress');
+    return;
+  }
+
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const promptRaw = (byId('imagePrompt')?.value || '').trim() || 'Generated image';
+  const aspectRatio = GOOGLE_NANO_SHAPE_MAP[stateSettings.shape || 'square'] || '1:1';
+  const settingsSnapshot = {
+    prompt: promptRaw,
+    shape: stateSettings.shape || 'square',
+    quality: 'standard',
+    outputMode: 'raster',
+    aspectRatio,
+    imageSize: '1K',
+    credits: getImageCredits('standard')
+  };
+
+  await startAsyncImageProvider({
+    provider: 'google_nano',
+    providerLabel: 'Google Nano',
+    logPrefix: 'Google Nano',
+    prompt: promptRaw,
+    settingsSnapshot,
+    requestBody: {
+      provider: 'google_nano',
+      prompt: promptRaw,
+      aspect_ratio: aspectRatio,
+      image_size: '1K'
+    },
+    placeholderLabel: 'Generating image with Google Nano...',
+    queuedLabel: 'Queueing image with Google Nano...',
+    successLabel: 'Image generated!',
+    tempIdPrefix: 'google-nano-temp',
+    responseModel: 'gemini-2.5-flash-image',
+    pendingMeta: { provider_variant: 'direct_google' }
+  });
+}
+
+
+export async function startFluxProImageGeneration() {
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'flux_pro') {
+    console.error(`[FLUX.2 Pro] BLOCKED: State provider is '${stateProvider}', not 'flux_pro'`);
+    return;
+  }
+  if (window.GenerationState?.isGenerating?.()) {
+    console.warn('[FLUX.2 Pro] Generation already in progress');
+    return;
+  }
+
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const requestBody = buildFluxRequestFromState(stateSettings);
+  const promptRaw = requestBody.prompt || 'FLUX.2 image';
+  const settingsSnapshot = {
+    ...stateSettings,
+    prompt: promptRaw,
+    shape: stateSettings.shape || 'square',
+    quality: 'standard',
+    outputMode: 'raster',
+    resolution: requestBody.resolution,
+    operation: requestBody.operation,
+    modelVariant: requestBody.model_variant,
+    credits: getImageCredits('standard')
+  };
+
+  await startAsyncImageProvider({
+    provider: 'flux_pro',
+    providerLabel: 'FLUX.2 Pro',
+    logPrefix: 'FLUX.2 Pro',
+    prompt: promptRaw,
+    settingsSnapshot,
+    requestBody,
+    placeholderLabel: requestBody.operation === 'edit'
+      ? 'Generating FLUX.2 edit...'
+      : 'Generating image with FLUX.2...',
+    queuedLabel: 'Queueing FLUX.2 request...',
+    successLabel: 'Image generated!',
+    tempIdPrefix: 'flux-pro-temp',
+    responseModel: requestBody.model_variant === 'flex'
+      ? 'flux-2-flex'
+      : requestBody.model_variant === 'pro_preview'
+        ? 'flux-2-pro-preview'
+        : 'flux-2-pro',
+    pendingMeta: {
+      provider_variant: requestBody.model_variant,
+      operation: requestBody.operation
+    }
+  });
+}
+
+
+export async function startIdeogramV3ImageGeneration() {
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'ideogram_v3') {
+    console.error(`[Ideogram V3] BLOCKED: State provider is '${stateProvider}', not 'ideogram_v3'`);
+    return;
+  }
+  if (window.GenerationState?.isGenerating?.()) {
+    console.warn('[Ideogram V3] Generation already in progress');
+    return;
+  }
+
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const requestBody = buildIdeogramRequestFromState(stateSettings);
+  const promptRaw = requestBody.prompt || `Ideogram ${requestBody.operation || 'generate'}`;
+  const settingsSnapshot = {
+    ...stateSettings,
+    prompt: promptRaw,
+    shape: stateSettings.shape || 'square',
+    quality: 'standard',
+    outputMode: 'raster',
+    resolution: requestBody.resolution,
+    operation: requestBody.operation,
+    credits: getImageCredits('standard')
+  };
+
+  await startAsyncImageProvider({
+    provider: 'ideogram_v3',
+    providerLabel: 'Ideogram V3',
+    logPrefix: 'Ideogram V3',
+    prompt: promptRaw,
+    settingsSnapshot,
+    requestBody,
+    placeholderLabel: `Running Ideogram ${requestBody.operation.replaceAll('_', ' ')}...`,
+    queuedLabel: 'Queueing Ideogram request...',
+    successLabel: 'Image generated!',
+    tempIdPrefix: 'ideogram-v3-temp',
+    responseModel: 'ideogram-v3',
+    pendingMeta: {
+      provider_variant: requestBody.operation,
+      operation: requestBody.operation
+    }
+  });
+}
+
+
+export async function startRecraftV4ImageGeneration() {
+  const stateProvider = window.GenerationState?.getProvider?.('image');
+  if (stateProvider !== 'recraft_v4') {
+    console.error(`[Recraft V4] BLOCKED: State provider is '${stateProvider}', not 'recraft_v4'`);
+    return;
+  }
+  if (window.GenerationState?.isGenerating?.()) {
+    console.warn('[Recraft V4] Generation already in progress');
+    return;
+  }
+
+  const stateSettings = window.GenerationState?.getSettings?.('image') || {};
+  const requestBody = buildRecraftRequestFromState(stateSettings);
+  const promptRaw = requestBody.prompt || `Recraft ${requestBody.operation.replaceAll('_', ' ')}`;
+  const outputMode = requestBody.output_mode || 'raster';
+  const settingsSnapshot = {
+    ...stateSettings,
+    prompt: promptRaw,
+    shape: stateSettings.shape || 'square',
+    quality: 'standard',
+    outputMode,
+    size: requestBody.size,
+    operation: requestBody.operation,
+    modelVariant: requestBody.model_variant,
+    credits: getImageCredits('standard')
+  };
+
+  await startAsyncImageProvider({
+    provider: 'recraft_v4',
+    providerLabel: 'Recraft V4',
+    logPrefix: 'Recraft V4',
+    prompt: promptRaw,
+    settingsSnapshot,
+    requestBody,
+    placeholderLabel: requestBody.operation === 'vectorize'
+      ? 'Vectorizing image with Recraft...'
+      : outputMode === 'vector_svg'
+        ? 'Generating SVG vector with Recraft...'
+        : `Running Recraft ${requestBody.operation.replaceAll('_', ' ')}...`,
+    queuedLabel: 'Queueing Recraft request...',
+    successLabel: outputMode === 'vector_svg' ? 'Vector ready!' : 'Image generated!',
+    tempIdPrefix: 'recraft-v4-temp',
+    responseModel: requestBody.model_variant || (outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4'),
+    pendingMeta: {
+      provider_variant: requestBody.operation,
+      operation: requestBody.operation,
+      output_mode: outputMode,
+      artifact_format: outputMode === 'vector_svg' ? 'svg' : 'png'
+    }
+  });
 }
 
 
@@ -3322,28 +3869,23 @@ export function watchImageJob(jobId, reservationId, meta = {}) {
       if (st.status === 'done') {
         let imageUrl = preferHttpUrl(st.image_urls || st.image_url || null);
         if (!imageUrl && st.image_base64) {
-          imageUrl = `data:image/png;base64,${st.image_base64}`;
+          imageUrl = `data:${st.mime_type || 'image/png'};base64,${st.image_base64}`;
         }
         if (!imageUrl) {
           throw new Error('Provider did not return an image URL');
         }
 
         const provider = st.provider || meta.provider || 'unknown';
-        const historyData = {
-          id: jobId,
-          type: 'image',
-          status: 'finished',
-          status_label: '',
-          created_at: Date.now(),
-          prompt: meta.prompt || '',
-          title: shortTitle(meta.prompt || 'Generated image'),
-          image_url: imageUrl,
-          thumbnail_url: st.thumbnail_url || imageUrl,
-          stage: 'image',
-          provider: provider,
+        const historyData = buildImageFinalItem(jobId, meta.prompt || '', imageUrl, st, {
+          provider,
           provider_used: meta.provider_used || provider,
-          model: st.model || meta.model || ''
-        };
+          model: st.model || meta.model || '',
+          output_mode: st.output_mode || meta.output_mode || 'raster',
+          artifact_format: st.artifact_format || meta.artifact_format || st.format || 'png',
+          provider_variant: st.provider_variant || meta.provider_variant || '',
+          upstream_request_id: st.upstream_request_id || meta.upstream_request_id || '',
+          upstream_cost: st.upstream_cost ?? meta.upstream_cost ?? null
+        });
 
         if (State.historyHasJobId(jobId)) {
           State.updateHistoryItem(jobId, historyData);
@@ -3430,17 +3972,24 @@ export async function startImageGenerationByProvider() {
 
   renderHistory();
 
-  if (provider === 'nano_banana') {
-    await startNanoBananaImageGeneration();
-  } else if (provider === 'openai') {
-    await startOpenAIImageGeneration();
-  } else if (provider === 'google') {
-    await startGeminiImageGeneration();
-  } else {
-    // NO FALLBACK - show error and stop
+  const providerDispatch = {
+    nano_banana: startNanoBananaImageGeneration,
+    openai: startOpenAIImageGeneration,
+    google: startGeminiImageGeneration,
+    google_nano: startGoogleNanoImageGeneration,
+    flux_pro: startFluxProImageGeneration,
+    ideogram_v3: startIdeogramV3ImageGeneration,
+    recraft_v4: startRecraftV4ImageGeneration,
+  };
+
+  const startProvider = providerDispatch[provider];
+  if (!startProvider) {
     console.error(`[Image] Unknown provider: ${provider} - NO FALLBACK`);
-    alert(`Image provider "${provider}" is not available. Please select Nano Banana, OpenAI, or Google.`);
+    alert(`Image provider "${provider}" is not available. Please select a valid image provider.`);
+    return;
   }
+
+  await startProvider();
 }
 
 // Map simplified aspect names to API ratio strings.

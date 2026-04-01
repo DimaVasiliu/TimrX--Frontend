@@ -933,6 +933,45 @@ export const historyState = {
   _renderedTotalPages: 1,  // Updated by renderHistory — used by next-page handler
 };
 
+const FLUX_MODEL_VARIANTS = [
+  { value: 'pro', label: 'FLUX.2 Pro' },
+  { value: 'pro_preview', label: 'FLUX.2 Pro Preview' },
+  { value: 'flex', label: 'FLUX.2 Flex' },
+];
+
+const IDEOGRAM_OPERATIONS = [
+  { value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false },
+  { value: 'generate_transparent', label: 'Transparent Generate', requiresSource: false, requiresMask: false },
+  { value: 'edit', label: 'Masked Edit', requiresSource: true, requiresMask: true },
+  { value: 'remix', label: 'Remix', requiresSource: true, requiresMask: false },
+  { value: 'reframe', label: 'Reframe', requiresSource: true, requiresMask: false },
+  { value: 'replace_background', label: 'Replace Background', requiresSource: true, requiresMask: false },
+  { value: 'upscale', label: 'Upscale', requiresSource: true, requiresMask: false },
+];
+
+const RECRAFT_MODEL_VARIANTS = [
+  { value: 'recraftv4', label: 'V4 Raster', operations: ['generate'] },
+  { value: 'recraftv4_vector', label: 'V4 Vector', operations: ['generate'] },
+  { value: 'recraftv4_pro', label: 'V4 Pro Raster', operations: ['generate'] },
+  { value: 'recraftv4_pro_vector', label: 'V4 Pro Vector', operations: ['generate'] },
+  { value: 'recraftv3', label: 'V3 Raster', operations: ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'] },
+  { value: 'recraftv3_vector', label: 'V3 Vector', operations: ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'] },
+];
+
+const RECRAFT_OPERATIONS = [
+  { value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false },
+  { value: 'image_to_image', label: 'Image to Image', requiresSource: true, requiresMask: false },
+  { value: 'inpaint', label: 'Inpaint', requiresSource: true, requiresMask: true },
+  { value: 'replace_background', label: 'Replace Background', requiresSource: true, requiresMask: false },
+  { value: 'generate_background', label: 'Generate Background', requiresSource: true, requiresMask: true },
+  { value: 'vectorize', label: 'Vectorize', requiresSource: true, requiresMask: false },
+  { value: 'remove_background', label: 'Remove Background', requiresSource: true, requiresMask: false },
+  { value: 'crisp_upscale', label: 'Crisp Upscale', requiresSource: true, requiresMask: false },
+  { value: 'creative_upscale', label: 'Creative Upscale', requiresSource: true, requiresMask: false },
+  { value: 'erase_region', label: 'Erase Region', requiresSource: true, requiresMask: true },
+  { value: 'remix', label: 'Remix', requiresSource: true, requiresMask: false },
+];
+
 // ============================================================================
 // PROVIDER CAPABILITIES MAP
 // Defines what each provider supports for each mode
@@ -941,43 +980,191 @@ export const PROVIDER_CAPABILITIES = {
   image: {
     nano_banana: {
       name: 'Nano Banana',
+      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
       credits: 7,   // PREMIUM provider
       creditsByQuality: { standard: 7, high: 12, '4k': 18 },
       genTimeByQuality: { standard: '45 sec', high: '60 sec', '4k': '90 sec' },
       genTime: '45 sec',
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
-      qualityMap: { standard: '1K', high: '2K', '4k': '4K' }
+      qualityMap: { standard: '1K', high: '2K', '4k': '4K' },
+      actionKeyByQuality: { standard: 'piapi_image_generate', high: 'piapi_image_generate_2k', '4k': 'piapi_image_generate_4k' },
+      supportsNegativePrompt: false,
+      supportsSourceImage: false,
+      hint: 'Premium provider with exclusive 4K output.'
     },
     openai: {
       name: 'OpenAI',
+      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
       defaultShape: 'square',
       defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
       credits: 4,
       creditsByQuality: { standard: 4, high: 8 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec' },
       genTime: '30 sec',
       shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
       qualityMap: { standard: 'standard', high: 'hd' },
-      sizeMap: { standard: '1024x1024', high: '1792x1024' }
+      sizeMap: { standard: '1024x1024', high: '1792x1024' },
+      actionKeyByQuality: { standard: 'image_generate', high: 'image_generate_2k' },
+      supportsNegativePrompt: false,
+      supportsSourceImage: false
     },
     google: {
       name: 'Google (Imagen)',
+      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
       defaultShape: 'square',
       defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
       credits: 4,
       creditsByQuality: { standard: 4, high: 8 },
       genTimeByQuality: { standard: '30 sec', high: '45 sec' },
       genTime: '30 sec',
       shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
-      qualityMap: { standard: '1K', high: '2K' }
+      qualityMap: { standard: '1K', high: '2K' },
+      actionKeyByQuality: { standard: 'gemini_image_generate', high: 'gemini_image_generate_2k' },
+      supportsNegativePrompt: false,
+      supportsSourceImage: false,
+      hint: 'Style is controlled via prompt text.'
+    },
+    google_nano: {
+      name: 'Google Nano',
+      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      defaultOperation: 'generate',
+      shapes: ['square', 'portrait', 'landscape'],
+      qualities: ['standard'],
+      defaultShape: 'square',
+      defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
+      credits: 5,
+      creditsByQuality: { standard: 5 },
+      genTimeByQuality: { standard: '35 sec' },
+      genTime: '35 sec',
+      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
+      qualityMap: { standard: '1K' },
+      actionKeyByQuality: { standard: 'google_nano_image_generate' },
+      supportsNegativePrompt: false,
+      supportsSourceImage: false,
+      hint: 'Direct Google image generation with a single standard tier.'
+    },
+    flux_pro: {
+      name: 'FLUX.2 Pro',
+      operations: [
+        { value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false },
+        { value: 'edit', label: 'Reference / Edit', requiresSource: true, requiresMask: false }
+      ],
+      defaultOperation: 'generate',
+      modelVariants: FLUX_MODEL_VARIANTS,
+      defaultModelVariant: 'pro',
+      shapes: ['square', 'portrait', 'landscape'],
+      qualities: ['standard'],
+      defaultShape: 'square',
+      defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
+      credits: 8,
+      creditsByQuality: { standard: 8 },
+      genTimeByQuality: { standard: '55 sec' },
+      genTime: '55 sec',
+      shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      qualityMap: { standard: '1K' },
+      actionKeyByQuality: { standard: 'flux_pro_image_generate' },
+      supportsSeed: true,
+      supportsPromptUpsampling: true,
+      supportsGuidance: true,
+      supportsSteps: true,
+      supportsSafetyTolerance: true,
+      supportsOutputFormat: true,
+      supportsTransparentBackground: true,
+      supportsSourceImage: true,
+      supportsReferenceImages: true,
+      maxReferenceImages: 8,
+      hint: 'Highest-fidelity photoreal provider with Pro, Preview, and Flex variants.'
+    },
+    ideogram_v3: {
+      name: 'Ideogram V3',
+      operations: IDEOGRAM_OPERATIONS,
+      defaultOperation: 'generate',
+      shapes: ['square', 'portrait', 'landscape'],
+      qualities: ['standard'],
+      defaultShape: 'square',
+      defaultQuality: 'standard',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
+      credits: 6,
+      creditsByQuality: { standard: 6 },
+      genTimeByQuality: { standard: '40 sec' },
+      genTime: '40 sec',
+      shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      qualityMap: { standard: '1K' },
+      actionKeyByQuality: { standard: 'ideogram_v3_image_generate' },
+      supportsSeed: true,
+      supportsNegativePrompt: true,
+      supportsRenderingSpeed: true,
+      supportsMagicPrompt: true,
+      supportsStyleType: true,
+      supportsStylePreset: true,
+      supportsStyleCodes: true,
+      supportsColorPalette: true,
+      supportsStyleReferenceImages: true,
+      supportsCharacterReferenceImages: true,
+      supportsImageWeight: true,
+      supportsSourceImage: true,
+      supportsMaskImage: true,
+      supportsUpscaleTuning: true,
+      hint: 'Strongest provider for typography, posters, logos, remixing, and guided edits.'
+    },
+    recraft_v4: {
+      name: 'Recraft V4',
+      operations: RECRAFT_OPERATIONS,
+      defaultOperation: 'generate',
+      modelVariants: RECRAFT_MODEL_VARIANTS,
+      defaultModelVariant: 'recraftv4',
+      shapes: ['square', 'portrait', 'landscape'],
+      qualities: ['standard'],
+      defaultShape: 'square',
+      defaultQuality: 'standard',
+      outputModes: ['raster', 'vector_svg'],
+      defaultOutputMode: 'raster',
+      credits: 8,
+      creditsByQuality: { standard: 8 },
+      creditsByOutputMode: { raster: 8, vector_svg: 10 },
+      genTimeByQuality: { standard: '40 sec' },
+      genTimeByOutputMode: { raster: '40 sec', vector_svg: '50 sec' },
+      genTime: '40 sec',
+      shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      qualityMap: { standard: '1K' },
+      actionKeyByQuality: { standard: 'recraft_v4_image_generate' },
+      actionKeyByOutputMode: { raster: 'recraft_v4_image_generate', vector_svg: 'recraft_v4_vector_generate' },
+      supportsStyleName: true,
+      supportsStyleId: true,
+      supportsNegativePrompt: true,
+      supportsSourceImage: true,
+      supportsMaskImage: true,
+      supportsStrength: true,
+      supportsBackgroundColor: true,
+      supportsPreferredColors: true,
+      supportsArtisticLevel: true,
+      supportsNoText: true,
+      supportsTextLayout: true,
+      supportsSvgShapeControls: true,
+      supportsSeed: true,
+      hint: 'Design-oriented provider for raster, vector, styled V3 edits, and utility image operations.'
     }
   },
   video: {
@@ -1027,7 +1214,51 @@ export const generation = {
   image: {
     prompt: '',
     shape: 'square',
-    quality: 'standard'
+    quality: 'standard',
+    outputMode: 'raster',
+    operation: 'generate',
+    modelVariant: '',
+    negativePrompt: '',
+    seed: '',
+    promptUpsampling: true,
+    guidance: '',
+    steps: '',
+    safetyTolerance: 2,
+    outputFormat: 'jpeg',
+    transparentBackground: false,
+    renderingSpeed: 'DEFAULT',
+    magicPrompt: 'AUTO',
+    styleType: '',
+    stylePreset: '',
+    styleCodes: '',
+    colorPaletteName: '',
+    colorPaletteMembers: '',
+    imageWeight: 50,
+    detail: 50,
+    resemblance: 50,
+    style: '',
+    styleId: '',
+    strength: 0.35,
+    backgroundColor: '',
+    preferredColors: '',
+    artisticLevel: '',
+    noText: false,
+    svgCompression: false,
+    limitNumShapes: false,
+    maxNumShapes: '',
+    textLayout: '',
+    sourceImage: '',
+    sourceImageName: '',
+    maskImage: '',
+    maskImageName: '',
+    referenceImages: [],
+    referenceImageNames: [],
+    styleReferenceImages: [],
+    styleReferenceNames: [],
+    characterReferenceImages: [],
+    characterReferenceNames: [],
+    characterReferenceMasks: [],
+    characterReferenceMaskNames: []
   },
 
   // Video settings
@@ -1073,6 +1304,18 @@ export function getProviderCapabilities(mode, provider) {
  */
 export function getProvider(mode) {
   return generation.provider[mode] || 'nano_banana';
+}
+
+function getOperationSpec(caps, operation) {
+  return (caps?.operations || []).find((item) => item?.value === operation) || null;
+}
+
+function getAllowedModelVariants(caps, operation) {
+  if (!Array.isArray(caps?.modelVariants)) return [];
+  return caps.modelVariants.filter((item) => {
+    if (!Array.isArray(item?.operations) || !item.operations.length) return true;
+    return item.operations.includes(operation);
+  });
 }
 
 // Track who is allowed to change providers
@@ -1183,6 +1426,38 @@ export function normalizeSettings(mode, provider) {
     }
   }
 
+  // Normalize operation (image providers)
+  if (settings.operation !== undefined && caps.operations) {
+    const opValues = caps.operations.map((item) => item.value);
+    if (!opValues.includes(settings.operation)) {
+      settings.operation = caps.defaultOperation || opValues[0] || 'generate';
+      console.log('[GEN] Normalized operation to:', settings.operation);
+    }
+  }
+
+  // Normalize provider model variant
+  if (settings.modelVariant !== undefined && caps.modelVariants) {
+    const allowedVariants = getAllowedModelVariants(caps, settings.operation);
+    const allowedValues = allowedVariants.map((item) => item.value);
+    if (!settings.modelVariant || !allowedValues.includes(settings.modelVariant)) {
+      const defaultVariant = caps.defaultModelVariant && allowedValues.includes(caps.defaultModelVariant)
+        ? caps.defaultModelVariant
+        : (allowedValues[0] || '');
+      settings.modelVariant = defaultVariant;
+      if (defaultVariant) {
+        console.log('[GEN] Normalized modelVariant to:', settings.modelVariant);
+      }
+    }
+  }
+
+  // Normalize output mode (image mode)
+  if (settings.outputMode !== undefined && caps.outputModes) {
+    if (!caps.outputModes.includes(settings.outputMode)) {
+      settings.outputMode = caps.defaultOutputMode || caps.outputModes[0];
+      console.log('[GEN] Normalized outputMode to:', settings.outputMode);
+    }
+  }
+
   // Normalize duration (video only)
   if (settings.duration !== undefined && caps.durations) {
     if (!caps.durations.includes(settings.duration)) {
@@ -1246,6 +1521,13 @@ export function getGenerationSnapshot(mode) {
     const quality = settings.quality || 'standard';
     credits = caps.creditsByQuality?.[quality] ?? caps.credits ?? 4;
     genTime = caps.genTimeByQuality?.[quality] ?? caps.genTime ?? '30 sec';
+    const outputMode = settings.outputMode || 'raster';
+    if (caps.creditsByOutputMode?.[outputMode] != null) {
+      credits = caps.creditsByOutputMode[outputMode];
+    }
+    if (caps.genTimeByOutputMode?.[outputMode]) {
+      genTime = caps.genTimeByOutputMode[outputMode];
+    }
   } else if (mode === 'video' && caps) {
     // Video: pricing by duration and quality multiplier
     const base = caps.baseCreditsByDuration?.[settings.duration] || 30;
