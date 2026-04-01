@@ -1,0 +1,83 @@
+body.converter-page,
+body.company-page,
+body.tutorials-page {
+  background: #070709;
+  color: #f5f7fb;
+}
+
+body.converter-page .converter-expanded-view,
+body.company-page .about-expanded-view,
+body.tutorials-page .tutorials-expanded-view {
+  display: block;
+  max-width: none;
+  padding: 0 0 96px;
+  background: transparent;
+}
+
+body.converter-page .converter-expanded-shell,
+body.company-page .about-expanded-shell,
+body.tutorials-page .tutorials-expanded-shell {
+  max-width: min(100% - (clamp(18px, 4vw, 34px) * 2), 1400px);
+  margin: 0 auto;
+  border-radius: 24px;
+  overflow: clip;
+}
+
+body.converter-page .converter-hero,
+body.company-page .about-hero,
+body.tutorials-page .tutorials-hero {
+  padding-top: 48px;
+}
+
+body.converter-page .converter-exit-btn,
+body.company-page .about-exit-btn,
+body.tutorials-page .tutorials-exit-btn {
+  top: calc(var(--site-shell-nav-height) + 20px);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.converter-page .converter-primary-btn,
+body.converter-page .converter-secondary-btn,
+body.company-page .about-primary-btn,
+body.company-page .about-secondary-btn,
+body.company-page .about-community-btn,
+body.tutorials-page .tutorials-primary-btn,
+body.tutorials-page .tutorials-secondary-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.company-page .about-community-btn {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  body.converter-page .converter-expanded-view,
+  body.company-page .about-expanded-view,
+  body.tutorials-page .tutorials-expanded-view {
+    padding-bottom: 72px;
+  }
+
+  body.converter-page .converter-hero,
+  body.company-page .about-hero,
+  body.tutorials-page .tutorials-hero {
+    padding-top: 28px;
+  }
+
+  body.converter-page .converter-exit-btn,
+  body.company-page .about-exit-btn,
+  body.tutorials-page .tutorials-exit-btn {
+    top: calc(var(--site-shell-nav-height) + 12px);
+    right: 14px;
+  }
+}

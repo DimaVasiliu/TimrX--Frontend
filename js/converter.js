@@ -236,7 +236,11 @@ function resetUpload() {
  * Export the model to the specified format
  */
 async function exportModel(format) {
-  if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+  const canDownload = typeof window.WorkspaceCredits?.canDownloadAssets === 'function'
+    ? window.WorkspaceCredits.canDownloadAssets()
+    : true;
+
+  if (!canDownload) {
     if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
     return;
   }

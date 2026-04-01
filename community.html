@@ -19,9 +19,9 @@
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/community" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png" />
-  <link rel="apple-touch-icon" href="/img/logo.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -109,6 +109,7 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="footer.css" />
   <link rel="stylesheet" href="trustpilot.css" />
+  <link rel="stylesheet" href="site-shell.css" />
 
   <!-- Inline Styles -->
   <style>
@@ -205,305 +206,14 @@
       justify-content: center;
     }
 
-    /* ========================================================================== */
-    /* NAV                                                                        */
-    /* ========================================================================== */
-    .nav {
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--navH);
-      z-index: 1000;
-      background: linear-gradient(180deg, rgba(11, 11, 11, .96), rgba(11, 11, 11, .75) 75%, rgba(11, 11, 11, 0));
-      backdrop-filter: saturate(120%) blur(8px);
-      border-bottom: 1px solid var(--line);
-      animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @keyframes slideDown {
-      from {
-        transform: translateY(-100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .nav-inner {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      max-width: none;
-    }
-
-    .nav-left, .nav-right { flex: 1 1 0; min-width: 0; }
-    .nav-pills { flex: 0 0 auto; display: flex; gap: 8px; justify-content: center; }
-
-    /* Brand */
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 900;
-      letter-spacing: .03em;
-      font-size: clamp(16px, 1.25vw, 22px);
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .b-tim { color: #f5f5f5; }
-    .b-x {
-      margin-left: 2px;
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 18px rgba(14, 165, 233, .35);
-      font-weight: 900;
-      letter-spacing: .02em;
-      transition: transform .25s ease, filter .25s ease;
-    }
-    .brand:hover .b-x {
-      transform: translateY(-1px);
-      filter: brightness(1.06);
-    }
-
-    .idx-nav-logo {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    /* Nav pills */
-    .nav-pill {
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--muted);
-      transition: all 0.2s ease;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .nav-pill:hover {
-      color: var(--ink);
-      background: rgba(255, 255, 255, .08);
-    }
-
-    .nav-pill.active {
-      color: var(--ink);
-      background: rgba(255, 255, 255, .12);
-    }
-
-    .nav-pill--accent {
-      border: 1px solid var(--ink);
-      color: var(--ink);
-      background: transparent;
-    }
-
-    .nav-pill--accent:hover {
-      background: var(--ink);
-      color: var(--bg);
-    }
-
-    .nav-left { display: flex; align-items: center; gap: 18px; }
-    .nav-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-
-    /* Credits group */
-    .credits-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .account-status-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      border-radius: 999px;
-      border: 1px solid rgba(125, 211, 252, .35);
-      background: rgba(125, 211, 252, .08);
-      color: #7dd3fc;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 16px;
-    }
-
-    .account-status-btn:hover {
-      border-color: rgba(125, 211, 252, .55);
-      background: rgba(125, 211, 252, .12);
-    }
-
-    .credits-pill {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      min-height: 44px;
-      border-radius: 999px;
-      border: 1px solid rgba(125, 211, 252, .35);
-      color: #eaf6ff;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: .03em;
-      background: rgba(125, 211, 252, .08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .credits-pill i {
-      color: #7dd3fc;
-      font-size: 12px;
-      filter: drop-shadow(0 0 4px rgba(125, 211, 252, .5));
-    }
-
-    .credits-pill:hover {
-      border-color: rgba(125, 211, 252, .55);
-      background: rgba(125, 211, 252, .12);
-      transform: translateY(-1px);
-    }
-
-    .credits-buy-btn {
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--ink);
-      background: transparent;
-      color: var(--ink);
-      font-weight: 800;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .credits-buy-btn:hover {
-      background: var(--ink);
-      color: var(--bg);
-    }
-
-    /* Mobile burger */
-    .nav-burger {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      width: 28px;
-      height: 24px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .burger-line {
-      width: 100%;
-      height: 2px;
-      background: var(--ink);
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(1) {
-      transform: rotate(45deg) translate(8px, 8px);
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(2) {
-      opacity: 0;
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(8px, -8px);
-    }
-
-    /* Mobile menu */
-    .mobile-menu {
-      display: none;
-      position: fixed;
-      inset: var(--navH) 0 0 0;
-      z-index: 999;
-      background: var(--bg);
-      border-top: 1px solid var(--line);
-      animation: slideDown 0.3s ease;
-    }
-
-    .mobile-menu.is-open {
-      display: block;
-    }
-
-    .mobile-menu-inner {
-      padding: 20px;
-      max-height: calc(100vh - var(--navH));
-      overflow-y: auto;
-    }
-
-    .mobile-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .mobile-nav-link {
-      padding: 12px;
-      border-radius: 8px;
-      background: var(--panel);
-      transition: all 0.2s ease;
-      display: block;
-    }
-
-    .mobile-nav-link:hover {
-      background: var(--line);
-    }
-
-    .mnl-label {
-      display: block;
-      font-weight: 700;
-      color: var(--ink);
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .mnl-sub {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .mobile-menu-footer {
-      padding: 20px 0 0;
-      border-top: 1px solid var(--line);
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .mobile-footer-text {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    @media (max-width: 768px) {
-      .nav-pills { display: none; }
-      .nav-burger { display: flex; }
-      .nav-left { gap: 12px; }
-    }
+    /* Nav + mobile menu rendered by site-shell.js — no inline overrides */
 
     /* ========================================================================== */
     /* HERO SECTION                                                              */
     /* ========================================================================== */
     .hero {
       position: relative;
-      margin-top: var(--navH);
+      margin-top: auto;
       padding: clamp(40px, 8vh, 80px) 0;
       text-align: center;
       overflow: hidden;
@@ -900,10 +610,27 @@
       line-height: 1.3;
     }
 
+    .card-prompt {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
     .card-creator {
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -916,16 +643,45 @@
       background: rgba(125, 211, 252, 0.2);
     }
 
-    .card-reactions {
+    .card-stats {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       font-size: 12px;
       color: var(--muted);
     }
 
+    .card-reactions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     .card-reactions i {
       color: #f97316;
+    }
+
+    .card-comments {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-comments i {
+      color: #7dd3fc;
+    }
+
+    .card-gen-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(0,0,0,0.7);
+      color: #ccc;
+      backdrop-filter: blur(4px);
     }
 
     /* Skeleton loader */
@@ -1027,127 +783,6 @@
     }
 
     /* ========================================================================== */
-    /* FOOTER                                                                    */
-    /* ========================================================================== */
-    .site-footer {
-      border-top: 1px solid rgba(255, 255, 255, .08);
-      padding: clamp(40px, 6vh, 64px) 0 clamp(24px, 3vh, 36px);
-      color: #9ca3af;
-      margin-top: 0;
-      line-height: 1.5;
-    }
-
-    .ft-main {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: clamp(28px, 4vw, 48px);
-      padding-bottom: clamp(28px, 4vh, 44px);
-    }
-
-    @media (min-width: 640px) {
-      .ft-main { grid-template-columns: 1.2fr 1fr; }
-    }
-
-    @media (min-width: 768px) {
-      .ft-main { grid-template-columns: 1.4fr 1fr; }
-    }
-
-    .ft-brand { display: flex; flex-direction: column; gap: 10px; }
-    .ft-brand-mark {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      transition: opacity 0.2s ease;
-    }
-
-    .ft-brand-mark:hover { opacity: 0.75; }
-    .ft-brand-icon { width: 28px; height: 28px; display: block; }
-    .ft-brand-name {
-      font-family: 'Bebas Neue', system-ui, sans-serif;
-      font-size: 22px;
-      letter-spacing: .06em;
-      color: #f5f5f5;
-      line-height: 1;
-    }
-
-    .ft-brand-tag {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: rgba(255, 255, 255, .35);
-    }
-
-    .ft-desc {
-      font-size: 13px;
-      color: rgba(255, 255, 255, .4);
-      line-height: 1.65;
-      margin: 0;
-      max-width: 340px;
-      letter-spacing: .01em;
-    }
-
-    .ft-cols {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: clamp(16px, 3vw, 32px);
-    }
-
-    .ft-heading {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      color: rgba(255, 255, 255, .55);
-      margin: 0 0 12px;
-    }
-
-    .ft-links {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ft-links a {
-      font-size: 13px;
-      color: #9ca3af;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .ft-links a:hover { color: #f5f5f5; }
-
-    .ft-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding-top: clamp(20px, 3vh, 32px);
-      border-top: 1px solid rgba(255, 255, 255, .08);
-      font-size: 12px;
-      color: rgba(255, 255, 255, .3);
-    }
-
-    .ft-copy { white-space: nowrap; }
-    .ft-meta { white-space: nowrap; }
-
-    @media (max-width: 639px) {
-      .ft-main { gap: 32px; }
-      .ft-cols { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-      .ft-desc { max-width: 100%; }
-    }
-
-    @media (max-width: 420px) {
-      .ft-cols { grid-template-columns: 1fr 1fr; gap: 24px 20px; }
-      .ft-bottom { flex-direction: column; align-items: flex-start; gap: 4px; }
-    }
-
-    /* ========================================================================== */
     /* RESPONSIVE                                                                */
     /* ========================================================================== */
     @media (max-width: 768px) {
@@ -1190,78 +825,8 @@
     }
   </style>
 </head>
-<body>
-
-  <!-- NAV -->
-  <nav class="nav" aria-label="Primary">
-    <div class="container nav-inner">
-      <div class="nav-left">
-        <a href="/" class="brand" aria-label="Home">
-          <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-          <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
-        </a>
-      </div>
-
-      <div class="nav-pills" role="navigation" aria-label="Sections">
-        <a href="/hub" class="nav-pill">Hub</a>
-        <a href="/hub#features" class="nav-pill">Tutorials</a>
-        <a href="/community" class="nav-pill active">Community</a>
-        <a href="/hub#pricing" class="nav-pill">Prompts</a>
-        <a href="/docs" class="nav-pill">Docs</a>
-        <a href="/blogs" class="nav-pill">Blogs</a>
-      </div>
-
-      <div class="nav-right">
-        <div class="credits-group" id="creditsGroup">
-          <button type="button" class="account-status-btn" id="accountStatusBtn" data-status="anonymous" aria-label="Sign In">
-            <i class="fa-solid fa-user"></i>
-          </button>
-          <span class="credits-pill" id="creditsPill">
-            <i class="fa-solid fa-coins"></i>
-            <span class="credits-value" id="creditsValue">0</span>
-          </span>
-          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
-        </div>
-
-        <button class="nav-burger" id="commBurger" type="button" aria-label="Open menu" aria-expanded="false">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile menu -->
-  <div class="mobile-menu" id="commMobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/hub" class="mobile-nav-link">
-          <span class="mnl-label">Hub</span>
-          <span class="mnl-sub">AI generation workspace</span>
-        </a>
-        <a href="/hub#features" class="mobile-nav-link">
-          <span class="mnl-label">Tutorials</span>
-          <span class="mnl-sub">Learn & guides</span>
-        </a>
-        <a href="/community" class="mobile-nav-link">
-          <span class="mnl-label">Community</span>
-          <span class="mnl-sub">Creations & gallery</span>
-        </a>
-        <a href="/docs" class="mobile-nav-link">
-          <span class="mnl-label">Docs</span>
-          <span class="mnl-sub">Documentation</span>
-        </a>
-        <a href="/blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blogs</span>
-          <span class="mnl-sub">Articles & insights</span>
-        </a>
-      </nav>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX Community</span>
-      </div>
-    </div>
-  </div>
+<body class="has-site-shell" data-shell-page="community">
+  <div data-site-shell="nav"></div>
 
   <!-- Breadcrumbs (visually hidden but in DOM for SEO) -->
   <div class="visually-hidden">
@@ -1495,63 +1060,12 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark">
-            <img src="img/logo.png" alt="TimrX" class="ft-brand-icon" width="28" height="28">
-            <div>
-              <div class="ft-brand-name">Timr<span style="background: linear-gradient(90deg, #0ea5e9, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent;">X</span></div>
-              <div class="ft-brand-tag">AI 3D Generation</div>
-            </div>
-          </a>
-          <p class="ft-desc">Create stunning AI-generated 3D models, images, and videos. No Blender, no setup. Just pure creativity.</p>
-        </div>
-
-        <div class="ft-cols">
-          <div>
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/hub">Hub</a></li>
-              <li><a href="/community">Community</a></li>
-              <li><a href="/docs">Documentation</a></li>
-              <li><a href="/blogs">Blog</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="https://twitter.com/timrx_live" target="_blank" rel="noopener noreferrer">Twitter</a></li>
-              <li><a href="https://discord.com/invite/timrx" target="_blank" rel="noopener noreferrer">Discord</a></li>
-              <li><a href="mailto:hello@timrx.live">Email</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year">2026</span> TimrX. All rights reserved.</span>
-        <span class="ft-meta">Made with <span style="color: #ef4444;">♥</span> by Dima Vasiliu</span>
-      </div>
-    </div>
-  </footer>
+  <div data-site-shell="footer"></div>
 
   <!-- Scripts -->
-  <script src="js/auth-modal.js?v=20260401g"></script>
-  <script src="js/credits.js?v=20260401g"></script>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/auth-modal.js?v=20260401g" defer></script>
+  <script src="js/credits.js?v=20260401g" defer></script>
   <script src="js/trustpilot.js" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 
@@ -1589,62 +1103,8 @@
         exploreBtn: document.getElementById('exploreBtn'),
         statCreations: document.getElementById('statCreations'),
         statCreators: document.getElementById('statCreators'),
-        statReactions: document.getElementById('statReactions'),
-        commBurger: document.getElementById('commBurger'),
-        commMobileMenu: document.getElementById('commMobileMenu')
+        statReactions: document.getElementById('statReactions')
       };
-
-      // ====================
-      // MOBILE MENU
-      // ====================
-      if (elements.commBurger && elements.commMobileMenu) {
-        elements.commBurger.addEventListener('click', function() {
-          if (elements.commMobileMenu.classList.contains('is-open')) {
-            elements.commBurger.classList.remove('is-open');
-            elements.commBurger.setAttribute('aria-expanded', 'false');
-            elements.commMobileMenu.classList.remove('is-open');
-            elements.commMobileMenu.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('menu-open');
-          } else {
-            elements.commBurger.classList.add('is-open');
-            elements.commBurger.setAttribute('aria-expanded', 'true');
-            elements.commMobileMenu.classList.add('is-open');
-            elements.commMobileMenu.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('menu-open');
-          }
-        });
-
-        elements.commMobileMenu.querySelectorAll('a').forEach(function(link) {
-          link.addEventListener('click', function() {
-            elements.commBurger.classList.remove('is-open');
-            elements.commBurger.setAttribute('aria-expanded', 'false');
-            elements.commMobileMenu.classList.remove('is-open');
-            elements.commMobileMenu.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('menu-open');
-          });
-        });
-
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && elements.commMobileMenu.classList.contains('is-open')) {
-            elements.commBurger.classList.remove('is-open');
-            elements.commBurger.setAttribute('aria-expanded', 'false');
-            elements.commMobileMenu.classList.remove('is-open');
-            elements.commMobileMenu.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('menu-open');
-            elements.commBurger.focus();
-          }
-        });
-
-        window.addEventListener('resize', function() {
-          if (window.innerWidth > 768 && elements.commMobileMenu.classList.contains('is-open')) {
-            elements.commBurger.classList.remove('is-open');
-            elements.commBurger.setAttribute('aria-expanded', 'false');
-            elements.commMobileMenu.classList.remove('is-open');
-            elements.commMobileMenu.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('menu-open');
-          }
-        });
-      }
 
       // ====================
       // FETCH & PARSE
@@ -1662,7 +1122,7 @@
           if (!response.ok) throw new Error(`API error: ${response.status}`);
 
           const data = await response.json();
-          allData = Array.isArray(data) ? data : (data.items || []);
+          allData = Array.isArray(data) ? data : (data.posts || data.items || []);
 
           populateStats();
           applyFiltersAndRender();
@@ -1676,12 +1136,19 @@
       // ====================
       // STATS
       // ====================
+      function sumReactions(r) {
+        if (!r) return 0;
+        if (typeof r === 'number') return r;
+        if (typeof r === 'object') return Object.values(r).reduce((s, v) => s + (v || 0), 0);
+        return 0;
+      }
+
       function populateStats() {
-        const uniqueCreators = new Set(allData.map(item => item.creator_id || item.creator_name)).size;
+        const uniqueCreators = new Set(allData.map(item => item.display_name || item.creator_name || 'Anonymous')).size;
         let totalReactions = 0;
 
         allData.forEach(item => {
-          totalReactions += (item.reactions || item.reaction_count || 0);
+          totalReactions += sumReactions(item.reactions);
         });
 
         elements.statCreations.textContent = allData.length.toLocaleString();
@@ -1694,15 +1161,24 @@
       // ====================
       function applyFiltersAndRender() {
         filteredData = allData.filter(item => {
-          // Type filter
-          const typeMatch = currentFilter === 'all' || (item.type || '').toLowerCase() === currentFilter.replace('-', ' ');
+          // Type filter — backend uses asset_type: "model", "image", "video"
+          let typeMatch = currentFilter === 'all';
+          if (!typeMatch) {
+            const at = (item.asset_type || '').toLowerCase();
+            if (currentFilter === '3d-models') typeMatch = at === 'model';
+            else if (currentFilter === 'images') typeMatch = at === 'image';
+            else if (currentFilter === 'videos') typeMatch = at === 'video';
+          }
 
-          // Search filter
+          // Search filter — search title (nested in asset), creator name, prompt
           const searchLower = currentSearch.toLowerCase();
+          const title = (item.asset && item.asset.title) || item.title || '';
+          const creator = item.display_name || item.creator_name || '';
+          const prompt = item.prompt_public || '';
           const searchMatch = !currentSearch ||
-            (item.title || '').toLowerCase().includes(searchLower) ||
-            (item.creator_name || '').toLowerCase().includes(searchLower) ||
-            (item.description || '').toLowerCase().includes(searchLower);
+            title.toLowerCase().includes(searchLower) ||
+            creator.toLowerCase().includes(searchLower) ||
+            prompt.toLowerCase().includes(searchLower);
 
           return typeMatch && searchMatch;
         });
@@ -1712,11 +1188,14 @@
           if (currentSort === 'newest') {
             return new Date(b.created_at || 0) - new Date(a.created_at || 0);
           } else if (currentSort === 'popular') {
-            return (b.reactions || b.reaction_count || 0) - (a.reactions || a.reaction_count || 0);
+            return sumReactions(b.reactions) - sumReactions(a.reactions);
           } else if (currentSort === 'trending') {
-            // Trending = reactions in last 7 days
-            const aScore = (a.reactions || a.reaction_count || 0) + (a.views || 0) * 0.1;
-            const bScore = (b.reactions || b.reaction_count || 0) + (b.views || 0) * 0.1;
+            // Trending = reactions + tips + comments weighted by recency
+            const now = Date.now();
+            const ageA = (now - new Date(a.created_at || 0).getTime()) / 86400000; // days
+            const ageB = (now - new Date(b.created_at || 0).getTime()) / 86400000;
+            const aScore = (sumReactions(a.reactions) + (a.tip_total || 0) + (a.comment_count || 0) * 2) / Math.max(ageA, 1);
+            const bScore = (sumReactions(b.reactions) + (b.tip_total || 0) + (b.comment_count || 0) * 2) / Math.max(ageB, 1);
             return bScore - aScore;
           }
           return 0;
@@ -1771,27 +1250,46 @@
       // CREATE CARD HTML
       // ====================
       function createCardHTML(item) {
-        const type = (item.type || '3d-models').toLowerCase().replace(' ', '-');
-        const thumbnail = item.thumbnail || item.image || item.preview_image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%231d1d1d%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22 font-family=%22Inter%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';
-        const title = item.title || 'Untitled';
-        const creator = item.creator_name || 'Anonymous';
-        const reactions = item.reactions || item.reaction_count || 0;
+        const asset = item.asset || {};
+        const assetType = (item.asset_type || 'model').toLowerCase();
+
+        // Type badge text
+        const typeBadge = assetType === 'video' ? 'video' : assetType === 'image' ? 'image' : '3d-model';
+
+        // Thumbnail: try nested asset fields, then top-level fallbacks
+        const thumbnail = asset.thumbnail_url || asset.image_url || asset.video_url ||
+          item.thumbnail || item.image || item.preview_image ||
+          'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%231d1d1d%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22 font-family=%22Inter%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';
+
+        const title = asset.title || item.title || 'Untitled';
+        const creator = item.display_name || item.creator_name || 'Anonymous';
+        const reactions = sumReactions(item.reactions);
+        const genType = item.gen_type || '';
+        const comments = item.comment_count || 0;
+
+        // Show prompt if allowed
+        const promptHtml = item.show_prompt && item.prompt_public
+          ? `<div class="card-prompt">${escapeHtml(item.prompt_public)}</div>` : '';
 
         return `
-          <div class="gallery-card">
+          <div class="gallery-card" data-asset-type="${escapeHtml(assetType)}">
             <div class="card-image-wrapper">
               <img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(title)}" class="card-image" loading="lazy">
-              <span class="card-type-badge">${escapeHtml(type)}</span>
+              <span class="card-type-badge">${escapeHtml(typeBadge)}</span>
+              ${genType ? `<span class="card-gen-badge">${escapeHtml(genType)}</span>` : ''}
             </div>
             <div class="card-body">
               <h3 class="card-title">${escapeHtml(title)}</h3>
-              <div class="card-creator">
-                <div class="card-creator-avatar"></div>
-                <span>${escapeHtml(creator)}</span>
-              </div>
-              <div class="card-reactions">
-                <i class="fa-solid fa-heart"></i>
-                <span>${reactions.toLocaleString()}</span>
+              ${promptHtml}
+              <div class="card-meta">
+                <div class="card-creator">
+                  <div class="card-creator-avatar"></div>
+                  <span>${escapeHtml(creator)}</span>
+                </div>
+                <div class="card-stats">
+                  <span class="card-reactions"><i class="fa-solid fa-heart"></i> ${reactions.toLocaleString()}</span>
+                  ${comments > 0 ? `<span class="card-comments"><i class="fa-solid fa-comment"></i> ${comments}</span>` : ''}
+                </div>
               </div>
             </div>
           </div>

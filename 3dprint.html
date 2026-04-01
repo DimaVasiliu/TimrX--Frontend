@@ -20,9 +20,9 @@
 
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png" />
-  <link rel="apple-touch-icon" href="/img/logo.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -128,7 +128,6 @@
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js"></script>
   <script defer src="3dprint-modules/3dprint-app.js"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
-  <script defer src="3dprint-modules/community-gallery.js"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -215,7 +214,7 @@
     <!-- Center Links -->
     <nav class="ws-nav" aria-label="Workspace navigation">
       <a href="/hub" class="ws-nav-link is-active">HUB</a>
-      <a href="#community" class="ws-nav-link" data-open-community>COMMUNITY</a>
+      <a href="/community" class="ws-nav-link">COMMUNITY</a>
       <a href="#my-assets" class="ws-nav-link" data-open-assets>MY ASSETS</a>
 
       <!-- Menu Dropdown (combines Learn + Resources) -->
@@ -224,10 +223,10 @@
           MENU
         </button>
         <div class="ws-dropdown-menu">
-          <a href="#docs" class="ws-dropdown-item" data-open-docs>Docs</a>
-          <a href="#tutorials" class="ws-dropdown-item" data-open-tutorials>Tutorials</a>
-          <a href="#converter" class="ws-dropdown-item" data-open-converter>Converter</a>
-          <a href="#about" class="ws-dropdown-item" data-open-about>About</a>
+          <a href="/docs" class="ws-dropdown-item">Docs</a>
+          <a href="/tutorials" class="ws-dropdown-item">Tutorials</a>
+          <a href="/converter" class="ws-dropdown-item">Converter</a>
+          <a href="/company" class="ws-dropdown-item">About</a>
           <div class="ws-dropdown-divider"></div>
           <a href="/terms" class="ws-dropdown-item ws-dropdown-item--muted">Terms</a>
           <a href="/privacy" class="ws-dropdown-item ws-dropdown-item--muted">Privacy</a>
@@ -293,7 +292,7 @@
           <span class="wml-label">Hub</span>
           <span class="wml-sub">Back to 3D Print Hub</span>
         </a>
-        <a href="#community" class="ws-mobile-link" data-open-community>
+        <a href="/community" class="ws-mobile-link">
           <span class="wml-label">Community</span>
           <span class="wml-sub">Connect, share, and grow together</span>
         </a>
@@ -305,19 +304,19 @@
           <span class="wml-label">Blogs</span>
           <span class="wml-sub">Latest articles</span>
         </a>
-        <a href="#tutorials" class="ws-mobile-link" data-open-tutorials>
+        <a href="/tutorials" class="ws-mobile-link">
           <span class="wml-label">Tutorials</span>
           <span class="wml-sub">Learn the tools</span>
         </a>
-        <a href="#converter" class="ws-mobile-link" data-open-converter>
+        <a href="/converter" class="ws-mobile-link">
           <span class="wml-label">Converter</span>
           <span class="wml-sub">Convert file formats</span>
         </a>
-        <a href="#docs" class="ws-mobile-link" data-open-docs>
+        <a href="/docs" class="ws-mobile-link">
           <span class="wml-label">Docs</span>
           <span class="wml-sub">Platform documentation</span>
         </a>
-        <a href="#about" class="ws-mobile-link" data-open-about>
+        <a href="/company" class="ws-mobile-link">
           <span class="wml-label">About</span>
           <span class="wml-sub">About TimrX</span>
         </a>
@@ -585,6 +584,10 @@
               <rect x="6" y="14" width="12" height="8"/>
             </svg>
           </button>
+          <button type="button" class="viewer-action-btn" data-action="ar" title="View in AR" aria-label="View in AR">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            <span class="viewer-action-label">AR</span>
+          </button>
 
           <!-- Share Popover -->
           <div class="viewer-share-popover" id="viewerSharePopover">
@@ -646,12 +649,25 @@
               </div>
 
               <div class="print-panel-divider"></div>
-              <p class="viewer-print-toast__text" style="margin-bottom:10px">Ready to print? Use a print service:</p>
-              <div class="viewer-print-toast__links">
-                <a href="https://craftcloud3d.com/" target="_blank" rel="noopener">Craftcloud</a>
-                <a href="https://i.materialise.com/" target="_blank" rel="noopener">i.materialise</a>
-                <a href="https://jlc3dp.com/" target="_blank" rel="noopener">JLCPCB 3DP</a>
-                <a href="https://www.shapeways.com/" target="_blank" rel="noopener">Shapeways</a>
+              <p class="viewer-print-toast__subtitle">One-Click Print Services</p>
+              <p class="viewer-print-toast__text" style="margin-bottom:12px">Download your GLB, then upload to a print service. Your model, your choice.</p>
+              <div class="print-service-grid">
+                <a href="https://craftcloud3d.com/" target="_blank" rel="noopener" class="print-service-btn">
+                  <span class="print-service-name">Craftcloud</span>
+                  <span class="print-service-desc">Compare 150+ services</span>
+                </a>
+                <a href="https://i.materialise.com/" target="_blank" rel="noopener" class="print-service-btn">
+                  <span class="print-service-name">i.materialise</span>
+                  <span class="print-service-desc">Industrial quality</span>
+                </a>
+                <a href="https://jlc3dp.com/" target="_blank" rel="noopener" class="print-service-btn">
+                  <span class="print-service-name">JLCPCB 3DP</span>
+                  <span class="print-service-desc">Fast &amp; affordable</span>
+                </a>
+                <a href="https://www.shapeways.com/" target="_blank" rel="noopener" class="print-service-btn">
+                  <span class="print-service-name">Shapeways</span>
+                  <span class="print-service-desc">Premium materials</span>
+                </a>
               </div>
             </div>
 
@@ -1115,92 +1131,63 @@
         return handle;
       };
 
-      initExpandedView({
-        id: 'tutorialsGallery',
-        triggerAttr: 'data-open-tutorials',
-        bodyClass: 'tutorials-view',
-        hash: '#tutorials',
-        focusSelector: '[data-tutorials-focus]',
-        closeSelector: '#tutorialsExit',
-        onNavigate: ({ action, close }) => {
-          if (action === 'workspace') {
-            close();
-            requestAnimationFrame(() => {
-              document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth' });
-            });
-          }
-          if (action === 'videos') {
-            document.getElementById('tutorialsVideos')?.scrollIntoView({ behavior: 'smooth' });
-          }
+      const isLocalHtmlPreview = /\.html?$/i.test(window.location.pathname);
+      const currentDir = window.location.pathname.replace(/[^/]*$/, '');
+      const localPreviewRoutes = {
+        '/': 'index.html',
+        '/hub': 'hub.html',
+        '/community': 'community.html',
+        '/tutorials': 'tutorials.html',
+        '/prompts': 'prompts.html',
+        '/docs': 'docs.html',
+        '/3dprint': '3dprint.html',
+        '/converter': 'converter.html',
+        '/company': 'company.html',
+        '/about': 'about.html',
+        '/terms': 'terms.html',
+        '/privacy': 'privacy.html',
+        '/cookies': 'cookies.html',
+        '/blogs': 'blogs.html',
+        '/3dprint-demo-video': '3dprint-demo-video.html',
+        '/pricing': 'hub.html'
+      };
+
+      const resolveLocalPreviewHref = (href) => {
+        if (!isLocalHtmlPreview || typeof href !== 'string' || !href.startsWith('/') || href.startsWith('//')) {
+          return href;
         }
-      });
 
-      // Backward compat: redirect #stories to #community
-      if (window.location.hash === '#stories') window.location.hash = '#community';
+        const url = new URL(href, window.location.origin);
+        const mapped = localPreviewRoutes[url.pathname];
+        if (!mapped) return href;
 
-      initExpandedView({
-        id: 'communityGallery',
-        triggerAttr: 'data-open-community',
-        bodyClass: 'community-view',
-        hash: '#community',
-        focusSelector: '[data-community-focus]',
-        closeSelector: '#communityExit',
-        onNavigate: ({ action, close }) => {
-          if (action === 'discord') {
-            close?.();
-            window.open('https://discord.gg/VpqT2UywDG', '_blank', 'noopener');
-          }
-          if (action === 'tutorials') {
-            close?.();
-            requestAnimationFrame(() => {
-              document.querySelector('[data-open-tutorials]')?.click();
-            });
-          }
-        }
-      });
+        const fallbackHash = url.pathname === '/pricing' ? '#pricing' : '';
+        return `${currentDir}${mapped}${url.search}${url.hash || fallbackHash}`;
+      };
 
-      initExpandedView({
-        id: 'converterGallery',
-        triggerAttr: 'data-open-converter',
-        bodyClass: 'converter-view',
-        hash: '#converter',
-        focusSelector: '[data-converter-focus]',
-        closeSelector: '#converterExit'
-      });
+      if (isLocalHtmlPreview) {
+        document.querySelectorAll('a[href^="/"]').forEach((link) => {
+          const originalHref = link.getAttribute('href');
+          const resolvedHref = resolveLocalPreviewHref(originalHref);
+          if (resolvedHref !== originalHref) {
+            link.setAttribute('href', resolvedHref);
+          }
+        });
+      }
 
-      initExpandedView({
-        id: 'aboutGallery',
-        triggerAttr: 'data-open-about',
-        bodyClass: 'about-view',
-        hash: '#about',
-        focusSelector: '[data-about-focus]',
-        closeSelector: '#aboutExit',
-        onNavigate: ({ action, close }) => {
-          if (action === 'workspace') {
-            close?.();
-          }
-        }
-      });
+      const expandedRouteMap = {
+        '#stories': resolveLocalPreviewHref('/community'),
+        '#community': resolveLocalPreviewHref('/community'),
+        '#tutorials': resolveLocalPreviewHref('/tutorials'),
+        '#converter': resolveLocalPreviewHref('/converter'),
+        '#about': resolveLocalPreviewHref('/company'),
+        '#docs': resolveLocalPreviewHref('/docs')
+      };
 
-      initExpandedView({
-        id: 'docsGallery',
-        triggerAttr: 'data-open-docs',
-        bodyClass: 'docs-view',
-        hash: '#docs',
-        focusSelector: '[data-docs-focus]',
-        closeSelector: '#docsExit',
-        onNavigate: ({ action, close }) => {
-          if (action === 'workspace') {
-            close?.();
-          }
-          if (action === 'tutorials') {
-            close?.();
-            requestAnimationFrame(() => {
-              document.querySelector('[data-open-tutorials]')?.click();
-            });
-          }
-        }
-      });
+      const expandedRedirect = expandedRouteMap[window.location.hash];
+      if (expandedRedirect) {
+        window.location.replace(`${expandedRedirect}${window.location.search}`);
+      }
 
       // Docs sidebar scroll-spy
       (() => {
@@ -1334,7 +1321,7 @@
           <h1 class="tutorials-title" id="tutorialsTitle">Master the TimrX 3D Print Hub</h1>
           <p>Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets. From beginners to advanced creators, we've got everything you need to create stunning 3D prints.</p>
           <div class="tutorials-hero-actions">
-            <button type="button" class="tutorials-primary-btn" data-expanded-nav="workspace">Start from Workspace</button>
+            <a href="/3dprint" class="tutorials-primary-btn">Start from Workspace</a>
             <button type="button" class="tutorials-secondary-btn" data-expanded-nav="videos">Jump to Videos</button>
           </div>
           <ul class="tutorials-hero-stats">
@@ -1875,7 +1862,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               Explore Creations
             </button>
-            <button type="button" class="community-secondary-btn" id="communityBackToWorkspace">Open Workspace</button>
+            <a href="/3dprint" class="community-secondary-btn" id="communityBackToWorkspace">Open Workspace</a>
           </div>
           <ul class="community-hero-stats">
             <li>
@@ -2095,7 +2082,7 @@
           <div class="community-cta-actions">
             <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="community-primary-btn">Join the Community</a>
             <button type="button" class="community-secondary-btn" data-expanded-nav="tutorials">Explore Tutorials</button>
-            <a href="#docs" class="community-secondary-btn" data-open-docs>Read the Docs</a>
+            <a href="/docs" class="community-secondary-btn">Read the Docs</a>
           </div>
         </div>
       </section>
@@ -3266,13 +3253,13 @@
             <div class="community-icon">🎓</div>
             <h3>Tutorials</h3>
             <p>Step-by-step guides covering everything from basic prompts to advanced multi-part assemblies.</p>
-            <button type="button" class="about-community-btn" data-open-tutorials>Browse Tutorials</button>
+            <a href="/tutorials" class="about-community-btn">Browse Tutorials</a>
           </article>
           <article class="about-community-card">
             <div class="community-icon">🌟</div>
             <h3>Community</h3>
             <p>See what others are building and connect with fellow creators.</p>
-            <button type="button" class="about-community-btn" data-open-community>Visit Community</button>
+            <a href="/community" class="about-community-btn">Visit Community</a>
           </article>
         </div>
       </section>
@@ -3283,7 +3270,7 @@
           <h2>Ready to Start Creating?</h2>
           <p>Join thousands of creators who are turning their ideas into reality with TimrX. No experience required — just your imagination.</p>
           <div class="about-cta-buttons">
-            <button type="button" class="about-primary-btn" data-expanded-nav="workspace">Open Workspace</button>
+            <a href="/3dprint" class="about-primary-btn">Open Workspace</a>
             <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="about-secondary-btn">Join Community</a>
           </div>
         </div>
@@ -3293,9 +3280,6 @@
 
   <!-- model-viewer web component (no Three.js needed for inline 3D previews) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-
-  <!-- Tutorials module -->
-  <script defer src="3dprint-modules/tutorials.js"></script>
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->

@@ -19,9 +19,9 @@
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/hub" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png" />
-  <link rel="apple-touch-icon" href="/img/logo.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -217,6 +217,7 @@
   <link rel="stylesheet" href="media/hub.css" />
   <link rel="stylesheet" href="footer.css" />
   <link rel="stylesheet" href="trustpilot.css" />
+  <link rel="stylesheet" href="site-shell.css" />
 
   <!-- Visually Hidden Utility -->
   <style>
@@ -338,151 +339,9 @@
     }
   </style>
 </head>
-<body>
-
-  <!-- NAV -->
-  <nav class="nav" aria-label="Primary">
-    <div class="container nav-inner">
-      <div class="nav-left">
-        <span class="brand" aria-label="Home">
-          <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-          <span class="b-tim">Timr</span><span class="b-x">X</span>
-        </span>
-      </div>
-
-      <div class="nav-pills" role="navigation" aria-label="Sections">
-        <a href="#features" class="nav-pill">Features</a>
-        <a href="#pricing" class="nav-pill">Pricing</a>
-        <a href="/tutorials" class="nav-pill">Tutorials</a>
-        <a href="/community" class="nav-pill">Community</a>
-        <a href="/prompts" class="nav-pill">Prompts</a>
-        <a href="/docs" class="nav-pill">Docs</a>
-        <a href="/3dprint" class="nav-pill nav-pill--accent">Open Workspace</a>
-      </div>
-
-      <div class="nav-right">
-        <!-- Subscription Status Pill - shown when user has subscription -->
-        <button type="button" class="subscription-status-pill hidden" id="subscriptionStatusPill" aria-label="Manage subscription">
-          <i class="fa-solid fa-rotate subscription-icon" id="subscriptionIcon"></i>
-          <span class="subscription-text" id="subscriptionText"></span>
-        </button>
-        <!-- Credits Pill + Buy Button -->
-        <div class="credits-group" id="creditsGroup">
-          <button type="button" class="account-status-btn" id="accountStatusBtn" data-status="anonymous" data-tooltip="Sign In" aria-label="Sign In">
-            <i class="fa-solid fa-user"></i>
-          </button>
-          <span class="credits-pill" id="creditsPill">
-            <i class="fa-solid fa-coins"></i>
-            <span class="credits-value" id="creditsValue">0</span>
-            <!-- Floating hover tooltip — same pattern as 3dprint.html -->
-            <span class="credits-hover-tooltip" id="creditsHoverPanel">
-              <span class="credits-hover-tooltip-row">
-                <i class="fa-solid fa-coins"></i>
-                <span>General</span>
-                <span class="credits-hover-tooltip-val" id="hoverGeneralValue">0</span>
-              </span>
-              <span class="credits-hover-tooltip-row">
-                <i class="fa-solid fa-film"></i>
-                <span>Video</span>
-                <span class="credits-hover-tooltip-val" id="hoverVideoValue">0</span>
-              </span>
-            </span>
-          </span>
-          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
-        </div>
-
-        <!-- Mobile burger (same style as index) -->
-        <button class="nav-burger" id="hubBurger" type="button" aria-label="Open menu" aria-expanded="false">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile menu overlay (same style as index) -->
-  <div class="mobile-menu" id="hubMobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="#features" class="mobile-nav-link">
-          <span class="mnl-label">Features</span>
-          <span class="mnl-sub">AI tools and capabilities</span>
-        </a>
-        <a href="#pricing" class="mobile-nav-link">
-          <span class="mnl-label">Pricing</span>
-          <span class="mnl-sub">Starter, Creator & Pro packs</span>
-        </a>
-        <a href="/tutorials" class="mobile-nav-link">
-          <span class="mnl-label">Tutorials</span>
-          <span class="mnl-sub">Learn 3D generation step by step</span>
-        </a>
-        <a href="/community" class="mobile-nav-link">
-          <span class="mnl-label">Community</span>
-          <span class="mnl-sub">Showcase & creator gallery</span>
-        </a>
-        <a href="/prompts" class="mobile-nav-link">
-          <span class="mnl-label">Prompts</span>
-          <span class="mnl-sub">Curated prompt library</span>
-        </a>
-        <a href="/docs" class="mobile-nav-link">
-          <span class="mnl-label">Docs</span>
-          <span class="mnl-sub">Platform documentation</span>
-        </a>
-        <a href="/blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blog</span>
-          <span class="mnl-sub">Updates & articles</span>
-        </a>
-      </nav>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX / 3D Print Hub</span>
-      </div>
-    </div>
-  </div>
-
-  <script>
-  (function(){
-    var burger = document.getElementById('hubBurger');
-    var menu = document.getElementById('hubMobileMenu');
-    if (!burger || !menu) return;
-
-    function openMenu(){
-      burger.classList.add('is-open');
-      burger.setAttribute('aria-expanded','true');
-      burger.setAttribute('aria-label','Close menu');
-      menu.classList.add('is-open');
-      menu.setAttribute('aria-hidden','false');
-      document.body.classList.add('menu-open');
-    }
-    function closeMenu(){
-      burger.classList.remove('is-open');
-      burger.setAttribute('aria-expanded','false');
-      burger.setAttribute('aria-label','Open menu');
-      menu.classList.remove('is-open');
-      menu.setAttribute('aria-hidden','true');
-      document.body.classList.remove('menu-open');
-    }
-
-    burger.addEventListener('click', function(){
-      menu.classList.contains('is-open') ? closeMenu() : openMenu();
-    });
-
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', closeMenu);
-    });
-
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape' && menu.classList.contains('is-open')){
-        closeMenu();
-        burger.focus();
-      }
-    });
-
-    window.addEventListener('resize', function(){
-      if (window.innerWidth > 640 && menu.classList.contains('is-open')) closeMenu();
-    });
-  })();
-  </script>
+<body class="has-site-shell" data-shell-page="hub">
+  <div data-site-shell="nav"></div>
+  <div data-site-shell="subnav"></div>
 
   <!-- HERO -->
   <header class="container">
@@ -682,6 +541,49 @@
       </article>
     </div>
   </section>
+
+<!-- ====================== INTERACTIVE DEMO ====================== -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="demo-head">
+      <h2>See It In Action</h2>
+      <p>Watch AI turn a text prompt into a 3D model. Click any example to try it yourself.</p>
+    </div>
+    <div class="demo-stage">
+      <div class="demo-prompt-area">
+        <div class="demo-prompt-label">Prompt</div>
+        <div class="demo-prompt-text" id="demoPromptText">A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes</div>
+        <div class="demo-prompt-cursor" aria-hidden="true"></div>
+      </div>
+      <div class="demo-arrow" aria-hidden="true">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14m-7-7l7 7-7 7" stroke="url(#arrowGrad)"/><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient></defs></svg>
+      </div>
+      <div class="demo-result">
+        <model-viewer
+          id="demoModelViewer"
+          src="img/uni-web.glb"
+          auto-rotate
+          camera-controls
+          shadow-intensity="0.6"
+          camera-orbit="30deg 75deg 105%"
+          field-of-view="20deg"
+          environment-image="neutral"
+          style="width:100%;height:300px;border-radius:14px;background:transparent"
+          alt="AI Generated 3D Pegasus Model"
+        ></model-viewer>
+      </div>
+    </div>
+    <div class="demo-examples">
+      <button class="demo-chip active" data-prompt="A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes" type="button">Winged Pegasus</button>
+      <button class="demo-chip" data-prompt="Futuristic mech warrior suit with titanium armor and glowing joints" type="button">Mech Warrior</button>
+      <button class="demo-chip" data-prompt="Ancient bonsai tree growing from a cracked geode crystal" type="button">Bonsai Geode</button>
+      <button class="demo-chip" data-prompt="Greek temple ruins with marble columns and overgrown vines" type="button">Temple Ruins</button>
+    </div>
+    <div style="text-align:center;margin-top:28px">
+      <a href="/3dprint?panel=model" class="btn">Try It Yourself &rarr;</a>
+    </div>
+  </div>
+</section>
 
 <!-- ====================== HOW IT WORKS ====================== -->
 <section class="how-it-works" id="howItWorks">
@@ -1117,22 +1019,22 @@
 
       <!-- Resource Buttons (open modals) -->
       <div class="resource-tabs" id="resourceTabs">
-        <button class="resource-tab" data-modal="promptTipsModal" type="button">
+        <a class="resource-tab" href="/prompts#prompt-tips">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           <span>Prompt Tips</span>
-        </button>
-        <button class="resource-tab" data-modal="apiSnippetsModal" type="button">
+        </a>
+        <a class="resource-tab" href="/docs#doc-api">
           <i class="fa-solid fa-code"></i>
           <span>API Snippets</span>
-        </button>
-        <button class="resource-tab" data-modal="showcaseModal" type="button">
+        </a>
+        <a class="resource-tab" href="/community">
           <i class="fa-solid fa-images"></i>
           <span>Showcase</span>
-        </button>
-        <button class="resource-tab" data-modal="bugReportsModal" type="button">
+        </a>
+        <a class="resource-tab" href="/docs#doc-support">
           <i class="fa-solid fa-bug"></i>
           <span>Bug Reports</span>
-        </button>
+        </a>
       </div>
 
       <!-- Quick Links Cards -->
@@ -1238,73 +1140,18 @@
       </div>
 
       <div class="resource-tabs">
-        <button class="resource-tab" data-modal="aboutModal" type="button">
+        <a class="resource-tab" href="/company">
           <i class="fa-solid fa-circle-info"></i>
           <span>About</span>
-        </button>
-        <button class="resource-tab" data-modal="faqModal" type="button">
+        </a>
+        <a class="resource-tab" href="/docs#doc-faq">
           <i class="fa-solid fa-circle-question"></i>
           <span>FAQ</span>
-        </button>
+        </a>
       </div>
     </div>
   </section>
-
-  <footer class="site-footer">
-    <div class="container">
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
-            <span class="ft-brand-name">TimrX</span>
-          </a>
-          <span class="ft-brand-tag">AI Creative Platform</span>
-          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
-        </div>
-        <nav class="ft-cols" aria-label="Footer navigation">
-          <div class="ft-col">
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/tutorials">Tutorials</a></li>
-              <li><a href="/community">Community</a></li>
-              <li><a href="/prompts">Prompts</a></li>
-              <li><a href="/docs">Docs</a></li>
-              <li><a href="/blogs">Blog</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="/rss.xml">RSS</a></li>
-              <li><a href="mailto:admin@timrx.live">Email</a></li>
-              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-
-      <!-- Trustpilot -->
-      <div class="ft-trust">
-        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
-        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
-        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
-      </div>
-
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-        <span class="ft-meta">Built in London &middot; AI creative tools</span>
-      </div>
-    </div>
-  </footer>
+  <div data-site-shell="footer"></div>
 
     <!-- Buy Credits Modal -->
     <div class="modal" id="buyCreditsModal" aria-hidden="true">
@@ -1808,9 +1655,10 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       var items = (data.items || data.posts || data || []).slice(0, 8);
       if (!items.length) return;
       grid.innerHTML = items.map(function(item){
-        var thumb = item.thumbnail_url || item.image_url || item.preview_url || '';
-        var title = (item.title || item.prompt || 'Untitled').replace(/</g,'&lt;');
-        var creator = (item.creator_name || item.creator || 'Creator').replace(/</g,'&lt;');
+        var a = item.asset || {};
+        var thumb = a.thumbnail_url || a.image_url || item.thumbnail_url || item.image_url || '';
+        var title = (a.title || item.title || item.prompt || 'Untitled').replace(/</g,'&lt;');
+        var creator = (item.display_name || item.creator_name || 'Creator').replace(/</g,'&lt;');
         if (!thumb) return '';
         return '<a class="ls-card" href="/community?id=' + (item.id || '') + '">' +
           '<img src="' + thumb + '" alt="' + title + '" loading="lazy">' +
@@ -1823,11 +1671,37 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
 })();
 </script>
 
+<script>
+(function(){
+  var chips = document.querySelectorAll('.demo-chip');
+  var text = document.getElementById('demoPromptText');
+  if (!chips.length || !text) return;
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.classList.remove('active'); });
+      chip.classList.add('active');
+      // Typewriter effect
+      var prompt = chip.getAttribute('data-prompt');
+      text.textContent = '';
+      var i = 0;
+      var interval = setInterval(function(){
+        if (i < prompt.length) {
+          text.textContent += prompt[i];
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 30);
+    });
+  });
+})();
+</script>
+
     <script src="hub.js"></script>
     <script src="js/fx.js"></script>
-    <script src="js/auth-modal.js?v=20260401g"></script>
-    <script src="js/credits.js?v=20260401g"></script>
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    <script src="js/site-shell.js" defer></script>
+    <script src="js/auth-modal.js?v=20260401g" defer></script>
+    <script src="js/credits.js?v=20260401g" defer></script>
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
 

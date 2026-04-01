@@ -19,9 +19,9 @@
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/prompts" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png" />
-  <link rel="apple-touch-icon" href="/img/logo.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -265,11 +265,12 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
+  <link rel="stylesheet" href="site-shell.css">
 
   <!-- Inline CSS -->
   <style>
@@ -312,7 +313,6 @@
 
     * {
       margin: 0;
-      padding: 0;
       box-sizing: border-box;
     }
 
@@ -393,8 +393,8 @@
     }
 
     .brand img {
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
     }
 
     .b-tim {
@@ -1086,54 +1086,7 @@
       visibility: visible;
     }
 
-    /* ========== FOOTER ========== */
-    footer {
-      background: var(--panel);
-      border-top: 1px solid var(--line);
-      padding: 60px var(--gutter);
-      margin-top: 60px;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 40px;
-      max-width: var(--maxw);
-      margin: 0 auto 40px;
-    }
-
-    .footer-col h4 {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      letter-spacing: 0.5px;
-    }
-
-    .footer-col ul {
-      list-style: none;
-    }
-
-    .footer-col a {
-      display: block;
-      font-size: 13px;
-      color: var(--muted);
-      text-decoration: none;
-      margin-bottom: 8px;
-      transition: color 0.2s ease;
-    }
-
-    .footer-col a:hover {
-      color: var(--accent);
-    }
-
-    .footer-bottom {
-      border-top: 1px solid var(--line);
-      padding-top: 24px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    /* Footer is rendered by site-shell.js — no inline overrides needed */
 
     /* ========== MEDIA QUERIES ========== */
     @media (max-width: 768px) {
@@ -1246,93 +1199,8 @@
     }
   </style>
 </head>
-<body>
-  <!-- ========== NAVIGATION ========== -->
-  <nav class="nav" aria-label="Primary navigation">
-    <div class="container nav-inner">
-      <div class="nav-left">
-        <a href="/" class="brand" title="TimrX Home">
-          <img src="/img/logo.png" alt="TimrX" width="40" height="40">
-          <span class="b-tim">Timr</span><span class="b-x">X</span>
-        </a>
-      </div>
-
-      <div class="nav-pills" role="navigation" aria-label="Main sections">
-        <a href="/hub" class="nav-pill">Hub</a>
-        <a href="/tutorials" class="nav-pill">Tutorials</a>
-        <a href="/community" class="nav-pill">Community</a>
-        <a href="/prompts" class="nav-pill active">Prompts</a>
-        <a href="/docs" class="nav-pill">Docs</a>
-        <a href="/blogs" class="nav-pill">Blogs</a>
-      </div>
-
-      <div class="nav-right">
-        <div class="credits-group">
-          <button type="button" class="account-status-btn" id="accountStatusBtn" aria-label="Sign In">
-            <i class="fa-solid fa-user"></i>
-          </button>
-          <span class="credits-pill" id="creditsPill">
-            <i class="fa-solid fa-coins"></i>
-            <span class="credits-value" id="creditsValue">0</span>
-            <span class="credits-hover-tooltip" id="creditsHoverPanel">
-              <span class="credits-hover-tooltip-row">
-                <i class="fa-solid fa-coins"></i>
-                <span>General</span>
-                <span class="credits-hover-tooltip-val" id="hoverGeneralValue">0</span>
-              </span>
-              <span class="credits-hover-tooltip-row">
-                <i class="fa-solid fa-film"></i>
-                <span>Video</span>
-                <span class="credits-hover-tooltip-val" id="hoverVideoValue">0</span>
-              </span>
-            </span>
-          </span>
-          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
-        </div>
-
-        <button class="nav-burger" id="promptsBurger" type="button" aria-label="Open menu" aria-expanded="false">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile menu overlay -->
-  <div class="mobile-menu" id="promptsMobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/hub" class="mobile-nav-link">
-          <span class="mnl-label">Hub</span>
-          <span class="mnl-sub">AI generation workspace</span>
-        </a>
-        <a href="/tutorials" class="mobile-nav-link">
-          <span class="mnl-label">Tutorials</span>
-          <span class="mnl-sub">Learn & guides</span>
-        </a>
-        <a href="/community" class="mobile-nav-link">
-          <span class="mnl-label">Community</span>
-          <span class="mnl-sub">Showcase & tips</span>
-        </a>
-        <a href="/prompts" class="mobile-nav-link">
-          <span class="mnl-label">Prompts</span>
-          <span class="mnl-sub">Curated prompt library</span>
-        </a>
-        <a href="/docs" class="mobile-nav-link">
-          <span class="mnl-label">Docs</span>
-          <span class="mnl-sub">Documentation</span>
-        </a>
-        <a href="/blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blogs</span>
-          <span class="mnl-sub">Articles & insights</span>
-        </a>
-      </nav>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX / Prompt Library</span>
-      </div>
-    </div>
-  </div>
+<body class="has-site-shell" data-shell-page="prompts">
+  <div data-site-shell="nav"></div>
 
   <!-- ========== BREADCRUMBS ========== -->
   <nav class="breadcrumbs" aria-label="Breadcrumb">
@@ -1787,7 +1655,7 @@
   </section>
 
   <!-- ========== PRO TIPS SECTION ========== -->
-  <section class="tips-section">
+  <section class="tips-section" id="prompt-tips">
     <div class="container">
       <div class="tips-header">
         <h2>Pro Tips for Better Prompts</h2>
@@ -1814,104 +1682,13 @@
   </section>
 
   <!-- ========== FOOTER ========== -->
-  <footer>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h4>Product</h4>
-          <ul>
-            <li><a href="/hub">3D Print Hub</a></li>
-            <li><a href="/prompts">Prompt Library</a></li>
-            <li><a href="/docs">Documentation</a></li>
-            <li><a href="/pricing">Pricing</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Learn</h4>
-          <ul>
-            <li><a href="/tutorials">Tutorials</a></li>
-            <li><a href="/blogs">Blog</a></li>
-            <li><a href="/community">Community</a></li>
-            <li><a href="/faq">FAQ</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Company</h4>
-          <ul>
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Social</h4>
-          <ul>
-            <li><a href="https://twitter.com/timrx_live" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
-            <li><a href="https://discord.gg/timrx" target="_blank" rel="noopener noreferrer">Discord</a></li>
-            <li><a href="https://instagram.com/timrx_live" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-            <li><a href="https://youtube.com/@timrx" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2024 TimrX. All rights reserved. | Made with care for creators</p>
-      </div>
-    </div>
-  </footer>
+  <div data-site-shell="footer"></div>
 
   <!-- ========== TOAST NOTIFICATION ========== -->
   <div class="toast" id="toast"></div>
 
   <!-- ========== INLINE JAVASCRIPT ========== -->
   <script>
-    // ===== Mobile Menu Toggle =====
-    (function initMobileMenu() {
-      const burger = document.getElementById('promptsBurger');
-      const menu = document.getElementById('promptsMobileMenu');
-      if (!burger || !menu) return;
-
-      function openMenu() {
-        burger.classList.add('is-open');
-        burger.setAttribute('aria-expanded', 'true');
-        burger.setAttribute('aria-label', 'Close menu');
-        menu.classList.add('is-open');
-        menu.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('menu-open');
-      }
-
-      function closeMenu() {
-        burger.classList.remove('is-open');
-        burger.setAttribute('aria-expanded', 'false');
-        burger.setAttribute('aria-label', 'Open menu');
-        menu.classList.remove('is-open');
-        menu.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('menu-open');
-      }
-
-      burger.addEventListener('click', function() {
-        menu.classList.contains('is-open') ? closeMenu() : openMenu();
-      });
-
-      menu.querySelectorAll('a').forEach(function(link) {
-        link.addEventListener('click', closeMenu);
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-          closeMenu();
-          burger.focus();
-        }
-      });
-
-      window.addEventListener('resize', function() {
-        if (window.innerWidth > 768 && menu.classList.contains('is-open')) {
-          closeMenu();
-        }
-      });
-    })();
-
     // ===== Category Filtering =====
     (function initFiltering() {
       const filterButtons = document.querySelectorAll('.filter-pill');
@@ -2023,37 +1800,6 @@
       });
     })();
 
-    // ===== Account/Credits Simulation =====
-    (function initCreditsDisplay() {
-      const creditsValue = document.getElementById('creditsValue');
-      const hoverGeneralValue = document.getElementById('hoverGeneralValue');
-      const hoverVideoValue = document.getElementById('hoverVideoValue');
-      const accountBtn = document.getElementById('accountStatusBtn');
-
-      // Simulate fetching user credits (replace with actual API call)
-      const credits = {
-        general: 250,
-        video: 50
-      };
-
-      creditsValue.textContent = credits.general + credits.video;
-      hoverGeneralValue.textContent = credits.general;
-      hoverVideoValue.textContent = credits.video;
-
-      // Handle account button
-      accountBtn.addEventListener('click', function() {
-        // In production, open sign-in modal or redirect to auth
-        console.log('Sign in clicked');
-      });
-
-      // Handle buy credits button
-      const buyBtn = document.getElementById('buyCreditsBtn');
-      buyBtn.addEventListener('click', function() {
-        // In production, open credits purchase modal
-        console.log('Buy credits clicked');
-      });
-    })();
-
     // ===== Smooth Scroll for Anchor Links =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
@@ -2068,5 +1814,9 @@
       });
     });
   </script>
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/auth-modal.js?v=20260401g" defer></script>
+  <script src="js/credits.js?v=20260401g" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
 </body>
 </html>

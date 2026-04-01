@@ -8,8 +8,14 @@
 /index.html       /              301
 /archive.html     /archive       301
 /about.html       /about         301
+/company.html     /company       301
+/converter.html   /converter     301
 /hub.html         /hub           301
 /3dprint.html     /3dprint       301
+/tutorials.html   /tutorials     301
+/community.html   /community     301
+/prompts.html     /prompts       301
+/docs.html        /docs          301
 /blogs.html       /blogs         301
 /write.html       /write         301
 /terms.html       /terms         301
@@ -38,8 +44,14 @@
 # ----------------------------
 /archive/     /archive    301
 /about/       /about      301
+/company/     /company    301
+/converter/   /converter  301
 /hub/         /hub        301
 /3dprint/     /3dprint    301
+/tutorials/   /tutorials  301
+/community/   /community  301
+/prompts/     /prompts    301
+/docs/        /docs       301
 /blogs/       /blogs      301
 /write/       /write      301
 /terms/       /terms      301

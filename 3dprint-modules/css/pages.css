@@ -4475,3 +4475,11 @@ body.about-view .about-expanded-view {
     padding: 0 12px !important;
   }
 }
+
+/* Print Service Grid */
+.print-service-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.print-service-btn{display:flex;flex-direction:column;padding:10px 14px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.03);text-decoration:none;transition:all .2s ease}
+.print-service-btn:hover{border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.06)}
+.print-service-name{font-size:13px;font-weight:700;color:#eee}
+.print-service-desc{font-size:11px;color:#777;margin-top:2px}
+.viewer-print-toast__subtitle{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px}

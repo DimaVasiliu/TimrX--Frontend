@@ -19,9 +19,9 @@
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/tutorials" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png" />
-  <link rel="apple-touch-icon" href="/img/logo.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
 
@@ -142,1481 +142,607 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
+  <link rel="stylesheet" href="3dprint-modules/css/pages.css">
+  <link rel="stylesheet" href="3dprint-modules/css/tutorials.css">
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="stylesheet" href="standalone-expansions.css">
 
-  <!-- Inline Styles -->
   <style>
-    /* ==========================================================================
-       CORE DESIGN TOKENS & RESET
-       ========================================================================== */
+    /* Minimal resets — component styles come from tutorials.css + standalone-expansions.css */
     :root {
-      --bg: #0b0b0b;
-      --ink: #f5f5f5;
-      --muted: #a9a9a9;
-      --line: #1d1d1d;
-      --panel: #0e0e0e;
-      --accent: #ffffff;
-      --maxw: 1280px;
-      --gutter: 28px;
-      --navH: 70px;
+      --bg: #070709;
     }
-
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; }
     html { scroll-behavior: smooth; }
     body {
-      margin: 0;
-      padding-top: var(--navH);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
       background: var(--bg);
-      color: var(--ink);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #f5f7fb;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
     a { color: inherit; text-decoration: none; }
-    .container { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
 
-    /* ==========================================================================
-       BUTTONS
-       ========================================================================== */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--ink);
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-size: 13px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      background: transparent;
-      color: var(--ink);
-    }
-    .btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .btn:hover {
-      background: var(--ink);
-      color: var(--bg);
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-    }
-    .btn:hover::before { opacity: 1; }
-    .btn:active { transform: translateY(0) scale(1); }
-    .btn.ghost {
-      border-color: #2a2a2a;
-      color: #e7e7e7;
-      background: transparent;
-    }
-    .btn.ghost::before { background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent); }
-    .btn.ghost:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border-color: #fff;
-    }
-
-    /* ==========================================================================
-       NAVIGATION
-       ========================================================================== */
-    .nav {
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--navH);
-      z-index: 1000;
-      background: linear-gradient(180deg, rgba(11, 11, 11, 0.96), rgba(11, 11, 11, 0.75) 75%, rgba(11, 11, 11, 0));
-      backdrop-filter: saturate(120%) blur(8px);
-      border-bottom: 1px solid var(--line);
-      animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    @keyframes slideDown {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .nav-inner {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      max-width: none;
-    }
-    .nav-left, .nav-right { flex: 1 1 0; min-width: 0; }
-    .nav-pills { flex: 0 0 auto; justify-content: center; display: flex; gap: 12px; }
-
-    /* Brand */
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      font-weight: 900;
-      letter-spacing: 0.03em;
-      font-size: clamp(16px, 1.25vw, 22px);
-      line-height: 1;
-      cursor: pointer;
-      gap: 10px;
-    }
-    .b-tim { color: #f5f5f5; }
-    .b-x {
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 18px rgba(14, 165, 233, 0.35);
-      font-weight: 900;
-      letter-spacing: 0.02em;
-      transition: transform 0.25s ease, filter 0.25s ease;
-    }
-    .brand:hover .b-x { transform: translateY(-1px); filter: brightness(1.06); }
-    .idx-nav-logo { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; }
-    .nav-left { display: flex; align-items: center; gap: 18px; }
-    .nav-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-
-    /* Nav Pills */
-    .nav-pill {
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: rgba(245, 245, 245, 0.6);
-      transition: all 0.2s ease;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-    .nav-pill:hover { color: rgba(245, 245, 245, 0.95); }
-    .nav-pill.active { color: #7dd3fc; }
-
-    /* Credits & Auth */
-    .credits-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .credits-pill {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      min-height: 44px;
-      border-radius: 999px;
-      border: 1px solid rgba(125, 211, 252, 0.35);
-      color: #eaf6ff;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.03em;
-      background: rgba(125, 211, 252, 0.08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .credits-pill i {
-      color: #7dd3fc;
-      font-size: 12px;
-      filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.5));
-    }
-    .credits-pill:hover {
-      border-color: rgba(125, 211, 252, 0.55);
-      background: rgba(125, 211, 252, 0.12);
-      transform: translateY(-1px);
-    }
-    .account-status-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border: none;
-      border-radius: 50%;
-      background: transparent;
-      cursor: pointer;
-      padding: 0;
-      transition: transform 0.2s ease, background 0.2s ease;
-      flex-shrink: 0;
-    }
-    .account-status-btn:hover { transform: scale(1.12); }
-    .account-status-btn i {
-      font-size: 15px;
-      transition: color 0.2s ease, filter 0.2s ease;
-      color: #f87171;
-      filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.4));
-    }
-    .credits-buy-btn {
-      appearance: none;
-      padding: 10px 16px;
-      min-height: 44px;
-      border-radius: 999px;
-      border: 1px solid #fff;
-      background: #fff;
-      color: #0b0b0b;
-      font-weight: 800;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .credits-buy-btn:hover {
-      background: transparent;
-      color: #fff;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.15);
-    }
-
-    /* Mobile Burger */
-    .nav-burger {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      width: 32px;
-      height: 32px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      position: relative;
-      z-index: 1001;
-    }
-    .burger-line {
-      width: 100%;
-      height: 2px;
-      background: var(--ink);
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
-    .nav-burger.is-open .burger-line:nth-child(1) {
-      transform: translateY(12px) rotate(45deg);
-    }
-    .nav-burger.is-open .burger-line:nth-child(2) {
-      opacity: 0;
-    }
-    .nav-burger.is-open .burger-line:nth-child(3) {
-      transform: translateY(-12px) rotate(-45deg);
-    }
-
-    /* Mobile Menu */
-    .mobile-menu {
-      position: fixed;
-      inset: var(--navH) 0 0 0;
-      background: linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(11, 11, 11, 0.95));
-      backdrop-filter: blur(8px);
-      z-index: 999;
-      transform: translateX(-100%);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
-    }
-    .mobile-menu.is-open {
-      transform: translateX(0);
-    }
-    .mobile-menu-inner {
-      padding: 24px var(--gutter);
-    }
-    .mobile-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .mobile-nav-link {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 16px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      transition: all 0.2s ease;
-    }
-    .mobile-nav-link:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-    .mnl-label {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--ink);
-    }
-    .mnl-sub {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .mobile-menu-footer {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--line);
-      text-align: center;
-    }
-    .mobile-footer-text {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 768px) {
-      .nav-pills { display: none; }
-      .nav-burger { display: flex; }
-      .credits-buy-btn { display: none; }
-      .credits-pill { padding: 6px 10px; font-size: 12px; gap: 6px; }
-      .account-status-btn { width: 30px; height: 30px; }
-    }
-    @media (max-width: 400px) {
-      .credits-pill .credits-value { display: none; }
-      .credits-pill { padding: 6px 8px; }
-    }
-
-    /* ==========================================================================
-       BREADCRUMBS
-       ========================================================================== */
-    .breadcrumbs {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 40px 0 0;
-      letter-spacing: 0.03em;
-    }
-    .breadcrumbs a {
-      color: var(--muted);
-      transition: color 0.2s ease;
-    }
-    .breadcrumbs a:hover {
-      color: var(--ink);
-    }
-    .breadcrumb-sep {
-      opacity: 0.4;
-    }
-    .breadcrumb-current {
-      color: var(--ink);
-    }
-
-    /* ==========================================================================
-       HERO SECTION
-       ========================================================================== */
-    .hero {
-      position: relative;
-      padding: 80px 0 60px;
-      text-align: center;
-      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-watermark {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(120px, 20vw, 300px);
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      opacity: 0.03;
-      pointer-events: none;
-      z-index: 0;
-      line-height: 1;
-    }
-    .wm-l {
-      display: inline-block;
-      animation: float 3s ease-in-out infinite;
-      animation-delay: calc(var(--i) * 0.1s);
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(125, 211, 252, 0.12);
-      border: 1px solid rgba(125, 211, 252, 0.3);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #7dd3fc;
-      margin-bottom: 24px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero h1 {
-      font-size: clamp(40px, 6vw, 72px);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      margin: 0 0 16px;
-      position: relative;
-      z-index: 1;
-      line-height: 1.1;
-    }
-
-    .hero-subheadline {
-      font-size: clamp(18px, 2.5vw, 24px);
-      color: var(--muted);
-      max-width: 700px;
-      margin: 0 auto 40px;
-      line-height: 1.4;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-stats {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      margin: 48px 0;
-      flex-wrap: wrap;
-      position: relative;
-      z-index: 1;
-    }
-
-    .stat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .stat-value {
-      font-size: clamp(20px, 3vw, 32px);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      color: #7dd3fc;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .stat-divider {
-      width: 1px;
-      height: 40px;
-      background: var(--line);
-    }
-
-    .hero-ctas {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 40px;
-      position: relative;
-      z-index: 1;
-      flex-wrap: wrap;
-    }
-
-    @media (max-width: 768px) {
-      .hero { padding: 60px 0 40px; }
-      .hero-stats { gap: 16px; }
-      .stat-divider { display: none; }
-      .hero-ctas { flex-direction: column; }
-      .btn { width: 100%; justify-content: center; }
-    }
-
-    /* ==========================================================================
-       SECTIONS
-       ========================================================================== */
-    section {
-      padding: 80px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    section h2 {
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      margin: 0 0 16px;
-      line-height: 1.1;
-    }
-
-    section > .container > p:first-of-type {
-      font-size: clamp(16px, 2vw, 20px);
-      color: var(--muted);
-      max-width: 600px;
-      margin: 0 0 48px;
-      line-height: 1.5;
-    }
-
-    /* ==========================================================================
-       WORKFLOW ESSENTIALS
-       ========================================================================== */
-    .workflow-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
-      margin-top: 40px;
-    }
-
-    .workflow-card {
-      padding: 32px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.02);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .workflow-card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(125, 211, 252, 0.4);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
-    }
-
-    .workflow-card h3 {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: -0.01em;
-      margin: 0;
-    }
-
-    .workflow-card p {
-      font-size: 14px;
-      color: var(--muted);
-      margin: 0;
-      line-height: 1.6;
-    }
-
-    .workflow-card ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .workflow-card li {
-      font-size: 13px;
-      color: var(--muted);
-      padding-left: 20px;
-      position: relative;
-    }
-
-    .workflow-card li::before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      color: #7dd3fc;
-      font-weight: 800;
-    }
-
-    /* ==========================================================================
-       INPUT CHECKLIST
-       ========================================================================== */
-    .checklist {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
-      margin-top: 40px;
-    }
-
-    .checklist-item {
-      padding: 32px 24px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.01);
-      text-align: center;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .checklist-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(125, 211, 252, 0.4);
-      transform: translateY(-4px);
-    }
-
-    .checklist-number {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin: 0 0 12px;
-    }
-
-    .checklist-item h4 {
-      font-size: 15px;
-      font-weight: 800;
-      margin: 0;
-      letter-spacing: -0.01em;
-    }
-
-    /* ==========================================================================
-       SPLIT LAYOUT (Text to 3D, Image to 3D, etc)
-       ========================================================================== */
-    .split-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: start;
-      margin-top: 40px;
-    }
-
-    .split-left {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    .split-card {
-      padding: 24px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.02);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .split-card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(125, 211, 252, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .split-card h4 {
-      font-size: 14px;
-      font-weight: 800;
-      margin: 0 0 8px;
-      letter-spacing: -0.01em;
-    }
-
-    .split-card p {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    .split-card .meta {
-      font-size: 12px;
-      color: #7dd3fc;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--line);
-    }
-
-    .split-right {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      background: linear-gradient(135deg, rgba(125, 211, 252, 0.08), rgba(14, 165, 233, 0.04));
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .split-right::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 40% 50%, rgba(125, 211, 252, 0.1), transparent 80%);
-      pointer-events: none;
-    }
-
-    .viewer-placeholder {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .viewer-placeholder i {
-      font-size: 48px;
-      color: rgba(125, 211, 252, 0.5);
-    }
-
-    .viewer-placeholder p {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 0;
-    }
-
-    @media (max-width: 980px) {
-      .split-section {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-      .split-right {
-        min-height: 300px;
-      }
-    }
-
-    /* ==========================================================================
-       TIPS GRID
-       ========================================================================== */
-    .tips-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      margin-top: 40px;
-    }
-
-    .tip-card {
-      padding: 28px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.02);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tip-card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(125, 211, 252, 0.3);
-      transform: translateY(-4px);
-    }
-
-    .tip-number {
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      color: #7dd3fc;
-      text-transform: uppercase;
-    }
-
-    .tip-card h4 {
-      font-size: 15px;
-      font-weight: 800;
-      margin: 0;
-      letter-spacing: -0.01em;
-    }
-
-    .tip-card p {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    /* ==========================================================================
-       FOOTER
-       ========================================================================== */
-    footer {
-      padding: 60px 0 40px;
-      border-top: 1px solid var(--line);
-      background: linear-gradient(180deg, var(--bg) 0%, #0d0d0d 100%);
-    }
-
-    .footer-content {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 40px;
-      margin-bottom: 40px;
-    }
-
-    .footer-col h3 {
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 0 0 16px;
-    }
-
-    .footer-col ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .footer-col a {
-      font-size: 13px;
-      color: var(--muted);
-      transition: color 0.2s ease;
-    }
-
-    .footer-col a:hover {
-      color: var(--ink);
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .footer-brand-text {
-      display: flex;
-      align-items: baseline;
-      gap: 2px;
-    }
-
-    .footer-brand-tim {
-      font-weight: 900;
-      font-size: 14px;
-    }
-
-    .footer-brand-x {
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      font-weight: 900;
-    }
-
-    .footer-desc {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .footer-trust {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .footer-trust i {
-      color: #fbbf24;
-      font-size: 14px;
-    }
-
-    .footer-trust-text {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .footer-divider {
-      height: 1px;
-      background: var(--line);
-      margin: 40px 0;
-    }
-
-    .footer-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .footer-credits {
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-
-    @media (max-width: 768px) {
-      .footer-content {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-      .footer-bottom {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-      }
-    }
-
-    /* ==========================================================================
-       UTILITIES
-       ========================================================================== */
-    .visually-hidden {
-      position: absolute !important;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    .grad {
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
   </style>
 </head>
-<body>
+<body class="tutorials-page has-site-shell" data-shell-page="tutorials">
+  <div data-site-shell="nav"></div>
 
-  <!-- NAV -->
-  <nav class="nav" aria-label="Primary">
-    <div class="container nav-inner">
-      <div class="nav-left">
-        <span class="brand" aria-label="Home">
-          <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-          <span class="b-tim">Timr</span><span class="b-x">X</span>
-        </span>
-      </div>
+  <main>
+    <section class="tutorials-expanded-view" aria-labelledby="tutorialsTitle">
+      <div class="tutorials-expanded-shell">
 
-      <div class="nav-pills" role="navigation" aria-label="Sections">
-        <a href="/hub" class="nav-pill">Hub</a>
-        <a href="/tutorials" class="nav-pill active">Tutorials</a>
-        <a href="/hub#community" class="nav-pill">Community</a>
-        <a href="/prompts" class="nav-pill">Prompts</a>
-        <a href="/docs" class="nav-pill">Docs</a>
-        <a href="/blogs" class="nav-pill">Blogs</a>
-      </div>
-
-      <div class="nav-right">
-        <div class="credits-group" id="creditsGroup">
-          <button type="button" class="account-status-btn" id="accountStatusBtn" data-status="anonymous" data-tooltip="Sign In" aria-label="Sign In">
-            <i class="fa-solid fa-user"></i>
-          </button>
-          <span class="credits-pill" id="creditsPill">
-            <i class="fa-solid fa-coins"></i>
-            <span class="credits-value" id="creditsValue">0</span>
-          </span>
-          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
-        </div>
-
-        <button class="nav-burger" id="tutorialsBurger" type="button" aria-label="Open menu" aria-expanded="false">
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-          <span class="burger-line"></span>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile menu overlay -->
-  <div class="mobile-menu" id="tutorialsMobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/hub" class="mobile-nav-link">
-          <span class="mnl-label">Hub</span>
-          <span class="mnl-sub">3D generation tools</span>
-        </a>
-        <a href="/tutorials" class="mobile-nav-link">
-          <span class="mnl-label">Tutorials</span>
-          <span class="mnl-sub">Learn & master</span>
-        </a>
-        <a href="/hub#community" class="mobile-nav-link">
-          <span class="mnl-label">Community</span>
-          <span class="mnl-sub">Prompts & showcase</span>
-        </a>
-        <a href="/prompts" class="mobile-nav-link">
-          <span class="mnl-label">Prompts</span>
-          <span class="mnl-sub">Curated collection</span>
-        </a>
-        <a href="/docs" class="mobile-nav-link">
-          <span class="mnl-label">Docs</span>
-          <span class="mnl-sub">Technical guides</span>
-        </a>
-        <a href="/blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blogs</span>
-          <span class="mnl-sub">Stories & updates</span>
-        </a>
-      </nav>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX / Tutorials</span>
-      </div>
-    </div>
-  </div>
-
-  <script>
-  (function(){
-    var burger = document.getElementById('tutorialsBurger');
-    var menu = document.getElementById('tutorialsMobileMenu');
-    if (!burger || !menu) return;
-
-    function openMenu(){
-      burger.classList.add('is-open');
-      burger.setAttribute('aria-expanded','true');
-      burger.setAttribute('aria-label','Close menu');
-      menu.classList.add('is-open');
-      menu.setAttribute('aria-hidden','false');
-      document.body.classList.add('menu-open');
-    }
-    function closeMenu(){
-      burger.classList.remove('is-open');
-      burger.setAttribute('aria-expanded','false');
-      burger.setAttribute('aria-label','Open menu');
-      menu.classList.remove('is-open');
-      menu.setAttribute('aria-hidden','true');
-      document.body.classList.remove('menu-open');
-    }
-
-    burger.addEventListener('click', function(){
-      menu.classList.contains('is-open') ? closeMenu() : openMenu();
-    });
-
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', closeMenu);
-    });
-
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape' && menu.classList.contains('is-open')){
-        closeMenu();
-        burger.focus();
-      }
-    });
-
-    window.addEventListener('resize', function(){
-      if (window.innerWidth > 768 && menu.classList.contains('is-open')) closeMenu();
-    });
-  })();
-  </script>
-
-  <!-- BREADCRUMBS -->
-  <div class="container">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span class="breadcrumb-sep">›</span>
-      <a href="/hub">Hub</a>
-      <span class="breadcrumb-sep">›</span>
-      <span class="breadcrumb-current">Tutorials</span>
-    </nav>
-  </div>
-
-  <!-- HERO -->
-  <header class="hero">
-    <div class="hero-watermark" aria-hidden="true">
-      <span class="wm-l" style="--i:0">L</span><span class="wm-l" style="--i:1">E</span><span class="wm-l" style="--i:2">A</span><span class="wm-l" style="--i:3">R</span><span class="wm-l" style="--i:4">N</span>
-    </div>
-    <div class="container">
-      <div class="hero-badge">
-        <i class="fa-solid fa-graduation-cap"></i>
-        Tutorial Library · TimrX
-      </div>
-      <h1>Master the TimrX 3D Print Hub</h1>
-      <p class="hero-subheadline">Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets.</p>
-
-      <div class="hero-stats">
-        <div class="stat">
-          <div class="stat-value">05 min</div>
-          <div class="stat-label">avg tutorial</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <div class="stat-value">5</div>
-          <div class="stat-label">modes</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <div class="stat-value">∞</div>
-          <div class="stat-label">prompts</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <div class="stat-value">24/7</div>
-          <div class="stat-label">availability</div>
-        </div>
-      </div>
-
-      <div class="hero-ctas">
-        <a href="/3dprint" class="btn">Open Workspace</a>
-        <a href="/prompts" class="btn ghost">Browse Prompts</a>
-      </div>
-    </div>
-  </header>
-
-  <!-- WORKFLOW ESSENTIALS -->
-  <section>
-    <div class="container">
-      <h2>Workflow Essentials</h2>
-      <p>Master the three-step process to generate, refine, and share 3D models.</p>
-
-      <div class="workflow-grid">
-        <!-- Card 1 -->
-        <article class="workflow-card">
-          <h3>Craft a Vivid Prompt</h3>
-          <p>Lead with silhouette, support with materials, finish with mood.</p>
-          <ul>
-            <li>Start with a clear shape or object description</li>
-            <li>Specify materials (metal, wood, ceramic, etc.)</li>
-            <li>Add mood words (sleek, ornate, minimalist, futuristic)</li>
-            <li>Use size cues relative to familiar objects</li>
-            <li>Reference inspiration from real-world designs</li>
-          </ul>
-        </article>
-
-        <!-- Card 2 -->
-        <article class="workflow-card">
-          <h3>Preview & Iterate</h3>
-          <p>Use low-latency preview, wireframe overlay, pin prompts.</p>
-          <ul>
-            <li>Preview renders instantly as you refine</li>
-            <li>Overlay wireframe to check topology</li>
-            <li>Pin successful prompts for future batches</li>
-            <li>Use Refine button to adjust proportions</li>
-            <li>Test Remesh for watertight geometry</li>
-          </ul>
-        </article>
-
-        <!-- Card 3 -->
-        <article class="workflow-card">
-          <h3>Publish & Share</h3>
-          <p>Export GLB/GLTF, tag assets, send to Community.</p>
-          <ul>
-            <li>Export to GLB/GLTF for any 3D platform</li>
-            <li>Tag assets with keywords and metadata</li>
-            <li>Share to Community gallery for feedback</li>
-            <li>Batch export multiple variations</li>
-            <li>Download textures and maps separately</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- INPUT CHECKLIST -->
-  <section>
-    <div class="container">
-      <h2>Input Checklist</h2>
-      <p>Follow these four essential steps before pressing generate.</p>
-
-      <div class="checklist">
-        <div class="checklist-item">
-          <div class="checklist-number">01</div>
-          <h4>Queue the Job</h4>
-        </div>
-        <div class="checklist-item">
-          <div class="checklist-number">02</div>
-          <h4>Inspect the Preview</h4>
-        </div>
-        <div class="checklist-item">
-          <div class="checklist-number">03</div>
-          <h4>Post-Process</h4>
-        </div>
-        <div class="checklist-item">
-          <div class="checklist-number">04</div>
-          <h4>Export & Print</h4>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TEXT TO 3D -->
-  <section id="text-to-3d">
-    <div class="container">
-      <h2>Text to 3D</h2>
-      <p>Generate 3D models directly from text descriptions using our advanced AI engines.</p>
-
-      <div class="split-section">
-        <div class="split-left">
-          <article class="split-card">
-            <h4>Meshy 6</h4>
-            <p>Latest generation with enhanced detail, faster processing, and improved topology control. Best for intricate designs and production-ready models.</p>
-            <div class="meta">
-              <i class="fa-solid fa-coins"></i> 8–15 credits per generation
+        <!-- ===== HERO ===== -->
+        <header class="tutorials-hero">
+          <div class="tutorials-hero-text" id="tutorialsFocus" tabindex="-1">
+            <span class="tutorials-pill">Tutorial Library · TimrX</span>
+            <h1 class="tutorials-title" id="tutorialsTitle">Master the TimrX 3D Print Hub</h1>
+            <p>Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets. From beginners to advanced creators, we've got everything you need to create stunning 3D prints.</p>
+            <div class="tutorials-hero-actions">
+              <a href="/3dprint" class="tutorials-primary-btn">Open Workspace</a>
+              <a href="#tutorialsVideos" class="tutorials-secondary-btn">Jump to Videos</a>
+              <a href="/prompts" class="tutorials-secondary-btn">Browse Prompts</a>
             </div>
-          </article>
-
-          <article class="split-card">
-            <h4>Meshy 5</h4>
-            <p>Reliable workhorse with broad compatibility. Excellent for quick prototyping, game assets, and architectural mockups. Lower credit cost.</p>
-            <div class="meta">
-              <i class="fa-solid fa-coins"></i> 3–8 credits per generation
-            </div>
-          </article>
-        </div>
-
-        <div class="split-right">
-          <div class="viewer-placeholder">
-            <i class="fa-solid fa-cube"></i>
-            <p>3D Viewer will appear here</p>
+            <ul class="tutorials-hero-stats">
+              <li><span>05 min</span><small>Avg tutorial</small></li>
+              <li><span>5 modes</span><small>Generate · Refine · Remesh · Texture · Video</small></li>
+              <li><span>∞ prompts</span><small>Iterate freely</small></li>
+              <li><span>24/7</span><small>Always available</small></li>
+            </ul>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
+          <span class="tutorials-watermark">LEARN</span>
+        </header>
 
-  <!-- IMAGE TO 3D -->
-  <section id="image-to-3d">
-    <div class="container">
-      <h2>Image to 3D</h2>
-      <p>Transform any 2D image into a fully textured 3D model with automatic topology detection.</p>
-
-      <div class="split-section">
-        <div class="split-left">
-          <article class="split-card">
-            <h4>Image Requirements</h4>
-            <p>Clear, well-lit source images produce best results. Avoid extremely dark or overexposed images.</p>
-          </article>
-
-          <article class="split-card">
-            <h4>Supported Formats</h4>
-            <p>JPG, PNG, WebP. Maximum file size 10 MB. Recommended resolution 1024×1024 or higher.</p>
-          </article>
-
-          <article class="split-card">
-            <h4>Generation Modes</h4>
-            <p>Choose between surface mesh (fast, high detail) or volumetric (robust, print-ready).</p>
-            <div class="meta">
-              <i class="fa-solid fa-coins"></i> 12–20 credits per model
+        <!-- ===== WORKFLOW ESSENTIALS ===== -->
+        <section class="tutorials-section">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>How to generate a 3D model in TimrX</h2>
+              <p>Every run follows the same friendly path: describe the object, preview the mesh, then post-process until it is print-ready. These quick guides mirror the cards inside the workspace so you always know what comes next.</p>
             </div>
-          </article>
-        </div>
-
-        <div class="split-right">
-          <div class="viewer-placeholder">
-            <i class="fa-solid fa-image"></i>
-            <p>3D Viewer will appear here</p>
+            <div class="tutorials-highlight">Workflow Essentials</div>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">1. Craft a vivid prompt</h3>
+              <p class="tutorials-card__body">Lead with silhouette, support with materials, finish with mood. The AI rewards concrete nouns and reference eras.</p>
+              <ul class="tutorials-card__list">
+                <li>Mention size cues (figurine, tabletop, helmet).</li>
+                <li>Call out materials: "brushed titanium spine, matte ceramic plates".</li>
+                <li>Reference inspiration: "Ghibli + brutalist mix".</li>
+                <li>Add mood words: sleek, ornate, minimalist, futuristic.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">2. Preview & iterate</h3>
+              <p class="tutorials-card__body">Use the low-latency preview to check proportions before you spend tokens on refinement.</p>
+              <ul class="tutorials-card__list">
+                <li>Enable wireframe overlay in the viewer to catch thin walls.</li>
+                <li>Pin successful prompts to reuse structure later.</li>
+                <li>Use Refine/Remesh buttons to add detail without starting over.</li>
+                <li>Test Remesh for watertight geometry.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">3. Publish & share</h3>
+              <p class="tutorials-card__body">Everything funnels into My Assets where you can label versions, download GLB/GLTF, and generate cover art.</p>
+              <ul class="tutorials-card__list">
+                <li>Export GLB for printers or GLTF for DCC apps.</li>
+                <li>Add tags (armor, character, prop) to keep history searchable.</li>
+                <li>Send assets straight to Community with one click.</li>
+                <li>Batch export multiple variations at once.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
 
-  <!-- REMESH & TEXTURE -->
-  <section id="remesh-texture">
-    <div class="container">
-      <h2>Remesh & Texture</h2>
-      <p>Optimize geometry and apply AI-generated PBR textures for production-ready assets.</p>
+        <!-- ===== INPUT CHECKLIST ===== -->
+        <section class="tutorials-section">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Input checklist</h2>
+            </div>
+            <div class="tutorials-highlight">Quick Start</div>
+          </div>
+          <div class="tutorials-steps-grid">
+            <article class="tutorials-step">
+              <span>01</span>
+              <h3>Queue the job</h3>
+              <p>Select Text, Image, or Video mode and set resolution before pressing Generate. Jobs run asynchronously so you can line up multiple ideas.</p>
+            </article>
+            <article class="tutorials-step">
+              <span>02</span>
+              <h3>Inspect the preview</h3>
+              <p>Orbit the mesh, toggle lighting presets, and note the status pill (Preview, Refine, Texture). Use the compact progress widget to monitor batches.</p>
+            </article>
+            <article class="tutorials-step">
+              <span>03</span>
+              <h3>Post-process</h3>
+              <p>Run Remesh for watertight topology, then fire Texture to bake roughness/normal maps. Final files are stored automatically in history.</p>
+            </article>
+            <article class="tutorials-step">
+              <span>04</span>
+              <h3>Export & Print</h3>
+              <p>Download your model in GLB or GLTF format, import into your slicer, and prepare for printing with recommended settings.</p>
+            </article>
+          </div>
+        </section>
 
-      <div class="workflow-grid">
-        <article class="workflow-card">
-          <h3>Remesh</h3>
-          <p>Convert any geometry into watertight, manifold-ready topology.</p>
-          <ul>
-            <li>Automatically fills holes and closes gaps</li>
-            <li>Reduces polygon count for faster rendering</li>
-            <li>Maintains UV mapping for texturing</li>
-            <li>Creates print-ready models instantly</li>
-            <li>Option to adjust detail level</li>
-          </ul>
-        </article>
-
-        <article class="workflow-card">
-          <h3>AI Texture</h3>
-          <p>Generate PBR maps: albedo, normal, roughness, metallic.</p>
-          <ul>
-            <li>AI-learned from millions of assets</li>
-            <li>Physically-based for real-world rendering</li>
-            <li>Separate downloads for each texture type</li>
-            <li>Compatible with Unity, Unreal, Blender</li>
-            <li>Adjustable pattern intensity and variation</li>
-          </ul>
-        </article>
-
-        <article class="workflow-card">
-          <h3>Export Options</h3>
-          <p>Download in any format, with or without textures.</p>
-          <ul>
-            <li>GLB (with embedded textures) – recommended</li>
-            <li>GLTF (separate .json + texture files)</li>
-            <li>OBJ + MTL for Blender/Max compatibility</li>
-            <li>Texture-only exports (PNG/EXR)</li>
-            <li>Batch download entire projects</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIDEO GENERATION -->
-  <section id="video-generation">
-    <div class="container">
-      <h2>Video Generation</h2>
-      <p>Animate your 3D models and create cinematic videos with AI-powered tools.</p>
-
-      <div class="workflow-grid">
-        <article class="workflow-card">
-          <h3>Text to Video</h3>
-          <p>Describe a scene, motion, or cinematic sequence.</p>
-          <ul>
-            <li>Supports Veo 3.1 for 4K quality</li>
-            <li>Seedance 2.0 for smooth motion</li>
-            <li>Up to 15 seconds per generation</li>
-            <li>Motion direction and camera controls</li>
-            <li>No watermarks, full ownership</li>
-          </ul>
-        </article>
-
-        <article class="workflow-card">
-          <h3>Image to Video</h3>
-          <p>Animate your 3D renders or concept art.</p>
-          <ul>
-            <li>Start from any uploaded image</li>
-            <li>Control animation direction and speed</li>
-            <li>Create camera pan & zoom effects</li>
-            <li>Works with generated or real photos</li>
-            <li>Professional-grade output quality</li>
-          </ul>
-        </article>
-
-        <article class="workflow-card">
-          <h3>Video Credits</h3>
-          <p>Separate credit system for video generation.</p>
-          <ul>
-            <li>Short format (5s): 45 credits</li>
-            <li>Standard (8s): 96 credits</li>
-            <li>Premium (15s 4K): 240 credits</li>
-            <li>Monthly subscriptions include video</li>
-            <li>Bulk discounts for creators</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRO TIPS -->
-  <section>
-    <div class="container">
-      <h2>Pro Tips</h2>
-      <p>Expert techniques to maximize quality and efficiency.</p>
-
-      <div class="tips-grid">
-        <article class="tip-card">
-          <div class="tip-number">01 — Prompt Specificity</div>
-          <h4>Use Adjectives Strategically</h4>
-          <p>Instead of "nice chair", try "mid-century modern wooden chair with tapered legs and cream fabric upholstery". Specificity breeds quality.</p>
-        </article>
-
-        <article class="tip-card">
-          <div class="tip-number">02 — Material Grounding</div>
-          <h4>Reference Real Materials</h4>
-          <p>Anchor your prompts to real-world materials. "brushed titanium" beats "shiny metal". Material knowledge directly affects AI output.</p>
-        </article>
-
-        <article class="tip-card">
-          <div class="tip-number">03 — Style Anchors</div>
-          <h4>Name Artistic References</h4>
-          <p>Reference known designers or styles: "Dieter Rams minimalism", "Victorian gothic", "retro-futurism". AI understands cultural context.</p>
-        </article>
-
-        <article class="tip-card">
-          <div class="tip-number">04 — Scale Context</div>
-          <h4>Include Size References</h4>
-          <p>Mention comparable objects for scale: "coffee mug-sized", "desk-sized", "car-sized". Relative scale prevents awkward proportions.</p>
-        </article>
-
-        <article class="tip-card">
-          <div class="tip-number">05 — Batch Variations</div>
-          <h4>Generate Multiple Styles</h4>
-          <p>Queue 3–5 variations with subtle prompt tweaks. Compare side-by-side to find best aesthetics. Use pinning to save winners.</p>
-        </article>
-
-        <article class="tip-card">
-          <div class="tip-number">06 — Post-Processing</div>
-          <h4>Always Remesh First</h4>
-          <p>Run Remesh before texturing. Watertight models export flawlessly to any platform and 3D printer. Quality topology is foundation.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <!-- Brand & Description -->
-        <div class="footer-col">
-          <div class="footer-brand">
-            <img src="img/logo.png" alt="TimrX" width="32" height="32" style="flex-shrink:0;">
-            <div class="footer-brand-text">
-              <span class="footer-brand-tim">Timr</span><span class="footer-brand-x">X</span>
+        <!-- ===== TEXT TO 3D (with interactive 3D viewer) ===== -->
+        <section class="tutorials-section tutorials-section--with-model" id="text-to-3d">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Text to 3D</h2>
+              <p>Transform your text descriptions into detailed 3D models using AI. Choose from multiple AI models for different styles and quality levels.</p>
+            </div>
+            <div class="tutorials-highlight">Generation</div>
+          </div>
+          <div class="tutorials-split-layout">
+            <div class="tutorials-split-cards">
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Meshy 6 (Latest)</h3>
+                <p class="tutorials-card__body">The newest and most powerful model. Best for detailed, high-quality 3D assets with complex geometry.</p>
+                <ul class="tutorials-card__list">
+                  <li>20 credits per generation</li>
+                  <li>Highest detail and accuracy</li>
+                  <li>Best for characters and complex objects</li>
+                  <li>Supports symmetry and pose options</li>
+                </ul>
+              </article>
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Meshy 5</h3>
+                <p class="tutorials-card__body">Balanced model offering great quality at lower cost. Ideal for most everyday 3D generation tasks.</p>
+                <ul class="tutorials-card__list">
+                  <li>20 credits per generation</li>
+                  <li>Fast generation times</li>
+                  <li>Good for props and simple objects</li>
+                  <li>Reliable and consistent results</li>
+                </ul>
+              </article>
+            </div>
+            <div class="tutorials-split-model">
+              <div
+                class="tutorial-3d-viewer"
+                id="undead-model-viewer"
+                data-src="3dprint-modules/3dmodels/undead_creature_preview.glb"
+                data-preview="3dprint-modules/3dmodels/undead_creature_preview.glb"
+                data-refined="3dprint-modules/3dmodels/undead_creature_refined.glb"
+                data-preview-hint="Click model to view refined version"
+                data-refined-hint="Click model to view preview version"
+                aria-label="Undead Creature 3D Model - click to toggle versions"
+              ></div>
+              <span class="model-toggle-hint">Click model to view refined version</span>
             </div>
           </div>
-          <p class="footer-desc">AI creative workspace for 3D, video, and image generation. From concept to print-ready in minutes.</p>
-          <div class="footer-trust">
-            <i class="fa-solid fa-star"></i>
-            <span class="footer-trust-text">Trusted by 50k+ creators</span>
+        </section>
+
+        <!-- ===== IMAGE TO 3D (with reference image + 3D viewer) ===== -->
+        <section class="tutorials-section tutorials-section--with-model tutorials-section--model-right" id="image-to-3d">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Image to 3D</h2>
+              <p>Upload reference images, artwork, or photos and convert them into 3D models. Perfect for bringing 2D concepts to life.</p>
+            </div>
+            <div class="tutorials-highlight">Generation</div>
           </div>
-        </div>
+          <div class="tutorials-split-layout tutorials-split-layout--with-extra">
+            <div class="tutorials-split-cards tutorials-split-cards--grid-with-extra">
+              <div class="tutorials-reference-img">
+                <img src="3dprint-modules/3dmodels/dogimg.png" alt="Reference Image">
+                <span class="reference-label">Reference</span>
+              </div>
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Prepare Your Image</h3>
+                <p class="tutorials-card__body">Image quality matters. Follow these guidelines for best results.</p>
+                <ul class="tutorials-card__list">
+                  <li>Use clear, well-lit images</li>
+                  <li>Single subject works best</li>
+                  <li>Remove busy backgrounds</li>
+                </ul>
+              </article>
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Upload & Generate</h3>
+                <p class="tutorials-card__body">Drag and drop or click to upload. Supports PNG, JPG, WEBP up to 10 MB.</p>
+                <ul class="tutorials-card__list">
+                  <li>Preview before generating</li>
+                  <li>Front-facing views work best</li>
+                  <li>Concept art converts beautifully</li>
+                </ul>
+              </article>
+              <article class="tutorials-card tutorials-card--span-full">
+                <h3 class="tutorials-card__title">What You Get</h3>
+                <p class="tutorials-card__body">Your 3D model comes ready to use. Download it as GLB, FBX, OBJ, or USDZ. Models include textures and materials that look realistic. You can choose between detailed or low-poly styles. Want it print-ready? Use Remesh after to make it perfect for 3D printing.</p>
+              </article>
+            </div>
+            <div class="tutorials-split-model tutorials-split-model--tall">
+              <div
+                class="tutorial-3d-viewer"
+                id="dog-model-viewer"
+                data-src="3dprint-modules/3dmodels/dog3d.glb"
+                aria-label="Dog 3D Model from Image"
+              ></div>
+            </div>
+          </div>
+        </section>
 
-        <!-- Explore -->
-        <div class="footer-col">
-          <h3>Explore</h3>
-          <ul>
-            <li><a href="/hub">Hub</a></li>
-            <li><a href="/tutorials">Tutorials</a></li>
-            <li><a href="/prompts">Prompts</a></li>
-            <li><a href="/docs">Documentation</a></li>
-            <li><a href="/blogs">Blog</a></li>
-          </ul>
-        </div>
+        <!-- ===== REMESH (with interactive 3D comparison) ===== -->
+        <section class="tutorials-section tutorials-section--with-model" id="remesh">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Remesh</h2>
+              <p>Optimize your 3D model's topology for 3D printing. Create watertight, manifold meshes ready for any slicer.</p>
+            </div>
+            <div class="tutorials-highlight">Post-Processing</div>
+          </div>
+          <div class="tutorials-split-layout tutorials-split-layout--with-extra">
+            <div class="tutorials-split-cards tutorials-split-cards--grid">
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Why Remesh?</h3>
+                <p class="tutorials-card__body">AI-generated models often have topology issues. Remeshing fixes these for successful prints.</p>
+                <ul class="tutorials-card__list">
+                  <li>Fixes non-manifold geometry</li>
+                  <li>Closes holes and gaps</li>
+                  <li>Creates uniform polygon distribution</li>
+                  <li>Ensures watertight meshes</li>
+                </ul>
+              </article>
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Resolution Settings</h3>
+                <p class="tutorials-card__body">Choose the right resolution based on your print size and detail requirements.</p>
+                <ul class="tutorials-card__list">
+                  <li>Low: Fast, fewer polygons (prototypes)</li>
+                  <li>Medium: Balanced (most prints)</li>
+                  <li>High: Maximum detail (miniatures)</li>
+                  <li>Custom: Set exact polygon count</li>
+                </ul>
+              </article>
+              <article class="tutorials-card">
+                <h3 class="tutorials-card__title">Export Formats</h3>
+                <p class="tutorials-card__body">Export your remeshed model in the format your slicer or DCC app needs.</p>
+                <ul class="tutorials-card__list">
+                  <li>GLB: Universal, includes textures</li>
+                  <li>GLTF: Separate files, DCC-friendly</li>
+                  <li>STL: Classic print format</li>
+                  <li>OBJ: Wide compatibility</li>
+                </ul>
+              </article>
+              <article class="tutorials-card tutorials-card--explained">
+                <h3 class="tutorials-card__title">Remesh Explained</h3>
+                <p class="tutorials-card__body">Both models look the same? That's correct! Remeshing preserves appearance while fixing internal geometry.</p>
+                <div class="remesh-comparison">
+                  <div class="remesh-comparison__item" data-tooltip="The original AI-generated mesh. May contain holes, non-manifold edges, or overlapping faces that could cause print failures.">
+                    <strong>Preview</strong>
+                    <span>Original mesh</span>
+                  </div>
+                  <div class="remesh-comparison__item" data-tooltip="Clean, watertight mesh ready for slicing. All topology issues fixed while preserving the visual appearance.">
+                    <strong>Remeshed</strong>
+                    <span>Print-ready</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="tutorials-split-model tutorials-split-model--tall">
+              <div
+                class="tutorial-3d-viewer"
+                id="remesh-model-viewer"
+                data-src="3dprint-modules/3dmodels/character_preview.glb"
+                data-preview="3dprint-modules/3dmodels/character_preview.glb"
+                data-refined="3dprint-modules/3dmodels/character_remeshed.glb"
+                data-preview-hint="Click model to view remeshed version"
+                data-refined-hint="Click model to view original version"
+                aria-label="Character 3D Model - Remesh Demo - click to toggle versions"
+              ></div>
+              <span class="model-toggle-hint">Click model to view remeshed version</span>
+            </div>
+          </div>
+        </section>
 
-        <!-- Legal -->
-        <div class="footer-col">
-          <h3>Legal</h3>
-          <ul>
-            <li><a href="/terms">Terms of Service</a></li>
-            <li><a href="/privacy">Privacy Policy</a></li>
-            <li><a href="/cookie-policy">Cookie Policy</a></li>
-            <li><a href="/refund-policy">Refund Policy</a></li>
-            <li><a href="/contact">Contact</a></li>
-          </ul>
-        </div>
+        <!-- ===== TEXTURE ===== -->
+        <section class="tutorials-section" id="texture">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Texture</h2>
+              <p>Apply AI-generated PBR textures to your 3D models. Create realistic materials with diffuse, normal, and roughness maps.</p>
+            </div>
+            <div class="tutorials-highlight">Post-Processing</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Text to Texture</h3>
+              <p class="tutorials-card__body">Describe the material you want and let AI generate matching PBR textures for your model.</p>
+              <ul class="tutorials-card__list">
+                <li>"Weathered bronze with patina"</li>
+                <li>"Polished marble with gold veins"</li>
+                <li>"Worn leather with scratches"</li>
+                <li>"Glowing neon cyberpunk"</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Image to Texture</h3>
+              <p class="tutorials-card__body">Upload a reference image and apply its style or material to your 3D model.</p>
+              <ul class="tutorials-card__list">
+                <li>Upload material photos</li>
+                <li>Use artwork as reference</li>
+                <li>AI extracts color and patterns</li>
+                <li>Seamless UV mapping</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">PBR Maps Generated</h3>
+              <p class="tutorials-card__body">Full PBR workflow with all maps needed for realistic rendering.</p>
+              <ul class="tutorials-card__list">
+                <li>Albedo/Diffuse map</li>
+                <li>Normal map for surface detail</li>
+                <li>Roughness/Metallic maps</li>
+                <li>Ambient Occlusion</li>
+              </ul>
+            </article>
+          </div>
+        </section>
 
-        <!-- Connect -->
-        <div class="footer-col">
-          <h3>Connect</h3>
-          <ul>
-            <li><a href="https://twitter.com/timrx_live" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
-            <li><a href="https://discord.gg/timrx" target="_blank" rel="noopener noreferrer">Discord</a></li>
-            <li><a href="https://github.com/timrx" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-            <li><a href="https://instagram.com/timrx_live" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-            <li><a href="mailto:support@timrx.live">Support</a></li>
+        <!-- ===== VIDEO GENERATION ===== -->
+        <section class="tutorials-section" id="video-generation">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Video & Animation</h2>
+              <p>Animate your 3D models and create cinematic videos with AI-powered tools.</p>
+            </div>
+            <div class="tutorials-highlight">Creation</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Text to Video</h3>
+              <p class="tutorials-card__body">Describe a scene, motion, or cinematic sequence and let AI generate it.</p>
+              <ul class="tutorials-card__list">
+                <li>Supports Veo 3.1 for 4K quality</li>
+                <li>Seedance 2.0 for smooth motion</li>
+                <li>Up to 15 seconds per generation</li>
+                <li>No watermarks, full ownership</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Image to Video</h3>
+              <p class="tutorials-card__body">Animate your 3D renders or concept art with camera motion and effects.</p>
+              <ul class="tutorials-card__list">
+                <li>Start from any uploaded image</li>
+                <li>Control animation direction and speed</li>
+                <li>Create camera pan & zoom effects</li>
+                <li>Professional-grade output quality</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Video Credits</h3>
+              <p class="tutorials-card__body">Separate credit system for video generation.</p>
+              <ul class="tutorials-card__list">
+                <li>Short format (5s): 45 credits</li>
+                <li>Standard (8s): 96 credits</li>
+                <li>Premium (15s 4K): 240 credits</li>
+                <li>Monthly subscriptions include video</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Turntable Renders</h3>
+              <p class="tutorials-card__body">Create professional 360° showcase videos of your 3D models automatically.</p>
+              <ul class="tutorials-card__list">
+                <li>Smooth camera rotation</li>
+                <li>Multiple lighting presets</li>
+                <li>HD and 4K export options</li>
+                <li>Perfect for portfolios</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== PRO TIPS & BEST PRACTICES ===== -->
+        <section class="tutorials-section">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Pro Tips & Best Practices</h2>
+              <p>Level up your 3D modeling skills with these expert techniques used by our top creators.</p>
+            </div>
+            <div class="tutorials-highlight">Pro Level</div>
+          </div>
+          <div class="tutorials-best-practices-grid">
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">⚡</div>
+              <h3>Optimize Your Prompts</h3>
+              <p>Use specific, descriptive language. Instead of "cool dragon", try "sleek mechanical dragon with articulated wings, brushed metal finish, art deco style".</p>
+              <ul class="practice-tips">
+                <li>Be specific about materials and textures</li>
+                <li>Reference art styles and eras</li>
+                <li>Include scale indicators</li>
+              </ul>
+            </article>
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">🎯</div>
+              <h3>Perfect Your Mesh</h3>
+              <p>Use the Remesh feature to ensure watertight geometry perfect for 3D printing. Check for manifold edges and proper normals.</p>
+              <ul class="practice-tips">
+                <li>Always remesh before exporting for printing</li>
+                <li>Adjust resolution based on detail needs</li>
+                <li>Preview wireframe to spot issues</li>
+              </ul>
+            </article>
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">🎨</div>
+              <h3>Texture Like a Pro</h3>
+              <p>Apply realistic textures with normal, roughness, and metallic maps. Experiment with different material presets in the viewer.</p>
+              <ul class="practice-tips">
+                <li>Use PBR workflows for realistic results</li>
+                <li>Test textures under different lighting</li>
+                <li>Export texture maps separately</li>
+              </ul>
+            </article>
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">💡</div>
+              <h3>Lighting Matters</h3>
+              <p>Toggle between lighting presets in the viewer settings. The right lighting can reveal details and help spot printing issues.</p>
+              <ul class="practice-tips">
+                <li>Use studio lighting for presentations</li>
+                <li>Enable shadows to check overhangs</li>
+                <li>Try different HDRIs for mood</li>
+              </ul>
+            </article>
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">🔄</div>
+              <h3>Iterate Efficiently</h3>
+              <p>Save successful prompts, use refinement instead of regenerating, and build a personal library of proven techniques.</p>
+              <ul class="practice-tips">
+                <li>Keep a prompt journal</li>
+                <li>Use history to compare versions</li>
+                <li>Tag assets for easy searching</li>
+              </ul>
+            </article>
+            <article class="tutorials-practice-card">
+              <div class="practice-icon">🖨️</div>
+              <h3>Print Preparation</h3>
+              <p>Scale models appropriately, add supports in your slicer, and choose the right layer height based on detail requirements.</p>
+              <ul class="practice-tips">
+                <li>Check wall thickness (min 2mm for FDM)</li>
+                <li>Orient for minimal support needs</li>
+                <li>Test print small versions first</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== VIDEO WALKTHROUGHS ===== -->
+        <section class="tutorials-section" id="tutorialsVideos" aria-label="Video walkthroughs">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Watch creators build in real time</h2>
+              <p>These short videos spotlight real TimrX sessions so you can copy prompt formulas, lighting setups, and printer-friendly tweaks. The primary demo also has a dedicated watch page at <a href="/3dprint-demo-video">/3dprint-demo-video</a>.</p>
+            </div>
+            <div class="tutorials-highlight">Video Library</div>
+          </div>
+          <div class="tutorials-video-grid">
+            <article class="tutorials-video-card">
+              <div class="tutorials-video-embed">
+                <iframe src="https://www.youtube.com/embed/O24vOtyz3PE" title="AI-powered 3D printing with text prompts" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              </div>
+              <div class="tutorials-video-meta">
+                <h3>AI-powered 3D model creation</h3>
+                <p>Captain Creativity walks through using AI text prompts to generate custom, print-ready 3D models from scratch.</p>
+              </div>
+            </article>
+            <article class="tutorials-video-card">
+              <div class="tutorials-video-embed">
+                <iframe src="https://www.youtube.com/embed/Qk_YRkDsJrQ" title="Texturing an asset from start to finish" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              </div>
+              <div class="tutorials-video-meta">
+                <h3>Texturing pipeline start to finish</h3>
+                <p>Adobe Substance 3D demonstrates a complete Substance Painter texturing workflow — from import to polished PBR output.</p>
+              </div>
+            </article>
+            <article class="tutorials-video-card">
+              <div class="tutorials-video-embed">
+                <iframe src="https://www.youtube.com/embed/EwE8mSHJaGI" title="HDRI lighting setup in Blender" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+              </div>
+              <div class="tutorials-video-meta">
+                <h3>HDRI lighting for perfect renders</h3>
+                <p>Brandon 3D covers custom HDRI setups in Blender to achieve studio-quality lighting on your 3D printed models.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== FAQ ===== -->
+        <section class="tutorials-section">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Frequently Asked Questions</h2>
+              <p>Quick answers to common questions about the TimrX 3D Print Hub.</p>
+            </div>
+            <div class="tutorials-highlight">FAQ</div>
+          </div>
+          <div class="tutorials-faq-grid">
+            <article class="tutorials-faq-card">
+              <h3>What file formats are supported?</h3>
+              <p>TimrX exports models in GLB and GLTF formats, which are compatible with all major 3D printing slicers including Cura, PrusaSlicer, Bambu Studio, and more. You can also import these into Blender, Maya, or other DCC applications.</p>
+            </article>
+            <article class="tutorials-faq-card">
+              <h3>How do I ensure my model is print-ready?</h3>
+              <p>Always use the Remesh feature before exporting. This ensures watertight geometry with no holes or inverted normals. Check the wireframe view to spot thin walls, and verify wall thickness is at least 2mm for FDM printers.</p>
+            </article>
+            <article class="tutorials-faq-card">
+              <h3>Can I edit models after generation?</h3>
+              <p>Yes! Use the Refine and Remesh tools to modify generated models. You can also export to Blender or other 3D software for detailed editing. The Texture tool lets you apply and customize materials.</p>
+            </article>
+            <article class="tutorials-faq-card">
+              <h3>What's the difference between Refine and Remesh?</h3>
+              <p>Refine adds detail and improves the aesthetic quality of your model. Remesh optimizes the topology for 3D printing, ensuring clean, manifold geometry with proper edge flow.</p>
+            </article>
+            <article class="tutorials-faq-card">
+              <h3>How long does generation take?</h3>
+              <p>Initial generation typically takes 2-5 minutes depending on complexity. Refinement and remeshing add 1-3 minutes each. Jobs run asynchronously, so you can queue multiple tasks.</p>
+            </article>
+            <article class="tutorials-faq-card">
+              <h3>Can I use my own reference images?</h3>
+              <p>Absolutely! The Image mode lets you upload reference photos or sketches. The AI will analyze your image and generate a matching 3D model. Works great for translating 2D concept art into printable models.</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== TIPS & RESOURCES ===== -->
+        <section class="tutorials-section">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Tips & resources</h2>
+            </div>
+            <div class="tutorials-highlight">Resources</div>
+          </div>
+          <ul class="tutorials-tip-list">
+            <li>Keep prompts under 320 characters for faster inference — the viewer encourages iteration, not one perfect essay.</li>
+            <li>Stick to physical units (millimeters, "fits a 200mm build plate") so Remesh respects print tolerances.</li>
+            <li>Use the Autorotate toggle while presenting on calls; it communicates form better than static screenshots.</li>
+            <li>Upload your own HDRI in the viewer gear menu to preview how the model reads under your studio lighting.</li>
+            <li>Export models at different resolutions for testing — low-res for quick prototypes, high-res for final prints.</li>
+            <li>Join our Discord community to share techniques, get feedback, and discover new workflow tricks.</li>
           </ul>
-        </div>
+          <div class="tutorials-resource-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Prompt Cookbook</h3>
+              <p class="tutorials-card__body">50 ready-to-use starter prompts grouped by category (props, creatures, architecture).</p>
+              <ul class="tutorials-card__list">
+                <li>Download PDF from Community ▸ Resources.</li>
+                <li>Swap nouns to remix styles instantly.</li>
+                <li>Credit authors when sharing derivatives.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Hardware prep guide</h3>
+              <p class="tutorials-card__body">Checklist for moving TimrX meshes into Bambu, Formlabs, or Prusa slicers.</p>
+              <ul class="tutorials-card__list">
+                <li>Unit conversions + recommended scaling.</li>
+                <li>Suggested infill + support presets.</li>
+                <li>Links to firmware-specific profiles.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Advanced Techniques Guide</h3>
+              <p class="tutorials-card__body">Master complex workflows including multi-part assemblies, organic sculpting, and photorealistic texturing.</p>
+              <ul class="tutorials-card__list">
+                <li>Multi-material printing strategies.</li>
+                <li>Color mapping and paint guides.</li>
+                <li>Post-processing tutorials.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
       </div>
+    </section>
+  </main>
 
-      <div class="footer-divider"></div>
-
-      <div class="footer-bottom">
-        <div>© 2026 TimrX. All rights reserved. Crafted by <a href="https://dimavas.dev" target="_blank" rel="noopener noreferrer">Dima Vasiliu</a>.</div>
-        <div class="footer-credits">
-          <span>Powered by AI</span>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <div data-site-shell="footer"></div>
 
   <!-- Scripts -->
-  <script src="auth-modal.js" defer></script>
-  <script src="credits.js" defer></script>
-  <script src="cookie-consent.js" defer></script>
-  <script src="trustpilot.js" defer></script>
-
-  <!-- Placeholder scripts for functionality (stubs) -->
-  <script>
-    // Basic credits display simulation
-    document.addEventListener('DOMContentLoaded', function() {
-      var creditsValue = document.getElementById('creditsValue');
-      if (creditsValue) {
-        creditsValue.textContent = '0';
-      }
-    });
-  </script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.module.js" type="module"></script>
+  <script src="js/tutorial-viewer.js" defer></script>
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/auth-modal.js?v=20260401g" defer></script>
+  <script src="js/credits.js?v=20260401g" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
 
 </body>
 </html>

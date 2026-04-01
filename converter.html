@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Primary Meta Tags -->
+  <title>TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX</title>
+  <meta name="title" content="TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX" />
+  <meta name="description" content="Convert GLB, GLTF, OBJ, STL, and FBX files directly in your browser with TimrX. Private, client-side, and free." />
+  <meta name="keywords" content="3D file converter, GLB converter, GLTF converter, OBJ converter, STL converter, FBX converter, online 3D converter, browser converter" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://timrx.live/converter" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="msapplication-TileColor" content="#0b0b0b" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/converter" />
+  <meta property="og:title" content="TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX" />
+  <meta property="og:description" content="Convert 3D model files between popular formats instantly in your browser. Private, client-side, and free." />
+  <meta property="og:site_name" content="TimrX" />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/converter" />
+  <meta name="twitter:title" content="TimrX 3D File Converter" />
+  <meta name="twitter:description" content="Convert 3D model files between popular formats instantly in your browser. Private, client-side, and free." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="3dprint-modules/css/converter.css" />
+  <link rel="stylesheet" href="site-shell.css" />
+  <link rel="stylesheet" href="standalone-expansions.css" />
+</head>
+<body class="converter-page has-site-shell" data-shell-page="converter">
+  <div data-site-shell="nav"></div>
+
+  <main>
+    <section class="converter-expanded-view" aria-labelledby="converterTitle">
+      <div class="converter-expanded-shell">
+        <header class="converter-hero">
+          <div class="converter-hero-text" id="converterFocus" tabindex="-1">
+            <span class="converter-pill">Free Tool · No Sign-up Required</span>
+            <h1 class="converter-title" id="converterTitle">3D File Converter</h1>
+            <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, and FBX files. All processing happens in your browser, so your files never leave your device.</p>
+            <ul class="converter-hero-stats">
+              <li><span>5+</span><small>Formats supported</small></li>
+              <li><span>100%</span><small>Client-side processing</small></li>
+              <li><span>Free</span><small>No limits</small></li>
+              <li><span>Private</span><small>Files stay on device</small></li>
+            </ul>
+          </div>
+          <a href="/3dprint" class="converter-exit-btn" aria-label="Open workspace">Open Workspace</a>
+          <span class="converter-watermark">CONVERT</span>
+        </header>
+
+        <section class="converter-section converter-tool-section">
+          <div class="converter-tool">
+            <div class="converter-upload-area" id="converterDropZone">
+              <div class="converter-upload-content">
+                <svg class="converter-upload-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M32 44V20M32 20L22 30M32 20L42 30" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 44v8a4 4 0 004 4h32a4 4 0 004-4v-8" stroke-linecap="round"/>
+                </svg>
+                <h2>Drop your 3D file here</h2>
+                <p>or click to browse</p>
+                <span class="converter-formats-hint">Supports: GLB, GLTF, OBJ, STL, FBX</span>
+              </div>
+              <input type="file" id="converterFileInput" accept=".glb,.gltf,.obj,.stl,.fbx" hidden>
+            </div>
+
+            <div class="converter-file-info hidden" id="converterFileInfo">
+              <div class="converter-file-preview">
+                <canvas id="converterPreviewCanvas"></canvas>
+                <div class="converter-file-details">
+                  <h2 id="converterFileName">model.glb</h2>
+                  <ul class="converter-file-meta">
+                    <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
+                    <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
+                    <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
+                    <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
+                  </ul>
+                  <button type="button" class="converter-change-file" id="converterChangeFile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 4v6h6M23 20v-6h-6"/>
+                      <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Change File
+                  </button>
+                </div>
+              </div>
+
+              <div class="converter-export-options">
+                <h3>Export Format</h3>
+                <div class="converter-format-grid">
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="glb" checked>
+                    <span class="converter-format-card">
+                      <strong>GLB</strong>
+                      <small>Binary GLTF, compact</small>
+                    </span>
+                  </label>
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="gltf">
+                    <span class="converter-format-card">
+                      <strong>GLTF</strong>
+                      <small>JSON + separate assets</small>
+                    </span>
+                  </label>
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="obj">
+                    <span class="converter-format-card">
+                      <strong>OBJ</strong>
+                      <small>Universal, no textures</small>
+                    </span>
+                  </label>
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="stl">
+                    <span class="converter-format-card">
+                      <strong>STL</strong>
+                      <small>3D printing standard</small>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="converter-advanced-toggle" id="converterAdvancedToggle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                  Advanced Options
+                </div>
+                <div class="converter-advanced-options hidden" id="converterAdvancedOptions">
+                  <label class="converter-option-row">
+                    <span>Include textures (GLB/GLTF only)</span>
+                    <input type="checkbox" id="converterIncludeTextures" checked>
+                  </label>
+                  <label class="converter-option-row">
+                    <span>Binary STL (smaller file)</span>
+                    <input type="checkbox" id="converterBinaryStl" checked>
+                  </label>
+                  <label class="converter-option-row">
+                    <span>Flip Y/Z axis (for some apps)</span>
+                    <input type="checkbox" id="converterFlipAxis">
+                  </label>
+                </div>
+
+                <button type="button" class="converter-export-btn" id="converterExportBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                  </svg>
+                  Convert & Download
+                </button>
+              </div>
+            </div>
+
+            <div class="converter-progress hidden" id="converterProgress">
+              <div class="converter-progress-bar">
+                <div class="converter-progress-fill" id="converterProgressFill"></div>
+              </div>
+              <span id="converterProgressText">Processing...</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="converter-section">
+          <div class="converter-section-header">
+            <div class="converter-section-content">
+              <h2>Supported Formats</h2>
+              <p>We support the main 3D file formats used in game development, 3D printing, and digital content creation.</p>
+            </div>
+            <div class="converter-highlight">Format Guide</div>
+          </div>
+          <div class="converter-formats-grid">
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="8" y="6" width="32" height="36" rx="2"/>
+                  <path d="M16 18h16M16 26h16M16 34h8"/>
+                </svg>
+              </div>
+              <h3>GLB / GLTF</h3>
+              <p>The modern standard for 3D on the web. GLB packs everything into one binary file. GLTF keeps JSON and assets separate.</p>
+              <ul>
+                <li>Best for web and real-time apps</li>
+                <li>Supports PBR materials</li>
+                <li>Includes animations</li>
+                <li>Widely supported</li>
+              </ul>
+            </article>
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="24,6 42,38 6,38"/>
+                  <line x1="24" y1="14" x2="24" y2="28"/>
+                  <line x1="15" y1="32" x2="33" y2="32"/>
+                </svg>
+              </div>
+              <h3>STL</h3>
+              <p>The standard for 3D printing. It stores triangle geometry without colors or textures.</p>
+              <ul>
+                <li>Universal print format</li>
+                <li>Binary or ASCII options</li>
+                <li>No material data</li>
+                <li>All slicers support it</li>
+              </ul>
+            </article>
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="24" cy="24" r="16"/>
+                  <path d="M24 12v24M12 24h24"/>
+                  <circle cx="24" cy="24" r="6"/>
+                </svg>
+              </div>
+              <h3>OBJ</h3>
+              <p>A legacy format with strong compatibility. It stores geometry and can reference external material files.</p>
+              <ul>
+                <li>Maximum compatibility</li>
+                <li>Text-based and editable</li>
+                <li>Separate material files</li>
+                <li>Good for DCC apps</li>
+              </ul>
+            </article>
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 12h32v24H8z"/>
+                  <path d="M8 12l16 12 16-12"/>
+                  <path d="M8 36l12-10M40 36l-12-10"/>
+                </svg>
+              </div>
+              <h3>FBX</h3>
+              <p>Industry standard for animation and game engines. It supports complex rigs, animations, and material metadata.</p>
+              <ul>
+                <li>Full animation support</li>
+                <li>Industry standard</li>
+                <li>Complex scene data</li>
+                <li>Unity and Unreal ready</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="converter-section">
+          <div class="converter-section-header">
+            <div class="converter-section-content">
+              <h2>How It Works</h2>
+              <p>Convert your 3D files in three steps. No uploads to external servers, and no local install required.</p>
+            </div>
+            <div class="converter-highlight">Quick Guide</div>
+          </div>
+          <div class="converter-steps-grid">
+            <article class="converter-step">
+              <span>01</span>
+              <h3>Upload Your File</h3>
+              <p>Drag and drop your 3D model or click to browse. We support GLB, GLTF, OBJ, STL, and FBX formats up to 100MB.</p>
+            </article>
+            <article class="converter-step">
+              <span>02</span>
+              <h3>Preview & Configure</h3>
+              <p>Inspect the model in 3D, verify vertex counts, and choose the output format and advanced export options.</p>
+            </article>
+            <article class="converter-step">
+              <span>03</span>
+              <h3>Convert & Download</h3>
+              <p>Process the file directly in your browser and download the converted version immediately.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="converter-section">
+          <div class="converter-section-header">
+            <div class="converter-section-content">
+              <h2>Common Use Cases</h2>
+              <p>Prepare files for printing, game engines, AR, or web visualization with a cleaner, faster format workflow.</p>
+            </div>
+            <div class="converter-highlight">Workflows</div>
+          </div>
+          <div class="converter-usecases-grid">
+            <article class="converter-usecase">
+              <div class="usecase-icon">3D</div>
+              <h3>3D Printing Prep</h3>
+              <p>Convert GLB or GLTF files from AI generators to STL for slicer software and printer workflows.</p>
+            </article>
+            <article class="converter-usecase">
+              <div class="usecase-icon">DEV</div>
+              <h3>Game Development</h3>
+              <p>Move OBJ exports from Blender into GLB for lighter real-time previews and easier web deployment.</p>
+            </article>
+            <article class="converter-usecase">
+              <div class="usecase-icon">WEB</div>
+              <h3>Web Optimization</h3>
+              <p>Convert heavy FBX files to optimized GLB for faster loading on sites, configurators, and interactive demos.</p>
+            </article>
+            <article class="converter-usecase">
+              <div class="usecase-icon">SYNC</div>
+              <h3>Software Compatibility</h3>
+              <p>Bridge format gaps between tools like Blender, Maya, ZBrush, slicers, and browser-based viewers.</p>
+            </article>
+            <article class="converter-usecase">
+              <div class="usecase-icon">AR</div>
+              <h3>AR / VR Content</h3>
+              <p>Prepare lighter models for immersive applications and browser-based previews with web-friendly exports.</p>
+            </article>
+            <article class="converter-usecase">
+              <div class="usecase-icon">LIB</div>
+              <h3>Asset Libraries</h3>
+              <p>Normalize format sprawl across your local asset collection so teams work from one predictable standard.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="converter-section">
+          <div class="converter-section-header">
+            <div class="converter-section-content">
+              <h2>Frequently Asked Questions</h2>
+              <p>Everything you need to know about the TimrX converter workflow.</p>
+            </div>
+            <div class="converter-highlight">FAQ</div>
+          </div>
+          <div class="converter-faq-grid">
+            <article class="converter-faq">
+              <h3>Is my data safe?</h3>
+              <p>Yes. File processing runs in your browser using local JavaScript and WebGL. Nothing is uploaded to TimrX servers.</p>
+            </article>
+            <article class="converter-faq">
+              <h3>What is the file size limit?</h3>
+              <p>Files under 100MB are recommended for the smoothest experience. Larger files may work, but performance depends on your device.</p>
+            </article>
+            <article class="converter-faq">
+              <h3>Are textures preserved?</h3>
+              <p>Textures are preserved for GLB and GLTF exports. STL and OBJ do not support embedded textures in the same way.</p>
+            </article>
+            <article class="converter-faq">
+              <h3>Can I convert animations?</h3>
+              <p>Animation data survives only in compatible formats like GLB, GLTF, and FBX. STL and OBJ remain static outputs.</p>
+            </article>
+            <article class="converter-faq">
+              <h3>Why use this instead of desktop software?</h3>
+              <p>It is instant, private, and works on any modern browser. Use it for quick conversions without opening Blender or another desktop app.</p>
+            </article>
+            <article class="converter-faq">
+              <h3>Need batch conversion?</h3>
+              <p>This page handles one file at a time. For large batch jobs, a scripted desktop workflow is still the better choice.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div data-site-shell="footer"></div>
+
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/auth-modal.js?v=20260401g" defer></script>
+  <script src="js/credits.js?v=20260401g" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE_NS from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+    import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+    import { init as initConverter } from './js/converter.js';
+
+    window.THREE = Object.assign({}, THREE_NS, {
+      OrbitControls,
+      GLTFLoader,
+      OBJLoader,
+      STLLoader,
+      FBXLoader,
+      GLTFExporter,
+      OBJExporter,
+      STLExporter
+    });
+
+    initConverter();
+  </script>
+</body>
+</html>

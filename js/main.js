@@ -877,6 +877,48 @@ function initViewerToolbar() {
       }
     }
 
+    // AR Quick Look handler
+    if (action === 'ar') {
+      const item = API.getActiveHistoryItem();
+      if (!item) return;
+      const modelUrl = item.glb_url || item.model_url || item.thumbnail_url;
+      if (!modelUrl) {
+        if (window.showToast) window.showToast('No model available for AR preview.', 'info');
+        return;
+      }
+      // Create a temporary model-viewer element for AR
+      let arViewer = document.getElementById('timrx-ar-viewer');
+      if (!arViewer) {
+        arViewer = document.createElement('model-viewer');
+        arViewer.id = 'timrx-ar-viewer';
+        arViewer.setAttribute('ar', '');
+        arViewer.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
+        arViewer.setAttribute('camera-controls', '');
+        arViewer.setAttribute('shadow-intensity', '0.5');
+        arViewer.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(0,0,0,0.9);';
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕ Close AR';
+        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:100000;padding:10px 20px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);';
+        closeBtn.onclick = function() { arViewer.remove(); closeBtn.remove(); };
+        document.body.appendChild(arViewer);
+        document.body.appendChild(closeBtn);
+        // Load model-viewer if not already loaded
+        if (!customElements.get('model-viewer')) {
+          import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+        }
+      }
+      arViewer.setAttribute('src', modelUrl);
+      arViewer.setAttribute('alt', item.title || item.prompt || '3D Model AR Preview');
+      // Auto-activate AR if supported
+      arViewer.addEventListener('load', function() {
+        if (arViewer.canActivateAR) {
+          arViewer.activateAR();
+        }
+      }, { once: true });
+      return;
+    }
+
     if (action === 'retry' && activeItem) {
       closeViewerPopovers();
       const prompt = activeItem.prompt || activeItem.root_prompt || '';
