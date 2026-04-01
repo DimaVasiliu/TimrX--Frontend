@@ -996,8 +996,8 @@
     console.log('[Credits] Email verified via auth gate, proceeding to subscription checkout');
     await executeSubCheckout();
     return;
+    // eslint-disable-next-line no-unreachable
 
-    // Legacy code below kept for reference but unreachable
     const email = subCheckoutEmail?.value?.trim() || '';
     subPendingEmail = email;
     subIsRestoreMode = false;
@@ -1248,7 +1248,7 @@
     if (emailVerified) {
       handleSubEmailContinue();
     } else {
-      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      const { isAuthenticated, openAuthModal } = await import('/js/auth-modal.js');
       if (isAuthenticated()) {
         emailVerified = true;
         handleSubEmailContinue();
@@ -1693,7 +1693,7 @@
     if (emailVerified) {
       startVideoCheckout();
     } else {
-      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      const { isAuthenticated, openAuthModal } = await import('/js/auth-modal.js');
       if (isAuthenticated()) {
         emailVerified = true;
         startVideoCheckout();
@@ -2198,7 +2198,7 @@
       // "Switch Account" button - open auth modal
       document.getElementById('emailMismatchSwitch')?.addEventListener('click', () => {
         closeEmailMismatchModal();
-        import('./auth-modal.js').then(m => m.openAuthModal());
+        import('/js/auth-modal.js').then(m => m.openAuthModal());
       });
     }
 
@@ -3070,7 +3070,7 @@
     if (emailVerified) {
       startCheckout();
     } else {
-      const { isAuthenticated, openAuthModal } = await import('./auth-modal.js');
+      const { isAuthenticated, openAuthModal } = await import('/js/auth-modal.js');
       if (isAuthenticated()) {
         emailVerified = true;
         startCheckout();
@@ -3565,7 +3565,7 @@
   // ─────────────────────────────────────────────────────────────
   const signInBtn = document.getElementById('signInBtn');
   signInBtn?.addEventListener('click', () => {
-    import('./auth-modal.js').then(m => m.openAuthModal());
+    import('/js/auth-modal.js').then(m => m.openAuthModal());
   });
 
   window.addEventListener('timrx:auth:verified', async () => {
@@ -3618,7 +3618,7 @@
   });
 
   if (window.location.hash === '#secure-credits' || window.location.hash === '#sign-in') {
-    import('./auth-modal.js').then(m => m.openAuthModal());
+    import('/js/auth-modal.js').then(m => m.openAuthModal());
     history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 
@@ -3680,7 +3680,7 @@
   }
 
   accountStatusBtn?.addEventListener('click', () => {
-    import('./auth-modal.js').then(m => m.openAuthModal());
+    import('/js/auth-modal.js').then(m => m.openAuthModal());
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -3871,7 +3871,7 @@
 
       // Add verify button handler
       document.getElementById('pausedVerifyBtn')?.addEventListener('click', () => {
-        import('./auth-modal.js').then(m => m.openAuthModal());
+        import('/js/auth-modal.js').then(m => m.openAuthModal());
       });
     }
 
