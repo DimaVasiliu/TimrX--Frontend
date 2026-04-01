@@ -106,7 +106,7 @@ function _ensureInjected() {
         <h3>Sign in to TimrX</h3>
         <p class="secure-subtitle">Enter your email to sign in or create an account</p>
         <div class="secure-form">
-          <div class="secure-input-group" style="max-width:100%">
+          <div class="secure-input-group">
             <input type="email" id="authEmailInput" placeholder="you@example.com"
                    autocomplete="email" required />
           </div>
@@ -189,9 +189,139 @@ function _ensureInjected() {
   // Append to <html> to escape any transformed parents that break position:fixed
   document.documentElement.insertAdjacentHTML('beforeend', html);
 
-  // Minimal CSS — only what hub.css secure-credits styles don't already cover
+  // Self-contained CSS — works on any page (hub, 3dprint, etc.)
   const style = document.createElement('style');
   style.textContent = `
+    /* ── Auth modal positioning (must be self-contained for 3dprint) ── */
+    #authBackdrop {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      z-index: 999998;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    #authBackdrop.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    #authCard {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      width: calc(100% - 32px);
+      max-width: 460px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      padding: 28px 24px;
+      background: #141414;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      text-align: center;
+      z-index: 999999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    #authCard.collapsed {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, -50%) scale(0.95);
+      pointer-events: none;
+    }
+    #authCard.expanded {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    #authCard .secure-modal-close {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #888;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    #authCard .secure-modal-close:hover {
+      background: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    #authCard .secure-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border-radius: 50%;
+      font-size: 24px;
+      color: #e2e8f0;
+    }
+    #authCard h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    #authCard .secure-subtitle {
+      margin: 0 0 16px;
+      font-size: 14px;
+      color: #888;
+    }
+    #authCard .secure-error { margin: 0; font-size: 13px; color: #ef4444; min-height: 0; }
+    #authCard .secure-error:empty { display: none; }
+    #authCard .secure-message { margin: 0; font-size: 13px; color: #4ade80; min-height: 0; }
+    #authCard .secure-message:empty { display: none; }
+    #authCard .secure-form {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #authCard .secure-input-group {
+      display: flex; gap: 10px; max-width: 340px; margin: 0 auto;
+    }
+    #authCard .secure-input-group input {
+      flex: 1; min-width: 0;
+      padding: 12px 16px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    #authCard .secure-input-group input:focus {
+      border-color: rgba(255,255,255,.3);
+      background: rgba(255,255,255,.08);
+    }
+    #authCard .secure-input-group input::placeholder { color: #555; }
+    #authCard .code-input-group input {
+      text-align: center; letter-spacing: 4px;
+      font-size: 20px; font-weight: 600; max-width: 220px;
+    }
+    #authCard .secure-actions {
+      display: flex; gap: 12px; justify-content: center; margin-top: 8px;
+    }
+    #authCard .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 999px;
+      font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+      font-size: 12px; cursor: pointer;
+      transition: all .2s; border: 1px solid rgba(255,255,255,.15);
+      background: transparent; color: #ccc;
+    }
+    #authCard .btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+    #authCard .btn.small { padding: 8px 14px; font-size: 11px; }
+    #authCard .btn:disabled { opacity: .45; cursor: not-allowed; }
+
     /* Auth modal — primary action button (matches checkout-btn pattern) */
     #authCard .btn.auth-action-btn {
       background: #fff;
@@ -239,9 +369,6 @@ function _ensureInjected() {
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-    #authCard .secure-input-group {
-      width: 100%;
     }
     #authCard .secure-input-group input {
       width: 100%;
