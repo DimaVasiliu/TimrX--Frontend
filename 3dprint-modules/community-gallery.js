@@ -126,30 +126,66 @@
     return 'image';
   }
 
+  function getBestPosterUrl(asset) {
+    return asset?.thumbnail_url || asset?.image_url || '';
+  }
+
+  function getBestImageUrl(asset) {
+    return asset?.image_url || asset?.thumbnail_url || '';
+  }
+
+  function getBestModelUrl(asset) {
+    return asset?.animation_glb_url || asset?.glb_url || '';
+  }
+
+  function getMediaKind(post) {
+    const asset = post?.asset || {};
+    if (getBestModelUrl(asset) && (post?.asset_type === 'model' || asset.animation_glb_url)) return 'model';
+    if (post?.asset_type === 'video' && asset.video_url) return 'video';
+    if (getBestImageUrl(asset)) return 'image';
+    return 'empty';
+  }
+
+  function getAssetTitle(post) {
+    const assetTitle = post?.asset?.title || '';
+    if (assetTitle) return assetTitle;
+    const prompt = post?.prompt_public || '';
+    if (prompt) return prompt.length > 86 ? `${prompt.slice(0, 86).trim()}...` : prompt;
+    const typeLabel = post?.gen_type || post?.asset_type || 'Creation';
+    return `${typeLabel} creation`;
+  }
+
+  function getReactionTotal(reactions) {
+    return REACTIONS.reduce((sum, reaction) => sum + (reactions?.[reaction] || 0), 0);
+  }
+
   // ─── Card rendering — Masonry (no fixed aspect ratio) ────────────────────
 
   function buildCard(post) {
     const asset = post.asset || {};
-    const thumb = asset.thumbnail_url || '';
+    const posterUrl = getBestPosterUrl(asset);
+    const imageUrl = getBestImageUrl(asset);
+    const modelUrl = getBestModelUrl(asset);
     const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
+    const title = sanitize(getAssetTitle(post));
     const name = sanitize(post.display_name || 'Anonymous');
     const initials = getInitials(post.display_name || 'Anonymous');
     const color = avatarColor(post.display_name || '');
     const ago = timeAgo(post.created_at);
     const genType = post.gen_type || '';
     const typeCls = genTypeCls(genType);
-    const isVideo = (post.asset_type === 'video') && asset.video_url;
-    const isAnimated = !!asset.animation_glb_url;
+    const mediaKind = getMediaKind(post);
     const postId = sanitize(post.id);
     const reactions = post.reactions || {};
+    const tipTotal = post.tip_total || 0;
 
     let thumbEl;
-    if (isAnimated) {
-      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(asset.animation_glb_url)}" animation-name="" camera-controls="false" interaction-prompt="none" auto-rotate rotation-per-second="30deg" shadow-intensity="0.4" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" loading="lazy" reveal="auto"></model-viewer>`;
-    } else if (isVideo) {
-      thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline autoplay preload="metadata" poster="${sanitize(thumb)}"></video>`;
-    } else if (thumb) {
-      thumbEl = `<img class="ccg-card__image" src="${sanitize(thumb)}" alt="" loading="lazy" decoding="async">`;
+    if (mediaKind === 'model' && modelUrl) {
+      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="22deg" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="lazy" reveal="auto"></model-viewer>`;
+    } else if (mediaKind === 'video' && asset.video_url) {
+      thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline autoplay preload="metadata" poster="${sanitize(posterUrl)}"></video>`;
+    } else if (imageUrl) {
+      thumbEl = `<img class="ccg-card__image" src="${sanitize(imageUrl)}" alt="" loading="lazy" decoding="async">`;
     } else {
       thumbEl = `<div class="ccg-card__image ccg-card__image--placeholder"></div>`;
     }
@@ -174,6 +210,13 @@
           </div>
         </div>
         <div class="ccg-card__footer">
+          <div class="ccg-card__copy">
+            <h3 class="ccg-card__title">${title}</h3>
+            <div class="ccg-card__meta-row">
+              ${genType ? `<span class="ccg-card__status">${sanitize(genType)}</span>` : ''}
+              ${tipTotal > 0 ? `<span class="ccg-card__metric">💎 ${tipTotal}</span>` : ''}
+            </div>
+          </div>
           <div class="ccg-card__author-row">
             <div class="ccg-card__avatar" style="background:${color}" aria-hidden="true">${initials}</div>
             <div class="ccg-card__meta">
@@ -221,7 +264,7 @@
   // ─── Animated model hover play ───────────────────────────────────────────
 
   function wireModelViewerHover(container) {
-    container.querySelectorAll('model-viewer.ccg-card__model-viewer').forEach(mv => {
+    container.querySelectorAll('model-viewer.ccg-card__model-viewer, model-viewer.ccg-featured__card-model').forEach(mv => {
       if (mv.dataset.ccgHoverWired) return;
       mv.dataset.ccgHoverWired = '1';
 
@@ -707,11 +750,11 @@
 
   function populateHeroFloaters(posts) {
     if (!heroFloaters) return;
-    const thumbPosts = posts.filter(p => p.asset?.thumbnail_url).slice(0, 4);
+    const thumbPosts = posts.filter(p => getBestPosterUrl(p.asset)).slice(0, 4);
     if (thumbPosts.length === 0) return;
 
     heroFloaters.innerHTML = thumbPosts.map(p =>
-      `<div class="community-hero-floater"><img src="${sanitize(p.asset.thumbnail_url)}" alt="" loading="lazy" decoding="async"></div>`
+      `<div class="community-hero-floater"><img src="${sanitize(getBestPosterUrl(p.asset))}" alt="" loading="lazy" decoding="async"></div>`
     ).join('');
   }
 
@@ -810,19 +853,24 @@
 
   function buildFeaturedCard(post) {
     const asset = post.asset || {};
-    const thumb = asset.thumbnail_url || '';
-    const name = sanitize(post.display_name || 'Anonymous');
+    const posterUrl = getBestPosterUrl(asset);
+    const imageUrl = getBestImageUrl(asset);
+    const modelUrl = getBestModelUrl(asset);
+    const rawName = post.display_name || 'Anonymous';
     const genType = post.gen_type || '';
     const typeCls = genTypeCls(genType);
-    const isVideo = (post.asset_type === 'video') && asset.video_url;
+    const mediaKind = getMediaKind(post);
     const postId = sanitize(post.id);
-    const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
+    const title = sanitize(getAssetTitle(post));
+    const byline = sanitize(`${rawName} · ${timeAgo(post.created_at)}`);
 
     let mediaEl;
-    if (isVideo) {
-      mediaEl = `<video class="ccg-featured__card-media" src="${sanitize(asset.video_url)}" muted loop playsinline preload="metadata" poster="${sanitize(thumb)}"></video>`;
-    } else if (thumb) {
-      mediaEl = `<img class="ccg-featured__card-media" src="${sanitize(thumb)}" alt="" loading="lazy" decoding="async">`;
+    if (mediaKind === 'model' && modelUrl) {
+      mediaEl = `<model-viewer class="ccg-featured__card-media ccg-featured__card-model" src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="18deg" shadow-intensity="0.45" exposure="1.04" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="lazy" reveal="auto"></model-viewer>`;
+    } else if (mediaKind === 'video' && asset.video_url) {
+      mediaEl = `<video class="ccg-featured__card-media" src="${sanitize(asset.video_url)}" muted loop playsinline preload="metadata" poster="${sanitize(posterUrl)}"></video>`;
+    } else if (imageUrl) {
+      mediaEl = `<img class="ccg-featured__card-media" src="${sanitize(imageUrl)}" alt="" loading="lazy" decoding="async">`;
     } else {
       mediaEl = `<div class="ccg-featured__card-media" style="background:linear-gradient(135deg,#0e0e14,#161622);width:100%;height:100%"></div>`;
     }
@@ -832,8 +880,9 @@
         ${mediaEl}
         ${genType ? `<div class="ccg-featured__card-badge ${typeCls}">${sanitize(genType)}</div>` : ''}
         <div class="ccg-featured__card-overlay">
-          ${prompt ? `<p class="ccg-featured__card-title">${prompt}</p>` : ''}
-          <p class="ccg-featured__card-author">${name}</p>
+          <span class="ccg-featured__card-kicker">Community pick</span>
+          <p class="ccg-featured__card-title">${title}</p>
+          <p class="ccg-featured__card-author">${byline}</p>
         </div>
       </div>`;
   }
@@ -860,31 +909,36 @@
     if (!detailEl || !detailMedia || !detailInfo) return;
 
     const asset = post.asset || {};
-    const thumb = asset.image_url || asset.thumbnail_url || '';
+    const posterUrl = getBestPosterUrl(asset);
+    const imageUrl = getBestImageUrl(asset);
+    const modelUrl = getBestModelUrl(asset);
     const name = sanitize(post.display_name || 'Anonymous');
     const initials = getInitials(post.display_name || 'Anonymous');
     const color = avatarColor(post.display_name || '');
     const ago = timeAgo(post.created_at);
     const genType = post.gen_type || '';
     const typeCls = genTypeCls(genType);
-    const isVideo = (post.asset_type === 'video') && asset.video_url;
-    const isAnimated = !!asset.animation_glb_url;
+    const mediaKind = getMediaKind(post);
     const postId = sanitize(post.id);
     const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
+    const title = sanitize(getAssetTitle(post));
     const reactions = post.reactions || {};
+    const reactionTotal = getReactionTotal(reactions);
+    const tipTotal = post.tip_total || 0;
+    const commentCount = post.comment_count || 0;
 
     // Media
     let mediaHtml;
-    if (isAnimated && asset.animation_glb_url) {
-      mediaHtml = `<model-viewer src="${sanitize(asset.animation_glb_url)}" camera-controls auto-rotate shadow-intensity="0.5" exposure="1.1" environment-image="neutral" poster="${sanitize(thumb)}" style="width:100%;height:100%;display:block;background:#0a0a0a"></model-viewer>`;
-    } else if (isVideo) {
-      mediaHtml = `<video src="${sanitize(asset.video_url)}" controls muted loop playsinline autoplay poster="${sanitize(thumb)}" style="width:100%;height:100%;object-fit:contain"></video>`;
-    } else if (thumb) {
-      mediaHtml = `<img src="${sanitize(thumb)}" alt="" style="width:100%;height:100%;object-fit:contain">`;
+    if (mediaKind === 'model' && modelUrl) {
+      mediaHtml = `<model-viewer src="${sanitize(modelUrl)}" camera-controls auto-rotate shadow-intensity="0.62" exposure="1.08" environment-image="neutral" poster="${sanitize(posterUrl)}" style="width:100%;height:100%;display:block;background:#0a0a0a"></model-viewer>`;
+    } else if (mediaKind === 'video' && asset.video_url) {
+      mediaHtml = `<video src="${sanitize(asset.video_url)}" controls muted loop playsinline autoplay poster="${sanitize(posterUrl)}" style="width:100%;height:100%;object-fit:contain"></video>`;
+    } else if (imageUrl) {
+      mediaHtml = `<img src="${sanitize(imageUrl)}" alt="" style="width:100%;height:100%;object-fit:contain">`;
     } else {
       mediaHtml = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0e0e14,#161622)"></div>`;
     }
-    detailMedia.innerHTML = mediaHtml;
+    detailMedia.innerHTML = `<div class="ccg-detail__media-shell">${mediaHtml}</div>`;
 
     // Reactions HTML
     const reactionsHtml = REACTIONS.map(r => {
@@ -897,32 +951,65 @@
 
     // Build prompt section or empty-state fallback
     const promptBlock = prompt
-      ? `<div class="ccg-detail__prompt-section">
-           <span class="ccg-detail__prompt-label">Prompt</span>
-           <p class="ccg-detail__prompt-text">${prompt}</p>
+      ? `<div class="ccg-detail__section ccg-detail__section--prompt">
+           <div class="ccg-detail__section-header">
+             <span class="ccg-detail__prompt-label">Prompt</span>
+           </div>
+           <div class="ccg-detail__prompt-section">
+             <p class="ccg-detail__prompt-text">${prompt}</p>
+           </div>
          </div>`
-      : `<p class="ccg-detail__no-prompt">Prompt not shared by creator</p>`;
+      : `<div class="ccg-detail__section ccg-detail__section--prompt">
+           <div class="ccg-detail__section-header">
+             <span class="ccg-detail__prompt-label">Prompt</span>
+           </div>
+           <p class="ccg-detail__no-prompt">Prompt not shared by creator</p>
+         </div>`;
 
-    // Comment count from feed data
-    const commentCount = post.comment_count || 0;
+    const statsHtml = `
+      <div class="ccg-detail__stats">
+        <div class="ccg-detail__stat">
+          <strong>${reactionTotal}</strong>
+          <span>Reactions</span>
+        </div>
+        <div class="ccg-detail__stat">
+          <strong>${tipTotal}</strong>
+          <span>Tips</span>
+        </div>
+        <div class="ccg-detail__stat">
+          <strong>${commentCount}</strong>
+          <span>Comments</span>
+        </div>
+      </div>`;
 
     // Info panel
     detailInfo.innerHTML = `
-      <div class="ccg-detail__creator">
-        <div class="ccg-detail__avatar" style="background:${color}">${initials}</div>
-        <div class="ccg-detail__creator-meta">
-          <span class="ccg-detail__creator-name">${name}</span>
-          <span class="ccg-detail__creator-time">${ago}</span>
+      <div class="ccg-detail__hero">
+        <div class="ccg-detail__creator">
+          <div class="ccg-detail__avatar" style="background:${color}">${initials}</div>
+          <div class="ccg-detail__creator-meta">
+            <span class="ccg-detail__creator-name">${name}</span>
+            <span class="ccg-detail__creator-time">${ago}</span>
+          </div>
+        </div>
+        <div class="ccg-detail__headline-wrap">
+          ${genType ? `<div class="ccg-detail__type ${typeCls}">${sanitize(genType)}</div>` : ''}
+          <h2 class="ccg-detail__headline">${title}</h2>
+          ${statsHtml}
         </div>
       </div>
-      ${genType ? `<div class="ccg-detail__type ${typeCls}">${sanitize(genType)}</div>` : ''}
       ${promptBlock}
-      <div class="ccg-detail__reactions">
-        ${reactionsHtml}
+      <div class="ccg-detail__section">
+        <div class="ccg-detail__section-header">
+          <span class="ccg-detail__prompt-label">Reactions</span>
+        </div>
+        <div class="ccg-detail__reactions">
+          ${reactionsHtml}
+        </div>
       </div>
       <div class="ccg-detail__actions">
-        <button class="ccg-detail__action-btn" data-post-id="${postId}" data-creator="${name}" data-action="tip" type="button">💎 Tip</button>
-        <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button"${prompt ? '' : ' disabled title="No prompt available"'}>Remix</button>
+        <button class="ccg-detail__action-btn" data-post-id="${postId}" data-creator="${name}" data-action="tip" type="button">Tip creator</button>
+        <button class="ccg-detail__action-btn ccg-detail__action-btn--remix" data-action="remix" type="button"${prompt ? '' : ' disabled title="No prompt available"'}>Remix in workspace</button>
       </div>
       <div class="ccg-comments" data-post-id="${postId}">
         <div class="ccg-comments__header">
@@ -1242,6 +1329,7 @@
           featuredTrack.innerHTML = featuredPosts.map(p => buildFeaturedCard(p)).join('');
           wireVideoAutoplay(featuredTrack);
           wireImageReveal(featuredTrack);
+          wireModelViewerHover(featuredTrack);
           if (featuredSection) featuredSection.hidden = false;
           featuredTrack.addEventListener('click', e => {
             const card = e.target.closest('.ccg-featured__card[data-post-id]');

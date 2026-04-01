@@ -914,7 +914,11 @@
 
     body.community-page .ccg-spotlight__badge,
     body.community-page .community-highlight,
-    body.community-page .community-involve-icon {
+    body.community-page .community-involve-icon,
+    body.community-page .ccg-featured__card-kicker,
+    body.community-page .ccg-card__status,
+    body.community-page .ccg-card__metric,
+    body.community-page .ccg-comments__count {
       background: rgba(125, 211, 252, 0.1);
       border-color: rgba(125, 211, 252, 0.22);
       color: #7dd3fc;
@@ -944,6 +948,12 @@
       box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.5),
         0 0 30px rgba(125, 211, 252, 0.06);
+    }
+
+    body.community-page .ccg-card__title,
+    body.community-page .ccg-detail__headline,
+    body.community-page .ccg-detail__stat strong {
+      color: #ffffff;
     }
 
     body.community-page .ccg-card__bookmark:hover {
@@ -1028,6 +1038,42 @@
 
     body.community-page .ccg-comments__submit:hover:not(:disabled) {
       background: rgba(125, 211, 252, 0.2);
+    }
+
+    body.community-page .ccg-detail__stats .ccg-detail__stat,
+    body.community-page .ccg-detail__section,
+    body.community-page .ccg-comments,
+    body.community-page .ccg-detail__media-shell {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.community-page .ccg-detail__stat span,
+    body.community-page .ccg-card__metric,
+    body.community-page .ccg-card__status,
+    body.community-page .ccg-comments__title,
+    body.community-page .ccg-comments__count {
+      color: var(--ccg-text-2);
+    }
+
+    body.community-page .ccg-card__status,
+    body.community-page .ccg-card__metric,
+    body.community-page .ccg-comments__count,
+    body.community-page .ccg-featured__card-kicker {
+      color: #7dd3fc;
+    }
+
+    body.community-page .ccg-detail__prompt-text,
+    body.community-page .ccg-comments__composer,
+    body.community-page .ccg-comment {
+      background: rgba(255, 255, 255, 0.035);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    body.community-page .ccg-detail__media {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(125, 211, 252, 0.08), transparent 48%),
+        linear-gradient(180deg, #08090b 0%, #050607 100%);
     }
   </style>
 </head>
