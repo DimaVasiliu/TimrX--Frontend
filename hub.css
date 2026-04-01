@@ -6333,14 +6333,14 @@ opacity: 1;
 .demo-head{text-align:center;margin-bottom:28px}
 .demo-head h2{font-size:clamp(24px,3vw,36px);margin:0 0 8px;color:#0b0b0b;font-weight:900}
 .demo-head p{color:#666;font-size:15px;max-width:480px;margin:0 auto;line-height:1.5}
-.demo-stage{display:flex;align-items:stretch;gap:24px;margin-bottom:24px}
-.demo-prompt-area{flex:1;padding:20px 22px 24px;border:1px solid #e2e2e2;border-radius:14px;background:#fafafa;position:relative;min-height:110px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.demo-stage{display:flex;align-items:center;gap:24px;margin-bottom:24px}
+.demo-prompt-area{flex:0 1 auto;padding:20px 24px;border:1px solid #e2e2e2;border-radius:14px;background:#fafafa;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.03);max-width:50%}
 .demo-prompt-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0ea5e9;margin-bottom:8px}
 .demo-prompt-text{font-size:14px;line-height:1.6;color:#222;font-style:italic}
 .demo-prompt-cursor{display:inline-block;width:2px;height:16px;background:#0ea5e9;margin-left:2px;animation:blink 1s step-end infinite;vertical-align:text-bottom}
 @keyframes blink{50%{opacity:0}}
 .demo-arrow{flex-shrink:0;display:flex;align-items:center;padding:0 2px}
-.demo-result{flex:1;border:1px solid #e2e2e2;border-radius:14px;overflow:hidden;background:#fafafa;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.demo-result{flex:1 1 auto;border:1px solid #e2e2e2;border-radius:14px;overflow:hidden;background:#fafafa;box-shadow:0 2px 8px rgba(0,0,0,.03)}
 .demo-examples{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .demo-chip{padding:8px 16px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;color:#444;font-size:12px;font-weight:600;cursor:pointer;transition:all .25s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .demo-chip:hover{border-color:#0ea5e9;color:#0ea5e9;background:#f0f9ff;transform:translateY(-1px);box-shadow:0 3px 10px rgba(14,165,233,.1)}

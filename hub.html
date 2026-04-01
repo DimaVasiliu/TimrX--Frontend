@@ -1676,22 +1676,25 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
   var chips = document.querySelectorAll('.demo-chip');
   var text = document.getElementById('demoPromptText');
   if (!chips.length || !text) return;
+  var activeInterval = null;
   chips.forEach(function(chip){
     chip.addEventListener('click', function(){
       chips.forEach(function(c){ c.classList.remove('active'); });
       chip.classList.add('active');
-      // Typewriter effect
+      // Clear any running typewriter
+      if (activeInterval) clearInterval(activeInterval);
       var prompt = chip.getAttribute('data-prompt');
       text.textContent = '';
       var i = 0;
-      var interval = setInterval(function(){
+      activeInterval = setInterval(function(){
         if (i < prompt.length) {
           text.textContent += prompt[i];
           i++;
         } else {
-          clearInterval(interval);
+          clearInterval(activeInterval);
+          activeInterval = null;
         }
-      }, 30);
+      }, 20);
     });
   });
 })();
