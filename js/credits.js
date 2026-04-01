@@ -3663,19 +3663,20 @@
   }
 
   function updateAccountStatusUI() {
+    // Check both module-level vars AND WalletStore for verified state
+    const wsSnap = WalletStore.getSnapshot();
+    const isVerified = emailVerified || wsSnap.emailVerified;
+    const email = userEmail || wsSnap.email || '';
+
     // Update the Sign In button label
     const signInLabel = document.getElementById('signInBtnLabel');
     if (signInLabel) {
-      if (emailVerified && userEmail) {
-        signInLabel.textContent = userEmail;
-      } else {
-        signInLabel.textContent = 'Sign In';
-      }
+      signInLabel.textContent = (isVerified && email) ? email : 'Sign In';
     }
 
     if (!accountStatusBtn) return;
-    const status = (emailVerified && userEmail) ? 'verified' : (!userEmail ? 'anonymous' : 'unverified');
-    const tooltip = (emailVerified && userEmail) ? `Signed in as ${userEmail}` : 'Sign In';
+    const status = (isVerified && email) ? 'verified' : (!email ? 'anonymous' : 'unverified');
+    const tooltip = (isVerified && email) ? `Signed in as ${email}` : 'Sign In';
     accountStatusBtn.setAttribute('data-status', status);
     accountStatusBtn.setAttribute('data-tooltip', tooltip);
     accountStatusBtn.setAttribute('aria-label', tooltip);
