@@ -200,7 +200,16 @@
   .site-shell-subscription-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    max-width: 160px;
+    overflow: hidden;
+  }
+  
+  .site-shell-subscription-pill .subscription-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 110px;
   }
   
   .site-shell-subscription-pill.hidden {
