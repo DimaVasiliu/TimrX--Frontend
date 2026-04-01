@@ -38,7 +38,7 @@ function api(url, opts = {}) {
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
-export function openAuthModal(options = {}) {
+function openAuthModal(options = {}) {
   _options = options;
   _ensureInjected();
 
@@ -63,7 +63,7 @@ export function openAuthModal(options = {}) {
   });
 }
 
-export function closeAuthModal() {
+function closeAuthModal() {
   const backdrop = _el('authBackdrop');
   const card = _el('authCard');
   if (backdrop) backdrop.classList.remove('visible');
@@ -74,7 +74,7 @@ export function closeAuthModal() {
   }
 }
 
-export function isAuthenticated() {
+function isAuthenticated() {
   if (_identityCache?.email_verified) return true;
   try {
     const stamp = localStorage.getItem('timrx_auth_stamp');
@@ -82,6 +82,9 @@ export function isAuthenticated() {
   } catch { /* ignore */ }
   return false;
 }
+
+// Expose on window so non-module scripts (credits.js) can access without dynamic import
+window.TimrXAuth = { openAuthModal, closeAuthModal, isAuthenticated };
 
 // ── DOM injection ───────────────────────────────────────────────────────────
 

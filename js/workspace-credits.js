@@ -1374,7 +1374,7 @@ function updateEmailBeaconUI() {
 }
 
 async function handleBeaconClick() {
-  const { openAuthModal } = await import('/js/auth-modal.js');
+  const { openAuthModal } = window.TimrXAuth || {};
   openAuthModal();
 }
 
