@@ -515,17 +515,11 @@ function createNotificationItem(n) {
 function navigateToLink(link, n) {
   // Community post deep-link
   const postId = n?.meta?.post_id;
-  if (postId && link.includes('#community')) {
-    const trigger = document.querySelector('[data-open-community]');
-    if (trigger) {
-      trigger.click();
-      setTimeout(() => {
-        if (window.CommunityGallery?.openPostById) {
-          window.CommunityGallery.openPostById(postId);
-        }
-      }, 400);
-      return;
-    }
+  if (postId && (link.includes('#community') || link.includes('/community'))) {
+    const url = new URL('/community', window.location.origin);
+    url.searchParams.set('post', postId);
+    window.location.href = url.toString();
+    return;
   }
 
   // Generic hash navigation

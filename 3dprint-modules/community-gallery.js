@@ -14,6 +14,7 @@
   const REACTIONS = ['heart', 'fire', 'star', 'clap', 'wow'];
   const REACTION_EMOJI = { heart: '❤️', fire: '🔥', star: '⭐', clap: '👏', wow: '😮' };
   const TIP_AMOUNTS = [5, 10, 25, 50];
+  const REMIX_STORAGE_KEY = 'timrx_pending_community_remix';
 
   // Content types excluded from public community display.
   const EXCLUDED_DISPLAY_TYPES = ['animated'];
@@ -43,8 +44,45 @@
 
   // Search debounce
   let searchTimer = null;
+  let pendingStandalonePostId = null;
 
   // ─── Utilities ────────────────────────────────────────────────────────────
+
+  function isStandaloneCommunityPage() {
+    return document.body?.classList.contains('community-page')
+      || document.body?.dataset.shellPage === 'community';
+  }
+
+  function isEmbeddedCommunityView() {
+    return document.body?.classList.contains('community-view');
+  }
+
+  function getHeroStatElements() {
+    return {
+      creations: document.getElementById('ccgStatCreations') || document.getElementById('statCreations'),
+      creators: document.getElementById('ccgStatCreators') || document.getElementById('statCreators'),
+      reactions: document.getElementById('ccgStatReactions') || document.getElementById('statReactions'),
+    };
+  }
+
+  function getStandalonePostIdFromURL() {
+    if (!isStandaloneCommunityPage()) return null;
+    try {
+      return new URLSearchParams(window.location.search).get('post');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getStandaloneWorkspaceHref(panel) {
+    const url = new URL('/3dprint', window.location.origin);
+    if (panel) url.searchParams.set('panel', panel);
+    return url.toString();
+  }
+
+  function redirectToWorkspace(panel) {
+    window.location.href = getStandaloneWorkspaceHref(panel);
+  }
 
   function getInitials(displayName) {
     if (!displayName) return '?';
@@ -394,6 +432,7 @@
       hideSkeleton();
 
       if (!append && posts.length === 0) {
+        renderStatsFallback();
         emptyState.hidden = false;
         loadMoreWrap.hidden = true;
         return;
@@ -414,6 +453,7 @@
       }
     } catch (err) {
       console.warn('[CommunityGallery] load error:', err);
+      renderStatsFallback();
       hideSkeleton();
       clearCards();
       emptyState.hidden = false;
@@ -429,9 +469,7 @@
   let _statsLoaded = false;
 
   function updateHeroStats(stats) {
-    const creationsEl = document.getElementById('ccgStatCreations');
-    const creatorsEl = document.getElementById('ccgStatCreators');
-    const reactionsEl = document.getElementById('ccgStatReactions');
+    const { creations: creationsEl, creators: creatorsEl, reactions: reactionsEl } = getHeroStatElements();
 
     if (creationsEl && stats.total_posts != null) {
       animateCounter(creationsEl, stats.total_posts);
@@ -924,9 +962,7 @@
       if (detailMedia) detailMedia.innerHTML = '';
       if (detailInfo) detailInfo.innerHTML = '';
     }, 300);
-    if (document.body.classList.contains('community-view')) {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = '';
   }
 
   function wireDetailInteractions() {
@@ -976,6 +1012,19 @@
     };
     const targetPromptId = promptIdMap[targetPanel] || 'modelPrompt';
 
+    if (isStandaloneCommunityPage()) {
+      try {
+        sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify({
+          panel: targetPanel,
+          prompt,
+          promptId: targetPromptId,
+          source: 'community',
+        }));
+      } catch (_) {}
+      redirectToWorkspace(targetPanel);
+      return;
+    }
+
     closeDetailView();
 
     const exitBtn = document.getElementById('communityExit');
@@ -1017,7 +1066,7 @@
   // ─── Hero CTA wiring ─────────────────────────────────────────────────────
 
   function wireHeroCTAs() {
-    const scrollBtn = document.querySelector('[data-ccg-scroll="gallery"]');
+    const scrollBtn = document.querySelector('[data-ccg-scroll="gallery"]') || document.getElementById('exploreBtn');
     if (scrollBtn) {
       scrollBtn.addEventListener('click', () => {
         const section = document.getElementById('communityCreationsSection');
@@ -1039,9 +1088,12 @@
   function wireFAB() {
     if (!fabBtn) return;
     fabBtn.addEventListener('click', () => {
-      // Return to workspace to share from there
       const exitBtn = document.getElementById('communityExit');
-      if (exitBtn) exitBtn.click();
+      if (exitBtn) {
+        exitBtn.click();
+        return;
+      }
+      redirectToWorkspace();
     });
   }
 
@@ -1156,7 +1208,7 @@
           statusEl.className = 'ccg-share-modal__status ccg-share-modal__status--ok';
           submitBtn.textContent = 'Done';
           setTimeout(close, 1400);
-          if (document.body.classList.contains('community-view')) {
+          if (isEmbeddedCommunityView() || isStandaloneCommunityPage()) {
             currentOffset = 0;
             load(currentFilter, 0, false);
           }
@@ -1207,6 +1259,11 @@
       populateTicker(allPostsCache);
       populateSpotlight(allPostsCache);
       populateHeroFloaters(allPostsCache);
+      if (pendingStandalonePostId) {
+        const targetPostId = pendingStandalonePostId;
+        pendingStandalonePostId = null;
+        openPostById(targetPostId);
+      }
 
     }).catch(() => {
       // Fallback
@@ -1257,11 +1314,13 @@
     wireSort();
     wireFAB();
 
-    if (document.body.classList.contains('community-view')) {
+    pendingStandalonePostId = getStandalonePostIdFromURL();
+
+    if (isEmbeddedCommunityView() || isStandaloneCommunityPage()) {
       loadOnce();
     } else {
       const mo = new MutationObserver(() => {
-        if (document.body.classList.contains('community-view')) {
+        if (isEmbeddedCommunityView()) {
           mo.disconnect();
           loadOnce();
         }
@@ -1278,22 +1337,40 @@
     let post = allPostsCache.find(p => String(p.id) === String(postId));
     if (post) { openDetailView(post); return; }
 
-    // Not cached — fetch the feed (which populates cache) then retry
+    // Not cached — page through the feed until found.
     try {
-      const res = await fetch(`${API_BASE}/api/_mod/community/feed?limit=50&offset=0`, { credentials: 'include' });
-      if (res.ok) {
+      let offset = 0;
+      let page = 0;
+      let hasMore = true;
+      while (hasMore && page < 8) {
+        const res = await fetch(`${API_BASE}/api/_mod/community/feed?limit=50&offset=${offset}`, { credentials: 'include' });
+        if (!res.ok) break;
         const data = await res.json();
-        (data.posts || []).forEach(p => {
+        const posts = data.posts || [];
+        posts.forEach(p => {
           if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
         });
         post = allPostsCache.find(p => String(p.id) === String(postId));
-        if (post) { openDetailView(post); return; }
+        if (post) {
+          openDetailView(post);
+          return;
+        }
+        hasMore = !!data.has_more && posts.length > 0;
+        offset += posts.length;
+        page += 1;
       }
     } catch (_) { /* silent */ }
 
     // Post not in feed (deleted / too old) — still scroll to community
     const section = document.getElementById('communityCreationsSection');
     if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderStatsFallback() {
+    const { creations, creators, reactions } = getHeroStatElements();
+    if (creations) creations.textContent = '0';
+    if (creators) creators.textContent = '0';
+    if (reactions) reactions.textContent = '0';
   }
 
   // ─── Comments ───────────────────────────────────────────────────────────

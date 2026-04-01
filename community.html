@@ -110,6 +110,7 @@
   <link rel="stylesheet" href="footer.css" />
   <link rel="stylesheet" href="trustpilot.css" />
   <link rel="stylesheet" href="site-shell.css" />
+  <link rel="stylesheet" href="3dprint-modules/css/community.css" />
 
   <!-- Inline Styles -->
   <style>
@@ -823,9 +824,214 @@
         grid-template-columns: 1fr;
       }
     }
+
+    body.community-page {
+      --ccg-bg: var(--bg);
+      --ccg-surface: var(--panel);
+      --ccg-surface-2: #141414;
+      --ccg-border: rgba(255, 255, 255, 0.08);
+      --ccg-border-hover: rgba(125, 211, 252, 0.34);
+      --ccg-text: var(--ink);
+      --ccg-text-2: #b8b8b8;
+      --ccg-text-3: #7a7a7a;
+      --ccg-accent: #7dd3fc;
+      --ccg-accent-2: #e0f2fe;
+      --ccg-accent-glow: rgba(125, 211, 252, 0.18);
+      --ccg-gold: #7dd3fc;
+    }
+
+    body.community-page .community-expanded-view {
+      display: block;
+      min-height: 0;
+      overflow: visible;
+      background: var(--ccg-bg);
+    }
+
+    body.community-page .community-expanded-shell {
+      width: 100%;
+      max-width: 1600px;
+    }
+
+    body.community-page #communityCreationsSection {
+      scroll-margin-top: calc(var(--navH) + 20px);
+    }
+
+    body.community-page .ccg-ticker {
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom-color: var(--line);
+    }
+
+    body.community-page .ccg-featured__arrow,
+    body.community-page .ccg-search__input,
+    body.community-page .ccg-sort__select,
+    body.community-page .ccg-card__tip-btn,
+    body.community-page .ccg-reaction,
+    body.community-page .ccg-detail__type,
+    body.community-page .ccg-detail__reactions .ccg-reaction,
+    body.community-page .ccg-detail__action-btn,
+    body.community-page .ccg-tip-amount,
+    body.community-page .ccg-share-modal__input,
+    body.community-page .ccg-comments__input {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    body.community-page .ccg-featured__card:hover {
+      border-color: rgba(125, 211, 252, 0.28);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(125, 211, 252, 0.14) inset,
+        0 0 40px rgba(125, 211, 252, 0.08);
+    }
+
+    body.community-page .ccg-featured__card::after {
+      background: rgba(125, 211, 252, 0.12);
+      border-color: rgba(125, 211, 252, 0.28);
+      color: #7dd3fc;
+    }
+
+    body.community-page .ccg-search__input:focus,
+    body.community-page .ccg-sort__select:focus,
+    body.community-page .ccg-share-modal__input:focus {
+      border-color: rgba(125, 211, 252, 0.45);
+      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.12);
+      background: rgba(125, 211, 252, 0.08);
+    }
+
+    body.community-page .ccg-filter-tab:hover,
+    body.community-page .ccg-load-more-btn:hover,
+    body.community-page .community-secondary-btn:hover,
+    body.community-page .ccg-comments__input:focus {
+      border-color: rgba(125, 211, 252, 0.28);
+    }
+
+    body.community-page .ccg-filter-tab--active,
+    body.community-page .ccg-filter-tab--active:hover {
+      background: rgba(125, 211, 252, 0.14);
+      border-color: rgba(125, 211, 252, 0.4);
+      color: #7dd3fc;
+      box-shadow: none;
+    }
+
+    body.community-page .ccg-spotlight__badge,
+    body.community-page .community-highlight,
+    body.community-page .community-involve-icon {
+      background: rgba(125, 211, 252, 0.1);
+      border-color: rgba(125, 211, 252, 0.22);
+      color: #7dd3fc;
+    }
+
+    body.community-page .community-card::before,
+    body.community-page .ccg-load-more-btn::before {
+      background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.15), transparent);
+    }
+
+    body.community-page .community-updates-list li::before {
+      background: rgba(125, 211, 252, 0.22);
+    }
+
+    body.community-page .community-updates-list li:hover::before,
+    body.community-page .ccg-detail__prompt-text::before {
+      background: #7dd3fc;
+    }
+
+    body.community-page .community-involve-card:hover .community-involve-icon {
+      background: rgba(125, 211, 252, 0.14);
+      border-color: rgba(125, 211, 252, 0.32);
+    }
+
+    body.community-page .ccg-card:hover {
+      border-color: rgba(125, 211, 252, 0.22);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(125, 211, 252, 0.06);
+    }
+
+    body.community-page .ccg-card__bookmark:hover {
+      background: rgba(125, 211, 252, 0.2);
+    }
+
+    body.community-page .ccg-card__type-badge.model,
+    body.community-page .ccg-card__type-badge.image,
+    body.community-page .ccg-card__type-badge.video,
+    body.community-page .ccg-card__type-badge.animated,
+    body.community-page .ccg-detail__type.model,
+    body.community-page .ccg-detail__type.image,
+    body.community-page .ccg-detail__type.video,
+    body.community-page .ccg-detail__type.animated {
+      color: #7dd3fc;
+      border-color: rgba(125, 211, 252, 0.22);
+    }
+
+    body.community-page .ccg-card__tip-btn:hover,
+    body.community-page .ccg-tip-amount:hover,
+    body.community-page .ccg-tip-amount--active {
+      background: rgba(125, 211, 252, 0.12);
+      border-color: rgba(125, 211, 252, 0.28);
+      color: #7dd3fc;
+    }
+
+    body.community-page .ccg-reaction--active,
+    body.community-page .ccg-detail__action-btn--remix {
+      background: rgba(125, 211, 252, 0.12);
+      border-color: rgba(125, 211, 252, 0.24);
+      color: #eaf8ff;
+    }
+
+    body.community-page .ccg-detail__action-btn--remix:hover {
+      background: rgba(125, 211, 252, 0.16);
+      border-color: rgba(125, 211, 252, 0.36);
+      color: #ffffff;
+    }
+
+    body.community-page .card-submenu__item--community,
+    body.community-page .card-submenu__item--community:hover {
+      color: #7dd3fc;
+    }
+
+    body.community-page .card-submenu__item--community:hover {
+      background: rgba(125, 211, 252, 0.1);
+    }
+
+    body.community-page .ccg-tip-modal__submit,
+    body.community-page .ccg-share-modal__submit,
+    body.community-page .ccg-fab {
+      background: #7dd3fc;
+      color: #0b0b0b;
+    }
+
+    body.community-page .ccg-share-modal__submit:hover,
+    body.community-page .ccg-tip-modal__submit:hover,
+    body.community-page .ccg-fab:hover {
+      background: #bae6fd;
+    }
+
+    body.community-page .ccg-fab {
+      border-color: rgba(125, 211, 252, 0.32);
+      box-shadow:
+        0 8px 32px rgba(125, 211, 252, 0.24),
+        0 0 0 1px rgba(125, 211, 252, 0.12) inset;
+    }
+
+    body.community-page .ccg-fab:hover {
+      box-shadow:
+        0 12px 40px rgba(125, 211, 252, 0.3),
+        0 0 0 1px rgba(125, 211, 252, 0.16) inset;
+    }
+
+    body.community-page .ccg-comment__badge--creator,
+    body.community-page .ccg-comment__badge--you,
+    body.community-page .ccg-comments__submit {
+      background: rgba(125, 211, 252, 0.12);
+      border-color: rgba(125, 211, 252, 0.22);
+      color: #7dd3fc;
+    }
+
+    body.community-page .ccg-comments__submit:hover:not(:disabled) {
+      background: rgba(125, 211, 252, 0.2);
+    }
   </style>
 </head>
-<body class="has-site-shell" data-shell-page="community">
+<body class="has-site-shell community-page" data-shell-page="community">
   <div data-site-shell="nav"></div>
 
   <!-- Breadcrumbs (visually hidden but in DOM for SEO) -->
@@ -882,181 +1088,198 @@
     </div>
   </header>
 
-  <!-- FEATURED SECTION -->
-  <section class="container featured-section" id="featured">
-    <h2 class="featured-title">Featured This Week</h2>
-    <div class="featured-track" id="featuredTrack">
-      <!-- Skeleton cards will be rendered here -->
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- GALLERY SECTION -->
-  <section class="container gallery-section" id="gallery">
-    <div class="gallery-header">
-      <h2 class="gallery-title">Community Gallery</h2>
-
-      <!-- Toolbar -->
-      <div class="gallery-toolbar">
-        <div class="search-input-wrapper">
-          <input
-            type="text"
-            class="search-input"
-            id="searchInput"
-            placeholder="Search creations, creators..."
-            aria-label="Search gallery"
-          />
-        </div>
-        <select class="sort-dropdown" id="sortDropdown" aria-label="Sort by">
-          <option value="newest">Newest</option>
-          <option value="popular">Most Popular</option>
-          <option value="trending">Trending</option>
-        </select>
+  <section class="community-expanded-view community-page-surface" id="community" aria-label="TimrX community showcase">
+    <div class="community-expanded-shell">
+      <div class="ccg-ticker" id="ccgTicker">
+        <div class="ccg-ticker__track" id="ccgTickerTrack"></div>
       </div>
 
-      <!-- Filter tabs -->
-      <div class="filter-tabs" id="filterTabs" role="tablist">
-        <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
-        <button class="filter-tab" data-filter="3d-models" role="tab" aria-selected="false">3D Models</button>
-        <button class="filter-tab" data-filter="images" role="tab" aria-selected="false">Images</button>
-        <button class="filter-tab" data-filter="videos" role="tab" aria-selected="false">Videos</button>
-      </div>
-    </div>
+      <section class="ccg-featured" id="ccgFeatured" aria-label="Featured creations" hidden>
+        <div class="ccg-featured__header">
+          <h2 class="ccg-featured__title">Featured</h2>
+          <p class="ccg-featured__sub">Curated picks from the community</p>
+          <div class="ccg-featured__nav">
+            <button type="button" class="ccg-featured__arrow ccg-featured__arrow--prev" aria-label="Scroll left" id="ccgFeaturedPrev">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="ccg-featured__arrow ccg-featured__arrow--next" aria-label="Scroll right" id="ccgFeaturedNext">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="ccg-featured__track" id="ccgFeaturedTrack"></div>
+      </section>
 
-    <!-- Gallery grid -->
-    <div class="gallery-grid" id="galleryGrid" role="region" aria-label="Community creations">
-      <!-- Skeleton cards (8 placeholders) -->
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
+      <section class="ccg-spotlight" id="ccgSpotlight" hidden>
+        <div class="ccg-spotlight__header">
+          <h2 class="ccg-spotlight__title">Community Creators</h2>
+          <span class="ccg-spotlight__badge">Live Mix</span>
         </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-      <div class="gallery-card skeleton">
-        <div class="card-image-wrapper">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="card-body">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-text"></div>
-        </div>
-      </div>
-    </div>
+        <div class="ccg-spotlight__track" id="ccgSpotlightTrack"></div>
+      </section>
 
-    <!-- Empty state (hidden by default) -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-      <div class="empty-state-icon">
-        <i class="fa-solid fa-inbox"></i>
+      <section class="community-section community-creations-section" id="communityCreationsSection">
+        <div class="community-section-header">
+          <div class="community-section-content">
+            <h2>All Creations</h2>
+            <p>Browse everything the community has shared — search, sort, and filter to find what inspires you.</p>
+          </div>
+        </div>
+
+        <div class="ccg-toolbar">
+          <div class="ccg-search">
+            <input type="text" class="ccg-search__input" id="ccgSearchInput" placeholder="Search creations, prompts, creators..." autocomplete="off" spellcheck="false" aria-label="Search community creations">
+            <svg class="ccg-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <div class="ccg-sort">
+            <select class="ccg-sort__select" id="ccgSortSelect" aria-label="Sort creations">
+              <option value="newest">Newest First</option>
+              <option value="popular">Most Popular</option>
+              <option value="trending">Trending</option>
+            </select>
+          </div>
+          <div class="ccg-filter-bar" role="tablist" aria-label="Filter creations">
+            <button class="ccg-filter-tab ccg-filter-tab--active" role="tab" aria-selected="true" data-ccg-filter="all">All</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="model">3D Models</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="image">Images</button>
+            <button class="ccg-filter-tab" role="tab" aria-selected="false" data-ccg-filter="video">Videos</button>
+          </div>
+        </div>
+
+        <div class="ccg-grid" id="ccgGrid" aria-live="polite" aria-label="Community creations">
+          <div class="ccg-skeleton-grid" id="ccgSkeleton" aria-hidden="true">
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+            <div class="ccg-skeleton-card"></div>
+          </div>
+        </div>
+
+        <div class="ccg-empty" id="ccgEmpty" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <p>No creations shared yet in this category.</p>
+          <small>Be the first — generate something and share it to the community!</small>
+        </div>
+
+        <div class="ccg-load-more-wrap" id="ccgLoadMoreWrap" hidden>
+          <button class="ccg-load-more-btn" id="ccgLoadMore" type="button">Load more</button>
+        </div>
+      </section>
+
+      <div class="ccg-detail" id="ccgDetail" role="dialog" aria-modal="true" aria-label="Creation detail" hidden>
+        <div class="ccg-detail__backdrop" id="ccgDetailBackdrop"></div>
+        <div class="ccg-detail__panel">
+          <button type="button" class="ccg-detail__close" id="ccgDetailClose" aria-label="Close detail view">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+          <div class="ccg-detail__media" id="ccgDetailMedia"></div>
+          <div class="ccg-detail__info" id="ccgDetailInfo"></div>
+        </div>
       </div>
-      <h3 class="empty-state-title">No creations found</h3>
-      <p class="empty-state-text">Try adjusting your search or filters to discover more amazing work.</p>
-    </div>
 
-    <!-- Load more button -->
-    <div class="load-more-wrapper" id="loadMoreWrapper" style="display: none;">
-      <button class="btn" id="loadMoreBtn" type="button">Load More Creations</button>
-    </div>
-  </section>
+      <section class="community-section">
+        <div class="community-section-header">
+          <div class="community-section-content">
+            <h2>What we're building</h2>
+            <p>TimrX started as a simple idea: make 3D creation accessible to everyone. Here is where that idea is heading.</p>
+          </div>
+          <div class="community-highlight">Our Vision</div>
+        </div>
+        <div class="community-vision-grid">
+          <article class="community-card">
+            <h3 class="community-card__title">AI-powered 3D generation</h3>
+            <p class="community-card__body">Turn text prompts and reference images into printable 3D models. We are continuously improving generation quality and adding new capabilities like texture and refinement tools.</p>
+          </article>
+          <article class="community-card">
+            <h3 class="community-card__title">Browser-first workflow</h3>
+            <p class="community-card__body">No installs, no plugins. Generate, refine, convert, and preview models entirely in your browser. Your files stay on your device when using local tools like the converter.</p>
+          </article>
+          <article class="community-card">
+            <h3 class="community-card__title">Print-ready output</h3>
+            <p class="community-card__body">Every model is designed with 3D printing in mind. Export to STL, OBJ, or GLB and take your creation straight to the printer with minimal cleanup.</p>
+          </article>
+        </div>
+      </section>
 
-  <!-- CTA SECTION -->
-  <section class="container cta-section" id="cta">
-    <h2 class="cta-title">Ready to create?</h2>
-    <p class="cta-subtitle">Jump into the workspace and bring your imagination to life with AI-powered tools.</p>
-    <div class="cta-actions">
-      <a class="btn" href="/3dprint">Start Creating</a>
-      <a class="btn ghost" href="/hub#features">Explore Features</a>
+      <section class="community-section">
+        <div class="community-section-header">
+          <div class="community-section-content">
+            <h2>Get involved</h2>
+            <p>Whether you are just starting or have been creating for years, there is a place for you here.</p>
+          </div>
+          <div class="community-highlight">Join Us</div>
+        </div>
+        <div class="community-involve-grid">
+          <article class="community-card community-involve-card">
+            <span class="community-involve-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </span>
+            <h3 class="community-card__title">Join the Discord</h3>
+            <p class="community-card__body">Share your prints, ask questions, get feedback, and connect with other makers. This is where most of the conversation happens.</p>
+            <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="community-secondary-btn">Join Discord</a>
+          </article>
+          <article class="community-card community-involve-card">
+            <span class="community-involve-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+            </span>
+            <h3 class="community-card__title">Explore tutorials</h3>
+            <p class="community-card__body">Step-by-step guides covering text-to-3D prompting, image-to-3D workflows, refinement techniques, and printing best practices.</p>
+            <a href="/tutorials" class="community-secondary-btn">Browse Tutorials</a>
+          </article>
+          <article class="community-card community-involve-card">
+            <span class="community-involve-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            </span>
+            <h3 class="community-card__title">Share your work</h3>
+            <p class="community-card__body">Post your creations on Discord or social media with #TimrX. We feature standout projects and love seeing what people build.</p>
+            <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="community-secondary-btn">Share a Project</a>
+          </article>
+          <article class="community-card community-involve-card">
+            <span class="community-involve-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </span>
+            <h3 class="community-card__title">Give feedback</h3>
+            <p class="community-card__body">TimrX is actively developed and your input shapes what gets built next. Report bugs, request features, or just tell us what you think.</p>
+            <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="community-secondary-btn">Send Feedback</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="community-section">
+        <div class="community-section-header">
+          <div class="community-section-content">
+            <h2>What's new</h2>
+            <p>Recent updates and things we are working on. This page will grow as the community does.</p>
+          </div>
+          <div class="community-highlight">Updates</div>
+        </div>
+        <ul class="community-updates-list">
+          <li>Launched the 3D File Converter — convert between GLB, OBJ, STL, and more directly in the browser.</li>
+          <li>Added image-to-3D generation. Upload a reference photo and get a printable model.</li>
+          <li>Introduced the Refine tool for improving mesh quality and adding detail to generated models.</li>
+          <li>Built a full tutorial system with step-by-step walkthroughs for every major feature.</li>
+          <li>Working on community project galleries and collaborative features. Stay tuned.</li>
+        </ul>
+
+      </section>
+
+      <section class="container cta-section" id="cta">
+        <h2 class="cta-title">Ready to create?</h2>
+        <p class="cta-subtitle">Jump into the workspace and bring your imagination to life with AI-powered tools.</p>
+        <div class="cta-actions">
+          <a class="btn" href="/3dprint">Start Creating</a>
+          <a class="btn ghost" href="/hub#features">Explore Features</a>
+        </div>
+      </section>
+
+      <button type="button" class="ccg-fab" id="ccgFab" title="Share your creation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="ccg-fab__tooltip">Share a Creation</span>
+      </button>
     </div>
   </section>
 
@@ -1069,310 +1292,8 @@
   <script src="js/trustpilot.js" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 
-  <!-- Community Gallery JavaScript -->
-  <script>
-    (function() {
-      'use strict';
-
-      // ====================
-      // STATE & CONFIG
-      // ====================
-      const API_URL = 'https://3d.timrx.live/api/_mod/community/feed';
-      const PAGE_SIZE = 12;
-
-      let allData = [];
-      let filteredData = [];
-      let currentPage = 1;
-      let currentFilter = 'all';
-      let currentSort = 'newest';
-      let currentSearch = '';
-      let isLoading = false;
-
-      // ====================
-      // DOM REFERENCES
-      // ====================
-      const elements = {
-        featuredTrack: document.getElementById('featuredTrack'),
-        galleryGrid: document.getElementById('galleryGrid'),
-        emptyState: document.getElementById('emptyState'),
-        loadMoreWrapper: document.getElementById('loadMoreWrapper'),
-        loadMoreBtn: document.getElementById('loadMoreBtn'),
-        searchInput: document.getElementById('searchInput'),
-        sortDropdown: document.getElementById('sortDropdown'),
-        filterTabs: document.getElementById('filterTabs'),
-        exploreBtn: document.getElementById('exploreBtn'),
-        statCreations: document.getElementById('statCreations'),
-        statCreators: document.getElementById('statCreators'),
-        statReactions: document.getElementById('statReactions')
-      };
-
-      // ====================
-      // FETCH & PARSE
-      // ====================
-      async function fetchCommunityFeed() {
-        try {
-          const response = await fetch(API_URL, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-          const data = await response.json();
-          allData = Array.isArray(data) ? data : (data.posts || data.items || []);
-
-          populateStats();
-          applyFiltersAndRender();
-
-        } catch (error) {
-          console.error('Error fetching community feed:', error);
-          renderFallback();
-        }
-      }
-
-      // ====================
-      // STATS
-      // ====================
-      function sumReactions(r) {
-        if (!r) return 0;
-        if (typeof r === 'number') return r;
-        if (typeof r === 'object') return Object.values(r).reduce((s, v) => s + (v || 0), 0);
-        return 0;
-      }
-
-      function populateStats() {
-        const uniqueCreators = new Set(allData.map(item => item.display_name || item.creator_name || 'Anonymous')).size;
-        let totalReactions = 0;
-
-        allData.forEach(item => {
-          totalReactions += sumReactions(item.reactions);
-        });
-
-        elements.statCreations.textContent = allData.length.toLocaleString();
-        elements.statCreators.textContent = uniqueCreators.toLocaleString();
-        elements.statReactions.textContent = totalReactions.toLocaleString();
-      }
-
-      // ====================
-      // FILTER & SORT
-      // ====================
-      function applyFiltersAndRender() {
-        filteredData = allData.filter(item => {
-          // Type filter — backend uses asset_type: "model", "image", "video"
-          let typeMatch = currentFilter === 'all';
-          if (!typeMatch) {
-            const at = (item.asset_type || '').toLowerCase();
-            if (currentFilter === '3d-models') typeMatch = at === 'model';
-            else if (currentFilter === 'images') typeMatch = at === 'image';
-            else if (currentFilter === 'videos') typeMatch = at === 'video';
-          }
-
-          // Search filter — search title (nested in asset), creator name, prompt
-          const searchLower = currentSearch.toLowerCase();
-          const title = (item.asset && item.asset.title) || item.title || '';
-          const creator = item.display_name || item.creator_name || '';
-          const prompt = item.prompt_public || '';
-          const searchMatch = !currentSearch ||
-            title.toLowerCase().includes(searchLower) ||
-            creator.toLowerCase().includes(searchLower) ||
-            prompt.toLowerCase().includes(searchLower);
-
-          return typeMatch && searchMatch;
-        });
-
-        // Sort
-        filteredData.sort((a, b) => {
-          if (currentSort === 'newest') {
-            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-          } else if (currentSort === 'popular') {
-            return sumReactions(b.reactions) - sumReactions(a.reactions);
-          } else if (currentSort === 'trending') {
-            // Trending = reactions + tips + comments weighted by recency
-            const now = Date.now();
-            const ageA = (now - new Date(a.created_at || 0).getTime()) / 86400000; // days
-            const ageB = (now - new Date(b.created_at || 0).getTime()) / 86400000;
-            const aScore = (sumReactions(a.reactions) + (a.tip_total || 0) + (a.comment_count || 0) * 2) / Math.max(ageA, 1);
-            const bScore = (sumReactions(b.reactions) + (b.tip_total || 0) + (b.comment_count || 0) * 2) / Math.max(ageB, 1);
-            return bScore - aScore;
-          }
-          return 0;
-        });
-
-        currentPage = 1;
-        renderGallery();
-        renderFeatured();
-      }
-
-      // ====================
-      // RENDER FEATURED
-      // ====================
-      function renderFeatured() {
-        const featured = filteredData.slice(0, 4);
-
-        if (featured.length === 0) {
-          elements.featuredTrack.innerHTML = '';
-          return;
-        }
-
-        elements.featuredTrack.innerHTML = featured.map(item => createCardHTML(item)).join('');
-      }
-
-      // ====================
-      // RENDER GALLERY
-      // ====================
-      function renderGallery() {
-        const start = 0;
-        const end = currentPage * PAGE_SIZE;
-        const paginated = filteredData.slice(start, end);
-
-        if (paginated.length === 0) {
-          elements.galleryGrid.innerHTML = '';
-          elements.emptyState.style.display = 'block';
-          elements.loadMoreWrapper.style.display = 'none';
-          return;
-        }
-
-        elements.galleryGrid.innerHTML = paginated.map(item => createCardHTML(item)).join('');
-        elements.emptyState.style.display = 'none';
-
-        // Show/hide load more
-        if (end < filteredData.length) {
-          elements.loadMoreWrapper.style.display = 'flex';
-        } else {
-          elements.loadMoreWrapper.style.display = 'none';
-        }
-      }
-
-      // ====================
-      // CREATE CARD HTML
-      // ====================
-      function createCardHTML(item) {
-        const asset = item.asset || {};
-        const assetType = (item.asset_type || 'model').toLowerCase();
-
-        // Type badge text
-        const typeBadge = assetType === 'video' ? 'video' : assetType === 'image' ? 'image' : '3d-model';
-
-        // Thumbnail: try nested asset fields, then top-level fallbacks
-        const thumbnail = asset.thumbnail_url || asset.image_url || asset.video_url ||
-          item.thumbnail || item.image || item.preview_image ||
-          'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%231d1d1d%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22 font-family=%22Inter%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';
-
-        const title = asset.title || item.title || 'Untitled';
-        const creator = item.display_name || item.creator_name || 'Anonymous';
-        const reactions = sumReactions(item.reactions);
-        const genType = item.gen_type || '';
-        const comments = item.comment_count || 0;
-
-        // Show prompt if allowed
-        const promptHtml = item.show_prompt && item.prompt_public
-          ? `<div class="card-prompt">${escapeHtml(item.prompt_public)}</div>` : '';
-
-        return `
-          <div class="gallery-card" data-asset-type="${escapeHtml(assetType)}">
-            <div class="card-image-wrapper">
-              <img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(title)}" class="card-image" loading="lazy">
-              <span class="card-type-badge">${escapeHtml(typeBadge)}</span>
-              ${genType ? `<span class="card-gen-badge">${escapeHtml(genType)}</span>` : ''}
-            </div>
-            <div class="card-body">
-              <h3 class="card-title">${escapeHtml(title)}</h3>
-              ${promptHtml}
-              <div class="card-meta">
-                <div class="card-creator">
-                  <div class="card-creator-avatar"></div>
-                  <span>${escapeHtml(creator)}</span>
-                </div>
-                <div class="card-stats">
-                  <span class="card-reactions"><i class="fa-solid fa-heart"></i> ${reactions.toLocaleString()}</span>
-                  ${comments > 0 ? `<span class="card-comments"><i class="fa-solid fa-comment"></i> ${comments}</span>` : ''}
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      function escapeHtml(text) {
-        const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-        };
-        return String(text || '').replace(/[&<>"']/g, m => map[m]);
-      }
-
-      // ====================
-      // FALLBACK
-      // ====================
-      function renderFallback() {
-        elements.galleryGrid.innerHTML = '';
-        elements.emptyState.style.display = 'block';
-        elements.loadMoreWrapper.style.display = 'none';
-        elements.statCreations.textContent = '0';
-        elements.statCreators.textContent = '0';
-        elements.statReactions.textContent = '0';
-      }
-
-      // ====================
-      // EVENT LISTENERS
-      // ====================
-      if (elements.searchInput) {
-        elements.searchInput.addEventListener('input', (e) => {
-          currentSearch = e.target.value;
-          applyFiltersAndRender();
-        });
-      }
-
-      if (elements.sortDropdown) {
-        elements.sortDropdown.addEventListener('change', (e) => {
-          currentSort = e.target.value;
-          applyFiltersAndRender();
-        });
-      }
-
-      if (elements.filterTabs) {
-        elements.filterTabs.querySelectorAll('.filter-tab').forEach(tab => {
-          tab.addEventListener('click', () => {
-            elements.filterTabs.querySelectorAll('.filter-tab').forEach(t => {
-              t.classList.remove('active');
-              t.setAttribute('aria-selected', 'false');
-            });
-            tab.classList.add('active');
-            tab.setAttribute('aria-selected', 'true');
-            currentFilter = tab.dataset.filter;
-            applyFiltersAndRender();
-          });
-        });
-      }
-
-      if (elements.loadMoreBtn) {
-        elements.loadMoreBtn.addEventListener('click', () => {
-          currentPage++;
-          renderGallery();
-        });
-      }
-
-      if (elements.exploreBtn) {
-        elements.exploreBtn.addEventListener('click', () => {
-          const gallery = document.getElementById('gallery');
-          if (gallery) {
-            gallery.scrollIntoView({ behavior: 'smooth' });
-          }
-        });
-      }
-
-      // ====================
-      // INIT
-      // ====================
-      fetchCommunityFeed();
-    })();
-  </script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <script src="3dprint-modules/community-gallery.js" defer></script>
 
 </body>
 </html>

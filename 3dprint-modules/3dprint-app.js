@@ -5728,6 +5728,50 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       updateLeftPanel(panelType);
       switchViewer(panelType);
     }
+
+    function consumePendingCommunityRemix() {
+      try {
+        const raw = sessionStorage.getItem('timrx_pending_community_remix');
+        if (!raw) return null;
+        sessionStorage.removeItem('timrx_pending_community_remix');
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+      } catch (_) {
+        try { sessionStorage.removeItem('timrx_pending_community_remix'); } catch (_) {}
+        return null;
+      }
+    }
+
+    function applyPendingCommunityRemix() {
+      const pending = consumePendingCommunityRemix();
+      if (!pending || !pending.prompt) return;
+
+      const targetPanel = ['model', 'image', 'video'].includes(pending.panel) ? pending.panel : 'model';
+      const promptIdMap = {
+        model: 'modelPrompt',
+        image: 'imagePrompt',
+        video: 'videoTextPrompt',
+      };
+
+      const activatePanelAndFill = () => {
+        const textarea = document.getElementById(promptIdMap[targetPanel] || 'modelPrompt');
+        if (!textarea) return;
+        textarea.value = pending.prompt;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+      };
+
+      const targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + targetPanel + '"]');
+      if (targetBtn && !targetBtn.classList.contains('is-active')) {
+        targetBtn.click();
+      }
+
+      requestAnimationFrame(() => {
+        setTimeout(activatePanelAndFill, 120);
+      });
+    }
   
     /**
      * Applies the markup-defined active rail button on initial load.
@@ -5755,6 +5799,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       updateLeftPanel(initialPanel);
       switchViewer(initialPanel);
       ensureThreeViewer();
+      applyPendingCommunityRemix();
     }
   
     /**
