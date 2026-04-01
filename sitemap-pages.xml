@@ -180,4 +180,28 @@
     <priority>0.3</priority>
   </url>
 
+  <!-- Tutorials -->
+  <url>
+    <loc>https://timrx.live/tutorials</loc>
+    <lastmod>2026-04-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Community Showcase -->
+  <url>
+    <loc>https://timrx.live/community</loc>
+    <lastmod>2026-04-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Prompt Library -->
+  <url>
+    <loc>https://timrx.live/prompts</loc>
+    <lastmod>2026-04-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
 </urlset>

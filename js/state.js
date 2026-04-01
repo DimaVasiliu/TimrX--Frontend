@@ -1110,7 +1110,7 @@ export const PROVIDER_CAPABILITIES = {
       creditsByQuality: { standard: 6 },
       genTimeByQuality: { standard: '40 sec' },
       genTime: '40 sec',
-      shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+      shapeMap: { square: '1x1', portrait: '2x3', landscape: '3x2' },
       qualityMap: { standard: '1K' },
       actionKeyByQuality: { standard: 'ideogram_v3_image_generate' },
       supportsSeed: true,

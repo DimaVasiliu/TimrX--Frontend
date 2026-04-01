@@ -53,6 +53,111 @@
     let placeholderCube = null;
     let selectedFile = null;
 
+    const DEFAULT_IMAGE_PROMPT_PLACEHOLDER = 'A futuristic cityscape at sunset with flying cars...';
+    const DEFAULT_IMAGE_PROMPT_HINT = 'Be detailed and specific for best results';
+    const RECRAFT_STYLEABLE_OPERATIONS = new Set(['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background']);
+    const RECRAFT_V3_RASTER_STYLE_GROUPS = [
+      {
+        label: 'Default',
+        options: [
+          { value: '', label: 'Default (Recraft V3 Raw)' },
+          { value: 'Recraft V3 Raw', label: 'Recraft V3 Raw' },
+        ],
+      },
+      {
+        label: 'Photorealistic',
+        options: [
+          { value: 'Photorealism', label: 'Photorealism' },
+          { value: 'Enterprise', label: 'Enterprise' },
+          { value: 'Natural light', label: 'Natural light' },
+          { value: 'Studio photo', label: 'Studio photo' },
+          { value: 'HDR', label: 'HDR' },
+          { value: 'Hard flash', label: 'Hard flash' },
+          { value: 'Motion blur', label: 'Motion blur' },
+          { value: 'Black & white', label: 'Black & white' },
+          { value: 'Evening light', label: 'Evening light' },
+          { value: 'Product photo', label: 'Product photo' },
+          { value: 'Real-Life Glow', label: 'Real-Life Glow' },
+          { value: 'Urban Drama', label: 'Urban Drama' },
+        ],
+      },
+      {
+        label: 'Illustration',
+        options: [
+          { value: 'Illustration', label: 'Illustration' },
+          { value: 'Hand-drawn', label: 'Hand-drawn' },
+          { value: 'Grain', label: 'Grain' },
+          { value: 'Bold Sketch', label: 'Bold Sketch' },
+          { value: 'Pencil sketch', label: 'Pencil sketch' },
+          { value: 'Retro Pop', label: 'Retro Pop' },
+          { value: 'Clay', label: 'Clay' },
+          { value: 'Risograph', label: 'Risograph' },
+          { value: 'Color engraving', label: 'Color engraving' },
+          { value: 'Pixel art', label: 'Pixel art' },
+          { value: 'Child book', label: 'Child book' },
+          { value: 'Cover', label: 'Cover' },
+          { value: 'Digital engraving', label: 'Digital engraving' },
+          { value: 'Expressionism', label: 'Expressionism' },
+          { value: 'Neon Calm', label: 'Neon Calm' },
+          { value: 'Noir', label: 'Noir' },
+          { value: 'Pastel gradient', label: 'Pastel gradient' },
+          { value: 'Pop art', label: 'Pop art' },
+          { value: 'Street art', label: 'Street art' },
+          { value: 'Urban Glow', label: 'Urban Glow' },
+          { value: 'Young adult book', label: 'Young adult book' },
+        ],
+      },
+      {
+        label: 'Emblems',
+        options: [
+          { value: 'Prestige Emblem', label: 'Prestige Emblem' },
+          { value: 'Pop Graphic', label: 'Pop Graphic' },
+          { value: 'Stamp', label: 'Stamp' },
+          { value: 'Punk Graphic', label: 'Punk Graphic' },
+          { value: 'Vintage Emblem', label: 'Vintage Emblem' },
+        ],
+      },
+    ];
+    const RECRAFT_V3_VECTOR_STYLE_GROUPS = [
+      {
+        label: 'Default',
+        options: [
+          { value: '', label: 'Default (Vector art)' },
+          { value: 'Vector art', label: 'Vector art' },
+        ],
+      },
+      {
+        label: 'Vector',
+        options: [
+          { value: 'Line art', label: 'Line art' },
+          { value: 'Linocut', label: 'Linocut' },
+          { value: 'Color blobs', label: 'Color blobs' },
+          { value: 'Engraving', label: 'Engraving' },
+          { value: 'Bold stroke', label: 'Bold stroke' },
+          { value: 'Chemistry', label: 'Chemistry' },
+          { value: 'Colored stencil', label: 'Colored stencil' },
+          { value: 'Editorial', label: 'Editorial' },
+          { value: 'Cutout', label: 'Cutout' },
+          { value: 'Marker outline', label: 'Marker outline' },
+          { value: 'Mosaic', label: 'Mosaic' },
+          { value: 'Naivector', label: 'Naivector' },
+          { value: 'Roundish flat', label: 'Roundish flat' },
+          { value: 'Segmented Colors', label: 'Segmented Colors' },
+          { value: 'Sharp contrast', label: 'Sharp contrast' },
+          { value: 'Thin', label: 'Thin' },
+          { value: 'Vector Photo', label: 'Vector Photo' },
+          { value: 'Vivid shapes', label: 'Vivid shapes' },
+          { value: 'Seamless Vector', label: 'Seamless Vector' },
+        ],
+      },
+    ];
+    const buildFieldHelp = (content) => `
+      <span class="field-help" tabindex="0" aria-label="More information">
+        <span class="field-help__icon" aria-hidden="true">?</span>
+        <span class="field-help__bubble">${content}</span>
+      </span>
+    `;
+
     // ── Persistent rig state (survives tab switches) ──
     // Single source of truth for the RIG panel.
     // Populated by preflight checks, wizard steps, and rig completion.
@@ -146,10 +251,13 @@
       image: `
         <div class="card image-gen-card">
           <h3>Generate Image</h3>
-          <label for="imagePrompt">Describe Your Image</label>
-          <textarea id="imagePrompt" placeholder="A futuristic cityscape at sunset with flying cars..."></textarea>
+          <label for="imagePrompt" class="field-label-with-help">
+            <span>Describe Your Image</span>
+            ${buildFieldHelp('Raster: describe the subject, setting, materials, lighting, and camera feel.<br>SVG: ask for logos, icons, flat shapes, clean outlines, and limited colors.<br>Edit modes: describe only what should change from the uploaded source.')}
+          </label>
+          <textarea id="imagePrompt" placeholder="${DEFAULT_IMAGE_PROMPT_PLACEHOLDER}"></textarea>
           <div class="enhance-row">
-            <span class="field-hint">Be detailed and specific for best results</span>
+            <span class="field-hint" id="imagePromptHint">${DEFAULT_IMAGE_PROMPT_HINT}</span>
             <button type="button" class="enhance-btn" data-enhance-mode="image" data-enhance-target="#imagePrompt" title="Make this prompt clearer and more detailed">
               <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
               <span class="enhance-btn-label">Enhance</span>
@@ -180,7 +288,10 @@
             </div>
 
             <div class="inline-field hidden" id="imageModelVariantRow">
-              <label for="imageModelVariant">Model</label>
+              <label for="imageModelVariant" class="field-label-with-help">
+                <span>Model</span>
+                ${buildFieldHelp('Choose the provider model family. In Recraft, V4 is prompt-led for clean generation, while V3 unlocks curated styles, negative prompt, and edit tools.')}
+              </label>
               <select id="imageModelVariant">
                 <option value="">Default</option>
               </select>
@@ -206,7 +317,10 @@
             </div>
 
             <div class="inline-field hidden" id="imageOutputModeRow">
-              <label for="imageOutputMode">Output</label>
+              <label for="imageOutputMode" class="field-label-with-help">
+                <span>Output</span>
+                ${buildFieldHelp('Raster is best for photos, scenes, packaging, and detailed illustrations.<br>SVG is best for logos, icons, decals, badges, and flat vector artwork that must scale cleanly.')}
+              </label>
               <select id="imageOutputMode">
                 <option value="raster" selected>Raster</option>
                 <option value="vector_svg">SVG</option>
@@ -403,8 +517,11 @@
               </span>
             </summary>
             <div class="image-advanced-body">
-              <div class="hidden image-advanced-wide" id="imageNegativePromptGroup">
-                <label for="imageNegativePrompt">Negative Prompt</label>
+            <div class="hidden image-advanced-wide" id="imageNegativePromptGroup">
+                <label for="imageNegativePrompt" class="field-label-with-help">
+                  <span>Negative Prompt</span>
+                  ${buildFieldHelp('Describe what to avoid, such as blurry faces, extra limbs, messy text, or clutter.<br>For Recraft, this only works on V3 and V3 Vector generation/edit modes. Leave it empty on V4.')}
+                </label>
                 <textarea id="imageNegativePrompt" rows="2" placeholder="Things to avoid in the image"></textarea>
               </div>
 
@@ -445,12 +562,20 @@
               </div>
 
               <div class="hidden" id="imageStyleNameGroup">
-                <label for="imageStyleName">Style Name</label>
-                <input id="imageStyleName" type="text" placeholder="e.g. Photorealism, Illustration, Vector art">
+                <label for="imageStyleName" class="field-label-with-help">
+                  <span>Recraft Style</span>
+                  ${buildFieldHelp('Pick a curated Recraft style that is valid for the selected V3 model.<br>Raster styles are for PNG/JPG-style images. Vector styles are for SVG illustrations and icons.<br>V4 models do not support curated styles.')}
+                </label>
+                <select id="imageStyleName">
+                  <option value="">Default</option>
+                </select>
               </div>
 
               <div class="hidden" id="imageStyleIdGroup">
-                <label for="imageStyleId">Style ID</label>
+                <label for="imageStyleId" class="field-label-with-help">
+                  <span>Style ID</span>
+                  ${buildFieldHelp('Paste a custom Recraft style ID from the Recraft Styles panel if you want to use your own saved style.<br>Use either the curated style dropdown or a style ID, not both.')}
+                </label>
                 <input id="imageStyleId" type="text" placeholder="Custom provider style ID">
               </div>
 
@@ -558,7 +683,10 @@
               </div>
 
               <div class="hidden image-advanced-wide" id="imageTextLayoutGroup">
-                <label for="imageTextLayout">Text Layout</label>
+                <label for="imageTextLayout" class="field-label-with-help">
+                  <span>Text Layout</span>
+                  ${buildFieldHelp('Optional JSON layout for placing text in the image. This is mainly for Recraft V3 / V3 Vector text-aware generation.<br>Use it only if you know the provider schema.')}
+                </label>
                 <textarea id="imageTextLayout" rows="3" placeholder='[{"text":"SALE","bbox":[[0.1,0.1],[0.8,0.1],[0.8,0.3],[0.1,0.3]]}]'></textarea>
               </div>
 
@@ -3226,6 +3354,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const imageOutputModeHint = leftStack.querySelector('#imageOutputModeHint');
       const imageProviderHint = leftStack.querySelector('#imageProviderHint');
       const imagePrompt = leftStack.querySelector('#imagePrompt');
+      const imagePromptHint = leftStack.querySelector('#imagePromptHint');
       const imageSourceAssetGroup = leftStack.querySelector('#imageSourceAssetGroup');
       const imageSourceUpload = leftStack.querySelector('#imageSourceUpload');
       const imageSourceUploadStatus = leftStack.querySelector('#imageSourceUploadStatus');
@@ -3607,6 +3736,167 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           : [];
       }
 
+      function isRecraftV3Model(modelVariant) {
+        return /^recraftv3(?:_vector)?$/i.test(String(modelVariant || '').trim());
+      }
+
+      function isRecraftVectorModel(modelVariant, operation) {
+        return operation === 'vectorize' || /vector/i.test(String(modelVariant || '').trim());
+      }
+
+      function recraftSupportsStyles(modelVariant, operation) {
+        return isRecraftV3Model(modelVariant) && RECRAFT_STYLEABLE_OPERATIONS.has(operation);
+      }
+
+      function recraftSupportsNegativePrompt(modelVariant, operation) {
+        return isRecraftV3Model(modelVariant) && RECRAFT_STYLEABLE_OPERATIONS.has(operation);
+      }
+
+      function recraftSupportsTextLayout(modelVariant, operation) {
+        return isRecraftV3Model(modelVariant) && RECRAFT_STYLEABLE_OPERATIONS.has(operation);
+      }
+
+      function getRecraftStyleGroups(modelVariant, operation) {
+        if (!recraftSupportsStyles(modelVariant, operation)) return [];
+        return isRecraftVectorModel(modelVariant, operation)
+          ? RECRAFT_V3_VECTOR_STYLE_GROUPS
+          : RECRAFT_V3_RASTER_STYLE_GROUPS;
+      }
+
+      function populateRecraftStyleOptions(snapshot) {
+        if (!imageStyleName) return;
+        const settings = snapshot?.settings || {};
+        const groups = getRecraftStyleGroups(settings.modelVariant, settings.operation || 'generate');
+        const currentValue = String(settings.style || imageStyleName.value || '').trim();
+        imageStyleName.innerHTML = '';
+
+        if (!groups.length) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Default';
+          imageStyleName.appendChild(opt);
+          imageStyleName.value = '';
+          return;
+        }
+
+        groups.forEach((group) => {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = group.label;
+          (group.options || []).forEach((item) => {
+            const opt = document.createElement('option');
+            opt.value = item.value;
+            opt.textContent = item.label;
+            optgroup.appendChild(opt);
+          });
+          imageStyleName.appendChild(optgroup);
+        });
+
+        imageStyleName.value = Array.from(imageStyleName.options).some((opt) => opt.value === currentValue)
+          ? currentValue
+          : '';
+      }
+
+      function updateRecraftWorkspaceGuide(snapshot) {
+        if (!imagePrompt || !imagePromptHint || !imageProviderHint) return;
+        const caps = snapshot?.capabilities || {};
+        const settings = snapshot?.settings || {};
+        const providerHint = caps?.hint || '';
+
+        if (snapshot?.provider !== 'recraft_v4') {
+          imagePrompt.placeholder = DEFAULT_IMAGE_PROMPT_PLACEHOLDER;
+          imagePromptHint.textContent = DEFAULT_IMAGE_PROMPT_HINT;
+          imageProviderHint.textContent = providerHint;
+          imageProviderHint.style.display = providerHint ? 'block' : 'none';
+          return;
+        }
+
+        const operation = settings.operation || 'generate';
+        const modelVariant = settings.modelVariant || (settings.outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4');
+        const isV3 = isRecraftV3Model(modelVariant);
+        const isVector = isRecraftVectorModel(modelVariant, operation);
+        const supportsStyles = recraftSupportsStyles(modelVariant, operation);
+        const supportsNegativePrompt = recraftSupportsNegativePrompt(modelVariant, operation);
+        const tips = ['<strong>Recraft workflow</strong>', '<ul>'];
+
+        if (operation === 'generate') {
+          if (isVector) {
+            imagePrompt.placeholder = 'Minimal coffee roaster logo, flat orange and charcoal shapes, centered badge, clean SVG';
+            imagePromptHint.textContent = isV3
+              ? 'For SVG, ask for icons, logos, flat shapes, limited colors, and clean outlines. V3 Vector also supports curated vector styles.'
+              : 'For SVG, ask for icons, logos, flat shapes, limited colors, and clean outlines. V4 Vector is prompt-only.';
+            tips.push(`<li>Selected model: <code>${modelVariant}</code></li>`);
+            tips.push('<li>Use SVG for logos, icons, stickers, decals, and flat illustrations.</li>');
+            tips.push(`<li>${supportsStyles ? 'Use the Recraft Style dropdown for V3 Vector styles such as Vector art, Line art, or Engraving.' : 'V4 vector models do not support curated styles.'}</li>`);
+            tips.push('<li>Avoid photo language like bokeh, skin pores, camera lenses, or ultra-detailed texture when you want clean vectors.</li>');
+          } else {
+            imagePrompt.placeholder = isV3
+              ? 'Premium skincare bottle on warm stone pedestal, studio photo, soft shadows, clean product shot'
+              : 'Premium skincare bottle on warm stone pedestal, soft studio lighting, matte packaging, clean product photo';
+            imagePromptHint.textContent = 'For raster, describe the subject, scene, materials, lighting, lens feel, and mood. Product, lifestyle, and concept prompts all work well here.';
+            tips.push(`<li>Selected model: <code>${modelVariant}</code></li>`);
+            tips.push('<li>Raster is best for photos, posters, packaging, and detailed illustrations.</li>');
+            tips.push(`<li>${supportsStyles ? 'Use the Recraft Style dropdown for V3 Raster looks such as Photorealism, Illustration, Product photo, or Punk Graphic.' : 'V4 raster models do not support curated styles. Direct the look with your prompt plus color controls.'}</li>`);
+            tips.push(`<li>${supportsNegativePrompt ? 'Negative Prompt is available here if you want to exclude clutter, extra limbs, blur, or messy text.' : 'Leave Negative Prompt empty on V4 generate models.'}</li>`);
+          }
+        } else if (operation === 'image_to_image') {
+          imagePrompt.placeholder = 'Keep the same subject, change the label to matte black and add soft studio lighting';
+          imagePromptHint.textContent = 'Upload a source image, then describe only what should change. Lower strength stays closer to the original.';
+          tips.push('<li>Image to Image is V3-only.</li>');
+          tips.push('<li>Styles and Negative Prompt both work here.</li>');
+          tips.push('<li>Use Strength to control how far the new result can drift from the source.</li>');
+        } else if (operation === 'inpaint') {
+          imagePrompt.placeholder = 'Replace the masked area with a gold emblem';
+          imagePromptHint.textContent = 'Upload a source image and mask. White mask areas change, black areas stay.';
+          tips.push('<li>Inpaint is V3-only.</li>');
+          tips.push('<li>Use a clean black-and-white mask with the same dimensions as the source.</li>');
+          tips.push('<li>Describe only the masked replacement, not the entire image.</li>');
+        } else if (operation === 'replace_background') {
+          imagePrompt.placeholder = 'Minimal beige studio backdrop with soft gradient light';
+          imagePromptHint.textContent = 'Upload a source image and describe only the new background.';
+          tips.push('<li>Replace Background is V3-only.</li>');
+          tips.push('<li>The subject is preserved while only the background is regenerated.</li>');
+        } else if (operation === 'generate_background') {
+          imagePrompt.placeholder = 'Luxury marble bathroom interior with soft daylight';
+          imagePromptHint.textContent = 'Upload a source image plus mask, then describe the background to generate around the kept subject.';
+          tips.push('<li>Generate Background is V3-only.</li>');
+          tips.push('<li>White mask areas are regenerated; black regions stay intact.</li>');
+        } else if (operation === 'vectorize') {
+          imagePrompt.placeholder = 'Prompt not used for Vectorize';
+          imagePromptHint.textContent = 'Upload a clean PNG, JPG, or WEBP. Vectorize converts it to SVG and ignores styles plus negative prompt.';
+          tips.push('<li>Vectorize is best for existing logos, badges, decals, and flat art you want converted to SVG.</li>');
+          tips.push('<li>Cleaner source art produces cleaner SVG paths.</li>');
+        } else if (operation === 'remove_background') {
+          imagePrompt.placeholder = 'Prompt not used for Remove Background';
+          imagePromptHint.textContent = 'Upload a source image and Recraft will cut the background away.';
+          tips.push('<li>Remove Background keeps the foreground subject and strips the background.</li>');
+        } else if (operation === 'crisp_upscale') {
+          imagePrompt.placeholder = 'Prompt not used for Crisp Upscale';
+          imagePromptHint.textContent = 'Upload a source image to sharpen and upscale it without changing the composition.';
+          tips.push('<li>Crisp Upscale prioritizes sharper detail with minimal reinterpretation.</li>');
+        } else if (operation === 'creative_upscale') {
+          imagePrompt.placeholder = 'Prompt not used for Creative Upscale';
+          imagePromptHint.textContent = 'Upload a source image to upscale it while letting Recraft refine small details and faces.';
+          tips.push('<li>Creative Upscale can alter fine detail more aggressively than Crisp Upscale.</li>');
+        } else if (operation === 'erase_region') {
+          imagePrompt.placeholder = 'Prompt not used for Erase Region';
+          imagePromptHint.textContent = 'Upload a source image and mask. White mask areas are erased, black areas are preserved.';
+          tips.push('<li>Erase Region removes masked content without using a text prompt.</li>');
+        } else if (operation === 'remix') {
+          imagePrompt.placeholder = 'Prompt optional for Remix';
+          imagePromptHint.textContent = 'Upload a source image to create a variation. Recraft reinterprets it without curated styles.';
+          tips.push('<li>Remix creates a variation of the uploaded image.</li>');
+          tips.push('<li>Curated styles and negative prompt are not used here.</li>');
+        } else {
+          imagePrompt.placeholder = DEFAULT_IMAGE_PROMPT_PLACEHOLDER;
+          imagePromptHint.textContent = DEFAULT_IMAGE_PROMPT_HINT;
+          tips.push(`<li>${providerHint}</li>`);
+        }
+
+        tips.push('</ul>');
+        imageProviderHint.innerHTML = tips.join('');
+        imageProviderHint.style.display = 'block';
+      }
+
       function refreshImageAssetGroups(snapshot = window.GenerationState.getGenerationSnapshot('image')) {
         const caps = snapshot?.capabilities || {};
         const settings = snapshot?.settings || {};
@@ -3782,16 +4072,35 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       }
 
       function updateImageAdvancedUI() {
+        const initialSnapshot = window.GenerationState.getGenerationSnapshot('image');
+        const initialCaps = initialSnapshot.capabilities || {};
+        const initialSettings = initialSnapshot.settings || {};
+        const initialOperation = initialSettings.operation || 'generate';
+        const opSpec = getImageOperationSpec(initialCaps, initialOperation);
+        const requiresSource = !!opSpec?.requiresSource;
+        const requiresMask = !!opSpec?.requiresMask;
+        const usesShape = !['upscale', 'remove_background', 'crisp_upscale', 'creative_upscale', 'erase_region', 'vectorize'].includes(initialOperation);
+
+        populateImageOperationOptions(initialCaps);
+        populateImageModelVariantOptions(initialCaps);
+
         const snapshot = window.GenerationState.getGenerationSnapshot('image');
         const caps = snapshot.capabilities || {};
         const settings = snapshot.settings || {};
-        const opSpec = getImageOperationSpec(caps, settings.operation || 'generate');
-        const requiresSource = !!opSpec?.requiresSource;
-        const requiresMask = !!opSpec?.requiresMask;
-        const usesShape = !['upscale', 'remove_background', 'crisp_upscale', 'creative_upscale', 'erase_region', 'vectorize'].includes(settings.operation || 'generate');
+        const effectiveSupportsStyle = snapshot.provider === 'recraft_v4'
+          ? recraftSupportsStyles(settings.modelVariant, settings.operation || 'generate')
+          : !!caps?.supportsStyleName;
+        const effectiveSupportsStyleId = snapshot.provider === 'recraft_v4'
+          ? recraftSupportsStyles(settings.modelVariant, settings.operation || 'generate')
+          : !!caps?.supportsStyleId;
+        const effectiveSupportsNegativePrompt = snapshot.provider === 'recraft_v4'
+          ? recraftSupportsNegativePrompt(settings.modelVariant, settings.operation || 'generate')
+          : !!caps?.supportsNegativePrompt;
+        const effectiveSupportsTextLayout = snapshot.provider === 'recraft_v4'
+          ? recraftSupportsTextLayout(settings.modelVariant, settings.operation || 'generate')
+          : !!caps?.supportsTextLayout;
 
-        populateImageOperationOptions(caps);
-        populateImageModelVariantOptions(caps);
+        populateRecraftStyleOptions(snapshot);
 
         if (snapshot.provider === 'recraft_v4') {
           const shouldUseVector = settings.operation === 'vectorize' || /vector/i.test(settings.modelVariant || '');
@@ -3814,13 +4123,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         toggleHidden(imageStyleReferenceAssetGroup, !caps?.supportsStyleReferenceImages);
         toggleHidden(imageCharacterReferenceAssetGroup, !caps?.supportsCharacterReferenceImages);
         toggleHidden(imageCharacterMaskAssetGroup, !caps?.supportsCharacterReferenceImages);
-        toggleHidden(imageNegativePromptGroup, !caps?.supportsNegativePrompt);
+        toggleHidden(imageNegativePromptGroup, !effectiveSupportsNegativePrompt);
         toggleHidden(imageRenderingSpeedRow, !caps?.supportsRenderingSpeed);
         toggleHidden(imageMagicPromptRow, !caps?.supportsMagicPrompt);
         toggleHidden(imageStyleTypeRow, !caps?.supportsStyleType);
         toggleHidden(imageStylePresetGroup, !caps?.supportsStylePreset);
-        toggleHidden(imageStyleNameGroup, !caps?.supportsStyleName);
-        toggleHidden(imageStyleIdGroup, !caps?.supportsStyleId);
+        toggleHidden(imageStyleNameGroup, !effectiveSupportsStyle);
+        toggleHidden(imageStyleIdGroup, !effectiveSupportsStyleId);
         toggleHidden(imageStyleCodesGroup, !caps?.supportsStyleCodes);
         toggleHidden(imageColorPaletteNameGroup, !caps?.supportsColorPalette);
         toggleHidden(imageColorPaletteMembersGroup, !caps?.supportsColorPalette);
@@ -3839,11 +4148,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         toggleHidden(imagePreferredColorsGroup, !caps?.supportsPreferredColors);
         toggleHidden(imageArtisticLevelRow, !caps?.supportsArtisticLevel);
         toggleHidden(imageNoTextRow, !caps?.supportsNoText);
-        toggleHidden(imageTextLayoutGroup, !caps?.supportsTextLayout);
+        toggleHidden(imageTextLayoutGroup, !effectiveSupportsTextLayout);
         toggleHidden(imageSvgCompressionRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
         toggleHidden(imageLimitShapesRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
         toggleHidden(imageMaxShapesRow, !(caps?.supportsSvgShapeControls && settings.operation === 'vectorize'));
 
+        updateRecraftWorkspaceGuide(snapshot);
         refreshImageAssetGroups(snapshot);
 
         if (imageAdvancedDetails) {
@@ -4271,6 +4581,24 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           validateImageForm();
         });
       });
+
+      if (imageStyleName && imageStyleId) {
+        imageStyleName.addEventListener('change', () => {
+          if (imageStyleName.value) {
+            imageStyleId.value = '';
+          }
+          syncImageAdvancedFromUI();
+          updateImageAdvancedUI();
+        });
+
+        imageStyleId.addEventListener('input', () => {
+          if (imageStyleId.value) {
+            imageStyleName.value = '';
+          }
+          syncImageAdvancedFromUI();
+          updateImageAdvancedUI();
+        });
+      }
 
       void bindSingleImageUpload(
         imageSourceUpload,

@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Primary Meta Tags -->
+  <title>Tutorials — Master the TimrX 3D Print Hub | AI 3D Model Generation</title>
+  <meta name="title" content="Tutorials — Master the TimrX 3D Print Hub | AI 3D Model Generation" />
+  <meta name="description" content="Follow curated walkthroughs and learn the exact prompts our community uses to turn ideas into printable 3D assets. Master text-to-3D, image-to-3D, remeshing, texturing, and video generation." />
+  <meta name="keywords" content="TimrX tutorials, 3D model generator tutorial, text to 3D guide, image to 3D tutorial, AI 3D printing, remesh tutorial, texture tutorial, prompt engineering, 3D asset creation" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+  <link rel="canonical" href="https://timrx.live/tutorials" />
+
+  <!-- Hreflang Tags -->
+  <link rel="alternate" hreflang="en-gb" href="https://timrx.live/tutorials" />
+  <link rel="alternate" hreflang="x-default" href="https://timrx.live/tutorials" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="msapplication-TileColor" content="#0b0b0b" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/tutorials" />
+  <meta property="og:title" content="Tutorials — Master the TimrX 3D Print Hub" />
+  <meta property="og:description" content="Follow curated walkthroughs and learn the exact prompts our community uses to turn ideas into printable 3D assets." />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="TimrX Tutorials - Learn 3D Generation" />
+  <meta property="og:site_name" content="TimrX" />
+  <meta property="og:locale" content="en_GB" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/tutorials" />
+  <meta name="twitter:title" content="Tutorials — Master the TimrX 3D Print Hub" />
+  <meta name="twitter:description" content="Follow curated walkthroughs and learn the exact prompts our community uses to turn ideas into printable 3D assets." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Additional SEO -->
+  <meta name="application-name" content="TimrX 3D Print Hub" />
+  <meta name="apple-mobile-web-app-title" content="TimrX 3D" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- Structured Data - HowTo Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowToCollection",
+    "name": "TimrX 3D Model Generation Tutorials",
+    "description": "Learn how to create AI-generated 3D models from text and images using TimrX",
+    "url": "https://timrx.live/tutorials",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TimrX",
+      "url": "https://timrx.live",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://timrx.live/img/logo.png"
+      }
+    }
+  }
+  </script>
+
+  <!-- Structured Data - BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "TimrX",
+        "item": "https://timrx.live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Hub",
+        "item": "https://timrx.live/hub"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Tutorials",
+        "item": "https://timrx.live/tutorials"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data - ItemList (Tutorials) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Text to 3D",
+        "url": "https://timrx.live/tutorials#text-to-3d"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Image to 3D",
+        "url": "https://timrx.live/tutorials#image-to-3d"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Remesh & Texture",
+        "url": "https://timrx.live/tutorials#remesh-texture"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Video Generation",
+        "url": "https://timrx.live/tutorials#video-generation"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts (mono/clean) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
+
+  <!-- Inline Styles -->
+  <style>
+    /* ==========================================================================
+       CORE DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg: #0b0b0b;
+      --ink: #f5f5f5;
+      --muted: #a9a9a9;
+      --line: #1d1d1d;
+      --panel: #0e0e0e;
+      --accent: #ffffff;
+      --maxw: 1280px;
+      --gutter: 28px;
+      --navH: 70px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding-top: var(--navH);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
+
+    /* ==========================================================================
+       BUTTONS
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--ink);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 13px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      background: transparent;
+      color: var(--ink);
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .btn:hover {
+      background: var(--ink);
+      color: var(--bg);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .btn:hover::before { opacity: 1; }
+    .btn:active { transform: translateY(0) scale(1); }
+    .btn.ghost {
+      border-color: #2a2a2a;
+      color: #e7e7e7;
+      background: transparent;
+    }
+    .btn.ghost::before { background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent); }
+    .btn.ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: #fff;
+    }
+
+    /* ==========================================================================
+       NAVIGATION
+       ========================================================================== */
+    .nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: var(--navH);
+      z-index: 1000;
+      background: linear-gradient(180deg, rgba(11, 11, 11, 0.96), rgba(11, 11, 11, 0.75) 75%, rgba(11, 11, 11, 0));
+      backdrop-filter: saturate(120%) blur(8px);
+      border-bottom: 1px solid var(--line);
+      animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .nav-inner {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      max-width: none;
+    }
+    .nav-left, .nav-right { flex: 1 1 0; min-width: 0; }
+    .nav-pills { flex: 0 0 auto; justify-content: center; display: flex; gap: 12px; }
+
+    /* Brand */
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      font-size: clamp(16px, 1.25vw, 22px);
+      line-height: 1;
+      cursor: pointer;
+      gap: 10px;
+    }
+    .b-tim { color: #f5f5f5; }
+    .b-x {
+      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 18px rgba(14, 165, 233, 0.35);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+    .brand:hover .b-x { transform: translateY(-1px); filter: brightness(1.06); }
+    .idx-nav-logo { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; }
+    .nav-left { display: flex; align-items: center; gap: 18px; }
+    .nav-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+
+    /* Nav Pills */
+    .nav-pill {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: rgba(245, 245, 245, 0.6);
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .nav-pill:hover { color: rgba(245, 245, 245, 0.95); }
+    .nav-pill.active { color: #7dd3fc; }
+
+    /* Credits & Auth */
+    .credits-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .credits-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      min-height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      color: #eaf6ff;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      background: rgba(125, 211, 252, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .credits-pill i {
+      color: #7dd3fc;
+      font-size: 12px;
+      filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.5));
+    }
+    .credits-pill:hover {
+      border-color: rgba(125, 211, 252, 0.55);
+      background: rgba(125, 211, 252, 0.12);
+      transform: translateY(-1px);
+    }
+    .account-status-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.2s ease, background 0.2s ease;
+      flex-shrink: 0;
+    }
+    .account-status-btn:hover { transform: scale(1.12); }
+    .account-status-btn i {
+      font-size: 15px;
+      transition: color 0.2s ease, filter 0.2s ease;
+      color: #f87171;
+      filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.4));
+    }
+    .credits-buy-btn {
+      appearance: none;
+      padding: 10px 16px;
+      min-height: 44px;
+      border-radius: 999px;
+      border: 1px solid #fff;
+      background: #fff;
+      color: #0b0b0b;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .credits-buy-btn:hover {
+      background: transparent;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Mobile Burger */
+    .nav-burger {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      z-index: 1001;
+    }
+    .burger-line {
+      width: 100%;
+      height: 2px;
+      background: var(--ink);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .nav-burger.is-open .burger-line:nth-child(1) {
+      transform: translateY(12px) rotate(45deg);
+    }
+    .nav-burger.is-open .burger-line:nth-child(2) {
+      opacity: 0;
+    }
+    .nav-burger.is-open .burger-line:nth-child(3) {
+      transform: translateY(-12px) rotate(-45deg);
+    }
+
+    /* Mobile Menu */
+    .mobile-menu {
+      position: fixed;
+      inset: var(--navH) 0 0 0;
+      background: linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(11, 11, 11, 0.95));
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    .mobile-menu.is-open {
+      transform: translateX(0);
+    }
+    .mobile-menu-inner {
+      padding: 24px var(--gutter);
+    }
+    .mobile-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mobile-nav-link {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      transition: all 0.2s ease;
+    }
+    .mobile-nav-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .mnl-label {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .mnl-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .mobile-menu-footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+    .mobile-footer-text {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 768px) {
+      .nav-pills { display: none; }
+      .nav-burger { display: flex; }
+      .credits-buy-btn { display: none; }
+      .credits-pill { padding: 6px 10px; font-size: 12px; gap: 6px; }
+      .account-status-btn { width: 30px; height: 30px; }
+    }
+    @media (max-width: 400px) {
+      .credits-pill .credits-value { display: none; }
+      .credits-pill { padding: 6px 8px; }
+    }
+
+    /* ==========================================================================
+       BREADCRUMBS
+       ========================================================================== */
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 40px 0 0;
+      letter-spacing: 0.03em;
+    }
+    .breadcrumbs a {
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+    .breadcrumbs a:hover {
+      color: var(--ink);
+    }
+    .breadcrumb-sep {
+      opacity: 0.4;
+    }
+    .breadcrumb-current {
+      color: var(--ink);
+    }
+
+    /* ==========================================================================
+       HERO SECTION
+       ========================================================================== */
+    .hero {
+      position: relative;
+      padding: 80px 0 60px;
+      text-align: center;
+      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-watermark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(120px, 20vw, 300px);
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+      line-height: 1;
+    }
+    .wm-l {
+      display: inline-block;
+      animation: float 3s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.1s);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.12);
+      border: 1px solid rgba(125, 211, 252, 0.3);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #7dd3fc;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin: 0 0 16px;
+      position: relative;
+      z-index: 1;
+      line-height: 1.1;
+    }
+
+    .hero-subheadline {
+      font-size: clamp(18px, 2.5vw, 24px);
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0 auto 40px;
+      line-height: 1.4;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      margin: 48px 0;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-value {
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #7dd3fc;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--line);
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 40px;
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-stats { gap: 16px; }
+      .stat-divider { display: none; }
+      .hero-ctas { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+
+    /* ==========================================================================
+       SECTIONS
+       ========================================================================== */
+    section {
+      padding: 80px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    section h2 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin: 0 0 16px;
+      line-height: 1.1;
+    }
+
+    section > .container > p:first-of-type {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 0 48px;
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       WORKFLOW ESSENTIALS
+       ========================================================================== */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .workflow-card {
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .workflow-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(125, 211, 252, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .workflow-card h3 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    .workflow-card p {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .workflow-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .workflow-card li {
+      font-size: 13px;
+      color: var(--muted);
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .workflow-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #7dd3fc;
+      font-weight: 800;
+    }
+
+    /* ==========================================================================
+       INPUT CHECKLIST
+       ========================================================================== */
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .checklist-item {
+      padding: 32px 24px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.01);
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .checklist-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(125, 211, 252, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .checklist-number {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0 0 12px;
+    }
+
+    .checklist-item h4 {
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    /* ==========================================================================
+       SPLIT LAYOUT (Text to 3D, Image to 3D, etc)
+       ========================================================================== */
+    .split-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+      margin-top: 40px;
+    }
+
+    .split-left {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .split-card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .split-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(125, 211, 252, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .split-card h4 {
+      font-size: 14px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .split-card p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .split-card .meta {
+      font-size: 12px;
+      color: #7dd3fc;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .split-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      background: linear-gradient(135deg, rgba(125, 211, 252, 0.08), rgba(14, 165, 233, 0.04));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .split-right::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 40% 50%, rgba(125, 211, 252, 0.1), transparent 80%);
+      pointer-events: none;
+    }
+
+    .viewer-placeholder {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .viewer-placeholder i {
+      font-size: 48px;
+      color: rgba(125, 211, 252, 0.5);
+    }
+
+    .viewer-placeholder p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    @media (max-width: 980px) {
+      .split-section {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .split-right {
+        min-height: 300px;
+      }
+    }
+
+    /* ==========================================================================
+       TIPS GRID
+       ========================================================================== */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .tip-card {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tip-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(125, 211, 252, 0.3);
+      transform: translateY(-4px);
+    }
+
+    .tip-number {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      color: #7dd3fc;
+      text-transform: uppercase;
+    }
+
+    .tip-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    .tip-card p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    footer {
+      padding: 60px 0 40px;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--bg) 0%, #0d0d0d 100%);
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-col h3 {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 16px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-col a {
+      font-size: 13px;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover {
+      color: var(--ink);
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .footer-brand-text {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+
+    .footer-brand-tim {
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .footer-brand-x {
+      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+    }
+
+    .footer-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .footer-trust {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-trust i {
+      color: #fbbf24;
+      font-size: 14px;
+    }
+
+    .footer-trust-text {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .footer-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 40px 0;
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-credits {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+
+    /* ==========================================================================
+       UTILITIES
+       ========================================================================== */
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .grad {
+      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" aria-label="Primary">
+    <div class="container nav-inner">
+      <div class="nav-left">
+        <span class="brand" aria-label="Home">
+          <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+          <span class="b-tim">Timr</span><span class="b-x">X</span>
+        </span>
+      </div>
+
+      <div class="nav-pills" role="navigation" aria-label="Sections">
+        <a href="/hub" class="nav-pill">Hub</a>
+        <a href="/tutorials" class="nav-pill active">Tutorials</a>
+        <a href="/hub#community" class="nav-pill">Community</a>
+        <a href="/prompts" class="nav-pill">Prompts</a>
+        <a href="/docs" class="nav-pill">Docs</a>
+        <a href="/blogs" class="nav-pill">Blogs</a>
+      </div>
+
+      <div class="nav-right">
+        <div class="credits-group" id="creditsGroup">
+          <button type="button" class="account-status-btn" id="accountStatusBtn" data-status="anonymous" data-tooltip="Sign In" aria-label="Sign In">
+            <i class="fa-solid fa-user"></i>
+          </button>
+          <span class="credits-pill" id="creditsPill">
+            <i class="fa-solid fa-coins"></i>
+            <span class="credits-value" id="creditsValue">0</span>
+          </span>
+          <button class="credits-buy-btn" id="buyCreditsBtn" type="button">Buy</button>
+        </div>
+
+        <button class="nav-burger" id="tutorialsBurger" type="button" aria-label="Open menu" aria-expanded="false">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile menu overlay -->
+  <div class="mobile-menu" id="tutorialsMobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/hub" class="mobile-nav-link">
+          <span class="mnl-label">Hub</span>
+          <span class="mnl-sub">3D generation tools</span>
+        </a>
+        <a href="/tutorials" class="mobile-nav-link">
+          <span class="mnl-label">Tutorials</span>
+          <span class="mnl-sub">Learn & master</span>
+        </a>
+        <a href="/hub#community" class="mobile-nav-link">
+          <span class="mnl-label">Community</span>
+          <span class="mnl-sub">Prompts & showcase</span>
+        </a>
+        <a href="/prompts" class="mobile-nav-link">
+          <span class="mnl-label">Prompts</span>
+          <span class="mnl-sub">Curated collection</span>
+        </a>
+        <a href="/docs" class="mobile-nav-link">
+          <span class="mnl-label">Docs</span>
+          <span class="mnl-sub">Technical guides</span>
+        </a>
+        <a href="/blogs" class="mobile-nav-link">
+          <span class="mnl-label">Blogs</span>
+          <span class="mnl-sub">Stories & updates</span>
+        </a>
+      </nav>
+      <div class="mobile-menu-footer">
+        <span class="mobile-footer-text">TimrX / Tutorials</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var burger = document.getElementById('tutorialsBurger');
+    var menu = document.getElementById('tutorialsMobileMenu');
+    if (!burger || !menu) return;
+
+    function openMenu(){
+      burger.classList.add('is-open');
+      burger.setAttribute('aria-expanded','true');
+      burger.setAttribute('aria-label','Close menu');
+      menu.classList.add('is-open');
+      menu.setAttribute('aria-hidden','false');
+      document.body.classList.add('menu-open');
+    }
+    function closeMenu(){
+      burger.classList.remove('is-open');
+      burger.setAttribute('aria-expanded','false');
+      burger.setAttribute('aria-label','Open menu');
+      menu.classList.remove('is-open');
+      menu.setAttribute('aria-hidden','true');
+      document.body.classList.remove('menu-open');
+    }
+
+    burger.addEventListener('click', function(){
+      menu.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menu.classList.contains('is-open')){
+        closeMenu();
+        burger.focus();
+      }
+    });
+
+    window.addEventListener('resize', function(){
+      if (window.innerWidth > 768 && menu.classList.contains('is-open')) closeMenu();
+    });
+  })();
+  </script>
+
+  <!-- BREADCRUMBS -->
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/hub">Hub</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Tutorials</span>
+    </nav>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-watermark" aria-hidden="true">
+      <span class="wm-l" style="--i:0">L</span><span class="wm-l" style="--i:1">E</span><span class="wm-l" style="--i:2">A</span><span class="wm-l" style="--i:3">R</span><span class="wm-l" style="--i:4">N</span>
+    </div>
+    <div class="container">
+      <div class="hero-badge">
+        <i class="fa-solid fa-graduation-cap"></i>
+        Tutorial Library · TimrX
+      </div>
+      <h1>Master the TimrX 3D Print Hub</h1>
+      <p class="hero-subheadline">Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets.</p>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-value">05 min</div>
+          <div class="stat-label">avg tutorial</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">modes</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">prompts</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">24/7</div>
+          <div class="stat-label">availability</div>
+        </div>
+      </div>
+
+      <div class="hero-ctas">
+        <a href="/3dprint" class="btn">Open Workspace</a>
+        <a href="/prompts" class="btn ghost">Browse Prompts</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- WORKFLOW ESSENTIALS -->
+  <section>
+    <div class="container">
+      <h2>Workflow Essentials</h2>
+      <p>Master the three-step process to generate, refine, and share 3D models.</p>
+
+      <div class="workflow-grid">
+        <!-- Card 1 -->
+        <article class="workflow-card">
+          <h3>Craft a Vivid Prompt</h3>
+          <p>Lead with silhouette, support with materials, finish with mood.</p>
+          <ul>
+            <li>Start with a clear shape or object description</li>
+            <li>Specify materials (metal, wood, ceramic, etc.)</li>
+            <li>Add mood words (sleek, ornate, minimalist, futuristic)</li>
+            <li>Use size cues relative to familiar objects</li>
+            <li>Reference inspiration from real-world designs</li>
+          </ul>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="workflow-card">
+          <h3>Preview & Iterate</h3>
+          <p>Use low-latency preview, wireframe overlay, pin prompts.</p>
+          <ul>
+            <li>Preview renders instantly as you refine</li>
+            <li>Overlay wireframe to check topology</li>
+            <li>Pin successful prompts for future batches</li>
+            <li>Use Refine button to adjust proportions</li>
+            <li>Test Remesh for watertight geometry</li>
+          </ul>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="workflow-card">
+          <h3>Publish & Share</h3>
+          <p>Export GLB/GLTF, tag assets, send to Community.</p>
+          <ul>
+            <li>Export to GLB/GLTF for any 3D platform</li>
+            <li>Tag assets with keywords and metadata</li>
+            <li>Share to Community gallery for feedback</li>
+            <li>Batch export multiple variations</li>
+            <li>Download textures and maps separately</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- INPUT CHECKLIST -->
+  <section>
+    <div class="container">
+      <h2>Input Checklist</h2>
+      <p>Follow these four essential steps before pressing generate.</p>
+
+      <div class="checklist">
+        <div class="checklist-item">
+          <div class="checklist-number">01</div>
+          <h4>Queue the Job</h4>
+        </div>
+        <div class="checklist-item">
+          <div class="checklist-number">02</div>
+          <h4>Inspect the Preview</h4>
+        </div>
+        <div class="checklist-item">
+          <div class="checklist-number">03</div>
+          <h4>Post-Process</h4>
+        </div>
+        <div class="checklist-item">
+          <div class="checklist-number">04</div>
+          <h4>Export & Print</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEXT TO 3D -->
+  <section id="text-to-3d">
+    <div class="container">
+      <h2>Text to 3D</h2>
+      <p>Generate 3D models directly from text descriptions using our advanced AI engines.</p>
+
+      <div class="split-section">
+        <div class="split-left">
+          <article class="split-card">
+            <h4>Meshy 6</h4>
+            <p>Latest generation with enhanced detail, faster processing, and improved topology control. Best for intricate designs and production-ready models.</p>
+            <div class="meta">
+              <i class="fa-solid fa-coins"></i> 8–15 credits per generation
+            </div>
+          </article>
+
+          <article class="split-card">
+            <h4>Meshy 5</h4>
+            <p>Reliable workhorse with broad compatibility. Excellent for quick prototyping, game assets, and architectural mockups. Lower credit cost.</p>
+            <div class="meta">
+              <i class="fa-solid fa-coins"></i> 3–8 credits per generation
+            </div>
+          </article>
+        </div>
+
+        <div class="split-right">
+          <div class="viewer-placeholder">
+            <i class="fa-solid fa-cube"></i>
+            <p>3D Viewer will appear here</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IMAGE TO 3D -->
+  <section id="image-to-3d">
+    <div class="container">
+      <h2>Image to 3D</h2>
+      <p>Transform any 2D image into a fully textured 3D model with automatic topology detection.</p>
+
+      <div class="split-section">
+        <div class="split-left">
+          <article class="split-card">
+            <h4>Image Requirements</h4>
+            <p>Clear, well-lit source images produce best results. Avoid extremely dark or overexposed images.</p>
+          </article>
+
+          <article class="split-card">
+            <h4>Supported Formats</h4>
+            <p>JPG, PNG, WebP. Maximum file size 10 MB. Recommended resolution 1024×1024 or higher.</p>
+          </article>
+
+          <article class="split-card">
+            <h4>Generation Modes</h4>
+            <p>Choose between surface mesh (fast, high detail) or volumetric (robust, print-ready).</p>
+            <div class="meta">
+              <i class="fa-solid fa-coins"></i> 12–20 credits per model
+            </div>
+          </article>
+        </div>
+
+        <div class="split-right">
+          <div class="viewer-placeholder">
+            <i class="fa-solid fa-image"></i>
+            <p>3D Viewer will appear here</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REMESH & TEXTURE -->
+  <section id="remesh-texture">
+    <div class="container">
+      <h2>Remesh & Texture</h2>
+      <p>Optimize geometry and apply AI-generated PBR textures for production-ready assets.</p>
+
+      <div class="workflow-grid">
+        <article class="workflow-card">
+          <h3>Remesh</h3>
+          <p>Convert any geometry into watertight, manifold-ready topology.</p>
+          <ul>
+            <li>Automatically fills holes and closes gaps</li>
+            <li>Reduces polygon count for faster rendering</li>
+            <li>Maintains UV mapping for texturing</li>
+            <li>Creates print-ready models instantly</li>
+            <li>Option to adjust detail level</li>
+          </ul>
+        </article>
+
+        <article class="workflow-card">
+          <h3>AI Texture</h3>
+          <p>Generate PBR maps: albedo, normal, roughness, metallic.</p>
+          <ul>
+            <li>AI-learned from millions of assets</li>
+            <li>Physically-based for real-world rendering</li>
+            <li>Separate downloads for each texture type</li>
+            <li>Compatible with Unity, Unreal, Blender</li>
+            <li>Adjustable pattern intensity and variation</li>
+          </ul>
+        </article>
+
+        <article class="workflow-card">
+          <h3>Export Options</h3>
+          <p>Download in any format, with or without textures.</p>
+          <ul>
+            <li>GLB (with embedded textures) – recommended</li>
+            <li>GLTF (separate .json + texture files)</li>
+            <li>OBJ + MTL for Blender/Max compatibility</li>
+            <li>Texture-only exports (PNG/EXR)</li>
+            <li>Batch download entire projects</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO GENERATION -->
+  <section id="video-generation">
+    <div class="container">
+      <h2>Video Generation</h2>
+      <p>Animate your 3D models and create cinematic videos with AI-powered tools.</p>
+
+      <div class="workflow-grid">
+        <article class="workflow-card">
+          <h3>Text to Video</h3>
+          <p>Describe a scene, motion, or cinematic sequence.</p>
+          <ul>
+            <li>Supports Veo 3.1 for 4K quality</li>
+            <li>Seedance 2.0 for smooth motion</li>
+            <li>Up to 15 seconds per generation</li>
+            <li>Motion direction and camera controls</li>
+            <li>No watermarks, full ownership</li>
+          </ul>
+        </article>
+
+        <article class="workflow-card">
+          <h3>Image to Video</h3>
+          <p>Animate your 3D renders or concept art.</p>
+          <ul>
+            <li>Start from any uploaded image</li>
+            <li>Control animation direction and speed</li>
+            <li>Create camera pan & zoom effects</li>
+            <li>Works with generated or real photos</li>
+            <li>Professional-grade output quality</li>
+          </ul>
+        </article>
+
+        <article class="workflow-card">
+          <h3>Video Credits</h3>
+          <p>Separate credit system for video generation.</p>
+          <ul>
+            <li>Short format (5s): 45 credits</li>
+            <li>Standard (8s): 96 credits</li>
+            <li>Premium (15s 4K): 240 credits</li>
+            <li>Monthly subscriptions include video</li>
+            <li>Bulk discounts for creators</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRO TIPS -->
+  <section>
+    <div class="container">
+      <h2>Pro Tips</h2>
+      <p>Expert techniques to maximize quality and efficiency.</p>
+
+      <div class="tips-grid">
+        <article class="tip-card">
+          <div class="tip-number">01 — Prompt Specificity</div>
+          <h4>Use Adjectives Strategically</h4>
+          <p>Instead of "nice chair", try "mid-century modern wooden chair with tapered legs and cream fabric upholstery". Specificity breeds quality.</p>
+        </article>
+
+        <article class="tip-card">
+          <div class="tip-number">02 — Material Grounding</div>
+          <h4>Reference Real Materials</h4>
+          <p>Anchor your prompts to real-world materials. "brushed titanium" beats "shiny metal". Material knowledge directly affects AI output.</p>
+        </article>
+
+        <article class="tip-card">
+          <div class="tip-number">03 — Style Anchors</div>
+          <h4>Name Artistic References</h4>
+          <p>Reference known designers or styles: "Dieter Rams minimalism", "Victorian gothic", "retro-futurism". AI understands cultural context.</p>
+        </article>
+
+        <article class="tip-card">
+          <div class="tip-number">04 — Scale Context</div>
+          <h4>Include Size References</h4>
+          <p>Mention comparable objects for scale: "coffee mug-sized", "desk-sized", "car-sized". Relative scale prevents awkward proportions.</p>
+        </article>
+
+        <article class="tip-card">
+          <div class="tip-number">05 — Batch Variations</div>
+          <h4>Generate Multiple Styles</h4>
+          <p>Queue 3–5 variations with subtle prompt tweaks. Compare side-by-side to find best aesthetics. Use pinning to save winners.</p>
+        </article>
+
+        <article class="tip-card">
+          <div class="tip-number">06 — Post-Processing</div>
+          <h4>Always Remesh First</h4>
+          <p>Run Remesh before texturing. Watertight models export flawlessly to any platform and 3D printer. Quality topology is foundation.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <!-- Brand & Description -->
+        <div class="footer-col">
+          <div class="footer-brand">
+            <img src="img/logo.png" alt="TimrX" width="32" height="32" style="flex-shrink:0;">
+            <div class="footer-brand-text">
+              <span class="footer-brand-tim">Timr</span><span class="footer-brand-x">X</span>
+            </div>
+          </div>
+          <p class="footer-desc">AI creative workspace for 3D, video, and image generation. From concept to print-ready in minutes.</p>
+          <div class="footer-trust">
+            <i class="fa-solid fa-star"></i>
+            <span class="footer-trust-text">Trusted by 50k+ creators</span>
+          </div>
+        </div>
+
+        <!-- Explore -->
+        <div class="footer-col">
+          <h3>Explore</h3>
+          <ul>
+            <li><a href="/hub">Hub</a></li>
+            <li><a href="/tutorials">Tutorials</a></li>
+            <li><a href="/prompts">Prompts</a></li>
+            <li><a href="/docs">Documentation</a></li>
+            <li><a href="/blogs">Blog</a></li>
+          </ul>
+        </div>
+
+        <!-- Legal -->
+        <div class="footer-col">
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/cookie-policy">Cookie Policy</a></li>
+            <li><a href="/refund-policy">Refund Policy</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect -->
+        <div class="footer-col">
+          <h3>Connect</h3>
+          <ul>
+            <li><a href="https://twitter.com/timrx_live" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
+            <li><a href="https://discord.gg/timrx" target="_blank" rel="noopener noreferrer">Discord</a></li>
+            <li><a href="https://github.com/timrx" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href="https://instagram.com/timrx_live" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+            <li><a href="mailto:support@timrx.live">Support</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom">
+        <div>© 2026 TimrX. All rights reserved. Crafted by <a href="https://dimavas.dev" target="_blank" rel="noopener noreferrer">Dima Vasiliu</a>.</div>
+        <div class="footer-credits">
+          <span>Powered by AI</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="auth-modal.js" defer></script>
+  <script src="credits.js" defer></script>
+  <script src="cookie-consent.js" defer></script>
+  <script src="trustpilot.js" defer></script>
+
+  <!-- Placeholder scripts for functionality (stubs) -->
+  <script>
+    // Basic credits display simulation
+    document.addEventListener('DOMContentLoaded', function() {
+      var creditsValue = document.getElementById('creditsValue');
+      if (creditsValue) {
+        creditsValue.textContent = '0';
+      }
+    });
+  </script>
+
+</body>
+</html>

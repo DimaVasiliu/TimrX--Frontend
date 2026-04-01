@@ -1980,6 +1980,23 @@ textarea {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.provider-hint strong {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.provider-hint ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.provider-hint li {
+  margin: 4px 0 0;
+}
+
+.provider-hint code {
+  color: #d4f4ff;
+}
+
 .provider-hint:empty {
   display: none;
 }
@@ -2126,6 +2143,67 @@ textarea {
   margin-top: 8px;
   padding: 8px 10px;
   border-radius: 8px;
+}
+
+.field-label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(56, 189, 248, 0.1);
+  color: #bfeaff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.field-help__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-help__bubble {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 240px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(18, 23, 32, 0.96);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.field-help:hover .field-help__bubble,
+.field-help:focus .field-help__bubble,
+.field-help:focus-within .field-help__bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .image-assets-stack {

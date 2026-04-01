@@ -3014,16 +3014,16 @@ const FLUX_PRO_SHAPE_MAP = {
   landscape: '1536x1024',
 };
 
-const IDEOGRAM_V3_SHAPE_MAP = {
-  square: '1024x1024',
-  portrait: '1024x1536',
-  landscape: '1536x1024',
+const IDEOGRAM_V3_ASPECT_MAP = {
+  square: '1x1',
+  portrait: '2x3',
+  landscape: '3x2',
 };
 
-const IDEOGRAM_V3_ASPECT_MAP = {
-  square: '1:1',
-  portrait: '2:3',
-  landscape: '3:2',
+const IDEOGRAM_V3_REFRAME_MAP = {
+  square: '1024x1024',
+  portrait: '512x1536',
+  landscape: '1280x800',
 };
 
 const RECRAFT_V4_SHAPE_MAP = {
@@ -3063,14 +3063,17 @@ function buildFluxRequestFromState(stateSettings = {}) {
 
 function buildIdeogramRequestFromState(stateSettings = {}) {
   const shape = stateSettings.shape || 'square';
-  const resolution = IDEOGRAM_V3_SHAPE_MAP[shape] || '1024x1024';
   const operation = stateSettings.operation || 'generate';
+  const aspectRatio = IDEOGRAM_V3_ASPECT_MAP[shape] || '1x1';
+  const resolution = operation === 'reframe'
+    ? (IDEOGRAM_V3_REFRAME_MAP[shape] || IDEOGRAM_V3_REFRAME_MAP.square)
+    : undefined;
   return {
     provider: 'ideogram_v3',
     prompt: (byId('imagePrompt')?.value || '').trim() || '',
     shape,
     resolution,
-    aspect_ratio: IDEOGRAM_V3_ASPECT_MAP[shape] || '1:1',
+    aspect_ratio: aspectRatio,
     image_size: '1K',
     operation,
     source_image: stateSettings.sourceImage || '',
@@ -3100,6 +3103,14 @@ function buildRecraftRequestFromState(stateSettings = {}) {
   const operation = stateSettings.operation || 'generate';
   const modelVariant = stateSettings.modelVariant || (stateSettings.outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4');
   const isVectorModel = /vector/i.test(modelVariant);
+  const isV3Model = /^recraftv3(?:_vector)?$/i.test(modelVariant);
+  const supportsStyles = isV3Model && ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'].includes(operation);
+  const supportsNegativePrompt = isV3Model && ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'].includes(operation);
+  const supportsTextLayout = isV3Model && ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'].includes(operation);
+  const style = supportsStyles ? (stateSettings.style || '') : '';
+  const styleId = supportsStyles && !style ? (stateSettings.styleId || '') : '';
+  const negativePrompt = supportsNegativePrompt ? (stateSettings.negativePrompt || '') : '';
+  const textLayout = supportsTextLayout ? (stateSettings.textLayout || '') : '';
   return {
     provider: 'recraft_v4',
     prompt: (byId('imagePrompt')?.value || '').trim() || '',
@@ -3112,9 +3123,9 @@ function buildRecraftRequestFromState(stateSettings = {}) {
     output_mode: operation === 'vectorize' || isVectorModel ? 'vector_svg' : (stateSettings.outputMode || 'raster'),
     source_image: stateSettings.sourceImage || '',
     mask_image: stateSettings.maskImage || '',
-    style: stateSettings.style || '',
-    style_id: stateSettings.styleId || '',
-    negative_prompt: stateSettings.negativePrompt || '',
+    style,
+    style_id: styleId,
+    negative_prompt: negativePrompt,
     strength: stateSettings.strength || undefined,
     seed: stateSettings.seed || undefined,
     background_color: stateSettings.backgroundColor || '',
@@ -3125,7 +3136,7 @@ function buildRecraftRequestFromState(stateSettings = {}) {
     svg_compression: !!stateSettings.svgCompression,
     limit_num_shapes: !!stateSettings.limitNumShapes,
     max_num_shapes: stateSettings.maxNumShapes || undefined,
-    text_layout: stateSettings.textLayout || '',
+    text_layout: textLayout,
   };
 }
 
