@@ -319,6 +319,7 @@
   let walletReserved = 0;
   let walletAvailable = 0;
   let userEmail = '';
+  let emailVerified = false;
   let identityId = null;
   let selectedPlan = null;
 
@@ -4450,4 +4451,3 @@
   console.log('[Credits] Hub credits module ready');
 
 })();
-
