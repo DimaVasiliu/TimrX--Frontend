@@ -124,7 +124,7 @@ function _ensureInjected() {
           <div class="secure-input-group code-input-group" style="max-width:100%;justify-content:center">
             <input type="text" id="authCodeInput"
                    maxlength="6" inputmode="numeric" pattern="[0-9]*"
-                   autocomplete="one-time-code" placeholder="000000" />
+                   autocomplete="one-time-code" placeholder="123456" />
           </div>
           <p id="authCodeError" class="secure-error"></p>
           <p id="authCodeMessage" class="secure-message"></p>
@@ -304,8 +304,12 @@ function _ensureInjected() {
     }
     #authCard .secure-input-group input::placeholder { color: #555; }
     #authCard .code-input-group input {
-      text-align: center; letter-spacing: 4px;
-      font-size: 20px; font-weight: 600; max-width: 220px;
+      text-align: center; letter-spacing: .35em;
+      font-size: 24px; font-weight: 700; max-width: 220px;
+      font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Consolas", monospace;
+    }
+    #authCard .code-input-group input::placeholder {
+      color: #444; font-weight: 400; letter-spacing: .35em;
     }
     #authCard .secure-actions {
       display: flex; gap: 12px; justify-content: center; margin-top: 8px;
