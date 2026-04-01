@@ -155,6 +155,22 @@
     return `${typeLabel} creation`;
   }
 
+  function normalizeCompareText(str) {
+    return String(str || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s]/g, '');
+  }
+
+  function getDetailTitle(post) {
+    const assetTitle = String(post?.asset?.title || '').trim();
+    const prompt = String(post?.prompt_public || '').trim();
+    if (!assetTitle) return '';
+    if (prompt && normalizeCompareText(assetTitle) === normalizeCompareText(prompt)) return '';
+    return assetTitle.length > 72 ? `${assetTitle.slice(0, 72).trim()}...` : assetTitle;
+  }
+
   function getReactionTotal(reactions) {
     return REACTIONS.reduce((sum, reaction) => sum + (reactions?.[reaction] || 0), 0);
   }
@@ -166,7 +182,6 @@
     const posterUrl = getBestPosterUrl(asset);
     const imageUrl = getBestImageUrl(asset);
     const modelUrl = getBestModelUrl(asset);
-    const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
     const title = sanitize(getAssetTitle(post));
     const name = sanitize(post.display_name || 'Anonymous');
     const initials = getInitials(post.display_name || 'Anonymous');
@@ -204,8 +219,8 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
           <div class="ccg-card__overlay">
-            <div class="ccg-card__info">
-              ${prompt ? `<p class="ccg-card__prompt">${prompt}</p>` : ''}
+            <div class="ccg-card__hover-meta">
+              <span class="ccg-card__hover-label">Open creation</span>
             </div>
           </div>
         </div>
@@ -921,7 +936,7 @@
     const mediaKind = getMediaKind(post);
     const postId = sanitize(post.id);
     const prompt = post.show_prompt && post.prompt_public ? sanitize(post.prompt_public) : '';
-    const title = sanitize(getAssetTitle(post));
+    const detailTitle = sanitize(getDetailTitle(post));
     const reactions = post.reactions || {};
     const reactionTotal = getReactionTotal(reactions);
     const tipTotal = post.tip_total || 0;
@@ -992,9 +1007,12 @@
             <span class="ccg-detail__creator-time">${ago}</span>
           </div>
         </div>
-        <div class="ccg-detail__headline-wrap">
+        <div class="ccg-detail__summary">
           ${genType ? `<div class="ccg-detail__type ${typeCls}">${sanitize(genType)}</div>` : ''}
-          <h2 class="ccg-detail__headline">${title}</h2>
+          <div class="ccg-detail__meta-line">
+            <span class="ccg-detail__eyebrow">Community creation</span>
+            ${detailTitle ? `<span class="ccg-detail__divider" aria-hidden="true"></span><span class="ccg-detail__asset-name">${detailTitle}</span>` : ''}
+          </div>
           ${statsHtml}
         </div>
       </div>

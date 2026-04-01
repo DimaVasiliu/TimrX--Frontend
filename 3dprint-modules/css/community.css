@@ -1372,6 +1372,7 @@ video.ccg-card__image {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: flex-end;
   padding: 16px;
   background: linear-gradient(
     180deg,
@@ -1437,22 +1438,32 @@ video.ccg-card__image {
   color: var(--ccg-accent-2);
 }
 
-.ccg-card__info {
+.ccg-card__hover-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 12, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transform: translateY(8px);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, background 0.2s ease, border-color 0.2s ease;
 }
-.ccg-card:hover .ccg-card__info { transform: translateY(0); }
+.ccg-card:hover .ccg-card__hover-meta {
+  transform: translateY(0);
+  background: rgba(18, 18, 22, 0.78);
+  border-color: rgba(255, 255, 255, 0.16);
+}
 
-.ccg-card__prompt {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.ccg-card__hover-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.84);
 }
 
 /* ── Gen-type badge ── */
@@ -1870,19 +1881,41 @@ video.ccg-card__image {
   margin-bottom: 0;
 }
 
-.ccg-detail__headline-wrap {
+.ccg-detail__summary {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.ccg-detail__headline {
-  margin: 0;
-  font-size: clamp(24px, 2.4vw, 34px);
-  font-weight: 720;
-  line-height: 1.08;
-  letter-spacing: -0.03em;
-  color: #fff;
+.ccg-detail__meta-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ccg-detail__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ccg-text-3);
+}
+
+.ccg-detail__divider {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ccg-detail__asset-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.76);
 }
 
 .ccg-detail__stats {
