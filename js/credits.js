@@ -1755,6 +1755,8 @@
     isPending: true,
     preCheckoutBalance: 0,
     isVideoPlan: false,
+    context: null,
+    planCredits: 0,
   };
 
   // Track focus before success modal opens
@@ -1791,6 +1793,7 @@
 
     successModalState.isOpen = true;
     successModalState.isPending = isPending;
+    successModalState.context = 'purchase';
 
     const successCard = successModal.querySelector('.success-card');
     const successTitle = successModal.querySelector('.success-title, h2');
@@ -1955,6 +1958,10 @@
 
     successModalState.isOpen = false;
     successModalState.isPending = false;
+    successModalState.context = null;
+    successModalState.isVideoPlan = false;
+    successModalState.preCheckoutBalance = 0;
+    successModalState.planCredits = 0;
 
     // Paid checkout requires verified email before billing, so credits
     // are always secured to the purchasing account. No post-purchase
@@ -2029,10 +2036,182 @@
     }
   }
 
+  function normalizeSubscriptionStatus(status) {
+    return status === 'pending_payment' ? 'processing' : status;
+  }
+
+  function openSubscriptionResultModal({
+    status = 'processing',
+    title = 'Subscription Processing',
+    message = 'We are finalizing your subscription.',
+    microcopy = '',
+    primaryText = 'Open Workspace',
+    primaryHref = 'https://timrx.live/3dprint?refresh=1',
+  } = {}) {
+    if (!successModal) return;
+
+    lastFocusBeforeSuccessModal = document.activeElement;
+    successModalState.isOpen = true;
+    successModalState.isPending = status === 'processing';
+    successModalState.context = 'subscription';
+    successModalState.isVideoPlan = false;
+    successModalState.planCredits = 0;
+    successModalState.preCheckoutBalance = walletAvailable || 0;
+
+    const successCard = successModal.querySelector('.success-card');
+    const successTitle = successModal.querySelector('.success-title, h2');
+    const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
+    const creditsDisplay = successModal.querySelector('.success-credits');
+    const addedBadge = document.getElementById('successAddedBadge');
+    const microcopyEl = document.getElementById('successMicrocopy');
+    const primaryCta = document.getElementById('successPrimaryCta');
+    const unitEl = successModal.querySelector('.success-unit');
+
+    if (successCard) {
+      successCard.classList.remove('celebrate', 'pending', 'failed');
+      successCard.style.animation = 'none';
+      successCard.offsetHeight;
+      successCard.style.animation = '';
+      if (status === 'active') {
+        successCard.classList.add('celebrate');
+      } else if (status === 'processing') {
+        successCard.classList.add('pending');
+      } else {
+        successCard.classList.add('failed');
+      }
+    }
+
+    if (successTitle) successTitle.textContent = title;
+    if (successMessage) successMessage.textContent = message;
+    if (creditsDisplay) creditsDisplay.style.display = 'none';
+    if (addedBadge) {
+      addedBadge.textContent = '';
+      addedBadge.classList.remove('visible');
+    }
+    if (microcopyEl) {
+      microcopyEl.textContent = microcopy;
+      microcopyEl.style.display = microcopy ? '' : 'none';
+    }
+    if (primaryCta) {
+      primaryCta.textContent = primaryText;
+      primaryCta.href = primaryHref;
+    }
+    if (unitEl) unitEl.textContent = 'subscription';
+
+    successModal.classList.add('open');
+    successModal.inert = false;
+    requestAnimationFrame(() => {
+      const closeBtn = successModal.querySelector('button, [data-action="close"]');
+      closeBtn?.focus();
+    });
+  }
+
+  async function handleSubscriptionCheckoutReturn(planCode) {
+    const subPlanInfo = Object.values(SUB_PLANS.monthly).concat(Object.values(SUB_PLANS.yearly))
+      .filter(Boolean)
+      .find(p => p.plan_code === planCode);
+
+    const planName = subPlanInfo ? subPlanInfo.name : 'Subscription';
+    const creditsPerMonth = subPlanInfo ? subPlanInfo.credits_per_month : 0;
+    const videoCreditsPerMonth = subPlanInfo ? (subPlanInfo.video_credits_per_month || 0) : 0;
+    const cycleCreditsText = (creditsPerMonth > 0 && videoCreditsPerMonth > 0)
+      ? `${creditsPerMonth.toLocaleString()} general + ${videoCreditsPerMonth.toLocaleString()} video credits each billing cycle`
+      : (creditsPerMonth > 0 ? `${creditsPerMonth.toLocaleString()} credits each billing cycle` : 'credits each billing cycle');
+
+    openSubscriptionResultModal({
+      status: 'processing',
+      title: 'Checking Subscription',
+      message: `Confirming ${planName}…`,
+      microcopy: 'This usually takes a moment.',
+      primaryText: 'Open Workspace',
+      primaryHref: 'https://timrx.live/3dprint?refresh=1',
+    });
+
+    try {
+      const result = await apiFetch('/api/billing/subscriptions/status', { timeout: 15000 });
+      const hasSubscription = result.ok && result.data?.ok && result.data?.has_subscription;
+      const subscription = hasSubscription ? result.data.subscription : null;
+      const status = normalizeSubscriptionStatus(subscription?.status);
+
+      if (status === 'active') {
+        openSubscriptionResultModal({
+          status,
+          title: 'Subscription Active',
+          message: `${planName} is active. ${cycleCreditsText} are now unlocked.`,
+          microcopy: 'Recurring billing is enabled for future refills.',
+          primaryText: 'Start Creating',
+          primaryHref: 'https://timrx.live/3dprint?refresh=1',
+        });
+        await Promise.allSettled([
+          refreshCredits({ force: true, maxRetries: 5 }),
+          fetchSubscription(true),
+          loadSubscriptionSummary(0, true),
+        ]);
+        return;
+      }
+
+      if (status === 'processing') {
+        openSubscriptionResultModal({
+          status,
+          title: 'Subscription Processing',
+          message: subscription?.status_message || `${planName} is waiting for payment confirmation. SEPA and some bank methods can take 1-2 business days.`,
+          microcopy: 'The subscription pill will update automatically once payment clears.',
+          primaryText: 'Open Workspace',
+          primaryHref: 'https://timrx.live/3dprint?refresh=1',
+        });
+        await Promise.allSettled([
+          fetchSubscription(true),
+          loadSubscriptionSummary(0, true),
+        ]);
+        return;
+      }
+
+      if (status === 'past_due') {
+        openSubscriptionResultModal({
+          status,
+          title: 'Subscription Payment Failed',
+          message: 'We could not confirm your first subscription payment. Please retry or update your payment method.',
+          microcopy: 'No credits were added.',
+          primaryText: 'Review Plans',
+          primaryHref: '#pricing',
+        });
+      } else {
+        openSubscriptionResultModal({
+          status: 'processing',
+          title: 'Subscription Submitted',
+          message: `${planName} was submitted, but the final status is still syncing. Refresh in a moment if the subscription pill does not appear.`,
+          microcopy: 'No action is needed unless the status stays unchanged.',
+          primaryText: 'Open Workspace',
+          primaryHref: 'https://timrx.live/3dprint?refresh=1',
+        });
+      }
+
+      await Promise.allSettled([
+        fetchSubscription(true),
+        loadSubscriptionSummary(0, true),
+      ]);
+    } catch (err) {
+      console.warn('[Credits] Subscription return check failed:', err);
+      openSubscriptionResultModal({
+        status: 'processing',
+        title: 'Subscription Submitted',
+        message: `${planName} was submitted. We are still confirming the final status.`,
+        microcopy: 'Refresh in a moment if the subscription pill does not appear.',
+        primaryText: 'Open Workspace',
+        primaryHref: 'https://timrx.live/3dprint?refresh=1',
+      });
+      await Promise.allSettled([
+        fetchSubscription(true),
+        loadSubscriptionSummary(0, true),
+      ]);
+    }
+  }
+
   // Subscribe to wallet events to update modal automatically
   window.addEventListener('timrx:wallet', (event) => {
     const wallet = event.detail;
     if (!wallet || !successModalState.isOpen) return;
+    if (successModalState.context !== 'purchase') return;
 
     // Use the correct pool balance depending on what was purchased
     const relevantBalance = successModalState.isVideoPlan
@@ -3159,7 +3338,13 @@
         identityId = data.identity_id || null;
         userEmail = data.email || null;
         emailVerified = data.email_verified || false;
-        console.log('[Credits][Hub] Identity confirmed:', identityId?.slice(0, 8));
+        // Sync identity fields to WalletStore so _syncBeaconFromStore picks them up
+        WalletStore.update({
+          identityId: data.identity_id,
+          email: data.email,
+          emailVerified: data.email_verified,
+        });
+        console.log('[Credits][Hub] Identity confirmed:', identityId?.slice(0, 8), 'verified:', emailVerified);
         // Update account icon + button states now that we know auth status
         updateEmailBeaconUI();
       }
@@ -3207,71 +3392,7 @@
     sessionStorage.removeItem('timrx_pending_sub_plan');
     sessionStorage.removeItem('timrx_pre_checkout_balance');
     sessionStorage.removeItem('timrx_pending_payment_id');
-
-    const subPlanInfo = Object.values(SUB_PLANS.monthly).concat(Object.values(SUB_PLANS.yearly))
-      .filter(Boolean)
-      .find(p => p.plan_code === pendingSubPlan);
-    const planName = subPlanInfo ? subPlanInfo.name : 'Subscription';
-    const creditsPerMonth = subPlanInfo ? subPlanInfo.credits_per_month : 0;
-    const videoCreditsPerMonth = subPlanInfo ? (subPlanInfo.video_credits_per_month || 0) : 0;
-
-    // Show subscription success in the existing success modal
-    successModalState.preCheckoutBalance = 0;
-
-    // Build subscription success message with both pools
-    let subSuccessMsg = `Your ${planName} plan is active.`;
-    if (creditsPerMonth > 0 && videoCreditsPerMonth > 0) {
-      subSuccessMsg += ` ${creditsPerMonth} general + ${videoCreditsPerMonth} video credits added.`;
-    } else if (creditsPerMonth > 0) {
-      subSuccessMsg += ` ${creditsPerMonth} credits have been added.`;
-    }
-
-    // Open success modal with subscription-specific text
-    if (successModal) {
-      const successCard = successModal.querySelector('.success-card');
-      const successTitle = successModal.querySelector('.success-title, h2');
-      const successMessage = successModal.querySelector('.success-message, .modal-subtitle');
-      const creditsDisplay = successModal.querySelector('.success-credits');
-      const addedBadge = document.getElementById('successAddedBadge');
-      const microcopy = document.getElementById('successMicrocopy');
-      const primaryCta = document.getElementById('successPrimaryCta');
-
-      if (successTitle) successTitle.textContent = 'Subscription Active';
-      if (successMessage) successMessage.textContent = subSuccessMsg;
-      if (creditsDisplay) creditsDisplay.style.display = 'none';
-
-      // Subscription celebration
-      if (successCard) {
-        successCard.classList.remove('pending', 'failed');
-        successCard.classList.add('celebrate');
-        // Re-trigger entrance animation
-        successCard.style.animation = 'none';
-        successCard.offsetHeight;
-        successCard.style.animation = '';
-      }
-      if (addedBadge) { addedBadge.textContent = ''; addedBadge.classList.remove('visible'); }
-      if (microcopy) {
-        microcopy.textContent = "Let's build something.";
-        microcopy.style.display = '';
-      }
-      if (primaryCta) {
-        primaryCta.textContent = 'Start Creating';
-        primaryCta.href = 'https://timrx.live/3dprint?refresh=1';
-      }
-
-      successModal.classList.remove('pending', 'failed');
-      successModal.classList.add('open');
-      successModal.inert = false;
-      successModalState.isOpen = true;
-      successModalState.isPending = false;
-      requestAnimationFrame(() => {
-        const closeBtn = successModal.querySelector('button, [data-action="close"]');
-        closeBtn?.focus();
-      });
-    }
-
-    // Refresh wallet to pick up the granted credits
-    refreshCredits({ force: true, maxRetries: 5 });
+    void handleSubscriptionCheckoutReturn(pendingSubPlan);
 
   } else if (checkoutStatus === 'success') {
     // ── One-time purchase return flow (existing) ──
@@ -3786,7 +3907,14 @@
       return;
     }
 
-    const { plan_name, credits_per_month, status, current_period_end, pause_reason } = currentSubscription;
+    const {
+      plan_name,
+      credits_per_month,
+      current_period_end,
+      pause_reason,
+      status_message,
+    } = currentSubscription;
+    const status = normalizeSubscriptionStatus(currentSubscription.status);
 
     // Check if subscription is paused due to email verification
     const isPausedForEmail = pause_reason === 'email_unverified';
@@ -3803,7 +3931,7 @@
       if (subscriptionEndDate && current_period_end) {
         subscriptionEndDate.textContent = formatDate(current_period_end);
       }
-    } else if (status === 'active' || status === 'past_due') {
+    } else if (status === 'active' || status === 'past_due' || status === 'processing') {
       // Show active subscription card
       subscriptionSection?.classList.remove('hidden');
       subscriptionCard.classList.remove('hidden');
@@ -3821,6 +3949,9 @@
           subscriptionStatus.textContent = 'Past Due';
           subscriptionStatus.classList.add('past-due');
           subscriptionStatus.classList.remove('paused');
+        } else if (status === 'processing') {
+          subscriptionStatus.textContent = 'Processing';
+          subscriptionStatus.classList.remove('past-due', 'paused');
         } else {
           subscriptionStatus.textContent = 'Active';
           subscriptionStatus.classList.remove('past-due', 'paused');
@@ -3831,6 +3962,8 @@
       if (subscriptionNext) {
         if (status === 'past_due') {
           subscriptionNext.textContent = 'Credits paused — waiting for payment';
+        } else if (status === 'processing') {
+          subscriptionNext.textContent = status_message || 'Waiting for first payment confirmation';
         } else {
           const refillDate = currentSubscription.credits_next_refill || current_period_end;
           if (refillDate) {
@@ -4067,8 +4200,8 @@
     if (!subscriptionStatusPill) return;
 
     // Dedupe: return in-flight promise or skip if fetched recently (10s)
-    if (_subSummaryInFlight && retryCount === 0) return _subSummaryInFlight;
-    if (retryCount === 0 && _subSummaryFetchedAt && (Date.now() - _subSummaryFetchedAt) < 10000) return;
+    if (!force && _subSummaryInFlight && retryCount === 0) return _subSummaryInFlight;
+    if (!force && retryCount === 0 && _subSummaryFetchedAt && (Date.now() - _subSummaryFetchedAt) < 10000) return;
 
     try {
       _subSummaryInFlight = apiFetch('/api/billing/subscriptions/summary', { timeout: 15000 });
@@ -4081,7 +4214,7 @@
         if (retryCount < 2) {
           console.log(`[Credits] Retrying subscription summary (attempt ${retryCount + 2})...`);
           await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
-          return loadSubscriptionSummary(retryCount + 1);
+          return loadSubscriptionSummary(retryCount + 1, force);
         }
         console.warn('[Credits] Failed to load subscription summary:', result.error);
         subscriptionStatusPill.classList.add('hidden');
@@ -4153,7 +4286,7 @@
       // Retry on error
       if (retryCount < 2) {
         await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
-        return loadSubscriptionSummary(retryCount + 1);
+        return loadSubscriptionSummary(retryCount + 1, force);
       }
       subscriptionStatusPill.classList.add('hidden');
     }
@@ -4188,22 +4321,24 @@
     if (!manageSubModal) return;
 
     // Fetch fresh data then show
-    fetchSubscription().then(() => {
+    fetchSubscription(true).then(() => {
       // Reset all states
       if (manageSubActive) manageSubActive.style.display = 'none';
       if (manageSubPastDue) manageSubPastDue.style.display = 'none';
       if (manageSubCancelled) manageSubCancelled.style.display = 'none';
       if (manageSubNone) manageSubNone.style.display = 'none';
 
+      const status = normalizeSubscriptionStatus(currentSubscription?.status);
+
       if (!currentSubscription) {
         if (manageSubNone) manageSubNone.style.display = 'block';
-      } else if (currentSubscription.status === 'cancelled') {
+      } else if (status === 'cancelled') {
         if (manageSubCancelled) manageSubCancelled.style.display = 'block';
         const cp = document.getElementById('manageSubCancelledPlan');
         const ed = document.getElementById('manageSubEndDate');
         if (cp) cp.textContent = currentSubscription.plan_name;
         if (ed) ed.textContent = formatDate(currentSubscription.current_period_end);
-      } else if (currentSubscription.status === 'past_due') {
+      } else if (status === 'past_due') {
         // Show dedicated past_due panel
         if (manageSubPastDue) manageSubPastDue.style.display = 'block';
         const pdp = document.getElementById('manageSubPastDuePlan');
@@ -4219,11 +4354,25 @@
         if (mp) mp.textContent = currentSubscription.plan_name;
         if (mc) mc.textContent = (currentSubscription.credits_per_month || 0).toLocaleString();
         if (ms) {
-          ms.textContent = 'Active';
-          ms.style.color = '#4ade80';
+          if (status === 'processing') {
+            ms.textContent = 'Processing';
+            ms.style.color = '#93c5fd';
+          } else if (currentSubscription.pause_reason === 'email_unverified') {
+            ms.textContent = 'Paused';
+            ms.style.color = '#fbbf24';
+          } else {
+            ms.textContent = 'Active';
+            ms.style.color = '#4ade80';
+          }
         }
         const refill = currentSubscription.credits_next_refill || currentSubscription.current_period_end;
-        if (mn) mn.textContent = refill ? formatDate(refill) : '--';
+        if (mn) {
+          if (status === 'processing') {
+            mn.textContent = currentSubscription.status_message || 'Awaiting first payment confirmation';
+          } else {
+            mn.textContent = refill ? formatDate(refill) : '--';
+          }
+        }
       }
     });
 
