@@ -284,11 +284,13 @@ function confirmCostBeforeAction(action, count = 1) {
     style.id = 'costConfirmStyles';
     style.textContent = `
       .cost-confirm-overlay {
-        position: fixed; inset: 0;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
         background: rgba(0,0,0,.55);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
-        z-index: 9999;
+        z-index: 999999;
         display: flex; align-items: center; justify-content: center;
         animation: ccFadeIn .15s ease;
       }
@@ -415,7 +417,8 @@ function confirmCostBeforeAction(action, count = 1) {
     const escHandler = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', escHandler); cleanup(false); } };
     document.addEventListener('keydown', escHandler);
 
-    document.body.appendChild(overlay);
+    // Append to <html> to escape any transformed parents that break position:fixed
+    document.documentElement.appendChild(overlay);
 
     // Focus the confirm button
     setTimeout(() => overlay.querySelector('.cc-yes')?.focus(), 50);

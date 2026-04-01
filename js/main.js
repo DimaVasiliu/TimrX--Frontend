@@ -763,11 +763,10 @@ function initViewerToolbar() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || `Server error (${res.status})`);
+        throw new Error(res.error || `Server error (${res.status})`);
       }
-      renderPrintResults(data);
+      renderPrintResults(res.data);
     } catch (err) {
       showPrintPanelState('error');
       const errMsg = document.getElementById('printPanelErrorMsg');
