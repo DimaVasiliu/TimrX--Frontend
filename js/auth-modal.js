@@ -134,23 +134,36 @@ function _ensureInjected() {
       </div>
 
       <!-- Step 3A: Welcome (new user) -->
-      <div id="authStep3a" class="auth-step secure-state" style="display:none;text-align:center">
-        <div class="secure-icon" style="color:#4ade80"><i class="fa-solid fa-circle-check"></i></div>
-        <h3>Welcome to TimrX!</h3>
-        <p class="secure-subtitle">50 free credits have been added to your account</p>
-        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:12px">
+      <div id="authStep3a" class="auth-step secure-state auth-welcome-step" style="display:none;text-align:center">
+        <div class="auth-welcome-glow"></div>
+        <div class="auth-welcome-badge">
+          <i class="fa-solid fa-gift"></i>
+        </div>
+        <h3 class="auth-welcome-title">Welcome to TimrX!</h3>
+        <div class="auth-credits-grant">
+          <span class="auth-credits-number" id="authCreditsCounter">50</span>
+          <span class="auth-credits-label">free credits added</span>
+        </div>
+        <p class="secure-subtitle" style="margin-top:12px;opacity:.5;font-size:12px">Start generating AI images, 3D models & videos</p>
+        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:16px">
           <button type="button" id="authGoWorkspace" class="btn auth-action-btn">Start Creating</button>
           <button type="button" id="authBrowsePlans" class="btn ghost small">Browse Plans</button>
         </div>
       </div>
 
       <!-- Step 3B: Welcome Back (session switched) -->
-      <div id="authStep3b" class="auth-step secure-state" style="display:none;text-align:center">
-        <div class="secure-icon" style="color:#4ade80"><i class="fa-solid fa-circle-check"></i></div>
-        <h3>Welcome back!</h3>
-        <p class="secure-subtitle" id="authWbEmail"></p>
-        <p id="authWbBalance" style="font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 0"></p>
-        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:12px">
+      <div id="authStep3b" class="auth-step secure-state auth-welcome-step" style="display:none;text-align:center">
+        <div class="auth-welcome-glow"></div>
+        <div class="auth-welcome-badge auth-wb-badge">
+          <i class="fa-solid fa-hand-peace"></i>
+        </div>
+        <h3 class="auth-welcome-title">Welcome back!</h3>
+        <p class="secure-subtitle" id="authWbEmail" style="margin-bottom:8px"></p>
+        <div class="auth-credits-grant auth-credits-balance">
+          <span class="auth-credits-number" id="authWbBalance">0</span>
+          <span class="auth-credits-label">credits</span>
+        </div>
+        <div class="secure-actions" style="flex-direction:column;gap:8px;align-items:center;margin-top:16px">
           <button type="button" id="authWbGoWorkspace" class="btn auth-action-btn">Go to Workspace</button>
           <button type="button" id="authWbBrowsePlans" class="btn ghost small">Browse Plans</button>
         </div>
@@ -228,6 +241,74 @@ function _ensureInjected() {
     }
     #authCard .secure-input-group input {
       width: 100%;
+    }
+
+    /* ── Welcome / Welcome Back step ── */
+    #authCard .auth-welcome-step {
+      position: relative;
+      overflow: hidden;
+    }
+    #authCard .auth-welcome-glow {
+      position: absolute;
+      top: -40px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+      pointer-events: none;
+      animation: authPulseGlow 3s ease-in-out infinite;
+    }
+    @keyframes authPulseGlow {
+      0%, 100% { opacity: .5; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+    }
+    #authCard .auth-welcome-badge {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.03) 100%);
+      border: 1px solid rgba(255,255,255,.10);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      color: #e2e8f0;
+      margin: 0 auto 16px;
+      animation: authBadgePop .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes authBadgePop {
+      from { transform: scale(0) rotate(-20deg); opacity: 0; }
+      to { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    #authCard .auth-welcome-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 0 0 14px;
+      animation: authFadeUp .5s ease both .15s;
+    }
+    @keyframes authFadeUp {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    #authCard .auth-credits-grant {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      animation: authFadeUp .5s ease both .3s;
+    }
+    #authCard .auth-credits-number {
+      font-size: 32px;
+      font-weight: 800;
+      color: #f1f5f9;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.02em;
+    }
+    #authCard .auth-credits-label {
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 500;
     }
 
     /* Logout button — subtle, bottom of account view */
@@ -416,8 +497,9 @@ async function _handleVerify() {
         const walletData = inlineWallet || await _fetchWallet();
         _setText('authWbEmail', _pendingEmail);
         const balance = walletData?.balance ?? walletData?.available ?? 0;
-        _setText('authWbBalance', `Balance: ${balance} credits`);
+        _setText('authWbBalance', balance.toLocaleString());
         _showStep('welcome-back');
+        _animateCounter('authWbBalance', balance);
 
         window.dispatchEvent(new CustomEvent('timrx:auth:switched', {
           detail: { email: _pendingEmail, identityId },
@@ -426,6 +508,7 @@ async function _handleVerify() {
         await _fetchWallet();
         const creditsGranted = data.welcome_bonus_credits || 50;
         _showStep('welcome');
+        _animateCounter('authCreditsCounter', creditsGranted);
 
         window.dispatchEvent(new CustomEvent('timrx:auth:verified', {
           detail: { email: _pendingEmail, identityId, creditsGranted },
@@ -531,6 +614,22 @@ async function _fetchWalletAndShow(elementId) {
 }
 
 // ── DOM helpers ─────────────────────────────────────────────────────────────
+
+function _animateCounter(elementId, target) {
+  const el = _el(elementId);
+  if (!el || target <= 0) return;
+  const duration = 800;
+  const start = performance.now();
+  const from = 0;
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const val = Math.round(from + (target - from) * eased);
+    el.textContent = val.toLocaleString();
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
 
 function _el(id) { return document.getElementById(id); }
 

@@ -916,8 +916,8 @@
   }
 
   function validateSubCheckout() {
-    const email = subCheckoutEmail?.value?.trim() || '';
-    const valid = selectedSubPlan && isValidEmail(email);
+    // Email verification is handled by auth gate on click — just need a plan selected
+    const valid = !!selectedSubPlan;
     if (subCheckoutBtn) subCheckoutBtn.disabled = !valid;
     return valid;
   }
@@ -985,22 +985,20 @@
    */
   async function handleSubEmailContinue() {
     if (!validateSubCheckout()) {
-      showSubError('Please enter a valid email.');
+      showSubError('Please select a plan.');
       return;
     }
 
-    const email = subCheckoutEmail.value.trim();
     clearSubMessages(false);
     setSubBtnLoading(subCheckoutBtn, true);
 
-    // If user already has this email verified, go straight to checkout
-    if (emailVerified && userEmail && userEmail.toLowerCase() === email.toLowerCase()) {
-      console.log('[Credits] Email already verified, proceeding to checkout');
-      await executeSubCheckout();
-      return;
-    }
+    // Email is already verified via auth gate — go straight to checkout
+    console.log('[Credits] Email verified via auth gate, proceeding to subscription checkout');
+    await executeSubCheckout();
+    return;
 
-    // Otherwise, need to verify email first - send code via attach
+    // Legacy code below kept for reference but unreachable
+    const email = subCheckoutEmail?.value?.trim() || '';
     subPendingEmail = email;
     subIsRestoreMode = false;
     showSubMessage('Sending verification code...');
@@ -1367,8 +1365,8 @@
   }
 
   function validateCheckoutForm() {
-    const email = checkoutEmail?.value?.trim() || '';
-    const isValid = selectedPlan && isValidEmail(email);
+    // Email verification is handled by auth gate on click — just need a plan selected
+    const isValid = !!selectedPlan;
 
     if (checkoutBtn) {
       checkoutBtn.disabled = !isValid;
@@ -1574,8 +1572,8 @@
   }
 
   function validateVideoBuyForm() {
-    const email = videoBuyEmail?.value?.trim() || '';
-    const isValid = isValidEmail(email) && selectedVideoPlan;
+    // Email verification is handled by auth gate on click — just need a plan selected
+    const isValid = !!selectedVideoPlan;
     if (videoBuyBtn) videoBuyBtn.disabled = !isValid;
     return isValid;
   }
@@ -2392,7 +2390,7 @@
 
   async function startCheckout() {
     if (!validateCheckoutForm()) {
-      showCheckoutError('Please select a plan and enter a valid email.');
+      showCheckoutError('Please select a plan.');
       return;
     }
 
