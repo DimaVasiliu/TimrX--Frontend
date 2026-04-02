@@ -891,16 +891,80 @@
           </div>
 
           <details class="advanced-toggles" style="margin-top:8px">
-            <summary style="font-size:11px;color:#888;cursor:pointer;user-select:none">Advanced Options</summary>
-            <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#ccc;cursor:pointer">
-                <input type="checkbox" id="modelShouldRemesh" style="accent-color:#6366f1">
-                Auto-remesh output
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#ccc;cursor:pointer">
-                <input type="checkbox" id="modelShouldTexture" checked style="accent-color:#6366f1">
-                Generate textures
-              </label>
+            <summary style="font-size:11px;color:#888;cursor:pointer;user-select:none">Advanced Preview Settings</summary>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
+              <div class="field-row">
+                <span class="field-label-inline">Auto-remesh Output</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="modelShouldRemesh">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div id="modelRemeshSettings" class="model-preview-advanced-group" style="display:none">
+                <div class="inline-field">
+                  <label for="modelTopology">Topology</label>
+                  <select id="modelTopology">
+                    <option value="triangle" selected>Triangle</option>
+                    <option value="quad">Quad</option>
+                  </select>
+                </div>
+                <div class="inline-field">
+                  <label for="modelTargetPolycount">Target Polycount</label>
+                  <input type="number" id="modelTargetPolycount" value="30000" min="100" max="300000" step="1000">
+                </div>
+              </div>
+
+              <div class="field-row">
+                <span class="field-label-inline">Content Moderation</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="modelModeration">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="field-row">
+                <span class="field-label-inline">Auto Size</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="modelAutoSize">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div id="modelAutoSizeSettings" class="model-preview-advanced-group" style="display:none">
+                <div class="inline-field">
+                  <label for="modelOriginAt">Origin</label>
+                  <select id="modelOriginAt">
+                    <option value="bottom" selected>Bottom</option>
+                    <option value="center">Center</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="texture-format-group" style="margin-top:0">
+                <span class="field-label-inline">Additional Export Formats</span>
+                <div class="texture-format-grid" id="modelTargetFormats">
+                  <label class="texture-format-option">
+                    <input type="checkbox" value="obj">
+                    <span class="texture-format-chip">OBJ</span>
+                  </label>
+                  <label class="texture-format-option">
+                    <input type="checkbox" value="fbx">
+                    <span class="texture-format-chip">FBX</span>
+                  </label>
+                  <label class="texture-format-option">
+                    <input type="checkbox" value="stl">
+                    <span class="texture-format-chip">STL</span>
+                  </label>
+                  <label class="texture-format-option">
+                    <input type="checkbox" value="usdz">
+                    <span class="texture-format-chip">USDZ</span>
+                  </label>
+                </div>
+                <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add OBJ / FBX / STL / USDZ only when you want those preview exports generated too.</p>
+              </div>
+
+              <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want Meshy preview to honor topology and target polycount.</p>
             </div>
           </details>
 
@@ -5266,6 +5330,58 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           }
         });
       }
+
+      const modelTypeSelect = leftStack.querySelector('#modelModelType');
+      const modelShouldRemesh = leftStack.querySelector('#modelShouldRemesh');
+      const modelRemeshSettings = leftStack.querySelector('#modelRemeshSettings');
+      const modelModeration = leftStack.querySelector('#modelModeration');
+      const modelAutoSize = leftStack.querySelector('#modelAutoSize');
+      const modelAutoSizeSettings = leftStack.querySelector('#modelAutoSizeSettings');
+      const modelOriginAt = leftStack.querySelector('#modelOriginAt');
+      const modelPreviewAdvancedNote = leftStack.querySelector('#modelPreviewAdvancedNote');
+
+      const syncPreviewAdvancedControls = () => {
+        const isLowPoly = (modelTypeSelect?.value || '').toLowerCase() === 'lowpoly';
+        if (modelShouldRemesh) {
+          if (isLowPoly) modelShouldRemesh.checked = false;
+          modelShouldRemesh.disabled = isLowPoly;
+        }
+
+        const remeshEnabled = !!modelShouldRemesh?.checked && !isLowPoly;
+        if (modelRemeshSettings) {
+          modelRemeshSettings.style.display = remeshEnabled ? 'grid' : 'none';
+          modelRemeshSettings.querySelectorAll('input, select').forEach((el) => {
+            el.disabled = !remeshEnabled;
+          });
+        }
+
+        const autoSizeEnabled = !!modelAutoSize?.checked;
+        if (modelAutoSizeSettings) {
+          modelAutoSizeSettings.style.display = autoSizeEnabled ? 'grid' : 'none';
+          modelAutoSizeSettings.querySelectorAll('input, select').forEach((el) => {
+            el.disabled = !autoSizeEnabled;
+          });
+        }
+        if (autoSizeEnabled && modelOriginAt && !modelOriginAt.value) {
+          modelOriginAt.value = 'bottom';
+        }
+
+        if (modelPreviewAdvancedNote) {
+          if (isLowPoly) {
+            modelPreviewAdvancedNote.textContent = 'Low Poly preview ignores Meshy remesh controls and returns simplified geometry directly.';
+          } else if (remeshEnabled) {
+            modelPreviewAdvancedNote.textContent = 'Auto-remesh lets preview honor topology and target polycount before the refine stage.';
+          } else {
+            modelPreviewAdvancedNote.textContent = 'Turn on auto-remesh if you want Meshy preview to honor topology and target polycount.';
+          }
+        }
+      };
+
+      modelTypeSelect?.addEventListener('change', syncPreviewAdvancedControls);
+      modelShouldRemesh?.addEventListener('change', syncPreviewAdvancedControls);
+      modelAutoSize?.addEventListener('change', syncPreviewAdvancedControls);
+      modelModeration?.addEventListener('change', syncPreviewAdvancedControls);
+      syncPreviewAdvancedControls();
 
       // ========================================
       // PROMPT ENHANCE: Bind enhance buttons

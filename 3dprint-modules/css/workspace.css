@@ -1931,6 +1931,17 @@
   margin: 0;
 }
 
+.model-preview-advanced-group {
+  display: grid;
+  gap: 8px;
+}
+
+.model-preview-advanced-group input:disabled,
+.model-preview-advanced-group select:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
 .material-chip {
   padding: 5px 10px;
   font-size: 11px;

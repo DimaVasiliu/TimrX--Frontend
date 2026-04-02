@@ -1633,6 +1633,49 @@ function getRemeshFormValues() {
 }
 
 /**
+ * Get text-to-3d preview form values from the UI
+ */
+function getPreviewFormValues() {
+  const modelType = (byId('modelModelType')?.value || '').trim().toLowerCase();
+  const isLowPoly = modelType === 'lowpoly';
+  const should_remesh = isLowPoly ? false : !!byId('modelShouldRemesh')?.checked;
+  const moderation = !!byId('modelModeration')?.checked;
+  const auto_size = !!byId('modelAutoSize')?.checked;
+  const topologyValue = (byId('modelTopology')?.value || 'triangle').trim().toLowerCase();
+  const targetPolyInput = parseInt(byId('modelTargetPolycount')?.value || '30000', 10);
+  const originAt = (byId('modelOriginAt')?.value || 'bottom').trim().toLowerCase();
+  const targetFormatContainer = document.querySelector('#modelTargetFormats');
+  const targetFormatInputs = Array.from(document.querySelectorAll('#modelTargetFormats input[type="checkbox"]:checked'));
+  const target_formats = targetFormatContainer
+    ? Array.from(new Set([
+        'glb',
+        ...targetFormatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)
+      ]))
+    : ['glb'];
+
+  const values = {
+    model_type: modelType || 'standard',
+    should_remesh,
+    moderation,
+    auto_size,
+    target_formats
+  };
+
+  if (should_remesh) {
+    values.topology = topologyValue === 'quad' ? 'quad' : 'triangle';
+    values.target_polycount = Number.isFinite(targetPolyInput)
+      ? Math.max(100, Math.min(300000, targetPolyInput))
+      : 30000;
+  }
+
+  if (auto_size && (originAt === 'bottom' || originAt === 'center')) {
+    values.origin_at = originAt;
+  }
+
+  return values;
+}
+
+/**
  * Get texture form values from the UI
  */
 async function getTextureFormValues() {
@@ -2233,6 +2276,14 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           license: meta.license || 'private',
           symmetry_mode: meta.symmetry_mode || 'auto',
           pose_mode: meta.pose_mode || '',
+          model_type: meta.model_type || 'standard',
+          should_remesh: !!meta.should_remesh,
+          topology: meta.topology || '',
+          target_polycount: meta.target_polycount || null,
+          moderation: !!meta.moderation,
+          target_formats: meta.target_formats || [],
+          auto_size: !!meta.auto_size,
+          origin_at: meta.origin_at || '',
           batch_count: Math.max(1, parseInt(meta.batch_count, 10) || 1),
           batch_slot: meta.batch_slot || 1,
           batch_group_id: meta.batch_group_id || null,
@@ -2408,6 +2459,14 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           created_at: normalizeEpochMs(st.created_at),
           model: meta.model || 'latest',
           license: meta.license || 'private',
+          model_type: meta.model_type || 'standard',
+          should_remesh: !!meta.should_remesh,
+          topology: meta.topology || '',
+          target_polycount: meta.target_polycount || null,
+          moderation: !!meta.moderation,
+          target_formats: meta.target_formats || [],
+          auto_size: !!meta.auto_size,
+          origin_at: meta.origin_at || '',
           stage: kind,
           thumbnail_url: st.thumbnail_url || meta.thumbnail_url || '',
           glb_url: glbDirect,
@@ -2670,6 +2729,7 @@ export async function onGenerateClick() {
       // Generate idempotency key for this specific generation
       const idempotencyKey = State.generateIdempotencyKey();
       const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${Date.now()}-${slot}`);
+      const previewValues = getPreviewFormValues();
       const tempMeta = {
         prompt,
         model,
@@ -2677,6 +2737,14 @@ export async function onGenerateClick() {
         license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
+        model_type: previewValues.model_type,
+        should_remesh: previewValues.should_remesh,
+        topology: previewValues.topology,
+        target_polycount: previewValues.target_polycount,
+        moderation: previewValues.moderation,
+        target_formats: previewValues.target_formats,
+        auto_size: previewValues.auto_size,
+        origin_at: previewValues.origin_at || '',
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId,
@@ -2687,26 +2755,26 @@ export async function onGenerateClick() {
       addGeneratingPlaceholder(tempId, tempMeta);
       State.savePendingMeta(tempId, tempMeta);
 
-      // Collect advanced options
-      const modelType = byId('modelModelType')?.value || '';
-      const shouldRemesh = byId('modelShouldRemesh')?.checked || false;
-      const shouldTexture = byId('modelShouldTexture')?.checked ?? true;
-
       const payload = {
         prompt,
         model,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
         license,
+        model_type: previewValues.model_type,
+        should_remesh: previewValues.should_remesh,
+        moderation: previewValues.moderation,
+        auto_size: previewValues.auto_size,
+        target_formats: previewValues.target_formats,
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId,
         refine: false
       };
 
-      if (modelType) payload.model_type = modelType;
-      if (shouldRemesh) payload.should_remesh = true;
-      if (!shouldTexture) payload.should_texture = false;
+      if (previewValues.topology) payload.topology = previewValues.topology;
+      if (previewValues.target_polycount) payload.target_polycount = previewValues.target_polycount;
+      if (previewValues.origin_at) payload.origin_at = previewValues.origin_at;
 
       // Include idempotency key in header for duplicate prevention
       const result = await apiFetch('/api/_mod/text-to-3d/start', {
@@ -2755,6 +2823,14 @@ export async function onGenerateClick() {
         license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
+        model_type: previewValues.model_type,
+        should_remesh: previewValues.should_remesh,
+        topology: previewValues.topology,
+        target_polycount: previewValues.target_polycount,
+        moderation: previewValues.moderation,
+        target_formats: previewValues.target_formats,
+        auto_size: previewValues.auto_size,
+        origin_at: previewValues.origin_at || '',
         batch_count: batchCount,
         batch_slot: slot + 1,
         batch_group_id: batchGroupId
@@ -6840,6 +6916,16 @@ export async function evolveFromHistory(item, count = 2) {
   const license = item.license || 'private';
   const symmetry = item.symmetry_mode || 'auto';
   const poseMode = item.pose_mode || '';
+  const modelType = (item.model_type || 'standard').trim() || 'standard';
+  const shouldRemesh = modelType === 'lowpoly' ? false : !!item.should_remesh;
+  const topology = (item.topology || '').trim().toLowerCase();
+  const targetPolycount = parseInt(item.target_polycount, 10);
+  const moderation = !!item.moderation;
+  const autoSize = !!item.auto_size;
+  const originAt = (item.origin_at || '').trim().toLowerCase();
+  const targetFormats = Array.isArray(item.target_formats)
+    ? Array.from(new Set(item.target_formats.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)))
+    : [];
   const batchGroupId = crypto?.randomUUID ? crypto.randomUUID() : `evolve-${Date.now()}`;
 
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'evolve' } }));
@@ -6856,6 +6942,14 @@ export async function evolveFromHistory(item, count = 2) {
         prompt, model, license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
+        model_type: modelType,
+        should_remesh: shouldRemesh,
+        topology,
+        target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
+        moderation,
+        target_formats: targetFormats,
+        auto_size: autoSize,
+        origin_at: originAt,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId,
         stage: 'preview',
@@ -6870,9 +6964,18 @@ export async function evolveFromHistory(item, count = 2) {
         symmetry_mode: symmetry,
         pose_mode: poseMode,
         license,
+        model_type: modelType,
+        should_remesh: shouldRemesh,
+        moderation,
+        auto_size: autoSize,
+        target_formats: targetFormats.length ? targetFormats : ['glb'],
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId, refine: false
       };
+
+      if (shouldRemesh && topology) payload.topology = topology;
+      if (shouldRemesh && Number.isFinite(targetPolycount)) payload.target_polycount = targetPolycount;
+      if (autoSize && (originAt === 'bottom' || originAt === 'center')) payload.origin_at = originAt;
 
       const result = await apiFetch('/api/_mod/text-to-3d/start', {
         method: 'POST', body: payload,
@@ -6903,11 +7006,27 @@ export async function evolveFromHistory(item, count = 2) {
         prompt, model, root_prompt: prompt, license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
+        model_type: modelType,
+        should_remesh: shouldRemesh,
+        topology,
+        target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
+        moderation,
+        target_formats: targetFormats,
+        auto_size: autoSize,
+        origin_at: originAt,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId
       });
       addGeneratingPlaceholder(job_id, {
         prompt, model, root_prompt: prompt,
+        model_type: modelType,
+        should_remesh: shouldRemesh,
+        topology,
+        target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
+        moderation,
+        target_formats: targetFormats,
+        auto_size: autoSize,
+        origin_at: originAt,
         batch_count: count, batch_slot: slot + 1,
         batch_group_id: batchGroupId, stage: 'preview',
         status_label: `Evolving ${slot + 1}/${count}...`
