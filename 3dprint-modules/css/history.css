@@ -2320,8 +2320,8 @@
     }
   }
   
-  /* 1024px breakpoint */
-  @media (max-width: 1024px) {
+  /* 900px breakpoint */
+  @media (max-width: 900px) {
     .expanded-thumbs-grid {
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 12px;
@@ -4246,7 +4246,7 @@
   .history-video-grid .history-thumb--video:nth-child(12) { animation-delay: 0.36s; }
   
   /* Responsive: 4 columns on tablets */
-  @media (max-width: 1024px) {
+  @media (max-width: 900px) {
     .history-video-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
@@ -4329,7 +4329,7 @@
   }
   
   /* Responsive: 4 columns on tablets */
-  @media (max-width: 1024px) {
+  @media (max-width: 900px) {
     .history-image-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
@@ -4494,7 +4494,7 @@
     }
   
     /* Responsive: 4 columns on tablets */
-    @media (max-width: 1024px) {
+    @media (max-width: 900px) {
       .history-collection__thumbs {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
@@ -4960,9 +4960,9 @@
   }
   
   /* ==========================================================================
-     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤1024px)
+     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤900px)
      ========================================================================== */
-  @media (max-width: 1024px) {
+  @media (max-width: 900px) {
     .timrx-3dprint .ws-right {
       display: none;
       padding: 0 4px;

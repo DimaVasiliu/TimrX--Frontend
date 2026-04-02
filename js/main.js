@@ -35,7 +35,7 @@ let imageDrop, imageInput, imagePreview, imageModelName;
 let genHint;
 
 function isMobileWorkspaceLayout() {
-  return window.matchMedia('(max-width: 1024px)').matches;
+  return window.matchMedia('(max-width: 900px)').matches;
 }
 
 function setMobileWorkspaceTab(target = 'controls') {

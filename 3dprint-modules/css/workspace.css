@@ -1359,65 +1359,20 @@
    MOBILE RESPONSIVENESS
    ========================================================================== */
 
-/* Tablet — keep the workspace visible, move history into a full-width strip */
+/* Medium desktop — keep the 3-column workspace, just tighten widths a bit */
 @media (max-width: 1200px) {
-  .timrx-3dprint {
-    height: auto;
-    min-height: 0;
-    overflow-y: auto;
-  }
   .timrx-3dprint .ws-grid {
-    display: grid;
     grid-template-columns:
-      44px
-      minmax(280px, 330px)
-      minmax(0, 1fr);
-    align-items: start;
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-  .timrx-3dprint .ws-rail {
-    grid-column: 1;
-    grid-row: 1;
-    order: initial;
-  }
-  .timrx-3dprint .ws-left {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .timrx-3dprint .ws-viewer {
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .timrx-3dprint .ws-right {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    margin-top: 10px;
-    padding-left: 0;
-  }
-  .timrx-3dprint .ws-left,
-  .timrx-3dprint .ws-right {
-    max-height: none;
-    overflow: visible;
-  }
-  .viewer-canvas-wrapper {
-    height: clamp(260px, 45vh, 450px);
-  }
-  .timrx-3dprint .pane-head h2 {
-    font-size: 18px;
-  }
-  .timrx-3dprint .pane-head .pane-sub {
-    font-size: 12px;
-  }
-  .timrx-3dprint .card {
-    padding: 16px 18px;
-    border-radius: 10px;
+      40px
+      minmax(248px, 300px)
+      minmax(0, 1fr)
+      minmax(285px, 360px);
+    gap: 10px;
   }
 }
 
 /* ==========================================================================
-   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤1024px)
+   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤900px)
    Rail -> Viewer -> [Controls|History] tabs
    ========================================================================== */
 
@@ -1426,7 +1381,7 @@
   display: none;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
@@ -3096,7 +3051,7 @@
    TABLET CONTROL PANEL ADJUSTMENTS (≤1024px)
    Tighter cards, compact grids, touch-friendly targets
    ========================================================================== */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   /* --- Card compaction --- */
   .timrx-3dprint .card {
     padding: 12px 14px;
