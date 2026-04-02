@@ -5,6 +5,7 @@
  */
 
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
+import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js';
 import * as Viewer from './viewer.js';
 import * as UI from './ui-utils.js';
@@ -54,6 +55,36 @@ function setMobileWorkspaceTab(target = 'controls') {
   const showHistory = target === 'history';
   wsLeft.classList.toggle('mob-hidden', showHistory);
   wsRight.classList.toggle('mob-active', showHistory);
+}
+
+function getItemDownloadType(item = {}) {
+  if (item.type === 'video' || item.video_url) return 'video';
+  if (item.type === 'image' || (!item.glb_url && item.image_url)) return 'image';
+  return 'model';
+}
+
+function buildItemDownloadFilename(item = {}, options = {}) {
+  const sourceUrl = options.sourceUrl || item.glb_url || item.image_url || item.video_url || '';
+  return buildDownloadFilename({
+    type: options.type || getItemDownloadType(item),
+    title: item.title,
+    prompt: item.prompt,
+    name: item.name,
+    modelName: item.model,
+    jobLabel: item.stage,
+    filename: item.filename,
+    assetId: item.id || item.image_id || item.video_id || item.model_id,
+    createdAt: normalizeEpochMs(item.created_at || item.createdAt || Date.now()),
+    sourceUrl,
+    extension: options.extension,
+  });
+}
+
+function startWorkspaceDownload(sourceUrl, filename) {
+  if (!sourceUrl) return false;
+  const proxiedUrl = buildProxyDownloadUrl(BACKEND, sourceUrl, filename);
+  triggerBrowserDownload(proxiedUrl, filename);
+  return true;
 }
 
 // ============================================================================
@@ -817,13 +848,12 @@ function initViewerToolbar() {
         // Check if Meshy provided an STL URL directly
         const stlUrl = item.stl_url || item.model_urls?.stl || item.textured_model_urls?.stl;
         if (stlUrl) {
-          // Direct download of Meshy-generated STL (already at correct scale)
-          const a = document.createElement('a');
-          a.href = stlUrl;
-          a.download = (item.title || 'model') + '_print_ready.stl';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+          const filename = buildItemDownloadFilename(item, {
+            type: 'model',
+            sourceUrl: stlUrl,
+            extension: 'stl',
+          });
+          startWorkspaceDownload(stlUrl, filename);
           return;
         }
 
@@ -839,7 +869,11 @@ function initViewerToolbar() {
           const unitInfo = detectModelUnits(model);
           const displayScale = model.userData?.displayScale || 1;
           const targetHeight = parseFloat(document.getElementById('printTargetHeight')?.value) || 0;
-          const filename = (item.title || 'model') + '_print_ready.stl';
+          const filename = buildItemDownloadFilename(item, {
+            type: 'model',
+            sourceUrl: item.glb_url || item.glb_proxy || '',
+            extension: 'stl',
+          });
 
           exportPrintReadySTL(model, displayScale, unitInfo, targetHeight, filename);
         }
@@ -952,12 +986,12 @@ function initViewerToolbar() {
         if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
         return;
       }
-      const a = document.createElement('a');
-      a.href = activeItem.glb_url;
-      a.download = 'model.glb';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const filename = buildItemDownloadFilename(activeItem, {
+        type: 'model',
+        sourceUrl: activeItem.glb_url,
+        extension: inferExtensionFromUrl(activeItem.glb_url) || 'glb',
+      });
+      startWorkspaceDownload(activeItem.glb_url, filename);
     }
 
     if (action === 'texture' && activeItem) {
@@ -1568,12 +1602,12 @@ function wireGallery() {
           if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
           return;
         }
-        const a = document.createElement('a');
-        a.href = item.glb_url;
-        a.download = 'model.glb';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const filename = buildItemDownloadFilename(item, {
+          type: 'model',
+          sourceUrl: item.glb_url,
+          extension: inferExtensionFromUrl(item.glb_url) || 'glb',
+        });
+        startWorkspaceDownload(item.glb_url, filename);
         return;
       }
 
@@ -1587,10 +1621,6 @@ function wireGallery() {
           alert('No image available to download.');
           return;
         }
-        // Route through backend proxy to avoid CORS issues with cross-origin
-        // CDN URLs (browser ignores a.download on cross-origin hrefs).
-        // download=1 tells the proxy to stream content instead of 302 redirect.
-        const proxyUrl = `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(imageUrl)}&download=1`;
         const artifactFormat = String(item.artifact_format || item.meta?.artifact_format || item.format || '').toLowerCase();
         const downloadExt = artifactFormat === 'svg'
           ? 'svg'
@@ -1598,36 +1628,13 @@ function wireGallery() {
             ? 'jpg'
             : artifactFormat === 'webp'
               ? 'webp'
-              : 'png';
-        try {
-          const resp = await fetch(proxyUrl, { credentials: 'include' });
-          if (!resp.ok) throw new Error(`Proxy returned ${resp.status}`);
-          const blob = await resp.blob();
-          const blobExt = !artifactFormat && blob.type === 'image/svg+xml'
-            ? 'svg'
-            : !artifactFormat && blob.type === 'image/jpeg'
-              ? 'jpg'
-              : !artifactFormat && blob.type === 'image/webp'
-                ? 'webp'
-                : downloadExt;
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = `${shortTitle(item)}.${blobExt}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-          console.warn('[Download] Proxy blob fetch failed:', err);
-          // Last resort: direct link (may open in new tab)
-          const a = document.createElement('a');
-          a.href = imageUrl;
-          a.download = `${shortTitle(item)}.${downloadExt}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
+              : inferExtensionFromUrl(imageUrl) || 'png';
+        const filename = buildItemDownloadFilename(item, {
+          type: 'image',
+          sourceUrl: imageUrl,
+          extension: downloadExt,
+        });
+        startWorkspaceDownload(imageUrl, filename);
         return;
       }
 
@@ -1642,28 +1649,12 @@ function wireGallery() {
           alert('No video available to download.');
           return;
         }
-        const proxyUrl = `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(videoUrl)}&download=1`;
-        try {
-          const resp = await fetch(proxyUrl, { credentials: 'include' });
-          if (!resp.ok) throw new Error(`Proxy returned ${resp.status}`);
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = `${shortTitle(item)}.mp4`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-          console.warn('[Download] Proxy blob fetch failed:', err);
-          const a = document.createElement('a');
-          a.href = videoUrl;
-          a.download = `${shortTitle(item)}.mp4`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
+        const filename = buildItemDownloadFilename(item, {
+          type: 'video',
+          sourceUrl: videoUrl,
+          extension: inferExtensionFromUrl(videoUrl) || 'mp4',
+        });
+        startWorkspaceDownload(videoUrl, filename);
         return;
       }
 

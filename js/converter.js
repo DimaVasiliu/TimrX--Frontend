@@ -20,6 +20,26 @@ let originalFile = null;
 // ============================================================================
 const getEl = (id) => document.getElementById(id);
 
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 MB';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function compactFileName(name, maxLength = 40) {
+  if (!name || name.length <= maxLength) return name;
+
+  const extensionIndex = name.lastIndexOf('.');
+  const extension = extensionIndex > 0 ? name.slice(extensionIndex) : '';
+  const baseName = extensionIndex > 0 ? name.slice(0, extensionIndex) : name;
+  const reserved = extension.length + 1;
+  const budget = Math.max(10, maxLength - reserved);
+  const head = Math.ceil(budget * 0.58);
+  const tail = Math.max(4, budget - head);
+
+  return `${baseName.slice(0, head)}…${baseName.slice(-tail)}${extension}`;
+}
+
 /**
  * Dispose all textures on a material.
  */
@@ -366,16 +386,22 @@ function handleFileUpload(file) {
   const fileName = getEl('converterFileName');
   const fileFormat = getEl('converterFileFormat');
   const fileSize = getEl('converterFileSize');
+  const fileFormatPill = getEl('converterFileFormatPill');
+  const fileSizePill = getEl('converterFileSizePill');
+  const extension = file.name.split('.').pop().toUpperCase();
+  const prettySize = formatFileSize(file.size);
 
   if (dropZone) dropZone.classList.add('hidden');
   if (fileInfo) fileInfo.classList.remove('hidden');
 
-  if (fileName) fileName.textContent = file.name;
-  if (fileFormat) fileFormat.textContent = file.name.split('.').pop().toUpperCase();
-  if (fileSize) {
-    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-    fileSize.textContent = sizeMB + ' MB';
+  if (fileName) {
+    fileName.textContent = compactFileName(file.name);
+    fileName.title = file.name;
   }
+  if (fileFormat) fileFormat.textContent = extension;
+  if (fileSize) fileSize.textContent = prettySize;
+  if (fileFormatPill) fileFormatPill.textContent = extension;
+  if (fileSizePill) fileSizePill.textContent = prettySize;
 
   // Load preview
   loadModelToPreview(file);

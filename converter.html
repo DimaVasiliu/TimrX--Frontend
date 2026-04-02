@@ -100,19 +100,29 @@
             </div>
 
             <div class="converter-file-info hidden" id="converterFileInfo">
-              <!-- Row 1: Preview + Export Options (side by side) -->
-              <div class="converter-file-preview">
-                <canvas id="converterPreviewCanvas"></canvas>
-                <button type="button" class="converter-bg-toggle" id="converterBgToggle" title="Toggle background">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <circle cx="12" cy="12" r="5"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                  </svg>
-                </button>
-              </div>
+              <div class="converter-file-main">
+                <div class="converter-file-preview">
+                  <canvas id="converterPreviewCanvas"></canvas>
+                  <button type="button" class="converter-bg-toggle" id="converterBgToggle" title="Switch to light background">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <span>Background</span>
+                  </button>
+                  <div class="converter-preview-caption">
+                    <span class="converter-preview-badge">Live Preview</span>
+                    <span class="converter-preview-note">Drag to orbit · Scroll to zoom</span>
+                  </div>
+                </div>
 
-              <div class="converter-export-options">
-                <h3>Export Format</h3>
+                <aside class="converter-export-options">
+                  <div class="converter-export-header">
+                    <div>
+                      <h3>Export Format</h3>
+                      <p>Pick the final delivery format, then fine-tune only the options that matter for that export.</p>
+                    </div>
+                  </div>
                 <div class="converter-format-grid">
                   <label class="converter-format-option">
                     <input type="radio" name="exportFormat" value="glb" checked>
@@ -180,11 +190,20 @@
                     <span class="field-hint">Leave empty to export at original scale. Set a value to uniformly scale the model so its height matches this value in millimeters.</span>
                   </div>
                 </div>
+                </aside>
               </div>
 
-              <!-- Row 2: File details (full width below the grid) -->
               <div class="converter-file-details">
-                <h2 id="converterFileName">model.glb</h2>
+                <div class="converter-file-header">
+                  <div class="converter-file-heading">
+                    <span class="converter-file-eyebrow">Uploaded file</span>
+                    <h2 id="converterFileName" title="model.glb">model.glb</h2>
+                  </div>
+                  <div class="converter-file-summary">
+                    <span class="converter-file-pill" id="converterFileFormatPill">GLB</span>
+                    <span class="converter-file-pill" id="converterFileSizePill">2.4 MB</span>
+                  </div>
+                </div>
                 <ul class="converter-file-meta">
                   <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
                   <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
