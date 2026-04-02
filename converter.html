@@ -109,6 +109,7 @@
                     <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
                     <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
                     <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
+                    <li><span>Dimensions:</span> <strong id="converterDimensions">—</strong></li>
                   </ul>
                   <button type="button" class="converter-change-file" id="converterChangeFile">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -172,6 +173,11 @@
                     <span>Flip Y/Z axis (for some apps)</span>
                     <input type="checkbox" id="converterFlipAxis">
                   </label>
+                  <div class="converter-field" id="converterTargetHeightRow">
+                    <label for="converterTargetHeight">Target Print Height (mm)</label>
+                    <input type="number" id="converterTargetHeight" min="1" max="1000" step="1" placeholder="e.g. 150">
+                    <span class="field-hint">Leave empty to export at original scale. Set a value to uniformly scale the model so its height matches this value in millimeters.</span>
+                  </div>
                 </div>
 
                 <button type="button" class="converter-export-btn" id="converterExportBtn">

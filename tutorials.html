@@ -216,7 +216,7 @@
               <h3 class="tutorials-card__title">2. Preview & iterate</h3>
               <p class="tutorials-card__body">Use the low-latency preview to check proportions before you spend tokens on refinement.</p>
               <ul class="tutorials-card__list">
-                <li>Enable wireframe overlay in the viewer to catch thin walls.</li>
+                <li>Run a Print Check from the viewer toolbar — it analyzes wall thickness and highlights thin areas.</li>
                 <li>Pin successful prompts to reuse structure later.</li>
                 <li>Use Refine/Remesh buttons to add detail without starting over.</li>
                 <li>Test Remesh for watertight geometry.</li>
@@ -729,7 +729,7 @@
               <p>Toggle between lighting presets in the viewer settings. The right lighting can reveal details and help spot printing issues.</p>
               <ul class="practice-tips">
                 <li>Use studio lighting for presentations</li>
-                <li>Enable shadows to check overhangs</li>
+                <li>Run a Print Check — it detects overhang angles that need support material.</li>
                 <li>Try different HDRIs for mood</li>
               </ul>
             </article>
@@ -748,7 +748,7 @@
               <h3>Print Preparation</h3>
               <p>Scale models appropriately, add supports in your slicer, and choose the right layer height based on detail requirements.</p>
               <ul class="practice-tips">
-                <li>Check wall thickness (min 2mm for FDM)</li>
+                <li>Check wall thickness (min 0.8mm for FDM with 0.4mm nozzle)</li>
                 <li>Orient for minimal support needs</li>
                 <li>Test print small versions first</li>
               </ul>
@@ -812,7 +812,7 @@
             </article>
             <article class="tutorials-faq-card">
               <h3>How do I ensure my model is print-ready?</h3>
-              <p>Always use the Remesh feature before exporting. This ensures watertight geometry with no holes or inverted normals. Check the wireframe view to spot thin walls, and verify wall thickness is at least 2mm for FDM printers.</p>
+              <p>Always use the Remesh feature before exporting. This ensures watertight geometry with no holes or inverted normals. Run a Print Check to spot thin walls, and verify wall thickness is at least 0.8mm for FDM (2× your nozzle diameter).</p>
             </article>
             <article class="tutorials-faq-card">
               <h3>Can I edit models after generation?</h3>

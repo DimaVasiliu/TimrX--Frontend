@@ -1590,11 +1590,23 @@ function getRemeshFormValues() {
     topology = remeshMode.includes('quad') ? 'quad' : 'triangle';
   }
 
-  return {
+  // When the "Print Ready" preset is active, include STL in target formats
+  const isPrintPreset = activePreset?.dataset.preset === 'print-ready';
+  const target_formats = isPrintPreset ? ['glb', 'stl'] : ['glb'];
+
+  const result = {
     target_polycount,
     topology,
-    target_formats: ['glb']
+    target_formats,
   };
+
+  // If user specified a print height, include it
+  const printHeight = document.getElementById('printTargetHeight')?.value;
+  if (isPrintPreset && printHeight && parseFloat(printHeight) > 0) {
+    result.print_height_mm = parseFloat(printHeight);
+  }
+
+  return result;
 }
 
 /**

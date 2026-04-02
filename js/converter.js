@@ -121,32 +121,74 @@ function loadModelToPreview(file) {
   const loadComplete = (object) => {
     converterModel = object;
 
-    // Center and scale model
+    // ── Compute and STORE original real-world dimensions ──
     const box = new THREE.Box3().setFromObject(object);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2 / maxDim;
 
-    object.scale.setScalar(scale);
-    object.position.sub(center.multiplyScalar(scale));
+    // Store original dimensions before any scaling
+    // These are in the file's native units (glTF = meters, STL = mm typically)
+    object.userData.originalSize = { x: size.x, y: size.y, z: size.z };
+    object.userData.originalCenter = { x: center.x, y: center.y, z: center.z };
+
+    // ── Detect unit system ──
+    // Heuristic: if ALL dimensions < 10, the model is likely in meters (glTF/Meshy convention)
+    // Multiply by 1000 to get millimeters for print context
+    const maxOriginal = Math.max(size.x, size.y, size.z);
+    let detectedUnit = 'mm'; // assume mm by default
+    let mmScale = 1.0;
+
+    if (maxOriginal > 0 && maxOriginal < 10) {
+        // Model is likely in meters (glTF standard). Convert to mm.
+        detectedUnit = 'm';
+        mmScale = 1000.0;
+    } else if (maxOriginal >= 10 && maxOriginal < 100) {
+        // Could be centimeters
+        detectedUnit = 'cm';
+        mmScale = 10.0;
+    }
+    // else: assume already in mm
+
+    object.userData.detectedUnit = detectedUnit;
+    object.userData.mmScale = mmScale;
+    object.userData.realSizeMM = {
+        x: parseFloat((size.x * mmScale).toFixed(2)),
+        y: parseFloat((size.y * mmScale).toFixed(2)),
+        z: parseFloat((size.z * mmScale).toFixed(2)),
+    };
+
+    // ── Display scale (viewport only — NOT persisted to export) ──
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const displayScale = 2 / maxDim;
+    object.userData.displayScale = displayScale;
+
+    object.scale.setScalar(displayScale);
+    object.position.sub(center.clone().multiplyScalar(displayScale));
 
     converterScene.add(object);
 
-    // Update stats
+    // ── Update stats ──
     let vertices = 0, faces = 0;
     object.traverse((child) => {
-      if (child.isMesh && child.geometry) {
-        const geo = child.geometry;
-        vertices += geo.attributes.position ? geo.attributes.position.count : 0;
-        faces += geo.index ? geo.index.count / 3 : (geo.attributes.position ? geo.attributes.position.count / 3 : 0);
-      }
+        if (child.isMesh && child.geometry) {
+            const geo = child.geometry;
+            vertices += geo.attributes.position ? geo.attributes.position.count : 0;
+            faces += geo.index ? geo.index.count / 3 : (geo.attributes.position ? geo.attributes.position.count / 3 : 0);
+        }
     });
 
     const verticesEl = getEl('converterVertices');
     const facesEl = getEl('converterFaces');
     if (verticesEl) verticesEl.textContent = vertices.toLocaleString();
     if (facesEl) facesEl.textContent = Math.round(faces).toLocaleString();
+
+    // ── Show real-world dimensions ──
+    const dimEl = getEl('converterDimensions');
+    if (dimEl) {
+        const rs = object.userData.realSizeMM;
+        dimEl.textContent = `${rs.x} × ${rs.y} × ${rs.z} mm`;
+        dimEl.title = `Detected source unit: ${detectedUnit}`;
+    }
 
     URL.revokeObjectURL(url);
   };
@@ -311,9 +353,32 @@ async function exportModel(format) {
       const binary = getEl('converterBinaryStl')?.checked !== false;
 
       if (progressFill) progressFill.style.width = '50%';
-      if (progressText) progressText.textContent = 'Exporting to STL...';
+      if (progressText) progressText.textContent = 'Exporting to STL (print-ready)...';
 
-      const result = exporter.parse(modelToExport, { binary });
+      // ── CRITICAL: Undo viewport display scale, apply real-world mm scale ──
+      const displayScale = converterModel.userData.displayScale || 1;
+      const mmScale = converterModel.userData.mmScale || 1;
+
+      // User-specified target height (if set)
+      const targetHeightInput = getEl('converterTargetHeight');
+      const targetHeight = targetHeightInput ? parseFloat(targetHeightInput.value) : 0;
+
+      let exportScale;
+      if (targetHeight > 0) {
+          // User wants a specific height in mm
+          const originalHeightMM = converterModel.userData.realSizeMM?.y || 1;
+          exportScale = (targetHeight / originalHeightMM) * mmScale / displayScale;
+      } else {
+          // Default: undo display scale, apply mm conversion
+          exportScale = mmScale / displayScale;
+      }
+
+      // Clone for export so we don't mutate the preview
+      const exportClone = modelToExport.clone();
+      exportClone.scale.setScalar(exportScale);
+      exportClone.updateMatrixWorld(true);
+
+      const result = exporter.parse(exportClone, { binary });
       if (binary) {
         blob = new Blob([result], { type: 'application/octet-stream' });
       } else {

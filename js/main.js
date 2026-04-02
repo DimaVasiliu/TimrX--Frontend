@@ -704,11 +704,14 @@ function initViewerToolbar() {
     if (grid) {
       const c = data.checks || {};
       const rows = [
-        { label: 'Watertight',    ok: c.is_manifold,          detail: c.is_manifold ? 'Yes' : 'No' },
-        { label: 'Face count',    ok: c.face_count_ok,        detail: c.face_count ? c.face_count.toLocaleString() : '—' },
-        { label: 'Clean faces',   ok: !c.has_degenerate_faces, detail: c.degenerate_face_count ? `${c.degenerate_face_count} bad` : 'All clean' },
-        { label: 'Volume',        ok: c.is_volume_positive,   detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³` : '—' },
-        { label: 'Dimensions',    ok: true,                   detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : '—' },
+        { label: 'Watertight',       ok: c.is_manifold,            detail: c.is_manifold ? 'Yes' : 'No' },
+        { label: 'Face count',       ok: c.face_count_ok,          detail: c.face_count ? c.face_count.toLocaleString() : '—' },
+        { label: 'Clean faces',      ok: !c.has_degenerate_faces,  detail: c.degenerate_face_count ? `${c.degenerate_face_count} bad` : 'All clean' },
+        { label: 'Volume',           ok: c.is_volume_positive,     detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³` : '—' },
+        { label: 'Dimensions',       ok: true,                     detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : '—' },
+        { label: 'Wall thickness',   ok: c.wall_thickness_ok,      detail: c.min_wall_thickness_mm != null ? `Min ${c.min_wall_thickness_mm}mm` : 'N/A' },
+        { label: 'Overhangs (FDM)',  ok: c.overhang_fdm_pct != null ? c.overhang_fdm_pct < 20 : null,
+                                                                    detail: c.overhang_fdm_pct != null ? `${c.overhang_fdm_pct}% faces` : 'N/A' },
       ];
       grid.innerHTML = rows.map(r => `
         <div class="print-check-row">
@@ -743,6 +746,99 @@ function initViewerToolbar() {
       }
     }
 
+    // Show print prep section with dimensions from analysis
+    const printPrepSection = document.getElementById('printPrepSection');
+    if (printPrepSection && data.checks) {
+      printPrepSection.style.display = '';
+      const c = data.checks;
+
+      // Display dimensions with unit detection info
+      const dimDisplay = document.getElementById('printDimensionsDisplay');
+      if (dimDisplay && c.bounding_box_mm) {
+        const dims = c.bounding_box_mm;
+        const unit = c.detected_unit || 'mm';
+        dimDisplay.innerHTML = `
+          <div class="print-prep-dimensions">
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Width</span>
+              <span class="print-prep-dim-value">${dims[0].toFixed(1)} mm</span>
+            </div>
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Height</span>
+              <span class="print-prep-dim-value">${dims[1].toFixed(1)} mm</span>
+            </div>
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Depth</span>
+              <span class="print-prep-dim-value">${dims[2].toFixed(1)} mm</span>
+            </div>
+            ${unit === 'meters' ? '<div class="print-prep-dim-note">Auto-converted from meters to mm</div>' : ''}
+          </div>
+        `;
+      }
+
+      // Wire up target height → live dimension preview
+      const targetInput = document.getElementById('printTargetHeight');
+      const scaledDims = document.getElementById('printScaledDimensions');
+      if (targetInput && scaledDims && c.bounding_box_mm) {
+        targetInput.addEventListener('input', () => {
+          const target = parseFloat(targetInput.value);
+          if (target > 0 && c.bounding_box_mm[1] > 0) {
+            const ratio = target / c.bounding_box_mm[1];
+            scaledDims.style.display = '';
+            scaledDims.innerHTML = `
+              <div class="print-prep-dim-note">
+                Scaled: ${(c.bounding_box_mm[0] * ratio).toFixed(1)} ×
+                ${target.toFixed(1)} ×
+                ${(c.bounding_box_mm[2] * ratio).toFixed(1)} mm
+                (${(ratio * 100).toFixed(0)}% of original)
+              </div>
+            `;
+          } else {
+            scaledDims.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    // Wire up STL export button
+    const stlBtn = document.getElementById('printExportSTLBtn');
+    if (stlBtn) {
+      stlBtn.onclick = async () => {
+        const item = API.getActiveHistoryItem();
+        if (!item) return;
+
+        // Check if Meshy provided an STL URL directly
+        const stlUrl = item.stl_url || item.model_urls?.stl || item.textured_model_urls?.stl;
+        if (stlUrl) {
+          // Direct download of Meshy-generated STL (already at correct scale)
+          const a = document.createElement('a');
+          a.href = stlUrl;
+          a.download = (item.title || 'model') + '_print_ready.stl';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          return;
+        }
+
+        // Fallback: client-side export from viewer model
+        if (window.timrx3D && window.timrx3D.scene) {
+          const model = window._timrxCurrentModel || null;
+          if (!model) {
+            alert('No model loaded in viewer. Please load a model first.');
+            return;
+          }
+
+          const { detectModelUnits, exportPrintReadySTL } = await import('./print-prep.js');
+          const unitInfo = detectModelUnits(model);
+          const displayScale = model.userData?.displayScale || 1;
+          const targetHeight = parseFloat(document.getElementById('printTargetHeight')?.value) || 0;
+          const filename = (item.title || 'model') + '_print_ready.stl';
+
+          exportPrintReadySTL(model, displayScale, unitInfo, targetHeight, filename);
+        }
+      };
+    }
+
     showPrintPanelState('results');
   }
 
@@ -759,9 +855,11 @@ function initViewerToolbar() {
 
     try {
       const jobId = item.id || item.model_id;
+      const printerType = document.getElementById('printPrinterType')?.value || 'fdm';
       const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(jobId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ printer_type: printerType }),
       });
       if (!res.ok) {
         throw new Error(res.error || `Server error (${res.status})`);

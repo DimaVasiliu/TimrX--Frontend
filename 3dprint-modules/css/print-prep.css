@@ -1,0 +1,126 @@
+/* Print Preparation Panel Styles */
+.print-prep-section {
+    padding: 12px 0;
+    border-top: 1px solid rgba(255,255,255,.08);
+    margin-top: 12px;
+}
+
+.print-prep-dimensions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.print-prep-dim-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: rgba(255,255,255,.03);
+    border-radius: 4px;
+}
+
+.print-prep-dim-label {
+    font-size: 12px;
+    color: #888;
+}
+
+.print-prep-dim-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0e0;
+    font-variant-numeric: tabular-nums;
+}
+
+.print-prep-dim-note {
+    font-size: 11px;
+    color: #666;
+    padding: 4px 8px;
+    font-style: italic;
+}
+
+.print-prep-scale-control {
+    margin-top: 10px;
+}
+
+.print-prep-scale-control label {
+    display: block;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+
+.print-prep-input {
+    width: 100%;
+    padding: 8px 10px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+}
+
+.print-prep-input:focus {
+    border-color: rgba(14,165,233,.5);
+}
+
+.print-prep-input::placeholder {
+    color: #555;
+}
+
+.print-prep-select {
+    width: 100%;
+    padding: 8px 10px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+}
+
+.print-prep-printer-select {
+    margin-top: 10px;
+}
+
+.print-prep-printer-select label {
+    display: block;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+
+.print-panel-export-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    margin-top: 14px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.print-panel-export-btn:hover {
+    background: linear-gradient(135deg, #38bdf8, #3b82f6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14,165,233,.3);
+}
+
+.print-panel-export-btn:active {
+    transform: translateY(0);
+}
+
+.print-panel-export-btn svg {
+    flex-shrink: 0;
+}

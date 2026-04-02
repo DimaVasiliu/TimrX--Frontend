@@ -1146,10 +1146,10 @@
           </div>
 
           <div class="inline-field" style="margin-top:12px">
-            <label for="rigHeight">Height (meters)</label>
+            <label for="rigHeight">Rig Skeleton Height (meters)</label>
             <input type="number" id="rigHeight" value="1.7" min="0.1" max="5.0" step="0.1">
           </div>
-          <span class="field-hint">Approximate height of the character (default 1.7m)</span>
+          <span class="field-hint">Height used for skeleton rigging only — does NOT affect print dimensions. Set print size in the Print Check panel.</span>
 
           <div class="inline-field" style="margin-top:10px">
             <label for="rigModelSelect">Source</label>
