@@ -1,317 +1,330 @@
 /**
  * tutorial-viewer.js
- * Lightweight 3D model viewer for tutorial sections.
- * Uses the same Three.js instance as the main app to avoid duplicate loading.
+ * Restores the standalone tutorial model interactions using inline model-viewer
+ * stages instead of the older custom Three.js viewer.
  */
 
-import { onThreeReady, log } from './config.js';
+(function () {
+  'use strict';
 
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
+  const VIEWER_SELECTOR = '.tutorial-3d-viewer';
+  const EXTERNAL_TARGET_SELECTOR = '[data-target-viewer][data-target-state]';
+  const SWAP_CLASS = 'is-swapping';
+  const SWAP_DURATION_MS = 220;
+  const viewers = new Map();
 
-const ROTATION_SPEED = 0.5; // radians per second (~30deg/s)
-const CAMERA_DISTANCE_FACTOR = 2.5;
-const EXPOSURE = 0.35;
-
-// ============================================================================
-// STATE
-// ============================================================================
-
-const viewers = new Map(); // id -> { scene, camera, renderer, model, container, isRefined }
-let animationId = null;
-let lastTime = 0;
-
-// ============================================================================
-// VIEWER CREATION
-// ============================================================================
-
-/**
- * Initialize a tutorial viewer in the given container
- * @param {HTMLElement} container - Container element with data-src, data-preview, data-refined
- */
-function createViewer(container) {
-  if (!window.THREE) {
-    log('[TutorialViewer] THREE not ready');
-    return null;
+  function capitalize(value) {
+    return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
   }
 
-  const id = container.id || `tutorial-viewer-${viewers.size}`;
-  const src = container.dataset.src || container.dataset.preview;
-
-  if (!src) {
-    log('[TutorialViewer] No src specified for', id);
-    return null;
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  // Create canvas
-  const canvas = document.createElement('canvas');
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-  canvas.style.display = 'block';
-  container.appendChild(canvas);
+  function readDatasetValue(dataset, key, fallback = '') {
+    return dataset[key] || fallback;
+  }
 
-  // Scene setup
-  const scene = new THREE.Scene();
+  function stateMeta(container, key) {
+    const dataset = container.dataset;
+    const fallbackLabel = key === 'model' ? 'Model' : capitalize(key);
+    const fallbackTitle = key === 'reference' ? 'Source image' : `${fallbackLabel} result`;
 
-  // Camera
-  const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-  camera.position.set(0, 0, 5);
+    return {
+      key,
+      label: readDatasetValue(dataset, `${key}Label`, fallbackLabel),
+      title: readDatasetValue(dataset, `${key}Title`, fallbackTitle),
+      copy: readDatasetValue(dataset, `${key}Copy`, '')
+    };
+  }
 
-  // Renderer
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-    powerPreference: 'high-performance'
-  });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = EXPOSURE;
+  function buildStates(container) {
+    const dataset = container.dataset;
+    const states = [];
+    const hasReference = Boolean(dataset.referenceImage);
+    const hasPreview = Boolean(dataset.preview);
+    const hasRefined = Boolean(dataset.refined);
 
-  // Lighting - simple studio setup
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
-  keyLight.position.set(5, 5, 5);
-  scene.add(keyLight);
-
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-  fillLight.position.set(-5, 0, 5);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
-  rimLight.position.set(0, 5, -5);
-  scene.add(rimLight);
-
-  // Store viewer state
-  const viewer = {
-    id,
-    container,
-    canvas,
-    scene,
-    camera,
-    renderer,
-    model: null,
-    isRefined: false,
-    isVisible: false,
-    previewSrc: container.dataset.preview || src,
-    refinedSrc: container.dataset.refined || null,
-    rotation: 0
-  };
-
-  viewers.set(id, viewer);
-
-  // Load initial model
-  loadModel(viewer, src);
-
-  // Handle resize
-  const resizeObserver = new ResizeObserver(() => {
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    if (width > 0 && height > 0) {
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+    if (hasReference) {
+      const meta = stateMeta(container, 'reference');
+      states.push({
+        ...meta,
+        type: 'image',
+        src: dataset.referenceImage
+      });
     }
-  });
-  resizeObserver.observe(container);
 
-  // Intersection observer for visibility-based animation
-  const intersectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      viewer.isVisible = entry.isIntersecting;
+    if (hasPreview) {
+      const meta = stateMeta(container, 'preview');
+      states.push({
+        ...meta,
+        type: 'model',
+        src: dataset.preview,
+        poster: hasReference ? dataset.referenceImage : ''
+      });
+    } else if (dataset.src) {
+      const modelKey = hasReference ? 'model' : 'preview';
+      const meta = stateMeta(container, modelKey);
+      states.push({
+        ...meta,
+        type: 'model',
+        src: dataset.src,
+        poster: hasReference ? dataset.referenceImage : ''
+      });
+    }
+
+    if (hasRefined) {
+      const meta = stateMeta(container, 'refined');
+      states.push({
+        ...meta,
+        type: 'model',
+        src: dataset.refined,
+        poster: hasReference ? dataset.referenceImage : ''
+      });
+    }
+
+    const activeKey = hasReference && !hasPreview && !hasRefined ? 'model' : states[0]?.key;
+
+    return {
+      states,
+      activeKey
+    };
+  }
+
+  function getState(entry, key) {
+    return entry.states.find((state) => state.key === key) || entry.states[0] || null;
+  }
+
+  function getNextState(entry) {
+    if (entry.states.length < 2) return null;
+    const index = entry.states.findIndex((state) => state.key === entry.activeKey);
+    return entry.states[(index + 1) % entry.states.length] || entry.states[0];
+  }
+
+  function getHintForState(entry) {
+    const activeKey = entry.activeKey;
+    const dataset = entry.container.dataset;
+
+    const directHint = dataset[`${activeKey}Hint`];
+    if (directHint) return directHint;
+
+    if (activeKey === 'model' && dataset.previewHint) {
+      return dataset.previewHint;
+    }
+
+    const nextState = getNextState(entry);
+    if (!nextState) return '';
+
+    if (nextState.type === 'image') {
+      return 'Click stage to inspect the source image';
+    }
+
+    if (activeKey === 'reference') {
+      return `Click stage to return to ${nextState.label.toLowerCase()}`;
+    }
+
+    return `Click stage to view ${nextState.label.toLowerCase()}`;
+  }
+
+  function getSwapCopy(entry) {
+    const hint = getHintForState(entry);
+    return hint || 'Interactive model walkthrough';
+  }
+
+  function renderMedia(state) {
+    if (!state) return '';
+
+    if (state.type === 'image') {
+      return `<img src="${escapeHtml(state.src)}" alt="${escapeHtml(state.title)}" loading="lazy">`;
+    }
+
+    const posterAttr = state.poster ? ` poster="${escapeHtml(state.poster)}"` : '';
+
+    return `<model-viewer src="${escapeHtml(state.src)}"${posterAttr} disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="18deg" shadow-intensity="0.55" exposure="1.04" environment-image="neutral" loading="lazy" reveal="auto"></model-viewer>`;
+  }
+
+  function renderViewer(entry) {
+    const container = entry.container;
+    const activeState = getState(entry, entry.activeKey);
+    const stageLabelBase = container.getAttribute('aria-label') || activeState?.title || 'Tutorial model preview';
+    const nextState = getNextState(entry);
+    const interactive = entry.states.length > 1;
+
+    const tabsHtml = entry.states
+      .map((state) => {
+        const isActive = state.key === entry.activeKey;
+        return `<button type="button" class="tutorial-inline-model__tab${isActive ? ' is-active' : ''}" data-state-key="${escapeHtml(state.key)}" aria-pressed="${isActive ? 'true' : 'false'}">${escapeHtml(state.label)}</button>`;
+      })
+      .join('');
+
+    container.innerHTML = `
+      <div class="tutorial-inline-model" data-active-state="${escapeHtml(entry.activeKey)}">
+        <div class="tutorial-inline-model__head">
+          <div class="tutorial-inline-model__tabs">${tabsHtml}</div>
+          <div class="tutorial-inline-model__swap">${escapeHtml(getSwapCopy(entry))}</div>
+        </div>
+        <div class="tutorial-inline-model__frame">
+          <div class="tutorial-inline-model__stage" role="${interactive ? 'button' : 'img'}" tabindex="${interactive ? '0' : '-1'}" aria-label="${escapeHtml(stageLabelBase)}">
+            <div class="tutorial-inline-model__media">
+              <div class="tutorial-inline-model__media-inner">
+                ${renderMedia(activeState)}
+              </div>
+            </div>
+            <div class="tutorial-inline-model__shade"></div>
+            <div class="tutorial-inline-model__caption">
+              <span class="tutorial-inline-model__badge" data-state="${escapeHtml(activeState.key)}">${escapeHtml(activeState.label)}</span>
+              <strong class="tutorial-inline-model__title">${escapeHtml(activeState.title)}</strong>
+              <p class="tutorial-inline-model__copy">${escapeHtml(activeState.copy)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const shell = container.querySelector('.tutorial-inline-model');
+    const stage = container.querySelector('.tutorial-inline-model__stage');
+
+    container.querySelectorAll('.tutorial-inline-model__tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        setViewerState(entry.id, tab.dataset.stateKey, { animate: true });
+      });
     });
-  }, { threshold: 0.1 });
-  intersectionObserver.observe(container);
 
-  // Click handler for toggle (if has refined version)
-  if (viewer.refinedSrc) {
-    container.style.cursor = 'pointer';
-    container.addEventListener('click', () => toggleRefined(viewer));
+    if (interactive && stage) {
+      stage.addEventListener('click', () => {
+        cycleViewer(entry.id);
+      });
+      stage.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          cycleViewer(entry.id);
+        }
+      });
+    }
+
+    clearTimeout(entry.swapTimer);
+    if (entry.shouldAnimate && shell) {
+      shell.classList.add(SWAP_CLASS);
+      entry.swapTimer = window.setTimeout(() => {
+        shell.classList.remove(SWAP_CLASS);
+      }, SWAP_DURATION_MS);
+    }
+    entry.shouldAnimate = false;
+
+    updateHint(entry);
+    syncExternalTargets(entry.id, entry.activeKey);
   }
 
-  return viewer;
-}
-
-/**
- * Load a GLB model into the viewer
- */
-function loadModel(viewer, url) {
-  if (!window.THREE?.GLTFLoader) {
-    log('[TutorialViewer] GLTFLoader not available');
-    return;
+  function updateHint(entry) {
+    if (!entry.hintEl) return;
+    entry.hintEl.textContent = getHintForState(entry);
+    entry.hintEl.classList.toggle('refined', entry.activeKey === 'refined');
   }
 
-  const loader = new THREE.GLTFLoader();
-
-  // Remove existing model
-  if (viewer.model) {
-    viewer.scene.remove(viewer.model);
-    viewer.model.traverse(obj => {
-      if (obj.geometry) obj.geometry.dispose();
-      if (obj.material) {
-        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-        else obj.material.dispose();
+  function syncExternalTargets(id, activeKey) {
+    document.querySelectorAll(`${EXTERNAL_TARGET_SELECTOR}[data-target-viewer="${id}"]`).forEach((element) => {
+      const isActive = element.dataset.targetState === activeKey;
+      element.classList.toggle('is-view-active', isActive);
+      if (element.getAttribute('role') === 'button') {
+        element.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       }
     });
-    viewer.model = null;
   }
 
-  loader.load(
-    url,
-    (gltf) => {
-      const model = gltf.scene;
-      viewer.model = model;
-      viewer.scene.add(model);
+  function setViewerState(id, nextKey, options = {}) {
+    const entry = viewers.get(id);
+    if (!entry) return;
 
-      // Center and scale model
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
+    const nextState = getState(entry, nextKey);
+    if (!nextState) return;
 
-      // Center the model
-      model.position.x = -center.x;
-      model.position.y = -center.y;
-      model.position.z = -center.z;
-
-      // Position camera based on model size
-      const distance = maxDim * CAMERA_DISTANCE_FACTOR;
-      viewer.camera.position.set(0, maxDim * 0.3, distance);
-      viewer.camera.lookAt(0, 0, 0);
-
-      log('[TutorialViewer] Loaded:', url);
-    },
-    undefined,
-    (error) => {
-      console.error('[TutorialViewer] Load error:', url, error);
-    }
-  );
-}
-
-/**
- * Toggle between preview and refined model
- */
-function toggleRefined(viewer) {
-  if (!viewer.refinedSrc) return;
-
-  viewer.isRefined = !viewer.isRefined;
-  const newSrc = viewer.isRefined ? viewer.refinedSrc : viewer.previewSrc;
-  loadModel(viewer, newSrc);
-
-  // Update hint if present
-  const hint = viewer.container.parentElement?.querySelector('.model-toggle-hint');
-  if (hint) {
-    hint.classList.toggle('refined', viewer.isRefined);
-    // The hint text is set via data attributes
-    const previewHint = viewer.container.dataset.previewHint || 'Click model to view refined version';
-    const refinedHint = viewer.container.dataset.refinedHint || 'Click model to view preview version';
-    hint.textContent = viewer.isRefined ? refinedHint : previewHint;
-  }
-}
-
-// ============================================================================
-// ANIMATION LOOP
-// ============================================================================
-
-function animate(time) {
-  animationId = requestAnimationFrame(animate);
-
-  const delta = (time - lastTime) / 1000;
-  lastTime = time;
-
-  if (delta > 0.1) return; // Skip large deltas (tab was inactive)
-
-  viewers.forEach(viewer => {
-    if (!viewer.isVisible || !viewer.model) return;
-
-    // Auto-rotate
-    viewer.rotation += ROTATION_SPEED * delta;
-    viewer.model.rotation.y = viewer.rotation;
-
-    // Render
-    viewer.renderer.render(viewer.scene, viewer.camera);
-  });
-}
-
-function startAnimation() {
-  if (animationId) return;
-  lastTime = performance.now();
-  animationId = requestAnimationFrame(animate);
-  log('[TutorialViewer] Animation started');
-}
-
-function stopAnimation() {
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-    log('[TutorialViewer] Animation stopped');
-  }
-}
-
-// ============================================================================
-// INITIALIZATION
-// ============================================================================
-
-/**
- * Initialize all tutorial viewers on the page
- */
-export function initTutorialViewers() {
-  onThreeReady(() => {
-    log('[TutorialViewer] Initializing...');
-
-    // Find all tutorial viewer containers
-    const containers = document.querySelectorAll('.tutorial-3d-viewer');
-
-    if (containers.length === 0) {
-      log('[TutorialViewer] No viewers found');
+    if (entry.activeKey === nextState.key && !options.force) {
+      syncExternalTargets(id, entry.activeKey);
+      updateHint(entry);
       return;
     }
 
-    containers.forEach(container => {
-      createViewer(container);
-    });
-
-    log('[TutorialViewer] Created', viewers.size, 'viewers');
-
-    // Start animation loop
-    startAnimation();
-
-    // Pause when page is hidden
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stopAnimation();
-      } else {
-        startAnimation();
-      }
-    });
-  });
-}
-
-/**
- * Get a viewer by ID
- */
-export function getViewer(id) {
-  return viewers.get(id);
-}
-
-/**
- * Manually toggle a viewer's refined state
- */
-export function toggleViewerRefined(id) {
-  const viewer = viewers.get(id);
-  if (viewer) {
-    toggleRefined(viewer);
+    entry.activeKey = nextState.key;
+    entry.shouldAnimate = options.animate !== false;
+    renderViewer(entry);
   }
-}
 
-// Auto-init on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initTutorialViewers);
-} else {
-  initTutorialViewers();
-}
+  function cycleViewer(id) {
+    const entry = viewers.get(id);
+    if (!entry || entry.states.length < 2) return;
+
+    const nextState = getNextState(entry);
+    if (!nextState) return;
+    setViewerState(id, nextState.key, { animate: true });
+  }
+
+  function bindExternalTargets() {
+    document.querySelectorAll(EXTERNAL_TARGET_SELECTOR).forEach((element) => {
+      if (element.dataset.tutorialViewerBound === 'true') return;
+      element.dataset.tutorialViewerBound = 'true';
+
+      const activate = () => {
+        setViewerState(element.dataset.targetViewer, element.dataset.targetState, { animate: true });
+      };
+
+      element.addEventListener('click', activate);
+      element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate();
+        }
+      });
+    });
+  }
+
+  function createEntry(container) {
+    const id = container.id || `tutorial-viewer-${viewers.size + 1}`;
+    container.id = id;
+
+    const { states, activeKey } = buildStates(container);
+    if (!states.length) return null;
+
+    return {
+      id,
+      container,
+      states,
+      activeKey,
+      hintEl: container.parentElement?.querySelector('.model-toggle-hint') || null,
+      shouldAnimate: false,
+      swapTimer: null
+    };
+  }
+
+  function initTutorialViewers() {
+    const containers = document.querySelectorAll(VIEWER_SELECTOR);
+    if (!containers.length) return;
+
+    viewers.clear();
+
+    containers.forEach((container) => {
+      const entry = createEntry(container);
+      if (!entry) return;
+      viewers.set(entry.id, entry);
+      renderViewer(entry);
+    });
+
+    bindExternalTargets();
+  }
+
+  window.TutorialViewers = {
+    init: initTutorialViewers,
+    setState: setViewerState,
+    nextState: cycleViewer
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTutorialViewers, { once: true });
+  } else {
+    initTutorialViewers();
+  }
+})();

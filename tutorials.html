@@ -184,7 +184,7 @@
             </div>
             <ul class="tutorials-hero-stats">
               <li><span>05 min</span><small>Avg tutorial</small></li>
-              <li><span>5 modes</span><small>Generate · Refine · Remesh · Texture · Video</small></li>
+              <li><span>7 tools</span><small>Image · 3D · Remesh · Texture · Rig · Animate · Video</small></li>
               <li><span>∞ prompts</span><small>Iterate freely</small></li>
               <li><span>24/7</span><small>Always available</small></li>
             </ul>
@@ -267,6 +267,49 @@
           </div>
         </section>
 
+        <!-- ===== TEXT TO IMAGE ===== -->
+        <section class="tutorials-section" id="text-to-image">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Text to Image</h2>
+              <p>Use the image panel to build clean concept art, reference stills, and polished cover images before you branch into 3D, video, or community sharing.</p>
+            </div>
+            <div class="tutorials-highlight">Generation</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Start with stills</h3>
+              <p class="tutorials-card__body">Text-to-image is the fastest way to test composition, materials, and camera framing before committing to heavier jobs.</p>
+              <ul class="tutorials-card__list">
+                <li>Describe subject, framing, and lighting in the same prompt.</li>
+                <li>Keep backgrounds simple if the image will feed image-to-3D.</li>
+                <li>Generate variations quickly, then promote the strongest still.</li>
+                <li>Use saved stills as covers for history and community posts.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Use image-to-image carefully</h3>
+              <p class="tutorials-card__body">When you upload a still, your prompt should describe only what changes, not the whole picture again.</p>
+              <ul class="tutorials-card__list">
+                <li>Lower strength stays closer to the uploaded source.</li>
+                <li>Change one variable at a time: palette, wardrobe, or mood.</li>
+                <li>Great for polishing renders before animation.</li>
+                <li>Also useful as a texture mood-board stage.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Bridge into 3D and video</h3>
+              <p class="tutorials-card__body">The strongest image outputs become references for image-to-3D, image-to-video, thumbnails, and community showcases.</p>
+              <ul class="tutorials-card__list">
+                <li>Front-facing character art converts best to 3D.</li>
+                <li>Cinematic stills make better image-to-video sources.</li>
+                <li>Keep favorite stills in history so you can reuse them later.</li>
+                <li>Use generated stills to compare styles before refining meshes.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
         <!-- ===== TEXT TO 3D (with interactive 3D viewer) ===== -->
         <section class="tutorials-section tutorials-section--with-model" id="text-to-3d">
           <div class="tutorials-section-header">
@@ -306,6 +349,12 @@
                 data-src="3dprint-modules/3dmodels/undead_creature_preview.glb"
                 data-preview="3dprint-modules/3dmodels/undead_creature_preview.glb"
                 data-refined="3dprint-modules/3dmodels/undead_creature_refined.glb"
+                data-preview-label="Preview"
+                data-preview-title="Preview mesh"
+                data-preview-copy="Fast draft used to check silhouette, balance, and pose before refining."
+                data-refined-label="Refined"
+                data-refined-title="Refined result"
+                data-refined-copy="Higher-detail pass with sharper anatomy and cleaner surface definition."
                 data-preview-hint="Click model to view refined version"
                 data-refined-hint="Click model to view preview version"
                 aria-label="Undead Creature 3D Model - click to toggle versions"
@@ -326,7 +375,7 @@
           </div>
           <div class="tutorials-split-layout tutorials-split-layout--with-extra">
             <div class="tutorials-split-cards tutorials-split-cards--grid-with-extra">
-              <div class="tutorials-reference-img">
+              <div class="tutorials-reference-img" data-target-viewer="dog-model-viewer" data-target-state="reference" tabindex="0" role="button" aria-label="View source image state for the dog model demo">
                 <img src="3dprint-modules/3dmodels/dogimg.png" alt="Reference Image">
                 <span class="reference-label">Reference</span>
               </div>
@@ -358,8 +407,18 @@
                 class="tutorial-3d-viewer"
                 id="dog-model-viewer"
                 data-src="3dprint-modules/3dmodels/dog3d.glb"
+                data-reference-image="3dprint-modules/3dmodels/dogimg.png"
+                data-reference-label="Reference"
+                data-reference-title="Source image"
+                data-reference-copy="A single clean illustration is enough to guide silhouette, materials, and depth."
+                data-model-label="Textured"
+                data-model-title="Generated 3D model"
+                data-model-copy="The image becomes a textured mesh you can remesh, refine, and export."
+                data-preview-hint="Click to inspect the source image"
+                data-reference-hint="Click to return to the generated model"
                 aria-label="Dog 3D Model from Image"
               ></div>
+              <span class="model-toggle-hint">Click to inspect the source image</span>
             </div>
           </div>
         </section>
@@ -409,11 +468,11 @@
                 <h3 class="tutorials-card__title">Remesh Explained</h3>
                 <p class="tutorials-card__body">Both models look the same? That's correct! Remeshing preserves appearance while fixing internal geometry.</p>
                 <div class="remesh-comparison">
-                  <div class="remesh-comparison__item" data-tooltip="The original AI-generated mesh. May contain holes, non-manifold edges, or overlapping faces that could cause print failures.">
+                  <div class="remesh-comparison__item" data-target-viewer="remesh-model-viewer" data-target-state="preview" tabindex="0" role="button" aria-label="Show original mesh" data-tooltip="The original AI-generated mesh. May contain holes, non-manifold edges, or overlapping faces that could cause print failures.">
                     <strong>Preview</strong>
                     <span>Original mesh</span>
                   </div>
-                  <div class="remesh-comparison__item" data-tooltip="Clean, watertight mesh ready for slicing. All topology issues fixed while preserving the visual appearance.">
+                  <div class="remesh-comparison__item" data-target-viewer="remesh-model-viewer" data-target-state="refined" tabindex="0" role="button" aria-label="Show remeshed model" data-tooltip="Clean, watertight mesh ready for slicing. All topology issues fixed while preserving the visual appearance.">
                     <strong>Remeshed</strong>
                     <span>Print-ready</span>
                   </div>
@@ -427,6 +486,12 @@
                 data-src="3dprint-modules/3dmodels/character_preview.glb"
                 data-preview="3dprint-modules/3dmodels/character_preview.glb"
                 data-refined="3dprint-modules/3dmodels/character_remeshed.glb"
+                data-preview-label="Preview"
+                data-preview-title="Original topology"
+                data-preview-copy="Raw topology may still hide non-manifold edges, thin walls, or open surfaces."
+                data-refined-label="Remeshed"
+                data-refined-title="Print-ready topology"
+                data-refined-copy="Same silhouette, but rebuilt into a cleaner and more reliable printable mesh."
                 data-preview-hint="Click model to view remeshed version"
                 data-refined-hint="Click model to view original version"
                 aria-label="Character 3D Model - Remesh Demo - click to toggle versions"
@@ -479,12 +544,55 @@
           </div>
         </section>
 
+        <!-- ===== RIG & ANIMATE ===== -->
+        <section class="tutorials-section" id="rig-animate">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Rig & Animate</h2>
+              <p>Rig and Animate are separate workspace panels. Rig checks whether the model is ready for a skeleton, then Animate applies motion from the library or from previously rigged history items.</p>
+            </div>
+            <div class="tutorials-highlight">Motion</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Run rig preflight first</h3>
+              <p class="tutorials-card__body">The rig panel starts with a readiness pass so you can catch heavy or messy meshes before binding.</p>
+              <ul class="tutorials-card__list">
+                <li>Use the current model, a history item, or upload a GLB/GLTF.</li>
+                <li>The panel checks face count and general riggability.</li>
+                <li>If the model is too dense, jump back to Remesh first.</li>
+                <li>Character height settings help the bind land correctly.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Treat rigging as a clean stage</h3>
+              <p class="tutorials-card__body">Clean silhouettes and cleaner topology give the rigger better joints, better weighting, and less cleanup later.</p>
+              <ul class="tutorials-card__list">
+                <li>Humanoid characters are the safest starting point.</li>
+                <li>Remeshed characters usually rig better than raw previews.</li>
+                <li>Keep limbs readable and separated in the base shape.</li>
+                <li>Save the rigged result as its own version in history.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Animate from rigged history</h3>
+              <p class="tutorials-card__body">The animate panel can pull the latest rigged model automatically or let you choose another rigged asset from history.</p>
+              <ul class="tutorials-card__list">
+                <li>Select an action from the animation library first.</li>
+                <li>Reanimate previously rigged models without rebinding them.</li>
+                <li>Use animated results as showcase clips and community assets.</li>
+                <li>Keep a clean naming trail so motion versions stay searchable.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
         <!-- ===== VIDEO GENERATION ===== -->
         <section class="tutorials-section" id="video-generation">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
-              <h2>Video & Animation</h2>
-              <p>Animate your 3D models and create cinematic videos with AI-powered tools.</p>
+              <h2>Video Generation</h2>
+              <p>Create standalone AI video clips from text or images. This section covers the video panel itself, separate from the rigged character animation workflow.</p>
             </div>
             <div class="tutorials-highlight">Creation</div>
           </div>
@@ -527,6 +635,49 @@
                 <li>Multiple lighting presets</li>
                 <li>HD and 4K export options</li>
                 <li>Perfect for portfolios</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== VIEWER, HISTORY & EXPORT ===== -->
+        <section class="tutorials-section" id="viewer-history-export">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Viewer, History & Export</h2>
+              <p>The final stage of the workspace is a production loop: inspect the asset in the viewer, manage it from history, share it to community, run print checks, preview in AR, and export the right format.</p>
+            </div>
+            <div class="tutorials-highlight">Finish Flow</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Use the viewer toolbar</h3>
+              <p class="tutorials-card__body">The center viewer is where generated or uploaded models become actionable assets.</p>
+              <ul class="tutorials-card__list">
+                <li>Retry, Remesh, Texture, and Evolve live directly on the toolbar.</li>
+                <li>Upload your own GLB/GLTF from the viewer header if needed.</li>
+                <li>Use AR to sanity-check scale in the real world.</li>
+                <li>Change lighting and autorotate to inspect shape and surfaces.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Treat history like a timeline</h3>
+              <p class="tutorials-card__body">The right panel tracks models, images, videos, rigged assets, and animations with search, sort, filters, and lineage grouping.</p>
+              <ul class="tutorials-card__list">
+                <li>Search by prompt fragments, titles, or asset tags.</li>
+                <li>Open the card menus for download, print, and share actions.</li>
+                <li>Compare preview, texture, remesh, rig, and animate stages.</li>
+                <li>Expand into gallery mode for broader review and browsing.</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Share, print, and export</h3>
+              <p class="tutorials-card__body">Once the asset is approved, move it into the delivery phase instead of stopping at a screenshot.</p>
+              <ul class="tutorials-card__list">
+                <li>Share straight to Community from history when the result is ready.</li>
+                <li>Run Print Check before sending the file to a slicer.</li>
+                <li>Export GLB, GLTF, STL, OBJ, FBX, or USDZ based on the target.</li>
+                <li>Use the standalone Converter for cross-format cleanup afterward.</li>
               </ul>
             </article>
           </div>
@@ -736,7 +887,7 @@
   <div data-site-shell="footer"></div>
 
   <!-- Scripts -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.module.js" type="module"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <script src="js/tutorial-viewer.js" defer></script>
   <script src="js/site-shell.js" defer></script>
   <script src="js/auth-modal.js?v=20260401g" defer></script>

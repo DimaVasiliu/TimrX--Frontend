@@ -2163,7 +2163,7 @@
 }
 
 .viewer-toolbar__btn[data-action="share"]:hover,
-.viewer-action-btn[data-action="ar"]:hover {
+.viewer-toolbar__btn[data-action="ar"]:hover {
   color: var(--accent-blue, #0ea5e9);
 }
 
