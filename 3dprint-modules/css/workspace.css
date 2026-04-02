@@ -1897,7 +1897,7 @@
 .remesh-advanced {
   overflow: hidden;
   transition: max-height .25s ease, opacity .2s ease;
-  max-height: 200px;
+  max-height: 760px;
   opacity: 1;
 }
 
@@ -1915,6 +1915,20 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+}
+
+.texture-style-block {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.texture-style-url-row {
+  margin-top: 0;
+}
+
+.texture-setting-note {
+  margin: 0;
 }
 
 .material-chip {
@@ -1940,6 +1954,81 @@
   background: rgba(139,92,246,.15);
   border-color: rgba(139,92,246,.4);
   color: #d4bbff;
+}
+
+.texture-format-group {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.texture-format-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.texture-format-option {
+  position: relative;
+  display: inline-flex;
+}
+
+.texture-format-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.texture-format-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.72);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  transition: all .18s ease;
+  cursor: pointer;
+}
+
+.texture-format-option:hover .texture-format-chip {
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.9);
+}
+
+.texture-format-option input:checked + .texture-format-chip {
+  background: rgba(14,165,233,.14);
+  border-color: rgba(14,165,233,.42);
+  color: #c9ecff;
+}
+
+.texture-format-option input:focus-visible + .texture-format-chip {
+  box-shadow: 0 0 0 2px rgba(14,165,233,.18);
+}
+
+#textureRemoveLighting:disabled + .toggle-slider {
+  opacity: .35;
+}
+
+#remeshConvertFormatOnly:checked + .toggle-slider {
+  background: rgba(14,165,233,.28);
+}
+
+#remeshTargetFormats {
+  margin-top: 2px;
+}
+
+#remeshAdvanced input:disabled,
+#remeshAdvanced select:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 
 /* ==========================================================================

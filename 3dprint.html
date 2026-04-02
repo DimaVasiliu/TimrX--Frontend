@@ -1601,23 +1601,23 @@
               </ul>
             </article>
             <article class="tutorials-card">
-              <h3 class="tutorials-card__title">Resolution Settings</h3>
-              <p class="tutorials-card__body">Choose the right resolution based on your print size and detail requirements.</p>
+              <h3 class="tutorials-card__title">Presets &amp; Controls</h3>
+              <p class="tutorials-card__body">Start from a preset, then open Advanced Settings when you need custom density, resize, origin placement, or export-only conversion.</p>
               <ul class="tutorials-card__list">
-                <li>Low: Fast, fewer polygons (prototypes)</li>
-                <li>Medium: Balanced (most prints)</li>
-                <li>High: Maximum detail (miniatures)</li>
-                <li>Custom: Set exact polygon count</li>
+                <li>Print Ready: triangle mesh + STL-focused output</li>
+                <li>Game Asset: lighter triangle mesh for runtime use</li>
+                <li>High Detail / Quad Clean: fidelity or animation cleanup</li>
+                <li>Advanced: poly count, resize height, origin, format-only</li>
               </ul>
             </article>
             <article class="tutorials-card">
               <h3 class="tutorials-card__title">Export Formats</h3>
-              <p class="tutorials-card__body">Export your remeshed model in the format your slicer or DCC app needs.</p>
+              <p class="tutorials-card__body">GLB stays in the job for preview, then add the extra formats your slicer or DCC app needs.</p>
               <ul class="tutorials-card__list">
-                <li>GLB: Universal, includes textures</li>
-                <li>GLTF: Separate files, DCC-friendly</li>
+                <li>GLB: Workspace preview and universal handoff</li>
                 <li>STL: Classic print format</li>
-                <li>OBJ: Wide compatibility</li>
+                <li>OBJ / FBX: DCC and game-pipeline friendly</li>
+                <li>USDZ / BLEND: AR previews and Blender delivery</li>
               </ul>
             </article>
             <article class="tutorials-card tutorials-card--explained">
@@ -1655,7 +1655,7 @@
         <div class="tutorials-section-header">
           <div class="tutorials-section-content">
             <h2>Texture</h2>
-            <p>Apply AI-generated PBR textures to your 3D models. Create realistic materials with diffuse, normal, and roughness maps.</p>
+            <p>Apply AI-generated PBR textures to your 3D models with text prompts or reference images, then fine-tune UV preservation, lighting cleanup, and export formats.</p>
           </div>
           <div class="tutorials-highlight">Post-Processing</div>
         </div>
@@ -1672,12 +1672,12 @@
           </article>
           <article class="tutorials-card">
             <h3 class="tutorials-card__title">Image to Texture</h3>
-            <p class="tutorials-card__body">Upload a reference image and apply its style or material to your 3D model.</p>
+            <p class="tutorials-card__body">Upload a JPG or PNG reference image and let Meshy transfer its style or material cues onto your 3D model.</p>
             <ul class="tutorials-card__list">
               <li>Upload material photos</li>
               <li>Use artwork as reference</li>
               <li>AI extracts color and patterns</li>
-              <li>Seamless UV mapping</li>
+              <li>Optional preserve-original-UV flow</li>
             </ul>
           </article>
           <article class="tutorials-card">
@@ -2300,50 +2300,50 @@
           <!-- Remesh -->
           <article class="docs-article" id="doc-remesh">
             <h2>Remesh</h2>
-            <p>Optimize a model's topology for 3D printing or further editing. Select the Remesh panel from the left rail, choose the current model or upload a new one, set your options, and run.</p>
+            <p>Optimize a model's topology for 3D printing, animation cleanup, or export delivery. Select the Remesh panel from the left rail, choose the current model or upload a new one, pick a preset, then adjust size, origin, and export formats when needed.</p>
             <div class="docs-option-grid">
               <dl class="docs-option-card">
-                <dt>Poly Count</dt>
-                <dd>Target polygon count (default 10,000)</dd>
+                <dt>Presets &amp; Topology</dt>
+                <dd>Start with Print Ready, Game Asset, High Detail, or Quad Clean, then fine-tune triangle vs quad output and custom poly count in Advanced Settings.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Mode</dt>
-                <dd>Uniform, Adaptive, Feature Preserving, Quad Based</dd>
+                <dt>Size &amp; Origin</dt>
+                <dd>Set Meshy resize height in meters, choose bottom or center origin placement, and keep the separate print target-height field for STL export prep.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Preserve UV</dt>
-                <dd>Keep UV mapping intact (on by default)</dd>
+                <dt>Output Formats</dt>
+                <dd>GLB stays enabled for in-app preview. Add STL, OBJ, FBX, USDZ, or BLEND depending on your print, DCC, AR, or Blender workflow.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Preserve Boundaries</dt>
-                <dd>Maintain mesh edges (on by default)</dd>
+                <dt>Format-Only Conversion</dt>
+                <dd>Turn on format-only conversion when you just need fresh exports without changing topology, origin placement, or scale.</dd>
               </dl>
             </div>
             <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 10 credits. Estimated time ~2 minutes.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 6 credits. Estimated time ~2 minutes.</div>
           </article>
 
           <!-- AI Texture -->
           <article class="docs-article" id="doc-texture">
             <h2>AI Texture</h2>
-            <p>Generate PBR (physically-based rendering) textures for any 3D model using a text prompt. Select the Texture panel, choose the current model or upload a new one, describe the surface you want, and generate.</p>
+            <p>Generate PBR (physically-based rendering) textures for any 3D model using a text prompt or a JPG/PNG style reference. Select the Texture panel, choose the current model or upload a new one, set your material prompt or image, then generate.</p>
             <div class="docs-option-grid">
               <dl class="docs-option-card">
-                <dt>Resolution</dt>
-                <dd>512, 1024, 2048 (default), or 4096</dd>
+                <dt>Style Input</dt>
+                <dd>Use text, a reference image, or both. When both are set, the image guides the retexture.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Map Type</dt>
-                <dd>PBR All Maps, Diffuse Only, Normal, Roughness, Metallic</dd>
+                <dt>Meshy Model</dt>
+                <dd>Choose Latest, Meshy 6, or Meshy 5. Remove Lighting is available on Meshy 6 / Latest.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Seamless Tiling</dt>
-                <dd>On by default for continuous surfaces</dd>
+                <dt>Output Control</dt>
+                <dd>Keep GLB for in-app preview, then add OBJ, FBX, STL, or USDZ when you need extra export formats.</dd>
               </dl>
             </div>
-            <p>When using PBR All Maps, the following maps are generated: Albedo/Diffuse, Normal, Roughness, Metallic, and Ambient Occlusion.</p>
-            <p>Accepted upload formats: OBJ, FBX, STL, GLTF, GLB.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 15 credits. Estimated time ~1.5 minutes.</div>
+            <p>When PBR Maps is enabled, Meshy generates base color plus roughness, metallic, and normal outputs. Preserve Original UV keeps existing UVs when the source model is already laid out correctly.</p>
+            <p>Accepted model uploads: OBJ, FBX, STL, GLTF, GLB. Accepted style-image uploads: JPG and PNG.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 5 credits. Estimated time ~1.5 minutes.</div>
           </article>
 
           <!-- AI Image -->

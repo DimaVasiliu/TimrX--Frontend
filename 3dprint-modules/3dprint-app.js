@@ -981,6 +981,52 @@
                 <option value="quad-based">Quad Based</option>
               </select>
             </div>
+            <div class="inline-field">
+              <label for="remeshResizeHeight">Resize Height (m)</label>
+              <input type="number" id="remeshResizeHeight" min="0" step="0.01" placeholder="0 = keep original">
+            </div>
+            <div class="inline-field">
+              <label for="remeshOriginAt">Origin</label>
+              <select id="remeshOriginAt">
+                <option value="" selected>Keep Original</option>
+                <option value="bottom">Bottom</option>
+                <option value="center">Center</option>
+              </select>
+            </div>
+            <div class="texture-format-group">
+              <span class="field-label-inline">Additional Export Formats</span>
+              <div class="texture-format-grid" id="remeshTargetFormats">
+                <label class="texture-format-option">
+                  <input type="checkbox" value="obj">
+                  <span class="texture-format-chip">OBJ</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="fbx">
+                  <span class="texture-format-chip">FBX</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="stl" checked>
+                  <span class="texture-format-chip">STL</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="usdz">
+                  <span class="texture-format-chip">USDZ</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="blend">
+                  <span class="texture-format-chip">BLEND</span>
+                </label>
+              </div>
+              <p class="field-hint texture-setting-note">GLB always stays enabled for in-app preview. Add STL for print, OBJ / FBX for DCC, USDZ for AR, or BLEND for Blender delivery.</p>
+            </div>
+            <div class="field-row">
+              <span class="field-label-inline">Format Only Conversion</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="remeshConvertFormatOnly">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="field-hint texture-setting-note" id="remeshConvertOnlyNote">When enabled, Meshy only exports the selected formats and skips topology cleanup, origin changes, and resizing.</p>
           </div>
         </div>
 
@@ -1024,13 +1070,32 @@
           <div class="card-divider"></div>
           <textarea id="texturePrompt" placeholder="Rusty metal with scratches and weathering..."></textarea>
           <div class="enhance-row">
-            <span class="field-hint">Describe material, surface, and color</span>
+            <span class="field-hint">Describe material, surface, and color, or pair the model with a style image</span>
             <button type="button" class="enhance-btn" data-enhance-mode="texture" data-enhance-target="#texturePrompt" title="Make this prompt clearer and more detailed">
               <svg class="enhance-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/></svg>
               <span class="enhance-btn-label">Enhance</span>
             </button>
           </div>
           <div class="enhance-feedback hidden" data-enhance-feedback="texture"></div>
+
+          <div class="texture-style-block">
+            <div class="image-upload-control">
+              <input id="textureStyleImageUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg">
+              <label class="image-upload-trigger" for="textureStyleImageUpload">
+                <span class="image-upload-trigger__text">
+                  <strong>Add style image</strong>
+                </span>
+              </label>
+              <div class="image-upload-status is-empty" id="textureStyleImageStatus">Optional JPG or PNG reference</div>
+              <button type="button" class="image-upload-clear hidden" id="textureStyleImageClear">Clear</button>
+            </div>
+            <div class="image-upload-list image-upload-list--preview hidden" id="textureStyleImagePreview"></div>
+            <div class="inline-field texture-style-url-row">
+              <label for="textureStyleImageUrl">Or paste image URL</label>
+              <input type="text" id="textureStyleImageUrl" placeholder="https://example.com/material-reference.jpg">
+            </div>
+            <p class="field-hint texture-setting-note">If both text and image are set, Meshy uses the image reference to guide the retexture.</p>
+          </div>
 
           <div class="material-chips" id="materialChips">
             <button type="button" class="material-chip" data-material="Rusty weathered metal with scratches, oxidation, and patina">Rusty Metal</button>
@@ -1060,17 +1125,47 @@
           </button>
           <div class="remesh-advanced remesh-advanced--collapsed" id="textureAdvanced">
             <div class="inline-field">
-              <label for="textureResolution">Resolution</label>
-              <select id="textureResolution">
-                <option value="1024x1024">1024x1024</option>
-                <option value="2048x2048" selected>2048x2048</option>
-                <option value="4096x4096">4096x4096</option>
+              <label for="textureAiModel">Meshy Model</label>
+              <select id="textureAiModel">
+                <option value="latest" selected>Latest (Meshy 6)</option>
+                <option value="meshy-6">Meshy 6</option>
+                <option value="meshy-5">Meshy 5</option>
               </select>
             </div>
+            <div class="field-row">
+              <span class="field-label-inline">Remove Lighting</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="textureRemoveLighting" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="field-hint texture-setting-note" id="textureRemoveLightingNote">Cleaner base color textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
             <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
               <input type="checkbox" id="seamless" checked>
               <span>Preserve Original UV</span>
             </label>
+            <div class="texture-format-group">
+              <span class="field-label-inline">Additional Export Formats</span>
+              <div class="texture-format-grid" id="textureTargetFormats">
+                <label class="texture-format-option">
+                  <input type="checkbox" value="obj" checked>
+                  <span class="texture-format-chip">OBJ</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="fbx" checked>
+                  <span class="texture-format-chip">FBX</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="stl" checked>
+                  <span class="texture-format-chip">STL</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="usdz" checked>
+                  <span class="texture-format-chip">USDZ</span>
+                </label>
+              </div>
+              <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add extra formats only when you need export-ready variants.</p>
+            </div>
           </div>
         </div>
 
@@ -4697,6 +4792,79 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           }
         });
       }
+
+      const textureStyleImageUpload = leftStack.querySelector('#textureStyleImageUpload');
+      const textureStyleImageStatus = leftStack.querySelector('#textureStyleImageStatus');
+      const textureStyleImageClear = leftStack.querySelector('#textureStyleImageClear');
+      const textureStyleImagePreview = leftStack.querySelector('#textureStyleImagePreview');
+      const textureStyleImageUrl = leftStack.querySelector('#textureStyleImageUrl');
+      const textureAiModel = leftStack.querySelector('#textureAiModel');
+      const textureRemoveLighting = leftStack.querySelector('#textureRemoveLighting');
+      const textureRemoveLightingNote = leftStack.querySelector('#textureRemoveLightingNote');
+
+      const syncTextureStylePreview = () => {
+        const file = textureStyleImageUpload?.files?.[0] || null;
+        if (textureStyleImageStatus) {
+          textureStyleImageStatus.textContent = file
+            ? `${file.name} (${(file.size / 1024).toFixed(0)} KB)`
+            : 'Optional JPG or PNG reference';
+          textureStyleImageStatus.classList.toggle('is-empty', !file);
+        }
+        if (textureStyleImageClear) {
+          textureStyleImageClear.classList.toggle('hidden', !file);
+        }
+        if (!textureStyleImagePreview) return;
+        if (!file) {
+          textureStyleImagePreview.classList.add('hidden');
+          textureStyleImagePreview.innerHTML = '';
+          return;
+        }
+        const objectUrl = URL.createObjectURL(file);
+        textureStyleImagePreview.innerHTML = `
+          <figure class="image-upload-preview">
+            <img class="image-upload-preview__image" src="${objectUrl}" alt="Texture style reference preview">
+            <figcaption class="image-upload-preview__caption">${file.name}</figcaption>
+          </figure>
+        `;
+        textureStyleImagePreview.classList.remove('hidden');
+        const img = textureStyleImagePreview.querySelector('img');
+        if (img) {
+          img.addEventListener('load', () => URL.revokeObjectURL(objectUrl), { once: true });
+          img.addEventListener('error', () => URL.revokeObjectURL(objectUrl), { once: true });
+        }
+      };
+
+      if (textureStyleImageUpload) {
+        textureStyleImageUpload.addEventListener('change', () => {
+          if (textureStyleImageUpload.files?.[0] && textureStyleImageUrl) {
+            textureStyleImageUrl.value = '';
+          }
+          syncTextureStylePreview();
+        });
+      }
+      if (textureStyleImageClear) {
+        textureStyleImageClear.addEventListener('click', () => {
+          if (textureStyleImageUpload) textureStyleImageUpload.value = '';
+          syncTextureStylePreview();
+        });
+      }
+
+      const syncTextureLightingSupport = () => {
+        if (!textureAiModel || !textureRemoveLighting) return;
+        const supported = textureAiModel.value !== 'meshy-5';
+        textureRemoveLighting.disabled = !supported;
+        if (!supported) textureRemoveLighting.checked = false;
+        if (textureRemoveLightingNote) {
+          textureRemoveLightingNote.textContent = supported
+            ? 'Cleaner base color textures for custom lighting setups. Only available on Meshy 6 / latest.'
+            : 'Remove Lighting is unavailable on Meshy 5 and will stay off until you switch back to Meshy 6 / latest.';
+        }
+      };
+
+      if (textureAiModel && textureRemoveLighting) {
+        textureAiModel.addEventListener('change', syncTextureLightingSupport);
+        syncTextureLightingSupport();
+      }
   
       // Remesh upload toggle
       const remeshModelSelect   = leftStack.querySelector('#remeshModelSelect');
@@ -4824,6 +4992,30 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const remeshPresetsWrap = leftStack.querySelector('#remeshPresets');
       const remeshAdvancedToggle = leftStack.querySelector('#remeshAdvancedToggle');
       const remeshAdvanced = leftStack.querySelector('#remeshAdvanced');
+      const remeshFormatContainer = leftStack.querySelector('#remeshTargetFormats');
+      const remeshConvertFormatOnly = leftStack.querySelector('#remeshConvertFormatOnly');
+      const remeshResizeHeight = leftStack.querySelector('#remeshResizeHeight');
+      const remeshOriginAt = leftStack.querySelector('#remeshOriginAt');
+      const remeshPolyInput = leftStack.querySelector('#targetPolyCount');
+      const remeshModeInput = leftStack.querySelector('#remeshMode');
+
+      const syncRemeshPresetDefaults = (card) => {
+        if (!card) return;
+        if (remeshPolyInput) remeshPolyInput.value = card.dataset.poly || '50000';
+        if (remeshModeInput) remeshModeInput.value = card.dataset.topo === 'quad' ? 'quad-based' : 'adaptive';
+        if (remeshFormatContainer) {
+          const stlInput = remeshFormatContainer.querySelector('input[value="stl"]');
+          if (stlInput) stlInput.checked = card.dataset.preset === 'print-ready';
+        }
+      };
+
+      const syncRemeshAdvancedState = () => {
+        const convertOnly = !!remeshConvertFormatOnly?.checked;
+        [remeshPolyInput, remeshModeInput, remeshResizeHeight, remeshOriginAt].forEach((el) => {
+          if (!el) return;
+          el.disabled = convertOnly;
+        });
+      };
 
       if (remeshPresetsWrap) {
         remeshPresetsWrap.addEventListener('click', (e) => {
@@ -4831,12 +5023,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           if (!card) return;
           remeshPresetsWrap.querySelectorAll('.remesh-preset').forEach(c => c.classList.remove('is-active'));
           card.classList.add('is-active');
-          // Sync hidden form fields
-          const polyInput = leftStack.querySelector('#targetPolyCount');
-          const modeInput = leftStack.querySelector('#remeshMode');
-          if (polyInput) polyInput.value = card.dataset.poly || '50000';
-          if (modeInput) modeInput.value = card.dataset.topo === 'quad' ? 'quad-based' : 'adaptive';
+          syncRemeshPresetDefaults(card);
         });
+
+        const initialPreset = remeshPresetsWrap.querySelector('.remesh-preset.is-active') || remeshPresetsWrap.querySelector('.remesh-preset');
+        syncRemeshPresetDefaults(initialPreset);
       }
 
       if (remeshAdvancedToggle && remeshAdvanced) {
@@ -4844,6 +5035,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           const collapsed = remeshAdvanced.classList.toggle('remesh-advanced--collapsed');
           remeshAdvancedToggle.classList.toggle('is-open', !collapsed);
         });
+      }
+
+      if (remeshConvertFormatOnly) {
+        remeshConvertFormatOnly.addEventListener('change', syncRemeshAdvancedState);
+        syncRemeshAdvancedState();
       }
 
       // Material chips for texture panel

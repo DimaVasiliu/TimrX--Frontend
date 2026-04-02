@@ -68,7 +68,7 @@
               <a href="/3dprint" class="converter-secondary-btn">Open Workspace</a>
             </div>
             <ul class="converter-hero-stats">
-              <li><span>5+</span><small>Formats supported</small></li>
+              <li><span>5</span><small>Import formats</small></li>
               <li><span>100%</span><small>Client-side processing</small></li>
               <li><span>Free</span><small>No limits</small></li>
               <li><span>Private</span><small>Files stay on device</small></li>
@@ -100,25 +100,15 @@
             </div>
 
             <div class="converter-file-info hidden" id="converterFileInfo">
+              <!-- Row 1: Preview + Export Options (side by side) -->
               <div class="converter-file-preview">
                 <canvas id="converterPreviewCanvas"></canvas>
-                <div class="converter-file-details">
-                  <h2 id="converterFileName">model.glb</h2>
-                  <ul class="converter-file-meta">
-                    <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
-                    <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
-                    <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
-                    <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
-                    <li><span>Dimensions:</span> <strong id="converterDimensions">—</strong></li>
-                  </ul>
-                  <button type="button" class="converter-change-file" id="converterChangeFile">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 4v6h6M23 20v-6h-6"/>
-                      <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
-                    </svg>
-                    Change File
-                  </button>
-                </div>
+                <button type="button" class="converter-bg-toggle" id="converterBgToggle" title="Toggle background">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  </svg>
+                </button>
               </div>
 
               <div class="converter-export-options">
@@ -135,7 +125,7 @@
                     <input type="radio" name="exportFormat" value="gltf">
                     <span class="converter-format-card">
                       <strong>GLTF</strong>
-                      <small>JSON + separate assets</small>
+                      <small>JSON with embedded data</small>
                     </span>
                   </label>
                   <label class="converter-format-option">
@@ -152,10 +142,17 @@
                       <small>3D printing standard</small>
                     </span>
                   </label>
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="usdz">
+                    <span class="converter-format-card">
+                      <strong>USDZ</strong>
+                      <small>Apple AR Quick Look</small>
+                    </span>
+                  </label>
                 </div>
 
                 <div class="converter-advanced-toggle" id="converterAdvancedToggle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                     <path d="M6 9l6 6 6-6"/>
                   </svg>
                   Advanced Options
@@ -170,8 +167,12 @@
                     <input type="checkbox" id="converterBinaryStl" checked>
                   </label>
                   <label class="converter-option-row">
-                    <span>Flip Y/Z axis (for some apps)</span>
+                    <span>Flip to Z-up (Blender, CAD, 3D printing)</span>
                     <input type="checkbox" id="converterFlipAxis">
+                  </label>
+                  <label class="converter-option-row">
+                    <span>Show wireframe overlay</span>
+                    <input type="checkbox" id="converterWireframe">
                   </label>
                   <div class="converter-field" id="converterTargetHeightRow">
                     <label for="converterTargetHeight">Target Print Height (mm)</label>
@@ -179,13 +180,36 @@
                     <span class="field-hint">Leave empty to export at original scale. Set a value to uniformly scale the model so its height matches this value in millimeters.</span>
                   </div>
                 </div>
+              </div>
 
-                <button type="button" class="converter-export-btn" id="converterExportBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                  </svg>
-                  Convert & Download
-                </button>
+              <!-- Row 2: File details (full width below the grid) -->
+              <div class="converter-file-details">
+                <h2 id="converterFileName">model.glb</h2>
+                <ul class="converter-file-meta">
+                  <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
+                  <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
+                  <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
+                  <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
+                  <li><span>Dimensions:</span> <strong id="converterDimensions">—</strong></li>
+                  <li><span>Materials:</span> <strong id="converterMaterials">—</strong></li>
+                  <li><span>Textures:</span> <strong id="converterTextures">—</strong></li>
+                  <li><span>Animations:</span> <strong id="converterAnimations">—</strong></li>
+                </ul>
+                <div class="converter-actions">
+                  <button type="button" class="converter-change-file" id="converterChangeFile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <path d="M1 4v6h6M23 20v-6h-6"/>
+                      <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Change File
+                  </button>
+                  <button type="button" class="converter-export-btn" id="converterExportBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                    Convert & Download
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -265,13 +289,30 @@
                   <path d="M8 36l12-10M40 36l-12-10"/>
                 </svg>
               </div>
-              <h3>FBX</h3>
-              <p>Industry standard for animation and game engines. It supports complex rigs, animations, and material metadata.</p>
+              <h3>FBX <span style="font-size:11px;color:#f59e0b;font-weight:600;vertical-align:middle;margin-left:6px">Import Only</span></h3>
+              <p>Industry standard for animation and game engines. FBX files can be imported and converted to other formats, but exporting TO FBX is not supported in browser-based tools.</p>
               <ul>
                 <li>Full animation support</li>
                 <li>Industry standard</li>
-                <li>Complex scene data</li>
-                <li>Unity and Unreal ready</li>
+                <li>Import and convert to GLB/STL/OBJ</li>
+                <li>Export to FBX requires desktop tools</li>
+              </ul>
+            </article>
+
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M24 6l18 10v16L24 42 6 32V16z"/>
+                  <path d="M24 22v20M6 16l18 6 18-6"/>
+                </svg>
+              </div>
+              <h3>USDZ</h3>
+              <p>Apple's format for AR Quick Look on iPhone, iPad, and Vision Pro. Self-contained archive with geometry and textures.</p>
+              <ul>
+                <li>Apple AR Quick Look</li>
+                <li>Safari preview support</li>
+                <li>Self-contained archive</li>
+                <li>Vision Pro ready</li>
               </ul>
             </article>
           </div>
@@ -289,7 +330,7 @@
             <article class="converter-step">
               <span>01</span>
               <h3>Upload Your File</h3>
-              <p>Drag and drop your 3D model or click to browse. We support GLB, GLTF, OBJ, STL, and FBX formats up to 100MB.</p>
+              <p>Drag and drop your 3D model or click to browse. Import GLB, GLTF, OBJ, STL, or FBX files up to 100MB. Export to GLB, GLTF, OBJ, or STL.</p>
             </article>
             <article class="converter-step">
               <span>02</span>
@@ -411,6 +452,7 @@
     import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
     import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+    import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
     import { init as initConverter } from './js/converter.js';
 
     window.THREE = Object.assign({}, THREE_NS, {
@@ -421,7 +463,8 @@
       FBXLoader,
       GLTFExporter,
       OBJExporter,
-      STLExporter
+      STLExporter,
+      USDZExporter
     });
 
     initConverter();

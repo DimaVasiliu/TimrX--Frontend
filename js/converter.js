@@ -20,6 +20,37 @@ let originalFile = null;
 // ============================================================================
 const getEl = (id) => document.getElementById(id);
 
+/**
+ * Dispose all textures on a material.
+ */
+function _disposeTextures(material) {
+    const maps = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap', 'envMap', 'lightMap'];
+    for (const key of maps) {
+        if (material[key]) {
+            material[key].dispose();
+        }
+    }
+}
+
+/**
+ * Remove a model from the scene and free all GPU resources.
+ */
+function _disposeModel(model, scene) {
+    if (!model) return;
+    model.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => { _disposeTextures(m); m.dispose(); });
+            } else {
+                _disposeTextures(obj.material);
+                obj.material.dispose();
+            }
+        }
+    });
+    if (scene) scene.remove(model);
+}
+
 // ============================================================================
 // PREVIEW MANAGEMENT
 // ============================================================================
@@ -33,18 +64,14 @@ function disposeConverterPreview() {
     converterAnimationId = null;
   }
   if (converterModel) {
-    converterModel.traverse((obj) => {
-      if (obj.geometry) obj.geometry.dispose();
-      if (obj.material) {
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach(m => m.dispose());
-        } else {
-          obj.material.dispose();
-        }
-      }
-    });
-    if (converterScene) converterScene.remove(converterModel);
+    _disposeModel(converterModel, converterScene);
     converterModel = null;
+  }
+  // Disconnect resize observer
+  const canvas = converterRenderer?.domElement;
+  if (canvas?._converterResizeObserver) {
+    canvas._converterResizeObserver.disconnect();
+    canvas._converterResizeObserver = null;
   }
   if (converterRenderer) {
     converterRenderer.dispose();
@@ -88,6 +115,21 @@ function initConverterPreview(canvas) {
   directionalLight.position.set(5, 10, 7);
   converterScene.add(directionalLight);
 
+  // ── Handle canvas resize ──
+  const resizeObserver = new ResizeObserver(() => {
+    if (!converterRenderer || !converterCamera) return;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (w === 0 || h === 0) return;
+    converterCamera.aspect = w / h;
+    converterCamera.updateProjectionMatrix();
+    converterRenderer.setSize(w, h, false);
+  });
+  resizeObserver.observe(canvas.parentElement || canvas);
+
+  // Store reference for cleanup
+  canvas._converterResizeObserver = resizeObserver;
+
   // Animation loop
   function animate() {
     converterAnimationId = requestAnimationFrame(animate);
@@ -109,11 +151,9 @@ function loadModelToPreview(file) {
     initConverterPreview(canvas);
   }
 
-  // Remove existing model
-  if (converterModel) {
-    converterScene.remove(converterModel);
-    converterModel = null;
-  }
+  // Remove and DISPOSE existing model to free GPU memory
+  _disposeModel(converterModel, converterScene);
+  converterModel = null;
 
   const ext = file.name.split('.').pop().toLowerCase();
   const url = URL.createObjectURL(file);
@@ -182,6 +222,34 @@ function loadModelToPreview(file) {
     if (verticesEl) verticesEl.textContent = vertices.toLocaleString();
     if (facesEl) facesEl.textContent = Math.round(faces).toLocaleString();
 
+    // ── Count materials and textures ──
+    const materialSet = new Set();
+    let textureCount = 0;
+    const textureSet = new Set();
+
+    object.traverse((child) => {
+        if (child.isMesh && child.material) {
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach(mat => {
+                materialSet.add(mat.uuid);
+                const texMaps = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap'];
+                texMaps.forEach(key => {
+                    if (mat[key] && !textureSet.has(mat[key].uuid)) {
+                        textureSet.add(mat[key].uuid);
+                        textureCount++;
+                    }
+                });
+            });
+        }
+    });
+
+    const materialsEl = getEl('converterMaterials');
+    const texturesEl = getEl('converterTextures');
+    const animationsEl = getEl('converterAnimations');
+    if (materialsEl) materialsEl.textContent = materialSet.size.toLocaleString();
+    if (texturesEl) texturesEl.textContent = textureCount > 0 ? textureCount.toLocaleString() : 'None';
+    if (animationsEl) animationsEl.textContent = '—'; // Will be set by loader callback
+
     // ── Show real-world dimensions ──
     const dimEl = getEl('converterDimensions');
     if (dimEl) {
@@ -196,12 +264,49 @@ function loadModelToPreview(file) {
   const loadError = (err) => {
     console.error('Failed to load model:', err);
     URL.revokeObjectURL(url);
+
+    // Show error state to user
+    const fileInfo = getEl('converterFileInfo');
+    const dropZone = getEl('converterDropZone');
+
+    // Reset to drop zone with error message
+    if (fileInfo) fileInfo.classList.add('hidden');
+    if (dropZone) {
+        dropZone.classList.remove('hidden');
+        // Temporarily show error in the drop zone
+        const content = dropZone.querySelector('.converter-upload-content');
+        if (content) {
+            const originalHTML = content.innerHTML;
+            content.innerHTML = `
+                <svg class="converter-upload-icon" viewBox="0 0 64 64" fill="none" stroke="#f87171" stroke-width="2" style="opacity:1">
+                    <circle cx="32" cy="32" r="24"/>
+                    <path d="M22 22l20 20M42 22l-20 20" stroke-linecap="round"/>
+                </svg>
+                <h2 style="color:#f87171">Failed to load model</h2>
+                <p>The file could not be parsed. It may be corrupted or in an unsupported variant.</p>
+                <span class="converter-formats-hint">Click or drop another file to try again</span>
+            `;
+            // Restore original content after 5 seconds
+            setTimeout(() => { content.innerHTML = originalHTML; }, 5000);
+        }
+    }
+
+    originalFile = null;
   };
 
   // Load based on format
   if (ext === 'glb' || ext === 'gltf') {
     const loader = new THREE.GLTFLoader();
-    loader.load(url, (gltf) => loadComplete(gltf.scene), undefined, loadError);
+    loader.load(url, (gltf) => {
+        loadComplete(gltf.scene);
+        // Update animation count after load
+        const animEl = getEl('converterAnimations');
+        if (animEl) {
+            animEl.textContent = gltf.animations?.length
+                ? `${gltf.animations.length} clip${gltf.animations.length > 1 ? 's' : ''}`
+                : 'None';
+        }
+    }, undefined, loadError);
   } else if (ext === 'obj') {
     const loader = new THREE.OBJLoader();
     loader.load(url, loadComplete, undefined, loadError);
@@ -214,7 +319,15 @@ function loadModelToPreview(file) {
     }, undefined, loadError);
   } else if (ext === 'fbx') {
     const loader = new THREE.FBXLoader();
-    loader.load(url, loadComplete, undefined, loadError);
+    loader.load(url, (fbxScene) => {
+        loadComplete(fbxScene);
+        const animEl = getEl('converterAnimations');
+        if (animEl) {
+            animEl.textContent = fbxScene.animations?.length
+                ? `${fbxScene.animations.length} clip${fbxScene.animations.length > 1 ? 's' : ''}`
+                : 'None';
+        }
+    }, undefined, loadError);
   }
 }
 
@@ -227,6 +340,23 @@ function loadModelToPreview(file) {
  */
 function handleFileUpload(file) {
   if (!file) return;
+
+  // ── File size validation ──
+  const MAX_SIZE_MB = 150;
+  const WARN_SIZE_MB = 50;
+  const sizeMB = file.size / (1024 * 1024);
+
+  if (sizeMB > MAX_SIZE_MB) {
+    alert(`File is ${sizeMB.toFixed(0)} MB — too large for browser-based conversion.\n\nMaximum recommended size: ${MAX_SIZE_MB} MB.\nUse Blender or another desktop tool for files this large.`);
+    return;
+  }
+
+  if (sizeMB > WARN_SIZE_MB) {
+    const proceed = confirm(
+      `File is ${sizeMB.toFixed(0)} MB — this may take a while and could slow your browser.\n\nContinue?`
+    );
+    if (!proceed) return;
+  }
 
   originalFile = file;
 
@@ -264,10 +394,8 @@ function resetUpload() {
   originalFile = null;
 
   // Clean up preview but keep scene
-  if (converterModel && converterScene) {
-    converterScene.remove(converterModel);
-    converterModel = null;
-  }
+  _disposeModel(converterModel, converterScene);
+  converterModel = null;
 }
 
 // ============================================================================
@@ -289,6 +417,45 @@ async function exportModel(format) {
   if (!converterModel) {
     alert('Please upload a model first');
     return;
+  }
+
+  // ── Format-specific warnings ──
+  const selectedFormat = document.querySelector('input[name="exportFormat"]:checked')?.value || format;
+
+  if (selectedFormat === 'obj') {
+    // Check if model has textures
+    let hasTextures = false;
+    converterModel.traverse((child) => {
+        if (child.isMesh && child.material) {
+            const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+            if (mat && (mat.map || mat.normalMap || mat.roughnessMap)) {
+                hasTextures = true;
+            }
+        }
+    });
+    if (hasTextures) {
+        const proceed = confirm(
+            'OBJ format does not preserve textures or materials.\n\n' +
+            'Your model has textures that will be lost in the export.\n' +
+            'Use GLB format to keep full material fidelity.\n\n' +
+            'Continue with OBJ export anyway?'
+        );
+        if (!proceed) return;
+    }
+  }
+
+  if (selectedFormat === 'stl') {
+    let hasTextures = false;
+    converterModel.traverse((child) => {
+        if (child.isMesh && child.material) {
+            const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+            if (mat && mat.map) hasTextures = true;
+        }
+    });
+    if (hasTextures) {
+        // Not a blocking warning — just inform
+        console.info('[Converter] Note: STL format does not support textures. Geometry only will be exported.');
+    }
   }
 
   const progress = getEl('converterProgress');
@@ -385,6 +552,18 @@ async function exportModel(format) {
         blob = new Blob([result], { type: 'text/plain' });
       }
       filename = baseName + '.stl';
+    } else if (format === 'usdz') {
+      if (!THREE.USDZExporter) {
+        throw new Error('USDZExporter not available');
+      }
+      const exporter = new THREE.USDZExporter();
+
+      if (progressFill) progressFill.style.width = '50%';
+      if (progressText) progressText.textContent = 'Exporting to USDZ...';
+
+      const result = await exporter.parse(modelToExport);
+      blob = new Blob([result], { type: 'model/vnd.usdz+zip' });
+      filename = baseName + '.usdz';
     }
 
     if (progressFill) progressFill.style.width = '90%';
@@ -483,6 +662,84 @@ export function init() {
       exportModel(format);
     });
   }
+
+  // ── Live dimension update when target height changes ──
+  const targetHeightInput = getEl('converterTargetHeight');
+  const dimEl = getEl('converterDimensions');
+
+  if (targetHeightInput && dimEl) {
+    targetHeightInput.addEventListener('input', () => {
+        if (!converterModel || !converterModel.userData.realSizeMM) return;
+
+        const rs = converterModel.userData.realSizeMM;
+        const targetH = parseFloat(targetHeightInput.value);
+
+        if (targetH > 0 && rs.y > 0) {
+            const ratio = targetH / rs.y;
+            const sx = (rs.x * ratio).toFixed(1);
+            const sy = targetH.toFixed(1);
+            const sz = (rs.z * ratio).toFixed(1);
+            dimEl.textContent = `${sx} × ${sy} × ${sz} mm (scaled)`;
+            dimEl.style.color = '#38bdf8';
+        } else {
+            // Revert to original dimensions
+            dimEl.textContent = `${rs.x} × ${rs.y} × ${rs.z} mm`;
+            dimEl.style.color = '';
+        }
+    });
+  }
+
+  // ── Wireframe toggle ──
+  const wireframeToggle = getEl('converterWireframe');
+  if (wireframeToggle) {
+    wireframeToggle.addEventListener('change', () => {
+        if (!converterModel) return;
+        const enabled = wireframeToggle.checked;
+        converterModel.traverse((child) => {
+            if (child.isMesh && child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(m => { m.wireframe = enabled; });
+                } else {
+                    child.material.wireframe = enabled;
+                }
+            }
+        });
+    });
+  }
+
+  // ── Background toggle ──
+  const bgToggle = getEl('converterBgToggle');
+  if (bgToggle) {
+    let isDark = true;
+    bgToggle.addEventListener('click', () => {
+        if (!converterScene) return;
+        isDark = !isDark;
+        converterScene.background = new THREE.Color(isDark ? 0x1a1a1f : 0xe8e8e8);
+        bgToggle.title = isDark ? 'Switch to light background' : 'Switch to dark background';
+    });
+  }
+
+  // ── Show/hide format-specific options ──
+  const formatRadios = document.querySelectorAll('input[name="exportFormat"]');
+  const textureRow = getEl('converterIncludeTextures')?.closest('.converter-option-row');
+  const binaryStlRow = getEl('converterBinaryStl')?.closest('.converter-option-row');
+  const targetHeightRow = getEl('converterTargetHeightRow');
+
+  function updateFormatOptions() {
+    const format = document.querySelector('input[name="exportFormat"]:checked')?.value || 'glb';
+
+    // Texture option: only for GLB/GLTF
+    if (textureRow) textureRow.style.display = (format === 'glb' || format === 'gltf') ? '' : 'none';
+
+    // Binary STL: only for STL
+    if (binaryStlRow) binaryStlRow.style.display = (format === 'stl') ? '' : 'none';
+
+    // Target print height: only for STL
+    if (targetHeightRow) targetHeightRow.style.display = (format === 'stl') ? '' : 'none';
+  }
+
+  formatRadios.forEach(radio => radio.addEventListener('change', updateFormatOptions));
+  updateFormatOptions(); // Set initial state
 }
 
 /**

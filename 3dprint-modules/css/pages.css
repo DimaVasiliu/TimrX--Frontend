@@ -2325,13 +2325,33 @@ body.converter-view .converter-expanded-view {
 .converter-file-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  gap: 24px;
 }
 
 .converter-file-preview {
+  position: relative;
+}
+
+.converter-bg-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.4);
+  color: #ccc;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  z-index: 2;
+}
+.converter-bg-toggle:hover {
+  background: rgba(255,255,255,.15);
+  color: #fff;
 }
 
 .converter-file-preview canvas {
@@ -2342,12 +2362,20 @@ body.converter-view .converter-expanded-view {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.converter-file-details h3 {
-  font-size: 18px;
+.converter-file-details {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+}
+
+.converter-file-details h2 {
+  font-size: 14px;
   font-weight: 600;
-  color: #fff;
-  margin: 0 0 12px;
-  word-break: break-all;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .converter-file-meta {
@@ -2355,24 +2383,37 @@ body.converter-view .converter-expanded-view {
   padding: 0;
   margin: 0 0 16px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
 .converter-file-meta li {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .converter-file-meta li strong {
+  display: block;
   color: #fff;
   font-weight: 600;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.converter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .converter-change-file {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 10px 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2382,6 +2423,7 @@ body.converter-view .converter-expanded-view {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .converter-change-file:hover {
@@ -2392,16 +2434,18 @@ body.converter-view .converter-expanded-view {
 .converter-change-file svg {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
 }
 
 /* Export Options */
 .converter-export-options {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  align-self: start;
 }
 
-.converter-export-options h4 {
+.converter-export-options h3 {
   font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
@@ -2412,8 +2456,8 @@ body.converter-view .converter-expanded-view {
 
 .converter-format-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
 .converter-format-option {
@@ -2429,10 +2473,10 @@ body.converter-view .converter-expanded-view {
 .converter-format-card {
   display: flex;
   flex-direction: column;
-  padding: 18px;
+  padding: 12px 14px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -2543,26 +2587,57 @@ body.converter-view .converter-expanded-view {
   cursor: pointer;
 }
 
+.converter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.converter-field label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.converter-field input[type="number"] {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+}
+
+.converter-field input[type="number"]:focus {
+  border-color: rgba(14, 165, 233, 0.5);
+}
+
+.converter-field .field-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.4;
+}
+
 /* Export Button */
 .converter-export-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: 100%;
-  padding: 18px 28px;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 20px;
   background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #ec4899 100%);
   background-size: 200% 200%;
   border: none;
-  border-radius: 14px;
+  border-radius: 8px;
   color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.4s ease;
-  box-shadow: 0 6px 24px rgba(14, 165, 233, 0.35);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
   position: relative;
   overflow: hidden;
 }
@@ -2577,8 +2652,8 @@ body.converter-view .converter-expanded-view {
 }
 
 .converter-export-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(14, 165, 233, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.35);
   background-position: 100% 100%;
 }
 
@@ -2587,18 +2662,19 @@ body.converter-view .converter-expanded-view {
 }
 
 .converter-export-btn:active {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35);
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
 }
 
 .converter-export-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   transition: transform 0.3s ease;
 }
 
 .converter-export-btn:hover svg {
-  transform: translateX(4px);
+  transform: translateY(2px);
 }
 
 /* Progress Indicator */
@@ -2900,6 +2976,18 @@ body.converter-view .converter-expanded-view {
     grid-template-columns: 1fr;
   }
 
+  .converter-file-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .converter-actions {
+    flex-direction: column;
+  }
+
+  .converter-export-btn {
+    width: 100%;
+  }
+
   .converter-hero {
     flex-direction: column;
   }
@@ -2934,7 +3022,11 @@ body.converter-view .converter-expanded-view {
   }
 
   .converter-format-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .converter-file-meta {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .converter-tool {

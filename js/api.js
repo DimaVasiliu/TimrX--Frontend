@@ -1574,6 +1574,11 @@ function getRemeshFormValues() {
   const activePreset = document.querySelector('#remeshPresets .remesh-preset.is-active');
   const advancedOpen = document.querySelector('#remeshAdvanced') &&
     !document.querySelector('#remeshAdvanced').classList.contains('remesh-advanced--collapsed');
+  const convertFormatOnlyInput = byId('remeshConvertFormatOnly');
+  const resizeInput = byId('remeshResizeHeight');
+  const originInput = byId('remeshOriginAt');
+  const formatInputs = Array.from(document.querySelectorAll('#remeshTargetFormats input[type="checkbox"]:checked'));
+  const convert_format_only = !!convertFormatOnlyInput?.checked;
 
   let target_polycount;
   let topology;
@@ -1590,20 +1595,38 @@ function getRemeshFormValues() {
     topology = remeshMode.includes('quad') ? 'quad' : 'triangle';
   }
 
-  // When the "Print Ready" preset is active, include STL in target formats
-  const isPrintPreset = activePreset?.dataset.preset === 'print-ready';
-  const target_formats = isPrintPreset ? ['glb', 'stl'] : ['glb'];
+  const target_formats = Array.from(new Set([
+    'glb',
+    ...formatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)
+  ]));
 
   const result = {
-    target_polycount,
-    topology,
     target_formats,
+    convert_format_only,
   };
 
-  // If user specified a print height, include it
-  const printHeight = document.getElementById('printTargetHeight')?.value;
-  if (isPrintPreset && printHeight && parseFloat(printHeight) > 0) {
-    result.print_height_mm = parseFloat(printHeight);
+  if (!convert_format_only) {
+    result.target_polycount = target_polycount;
+    result.topology = topology;
+
+    const resizeHeight = parseFloat(resizeInput?.value || '0');
+    if (Number.isFinite(resizeHeight) && resizeHeight > 0) {
+      result.resize_height = resizeHeight;
+    }
+
+    const originAt = (originInput?.value || '').trim().toLowerCase();
+    if (originAt === 'bottom' || originAt === 'center') {
+      result.origin_at = originAt;
+    }
+
+    // Preserve the print workflow: if no Meshy resize height is set and the
+    // print-ready preset is active, keep forwarding the mm target height so the
+    // STL export path can respect the user's print scale.
+    const isPrintPreset = activePreset?.dataset.preset === 'print-ready';
+    const printHeight = document.getElementById('printTargetHeight')?.value;
+    if (!result.resize_height && isPrintPreset && printHeight && parseFloat(printHeight) > 0) {
+      result.print_height_mm = parseFloat(printHeight);
+    }
   }
 
   return result;
@@ -1612,22 +1635,55 @@ function getRemeshFormValues() {
 /**
  * Get texture form values from the UI
  */
-function getTextureFormValues() {
+async function getTextureFormValues() {
   const prompt = (byId('texturePrompt')?.value || '').trim();
   const textureType = (byId('textureType')?.value || 'pbr-all').toLowerCase();
+  const aiModel = (byId('textureAiModel')?.value || 'latest').trim() || 'latest';
   const seamlessInput = byId('seamless');
+  const removeLightingInput = byId('textureRemoveLighting');
+  const styleImageInput = byId('textureStyleImageUpload');
+  const styleImageUrlInput = byId('textureStyleImageUrl');
   // Default to false when the texture panel isn't rendered (viewer/history
   // entry points).  enable_original_uv=true on models without user-designed
   // UVs (e.g. text-to-3d previews) causes Meshy async failures.  The backend
   // also overrides to false for preview/imported models as a safety net.
   const enable_original_uv = seamlessInput ? !!seamlessInput.checked : false;
   const enable_pbr = textureType === 'pbr-all';
-  return {
+  let image_style_url = '';
+  const uploadedStyleFile = styleImageInput?.files?.[0] || null;
+  if (uploadedStyleFile) {
+    const mime = (uploadedStyleFile.type || '').toLowerCase();
+    const fileName = (uploadedStyleFile.name || '').toLowerCase();
+    const hasAllowedExtension = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
+    if (mime && !['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
+      throw new Error('Texture style image must be a JPG or PNG file.');
+    }
+    if (!mime && !hasAllowedExtension) {
+      throw new Error('Texture style image must be a JPG or PNG file.');
+    }
+    image_style_url = await fileToDataURL(uploadedStyleFile);
+  } else {
+    image_style_url = (styleImageUrlInput?.value || '').trim();
+  }
+
+  const targetFormatContainer = document.querySelector('#textureTargetFormats');
+  const targetFormatInputs = Array.from(document.querySelectorAll('#textureTargetFormats input[type="checkbox"]:checked'));
+  const target_formats = targetFormatContainer
+    ? ['glb', ...targetFormatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)]
+    : null;
+
+  const values = {
     text_style_prompt: prompt,
+    image_style_url,
     enable_pbr,
     enable_original_uv,
-    ai_model: 'latest'
+    remove_lighting: removeLightingInput ? !!removeLightingInput.checked : aiModel !== 'meshy-5',
+    ai_model: aiModel
   };
+  if (target_formats?.length) {
+    values.target_formats = Array.from(new Set(target_formats));
+  }
+  return values;
 }
 
 /**
@@ -5178,17 +5234,29 @@ export async function startRemeshFromPanel() {
     labelPrompt = `Remesh ${file.name}`;
   } else if (baseItem) {
     source = buildMeshySourceFromItem(baseItem);
+    if (!source.input_task_id && !source.model_url) {
+      alert('This model has no valid source for remeshing. Try generating or uploading a model first.');
+      return;
+    }
     labelPrompt = `Remesh ${shortTitle(baseItem)}`;
   }
 
   const remeshValues = getRemeshFormValues();
+  const remeshActionLabel = remeshValues.convert_format_only ? 'Convert' : 'Remesh';
   const meta = {
-    prompt: labelPrompt || remeshValues.text_style_prompt || 'Remesh',
+    prompt: labelPrompt ? labelPrompt.replace(/^Remesh\b/, remeshActionLabel) : `${remeshActionLabel} model`,
     root_prompt: baseItem?.root_prompt || baseItem?.prompt || '',
     model: baseItem?.model || 'latest',
     license: baseItem?.license || 'private',
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
-    source_model_id: baseItem?.id || null
+    source_model_id: baseItem?.id || null,
+    topology: remeshValues.topology,
+    target_polycount: remeshValues.target_polycount,
+    target_formats: remeshValues.target_formats || [],
+    resize_height: remeshValues.resize_height,
+    origin_at: remeshValues.origin_at || '',
+    convert_format_only: !!remeshValues.convert_format_only,
+    print_height_mm: remeshValues.print_height_mm || null
   };
 
   try {
@@ -5233,24 +5301,44 @@ export async function startTextureFromPanel() {
     labelPrompt = `Texture ${shortTitle(baseItem)}`;
   }
 
-  const texValues = getTextureFormValues();
-  if (!texValues.text_style_prompt) {
-    alert('Please describe the texture you want.');
+  let texValues;
+  try {
+    texValues = await getTextureFormValues();
+  } catch (err) {
+    alert(err?.message || 'Unable to read texture settings.');
     return;
   }
+  if (!texValues.text_style_prompt && !texValues.image_style_url) {
+    alert('Please describe the texture you want or add a style image.');
+    return;
+  }
+  const textureStyleMode = texValues.image_style_url ? 'image' : 'text';
+  const texturePromptLabel = texValues.text_style_prompt
+    || (baseItem ? `Image-guided texture for ${shortTitle(baseItem)}` : labelPrompt || 'Image-guided texture');
 
   const meta = {
-    prompt: texValues.text_style_prompt,
-    root_prompt: baseItem?.root_prompt || baseItem?.prompt || texValues.text_style_prompt,
+    prompt: texturePromptLabel,
+    root_prompt: baseItem?.root_prompt || baseItem?.prompt || texValues.text_style_prompt || '',
     model: baseItem?.model || 'latest',
     license: baseItem?.license || 'private',
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
     source_model_id: baseItem?.id || null,
-    thumbnail_url: baseItem?.thumbnail_url || ''
+    thumbnail_url: baseItem?.thumbnail_url || '',
+    enable_pbr: texValues.enable_pbr,
+    enable_original_uv: texValues.enable_original_uv,
+    remove_lighting: texValues.remove_lighting,
+    target_formats: texValues.target_formats || [],
+    ai_model: texValues.ai_model || 'latest',
+    texture_style_mode: textureStyleMode,
+    uses_image_style: textureStyleMode === 'image'
   };
 
   try {
-    await beginMeshyTask('texture', { ...source, ...texValues }, meta);
+    await beginMeshyTask('texture', {
+      ...source,
+      ...texValues,
+      title: baseItem ? shortTitle(baseItem) : labelPrompt || 'Uploaded model'
+    }, meta);
   } catch (err) {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
@@ -6340,15 +6428,27 @@ export async function startRemeshFromHistory(item) {
   if (!item) return;
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
+  if (!source.input_task_id && !source.model_url) {
+    alert('This model has no valid source for remeshing. Try generating or uploading a model first.');
+    return;
+  }
   const remeshValues = getRemeshFormValues();
+  const remeshActionLabel = remeshValues.convert_format_only ? 'Convert' : 'Remesh';
   const meta = {
-    prompt: `Remesh ${shortTitle(item)}`,
+    prompt: `${remeshActionLabel} ${shortTitle(item)}`,
     root_prompt: item.root_prompt || item.prompt || '',
     model: item.model || 'latest',
     license: item.license || 'private',
     lineage_origin_id: item.lineage_root_id || item.id,
     source_model_id: item.id,
-    thumbnail_url: item.thumbnail_url || ''
+    thumbnail_url: item.thumbnail_url || '',
+    topology: remeshValues.topology,
+    target_polycount: remeshValues.target_polycount,
+    target_formats: remeshValues.target_formats || [],
+    resize_height: remeshValues.resize_height,
+    origin_at: remeshValues.origin_at || '',
+    convert_format_only: !!remeshValues.convert_format_only,
+    print_height_mm: remeshValues.print_height_mm || null
   };
   try {
     await beginMeshyTask('remesh', { ...source, ...remeshValues }, meta);
@@ -6372,8 +6472,14 @@ export async function startTextureFromHistory(item, origin = 'history') {
     return;
   }
 
-  const texValues = getTextureFormValues();
-  if (!texValues.text_style_prompt) {
+  let texValues;
+  try {
+    texValues = await getTextureFormValues();
+  } catch (err) {
+    alert(err?.message || 'Unable to read texture settings.');
+    return;
+  }
+  if (!texValues.text_style_prompt && !texValues.image_style_url) {
     // Fallback: derive a short texture-appropriate prompt from the model title.
     // Do NOT use item.prompt — that's the model generation prompt which can be
     // 600+ chars (enhanced) and describes geometry, not texture style.  Meshy's
@@ -6387,17 +6493,29 @@ export async function startTextureFromHistory(item, origin = 'history') {
   if (texValues.text_style_prompt.length > 600) {
     texValues.text_style_prompt = texValues.text_style_prompt.substring(0, 597) + '...';
   }
+  const textureStyleMode = texValues.image_style_url ? 'image' : 'text';
   const meta = {
-    prompt: texValues.text_style_prompt || `Texture ${shortTitle(item)}`,
+    prompt: texValues.text_style_prompt || `Image-guided texture for ${shortTitle(item)}`,
     root_prompt: item.root_prompt || item.prompt || texValues.text_style_prompt || '',
     model: item.model || 'latest',
     license: item.license || 'private',
     lineage_origin_id: item.lineage_root_id || item.id,
     source_model_id: item.id,
-    thumbnail_url: item.thumbnail_url || ''
+    thumbnail_url: item.thumbnail_url || '',
+    enable_pbr: texValues.enable_pbr,
+    enable_original_uv: texValues.enable_original_uv,
+    remove_lighting: texValues.remove_lighting,
+    target_formats: texValues.target_formats || [],
+    ai_model: texValues.ai_model || 'latest',
+    texture_style_mode: textureStyleMode,
+    uses_image_style: textureStyleMode === 'image'
   };
   try {
-    await beginMeshyTask('texture', { ...source, ...texValues }, meta);
+    await beginMeshyTask('texture', {
+      ...source,
+      ...texValues,
+      title: shortTitle(item)
+    }, meta);
   } catch (err) {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
