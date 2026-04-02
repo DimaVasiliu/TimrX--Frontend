@@ -515,7 +515,13 @@
     <div class="ls-head">
       <h2>From Our <span class="grad">Community</span></h2>
       <p class="muted">Real creations made by real creators on TimrX.</p>
-      <a href="/community" class="btn ghost" style="margin-top:16px;">View All Creations</a>
+      <div class="ls-actions">
+        <button class="btn ghost ls-shuffle" id="liveShowcaseShuffle" type="button">
+          <i class="fa-solid fa-shuffle" aria-hidden="true"></i>
+          Shuffle Picks
+        </button>
+        <a href="/community" class="btn ghost">View All Creations</a>
+      </div>
     </div>
     <div class="ls-scroll" id="liveShowcaseGrid">
       <!-- Populated by JS from community API -->
@@ -525,138 +531,11 @@
       <div class="ls-skeleton"></div>
       <div class="ls-skeleton"></div>
       <div class="ls-skeleton"></div>
+      <div class="ls-skeleton"></div>
+      <div class="ls-skeleton"></div>
     </div>
   </div>
 </section>
-
-  <!-- Product Overview -->
-  <section id="overview" class="overview-section">
-    <div class="container">
-      <div class="demo-how-grid overview-showcase-grid">
-        <article class="demo-panel overview-panel overview-panel--main" aria-labelledby="overviewTitle">
-          <div class="demo-head overview-head">
-            <span class="demo-eyebrow">Workspace overview</span>
-            <h2 id="overviewTitle">AI Image, Video &amp; 3D Generation Hub</h2>
-            <p>Generate images, videos, and 3D models from text or reference inputs, then continue with remesh, texture, rigging, animation, print checks, sharing, and conversion without leaving the browser workspace.</p>
-          </div>
-
-          <div class="demo-main overview-main">
-            <div class="demo-copy-rail">
-              <div class="demo-prompt-area overview-prompt-card">
-                <div class="demo-prompt-label">Inside the workspace</div>
-                <div class="overview-summary-text">A browser-first production loop for creators, studios, and makers that keeps prompting, refinement, and export in one place.</div>
-                <div class="overview-summary-points">
-                  <div class="overview-summary-point">
-                    <strong>Prompt or reference in</strong>
-                    <span>Start from text-to-image, image animation, text-to-3D, or image-to-3D without switching tools.</span>
-                  </div>
-                  <div class="overview-summary-point">
-                    <strong>Refine in the same flow</strong>
-                    <span>Continue into remesh, PBR texture, rigging, animation, and print checks while the asset is still live.</span>
-                  </div>
-                  <div class="overview-summary-point">
-                    <strong>Ship anywhere</strong>
-                    <span>Reopen from history, share to community, and convert across creator, AR, and 3D print delivery formats.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="overview-visual">
-              <div class="demo-result-meta">
-                <span class="demo-result-meta__label">Workspace scope</span>
-                <span class="demo-result-meta__hint">Prompt to publish</span>
-              </div>
-              <div class="demo-result overview-result">
-                <div class="overview-result-grid">
-                  <article class="overview-result-card">
-                    <span class="overview-result-card__label">Workspace surface</span>
-                    <strong>7 panels</strong>
-                    <p>Image, Model, Remesh, Texture, Rig, Animate, and Video inside one browser workflow.</p>
-                  </article>
-                  <article class="overview-result-card">
-                    <span class="overview-result-card__label">Image stack</span>
-                    <strong>4K + SVG</strong>
-                    <p>OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft V4, and Nano Banana for polished image output.</p>
-                  </article>
-                  <article class="overview-result-card">
-                    <span class="overview-result-card__label">Motion layer</span>
-                    <strong>Veo + Seedance</strong>
-                    <p>Text-to-video, image animation, transitions, and provider-specific motion prompts in one place.</p>
-                  </article>
-                  <article class="overview-result-card">
-                    <span class="overview-result-card__label">Delivery</span>
-                    <strong>GLB to USDZ</strong>
-                    <p>Preview, share, and convert across GLB, GLTF, OBJ, STL, FBX import workflows, and USDZ delivery.</p>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overview-footer">
-            <div class="demo-rail-block overview-rail-wide">
-              <div class="demo-rail-label">Core modes</div>
-              <div class="demo-examples overview-examples" aria-label="Workspace capabilities">
-                <span class="demo-chip overview-chip">Text to image</span>
-                <span class="demo-chip overview-chip">Image to video</span>
-                <span class="demo-chip overview-chip">Text to 3D</span>
-                <span class="demo-chip overview-chip">Image to 3D</span>
-                <span class="demo-chip overview-chip">Remesh</span>
-                <span class="demo-chip overview-chip">Texture</span>
-                <span class="demo-chip overview-chip">Rig</span>
-                <span class="demo-chip overview-chip">Animate</span>
-                <span class="demo-chip overview-chip">Convert</span>
-                <span class="demo-chip overview-chip">Print check</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <aside class="demo-panel demo-panel--workflow overview-panel overview-panel--workflow" aria-labelledby="overviewFlowTitle">
-          <div class="hiw-head hiw-head--split">
-            <span class="demo-eyebrow demo-eyebrow--light">Workspace pillars</span>
-            <h2 class="grad" id="overviewFlowTitle">What You Can Do</h2>
-            <p class="muted">A full production loop from prompt to export, conversion, and community delivery.</p>
-          </div>
-
-          <div class="hiw-steps hiw-steps--stacked overview-steps">
-            <div class="hiw-step">
-              <div class="hiw-number">01</div>
-              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 14l3-3 2 2 4-4 2 2"/><path d="M8 20h8"/></svg></div>
-              <h3>AI image stack</h3>
-              <p>Use OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft V4, and Nano Banana for concept art, product visuals, brand graphics, and vector-ready output.</p>
-            </div>
-            <div class="hiw-step">
-              <div class="hiw-number">02</div>
-              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5v-5z"/></svg></div>
-              <h3>Video &amp; motion</h3>
-              <p>Move from stills into Veo 3.1 and Seedance workflows for text-to-video, animated image sequences, transition shots, and motion-directed clips.</p>
-            </div>
-            <div class="hiw-step">
-              <div class="hiw-number">03</div>
-              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
-              <h3>3D production</h3>
-              <p>Generate with Meshy 6, then continue into remesh, PBR texture, rigging, animation preparation, topology cleanup, and print-readiness checks.</p>
-            </div>
-            <div class="hiw-step">
-              <div class="hiw-number">04</div>
-              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7"/><path d="M7 7h10v10"/><path d="M5 12v7h7"/></svg></div>
-              <h3>Asset flow &amp; export</h3>
-              <p>Reopen from synced history, preview in the viewer, share to the community, and export or convert across creator, game asset, AR, and 3D print formats.</p>
-            </div>
-          </div>
-
-          <div class="demo-actions overview-actions overview-actions--section">
-            <a class="btn" href="https://timrx.live/3dprint?refresh=1">Open Workspace</a>
-            <a class="btn ghost" href="/docs#doc-overview">See Full Workflow</a>
-          </div>
-        </aside>
-      </div>
-
-      <p class="visually-hidden">TimrX is a browser-based AI workspace for text to image, text to video, image to video, text to 3D, image to 3D, remesh, AI texture, rigging, animation, history search, community sharing, file conversion, and print-ready 3D export. It supports providers including OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, Veo 3.1, Seedance 2.0, Seedance 1.5 Pro, and Meshy 6, with exports across GLB, GLTF, OBJ, STL, FBX import workflows, and USDZ delivery.</p>
-    </div>
-  </section>
 
   <!-- ====================================================== -->
   <!-- INTERACTIVE STRIP WRAPPER (title + micro-animations)   -->
@@ -1293,8 +1172,137 @@
     </div>
   </section>
 
+  <!-- Product Overview -->
+  <section id="overview" class="overview-section">
+    <div class="container">
+      <div class="demo-how-grid overview-showcase-grid">
+        <article class="demo-panel overview-panel overview-panel--main" aria-labelledby="overviewTitle">
+          <div class="demo-head overview-head">
+            <span class="demo-eyebrow">Workspace overview</span>
+            <h2 id="overviewTitle">AI Image, Video &amp; 3D Generation Hub</h2>
+            <p>Generate images, videos, and 3D models from text or reference inputs, then continue with remesh, texture, rigging, animation, print checks, sharing, and conversion without leaving the browser workspace.</p>
+          </div>
+
+          <div class="demo-main overview-main">
+            <div class="demo-copy-rail">
+              <div class="demo-prompt-area overview-prompt-card">
+                <div class="demo-prompt-label">Inside the workspace</div>
+                <div class="overview-summary-text">A browser-first production loop for creators, studios, and makers that keeps prompting, refinement, and export in one place.</div>
+                <div class="overview-summary-points">
+                  <div class="overview-summary-point">
+                    <strong>Prompt or reference in</strong>
+                    <span>Start from text-to-image, image animation, text-to-3D, or image-to-3D without switching tools.</span>
+                  </div>
+                  <div class="overview-summary-point">
+                    <strong>Refine in the same flow</strong>
+                    <span>Continue into remesh, PBR texture, rigging, animation, and print checks while the asset is still live.</span>
+                  </div>
+                  <div class="overview-summary-point">
+                    <strong>Ship anywhere</strong>
+                    <span>Reopen from history, share to community, and convert across creator, AR, and 3D print delivery formats.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-visual">
+              <div class="demo-result-meta">
+                <span class="demo-result-meta__label">Workspace scope</span>
+                <span class="demo-result-meta__hint">Prompt to publish</span>
+              </div>
+              <div class="demo-result overview-result">
+                <div class="overview-result-grid">
+                  <article class="overview-result-card">
+                    <span class="overview-result-card__label">Workspace surface</span>
+                    <strong>7 panels</strong>
+                    <p>Image, Model, Remesh, Texture, Rig, Animate, and Video inside one browser workflow.</p>
+                  </article>
+                  <article class="overview-result-card">
+                    <span class="overview-result-card__label">Image stack</span>
+                    <strong>4K + SVG</strong>
+                    <p>OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft V4, and Nano Banana for polished image output.</p>
+                  </article>
+                  <article class="overview-result-card">
+                    <span class="overview-result-card__label">Motion layer</span>
+                    <strong>Veo + Seedance</strong>
+                    <p>Text-to-video, image animation, transitions, and provider-specific motion prompts in one place.</p>
+                  </article>
+                  <article class="overview-result-card">
+                    <span class="overview-result-card__label">Delivery</span>
+                    <strong>GLB to USDZ</strong>
+                    <p>Preview, share, and convert across GLB, GLTF, OBJ, STL, FBX import workflows, and USDZ delivery.</p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="overview-footer">
+            <div class="demo-rail-block overview-rail-wide">
+              <div class="demo-rail-label">Core modes</div>
+              <div class="demo-examples overview-examples" aria-label="Workspace capabilities">
+                <span class="demo-chip overview-chip">Text to image</span>
+                <span class="demo-chip overview-chip">Image to video</span>
+                <span class="demo-chip overview-chip">Text to 3D</span>
+                <span class="demo-chip overview-chip">Image to 3D</span>
+                <span class="demo-chip overview-chip">Remesh</span>
+                <span class="demo-chip overview-chip">Texture</span>
+                <span class="demo-chip overview-chip">Rig</span>
+                <span class="demo-chip overview-chip">Animate</span>
+                <span class="demo-chip overview-chip">Convert</span>
+                <span class="demo-chip overview-chip">Print check</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="demo-panel demo-panel--workflow overview-panel overview-panel--workflow" aria-labelledby="overviewFlowTitle">
+          <div class="hiw-head hiw-head--split">
+            <span class="demo-eyebrow demo-eyebrow--light">Workspace pillars</span>
+            <h2 class="grad" id="overviewFlowTitle">What You Can Do</h2>
+            <p class="muted">A full production loop from prompt to export, conversion, and community delivery.</p>
+          </div>
+
+          <div class="hiw-steps hiw-steps--stacked overview-steps">
+            <div class="hiw-step">
+              <div class="hiw-number">01</div>
+              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 14l3-3 2 2 4-4 2 2"/><path d="M8 20h8"/></svg></div>
+              <h3>AI image stack</h3>
+              <p>Use OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft V4, and Nano Banana for concept art, product visuals, brand graphics, and vector-ready output.</p>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-number">02</div>
+              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5v-5z"/></svg></div>
+              <h3>Video &amp; motion</h3>
+              <p>Move from stills into Veo 3.1 and Seedance workflows for text-to-video, animated image sequences, transition shots, and motion-directed clips.</p>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-number">03</div>
+              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+              <h3>3D production</h3>
+              <p>Generate with Meshy 6, then continue into remesh, PBR texture, rigging, animation preparation, topology cleanup, and print-readiness checks.</p>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-number">04</div>
+              <div class="hiw-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7"/><path d="M7 7h10v10"/><path d="M5 12v7h7"/></svg></div>
+              <h3>Asset flow &amp; export</h3>
+              <p>Reopen from synced history, preview in the viewer, share to the community, and export or convert across creator, game asset, AR, and 3D print formats.</p>
+            </div>
+          </div>
+
+          <div class="demo-actions overview-actions overview-actions--section">
+            <a class="btn" href="https://timrx.live/3dprint?refresh=1">Open Workspace</a>
+            <a class="btn ghost" href="/docs#doc-overview">See Full Workflow</a>
+          </div>
+        </aside>
+      </div>
+
+      <p class="visually-hidden">TimrX is a browser-based AI workspace for text to image, text to video, image to video, text to 3D, image to 3D, remesh, AI texture, rigging, animation, history search, community sharing, file conversion, and print-ready 3D export. It supports providers including OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, Veo 3.1, Seedance 2.0, Seedance 1.5 Pro, and Meshy 6, with exports across GLB, GLTF, OBJ, STL, FBX import workflows, and USDZ delivery.</p>
+    </div>
+  </section>
+
   <!-- Info Section -->
-  <section id="info" class="community-wrap">
+  <section id="info" class="info-wrap">
     <div class="container">
       <div class="comm-header">
         <h2>Learn More</h2>
@@ -1808,28 +1816,205 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       </div>
     </div>
 
-    <script>
+<script>
 (function(){
   var grid = document.getElementById('liveShowcaseGrid');
+  var shuffleBtn = document.getElementById('liveShowcaseShuffle');
   if (!grid) return;
-  fetch('https://3d.timrx.live/api/_mod/community/feed?limit=8&sort=popular', { credentials:'include' })
+
+  var showcasePool = [];
+  var visibleCount = 12;
+  var shuffleTimer = null;
+  var isHovering = false;
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function truncate(str, max) {
+    var s = String(str || '').trim();
+    if (!s) return '';
+    return s.length > max ? s.slice(0, max).trim() + '…' : s;
+  }
+
+  function timeAgo(value) {
+    if (!value) return 'Recently';
+    var then = new Date(value).getTime();
+    if (!then) return 'Recently';
+    var diff = Math.max(0, Date.now() - then);
+    var minute = 60 * 1000;
+    var hour = 60 * minute;
+    var day = 24 * hour;
+    if (diff < hour) return Math.max(1, Math.round(diff / minute)) + 'm ago';
+    if (diff < day) return Math.max(1, Math.round(diff / hour)) + 'h ago';
+    if (diff < day * 7) return Math.max(1, Math.round(diff / day)) + 'd ago';
+    return Math.max(1, Math.round(diff / (day * 7))) + 'w ago';
+  }
+
+  function getThumb(item) {
+    var a = item.asset || {};
+    return a.image_url || a.thumbnail_url || item.image_url || item.thumbnail_url || '';
+  }
+
+  function getTypeLabel(item) {
+    var type = String(item.gen_type || item.asset_type || 'creation').toLowerCase();
+    if (type.indexOf('video') !== -1) return 'AI VIDEO';
+    if (type.indexOf('image') !== -1) return 'AI IMAGE';
+    if (type.indexOf('animate') !== -1) return 'ANIMATED';
+    if (type.indexOf('3d') !== -1 || type.indexOf('model') !== -1) return 'TEXT TO 3D';
+    return 'CREATION';
+  }
+
+  function getTypeClass(item) {
+    var type = String(item.gen_type || item.asset_type || 'creation').toLowerCase();
+    if (type.indexOf('video') !== -1) return 'is-video';
+    if (type.indexOf('image') !== -1) return 'is-image';
+    if (type.indexOf('animate') !== -1) return 'is-animated';
+    return 'is-model';
+  }
+
+  function getTitle(item) {
+    var a = item.asset || {};
+    var title = a.title || item.title || item.prompt_public || item.prompt || '';
+    return truncate(title || 'Untitled creation', 62);
+  }
+
+  function getExcerpt(item) {
+    var prompt = item.prompt_public || item.prompt || '';
+    var title = getTitle(item);
+    var text = prompt && prompt !== title ? prompt : '';
+    return truncate(text || 'Open this creation to inspect the prompt, media, and creator details.', 90);
+  }
+
+  function getReactionTotal(item) {
+    var reactions = item.reactions || {};
+    return Object.keys(reactions).reduce(function(sum, key) {
+      return sum + (Number(reactions[key]) || 0);
+    }, 0);
+  }
+
+  function getInitials(name) {
+    return String(name || 'CR')
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(function(part){ return part.charAt(0).toUpperCase(); })
+      .join('') || 'CR';
+  }
+
+  function pickRandomItems(items, count) {
+    var pool = items.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = temp;
+    }
+    return pool.slice(0, count);
+  }
+
+  function buildCard(item, index) {
+    var thumb = getThumb(item);
+    if (!thumb) return '';
+    var title = escapeHtml(getTitle(item));
+    var excerpt = escapeHtml(getExcerpt(item));
+    var creatorRaw = item.display_name || item.creator_name || 'Creator';
+    var creator = escapeHtml(creatorRaw);
+    var initials = escapeHtml(getInitials(creatorRaw));
+    var typeLabel = escapeHtml(getTypeLabel(item));
+    var typeClass = getTypeClass(item);
+    var reactions = getReactionTotal(item);
+    var comments = Number(item.comment_count) || 0;
+    var tips = Number(item.tip_total) || 0;
+    var ago = escapeHtml(timeAgo(item.created_at));
+    var href = '/community?post=' + encodeURIComponent(item.id || '');
+
+    return '<a class="ls-card ' + typeClass + '" href="' + href + '" style="--ls-index:' + index + '">' +
+      '<div class="ls-card-media">' +
+        '<img src="' + escapeHtml(thumb) + '" alt="' + title + '" loading="lazy" decoding="async">' +
+        '<div class="ls-card-topline">' +
+          '<span class="ls-card-badge">' + typeLabel + '</span>' +
+          '<span class="ls-card-time">' + ago + '</span>' +
+        '</div>' +
+        '<div class="ls-card-hover">' +
+          '<span>Open creation</span>' +
+          '<i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ls-card-info">' +
+        '<strong>' + title + '</strong>' +
+        '<p class="ls-card-excerpt">' + excerpt + '</p>' +
+        '<div class="ls-card-bottom">' +
+          '<div class="ls-card-author">' +
+            '<span class="ls-card-avatar">' + initials + '</span>' +
+            '<span>by ' + creator + '</span>' +
+          '</div>' +
+          '<div class="ls-card-stats">' +
+            '<span><i class="fa-solid fa-heart" aria-hidden="true"></i> ' + reactions + '</span>' +
+            '<span><i class="fa-solid fa-comment" aria-hidden="true"></i> ' + comments + '</span>' +
+            '<span><i class="fa-solid fa-gem" aria-hidden="true"></i> ' + tips + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</a>';
+  }
+
+  function renderItems(items, reshuffled) {
+    if (!items.length) {
+      grid.innerHTML = '<div class="ls-empty">Community creations loading soon.</div>';
+      return;
+    }
+    if (reshuffled) grid.classList.add('is-refreshing');
+    grid.innerHTML = items.map(buildCard).join('');
+    window.requestAnimationFrame(function(){
+      grid.classList.remove('is-refreshing');
+    });
+  }
+
+  function shuffleShowcase() {
+    if (!showcasePool.length) return;
+    renderItems(pickRandomItems(showcasePool, Math.min(visibleCount, showcasePool.length)), true);
+  }
+
+  function restartShuffleTimer() {
+    if (shuffleTimer) clearInterval(shuffleTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (showcasePool.length <= visibleCount) return;
+    shuffleTimer = setInterval(function(){
+      if (document.hidden || isHovering) return;
+      shuffleShowcase();
+    }, 12000);
+  }
+
+  grid.addEventListener('mouseenter', function(){ isHovering = true; });
+  grid.addEventListener('mouseleave', function(){ isHovering = false; });
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener('click', function(){
+      shuffleShowcase();
+      restartShuffleTimer();
+    });
+  }
+
+  fetch('https://3d.timrx.live/api/_mod/community/feed?limit=18&sort=popular', { credentials:'include' })
     .then(function(r){ return r.json(); })
     .then(function(data){
-      var items = (data.items || data.posts || data || []).slice(0, 8);
-      if (!items.length) return;
-      grid.innerHTML = items.map(function(item){
-        var a = item.asset || {};
-        var thumb = a.thumbnail_url || a.image_url || item.thumbnail_url || item.image_url || '';
-        var title = (a.title || item.title || item.prompt || 'Untitled').replace(/</g,'&lt;');
-        var creator = (item.display_name || item.creator_name || 'Creator').replace(/</g,'&lt;');
-        if (!thumb) return '';
-        return '<a class="ls-card" href="/community?post=' + (item.id || '') + '">' +
-          '<img src="' + thumb + '" alt="' + title + '" loading="lazy">' +
-          '<div class="ls-card-info"><strong>' + title + '</strong><small>by ' + creator + '</small></div></a>';
-      }).join('');
+      var items = (data.items || data.posts || data || []).filter(function(item){
+        return !!getThumb(item);
+      });
+      showcasePool = items;
+      if (!showcasePool.length) {
+        renderItems([]);
+        return;
+      }
+      renderItems(pickRandomItems(showcasePool, Math.min(visibleCount, showcasePool.length)), false);
+      restartShuffleTimer();
     })
     .catch(function(){
-      grid.innerHTML = '<p style="color:var(--muted);text-align:center;width:100%;padding:40px 0">Community creations loading soon.</p>';
+      grid.innerHTML = '<div class="ls-empty">Community creations loading soon.</div>';
     });
 })();
 </script>

@@ -60,7 +60,7 @@ body.site-menu-open {
 
 .site-shell-nav-inner {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 18px;
   min-height: var(--site-shell-nav-height);
@@ -73,6 +73,14 @@ body.site-menu-open {
   align-items: center;
   gap: 14px;
   min-width: 0;
+}
+
+.site-shell-nav-left {
+  justify-self: start;
+}
+
+.site-shell-nav-right {
+  justify-self: end;
 }
 
 .site-shell-brand {
@@ -113,6 +121,7 @@ body.site-menu-open {
   justify-content: center;
   gap: 10px;
   min-width: 0;
+  justify-self: center;
 }
 
 .site-shell-nav-link {
