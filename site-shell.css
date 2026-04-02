@@ -513,7 +513,7 @@ body.site-menu-open {
 }
 
 .site-shell-footer {
-  margin-top: clamp(60px, 10vw, 120px);
+  margin-top: clamp(24px, 4vw, 48px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 40%),
