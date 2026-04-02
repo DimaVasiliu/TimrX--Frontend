@@ -1359,25 +1359,42 @@
    MOBILE RESPONSIVENESS
    ========================================================================== */
 
-/* Tablet — stacked layout */
-@media (max-width: 1280px) {
+/* Tablet — keep the workspace visible, move history into a full-width strip */
+@media (max-width: 1200px) {
   .timrx-3dprint {
     height: auto;
     min-height: 0;
     overflow-y: auto;
   }
   .timrx-3dprint .ws-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns:
+      44px
+      minmax(280px, 330px)
+      minmax(0, 1fr);
+    align-items: start;
     height: auto;
     min-height: 0;
     overflow: visible;
   }
   .timrx-3dprint .ws-rail {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    order: -1;
+    grid-column: 1;
+    grid-row: 1;
+    order: initial;
+  }
+  .timrx-3dprint .ws-left {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .timrx-3dprint .ws-viewer {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .timrx-3dprint .ws-right {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 10px;
+    padding-left: 0;
   }
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
@@ -1409,10 +1426,12 @@
   display: none;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1024px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
+    display: flex;
+    flex-direction: column;
     gap: 0;
     padding: 8px;
   }
