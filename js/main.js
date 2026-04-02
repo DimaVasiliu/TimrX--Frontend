@@ -899,7 +899,7 @@ function initViewerToolbar() {
         // Close button
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕ Close AR';
-        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:100000;padding:10px 20px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);';
+        closeBtn.style.cssText = 'position:fixed;top:70px;right:20px;z-index:100000;padding:10px 20px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);';
         closeBtn.onclick = function() { arViewer.remove(); closeBtn.remove(); };
         document.body.appendChild(arViewer);
         document.body.appendChild(closeBtn);
