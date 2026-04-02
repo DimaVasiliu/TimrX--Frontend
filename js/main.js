@@ -699,6 +699,7 @@ let _printToastTimer = null;
 function closeViewerPopovers() {
   document.getElementById('viewerSharePopover')?.classList.remove('is-visible');
   document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
+  document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
   if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
 }
 
@@ -708,6 +709,13 @@ function initViewerToolbar() {
 
   const sharePopover = document.getElementById('viewerSharePopover');
   const printPanel = document.getElementById('viewerPrintPanel');
+  const printBackdrop = document.getElementById('viewerPrintBackdrop');
+  const printCloseBtn = document.getElementById('printPanelCloseBtn');
+
+  function togglePrintPanel(show) {
+    printPanel?.classList.toggle('is-visible', !!show);
+    printBackdrop?.classList.toggle('is-visible', !!show);
+  }
 
   // ── Print Readiness Check ──
   let _printCheckInFlight = false;
@@ -818,7 +826,7 @@ function initViewerToolbar() {
       const targetInput = document.getElementById('printTargetHeight');
       const scaledDims = document.getElementById('printScaledDimensions');
       if (targetInput && scaledDims && c.bounding_box_mm) {
-        targetInput.addEventListener('input', () => {
+        targetInput.oninput = () => {
           const target = parseFloat(targetInput.value);
           if (target > 0 && c.bounding_box_mm[1] > 0) {
             const ratio = target / c.bounding_box_mm[1];
@@ -834,7 +842,7 @@ function initViewerToolbar() {
           } else {
             scaledDims.style.display = 'none';
           }
-        });
+        };
       }
     }
 
@@ -892,7 +900,7 @@ function initViewerToolbar() {
 
     // Show panel with loading state
     showPrintPanelState('loading');
-    printPanel?.classList.add('is-visible');
+    togglePrintPanel(true);
 
     try {
       const jobId = item.id || item.model_id;
@@ -920,6 +928,21 @@ function initViewerToolbar() {
   document.getElementById('printPanelRetryBtn')?.addEventListener('click', () => {
     const item = API.getActiveHistoryItem();
     if (item) runPrintCheck(item);
+  });
+
+  printCloseBtn?.addEventListener('click', () => {
+    togglePrintPanel(false);
+  });
+
+  printBackdrop?.addEventListener('click', () => {
+    togglePrintPanel(false);
+  });
+
+  document.getElementById('printPrinterType')?.addEventListener('change', () => {
+    const item = API.getActiveHistoryItem();
+    if (item && printPanel?.classList.contains('is-visible')) {
+      runPrintCheck(item);
+    }
   });
 
   // Share popover button clicks
@@ -970,7 +993,14 @@ function initViewerToolbar() {
       sharePopover?.classList.remove('is-visible');
     }
     if (!e.target.closest('#viewerPrintPanel') && !e.target.closest('[data-action="print"]')) {
-      printPanel?.classList.remove('is-visible');
+      togglePrintPanel(false);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      togglePrintPanel(false);
+      sharePopover?.classList.remove('is-visible');
     }
   });
 
@@ -1007,14 +1037,14 @@ function initViewerToolbar() {
     }
 
     if (action === 'share') {
-      printToast?.classList.remove('is-visible');
+      togglePrintPanel(false);
       sharePopover?.classList.toggle('is-visible');
     }
 
     if (action === 'print') {
       sharePopover?.classList.remove('is-visible');
       if (printPanel?.classList.contains('is-visible')) {
-        printPanel.classList.remove('is-visible');
+        togglePrintPanel(false);
       } else if (activeItem) {
         runPrintCheck(activeItem);
       }

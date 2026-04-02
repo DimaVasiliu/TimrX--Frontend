@@ -647,110 +647,157 @@
               <span class="viewer-share-popover__icon">&#9670;</span>Share on Discord
             </button>
           </div>
+        </div>
 
-          <!-- Print Readiness Panel -->
-          <div class="viewer-print-toast" id="viewerPrintPanel">
+        <div class="viewer-print-backdrop" id="viewerPrintBackdrop"></div>
 
+        <!-- Print Readiness Panel -->
+        <div class="viewer-print-toast" id="viewerPrintPanel" role="dialog" aria-modal="true" aria-labelledby="printPanelTitle">
+          <div class="viewer-print-dialog__header">
+            <div class="viewer-print-dialog__titles">
+              <p class="viewer-print-dialog__eyebrow">Print workflow</p>
+              <h3 class="viewer-print-dialog__title" id="printPanelTitle">Print readiness check</h3>
+              <p class="viewer-print-dialog__lede">Analyze geometry, tune size for your printer, and export a print-ready STL without leaving the viewer.</p>
+            </div>
+            <button type="button" class="viewer-print-dialog__close" id="printPanelCloseBtn" aria-label="Close print panel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="viewer-print-dialog__body">
             <!-- Loading state -->
-            <div id="printPanelLoading" style="display:none">
-              <p class="viewer-print-toast__title">Analyzing model&hellip;</p>
-              <p class="viewer-print-toast__text">Checking geometry for 3D print readiness</p>
+            <div id="printPanelLoading" class="viewer-print-state" style="display:none">
               <div class="print-panel-spinner"></div>
+              <p class="viewer-print-toast__title">Analyzing model&hellip;</p>
+              <p class="viewer-print-toast__text">Running watertightness, wall thickness, overhang, and scale checks for the active model.</p>
             </div>
 
             <!-- Error state -->
-            <div id="printPanelError" style="display:none">
-              <p class="viewer-print-toast__title" style="color:#f87171">Analysis Failed</p>
+            <div id="printPanelError" class="viewer-print-state" style="display:none">
+              <p class="viewer-print-toast__title viewer-print-toast__title--error">Analysis failed</p>
               <p class="viewer-print-toast__text" id="printPanelErrorMsg">Something went wrong.</p>
               <button type="button" class="print-panel-retry-btn" id="printPanelRetryBtn">Try Again</button>
             </div>
 
             <!-- Results state -->
-            <div id="printPanelResults" style="display:none">
-              <div class="print-panel-score-row">
-                <div class="print-panel-score-badge" id="printScoreBadge">0</div>
-                <div class="print-panel-score-info">
-                  <p class="print-panel-verdict" id="printVerdict">—</p>
-                  <p class="print-panel-score-label">Print Readiness Score</p>
+            <div id="printPanelResults" class="viewer-print-state" style="display:none">
+              <div class="print-panel-layout">
+                <aside class="print-panel-sidebar">
+                  <div class="print-panel-score-row">
+                    <div class="print-panel-score-badge" id="printScoreBadge">0</div>
+                    <div class="print-panel-score-info">
+                      <p class="print-panel-verdict" id="printVerdict">—</p>
+                      <p class="print-panel-score-label">Print readiness score</p>
+                    </div>
+                  </div>
+
+                  <p class="print-panel-summary">
+                    Use the score as a quick signal, then review the detailed geometry checks below before exporting for print.
+                  </p>
+
+                  <!-- Print Dimensions & Scale Control -->
+                  <div class="print-prep-section" id="printPrepSection" style="display:none">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">Model dimensions</p>
+                        <p class="print-panel-surface-note">Scale for your printer and export a print-ready STL.</p>
+                      </div>
+                    </div>
+
+                    <div id="printDimensionsDisplay">
+                      <!-- Populated by JS after analysis -->
+                    </div>
+
+                    <div class="print-prep-scale-control">
+                      <label for="printTargetHeight">Target Print Height (mm)</label>
+                      <input type="number" id="printTargetHeight" min="1" max="2000" step="1"
+                             placeholder="e.g. 150" class="print-prep-input">
+                      <span class="field-hint">Leave empty for original scale. All dimensions scale uniformly.</span>
+                    </div>
+
+                    <div id="printScaledDimensions" style="display:none">
+                      <!-- Shows computed dimensions after user enters target height -->
+                    </div>
+
+                    <div class="print-prep-printer-select">
+                      <label for="printPrinterType">Printer Type</label>
+                      <select id="printPrinterType" class="print-prep-select">
+                        <option value="fdm" selected>FDM (Filament)</option>
+                        <option value="resin">Resin (SLA/DLP)</option>
+                      </select>
+                      <span class="field-hint">Updates wall thickness and overhang thresholds for the selected process.</span>
+                    </div>
+
+                    <button type="button" class="print-panel-export-btn" id="printExportSTLBtn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                      Export STL for printing
+                    </button>
+                  </div>
+                </aside>
+
+                <div class="print-panel-content">
+                  <section class="print-panel-surface">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">Readiness checks</p>
+                        <p class="print-panel-surface-note">Live geometry diagnostics for topology, thickness, overhangs, and scale.</p>
+                      </div>
+                    </div>
+                    <div class="print-panel-checks" id="printChecksGrid">
+                      <!-- Populated by JS -->
+                    </div>
+                  </section>
+
+                  <div class="print-panel-duo">
+                    <section class="print-panel-surface print-panel-issues" id="printIssuesList" style="display:none">
+                      <!-- Populated by JS -->
+                    </section>
+
+                    <section class="print-panel-surface print-panel-suggestions" id="printSuggestionsList" style="display:none">
+                      <!-- Populated by JS -->
+                    </section>
+                  </div>
+
+                  <section class="print-panel-surface">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">One-click print services</p>
+                        <p class="print-panel-surface-note">Export your STL above, then compare pricing or upload directly to a print service.</p>
+                      </div>
+                    </div>
+                    <div class="print-service-grid">
+                      <a href="https://craftcloud3d.com/" target="_blank" rel="noopener" class="print-service-btn">
+                        <span class="print-service-name">Craftcloud</span>
+                        <span class="print-service-desc">Compare 150+ services</span>
+                      </a>
+                      <a href="https://i.materialise.com/" target="_blank" rel="noopener" class="print-service-btn">
+                        <span class="print-service-name">i.materialise</span>
+                        <span class="print-service-desc">Industrial quality</span>
+                      </a>
+                      <a href="https://jlc3dp.com/" target="_blank" rel="noopener" class="print-service-btn">
+                        <span class="print-service-name">JLCPCB 3DP</span>
+                        <span class="print-service-desc">Fast &amp; affordable</span>
+                      </a>
+                      <a href="https://www.sculpteo.com/" target="_blank" rel="noopener" class="print-service-btn">
+                        <span class="print-service-name">Sculpteo</span>
+                        <span class="print-service-desc">Premium materials</span>
+                      </a>
+                    </div>
+                  </section>
                 </div>
-              </div>
-
-              <div class="print-panel-checks" id="printChecksGrid">
-                <!-- Populated by JS -->
-              </div>
-
-              <div class="print-panel-issues" id="printIssuesList" style="display:none">
-                <!-- Populated by JS -->
-              </div>
-
-              <div class="print-panel-suggestions" id="printSuggestionsList" style="display:none">
-                <!-- Populated by JS -->
-              </div>
-
-              <!-- Print Dimensions & Scale Control -->
-              <div class="print-prep-section" id="printPrepSection" style="display:none">
-                <p class="viewer-print-toast__subtitle">Model Dimensions</p>
-                <div id="printDimensionsDisplay">
-                  <!-- Populated by JS after analysis -->
-                </div>
-
-                <div class="print-prep-scale-control">
-                  <label for="printTargetHeight">Target Print Height (mm)</label>
-                  <input type="number" id="printTargetHeight" min="1" max="2000" step="1"
-                         placeholder="e.g. 150" class="print-prep-input">
-                  <span class="field-hint">Leave empty for original scale. All dimensions scale uniformly.</span>
-                </div>
-
-                <div id="printScaledDimensions" style="display:none; margin-top:8px;">
-                  <!-- Shows computed dimensions after user enters target height -->
-                </div>
-
-                <div class="print-prep-printer-select">
-                  <label for="printPrinterType">Printer Type</label>
-                  <select id="printPrinterType" class="print-prep-select">
-                    <option value="fdm" selected>FDM (Filament)</option>
-                    <option value="resin">Resin (SLA/DLP)</option>
-                  </select>
-                  <span class="field-hint">Adjusts wall thickness and overhang thresholds.</span>
-                </div>
-
-                <button type="button" class="print-panel-export-btn" id="printExportSTLBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  Export STL for Printing
-                </button>
-              </div>
-
-              <div class="print-panel-divider"></div>
-              <p class="viewer-print-toast__subtitle">One-Click Print Services</p>
-              <p class="viewer-print-toast__text" style="margin-bottom:12px">Export your model as STL above, then upload to a print service — or use the direct links below.</p>
-              <div class="print-service-grid">
-                <a href="https://craftcloud3d.com/" target="_blank" rel="noopener" class="print-service-btn">
-                  <span class="print-service-name">Craftcloud</span>
-                  <span class="print-service-desc">Compare 150+ services</span>
-                </a>
-                <a href="https://i.materialise.com/" target="_blank" rel="noopener" class="print-service-btn">
-                  <span class="print-service-name">i.materialise</span>
-                  <span class="print-service-desc">Industrial quality</span>
-                </a>
-                <a href="https://jlc3dp.com/" target="_blank" rel="noopener" class="print-service-btn">
-                  <span class="print-service-name">JLCPCB 3DP</span>
-                  <span class="print-service-desc">Fast &amp; affordable</span>
-                </a>
-                <a href="https://www.sculpteo.com/" target="_blank" rel="noopener" class="print-service-btn">
-                  <span class="print-service-name">Sculpteo</span>
-                  <span class="print-service-desc">Premium materials</span>
-                </a>
               </div>
             </div>
-
           </div>
+        </div>
 
-          <!-- Accept / Revert Action Bar -->
-          <div class="viewer-action-bar hidden" id="viewerActionBar">
+        <!-- Accept / Revert Action Bar -->
+        <div class="viewer-action-bar hidden" id="viewerActionBar">
             <button type="button" class="vab-btn vab-btn--revert" data-vab="revert">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 010 10H9M3 10l4-4M3 10l4 4"/></svg>
               Revert
