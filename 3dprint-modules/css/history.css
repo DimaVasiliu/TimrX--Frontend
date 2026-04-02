@@ -267,6 +267,88 @@
     opacity: 0.7;
   }
   
+  /* Skeleton loading placeholders still rendered by history.js. */
+  .timrx-3dprint .history-skeleton__thumb,
+  .timrx-3dprint .history-skeleton__line,
+  .timrx-3dprint .history-skeleton__chip {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .timrx-3dprint .history-skeleton__thumb::after,
+  .timrx-3dprint .history-skeleton__line::after,
+  .timrx-3dprint .history-skeleton__chip::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  
+  .timrx-3dprint .history-skeleton__thumb {
+    width: var(--history-thumb-size, 75px);
+    height: var(--history-thumb-size, 75px);
+    border-radius: 10px;
+  }
+  
+  .timrx-3dprint .history-skeleton__line {
+    width: 120px;
+    height: 10px;
+    margin-bottom: 4px;
+  }
+  
+  .timrx-3dprint .history-skeleton__chip {
+    width: 60px;
+    height: 8px;
+  }
+  
+  /* Leftover banner markup can still exist between renders. Keep it styled. */
+  .timrx-3dprint .history-load-more {
+    padding: 16px 0 8px;
+    text-align: center;
+  }
+  
+  .timrx-3dprint .history-load-more__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+  }
+  
+  .timrx-3dprint .history-load-more__btn {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  
+  .timrx-3dprint .history-load-more__btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  
+  .timrx-3dprint .history-load-more__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: history-spin 0.6s linear infinite;
+  }
+  
+  @keyframes history-spin {
+    to { transform: rotate(360deg); }
+  }
+  
   /* Shared floating history menus and submenus.
      These used to live in the legacy pages bundle and are still required by
      image/video/model history cards rendered from history.js. */
@@ -648,6 +730,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1 1 auto;
+    width: 100%;
     min-height: 0;
   }
   
@@ -2494,8 +2578,11 @@
      ║  GENERATION HISTORY – Rows + Horizontal Thumbnails (Right Panel)  ║
      ╚════════════════════════════════════════════════════════════════════╝ */
   
-  /* Main history container inside the right panel */
-  .timrx-3dprint .history-card {
+  /* Main history container inside the right panel.
+     Keep the legacy .history-card selector for compatibility, but also target
+     the real live markup (.card.history). */
+  .timrx-3dprint .history-card,
+  .timrx-3dprint .ws-right .card.history {
     background: transparent;
     border: 0;
     padding: 0;
@@ -2747,7 +2834,8 @@
   /* ── Responsive Tweaks ─────────────────────────────────────────────── */
   
   @media (max-width: 1200px) {
-    .timrx-3dprint .history-card {
+    .timrx-3dprint .history-card,
+    .timrx-3dprint .ws-right .card.history {
       max-height: none;
     }
   
@@ -3346,6 +3434,10 @@
       --history-thumb-border: rgba(255, 255, 255, 0.06);
       --history-thumb-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
       --history-thumb-size: 75px;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
     }
   
     
@@ -4290,6 +4382,10 @@
     .history-collection {
       padding: 14px 0;
       position: relative;
+    }
+  
+    .history-collection--skeleton::after {
+      display: none;
     }
   
     .history-collection::after {
