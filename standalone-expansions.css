@@ -19,7 +19,7 @@ body.tutorials-page .tutorials-expanded-view {
 }
 
 body.tutorials-page .tutorials-expanded-shell {
-  max-width: min(100% - (clamp(18px, 4vw, 34px) * 2), 1400px);
+  max-width: min(100% - (clamp(18px, 4vw, 34px) * 2), 1600px);
   margin: 20px auto;
   border-radius: 24px;
   overflow: clip;
@@ -121,7 +121,7 @@ body.converter-page .converter-expanded-view {
 body.company-page .about-expanded-shell,
 body.converter-page .converter-expanded-shell {
   width: auto;
-  max-width: min(100% - (clamp(18px, 4vw, 34px) * 2), 1400px);
+  max-width: min(100% - (clamp(18px, 4vw, 34px) * 2), 1600px);
   margin: 20px auto;
   padding: 0;
   position: relative;

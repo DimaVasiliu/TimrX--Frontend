@@ -26,15 +26,6 @@
   };
 
   const page = body.dataset.shellPage || '';
-  const pageTitles = {
-    hub: '3D Print Hub',
-    tutorials: 'Tutorials',
-    prompts: 'Prompt Library',
-    community: 'Community',
-    docs: 'Documentation',
-    converter: '3D File Converter',
-    company: 'TimrX Company'
-  };
 
   function resolveAssetHref(assetPath) {
     const normalized = String(assetPath || '').replace(/^\/+/, '');
@@ -249,14 +240,14 @@
                 <img src="${resolveAssetHref('img/logo.png')}" alt="TimrX" width="32" height="32">
                 <span class="site-shell-footer-name">TimrX</span>
               </a>
-              <span class="site-shell-footer-tag">${pageTitles[page] || 'TimrX'}</span>
+              <span class="site-shell-footer-tag">TimrX</span>
               <p class="site-shell-footer-desc">A unified TimrX content system for tutorials, prompts, docs, showcase workflows, and the AI-powered 3D workspace.</p>
             </div>
             <div class="site-shell-footer-cols">${footerCols}</div>
           </div>
           <div class="site-shell-footer-bottom">
             <span>&copy; <span data-site-shell-year></span> TimrX / Dima Vasiliu</span>
-            <span>Built as one product shell across landing, learning, and workspace surfaces</span>
+            <span>One shared shell across landing, learning, and workspace surfaces</span>
           </div>
         </div>
       </footer>
