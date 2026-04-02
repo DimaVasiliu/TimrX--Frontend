@@ -730,9 +730,14 @@ function initViewerToolbar() {
   }
 
   function renderPrintResults(data) {
+    const printerTypeValue = document.getElementById('printPrinterType')?.value || 'fdm';
+    const isResin = printerTypeValue === 'resin';
+    const printerLabel = isResin ? 'Resin' : 'FDM';
+
     // Score badge
     const badge = document.getElementById('printScoreBadge');
     const verdict = document.getElementById('printVerdict');
+    const summary = document.querySelector('.print-panel-summary');
     if (badge) {
       badge.textContent = data.score;
       badge.className = 'print-panel-score-badge';
@@ -741,27 +746,34 @@ function initViewerToolbar() {
       else                       badge.classList.add('score-bad');
     }
     if (verdict) {
-      verdict.textContent = data.is_printable ? 'Print-Ready' : 'Not Print-Ready';
-      verdict.style.color = data.is_printable ? '#4ade80' : '#f87171';
+      verdict.textContent = data.is_printable ? 'Print-Ready' : 'Needs attention';
+      verdict.className = 'print-panel-verdict';
+      verdict.classList.add(data.is_printable ? 'is-good' : 'is-bad');
+    }
+    if (summary) {
+      summary.textContent = data.is_printable
+        ? `The model clears the main ${printerLabel} print checks. Review the diagnostics, adjust the target size if needed, and export a print-ready STL.`
+        : `The model has geometry or support risks for ${printerLabel} printing. Review the failed checks, follow the suggestions, then export once the mesh is ready.`;
     }
 
     // Checks grid
     const grid = document.getElementById('printChecksGrid');
     if (grid) {
       const c = data.checks || {};
+      const overhangValue = isResin ? c.overhang_resin_pct : c.overhang_fdm_pct;
       const rows = [
-        { label: 'Watertight',       ok: c.is_manifold,            detail: c.is_manifold ? 'Yes' : 'No' },
-        { label: 'Face count',       ok: c.face_count_ok,          detail: c.face_count ? c.face_count.toLocaleString() : '—' },
-        { label: 'Clean faces',      ok: !c.has_degenerate_faces,  detail: c.degenerate_face_count ? `${c.degenerate_face_count} bad` : 'All clean' },
-        { label: 'Volume',           ok: c.is_volume_positive,     detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³` : '—' },
-        { label: 'Dimensions',       ok: true,                     detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : '—' },
-        { label: 'Wall thickness',   ok: c.wall_thickness_ok,      detail: c.min_wall_thickness_mm != null ? `Min ${c.min_wall_thickness_mm}mm` : 'N/A' },
-        { label: 'Overhangs (FDM)',  ok: c.overhang_fdm_pct != null ? c.overhang_fdm_pct < 20 : null,
-                                                                    detail: c.overhang_fdm_pct != null ? `${c.overhang_fdm_pct}% faces` : 'N/A' },
+        { label: 'Watertight', ok: c.is_manifold, detail: c.is_manifold ? 'Closed manifold mesh' : 'Open edges detected' },
+        { label: 'Face count', ok: c.face_count_ok, detail: c.face_count ? `${c.face_count.toLocaleString()} faces` : 'Unknown' },
+        { label: 'Clean faces', ok: !c.has_degenerate_faces, detail: c.degenerate_face_count ? `${c.degenerate_face_count} degenerate faces` : 'No invalid faces found' },
+        { label: 'Volume', ok: c.is_volume_positive, detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³ volume` : 'Unavailable for non-watertight mesh' },
+        { label: 'Dimensions', ok: true, detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : 'Unknown size' },
+        { label: 'Wall thickness', ok: c.wall_thickness_ok, detail: c.min_wall_thickness_mm != null ? `Min ${c.min_wall_thickness_mm} mm` : 'Unavailable' },
+        { label: `Overhangs (${printerLabel})`, ok: overhangValue != null ? overhangValue < (isResin ? 12 : 20) : null,
+          detail: overhangValue != null ? `${overhangValue}% of faces need support review` : 'Unavailable' },
       ];
       grid.innerHTML = rows.map(r => `
-        <div class="print-check-row">
-          <span class="print-check-icon">${r.ok === true ? '✓' : r.ok === false ? '✗' : '—'}</span>
+        <div class="print-check-row ${r.ok === true ? 'is-good' : r.ok === false ? 'is-bad' : 'is-neutral'}">
+          <span class="print-check-icon">${r.ok === true ? '✓' : r.ok === false ? '!' : '—'}</span>
           <span class="print-check-label">${r.label}</span>
           <span class="print-check-detail">${r.detail}</span>
         </div>
@@ -771,25 +783,21 @@ function initViewerToolbar() {
     // Issues
     const issuesList = document.getElementById('printIssuesList');
     if (issuesList) {
-      if (data.issues?.length) {
-        issuesList.style.display = '';
-        issuesList.innerHTML = '<p class="print-section-title">Issues</p>' +
-          data.issues.map(i => `<p class="print-issue-item">• ${i}</p>`).join('');
-      } else {
-        issuesList.style.display = 'none';
-      }
+      issuesList.style.display = '';
+      issuesList.innerHTML = '<p class="print-section-title">Issues</p>' +
+        (data.issues?.length
+          ? data.issues.map(i => `<p class="print-issue-item">• ${i}</p>`).join('')
+          : '<p class="print-issue-item print-issue-item--empty">No critical issues found in this analysis.</p>');
     }
 
     // Suggestions
     const suggestionsList = document.getElementById('printSuggestionsList');
     if (suggestionsList) {
-      if (data.suggestions?.length) {
-        suggestionsList.style.display = '';
-        suggestionsList.innerHTML = '<p class="print-section-title">Suggestions</p>' +
-          data.suggestions.map(s => `<p class="print-suggestion-item">→ ${s}</p>`).join('');
-      } else {
-        suggestionsList.style.display = 'none';
-      }
+      suggestionsList.style.display = '';
+      suggestionsList.innerHTML = '<p class="print-section-title">Suggestions</p>' +
+        (data.suggestions?.length
+          ? data.suggestions.map(s => `<p class="print-suggestion-item">→ ${s}</p>`).join('')
+          : '<p class="print-suggestion-item print-suggestion-item--empty">No extra changes recommended before export.</p>');
     }
 
     // Show print prep section with dimensions from analysis
