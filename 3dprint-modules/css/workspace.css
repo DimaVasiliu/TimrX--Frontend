@@ -341,6 +341,85 @@
     transform: translateY(-1px);
   }
 
+  /* WORKSPACE INTRO STRIP
+   -------------------------------------------------------------------------- */
+.workspace-feature-strip {
+  padding: 12px 12px 0;
+}
+
+.workspace-feature-strip__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  align-items: stretch;
+  padding: 20px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 26%),
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
+    rgba(12, 12, 14, 0.94);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.workspace-feature-strip__eyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: #7dd3fc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.workspace-feature-strip__copy h1 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.workspace-feature-strip__copy p {
+  margin: 12px 0 0;
+  max-width: 60ch;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.workspace-feature-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workspace-feature-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 15px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workspace-feature-tile strong {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.workspace-feature-tile span {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
   /* GRID LAYOUT
    --------------------------------------------------------------------------
    .ws-grid = 4-column layout:
@@ -367,10 +446,14 @@
   flex-direction: column;
   gap: 2px;
   align-items: center;
-  padding: 8px 2px 8px;
+  padding: 10px 4px;
   overflow-y: auto;
   overflow-x: visible;
   min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .timrx-3dprint .ws-rail::-webkit-scrollbar {
@@ -392,16 +475,16 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid transparent;
   color: var(--ws-text);
-  opacity: 0.5;
+  opacity: 0.72;
   cursor: pointer;
-  padding: 7px 4px;
-  border-radius: 8px;
+  padding: 8px 4px;
+  border-radius: 10px;
   transition: all 0.2s ease;
   position: relative;
-  width: 40px;
+  width: 100%;
 }
 
 .timrx-3dprint .rail-btn svg {
@@ -421,7 +504,9 @@
 
 .timrx-3dprint .rail-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
 }
 
 .timrx-3dprint .rail-btn:hover svg {
@@ -441,12 +526,25 @@
 
 .timrx-3dprint .rail-btn.is-active {
   opacity: 1;
-  background: rgba(14, 165, 233, 0.1);
-  color: #0ea5e9;
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.14), rgba(14, 165, 233, 0.08));
+  border-color: rgba(14, 165, 233, 0.28);
+  color: #7dd3fc;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.12);
 }
 
 .timrx-3dprint .rail-btn.is-active svg {
   filter: drop-shadow(0 0 3px rgba(14, 165, 233, 0.35));
+}
+
+.timrx-3dprint .rail-btn.is-active::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(125,211,252,0.92), rgba(56,189,248,0.35));
 }
 
 /* SHARED PANE SHELL
@@ -898,10 +996,15 @@
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
-  background: #0a0a0a;
-  border: 1px solid var(--ws-card-border);
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.06), transparent 34%),
+    #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   overflow: hidden;
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 /* Title + actions overlaid inside the viewer */
@@ -914,24 +1017,30 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 14px 16px 20px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.15) 70%, transparent 100%);
+  gap: 14px;
+  padding: 16px 18px 26px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.18) 72%, transparent 100%);
   pointer-events: none;
+}
+
+.timrx-3dprint .viewer-overlay-head .pane-head-titles {
+  max-width: min(520px, 72%);
 }
 
 .timrx-3dprint .viewer-overlay-head .pane-head-titles h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .timrx-3dprint .viewer-overlay-head .pane-sub {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.56);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  line-height: 1.5;
 }
 
 .timrx-3dprint .viewer-overlay-head .pane-head-actions {
@@ -940,25 +1049,26 @@
 
 .timrx-3dprint .viewer-overlay-head .icon-btn {
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(8, 8, 10, 0.46);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 6px 12px;
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 7px 12px;
+  color: rgba(255, 255, 255, 0.76);
   font-size: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   transition: all 0.2s ease;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
 }
 
 .timrx-3dprint .viewer-overlay-head .icon-btn:hover {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(12, 12, 15, 0.62);
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(125, 211, 252, 0.26);
 }
 
 /* Subtle gradient overlay on viewer */

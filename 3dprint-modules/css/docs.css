@@ -620,7 +620,6 @@ body.docs-view .docs-expanded-view {
 
 /* Show only when parent expanded view is active */
 body.docs-view .expanded-back-to-top[data-for="docs"],
-body.tutorials-view .expanded-back-to-top[data-for="tutorials"],
-body.converter-view .expanded-back-to-top[data-for="converter"] {
+body.tutorials-view .expanded-back-to-top[data-for="tutorials"] {
   display: flex;
 }

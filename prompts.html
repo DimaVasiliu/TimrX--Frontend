@@ -349,296 +349,6 @@
       border: 0;
     }
 
-    /* ========== NAV ========== */
-    nav.nav {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      height: var(--navH);
-      background: var(--bg);
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(10px);
-    }
-
-    nav.nav .container {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      height: 100%;
-    }
-
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.5px;
-    }
-
-    .brand img {
-      width: 50px;
-      height: 50px;
-    }
-
-    .b-tim {
-      color: var(--ink);
-    }
-
-    .b-x {
-      background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .nav-pills {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex: 1;
-      justify-content: center;
-    }
-
-    .nav-pill {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--muted);
-      border: 1px solid transparent;
-      transition: all 0.3s ease;
-      background: transparent;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .nav-pill:hover {
-      color: var(--ink);
-      border-color: var(--line);
-    }
-
-    .nav-pill.active {
-      color: var(--accent);
-      border-color: var(--accent);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .credits-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .account-status-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      color: var(--muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      font-size: 14px;
-    }
-
-    .account-status-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .credits-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      color: var(--ink);
-      position: relative;
-    }
-
-    .credits-value {
-      min-width: 20px;
-      text-align: right;
-    }
-
-    .credits-hover-tooltip {
-      position: absolute;
-      bottom: 100%;
-      right: 0;
-      margin-bottom: 8px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px;
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 150px;
-      font-size: 11px;
-    }
-
-    .credits-pill:hover .credits-hover-tooltip {
-      display: flex;
-    }
-
-    .credits-hover-tooltip-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .credits-hover-tooltip-val {
-      margin-left: auto;
-      color: var(--muted);
-    }
-
-    .credits-buy-btn {
-      padding: 6px 16px;
-      border-radius: 20px;
-      border: none;
-      background: var(--accent);
-      color: var(--bg);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .credits-buy-btn:hover {
-      filter: brightness(0.9);
-    }
-
-    .nav-burger {
-      display: none;
-      width: 36px;
-      height: 36px;
-      background: none;
-      border: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .burger-line {
-      width: 24px;
-      height: 2px;
-      background: var(--ink);
-      border-radius: 1px;
-      transition: all 0.3s ease;
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(1) {
-      transform: rotate(45deg) translate(8px, 8px);
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(2) {
-      opacity: 0;
-    }
-
-    .nav-burger.is-open .burger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(7px, -8px);
-    }
-
-    /* ========== MOBILE MENU ========== */
-    .mobile-menu {
-      position: fixed;
-      top: var(--navH);
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--bg);
-      z-index: 999;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      border-top: 1px solid var(--line);
-    }
-
-    .mobile-menu.is-open {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .mobile-menu-inner {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .mobile-nav {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      padding: 0;
-    }
-
-    .mobile-nav-link {
-      padding: 16px var(--gutter);
-      border-bottom: 1px solid var(--line);
-      text-decoration: none;
-      color: var(--ink);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .mnl-label {
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .mnl-sub {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .mobile-menu-footer {
-      padding: 16px var(--gutter);
-      border-top: 1px solid var(--line);
-    }
-
-    .mobile-footer-text {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
     /* ========== HERO ========== */
     .hero-section {
       position: relative;
@@ -1090,14 +800,6 @@
 
     /* ========== MEDIA QUERIES ========== */
     @media (max-width: 768px) {
-      .nav-pills {
-        display: none;
-      }
-
-      .nav-burger {
-        display: flex;
-      }
-
       .hero-section {
         padding: 60px var(--gutter) 40px;
       }
@@ -1137,15 +839,6 @@
         right: 16px;
         left: 16px;
       }
-
-      .credits-group {
-        gap: 4px;
-      }
-
-      .nav-pill {
-        padding: 6px 12px;
-        font-size: 11px;
-      }
     }
 
     @media (max-width: 480px) {
@@ -1183,23 +876,14 @@
         font-size: 24px;
       }
 
-      .footer-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-
       .breadcrumbs {
         font-size: 11px;
         padding: 16px var(--gutter);
       }
     }
-
-    body.menu-open {
-      overflow: hidden;
-    }
   </style>
 </head>
-<body class="has-site-shell" data-shell-page="prompts">
+<body class="has-site-shell prompts-page" data-shell-page="prompts">
   <div data-site-shell="nav"></div>
 
   <!-- ========== BREADCRUMBS ========== -->

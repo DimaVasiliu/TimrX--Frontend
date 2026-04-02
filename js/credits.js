@@ -3710,10 +3710,6 @@
     e.stopPropagation();
     Promise.resolve(window.TimrXAuth || {}).then(m => m.openAuthModal());
   });
-  // Make the whole anon banner clickable too
-  document.getElementById('authBannerAnon')?.addEventListener('click', () => {
-    Promise.resolve(window.TimrXAuth || {}).then(m => m.openAuthModal());
-  });
 
   window.addEventListener('timrx:auth:verified', async () => {
     // Refresh identity first so emailVerified + userEmail update

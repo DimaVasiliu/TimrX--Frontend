@@ -432,11 +432,22 @@
     Array.from(grid.querySelectorAll('.ccg-card')).forEach(n => n.remove());
   }
 
+  function getRenderedCardCount() {
+    return grid ? grid.querySelectorAll('.ccg-card').length : 0;
+  }
+
+  function syncGalleryChrome(hasMore) {
+    const hasCards = getRenderedCardCount() > 0;
+    if (emptyState) emptyState.hidden = hasCards;
+    if (loadMoreWrap) loadMoreWrap.hidden = !hasCards || !hasMore;
+  }
+
   function renderPosts(posts, append) {
     hideSkeleton();
     if (!append) clearCards();
     const frag = document.createDocumentFragment();
-    posts.filter(p => !isExcludedPost(p)).forEach(p => {
+    const visiblePosts = posts.filter(p => !isExcludedPost(p));
+    visiblePosts.forEach(p => {
       const wrap = document.createElement('div');
       wrap.innerHTML = buildCard(p);
       frag.appendChild(wrap.firstElementChild);
@@ -445,6 +456,7 @@
     wireVideoAutoplay(grid);
     wireImageReveal(grid);
     wireModelViewerHover(grid);
+    return visiblePosts.length;
   }
 
   /** Fade in images once loaded */
@@ -489,16 +501,15 @@
 
       hideSkeleton();
 
-      if (!append && posts.length === 0) {
+      const renderedCount = renderPosts(posts, append);
+
+      if (!append && renderedCount === 0) {
         renderStatsFallback();
-        emptyState.hidden = false;
-        loadMoreWrap.hidden = true;
+        syncGalleryChrome(false);
         return;
       }
 
-      renderPosts(posts, append);
-      emptyState.hidden = true;
-      loadMoreWrap.hidden = !data.has_more;
+      syncGalleryChrome(!!data.has_more);
 
       // Update hero stats from API response or fallback
       if (!append) {
@@ -513,9 +524,8 @@
       console.warn('[CommunityGallery] load error:', err);
       renderStatsFallback();
       hideSkeleton();
-      clearCards();
-      emptyState.hidden = false;
-      loadMoreWrap.hidden = true;
+      if (!append) clearCards();
+      syncGalleryChrome(false);
     } finally {
       isLoading = false;
       if (loadMoreBtn) loadMoreBtn.disabled = false;

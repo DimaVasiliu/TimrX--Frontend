@@ -13,7 +13,11 @@
    4. workspace.css   — Workspace grid, rail, cards (lines 1305-2234)
    5. viewer.css      — 3D viewer controls (lines 2235-2507)
    6. history.css     — History panel, thumbnails (lines 2508-5557)
-   7. pages.css       — Tutorials, Stories, Converter, About (lines 5558+)
+   7. tutorials.css   — Tutorials expanded view
+   8. community.css   — Community expanded view
+   9. docs.css        — Documentation expanded view
+   10. inspire.css    — Discovery overlay
+   11. notifications.css — Notification center
    ─────────────────────────────────────────────────────────────────────────
    ========================================================================== */
 
@@ -35,26 +39,17 @@
 /* 6. History Panel */
 @import url('css/history.css');
 
-/* 7. Expanded View Pages (tutorials, community, about, etc.) */
-@import url('css/pages.css');
-
-/* 8. Converter Styles (separate file for converter page) */
-@import url('css/converter.css');
-
-/* 9. Tutorials Styles (separate file for tutorials page) */
+/* 7. Tutorials Styles */
 @import url('css/tutorials.css');
 
-/* 10. About Styles (separate file for about page) */
-@import url('css/about.css');
-
-/* 11. Community Styles (separate file for community page) */
+/* 8. Community Styles */
 @import url('css/community.css');
 
-/* 12. Docs Styles (separate file for documentation page) */
+/* 9. Docs Styles */
 @import url('css/docs.css');
 
-/* 13. Inspire Section (discovery overlay) */
+/* 10. Inspire Section */
 @import url('css/inspire.css');
 
-/* 14. Notification Center (bell, dropdown, badges) */
+/* 11. Notification Center */
 @import url('css/notifications.css');

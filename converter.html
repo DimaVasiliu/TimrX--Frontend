@@ -48,7 +48,6 @@
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" /></noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="3dprint-modules/css/converter.css" />
   <link rel="stylesheet" href="site-shell.css" />
   <link rel="stylesheet" href="standalone-expansions.css" />
 </head>
@@ -63,6 +62,11 @@
             <span class="converter-pill">Free Tool · No Sign-up Required</span>
             <h1 class="converter-title" id="converterTitle">3D File Converter</h1>
             <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, and FBX files. All processing happens in your browser, so your files never leave your device.</p>
+            <div class="converter-hero-actions">
+              <a href="#converterTool" class="converter-primary-btn">Start Converting</a>
+              <a href="#converterFormats" class="converter-secondary-btn">See Formats</a>
+              <a href="/3dprint" class="converter-secondary-btn">Open Workspace</a>
+            </div>
             <ul class="converter-hero-stats">
               <li><span>5+</span><small>Formats supported</small></li>
               <li><span>100%</span><small>Client-side processing</small></li>
@@ -70,11 +74,17 @@
               <li><span>Private</span><small>Files stay on device</small></li>
             </ul>
           </div>
-          <a href="/3dprint" class="converter-exit-btn" aria-label="Open workspace">Open Workspace</a>
           <span class="converter-watermark">CONVERT</span>
         </header>
 
-        <section class="converter-section converter-tool-section">
+        <section class="converter-section converter-tool-section" id="converterTool">
+          <div class="converter-section-header">
+            <div class="converter-section-content">
+              <h2>Convert Files In Browser</h2>
+              <p>Drop a model, inspect the preview, pick the target format, and export immediately without leaving the page or uploading the file.</p>
+            </div>
+            <div class="converter-highlight">Live Tool</div>
+          </div>
           <div class="converter-tool">
             <div class="converter-upload-area" id="converterDropZone">
               <div class="converter-upload-content">
@@ -182,7 +192,7 @@
           </div>
         </section>
 
-        <section class="converter-section">
+        <section class="converter-section" id="converterFormats">
           <div class="converter-section-header">
             <div class="converter-section-content">
               <h2>Supported Formats</h2>

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <!-- Primary Meta Tags -->
-  <title>TimrX 3D Print Hub — AI Generated 3D Models</title>
-  <meta name="title" content="TimrX 3D Print Hub — AI Generated 3D Models" />
-  <meta name="description" content="Generate print-ready 3D models from text or images. Remesh, texture, preview in browser. Export GLB/GLTF. No Blender required. Fast AI 3D generation for creators and makers." />
-  <meta name="keywords" content="3D workspace, AI 3D generator, text to 3D, image to 3D, 3D model creator, GLB export, GLTF, 3D printing, game assets, TimrX workspace, online 3D tool, print-ready, remesh, texture, no Blender" />
+  <title>TimrX 3D Workspace — AI Images, Video & 3D Models</title>
+  <meta name="title" content="TimrX 3D Workspace — AI Images, Video & 3D Models" />
+  <meta name="description" content="Generate AI images, videos, and 3D models from text or reference inputs. Remesh, texture, rig, animate, preview, share, run print checks, and export GLB, GLTF, STL, OBJ, and USDZ from one browser workspace." />
+  <meta name="keywords" content="AI workspace, AI image generator, AI video generator, AI 3D generator, text to 3D, image to 3D, text to image, text to video, image to video, remesh, texture, rigging, animation, print check, GLB, GLTF, STL, OBJ, USDZ, TimrX workspace" />
   <meta name="author" content="Dima Vasiliu" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="googlebot" content="index, follow" />
@@ -29,8 +29,8 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/3dprint" />
-  <meta property="og:title" content="TimrX 3D Print Hub — AI Generated 3D Models" />
-  <meta property="og:description" content="Generate print-ready 3D models from text or images. Remesh, texture, preview in browser. Export GLB/GLTF. No Blender required." />
+  <meta property="og:title" content="TimrX 3D Workspace — AI Images, Video & 3D Models" />
+  <meta property="og:description" content="Generate AI images, videos, and 3D models from text or reference inputs. Remesh, texture, rig, animate, preview, share, and export from one browser workspace." />
   <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -41,13 +41,13 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/3dprint" />
-  <meta name="twitter:title" content="TimrX 3D Print Hub — AI Generated 3D Models" />
-  <meta name="twitter:description" content="Generate print-ready 3D models from text or images. Remesh, texture, export GLB/GLTF. No Blender required." />
+  <meta name="twitter:title" content="TimrX 3D Workspace — AI Images, Video & 3D Models" />
+  <meta name="twitter:description" content="Generate AI images, videos, and 3D models, then remesh, texture, rig, animate, share, and export from one browser workspace." />
   <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Additional SEO -->
-  <meta name="application-name" content="TimrX 3D Workspace" />
+  <meta name="application-name" content="TimrX Creative Workspace" />
   <meta name="apple-mobile-web-app-title" content="TimrX 3D" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -57,8 +57,8 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "TimrX AI 3D Model Generator Workspace",
-    "description": "AI-powered 3D model generator workspace. Create print-ready 3D models from text or images. Remesh, texture, preview, and export GLB/GLTF. No Blender required.",
+    "name": "TimrX AI Creative Workspace",
+    "description": "AI-powered browser workspace for images, videos, and 3D. Generate from prompts or reference inputs, then remesh, texture, rig, animate, share, run print checks, and export in creator and 3D print formats.",
     "url": "https://timrx.live/3dprint",
     "applicationCategory": "DesignApplication",
     "operatingSystem": "Web Browser",
@@ -69,14 +69,16 @@
       "description": "Credit-based pricing with free tier available"
     },
     "featureList": [
+      "Text to image generation",
+      "Text to video generation",
       "Text to 3D generation",
       "Image to 3D conversion",
-      "Remesh for clean prints",
-      "AI texture generation",
-      "Real-time 3D preview",
-      "GLB/GLTF export",
-      "Print-ready 3D models",
-      "No Blender required"
+      "Image animation and transitions",
+      "Remesh and AI texture generation",
+      "Rigging and animation workflow",
+      "Real-time viewer, history, and community sharing",
+      "GLB, GLTF, OBJ, STL, and USDZ export",
+      "Print readiness checks"
     ],
     "screenshot": "https://timrx.live/img/OG_APP.png",
     "author": {
@@ -165,8 +167,7 @@
       display: flex;
       white-space: nowrap;
       will-change: transform;
-      /* calc: each item + gap; translate one full item width for seamless loop */
-      animation: tickerHeaderMove 18s linear infinite;
+      animation: tickerHeaderMove 24s linear infinite;
     }
     .ticker-header-item {
       font-size: 0.65rem;
@@ -179,7 +180,7 @@
     }
     @keyframes tickerHeaderMove {
       from { transform: translateX(0); }
-      to { transform: translateX(calc(-100% / 3)); }
+      to { transform: translateX(-50%); }
     }
     @media (prefers-reduced-motion: reduce) {
       .ticker-header-track { animation: none; }
@@ -204,11 +205,14 @@
     </div>
 
     <!-- SEO Ticker (absolutely centered between brand and nav) -->
-    <div class="ticker-header" aria-label="AI 3D generation features">
+    <div class="ticker-header" aria-label="Workspace features">
       <div class="ticker-header-track">
-        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
-        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
-        <span class="ticker-header-item">AI 3D model generator — text to 3D and image to 3D</span>
+        <span class="ticker-header-item">Image, video, and 3D generation in one browser workspace</span>
+        <span class="ticker-header-item">Remesh, texture, rig, animate, and preview without leaving the viewer</span>
+        <span class="ticker-header-item">History, community remix, AR, converter, and print checks built in</span>
+        <span class="ticker-header-item">Image, video, and 3D generation in one browser workspace</span>
+        <span class="ticker-header-item">Remesh, texture, rig, animate, and preview without leaving the viewer</span>
+        <span class="ticker-header-item">History, community remix, AR, converter, and print checks built in</span>
       </div>
     </div>
 
@@ -299,7 +303,7 @@
         </a>
         <a href="#my-assets" class="ws-mobile-link" data-open-assets>
           <span class="wml-label">My Assets</span>
-          <span class="wml-sub">Your generated models</span>
+          <span class="wml-sub">Your generated images, videos, and models</span>
         </a>
         <a href="/blogs?tag=TimrX#filter-strip" class="ws-mobile-link">
           <span class="wml-label">Blogs</span>
@@ -331,7 +335,7 @@
         </a>
       </nav>
       <div class="ws-mobile-footer">
-        <span class="ws-mobile-footer-text">TimrX / 3D Workspace</span>
+        <span class="ws-mobile-footer-text">TimrX / Creative Workspace</span>
       </div>
     </div>
   </div>
@@ -344,12 +348,12 @@
 
     function open(){
       // Close any active expansion first so the menu isn't stacked on top
-      var expansionClasses = ['tutorials-view','community-view','docs-view','about-view','converter-view'];
+      var expansionClasses = ['tutorials-view','community-view','docs-view'];
       expansionClasses.forEach(function(cls){
         if (document.body.classList.contains(cls)) {
           var exitMap = {
             'tutorials-view':'#tutorialsExit','community-view':'#communityExit',
-            'docs-view':'#docsExit','about-view':'#aboutExit','converter-view':'#converterExit'
+            'docs-view':'#docsExit'
           };
           var exitBtn = document.querySelector(exitMap[cls]);
           if (exitBtn) exitBtn.click();
@@ -434,11 +438,39 @@
   </script>
 
   <!-- Visually hidden SEO content -->
-  <p class="visually-hidden">Use TimrX to generate 3D models from text prompts or reference images. Models can be refined, remeshed, textured, and exported in GLB or GLTF formats for 3D printing.</p>
+  <p class="visually-hidden">Use TimrX to generate images, videos, and 3D models from text prompts or reference inputs. Assets can be remeshed, textured, rigged, animated, shared, checked for print readiness, and exported in creator and 3D print formats.</p>
+
+<section class="workspace-feature-strip hidden" aria-labelledby="workspaceIntroTitle">
+  <div class="workspace-feature-strip__inner">
+    <div class="workspace-feature-strip__copy">
+      <span class="workspace-feature-strip__eyebrow">Workspace overview</span>
+      <h1 id="workspaceIntroTitle">Generate, refine, animate, and export from one browser workspace</h1>
+      <p>TimrX combines image, video, and 3D creation with remesh, PBR texture, rigging, animation, asset history, community sharing, AR preview, file conversion, and print checks in one continuous flow.</p>
+    </div>
+    <div class="workspace-feature-strip__grid" aria-label="Workspace capabilities">
+      <article class="workspace-feature-tile">
+        <strong>Create</strong>
+        <span>Text to image, image animation, text to video, text to 3D, and image to 3D.</span>
+      </article>
+      <article class="workspace-feature-tile">
+        <strong>Refine</strong>
+        <span>Draft selection, remesh presets, texture prompting, and material-ready output.</span>
+      </article>
+      <article class="workspace-feature-tile">
+        <strong>Animate</strong>
+        <span>Rig characters, reuse history, open the motion library, and reanimate faster.</span>
+      </article>
+      <article class="workspace-feature-tile">
+        <strong>Deliver</strong>
+        <span>History search, community remix, AR preview, print checks, and multi-format export.</span>
+      </article>
+    </div>
+  </div>
+</section>
 
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
-  <div class="ws-grid" role="region" aria-label="3D creation workspace">
+  <div class="ws-grid" role="region" aria-label="Creative workspace for image, video, and 3D generation">
 
     <!-- Icon Rail -->
     <nav class="ws-rail" aria-label="Tools">
@@ -510,7 +542,7 @@
         <header class="viewer-overlay-head">
           <div class="pane-head-titles">
             <h2 id="viewerTitle">3D Preview</h2>
-            <p class="pane-sub" id="genHint">Enter a descriptive prompt, then Generate.</p>
+            <p class="pane-sub" id="genHint">Start with a prompt or upload, then refine, share, or export from the viewer.</p>
           </div>
           <div class="pane-head-actions">
             <button type="button" id="openUploadModalTop" class="icon-btn" aria-label="Upload new model">
@@ -2684,330 +2716,6 @@
     </div>
   </section>
 
-  <!-- 3D File Converter Expanded View -->
-  <section id="converterGallery" class="converter-expanded-view" aria-labelledby="converterTitle" hidden inert>
-    <div class="converter-expanded-shell">
-      <header class="converter-hero">
-        <div class="converter-hero-text" id="converterFocus" data-converter-focus tabindex="-1">
-          <span class="converter-pill">Free Tool · No Sign-up Required</span>
-          <h2 class="converter-title" id="converterTitle">3D File Converter</h2>
-          <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, and FBX files. All processing happens in your browser - your files never leave your device.</p>
-          <ul class="converter-hero-stats">
-            <li><span>5+</span><small>Formats supported</small></li>
-            <li><span>100%</span><small>Client-side processing</small></li>
-            <li><span>Free</span><small>No limits</small></li>
-            <li><span>Private</span><small>Files stay on device</small></li>
-          </ul>
-        </div>
-        <button type="button" class="converter-exit-btn" id="converterExit" aria-label="Close converter">Exit Converter ✕</button>
-        <span class="converter-watermark">CONVERT</span>
-      </header>
-
-      <!-- Main Converter Tool -->
-      <section class="converter-section converter-tool-section">
-        <div class="converter-tool">
-          <!-- Upload Area -->
-          <div class="converter-upload-area" id="converterDropZone">
-            <div class="converter-upload-content">
-              <svg class="converter-upload-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M32 44V20M32 20L22 30M32 20L42 30" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 44v8a4 4 0 004 4h32a4 4 0 004-4v-8" stroke-linecap="round"/>
-              </svg>
-              <h3>Drop your 3D file here</h3>
-              <p>or click to browse</p>
-              <span class="converter-formats-hint">Supports: GLB, GLTF, OBJ, STL, FBX</span>
-            </div>
-            <input type="file" id="converterFileInput" accept=".glb,.gltf,.obj,.stl,.fbx" hidden>
-          </div>
-
-          <!-- File Info (shown after upload) -->
-          <div class="converter-file-info hidden" id="converterFileInfo">
-            <div class="converter-file-preview">
-              <canvas id="converterPreviewCanvas"></canvas>
-              <div class="converter-file-details">
-                <h3 id="converterFileName">model.glb</h3>
-                <ul class="converter-file-meta">
-                  <li><span>Format:</span> <strong id="converterFileFormat">GLB</strong></li>
-                  <li><span>Size:</span> <strong id="converterFileSize">2.4 MB</strong></li>
-                  <li><span>Vertices:</span> <strong id="converterVertices">12,450</strong></li>
-                  <li><span>Faces:</span> <strong id="converterFaces">24,800</strong></li>
-                </ul>
-                <button type="button" class="converter-change-file" id="converterChangeFile">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 4v6h6M23 20v-6h-6"/>
-                    <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
-                  </svg>
-                  Change File
-                </button>
-              </div>
-            </div>
-
-            <!-- Export Options -->
-            <div class="converter-export-options">
-              <h4>Export Format</h4>
-              <div class="converter-format-grid">
-                <label class="converter-format-option">
-                  <input type="radio" name="exportFormat" value="glb" checked>
-                  <span class="converter-format-card">
-                    <strong>GLB</strong>
-                    <small>Binary GLTF, compact</small>
-                  </span>
-                </label>
-                <label class="converter-format-option">
-                  <input type="radio" name="exportFormat" value="gltf">
-                  <span class="converter-format-card">
-                    <strong>GLTF</strong>
-                    <small>JSON + separate assets</small>
-                  </span>
-                </label>
-                <label class="converter-format-option">
-                  <input type="radio" name="exportFormat" value="obj">
-                  <span class="converter-format-card">
-                    <strong>OBJ</strong>
-                    <small>Universal, no textures</small>
-                  </span>
-                </label>
-                <label class="converter-format-option">
-                  <input type="radio" name="exportFormat" value="stl">
-                  <span class="converter-format-card">
-                    <strong>STL</strong>
-                    <small>3D printing standard</small>
-                  </span>
-                </label>
-              </div>
-
-              <!-- Advanced Options -->
-              <div class="converter-advanced-toggle" id="converterAdvancedToggle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-                Advanced Options
-              </div>
-              <div class="converter-advanced-options hidden" id="converterAdvancedOptions">
-                <label class="converter-option-row">
-                  <span>Include textures (GLB/GLTF only)</span>
-                  <input type="checkbox" id="converterIncludeTextures" checked>
-                </label>
-                <label class="converter-option-row">
-                  <span>Binary STL (smaller file)</span>
-                  <input type="checkbox" id="converterBinaryStl" checked>
-                </label>
-                <label class="converter-option-row">
-                  <span>Flip Y/Z axis (for some apps)</span>
-                  <input type="checkbox" id="converterFlipAxis">
-                </label>
-              </div>
-
-              <button type="button" class="converter-export-btn" id="converterExportBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                </svg>
-                Convert & Download
-              </button>
-            </div>
-          </div>
-
-          <!-- Progress indicator -->
-          <div class="converter-progress hidden" id="converterProgress">
-            <div class="converter-progress-bar">
-              <div class="converter-progress-fill" id="converterProgressFill"></div>
-            </div>
-            <span id="converterProgressText">Processing...</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Supported Formats Section -->
-      <section class="converter-section">
-        <div class="converter-section-header">
-          <div class="converter-section-content">
-            <h2>Supported Formats</h2>
-            <p>We support all major 3D file formats used in game development, 3D printing, and digital content creation.</p>
-          </div>
-          <div class="converter-highlight">Format Guide</div>
-        </div>
-        <div class="converter-formats-grid">
-          <article class="converter-format-info">
-            <div class="format-icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="8" y="6" width="32" height="36" rx="2"/>
-                <path d="M16 18h16M16 26h16M16 34h8"/>
-              </svg>
-            </div>
-            <h3>GLB / GLTF</h3>
-            <p>The modern standard for 3D on the web. GLB is a binary format that packs everything into one file. GLTF is JSON-based with separate texture files.</p>
-            <ul>
-              <li>Best for web & real-time apps</li>
-              <li>Supports PBR materials</li>
-              <li>Includes animations</li>
-              <li>Widely supported</li>
-            </ul>
-          </article>
-          <article class="converter-format-info">
-            <div class="format-icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="24,6 42,38 6,38"/>
-                <line x1="24" y1="14" x2="24" y2="28"/>
-                <line x1="15" y1="32" x2="33" y2="32"/>
-              </svg>
-            </div>
-            <h3>STL</h3>
-            <p>The gold standard for 3D printing. Simple mesh format that stores triangle geometry without colors or textures.</p>
-            <ul>
-              <li>Universal print format</li>
-              <li>Binary or ASCII options</li>
-              <li>No material data</li>
-              <li>All slicers support it</li>
-            </ul>
-          </article>
-          <article class="converter-format-info">
-            <div class="format-icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="24" cy="24" r="16"/>
-                <path d="M24 12v24M12 24h24"/>
-                <circle cx="24" cy="24" r="6"/>
-              </svg>
-            </div>
-            <h3>OBJ</h3>
-            <p>A widely-supported legacy format. Stores geometry and can reference external MTL files for materials.</p>
-            <ul>
-              <li>Maximum compatibility</li>
-              <li>Text-based, editable</li>
-              <li>Separate material files</li>
-              <li>Good for DCC apps</li>
-            </ul>
-          </article>
-          <article class="converter-format-info">
-            <div class="format-icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M8 12h32v24H8z"/>
-                <path d="M8 12l16 12 16-12"/>
-                <path d="M8 36l12-10M40 36l-12-10"/>
-              </svg>
-            </div>
-            <h3>FBX</h3>
-            <p>Industry standard for animation and game engines. Supports complex rigs, animations, and materials.</p>
-            <ul>
-              <li>Full animation support</li>
-              <li>Industry standard</li>
-              <li>Complex scene data</li>
-              <li>Unity/Unreal ready</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <!-- How It Works Section -->
-      <section class="converter-section">
-        <div class="converter-section-header">
-          <div class="converter-section-content">
-            <h2>How It Works</h2>
-            <p>Convert your 3D files in three simple steps. No uploads to external servers - everything happens locally.</p>
-          </div>
-          <div class="converter-highlight">Quick Guide</div>
-        </div>
-        <div class="converter-steps-grid">
-          <article class="converter-step">
-            <span>01</span>
-            <h3>Upload Your File</h3>
-            <p>Drag and drop your 3D model or click to browse. We support GLB, GLTF, OBJ, STL, and FBX formats up to 100MB.</p>
-          </article>
-          <article class="converter-step">
-            <span>02</span>
-            <h3>Preview & Configure</h3>
-            <p>See your model in 3D, check vertex counts, and choose your target format. Adjust advanced options if needed.</p>
-          </article>
-          <article class="converter-step">
-            <span>03</span>
-            <h3>Convert & Download</h3>
-            <p>Click convert and your file is processed instantly in your browser. Download the converted file directly.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Use Cases Section -->
-      <section class="converter-section">
-        <div class="converter-section-header">
-          <div class="converter-section-content">
-            <h2>Common Use Cases</h2>
-            <p>Whether you're preparing files for 3D printing, game development, or web visualization, we've got you covered.</p>
-          </div>
-          <div class="converter-highlight">Workflows</div>
-        </div>
-        <div class="converter-usecases-grid">
-          <article class="converter-usecase">
-            <div class="usecase-icon">🖨️</div>
-            <h3>3D Printing Prep</h3>
-            <p>Convert GLB or GLTF files from AI generators to STL for your slicer software.</p>
-          </article>
-          <article class="converter-usecase">
-            <div class="usecase-icon">🎮</div>
-            <h3>Game Development</h3>
-            <p>Convert OBJ exports from Blender to GLB for web-based games and Three.js projects.</p>
-          </article>
-          <article class="converter-usecase">
-            <div class="usecase-icon">🌐</div>
-            <h3>Web Optimization</h3>
-            <p>Convert heavy FBX files to optimized GLB for fast loading on websites and AR experiences.</p>
-          </article>
-          <article class="converter-usecase">
-            <div class="usecase-icon">🔄</div>
-            <h3>Software Compatibility</h3>
-            <p>Bridge format gaps between different 3D software like Blender, Maya, ZBrush, and more.</p>
-          </article>
-          <article class="converter-usecase">
-            <div class="usecase-icon">📱</div>
-            <h3>AR/VR Content</h3>
-            <p>Prepare models for augmented reality apps and VR experiences with optimized GLB exports.</p>
-          </article>
-          <article class="converter-usecase">
-            <div class="usecase-icon">🎨</div>
-            <h3>Asset Libraries</h3>
-            <p>Batch convert your 3D asset library to a consistent format for better organization.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- FAQ Section -->
-      <section class="converter-section">
-        <div class="converter-section-header">
-          <div class="converter-section-content">
-            <h2>Frequently Asked Questions</h2>
-            <p>Everything you need to know about our 3D file converter.</p>
-          </div>
-          <div class="converter-highlight">FAQ</div>
-        </div>
-        <div class="converter-faq-grid">
-          <article class="converter-faq">
-            <h3>Is my data safe?</h3>
-            <p>Yes! All file processing happens directly in your browser using WebGL and JavaScript. Your files are never uploaded to any server. When you close the page, everything is gone.</p>
-          </article>
-          <article class="converter-faq">
-            <h3>What's the file size limit?</h3>
-            <p>We recommend files under 100MB for optimal performance. Larger files may work but could be slow depending on your device's capabilities.</p>
-          </article>
-          <article class="converter-faq">
-            <h3>Are textures preserved?</h3>
-            <p>When converting to GLB/GLTF, textures are preserved. STL and OBJ formats don't support embedded textures, so only geometry is exported.</p>
-          </article>
-          <article class="converter-faq">
-            <h3>Can I convert animations?</h3>
-            <p>Animations are preserved when converting between GLB, GLTF, and FBX. STL and OBJ are static formats and don't support animations.</p>
-          </article>
-          <article class="converter-faq">
-            <h3>Why use this over desktop software?</h3>
-            <p>No installation required, works on any device with a browser, completely free, and respects your privacy. Perfect for quick conversions on the go.</p>
-          </article>
-          <article class="converter-faq">
-            <h3>Need batch conversion?</h3>
-            <p>Currently we support one file at a time. For batch conversion, consider using Blender with Python scripting or dedicated desktop tools.</p>
-          </article>
-        </div>
-      </section>
-    </div>
-  </section>
-
-
   <!-- Back to top buttons for expanded views -->
   <button class="expanded-back-to-top" data-for="tutorials" aria-label="Back to top">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -3015,270 +2723,6 @@
   <button class="expanded-back-to-top" data-for="docs" aria-label="Back to top">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
-  <button class="expanded-back-to-top" data-for="converter" aria-label="Back to top">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-  </button>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       ABOUT / OUR STORY & MISSION – Expanded View
-       ═══════════════════════════════════════════════════════════════════════ -->
-  <section id="aboutGallery" class="about-expanded-view" aria-labelledby="aboutTitle" hidden inert>
-    <div class="about-expanded-shell">
-      <header class="about-hero">
-        <div class="about-hero-text" id="aboutFocus" data-about-focus tabindex="-1">
-          <span class="about-pill">Our Story · TimrX</span>
-          <h2 class="about-title" id="aboutTitle">Empowering Creators to Build & Print</h2>
-          <p>We believe everyone should have the power to transform ideas into physical objects. TimrX bridges the gap between imagination and reality — making 3D creation accessible, AI-powered, and ready for your printer.</p>
-          <ul class="about-hero-stats">
-            <li><span>10K+</span><small>Models Created</small></li>
-            <li><span>5K+</span><small>Happy Creators</small></li>
-            <li><span>50+</span><small>Countries</small></li>
-            <li><span>24/7</span><small>AI Available</small></li>
-          </ul>
-        </div>
-        <span class="about-watermark" aria-hidden="true">ABOUT</span>
-        <button type="button" class="about-exit-btn" id="aboutExit" aria-label="Close about">Exit About ✕</button>
-      </header>
-
-      <!-- Mission Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>Our Mission</h2>
-            <p>To democratize 3D creation and manufacturing, enabling anyone to design, iterate, and bring their ideas to life through AI-powered tools and seamless 3D printing integration.</p>
-          </div>
-          <div class="about-highlight">Why We Exist</div>
-        </div>
-        <div class="about-mission-grid">
-          <article class="about-mission-card">
-            <div class="mission-icon">🎯</div>
-            <h3>Simplify Creation</h3>
-            <p>Traditional 3D modeling requires years of training. We use AI to let you describe what you want and get a printable model in minutes, not months.</p>
-          </article>
-          <article class="about-mission-card">
-            <div class="mission-icon">🌍</div>
-            <h3>Global Accessibility</h3>
-            <p>Whether you're a hobbyist in Tokyo or an entrepreneur in São Paulo, our cloud-based platform ensures everyone has equal access to cutting-edge 3D tools.</p>
-          </article>
-          <article class="about-mission-card">
-            <div class="mission-icon">🚀</div>
-            <h3>Ship Physical Products</h3>
-            <p>From digital model to doorstep delivery. We're building the infrastructure to help creators sell and ship their 3D printed products worldwide.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Our Story Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>The TimrX Story</h2>
-            <p>Every great journey starts with a simple frustration. Ours began with a broken 3D printer and a dream to make creation easier.</p>
-          </div>
-          <div class="about-highlight">Our Journey</div>
-        </div>
-        <div class="about-story-content">
-          <div class="about-story-block">
-            <div class="story-image">
-              <div class="story-image-placeholder">
-                <span>💡</span>
-              </div>
-            </div>
-            <div class="story-text">
-              <h3>The Spark</h3>
-              <p>It started in a small workshop where we spent countless hours learning Blender, ZBrush, and other complex 3D software. The barrier to entry was enormous — months of tutorials just to create a simple character. We knew there had to be a better way.</p>
-              <p>When AI image generation exploded, we saw the future: what if you could describe a 3D model and have it appear, ready to print? That vision became TimrX.</p>
-            </div>
-          </div>
-          <div class="about-story-block reverse">
-            <div class="story-image">
-              <div class="story-image-placeholder">
-                <span>🔧</span>
-              </div>
-            </div>
-            <div class="story-text">
-              <h3>Building the Platform</h3>
-              <p>We assembled a team passionate about both AI and physical making. Our first prototype was rough — models came out looking like melted candles. But each iteration brought us closer to something magical.</p>
-              <p>Today, TimrX can generate print-ready models from text prompts, images, or even video references. The technology that seemed impossible two years ago is now at your fingertips.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Values Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>Our Core Values</h2>
-            <p>These principles guide every decision we make, from product features to community interactions.</p>
-          </div>
-          <div class="about-highlight">What We Believe</div>
-        </div>
-        <div class="about-values-grid">
-          <article class="about-value">
-            <div class="value-number">01</div>
-            <h3>Creator First</h3>
-            <p>Every feature we build starts with one question: does this help creators make better things faster? If not, we don't ship it.</p>
-          </article>
-          <article class="about-value">
-            <div class="value-number">02</div>
-            <h3>Quality Matters</h3>
-            <p>A beautiful render means nothing if the print fails. We obsess over mesh quality, watertightness, and real-world printability.</p>
-          </article>
-          <article class="about-value">
-            <div class="value-number">03</div>
-            <h3>Open Community</h3>
-            <p>We share our learnings, celebrate community creations, and believe the best ideas come from collaboration, not competition.</p>
-          </article>
-          <article class="about-value">
-            <div class="value-number">04</div>
-            <h3>Continuous Innovation</h3>
-            <p>AI moves fast. We stay ahead by constantly experimenting with new models, techniques, and workflows.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Timeline Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>Our Timeline</h2>
-            <p>Key milestones in the TimrX journey from idea to global platform.</p>
-          </div>
-          <div class="about-highlight">Milestones</div>
-        </div>
-        <div class="about-timeline">
-          <article class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <span class="timeline-date">Early 2025</span>
-              <h3>The Beginning</h3>
-              <p>First prototype built. Text-to-3D experiments begin with early AI models.</p>
-            </div>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <span class="timeline-date">Mid 2025</span>
-              <h3>Platform Launch</h3>
-              <p>TimrX 3D Print Hub goes live. First 1,000 users join the beta program.</p>
-            </div>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <span class="timeline-date">Late 2025</span>
-              <h3>Community Growth</h3>
-              <p>User Stories launches. Discord community reaches 5,000 members.</p>
-            </div>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <span class="timeline-date">Early 2026</span>
-              <h3>Advanced Tools</h3>
-              <p>Remesh, Texture, and Video-to-3D features released. File converter added.</p>
-            </div>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <span class="timeline-date">2026</span>
-              <h3>Print & Ship</h3>
-              <p>Integrated printing and fulfillment services in progress.</p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- What We Offer Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>What We Offer</h2>
-            <p>A complete ecosystem for 3D creation, from initial concept to physical product.</p>
-          </div>
-          <div class="about-highlight">Platform Features</div>
-        </div>
-        <div class="about-features-grid">
-          <article class="about-feature">
-            <div class="feature-icon">✨</div>
-            <h3>AI 3D Generation</h3>
-            <p>Transform text descriptions, images, or videos into detailed 3D models using cutting-edge AI technology.</p>
-          </article>
-          <article class="about-feature">
-            <div class="feature-icon">🔄</div>
-            <h3>Smart Remeshing</h3>
-            <p>Automatically optimize topology for 3D printing with watertight, manifold meshes ready for any slicer.</p>
-          </article>
-          <article class="about-feature">
-            <div class="feature-icon">🎨</div>
-            <h3>AI Texturing</h3>
-            <p>Generate PBR textures with diffuse, roughness, and normal maps for photorealistic renders and prints.</p>
-          </article>
-          <article class="about-feature">
-            <div class="feature-icon">📁</div>
-            <h3>File Conversion</h3>
-            <p>Convert between GLB, GLTF, OBJ, STL, and FBX formats directly in your browser, no upload needed.</p>
-          </article>
-          <article class="about-feature">
-            <div class="feature-icon">📚</div>
-            <h3>Asset Library</h3>
-            <p>Store, organize, and manage all your 3D creations with version history and easy export options.</p>
-          </article>
-          <article class="about-feature">
-            <div class="feature-icon">🖨️</div>
-            <h3>Print Integration</h3>
-            <p>Connect with printing services or export optimized files for your home FDM or resin printer.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Community Section -->
-      <section class="about-section">
-        <div class="about-section-header">
-          <div class="about-section-content">
-            <h2>Join Our Community</h2>
-            <p>Connect with thousands of creators, share your work, and learn from the best in 3D printing.</p>
-          </div>
-          <div class="about-highlight">Get Involved</div>
-        </div>
-        <div class="about-community-grid">
-          <article class="about-community-card">
-            <div class="community-icon">💬</div>
-            <h3>Discord Server</h3>
-            <p>Join 5,000+ creators sharing tips, showcasing prints, and helping each other troubleshoot.</p>
-            <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="about-community-btn">Join Discord</a>
-          </article>
-          <article class="about-community-card">
-            <div class="community-icon">🎓</div>
-            <h3>Tutorials</h3>
-            <p>Step-by-step guides covering everything from basic prompts to advanced multi-part assemblies.</p>
-            <a href="/tutorials" class="about-community-btn">Browse Tutorials</a>
-          </article>
-          <article class="about-community-card">
-            <div class="community-icon">🌟</div>
-            <h3>Community</h3>
-            <p>See what others are building and connect with fellow creators.</p>
-            <a href="/community" class="about-community-btn">Visit Community</a>
-          </article>
-        </div>
-      </section>
-
-      <!-- CTA Section -->
-      <section class="about-section about-cta-section">
-        <div class="about-cta-content">
-          <h2>Ready to Start Creating?</h2>
-          <p>Join thousands of creators who are turning their ideas into reality with TimrX. No experience required — just your imagination.</p>
-          <div class="about-cta-buttons">
-            <a href="/3dprint" class="about-primary-btn">Open Workspace</a>
-            <a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener" class="about-secondary-btn">Join Community</a>
-          </div>
-        </div>
-      </section>
-    </div>
-  </section>
-
   <!-- model-viewer web component (no Three.js needed for inline 3D previews) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 
@@ -3340,9 +2784,7 @@
           const isMobileOrTablet = window.innerWidth <= 1280;
           const revealThreshold = isMobileOrTablet ? 12 : 18;
           const isExpandedView = document.body.classList.contains('tutorials-view') ||
-                                  document.body.classList.contains('converter-view') ||
                                   document.body.classList.contains('community-view') ||
-                                  document.body.classList.contains('about-view') ||
                                   document.body.classList.contains('docs-view') ||
                                   document.body.classList.contains('history-expanded');
 
@@ -3398,8 +2840,7 @@
       var desktopViewport = window.matchMedia('(min-width: 769px)');
       var shellMap = {
         tutorials: '.tutorials-expanded-shell',
-        docs: '.docs-expanded-shell',
-        converter: '.converter-expanded-shell'
+        docs: '.docs-expanded-shell'
       };
 
       function getActiveButton() {

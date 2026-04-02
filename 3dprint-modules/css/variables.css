@@ -99,11 +99,9 @@ body.print3d-page.history-expanded {
   min-height: 100vh;
 }
 
-/* Allow scrolling for expanded views (tutorials, community, converter, about) */
+/* Allow scrolling for live expanded views (tutorials, community, docs) */
 body.print3d-page.tutorials-view,
 body.print3d-page.community-view,
-body.print3d-page.converter-view,
-body.print3d-page.about-view,
 body.print3d-page.docs-view {
   overflow: auto;
   overflow-x: hidden;
