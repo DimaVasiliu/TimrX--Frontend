@@ -635,7 +635,14 @@ function setupGenerateButtonListeners() {
         alert('Please select an animation from the library or quick picks before clicking Apply.');
         return;
       }
-      API.startAnimationFromPanel(riggingTaskId, actionId);
+      let postProcess = null;
+      try {
+        postProcess = API.getAnimationPostProcessValues();
+      } catch (err) {
+        alert(err?.message || 'Invalid animation output settings.');
+        return;
+      }
+      API.startAnimationFromPanel(riggingTaskId, actionId, postProcess);
       return;
     }
     if (!btnId || !btnId.includes('generate')) return;
@@ -957,6 +964,10 @@ function initViewerToolbar() {
       API.startTextureFromHistory(activeItem, 'viewer');
     }
 
+    if (action === 'refine' && activeItem) {
+      API.startRefineFromHistory(activeItem, 'viewer');
+    }
+
     if (action === 'remesh' && activeItem) {
       API.startRemeshFromHistory(activeItem);
     }
@@ -1084,13 +1095,18 @@ function initViewerActionBar() {
   function updateToolbarState() {
     const toolbar = byId('viewerToolbar');
     if (!toolbar) return;
-    const hasModel = !!API.getActiveHistoryItem();
+    const activeItem = API.getActiveHistoryItem();
+    const hasModel = !!activeItem;
+    const stage = String(activeItem?.stage || activeItem?.payload?.stage || '').toLowerCase();
+    const canRefine = !!(activeItem && (activeItem.preview_task_id || stage === 'preview'));
     const actionBtns = toolbar.querySelectorAll('.viewer-toolbar__btn[data-action]');
     actionBtns.forEach(btn => {
       const act = btn.dataset.action;
       // download, share, print, remesh, texture, evolve, retry all need a model
       if (['download', 'remesh', 'texture', 'evolve', 'retry', 'print'].includes(act)) {
         btn.disabled = !hasModel;
+      } else if (act === 'refine') {
+        btn.disabled = !canRefine;
       }
     });
   }

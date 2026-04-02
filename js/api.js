@@ -1686,6 +1686,244 @@ async function getTextureFormValues() {
   return values;
 }
 
+async function openRefineSettingsModal(item = {}) {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('refineSettingsOverlay');
+    if (existing) existing.remove();
+
+    const sourceTitle = shortTitle(item) || 'Preview model';
+    const overlay = document.createElement('div');
+    overlay.id = 'refineSettingsOverlay';
+    overlay.className = 'workspace-modal-overlay refine-settings-overlay';
+    overlay.innerHTML = `
+      <div class="workspace-modal refine-settings-modal" role="dialog" aria-modal="true" aria-labelledby="refineSettingsTitle">
+        <div class="workspace-modal__header">
+          <div>
+            <p class="workspace-modal__eyebrow">Preview refinement</p>
+            <h3 id="refineSettingsTitle" class="workspace-modal__title">Refine ${sourceTitle}</h3>
+            <p class="workspace-modal__subtitle">Add material direction, guide the refine pass with an image, and choose the Meshy model used for the high-detail pass.</p>
+          </div>
+          <button type="button" class="workspace-modal__close" id="refineSettingsClose" aria-label="Close refine settings">&times;</button>
+        </div>
+
+        <div class="workspace-modal__body">
+          <div class="card">
+            <h3>Style Direction</h3>
+            <textarea id="refineTexturePrompt" placeholder="Optional material or surface notes, e.g. polished obsidian with engraved gold details...">${item.texture_prompt || ''}</textarea>
+            <p class="field-hint texture-setting-note">Leave this empty if you want a pure geometry/detail refine. Add text only when you want the refine pass to steer surface character too.</p>
+
+            <div class="texture-style-block">
+              <div class="image-upload-control">
+                <input id="refineStyleImageUpload" class="visually-hidden image-upload-input" type="file" accept="image/png,image/jpeg">
+                <label class="image-upload-trigger" for="refineStyleImageUpload">
+                  <span class="image-upload-trigger__text">
+                    <strong>Add texture reference</strong>
+                  </span>
+                </label>
+                <div class="image-upload-status is-empty" id="refineStyleImageStatus">Optional JPG or PNG reference</div>
+                <button type="button" class="image-upload-clear hidden" id="refineStyleImageClear">Clear</button>
+              </div>
+              <div class="image-upload-list image-upload-list--preview hidden" id="refineStyleImagePreview"></div>
+              <div class="inline-field texture-style-url-row">
+                <label for="refineStyleImageUrl">Or paste image URL</label>
+                <input type="text" id="refineStyleImageUrl" placeholder="https://example.com/refine-style.jpg">
+              </div>
+              <p class="field-hint texture-setting-note">If both text and image are set, the image acts as the stronger style guide.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Advanced Settings</h3>
+            <div class="inline-field">
+              <label for="refineAiModel">Meshy Model</label>
+              <select id="refineAiModel">
+                <option value="latest" selected>Latest (Meshy 6)</option>
+                <option value="meshy-6">Meshy 6</option>
+                <option value="meshy-5">Meshy 5</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <span class="field-label-inline">PBR Maps</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="refineEnablePbr" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="field-row">
+              <span class="field-label-inline">Remove Lighting</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="refineRemoveLighting" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="field-hint texture-setting-note" id="refineRemoveLightingNote">Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
+          </div>
+        </div>
+
+        <div class="workspace-modal__footer">
+          <div class="gen-meta">
+            <span class="gen-time">~2 min</span>
+            <span class="gen-divider">|</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 6</span>
+          </div>
+          <div class="workspace-modal__actions">
+            <button type="button" class="gen-btn gen-btn--rail workspace-modal__ghost" id="refineSettingsCancel">Cancel</button>
+            <button type="button" class="gen-btn" id="refineSettingsApply">Start Refine <span class="btn-cost-badge">6 cr</span></button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const cleanup = (value = null) => {
+      document.removeEventListener('keydown', onKeyDown);
+      overlay.remove();
+      resolve(value);
+    };
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) cleanup(null);
+    });
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        document.removeEventListener('keydown', onKeyDown);
+        cleanup(null);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    document.body.appendChild(overlay);
+
+    const closeBtn = overlay.querySelector('#refineSettingsClose');
+    const cancelBtn = overlay.querySelector('#refineSettingsCancel');
+    const applyBtn = overlay.querySelector('#refineSettingsApply');
+    const styleUpload = overlay.querySelector('#refineStyleImageUpload');
+    const styleUrl = overlay.querySelector('#refineStyleImageUrl');
+    const styleStatus = overlay.querySelector('#refineStyleImageStatus');
+    const styleClear = overlay.querySelector('#refineStyleImageClear');
+    const stylePreview = overlay.querySelector('#refineStyleImagePreview');
+    const aiModel = overlay.querySelector('#refineAiModel');
+    const removeLighting = overlay.querySelector('#refineRemoveLighting');
+    const removeLightingNote = overlay.querySelector('#refineRemoveLightingNote');
+
+    const closeModal = () => {
+      cleanup(null);
+    };
+
+    const syncStylePreview = () => {
+      const file = styleUpload?.files?.[0] || null;
+      if (styleStatus) {
+        styleStatus.textContent = file
+          ? `${file.name} (${(file.size / 1024).toFixed(0)} KB)`
+          : 'Optional JPG or PNG reference';
+        styleStatus.classList.toggle('is-empty', !file);
+      }
+      if (styleClear) styleClear.classList.toggle('hidden', !file);
+      if (!stylePreview) return;
+      if (!file) {
+        stylePreview.classList.add('hidden');
+        stylePreview.innerHTML = '';
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      stylePreview.innerHTML = `
+        <figure class="image-upload-preview">
+          <img class="image-upload-preview__image" src="${objectUrl}" alt="Refine style preview">
+          <figcaption class="image-upload-preview__caption">${file.name}</figcaption>
+        </figure>
+      `;
+      stylePreview.classList.remove('hidden');
+      const img = stylePreview.querySelector('img');
+      if (img) {
+        img.addEventListener('load', () => URL.revokeObjectURL(objectUrl), { once: true });
+        img.addEventListener('error', () => URL.revokeObjectURL(objectUrl), { once: true });
+      }
+    };
+
+    const syncLightingSupport = () => {
+      if (!aiModel || !removeLighting) return;
+      const supported = aiModel.value !== 'meshy-5';
+      removeLighting.disabled = !supported;
+      if (!supported) removeLighting.checked = false;
+      if (removeLightingNote) {
+        removeLightingNote.textContent = supported
+          ? 'Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.'
+          : 'Remove Lighting is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
+      }
+    };
+
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+    styleUpload?.addEventListener('change', () => {
+      if (styleUpload.files?.[0] && styleUrl) styleUrl.value = '';
+      syncStylePreview();
+    });
+    styleClear?.addEventListener('click', () => {
+      if (styleUpload) styleUpload.value = '';
+      syncStylePreview();
+    });
+    aiModel?.addEventListener('change', syncLightingSupport);
+    syncLightingSupport();
+
+    applyBtn?.addEventListener('click', async () => {
+      applyBtn.disabled = true;
+      try {
+        let texture_image_url = '';
+        const uploadedStyleFile = styleUpload?.files?.[0] || null;
+        if (uploadedStyleFile) {
+          const mime = (uploadedStyleFile.type || '').toLowerCase();
+          const fileName = (uploadedStyleFile.name || '').toLowerCase();
+          const hasAllowedExtension = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
+          if (mime && !['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
+            throw new Error('Refine style image must be a JPG or PNG file.');
+          }
+          if (!mime && !hasAllowedExtension) {
+            throw new Error('Refine style image must be a JPG or PNG file.');
+          }
+          texture_image_url = await fileToDataURL(uploadedStyleFile);
+        } else {
+          texture_image_url = (styleUrl?.value || '').trim();
+        }
+
+        document.removeEventListener('keydown', onKeyDown);
+        cleanup({
+          texture_prompt: (overlay.querySelector('#refineTexturePrompt')?.value || '').trim(),
+          texture_image_url,
+          enable_pbr: !!overlay.querySelector('#refineEnablePbr')?.checked,
+          remove_lighting: !!removeLighting?.checked,
+          ai_model: (aiModel?.value || 'latest').trim() || 'latest'
+        });
+      } catch (err) {
+        applyBtn.disabled = false;
+        alert(err?.message || 'Unable to read refine settings.');
+      }
+    });
+  });
+}
+
+export function getAnimationPostProcessValues() {
+  const type = (byId('animPostProcessType')?.value || '').trim();
+  if (!type) return null;
+
+  if (type === 'change_fps') {
+    const fps = parseInt(byId('animTargetFps')?.value || '0', 10);
+    if (!Number.isFinite(fps) || ![24, 25, 30, 60].includes(fps)) {
+      throw new Error('Target FPS must be 24, 25, 30, or 60.');
+    }
+    return { operation_type: 'change_fps', fps };
+  }
+
+  if (type === 'fbx2usdz') {
+    return { operation_type: 'fbx2usdz' };
+  }
+
+  if (type === 'extract_armature') {
+    return { operation_type: 'extract_armature' };
+  }
+
+  return null;
+}
+
 /**
  * Add a generating placeholder to history
  */
@@ -5075,16 +5313,15 @@ export async function startImageTo3DFromHistory(item) {
  * Refine a preview model
  */
 export async function onPostProcessFromHistory(item, type) {
-  if (postProcessLock) return;
   if (!item) return;
 
-  // Check credits before proceeding (remesh check happens in beginMeshyTask)
-  if (type === 'refine' && !checkCreditsFor('refine')) {
+  if (type === 'refine') {
+    await startRefineFromHistory(item, 'history');
     return;
   }
 
+  if (postProcessLock) return;
   postProcessLock = true;
-  const prog = UI.makeProgressDriver();
 
   // For remesh, delegate to the function that uses beginMeshyTask
   if (type === 'remesh') {
@@ -5100,63 +5337,82 @@ export async function onPostProcessFromHistory(item, type) {
     postProcessLock = false;
     throw new Error('Unknown post-process type');
   }
+  postProcessLock = false;
+  throw new Error('Unknown post-process type');
+}
 
-  // Reserve credits BEFORE API call
-  prog.label('Reserving credits...');
-  const reservation = reserveCreditsForAction('refine', 1);
-  if (reservation.insufficient) {
-    postProcessLock = false;
-    return; // Insufficient credits modal shown
+export async function startRefineFromHistory(item, origin = 'history') {
+  if (postProcessLock) return;
+  if (!item) return;
+
+  const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
+  const previewTaskId = item.preview_task_id || (stage === 'preview' ? item.id : null);
+  if (!previewTaskId) {
+    alert('Only finished preview models can be refined. Select a preview result first.');
+    return;
   }
 
+  if (!checkCreditsFor('refine')) return;
+
+  postProcessLock = true;
+  const prog = UI.makeProgressDriver();
   let tempId = null;
 
-  prog.label('Starting refine...');
-
   try {
-    const previewTaskIdFromItem = item.preview_task_id || (item.stage === 'preview' ? item.id : null);
-    const previewTaskId = previewTaskIdFromItem;
+    const refineValues = await openRefineSettingsModal(item);
+    if (!refineValues) return;
 
-    if (!previewTaskId) {
-      releaseCreditsReservation(reservation.reservationId);
-      throw new Error("Cannot refine: preview task id is missing and this card isn't a preview.");
-    }
+    prog.label('Reserving credits...');
+    const reservation = reserveCreditsForAction('refine', 1);
+    if (reservation.insufficient) return;
+
+    const styleMode = refineValues.texture_image_url ? 'image' : 'text';
+    const promptLabel = refineValues.texture_prompt
+      || (styleMode === 'image' ? `Image-guided refine for ${shortTitle(item)}` : `Refine ${shortTitle(item)}`);
 
     const jobMeta = {
-      prompt: `(${type}) ${item.prompt || item.title}`,
-      model: item.model || 'latest',
-      preview_task_id: previewTaskId || previewTaskIdFromItem || null,
+      prompt: promptLabel,
       root_prompt: item.root_prompt || item.prompt || item.title || '',
-      lineage_origin_id: item.lineage_root_id || item.id || null,
       license: item.license || 'private',
-      symmetry_mode: item.symmetry_mode || 'auto',
-      pose_mode: item.pose_mode || '',
-      batch_count: 1,
-      batch_group_id: item.lineage_root_id || item.id
+      lineage_origin_id: item.lineage_root_id || item.id || null,
+      preview_task_id: previewTaskId,
+      thumbnail_url: item.thumbnail_url || '',
+      enable_pbr: refineValues.enable_pbr,
+      remove_lighting: refineValues.remove_lighting,
+      ai_model: refineValues.ai_model || 'latest',
+      texture_style_mode: styleMode,
+      uses_image_style: styleMode === 'image',
+      source_origin: origin
     };
 
-    // Generate idempotency key for this refine operation
     const idempotencyKey = State.generateIdempotencyKey();
     tempId = (crypto?.randomUUID ? crypto.randomUUID() : `refine-temp-${Date.now()}`);
     addGeneratingPlaceholder(tempId, {
       ...jobMeta,
+      stage: 'refine',
       status_label: 'Starting refine...',
       idempotency_key: idempotencyKey
     });
-    State.savePendingMeta(tempId, { ...jobMeta, idempotency_key: idempotencyKey });
+    State.savePendingMeta(tempId, { ...jobMeta, stage: 'refine', idempotency_key: idempotencyKey });
 
-    // Include idempotency key in header for duplicate prevention
+    prog.label('Starting refine...');
+    const body = {
+      preview_task_id: previewTaskId,
+      enable_pbr: refineValues.enable_pbr,
+      ai_model: refineValues.ai_model || 'latest',
+      remove_lighting: refineValues.remove_lighting
+    };
+    if (refineValues.texture_prompt) body.texture_prompt = refineValues.texture_prompt;
+    if (refineValues.texture_image_url) body.texture_image_url = refineValues.texture_image_url;
+
     const result = await apiFetch('/api/_mod/text-to-3d/refine', {
       method: 'POST',
-      body: {
-        preview_task_id: previewTaskId,
-        model: item.model || 'meshy-6',
-        enable_pbr: true
-      },
+      body,
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
     if (!result.ok) {
+      if (handleGenerationTimeout(result, 'refine')) return;
       if (handleApiError(result, 'refine', reservation.reservationId)) {
         State.deleteHistoryItem(tempId, { skipRemote: true });
         State.deletePendingMeta(tempId);
@@ -5167,37 +5423,35 @@ export async function onPostProcessFromHistory(item, type) {
       State.deletePendingMeta(tempId);
       throw new Error(result.error || `HTTP ${result.status}`);
     }
-    const data = result.data;
-    const { job_id } = data;
 
+    const { job_id } = result.data || {};
     if (!job_id) {
       releaseCreditsReservation(reservation.reservationId);
       State.deleteHistoryItem(tempId, { skipRemote: true });
       State.deletePendingMeta(tempId);
-      throw new Error(`No job id returned for ${type}`);
+      throw new Error('No job id returned for refine');
     }
 
     State.deleteHistoryItem(tempId, { skipRemote: true });
     State.deletePendingMeta(tempId);
-
-    // Confirm reservation now that we have a job_id
     confirmCreditsReservation(reservation.reservationId, job_id);
 
     State.addActiveJob(job_id);
-    State.savePendingMeta(job_id, jobMeta);
+    State.savePendingMeta(job_id, { ...jobMeta, stage: 'refine' });
     addGeneratingPlaceholder(job_id, {
       ...jobMeta,
+      stage: 'refine',
       status_label: 'Refining...'
     });
     watchJob(job_id);
-  } catch (e) {
+  } catch (err) {
     if (tempId) {
       State.deleteHistoryItem(tempId, { skipRemote: true });
       State.deletePendingMeta(tempId);
     }
-    prog.fail(`${type} failed`);
-    console.error(e);
-    alert(e.message || `${type} failed`);
+    console.error(err);
+    prog.fail(err?.message || 'Refine failed');
+    alert(err?.message || 'Refine failed');
   } finally {
     postProcessLock = false;
   }
@@ -5512,16 +5766,12 @@ export async function runRigPreflight() {
 
   let payload = {};
   if (choice === 'upload') {
-    // Can't preflight an upload without sending it — skip backend check
-    const rigState = window._timrxRigState;
-    if (rigState) {
-      rigState.preflight_done = true;
-      rigState.is_riggable = true;
-      rigState.recommended_action = 'proceed';
-      rigState.source_type = 'upload';
+    const file = byId('rigModelUpload')?.files?.[0];
+    if (!file) {
+      if (window.showToast) window.showToast('Choose a GLB file before checking readiness.', 'info');
+      return;
     }
-    _showRigPreflightResult({ riggable: true, reason: null, face_count: null, recommended_action: 'proceed' });
-    return;
+    payload.model_url = await fileToDataURL(file);
   }
 
   if (baseItem) {
@@ -5548,7 +5798,8 @@ export async function runRigPreflight() {
       rigState.preflight_reason = data.reason;
       rigState.recommended_action = data.recommended_action;
       rigState.needs_remesh = data.recommended_action === 'remesh_first';
-      rigState.source_type = 'current';
+      rigState.preflight_limited = !!data.preflight_limited;
+      rigState.source_type = choice;
       rigState.source_model_id = baseItem?.id || null;
       rigState.source_title = shortTitle(baseItem) || '';
     }
@@ -5571,6 +5822,20 @@ function _showRigPreflightResult(data) {
   const step2 = byId('rigWizardStep2');
 
   if (resultDiv) resultDiv.style.display = '';
+
+  if (data.preflight_limited) {
+    if (infoDiv) {
+      let info = '<span style="color:#e3c47a;font-weight:500">Limited preflight for uploads</span>';
+      if (data.reason) info += `<br><span style="color:#aaa">${data.reason}</span>`;
+      infoDiv.innerHTML = info;
+      infoDiv.style.background = 'rgba(227,196,122,.08)';
+      infoDiv.style.borderLeft = '3px solid rgba(227,196,122,.42)';
+    }
+    if (faceWarning) faceWarning.style.display = 'none';
+    if (step1) step1.style.display = '';
+    if (step2) step2.style.display = '';
+    return;
+  }
 
   if (data.riggable) {
     if (infoDiv) {
@@ -5629,6 +5894,8 @@ export async function startRigFromPanel() {
 
   const heightVal = parseFloat(byId('rigHeight')?.value) || 1.7;
   const height_meters = Math.max(0.1, Math.min(5.0, heightVal));
+  const rigTextureImageUpload = byId('rigTextureImageUpload');
+  const rigTextureImageUrlInput = byId('rigTextureImageUrl');
 
   let payload = { height_meters };
   let labelPrompt = '';
@@ -5647,6 +5914,27 @@ export async function startRigFromPanel() {
     labelPrompt = `Rig ${shortTitle(baseItem)}`;
   }
 
+  const uploadedRigTexture = rigTextureImageUpload?.files?.[0] || null;
+  if (uploadedRigTexture) {
+    const mime = (uploadedRigTexture.type || '').toLowerCase();
+    const fileName = (uploadedRigTexture.name || '').toLowerCase();
+    const hasAllowedExtension = fileName.endsWith('.png');
+    if (mime && mime !== 'image/png' && !hasAllowedExtension) {
+      alert('Rig texture image must be a PNG file.');
+      startLock = false;
+      return;
+    }
+    if (!mime && !hasAllowedExtension) {
+      alert('Rig texture image must be a PNG file.');
+      startLock = false;
+      return;
+    }
+    payload.texture_image_url = await fileToDataURL(uploadedRigTexture);
+  } else {
+    const textureImageUrl = (rigTextureImageUrlInput?.value || '').trim();
+    if (textureImageUrl) payload.texture_image_url = textureImageUrl;
+  }
+
   const prog = UI.makeProgressDriver();
   const sourceThumbnail = baseItem?.thumbnail_url || '';
 
@@ -5660,6 +5948,7 @@ export async function startRigFromPanel() {
     type: 'model',
     source_thumbnail_url: sourceThumbnail,
     thumbnail_url: sourceThumbnail,
+    uses_texture_image: !!payload.texture_image_url,
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
     lineage_root_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
   };
@@ -6146,6 +6435,9 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     status_label: 'Starting animation...',
     type: 'model',
     thumbnail_url: animState.thumbnail_url || '',
+    rig_task_id: riggingTaskId,
+    action_id: parseInt(actionId, 10),
+    post_process: postProcess || null,
     lineage_origin_id: animState.lineage_origin_id || animState.lineage_root_id || animState.model_id || null,
     lineage_root_id: animState.lineage_root_id || animState.lineage_origin_id || animState.model_id || null,
   };
@@ -6171,7 +6463,9 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   };
   if (postProcess) payload.post_process = postProcess;
   // Pass rig history item ID for reliable lineage linking
-  if (riggingTaskId) payload.source_history_id = String(riggingTaskId);
+  if (animState.model_id || riggingTaskId) {
+    payload.source_history_id = String(animState.model_id || riggingTaskId);
+  }
 
   let result;
   try {
@@ -6292,6 +6586,13 @@ async function _handleAnimComplete(job_id, st, prog) {
     title: animTitle,
     glb_url: animGlbUrl,
     glb_proxy: glbProxy || '',
+    animation_fbx_url: st.animation_fbx_url || '',
+    processed_usdz_url: st.processed_usdz_url || '',
+    processed_armature_fbx_url: st.processed_armature_fbx_url || '',
+    processed_animation_fps_fbx_url: st.processed_animation_fps_fbx_url || '',
+    rig_task_id: pendingMeta.rig_task_id || '',
+    action_id: pendingMeta.action_id || null,
+    post_process: pendingMeta.post_process || null,
     thumbnail_url: thumbnail,
     model: 'latest',
     lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,

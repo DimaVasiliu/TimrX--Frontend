@@ -649,7 +649,12 @@
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Post-Processing</span>
             <a href="#doc-remesh" class="docs-sidebar-link">Remesh</a>
+            <a href="#doc-refine" class="docs-sidebar-link">Refine</a>
             <a href="#doc-texture" class="docs-sidebar-link">AI Texture</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Character &amp; Motion</span>
+            <a href="#doc-rig-animate" class="docs-sidebar-link">Rig &amp; Animate</a>
           </div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Media</span>
@@ -692,16 +697,18 @@
               <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
               <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, or Nano Banana.</li>
               <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0, or Seedance 1.5 Pro.</li>
+              <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
               <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
+              <li><strong>Rig &amp; Animate</strong> — Bind humanoid characters, then apply library motion with optional post-processing outputs.</li>
               <li><strong>3D Viewer</strong> — Real-time Three.js viewer with orbit, zoom, and pan.</li>
               <li><strong>File Converter</strong> — Free client-side 3D format converter.</li>
             </ul>
             <h3>Workspace layout</h3>
             <p>The workspace is split into three areas:</p>
             <ul>
-              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, and Video panels.</li>
-              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Remesh, Texture, Download, and Share.</li>
+              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, Rig, Animate, and Video panels.</li>
+              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Refine, Remesh, Texture, Download, and Share.</li>
               <li><strong>Right panel</strong> — Generation history. Browse, search, and filter all your past creations. Expand to a full gallery view.</li>
             </ul>
             <div class="docs-tip"><strong>Tip:</strong> Click any item in the history panel to load it into the 3D viewer instantly.</div>
@@ -776,6 +783,32 @@
             <div class="docs-tip"><strong>Cost:</strong> 6 credits. Estimated time ~2 minutes.</div>
           </article>
 
+          <!-- Refine -->
+          <article class="docs-article" id="doc-refine">
+            <h2>Refine</h2>
+            <p>Refine turns a finished preview model into a higher-detail Meshy refine pass. Start it from the history menu or the viewer toolbar when a preview result is active, then choose how much surface guidance you want before submitting.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Eligible Source</dt>
+                <dd>Only preview-stage Text to 3D or Image to 3D results can be refined directly.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Style Direction</dt>
+                <dd>Use a short texture prompt, a reference image, or both. When both are set, the image is the stronger guide.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Meshy Model</dt>
+                <dd>Choose Latest, Meshy 6, or Meshy 5. Remove Lighting is available on Meshy 6 / Latest.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>PBR Output</dt>
+                <dd>Keep PBR enabled when you want the refine pass to return richer material outputs with the upgraded geometry.</dd>
+              </dl>
+            </div>
+            <p>Refine is best when the silhouette is already correct and you want stronger surface detail, better structure, or a material-guided version of the same preview concept.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 6 credits. Estimated time ~2 minutes.</div>
+          </article>
+
           <!-- AI Texture -->
           <article class="docs-article" id="doc-texture">
             <h2>AI Texture</h2>
@@ -797,6 +830,32 @@
             <p>When PBR Maps is enabled, Meshy generates base color plus roughness, metallic, and normal outputs. Preserve Original UV keeps existing UVs when the source model is already laid out correctly.</p>
             <p>Accepted model uploads: OBJ, FBX, STL, GLTF, GLB. Accepted style-image uploads: JPG and PNG.</p>
             <div class="docs-tip"><strong>Cost:</strong> 5 credits. Estimated time ~1.5 minutes.</div>
+          </article>
+
+          <!-- Rig & Animate -->
+          <article class="docs-article" id="doc-rig-animate">
+            <h2>Rig &amp; Animate</h2>
+            <p>Rig and Animate are separate workspace panels. Rigging checks whether a humanoid model is ready for a skeleton, then Animate applies a library action to the successful rig task and can optionally return one processed derivative.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Rig Preflight</dt>
+                <dd>Checks source availability, existing rig state, and face count when Meshy metadata is available. Uploads show a limited preflight warning because the deeper validation happens on submit.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Rig Inputs</dt>
+                <dd>Use the current model or upload a GLB. Height is sent to Meshy for scale-aware binding, and you can optionally attach a PNG base texture image to help UV-based rigging.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Provider Constraints</dt>
+                <dd>Meshy rejects models over 300,000 faces and can fail pose estimation on non-humanoid or poorly separated silhouettes. Remesh first when needed.</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Animation Output</dt>
+                <dd>Each animation run always returns GLB and FBX. Advanced Output can optionally add one extra derivative: FPS-adjusted FBX, USDZ, or armature-only FBX.</dd>
+              </dl>
+            </div>
+            <p>Use the Animate panel after rigging succeeds. Load the latest rigged model or pick another rigged history item, choose an animation from the library, then apply it. Built-in walking/running outputs from the rig task stay available separately.</p>
+            <div class="docs-tip"><strong>Cost:</strong> Rigging 5 credits. Animation 3 credits.</div>
           </article>
 
           <!-- AI Image -->

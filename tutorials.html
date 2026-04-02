@@ -501,6 +501,49 @@
           </div>
         </section>
 
+        <!-- ===== REFINE ===== -->
+        <section class="tutorials-section" id="refine">
+          <div class="tutorials-section-header">
+            <div class="tutorials-section-content">
+              <h2>Refine</h2>
+              <p>Turn a preview model into a higher-detail Meshy refine. Use it when the concept is right and you want cleaner structure, more detail, or a guided material pass before export.</p>
+            </div>
+            <div class="tutorials-highlight">Post-Processing</div>
+          </div>
+          <div class="tutorials-guides-grid">
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Start from preview results</h3>
+              <p class="tutorials-card__body">Refine is designed for preview-stage models. Launch it from the history menu or the viewer toolbar while a preview model is active.</p>
+              <ul class="tutorials-card__list">
+                <li>Best for finished preview concepts</li>
+                <li>Keep the silhouette, improve the fidelity</li>
+                <li>Good step before texture or export</li>
+                <li>Not meant for already-remeshed cleanup</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Guide the surface pass</h3>
+              <p class="tutorials-card__body">Use text, an image, or both to steer the refine. Meshy treats the reference image as the stronger style signal when both are present.</p>
+              <ul class="tutorials-card__list">
+                <li>Short material notes work best</li>
+                <li>Upload JPG or PNG references</li>
+                <li>Great for costume, armor, and material direction</li>
+                <li>Leave both empty only if you want pure detail focus</li>
+              </ul>
+            </article>
+            <article class="tutorials-card">
+              <h3 class="tutorials-card__title">Use the right Meshy model</h3>
+              <p class="tutorials-card__body">Latest and Meshy 6 expose Remove Lighting for cleaner texture bases. Meshy 5 keeps the older behavior when you need compatibility.</p>
+              <ul class="tutorials-card__list">
+                <li>Remove Lighting is Meshy 6 / Latest only</li>
+                <li>PBR maps stay available in the refine modal</li>
+                <li>Use image-guided refine for stronger art direction</li>
+                <li>Save the refined result as a new history version</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
         <!-- ===== TEXTURE ===== -->
         <section class="tutorials-section" id="texture">
           <div class="tutorials-section-header">
@@ -559,7 +602,8 @@
               <p class="tutorials-card__body">The rig panel starts with a readiness pass so you can catch heavy or messy meshes before binding.</p>
               <ul class="tutorials-card__list">
                 <li>Use the current model, a history item, or upload a GLB/GLTF.</li>
-                <li>The panel checks face count and general riggability.</li>
+                <li>Current/history models get real face-count checks when Meshy metadata is available.</li>
+                <li>Uploads show a limited preflight warning, then get final validation on submit.</li>
                 <li>If the model is too dense, jump back to Remesh first.</li>
                 <li>Character height settings help the bind land correctly.</li>
               </ul>
@@ -571,7 +615,7 @@
                 <li>Humanoid characters are the safest starting point.</li>
                 <li>Remeshed characters usually rig better than raw previews.</li>
                 <li>Keep limbs readable and separated in the base shape.</li>
-                <li>Save the rigged result as its own version in history.</li>
+                <li>Add a PNG base texture image if your GLB has weak embedded textures.</li>
               </ul>
             </article>
             <article class="tutorials-card">
@@ -580,7 +624,7 @@
               <ul class="tutorials-card__list">
                 <li>Select an action from the animation library first.</li>
                 <li>Reanimate previously rigged models without rebinding them.</li>
-                <li>Use animated results as showcase clips and community assets.</li>
+                <li>Advanced Output can add USDZ, armature FBX, or FPS-adjusted FBX.</li>
                 <li>Keep a clean naming trail so motion versions stay searchable.</li>
               </ul>
             </article>

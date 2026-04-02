@@ -175,12 +175,14 @@
       face_count: null,           // Face count from preflight
       vertex_count: null,         // Vertex count from preflight
       is_riggable: null,          // true/false/null (unknown)
+      preflight_limited: false,   // Uploads can only be partially validated pre-submit
       preflight_reason: null,     // Why not riggable (human-readable)
       recommended_action: null,   // 'proceed' | 'remesh_first' | 'unsupported'
       needs_remesh: false,        // Shorthand: face count exceeds limit
 
       // Wizard
       height_meters: 1.7,        // Character height
+      uses_texture_image: false, // Optional PNG base texture guidance
 
       // Rig result
       rig_task_id: null,          // Meshy rig task ID after completion
@@ -205,6 +207,8 @@
       is_rigged: false,       // Whether model has a rig
       selected_action_id: null,      // Currently selected animation action_id
       selected_animation: null,      // Full animation object from library
+      post_process_type: '',
+      target_fps: '30',
     };
     window._timrxAnimState = _timrxAnimState;
 
@@ -1265,6 +1269,25 @@
             </div>
             <div id="rigModelFileName" style="display:none;margin-top:8px;padding:8px;background:rgba(255,255,255,.05);border-radius:6px;font-size:11px;color:#ccc"></div>
           </div>
+
+          <div class="texture-style-block" style="margin-top:12px">
+            <div class="image-upload-control">
+              <input id="rigTextureImageUpload" class="visually-hidden image-upload-input" type="file" accept="image/png">
+              <label class="image-upload-trigger" for="rigTextureImageUpload">
+                <span class="image-upload-trigger__text">
+                  <strong>Add base texture image</strong>
+                </span>
+              </label>
+              <div class="image-upload-status is-empty" id="rigTextureImageStatus">Optional PNG for UV-based base color guidance</div>
+              <button type="button" class="image-upload-clear hidden" id="rigTextureImageClear">Clear</button>
+            </div>
+            <div class="image-upload-list image-upload-list--preview hidden" id="rigTextureImagePreview"></div>
+            <div class="inline-field texture-style-url-row">
+              <label for="rigTextureImageUrl">Or paste PNG URL</label>
+              <input type="text" id="rigTextureImageUrl" placeholder="https://example.com/base-color.png">
+            </div>
+            <p class="field-hint texture-setting-note">Use this when your GLB has weak or missing embedded textures. Meshy only supports PNG for rig texture guidance.</p>
+          </div>
         </div>
 
         <!-- Step 2 — Submit -->
@@ -1364,6 +1387,32 @@
           <div id="animLibraryEmpty2" style="display:none;text-align:center;padding:20px;color:#666;font-size:12px">No animations found</div>
 
           <input type="hidden" id="animActionId2" value="">
+
+          <button type="button" class="remesh-advanced-toggle" id="animAdvancedToggle">
+            <span>Advanced Output</span>
+            <svg class="remesh-advanced-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="remesh-advanced remesh-advanced--collapsed" id="animAdvanced">
+            <div class="inline-field">
+              <label for="animPostProcessType">Post-process</label>
+              <select id="animPostProcessType">
+                <option value="" selected>None</option>
+                <option value="change_fps">Change FPS</option>
+                <option value="fbx2usdz">Convert FBX to USDZ</option>
+                <option value="extract_armature">Extract Armature</option>
+              </select>
+            </div>
+            <div class="inline-field" id="animTargetFpsRow" style="display:none">
+              <label for="animTargetFps">Target FPS</label>
+              <select id="animTargetFps">
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="30" selected>30</option>
+                <option value="60">60</option>
+              </select>
+            </div>
+            <p class="field-hint texture-setting-note" id="animPostProcessNote">Keep the default GLB / FBX animation outputs, or ask Meshy for one extra processed derivative per run.</p>
+          </div>
 
           <div class="gen-footer-card" style="margin-top:12px">
             <div class="gen-meta">
@@ -4943,6 +4992,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const rigModelDrop     = leftStack.querySelector('#rigModelDrop');
       const rigModelUpload   = leftStack.querySelector('#rigModelUpload');
       const rigModelFileName = leftStack.querySelector('#rigModelFileName');
+      const rigTextureImageUpload = leftStack.querySelector('#rigTextureImageUpload');
+      const rigTextureImageUrl = leftStack.querySelector('#rigTextureImageUrl');
+      const rigTextureImageStatus = leftStack.querySelector('#rigTextureImageStatus');
+      const rigTextureImageClear = leftStack.querySelector('#rigTextureImageClear');
+      const rigTextureImagePreview = leftStack.querySelector('#rigTextureImagePreview');
 
       if (rigModelSelect && rigUploadSection) {
         rigModelSelect.addEventListener('change', function () {
@@ -4969,6 +5023,49 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             rigModelUpload.files = e.dataTransfer.files;
             rigModelUpload.dispatchEvent(new Event('change'));
           }
+        });
+      }
+
+      const syncRigTexturePreview = () => {
+        const file = rigTextureImageUpload?.files?.[0] || null;
+        if (rigTextureImageStatus) {
+          rigTextureImageStatus.textContent = file
+            ? `${file.name} (${(file.size / 1024).toFixed(0)} KB)`
+            : 'Optional PNG for UV-based base color guidance';
+          rigTextureImageStatus.classList.toggle('is-empty', !file);
+        }
+        if (rigTextureImageClear) rigTextureImageClear.classList.toggle('hidden', !file);
+        if (!rigTextureImagePreview) return;
+        if (!file) {
+          rigTextureImagePreview.classList.add('hidden');
+          rigTextureImagePreview.innerHTML = '';
+          return;
+        }
+        const objectUrl = URL.createObjectURL(file);
+        rigTextureImagePreview.innerHTML = `
+          <figure class="image-upload-preview">
+            <img class="image-upload-preview__image" src="${objectUrl}" alt="Rig texture preview">
+            <figcaption class="image-upload-preview__caption">${file.name}</figcaption>
+          </figure>
+        `;
+        rigTextureImagePreview.classList.remove('hidden');
+        const img = rigTextureImagePreview.querySelector('img');
+        if (img) {
+          img.addEventListener('load', () => URL.revokeObjectURL(objectUrl), { once: true });
+          img.addEventListener('error', () => URL.revokeObjectURL(objectUrl), { once: true });
+        }
+      };
+
+      if (rigTextureImageUpload) {
+        rigTextureImageUpload.addEventListener('change', () => {
+          if (rigTextureImageUpload.files?.[0] && rigTextureImageUrl) rigTextureImageUrl.value = '';
+          syncRigTexturePreview();
+        });
+      }
+      if (rigTextureImageClear) {
+        rigTextureImageClear.addEventListener('click', () => {
+          if (rigTextureImageUpload) rigTextureImageUpload.value = '';
+          syncRigTexturePreview();
         });
       }
 
@@ -5781,6 +5878,53 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const loadLatestBtn = leftStack.querySelector('#animLoadLatestBtn');
       const fromHistoryBtn = leftStack.querySelector('#animFromHistoryBtn');
       const reanimateBtn = leftStack.querySelector('#animReanimateBtn');
+      const animAdvancedToggle = leftStack.querySelector('#animAdvancedToggle');
+      const animAdvanced = leftStack.querySelector('#animAdvanced');
+      const animPostProcessType = leftStack.querySelector('#animPostProcessType');
+      const animTargetFpsRow = leftStack.querySelector('#animTargetFpsRow');
+      const animPostProcessNote = leftStack.querySelector('#animPostProcessNote');
+
+      const syncAnimPostProcessState = () => {
+        const type = animPostProcessType?.value || '';
+        if (animTargetFpsRow) animTargetFpsRow.style.display = type === 'change_fps' ? '' : 'none';
+        if (animPostProcessNote) {
+          animPostProcessNote.textContent = type === 'change_fps'
+            ? 'Meshy keeps the base GLB / FBX outputs and adds one extra FPS-adjusted FBX variant.'
+            : type === 'fbx2usdz'
+              ? 'Meshy keeps the base GLB / FBX outputs and adds one USDZ conversion for AR / Apple preview.'
+              : type === 'extract_armature'
+                ? 'Meshy keeps the base GLB / FBX outputs and adds an armature-only FBX for downstream DCC work.'
+                : 'Keep the default GLB / FBX animation outputs, or ask Meshy for one extra processed derivative per run.';
+        }
+      };
+
+      if (animAdvancedToggle && animAdvanced) {
+        animAdvancedToggle.addEventListener('click', () => {
+          const collapsed = animAdvanced.classList.toggle('remesh-advanced--collapsed');
+          animAdvancedToggle.classList.toggle('is-open', !collapsed);
+        });
+      }
+      if (animPostProcessType) {
+        if (_timrxAnimState.post_process_type) {
+          animPostProcessType.value = _timrxAnimState.post_process_type;
+        }
+        animPostProcessType.addEventListener('change', () => {
+          _timrxAnimState.post_process_type = animPostProcessType.value || '';
+          syncAnimPostProcessState();
+        });
+      }
+      const animTargetFps = leftStack.querySelector('#animTargetFps');
+      if (animTargetFps) {
+        if (_timrxAnimState.target_fps) {
+          animTargetFps.value = String(_timrxAnimState.target_fps);
+        }
+        animTargetFps.addEventListener('change', () => {
+          _timrxAnimState.target_fps = animTargetFps.value || '30';
+        });
+      }
+      if (animPostProcessType) {
+        syncAnimPostProcessState();
+      }
 
       if (previewBtn) {
         previewBtn.addEventListener('click', () => {
