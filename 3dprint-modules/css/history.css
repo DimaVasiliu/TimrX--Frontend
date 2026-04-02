@@ -1270,7 +1270,8 @@
   
   /* Root workspace behaviour in expanded mode */
   body.history-expanded .timrx-3dprint {
-    overflow: visible;
+    overflow: visible !important;
+    height: auto !important;
     min-height: 100vh;
     padding-bottom: clamp(40px, 8vh, 120px);
   }
@@ -1282,9 +1283,12 @@
   
   /* Grid collapses into a single full-width column */
   body.history-expanded .timrx-3dprint .ws-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "history" !important;
+    grid-template-rows: auto !important;
     height: auto;
     min-height: 100vh;
+    overflow: visible;
     align-content: flex-start;
   }
   
@@ -1292,11 +1296,14 @@
   body.history-expanded .timrx-3dprint .ws-rail,
   body.history-expanded .timrx-3dprint .ws-left,
   body.history-expanded .timrx-3dprint .ws-viewer {
-    display: none;
+    display: none !important;
   }
   
   /* History panel becomes full-width primary content */
   body.history-expanded .timrx-3dprint .ws-right {
+    grid-area: history !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
     width: 100%;
     max-width: 1600px;
     margin: 0 auto;
