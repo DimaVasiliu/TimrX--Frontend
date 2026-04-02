@@ -38,7 +38,7 @@
     }
   }
   
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     /* On narrow layouts, pull controls slightly inward */
     .timrx-3dprint .viewer-gear {
       right: 10px;
@@ -2927,7 +2927,6 @@
     .timrx-3dprint .tab-btn.active:hover {
       background: rgba(255, 255, 255, 0.12) !important;
     }
-  
     
     /* ╔════════════════════════════════════════════════════════════════════╗
        ║  GENERIC MODAL (UPLOAD / SETTINGS / GLOBAL DIALOGS)               ║
@@ -4960,9 +4959,9 @@
   }
   
   /* ==========================================================================
-     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤900px)
+     MOBILE / TABLET HISTORY — Tab-controlled visibility (≤768px)
      ========================================================================== */
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     .timrx-3dprint .ws-right {
       display: none;
       padding: 0 4px;

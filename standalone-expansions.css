@@ -1305,3 +1305,295 @@ body.converter-page .converter-format-info ul li::before {
     max-width: 100%;
   }
 }
+
+@media (max-width: 900px) {
+  body.company-page .about-hero,
+  body.converter-page .converter-hero {
+    flex-direction: column;
+  }
+
+  body.company-page .about-story-block,
+  body.company-page .about-story-block.reverse,
+  body.converter-page .converter-file-info {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  body.company-page .about-story-block.reverse .story-image {
+    order: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  body.tutorials-page,
+  body.community-page,
+  body.converter-page,
+  body.company-page,
+  body.docs-page {
+    scroll-padding-top: 98px;
+  }
+
+  body.tutorials-page .tutorials-section,
+  body.community-page .community-section,
+  body.converter-page .converter-section,
+  body.company-page .about-section,
+  body.docs-page .docs-article {
+    scroll-margin-top: 98px;
+  }
+
+  body.tutorials-page .tutorials-expanded-view,
+  body.community-page .community-expanded-view,
+  body.converter-page .converter-expanded-view,
+  body.company-page .about-expanded-view {
+    max-width: 100vw;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  body.tutorials-page .tutorials-expanded-shell,
+  body.converter-page .converter-expanded-shell,
+  body.company-page .about-expanded-shell {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  body.tutorials-page .tutorials-expanded-shell > *,
+  body.converter-page .converter-expanded-shell > *,
+  body.company-page .about-expanded-shell > * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  body.tutorials-page .tutorials-hero,
+  body.community-page .community-hero,
+  body.converter-page .converter-hero,
+  body.company-page .about-hero {
+    min-height: 0;
+    padding-top: 60px;
+    padding-bottom: 32px;
+    flex-direction: column;
+  }
+
+  body.tutorials-page .tutorials-hero-text,
+  body.community-page .community-hero-text,
+  body.converter-page .converter-hero-text,
+  body.company-page .about-hero-text {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 20px 16px !important;
+    gap: 12px;
+    text-align: center;
+    align-items: center;
+    box-sizing: border-box !important;
+  }
+
+  body.tutorials-page .tutorials-hero-actions,
+  body.community-page .community-hero-actions,
+  body.converter-page .converter-hero-actions,
+  body.company-page .about-hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  body.tutorials-page .tutorials-primary-btn,
+  body.tutorials-page .tutorials-secondary-btn,
+  body.community-page .community-primary-btn,
+  body.community-page .community-secondary-btn,
+  body.converter-page .converter-primary-btn,
+  body.converter-page .converter-secondary-btn,
+  body.company-page .about-primary-btn,
+  body.company-page .about-secondary-btn,
+  body.company-page .about-community-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 12px;
+  }
+
+  body.tutorials-page .tutorials-hero h1,
+  body.tutorials-page .tutorials-title,
+  body.community-page .community-hero h1,
+  body.community-page .community-title,
+  body.converter-page .converter-hero h1,
+  body.converter-page .converter-title,
+  body.company-page .about-hero h1,
+  body.company-page .about-title {
+    font-size: clamp(26px, 7vw, 36px);
+    letter-spacing: -0.02em;
+  }
+
+  body.tutorials-page .tutorials-hero p,
+  body.community-page .community-hero p,
+  body.converter-page .converter-hero p,
+  body.company-page .about-hero p,
+  body.company-page .about-hero-text > p {
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 100%;
+  }
+
+  body.tutorials-page .tutorials-pill,
+  body.community-page .community-pill,
+  body.converter-page .converter-pill,
+  body.company-page .about-pill {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    justify-content: center;
+  }
+
+  body.tutorials-page .tutorials-hero-stats,
+  body.community-page .community-hero-stats,
+  body.converter-page .converter-hero-stats,
+  body.company-page .about-hero-stats {
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  body.tutorials-page .tutorials-hero-stats li,
+  body.community-page .community-hero-stats li,
+  body.converter-page .converter-hero-stats li,
+  body.company-page .about-hero-stats li {
+    text-align: center;
+  }
+
+  body.tutorials-page .tutorials-hero-stats li span,
+  body.community-page .community-hero-stats li span,
+  body.converter-page .converter-hero-stats li span,
+  body.company-page .about-hero-stats li span {
+    font-size: 18px;
+  }
+
+  body.tutorials-page .tutorials-hero-stats li small,
+  body.community-page .community-hero-stats li small,
+  body.converter-page .converter-hero-stats li small,
+  body.company-page .about-hero-stats li small {
+    font-size: 10px;
+  }
+
+  body.tutorials-page .tutorials-exit-btn,
+  body.converter-page .converter-secondary-btn,
+  body.company-page .about-secondary-btn {
+    padding: 10px 14px !important;
+    font-size: 10px !important;
+  }
+
+  body.tutorials-page .tutorials-section,
+  body.community-page .community-section,
+  body.converter-page .converter-section,
+  body.company-page .about-section {
+    margin-top: clamp(32px, 6vw, 48px);
+    padding: 0 16px !important;
+    box-sizing: border-box;
+    max-width: 100% !important;
+  }
+
+  body.tutorials-page .tutorials-section-header,
+  body.community-page .community-section-header,
+  body.converter-page .converter-section-header,
+  body.company-page .about-section-header {
+    margin-bottom: 20px;
+  }
+
+  body.tutorials-page .tutorials-section-header h2,
+  body.community-page .community-section-header h2,
+  body.converter-page .converter-section-header h2,
+  body.company-page .about-section-header h2 {
+    font-size: clamp(22px, 5.5vw, 28px);
+  }
+
+  body.tutorials-page .tutorials-section-header p,
+  body.community-page .community-section-header p,
+  body.converter-page .converter-section-header p,
+  body.company-page .about-section-header p {
+    font-size: 13px;
+  }
+
+  body.tutorials-page .tutorials-guides-grid,
+  body.tutorials-page .tutorials-resource-grid,
+  body.tutorials-page .tutorials-steps-grid,
+  body.tutorials-page .tutorials-best-practices-grid,
+  body.tutorials-page .tutorials-faq-grid,
+  body.community-page .community-vision-grid,
+  body.community-page .community-involve-grid,
+  body.community-page .community-updates-list,
+  body.converter-page .converter-format-grid,
+  body.converter-page .converter-tools-grid,
+  body.company-page .about-mission-grid,
+  body.company-page .about-team-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  body.company-page .about-timeline {
+    padding-left: 32px;
+  }
+
+  body.company-page .about-timeline::before {
+    left: 8px;
+  }
+
+  body.company-page .timeline-marker {
+    left: -32px;
+    width: 20px;
+    height: 20px;
+  }
+
+  body.converter-page .converter-tool {
+    padding: 24px;
+  }
+
+  body.converter-page .converter-upload-area {
+    padding: 48px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.tutorials-page .tutorials-hero h1,
+  body.tutorials-page .tutorials-title,
+  body.community-page .community-hero h1,
+  body.community-page .community-title,
+  body.converter-page .converter-hero h1,
+  body.converter-page .converter-title,
+  body.company-page .about-hero h1,
+  body.company-page .about-title {
+    font-size: clamp(24px, 6.5vw, 30px);
+  }
+
+  body.tutorials-page .tutorials-hero-stats,
+  body.community-page .community-hero-stats,
+  body.converter-page .converter-hero-stats,
+  body.company-page .about-hero-stats {
+    gap: 12px;
+  }
+
+  body.tutorials-page .tutorials-section,
+  body.community-page .community-section,
+  body.converter-page .converter-section,
+  body.company-page .about-section {
+    padding: 0 12px !important;
+  }
+
+  body.company-page .about-cta-buttons {
+    flex-direction: column;
+  }
+
+  body.company-page .about-primary-btn,
+  body.company-page .about-secondary-btn,
+  body.company-page .about-community-btn {
+    width: 100%;
+  }
+
+  body.converter-page .converter-file-meta {
+    grid-template-columns: 1fr;
+  }
+}
