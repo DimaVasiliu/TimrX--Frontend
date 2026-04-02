@@ -680,14 +680,6 @@
   
   /* ≥ 1440px — handled by clamp() in ws-grid */
   
-  /* ≤ 1200px — right panel becomes bottom strip, full width */
-  @media (max-width: 1200px) {
-    .timrx-3dprint .ws-right {
-      grid-column: 1 / -1;
-      margin-top: 10px;
-    }
-  }
-  
   /* ≤ 768px — tighter spacing on phones */
   @media (max-width: 768px) {
     .timrx-3dprint .ws-right {
@@ -2847,93 +2839,7 @@
     .timrx-3dprint .tab-btn.active:hover {
       background: rgba(255, 255, 255, 0.12) !important;
     }
-    
-    
-    /* ╔════════════════════════════════════════════════════════════════════╗
-       ║  RESPONSIVE LAYOUT FOR WORKSPACE GRID                             ║
-       ╚════════════════════════════════════════════════════════════════════╝ */
-    
-    /* Medium screens – hide right panel, keep sidebar + left + viewer */
-    @media (max-width: 1280px) {
-      .timrx-3dprint .ws-grid {
-        grid-template-columns: 40px clamp(240px, 28vw, 300px) 1fr;
-      }
   
-      /* Right panel collapses on medium screens – history moves into main flow */
-      .timrx-3dprint .ws-right {
-        display: none;
-      }
-  
-      .timrx-3dprint .ws-rail {
-        gap: 2px;
-      }
-  
-      .timrx-3dprint .rail-btn {
-        padding: 6px 4px;
-      }
-  
-      .timrx-3dprint .rail-btn svg {
-        width: 16px;
-        height: 16px;
-      }
-  
-      .timrx-3dprint .rail-btn span {
-        font-size: 7px;
-      }
-    }
-  
-    /* Small screens – single column, tools rail becomes a horizontal bar */
-    @media (max-width: 1024px) {
-      .timrx-3dprint .ws-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 8px;
-      }
-  
-      /* Icon rail turns into centered horizontal toolbar */
-      .timrx-3dprint .ws-rail {
-        flex-direction: row;
-        position: static;
-        justify-content: center;
-        padding: 8px 0;
-        gap: 8px;
-      }
-  
-      .timrx-3dprint .rail-btn {
-        flex-direction: row;
-        padding: 6px 10px;
-      }
-  
-      .timrx-3dprint .rail-btn span {
-        font-size: 9px;
-      }
-  
-      .timrx-3dprint .ws-left,
-      .timrx-3dprint .ws-viewer,
-      .timrx-3dprint .ws-right {
-        width: 100%;
-        position: static;
-        border-radius: 12px;
-      }
-  
-      .timrx-3dprint .ws-viewer,
-      .timrx-3dprint .ws-right {
-        height: auto;
-        min-height: 0;
-      }
-    
-      /* Right panel reappears stacked under viewer on mobile */
-      .timrx-3dprint .ws-right {
-        display: flex;
-        padding: 0 12px;
-      }
-    
-      /* Viewer gets a taller fixed height for better touch interaction */
-      .timrx-3dprint .viewer-wrap {
-        height: 60vh;
-      }
-    }
-    
     
     /* ╔════════════════════════════════════════════════════════════════════╗
        ║  GENERIC MODAL (UPLOAD / SETTINGS / GLOBAL DIALOGS)               ║
