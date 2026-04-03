@@ -60,7 +60,7 @@ body.site-menu-open {
 
 .site-shell-nav-inner {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 18px;
   min-height: var(--site-shell-nav-height);
@@ -116,7 +116,7 @@ body.site-menu-open {
 }
 
 .site-shell-nav-links {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
@@ -377,7 +377,7 @@ body.site-menu-open {
 
 /* ---- Burger button (matches index.html nav-burger) ---- */
 .site-shell-burger {
-  display: inline-flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -843,6 +843,19 @@ body.site-menu-open {
 }
 
 @media (max-width: 960px) {
+  /* ---- Swap to burger mode ---- */
+  .site-shell-nav-inner {
+    grid-template-columns: 1fr auto;
+  }
+
+  .site-shell-nav-links {
+    display: none;
+  }
+
+  .site-shell-burger {
+    display: inline-flex;
+  }
+
   .site-shell-nav-right {
     gap: 8px;
   }
