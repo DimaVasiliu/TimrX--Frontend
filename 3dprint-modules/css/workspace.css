@@ -1064,20 +1064,6 @@
   z-index: 1;
 }
 
-/* Decorative corner accent */
-.timrx-3dprint .viewer-wrap::after {
-  content: '';
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, transparent 50%, rgba(14, 165, 233, 0.08) 50%);
-  border-radius: 0 16px 0 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
 /* FLOATING VIEWER CONTROLS
    --------------------------------------------------------------------------
    Gear button (bottom-right) + autorotate pill stacked above it

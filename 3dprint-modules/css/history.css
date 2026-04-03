@@ -1141,53 +1141,50 @@ body.history-expanded .timrx-3dprint .history-pager {
 .expanded-thumbs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-  padding: 20px 0;
+  gap: 12px;
+  padding: 16px 0;
 }
 
 /* ╔════════════════════════════════════════════════════════════════════╗
-   ║  EXPANDED VIEW - Modern Card Styles                                ║
-   ║  Rectangular aspect ratio with premium shadows and animations      ║
+   ║  EXPANDED VIEW - Clean Minimal Card Style                          ║
    ╚════════════════════════════════════════════════════════════════════╝ */
 
-/* Staggered entrance animation for expanded thumbnails */
 @keyframes expandedThumbEnter {
   0% {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(12px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
-/* Individual expanded thumbnail — modern rectangular design */
 .expanded-thumb {
   width: 100%;
   min-width: 0;
   max-width: none;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   position: relative;
-  border-radius: 14px;
-  background: #0e1117;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  background: #0a0b0f;
+  border: 0;
+  box-shadow: none;
   cursor: pointer;
   overflow: clip;
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   opacity: 0;
-  animation: expandedThumbEnter 0.4s ease-out forwards;
+  animation: expandedThumbEnter 0.3s ease-out forwards;
 }
 
 .expanded-thumb:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: 0;
 }
 
 .expanded-thumb:focus-visible {
-  outline: 2px solid #0ea5e9;
+  outline: 1px solid rgba(255, 255, 255, 0.25);
   outline-offset: 2px;
 }
 
@@ -1195,7 +1192,7 @@ body.history-expanded .timrx-3dprint .history-pager {
   display: none;
 }
 
-/* Image wrapper inside expanded thumbnail */
+/* Image wrapper */
 .expanded-thumb__image {
   width: 100%;
   height: 100%;
@@ -1210,14 +1207,14 @@ body.history-expanded .timrx-3dprint .history-pager {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.35s ease;
+  transition: transform 0.3s ease;
 }
 
 .expanded-thumb:hover .expanded-thumb__image img {
-  transform: scale(1.08);
+  transform: scale(1.04);
 }
 
-/* Preview canvas/video for expanded thumbnail */
+/* Preview canvas/video */
 .expanded-thumb__preview {
   width: 100%;
   height: 100%;
@@ -1225,28 +1222,28 @@ body.history-expanded .timrx-3dprint .history-pager {
   border-radius: inherit;
 }
 
-/* Status badge for expanded thumbnail */
+/* Status badge */
 .expanded-thumb__status {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
-  padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.7);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-radius: 6px;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  padding: 3px 6px;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 5px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.75);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Loading state for expanded thumbnail */
+/* Loading shimmer */
 .expanded-thumb--loading {
-  background: linear-gradient(110deg, #0e1117 8%, #1a2332 18%, #0e1117 33%);
+  background: linear-gradient(110deg, #0a0b0f 8%, #151822 18%, #0a0b0f 33%);
   background-size: 200% 100%;
   animation: expandedThumbShimmer 1.5s infinite;
 }
@@ -1256,9 +1253,9 @@ body.history-expanded .timrx-3dprint .history-pager {
   100% { background-position: -200% 0; }
 }
 
-/* Error state for expanded thumbnail */
+/* Error state */
 .expanded-thumb--error {
-  border-color: rgba(239, 68, 68, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .expanded-thumb--error::after {
@@ -1267,16 +1264,16 @@ body.history-expanded .timrx-3dprint .history-pager {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 32px;
-  height: 32px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 2px solid rgba(239, 68, 68, 0.5);
+  width: 26px;
+  height: 26px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 700;
   color: #ef4444;
 }
 
@@ -1514,7 +1511,7 @@ body.history-expanded .timrx-3dprint .history-pager {
   border-radius: inherit;
 }
 
-/* Status bar at the top of expanded thumbnail */
+/* Status bar — visible on hover */
 .expanded-thumb__status-bar {
   position: absolute;
   top: 0;
@@ -1522,15 +1519,14 @@ body.history-expanded .timrx-3dprint .history-pager {
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
-  font-size: 10px;
-  color: rgba(255,255,255,0.7);
+  justify-content: flex-end;
+  padding: 6px 8px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
   z-index: 2;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .expanded-thumb:hover .expanded-thumb__status-bar {
@@ -1538,44 +1534,57 @@ body.history-expanded .timrx-3dprint .history-pager {
 }
 
 .expanded-thumb__status-date {
-  opacity: 0.8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  font-variant-numeric: tabular-nums;
 }
 
+/* Stage label — bottom-left pill */
 .expanded-thumb__stage {
   position: absolute;
   bottom: 8px;
   left: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: linear-gradient(135deg, #a855f7, #06b6d4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.8);
+  -webkit-text-fill-color: currentColor;
   z-index: 5;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+  filter: none;
   pointer-events: none;
 }
 
+/* Name — shows on hover via gradient scrim */
 .expanded-thumb__name {
   position: absolute;
-  bottom: 28px;
-  left: 8px;
-  right: 8px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.9);
-  white-space: normal;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 8px 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%);
-  padding-bottom: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.expanded-thumb:hover .expanded-thumb__name {
+  opacity: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1836,65 +1845,40 @@ body.history-expanded .timrx-3dprint .history-pager {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease, filter 0.3s ease;
-  filter: brightness(0.92);
+  transition: transform 0.3s ease;
 }
 
 .expanded-thumb:hover .expanded-thumb__video-click img {
-  transform: scale(1.05);
-  filter: brightness(1);
+  transform: scale(1.04);
 }
 
-/* Play button overlay - larger and with pulse ring */
+/* Play button — minimal center icon */
 .expanded-thumb__play-btn {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
-  background: rgba(0, 0, 0, 0.6);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 34px;
+  height: 34px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   z-index: 5;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.expanded-thumb__play-btn::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: rgba(251, 146, 60, 0);
-  transition: all 0.3s ease;
-  box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.2);
-}
+.expanded-thumb__play-btn::before { display: none; }
 
 .expanded-thumb:hover .expanded-thumb__play-btn {
-  transform: translate(-50%, -50%) scale(1.15);
-  background: rgba(251, 146, 60, 0.9);
-  border-color: rgba(251, 146, 60, 0.95);
-  box-shadow: 0 8px 24px rgba(251, 146, 60, 0.3);
-}
-
-.expanded-thumb:hover .expanded-thumb__play-btn::before {
-  animation: playButtonPulse 0.6s ease-out;
-}
-
-@keyframes playButtonPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.4);
-  }
-  100% {
-    box-shadow: 0 0 0 12px rgba(251, 146, 60, 0);
-  }
+  transform: translate(-50%, -50%) scale(1.1);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .expanded-thumb__play-btn svg {
@@ -1912,15 +1896,21 @@ body.history-expanded .timrx-3dprint .history-pager {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 6px 4px;
-  font-size: 9px;
+  padding: 24px 8px 8px;
+  font-size: 10px;
   font-weight: 500;
-  color: #fff;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 4;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.expanded-thumb:hover .expanded-thumb__video-name {
+  opacity: 1;
 }
 
 /* Empty video placeholder */
