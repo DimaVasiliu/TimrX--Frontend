@@ -578,7 +578,13 @@ body.community-view .community-expanded-view {
   height: 100%;
   display: block;
   --poster-color: transparent;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
+.ccg-featured__card-model.ccg-model-loaded {
+  opacity: 1;
+}
+.ccg-featured__card-model.ccg-model-loaded::part(default-poster) { opacity: 0; }
 
 .ccg-featured__card-media.ccg-loaded,
 video.ccg-featured__card-media,
@@ -1501,9 +1507,16 @@ video.ccg-card__image {
   display: block;
   --poster-color: transparent;
   background: var(--ccg-surface);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.ccg-card__model-viewer.ccg-model-loaded {
+  opacity: 1;
 }
 .ccg-card__model-viewer::part(default-progress-bar) { display: none; }
 .ccg-card__model-viewer::part(default-ar-button) { display: none; }
+/* Hide the poster once model is loaded so it doesn't flash underneath */
+.ccg-card__model-viewer.ccg-model-loaded::part(default-poster) { opacity: 0; }
 
 /* ── Card footer — glass panel ── */
 .ccg-card__footer {

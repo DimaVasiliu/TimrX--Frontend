@@ -196,7 +196,7 @@
 
     let thumbEl;
     if (mediaKind === 'model' && modelUrl) {
-      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="22deg" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="lazy" reveal="auto"></model-viewer>`;
+      thumbEl = `<model-viewer class="ccg-card__model-viewer" src="" data-src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="22deg" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="eager" reveal="auto"></model-viewer>`;
     } else if (mediaKind === 'video' && asset.video_url) {
       thumbEl = `<video class="ccg-card__image" src="${sanitize(asset.video_url)}" muted loop playsinline autoplay preload="metadata" poster="${sanitize(posterUrl)}"></video>`;
     } else if (imageUrl) {
@@ -276,20 +276,44 @@
     });
   }
 
-  // ─── Animated model hover play ───────────────────────────────────────────
+  // ─── Model preload observer ─────────────────────────────────────────────
+  // Loads the GLB when the card is ~400px from the viewport so the model
+  // is ready (or nearly ready) by the time the user scrolls to it.
+  // Models auto-rotate continuously once loaded — no hover gate.
+
+  const modelObserver = ('IntersectionObserver' in window)
+    ? new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const mv = entry.target;
+          const src = mv.dataset.src;
+          if (src) {
+            mv.setAttribute('src', src);
+            mv.removeAttribute('data-src');
+          }
+          obs.unobserve(mv);
+        });
+      }, { rootMargin: '400px 0px' })
+    : null;
 
   function wireModelViewerHover(container) {
     container.querySelectorAll('model-viewer.ccg-card__model-viewer, model-viewer.ccg-featured__card-model').forEach(mv => {
       if (mv.dataset.ccgHoverWired) return;
       mv.dataset.ccgHoverWired = '1';
 
-      mv.pause();
+      // Preload via observer (loads GLB ~400px before visible)
+      if (modelObserver && mv.dataset.src) {
+        modelObserver.observe(mv);
+      } else if (mv.dataset.src) {
+        // Fallback: load immediately if no IntersectionObserver
+        mv.setAttribute('src', mv.dataset.src);
+        mv.removeAttribute('data-src');
+      }
 
-      const card = mv.closest('.ccg-card') || mv.closest('.ccg-featured__card');
-      if (!card) return;
-
-      card.addEventListener('mouseenter', () => { mv.play(); });
-      card.addEventListener('mouseleave', () => { mv.pause(); });
+      // Fade in smoothly once the model is ready
+      mv.addEventListener('load', () => {
+        mv.classList.add('ccg-model-loaded');
+      }, { once: true });
     });
   }
 
@@ -891,7 +915,7 @@
 
     let mediaEl;
     if (mediaKind === 'model' && modelUrl) {
-      mediaEl = `<model-viewer class="ccg-featured__card-media ccg-featured__card-model" src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="18deg" shadow-intensity="0.45" exposure="1.04" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="lazy" reveal="auto"></model-viewer>`;
+      mediaEl = `<model-viewer class="ccg-featured__card-media ccg-featured__card-model" src="" data-src="${sanitize(modelUrl)}" disable-pan disable-zoom interaction-prompt="none" auto-rotate rotation-per-second="18deg" shadow-intensity="0.45" exposure="1.04" environment-image="neutral" poster="${sanitize(posterUrl)}" loading="eager" reveal="auto"></model-viewer>`;
     } else if (mediaKind === 'video' && asset.video_url) {
       mediaEl = `<video class="ccg-featured__card-media" src="${sanitize(asset.video_url)}" muted loop playsinline preload="metadata" poster="${sanitize(posterUrl)}"></video>`;
     } else if (imageUrl) {
