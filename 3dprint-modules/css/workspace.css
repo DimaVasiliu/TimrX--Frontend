@@ -1756,118 +1756,255 @@
 /* ==========================================================================
    WORKSPACE MODALS
    ========================================================================== */
+/* ── Workspace modal overlay ───────────────────────────────────────── */
 .workspace-modal-overlay {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: rgba(3, 4, 8, 0.78);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  padding-top: 10vh;
+  padding-bottom: 4vh;
+  padding-left: 20px;
+  padding-right: 20px;
+  background: rgba(3, 5, 8, 0.58);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   z-index: 99999;
 }
 
+/* ── Modal card ───────────────────────────────────────────────────── */
 .workspace-modal {
-  width: min(720px, 100%);
-  max-height: min(88vh, 920px);
-  overflow: auto;
-  display: grid;
-  gap: 16px;
-  padding: 22px;
-  background: #101114;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 18px;
-  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  width: min(620px, 100%);
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(135deg, rgba(15, 15, 15, 0.96) 0%, rgba(18, 18, 20, 0.97) 100%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
+/* ── Header — compact inline bar ──────────────────────────────────── */
 .workspace-modal__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.workspace-modal__header > div {
+  min-width: 0;
 }
 
 .workspace-modal__eyebrow {
-  margin: 0 0 6px;
-  font-size: 11px;
+  margin: 0;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.48);
+  color: rgba(255, 255, 255, 0.38);
+  white-space: nowrap;
 }
 
 .workspace-modal__title {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.1;
-  color: #f7f7fa;
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: #f0f2f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .workspace-modal__subtitle {
-  margin: 8px 0 0;
-  max-width: 62ch;
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(255,255,255,.62);
+  margin: 4px 0 0;
+  max-width: 52ch;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .workspace-modal__close {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.03);
-  color: rgba(255,255,255,.7);
-  font-size: 20px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
   cursor: pointer;
-  transition: background .18s ease, border-color .18s ease, color .18s ease;
+  transition: all 0.15s ease;
 }
 
 .workspace-modal__close:hover {
-  background: rgba(255,255,255,.08);
-  border-color: rgba(255,255,255,.16);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
 
+/* ── Body — scrollable ────────────────────────────────────────────── */
 .workspace-modal__body {
   display: grid;
-  gap: 14px;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 
+/* Inner cards match the print-panel surface style */
+.workspace-modal__body > .card {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+.workspace-modal__body > .card > h3 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 8px;
+}
+
+.workspace-modal__body textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.workspace-modal__body textarea:focus {
+  outline: none;
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
+
+.workspace-modal__body textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.workspace-modal__body input[type="text"],
+.workspace-modal__body select {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  font-size: 12px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.workspace-modal__body input[type="text"]:focus,
+.workspace-modal__body select:focus {
+  outline: none;
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
+
+.workspace-modal__body input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.workspace-modal__body .field-hint {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.workspace-modal__body .inline-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-modal__body .inline-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+.workspace-modal__body .inline-field select {
+  width: auto;
+  min-width: 140px;
+}
+
+.workspace-modal__body .field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.workspace-modal__body .field-label-inline {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────── */
 .workspace-modal__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding-top: 4px;
+  gap: 12px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .workspace-modal__actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .workspace-modal__ghost {
-  background: rgba(255,255,255,.04) !important;
-  border-color: rgba(255,255,255,.08) !important;
-  color: rgba(255,255,255,.84) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.84) !important;
 }
 
 .workspace-modal__ghost:hover {
-  background: rgba(255,255,255,.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   color: #fff !important;
 }
 
 .refine-settings-modal {
-  width: min(760px, 100%);
+  width: min(620px, 100%);
 }
 
 /* ==========================================================================
