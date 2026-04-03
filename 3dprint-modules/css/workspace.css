@@ -433,49 +433,11 @@
     clamp(265px, 21vw, 345px)         /* left - compact */
     minmax(0, 1fr)                    /* center/viewer - shrinks to prevent overflow */
     clamp(335px, 27vw, 535px);        /* right/history - wider */
-  grid-template-areas: "rail left viewer right";
-  grid-template-rows: minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   padding-top: 8px;
   height: calc(100vh - var(--ws-navH));
   overflow: hidden;
-}
-
-.timrx-3dprint .ws-grid > .ws-rail {
-  grid-area: rail;
-  grid-column: 1;
-  grid-row: 1;
-  min-width: 0;
-}
-
-.timrx-3dprint .ws-grid > .ws-left {
-  grid-area: left;
-  grid-column: 2;
-  grid-row: 1;
-  min-width: 0;
-}
-
-.timrx-3dprint .ws-grid > .ws-viewer {
-  grid-area: viewer;
-  grid-column: 3;
-  grid-row: 1;
-  min-width: 0;
-}
-
-.timrx-3dprint .ws-grid > .ws-right {
-  grid-area: right;
-  grid-column: 4;
-  grid-row: 1;
-  min-width: 0;
-  width: auto;
-  max-width: none;
-  align-self: stretch;
-  justify-self: stretch;
-}
-
-.timrx-3dprint .ws-grid > .ws-mobile-tabs {
-  display: none;
 }
 
 /* ICON RAIL (leftmost vertical tool strip) --------------------------------- */
@@ -1397,20 +1359,48 @@
    MOBILE RESPONSIVENESS
    ========================================================================== */
 
-/* Medium desktop — keep the 3-column workspace, just tighten widths a bit */
-@media (max-width: 1200px) {
+/* Tablet — stacked layout */
+@media (max-width: 1280px) {
+  .timrx-3dprint {
+    height: auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
   .timrx-3dprint .ws-grid {
-    grid-template-columns:
-      40px
-      minmax(248px, 300px)
-      minmax(0, 1fr)
-      minmax(285px, 360px);
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .timrx-3dprint .ws-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    order: -1;
+  }
+  .timrx-3dprint .ws-left,
+  .timrx-3dprint .ws-right {
+    max-height: none;
+    overflow: visible;
+  }
+  .viewer-canvas-wrapper {
+    height: clamp(260px, 45vh, 450px);
+  }
+  .timrx-3dprint .pane-head h2 {
+    font-size: 18px;
+  }
+  .timrx-3dprint .pane-head .pane-sub {
+    font-size: 12px;
+  }
+  .timrx-3dprint .card {
+    padding: 16px 18px;
+    border-radius: 10px;
   }
 }
 
 /* ==========================================================================
-   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤768px)
+   MOBILE / TABLET WORKSPACE — Tab-segmented layout (≤1280px)
    Rail -> Viewer -> [Controls|History] tabs
    ========================================================================== */
 
@@ -1419,12 +1409,10 @@
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1280px) {
 
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
-    display: flex;
-    flex-direction: column;
     gap: 0;
     padding: 8px;
   }
@@ -3139,7 +3127,7 @@
    TABLET CONTROL PANEL ADJUSTMENTS (≤1024px)
    Tighter cards, compact grids, touch-friendly targets
    ========================================================================== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   /* --- Card compaction --- */
   .timrx-3dprint .card {
     padding: 12px 14px;

@@ -145,8 +145,8 @@ body.print3d-page > .nav {
   display: none !important;
 }
 
-/* Mobile — unlock scroll only once the tabbed workspace layout takes over */
-@media (max-width: 768px) {
+/* Mobile / Tablet — unlock scroll */
+@media (max-width: 1280px) {
   .timrx-3dprint,
   body.print3d-page {
     height: auto;

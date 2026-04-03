@@ -1,4 +1,8 @@
 /* ===== WORKSPACE COLUMN ALIGNMENT ===== */
+/* Align ws-rail, viewer-wrap, and history card at the same top line */
+.timrx-3dprint .ws-grid {
+  align-items: start !important;
+}
 
 /* Remove decorative gradient lines under pane headers */
 .timrx-3dprint .pane-head::after {
