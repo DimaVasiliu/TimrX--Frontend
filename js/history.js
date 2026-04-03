@@ -699,8 +699,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   // Clean up prefixes like "(refine)", "(texture)", "(remesh)", "(rig)", "(image2-3d)" from model names
   modelName = modelName.replace(/^\s*\((refine|texture|remesh|image2?-?3d)\)\s*/i, '');
   const createdLabel = dateLabel(displayModel.created_at);
+  const stageLC = (displayModel.stage || '').toLowerCase();
   const canRefine = status === 'finished' && !!(
-    displayModel.stage === 'preview' ||
+    stageLC === 'preview' ||
     displayModel.preview_task_id ||
     (displayModel.payload || {}).preview_task_id
   );
