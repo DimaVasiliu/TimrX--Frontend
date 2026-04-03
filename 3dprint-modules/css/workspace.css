@@ -2496,16 +2496,17 @@
   margin: 4px 12px;
 }
 
+/* ── Backdrop ─────────────────────────────────────────────────────── */
 .viewer-print-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(3, 5, 8, 0.72);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgba(3, 5, 8, 0.58);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.24s ease, visibility 0.24s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
   z-index: 1180;
 }
 
@@ -2515,30 +2516,31 @@
   pointer-events: auto;
 }
 
+/* ── Modal container ──────────────────────────────────────────────── */
 .viewer-print-toast {
   position: fixed;
-  top: calc(var(--site-shell-nav-height, 64px) + 18px);
+  top: 50%;
   left: 50%;
-  width: min(1080px, calc(100vw - 56px));
-  max-height: calc(100vh - var(--site-shell-nav-height, 64px) - 36px);
+  width: min(680px, calc(100vw - 40px));
+  max-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform: translateX(-50%) translateY(10px) scale(0.985);
+  transform: translate(-50%, -50%) translateY(8px) scale(0.97);
   background:
-    radial-gradient(circle at top left, rgba(46, 204, 113, 0.06), transparent 24%),
-    radial-gradient(circle at top right, rgba(59, 130, 246, 0.09), transparent 28%),
-    linear-gradient(180deg, rgba(13, 16, 20, 0.975), rgba(8, 10, 14, 0.985));
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 24px;
-  box-shadow: 0 28px 84px rgba(0, 0, 0, 0.5);
+    linear-gradient(135deg, rgba(15, 15, 15, 0.96) 0%, rgba(18, 18, 20, 0.97) 100%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.3);
   text-align: left;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
   z-index: 1200;
 }
 
@@ -2546,89 +2548,95 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0) scale(1);
+  transform: translate(-50%, -50%) translateY(0) scale(1);
 }
 
+/* ── Header ───────────────────────────────────────────────────────── */
 .viewer-print-dialog__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 20px 22px 16px;
+  gap: 12px;
+  padding: 14px 16px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .viewer-print-dialog__titles {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .viewer-print-dialog__eyebrow {
   margin: 0;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.52);
+  color: rgba(255, 255, 255, 0.38);
+  white-space: nowrap;
 }
 
 .viewer-print-dialog__title {
   margin: 0;
-  color: #f8fafc;
-  font-size: clamp(24px, 2.1vw, 36px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.04;
+  color: #f0f2f5;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .viewer-print-dialog__lede {
-  margin: 0;
-  max-width: 60ch;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 14px;
-  line-height: 1.6;
+  display: none;
 }
 
 .viewer-print-dialog__close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
-  color: rgba(255, 255, 255, 0.78);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .viewer-print-dialog__close:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
 
 .viewer-print-dialog__close svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
+/* ── Body ─────────────────────────────────────────────────────────── */
 .viewer-print-dialog__body {
-  padding: 18px 20px 20px;
-  overflow: auto;
+  padding: 14px 16px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 
 .viewer-print-state {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .viewer-print-toast__title {
   font-weight: 700;
   color: #fff;
-  font-size: 18px;
+  font-size: 14px;
   margin: 0;
 }
 
@@ -2637,38 +2645,38 @@
 }
 
 .viewer-print-toast__text {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 14px;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  line-height: 1.55;
   margin: 0;
 }
 
 .viewer-print-toast__subtitle {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.48);
+  color: rgba(255, 255, 255, 0.4);
   margin: 0;
 }
 
+/* ── Layout: single-column flow ───────────────────────────────────── */
 .print-panel-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.88fr) minmax(0, 1.28fr);
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 10px;
   align-items: start;
 }
 
 .print-panel-sidebar,
 .print-panel-content {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .print-panel-sidebar {
   align-self: start;
-  position: sticky;
-  top: 4px;
+  position: static;
 }
 
 .print-panel-score-row,
@@ -2679,56 +2687,58 @@
   box-sizing: border-box;
 }
 
+/* ── Score row ────────────────────────────────────────────────────── */
 .print-panel-score-row {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 16px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.018));
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  gap: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .print-panel-score-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
-  border-radius: 22px;
-  font-size: 30px;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  font-size: 22px;
   font-weight: 800;
   color: #fff;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .print-panel-score-badge.score-good {
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2), rgba(13, 148, 66, 0.14));
-  border-color: rgba(74, 222, 128, 0.18);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.18), rgba(13, 148, 66, 0.12));
+  border-color: rgba(74, 222, 128, 0.16);
 }
 
 .print-panel-score-badge.score-warn {
-  background: linear-gradient(180deg, rgba(74, 222, 128, 0.12), rgba(59, 130, 246, 0.1));
-  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(74, 222, 128, 0.1), rgba(59, 130, 246, 0.08));
+  border-color: rgba(255, 255, 255, 0.07);
 }
 
 .print-panel-score-badge.score-bad {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.16), rgba(127, 29, 29, 0.12));
-  border-color: rgba(248, 113, 113, 0.14);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.14), rgba(127, 29, 29, 0.1));
+  border-color: rgba(248, 113, 113, 0.12);
 }
 
 .print-panel-score-info {
   display: grid;
-  gap: 6px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .print-panel-verdict {
   margin: 0;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: #fff;
 }
 
@@ -2742,8 +2752,8 @@
 
 .print-panel-score-label {
   margin: 0;
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2751,52 +2761,54 @@
 
 .print-panel-summary {
   margin: 0;
-  padding: 0 2px;
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 13px;
-  line-height: 1.6;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
+/* ── Surface cards (sections) ─────────────────────────────────────── */
 .print-panel-surface,
 .print-prep-section {
   display: grid;
-  gap: 11px;
-  padding: 15px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.014));
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .print-panel-surface-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .print-panel-surface-note {
-  margin: 5px 0 0;
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 12px;
-  line-height: 1.55;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
+/* ── Checks grid ──────────────────────────────────────────────────── */
 .print-panel-checks {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .print-check-row {
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr);
-  gap: 4px 10px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 2px 8px;
   align-items: start;
-  min-height: 82px;
-  padding: 11px;
-  border-radius: 13px;
+  min-height: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.018);
-  border: 1px solid rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .print-check-icon {
@@ -2804,47 +2816,48 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 10px;
   font-weight: 700;
 }
 
 .print-check-row.is-good .print-check-icon {
-  background: rgba(34, 197, 94, 0.18);
+  background: rgba(34, 197, 94, 0.16);
   color: #a7f3c0;
 }
 
 .print-check-row.is-bad .print-check-icon {
-  background: rgba(239, 68, 68, 0.16);
+  background: rgba(239, 68, 68, 0.14);
   color: #fecaca;
 }
 
 .print-check-row.is-neutral .print-check-icon {
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .print-check-label {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .print-check-detail {
-  color: rgba(255, 255, 255, 0.54);
-  font-size: 12px;
-  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
+/* ── Issues & suggestions ─────────────────────────────────────────── */
 .print-panel-duo {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .print-panel-issues,
@@ -2855,7 +2868,7 @@
 .print-section-title {
   margin: 0;
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -2863,178 +2876,184 @@
 .print-issue-item,
 .print-suggestion-item {
   margin: 0;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 13px;
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .print-issue-item {
-  color: rgba(253, 186, 186, 0.92);
+  color: rgba(253, 186, 186, 0.88);
 }
 
 .print-suggestion-item {
-  color: rgba(214, 224, 240, 0.92);
+  color: rgba(214, 224, 240, 0.85);
 }
 
 .print-issue-item--empty,
 .print-suggestion-item--empty {
-  color: rgba(255, 255, 255, 0.56);
+  color: rgba(255, 255, 255, 0.45);
 }
 
+/* ── Print prep controls ──────────────────────────────────────────── */
 .print-prep-scale-control,
 .print-prep-printer-select {
   display: grid;
-  gap: 7px;
+  gap: 5px;
 }
 
 .print-prep-scale-control label,
 .print-prep-printer-select label {
-  color: #fff;
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
   font-weight: 600;
 }
 
 .print-prep-input,
 .print-prep-select {
   width: 100%;
-  min-height: 44px;
-  padding: 11px 13px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.035);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   box-sizing: border-box;
 }
 
 .print-prep-input:focus,
 .print-prep-select:focus {
   outline: none;
-  border-color: rgba(96, 165, 250, 0.45);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
 }
 
 .print-prep-section .field-hint {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 12px;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .print-prep-dimensions {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .print-prep-dim-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 13px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.022);
-  border: 1px solid rgba(255, 255, 255, 0.035);
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .print-prep-dim-label {
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
   font-weight: 600;
 }
 
 .print-prep-dim-value {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .print-prep-dim-note {
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 12px;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  line-height: 1.4;
+  font-style: italic;
 }
 
+/* ── Buttons ──────────────────────────────────────────────────────── */
 .print-panel-export-btn,
 .print-panel-retry-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 46px;
-  padding: 0 15px;
-  border-radius: 12px;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
   border: 1px solid transparent;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .print-panel-export-btn {
   width: 100%;
-  background: linear-gradient(180deg, #4a93ff, #2668ef);
+  background: linear-gradient(180deg, #3d85f0, #2563eb);
   color: #fff;
-  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
 }
 
 .print-panel-export-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.34);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
 }
 
 .print-panel-retry-btn {
   justify-self: start;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .print-panel-retry-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
+/* ── Service grid ─────────────────────────────────────────────────── */
 .print-service-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .print-service-btn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 13px;
+  gap: 2px;
+  padding: 9px 10px;
   border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 13px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.018);
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .print-service-btn:hover {
-  border-color: rgba(34, 197, 94, 0.22);
-  background: rgba(34, 197, 94, 0.07);
+  border-color: rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.06);
   transform: translateY(-1px);
 }
 
 .print-service-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  color: #f5f7fb;
+  color: #f0f2f5;
 }
 
 .print-service-desc {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
+/* ── Spinner ──────────────────────────────────────────────────────── */
 .print-panel-spinner {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   margin: 0 auto;
   border-radius: 999px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.08);
   border-top-color: #4ea2ff;
   animation: printPanelSpin 0.8s linear infinite;
 }
@@ -3048,6 +3067,7 @@
   50% { opacity: 0.4; }
 }
 
+/* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .viewer-toolbar {
     bottom: 12px;
@@ -3093,25 +3113,8 @@
   }
 
   .viewer-print-toast {
-    top: calc(var(--site-shell-nav-height, 56px) + 12px);
     width: calc(100vw - 16px);
-    max-height: calc(100vh - var(--site-shell-nav-height, 56px) - 20px);
-  }
-
-  .print-panel-checks,
-  .print-service-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 980px) {
-  .viewer-print-toast {
-    width: min(900px, calc(100vw - 28px));
-  }
-
-  .print-panel-layout,
-  .print-panel-duo {
-    grid-template-columns: 1fr;
+    max-height: calc(100vh - 40px);
   }
 
   .print-panel-checks {
@@ -3120,6 +3123,21 @@
 
   .print-service-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .print-panel-duo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .viewer-print-toast {
+    border-radius: 10px;
+  }
+
+  .print-panel-checks,
+  .print-service-grid {
+    grid-template-columns: 1fr;
   }
 }
 
