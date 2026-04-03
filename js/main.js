@@ -742,19 +742,28 @@ function initViewerToolbar() {
     if (badge) {
       badge.textContent = data.score;
       badge.className = 'print-panel-score-badge';
-      if (data.score >= 70)      badge.classList.add('score-good');
-      else if (data.score >= 50) badge.classList.add('score-warn');
+      if (data.score >= 90)      badge.classList.add('score-good');
+      else if (data.score >= 60) badge.classList.add('score-warn');
       else                       badge.classList.add('score-bad');
     }
     if (verdict) {
-      verdict.textContent = data.is_printable ? 'Print-Ready' : 'Needs attention';
+      const label = data.score >= 90 ? 'Excellent'
+        : data.score >= 70 ? 'Print-Ready'
+        : data.score >= 60 ? 'Printable with caveats'
+        : 'Needs repair';
+      verdict.textContent = label;
       verdict.className = 'print-panel-verdict';
-      verdict.classList.add(data.is_printable ? 'is-good' : 'is-bad');
+      verdict.classList.add(data.score >= 70 ? 'is-good' : 'is-bad');
     }
     if (summary) {
-      summary.textContent = data.is_printable
-        ? `The model clears the main ${printerLabel} print checks. Review the diagnostics, adjust the target size if needed, and export a print-ready STL.`
-        : `The model has geometry or support risks for ${printerLabel} printing. Review the failed checks, follow the suggestions, then export once the mesh is ready.`;
+      const isWatertight = data.checks?.is_manifold;
+      summary.textContent = data.score >= 90
+        ? `Excellent mesh quality. Adjust the target size if needed and export a print-ready STL.`
+        : data.score >= 70
+        ? `The model clears the main ${printerLabel} checks. ${!isWatertight ? 'Remesh to close open edges for a higher score and complete diagnostics. ' : ''}Review below, adjust size, and export.`
+        : data.score >= 60
+        ? `The model can be printed but has geometry issues. ${!isWatertight ? 'Use Remesh to repair open edges — this will unlock wall thickness analysis and improve the score significantly.' : 'Review the issues below.'}`
+        : `The model has critical geometry issues for ${printerLabel} printing. Remesh the model to repair it before exporting.`;
     }
 
     // Checks grid
@@ -860,9 +869,12 @@ function initViewerToolbar() {
     if (stlBtn) {
       stlBtn.onclick = async () => {
         const item = API.getActiveHistoryItem();
-        if (!item) return;
+        if (!item) {
+          alert('No model selected. Open a model from history first.');
+          return;
+        }
 
-        // Check if Meshy provided an STL URL directly
+        // 1. Check if Meshy provided an STL URL directly
         const stlUrl = item.stl_url || item.model_urls?.stl || item.textured_model_urls?.stl;
         if (stlUrl) {
           const filename = buildItemDownloadFilename(item, {
@@ -874,26 +886,39 @@ function initViewerToolbar() {
           return;
         }
 
-        // Fallback: client-side export from viewer model
-        if (window.timrx3D && window.timrx3D.scene) {
-          const model = window._timrxCurrentModel || window.inspireCurrentModel || null;
-          if (!model) {
-            alert('No model loaded in viewer. Please load a model first.');
+        // 2. Client-side STL export from viewer model
+        const model = window._timrxCurrentModel || window.inspireCurrentModel || null;
+        if (model && window.THREE?.STLExporter) {
+          try {
+            const { detectModelUnits, exportPrintReadySTL } = await import('./print-prep.js');
+            const unitInfo = detectModelUnits(model);
+            const displayScale = model.userData?.displayScale || 1;
+            const targetHeight = parseFloat(document.getElementById('printTargetHeight')?.value) || 0;
+            const filename = buildItemDownloadFilename(item, {
+              type: 'model',
+              sourceUrl: item.glb_url || item.glb_proxy || '',
+              extension: 'stl',
+            });
+            exportPrintReadySTL(model, displayScale, unitInfo, targetHeight, filename);
             return;
+          } catch (err) {
+            console.error('[PrintExport] Client-side STL export failed:', err);
           }
+        }
 
-          const { detectModelUnits, exportPrintReadySTL } = await import('./print-prep.js');
-          const unitInfo = detectModelUnits(model);
-          const displayScale = model.userData?.displayScale || 1;
-          const targetHeight = parseFloat(document.getElementById('printTargetHeight')?.value) || 0;
+        // 3. Fallback — download the GLB file directly
+        const glbUrl = item.glb_url || item.glb_proxy;
+        if (glbUrl) {
           const filename = buildItemDownloadFilename(item, {
             type: 'model',
-            sourceUrl: item.glb_url || item.glb_proxy || '',
-            extension: 'stl',
+            sourceUrl: glbUrl,
+            extension: inferExtensionFromUrl(glbUrl) || 'glb',
           });
-
-          exportPrintReadySTL(model, displayScale, unitInfo, targetHeight, filename);
+          startWorkspaceDownload(glbUrl, filename);
+          return;
         }
+
+        alert('No exportable model found. Load the model in the viewer first.');
       };
     }
 

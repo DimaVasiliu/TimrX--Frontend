@@ -1046,10 +1046,12 @@
     import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { STLExporter }   from 'three/addons/exporters/STLExporter.js';
     const THREE_MUT = Object.assign({}, THREE_NS);
     THREE_MUT.GLTFLoader      = GLTFLoader;
     THREE_MUT.OrbitControls   = OrbitControls;
     THREE_MUT.RoomEnvironment = RoomEnvironment;
+    THREE_MUT.STLExporter     = STLExporter;
 
     window.THREE = THREE_MUT;
     window.dispatchEvent(new Event('three-ready'));
