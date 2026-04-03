@@ -1547,14 +1547,19 @@ function wireGallery() {
 
       // Action buttons
       const btn = e.target.closest('[data-act]');
-      if (!btn || btn.disabled) return;
+      if (!btn) return;
+      if (btn.disabled) {
+        console.warn(`[CardAction] Button is DISABLED: act=${btn.getAttribute('data-act')} id=${btn.getAttribute('data-id')}`);
+        return;
+      }
       closeActiveHistoryMenu();
 
       const id = btn.getAttribute('data-id');
       const act = btn.getAttribute('data-act');
+      console.log(`[CardAction] act=${act} id=${id}`);
       const item = State.findHistoryItem(id);
       if (!item) {
-        log(`[Viewer] Item not found in any cache: id=${id} act=${act} filter=${State.historyState.filter}`);
+        console.warn(`[CardAction] Item not found in cache: id=${id} act=${act}`);
         return;
       }
 
@@ -1814,7 +1819,8 @@ function wireGallery() {
       }
 
       if (act === 'refine') {
-        API.onPostProcessFromHistory(item, 'refine');
+        console.log('[Refine] Dispatching refine for item:', item.id, 'stage:', item.stage, 'preview_task_id:', item.preview_task_id);
+        await API.onPostProcessFromHistory(item, 'refine');
         return;
       }
 
