@@ -68,48 +68,6 @@
     padding-left: 4px;
   }
   
-  /* Right panel headline */
-  .timrx-3dprint .ws-right .pane-head {
-    margin: 0;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    position: relative;
-  }
-  
-  .timrx-3dprint .ws-right .pane-head h2 {
-    margin: 0 0 4px;
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 1.1;
-    font-family: Inter, system-ui, sans-serif;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .timrx-3dprint .ws-right .pane-head .pane-sub {
-    margin: 6px 0 0;
-    font-size: 13px;
-    line-height: 1.4;
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.01em;
-  }
-  
-  /* Decorative gradient line under history header */
-  .timrx-3dprint .ws-right .pane-head::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
-    border-radius: 1px;
-    opacity: 0.5;
-  }
-  
   /* Hide legacy output card – we now only use history + compact progress */
   .timrx-3dprint .card.output {
     display: none !important;
@@ -729,162 +687,14 @@
   
   /* === History Card Styling ================================================== */
   .timrx-3dprint .ws-right .card.history {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-height: 0;
-  }
-  
-  /* History grid scroll */
-  .timrx-3dprint .history-collections {
-    flex: 1;
-    min-height: 0;
-    margin-top: 4px;
-    padding-right: 4px;
-    overflow-y: auto;
-  }
-  
-  /* Slim scrollbar inside history */
-  .timrx-3dprint .history-collections::-webkit-scrollbar {
-    width: 6px;
-  }
-  .timrx-3dprint .history-collections::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.8);
-    border-radius: 999px;
-  }
-  .timrx-3dprint .history-collections::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.55);
-    border-radius: 999px;
-  }
-  .timrx-3dprint .history-collections::-webkit-scrollbar-thumb:hover {
-    background: rgba(209, 213, 219, 0.7);
-  }
-  
-  /* === Responsive Behaviour ================================================== */
-  
-  /* ≥ 1440px — handled by clamp() in ws-grid */
-  
-  /* ≤ 1200px — right panel becomes bottom strip, full width */
-  @media (max-width: 1200px) {
-    .timrx-3dprint .ws-right {
-      grid-column: 1 / -1;
-      margin-top: 10px;
-    }
-  }
-  
-  /* ≤ 768px — tighter spacing on phones */
-  @media (max-width: 768px) {
-    .timrx-3dprint .ws-right {
-      gap: 12px;
-      padding-left: 0;
-    }
-  
-    .timrx-3dprint .ws-right .pane-head h2 {
-      font-size: 18px;
-    }
-  
-    .timrx-3dprint .ws-right .pane-head .pane-sub {
-      font-size: 12px;
-    }
-  
-    .timrx-3dprint .compact-progress {
-      padding: 9px 12px;
-    }
-  
-    .timrx-3dprint .history-collections {
-      max-height: min(360px, 55vh);
-    }
-  }
-  
-  /* Search bar + upload button container */
-  .timrx-3dprint .history-search-strip {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0;
-    margin: 0 0 12px;
-  }
-  
-  /* Search field shell */
-  .timrx-3dprint .history-search-field {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(30, 30, 30, 0.6);
-    transition: border-color 0.2s ease;
-  }
-  
-  .timrx-3dprint .history-search-field svg {
-    width: 16px;
-    height: 16px;
-    color: rgba(255, 255, 255, 0.5);
-    flex-shrink: 0;
-  }
-  
-  .timrx-3dprint .history-search-field input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    color: #f1f5f9;
-    font-size: 14px;
-    font-weight: 400;
-    outline: none;
-  }
-  
-  .timrx-3dprint .history-search-field input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-  }
-  
-  .timrx-3dprint .history-search-field:focus-within {
-    border-color: rgba(255, 255, 255, 0.25);
-  }
-  
-  /* Upload button */
-  .timrx-3dprint .history-upload-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    border: none;
-    background: #d4ff4f;
-    color: #0b0b0b;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
-  }
-  
-  .timrx-3dprint .history-upload-btn:hover {
-    background: #e0ff70;
-  }
-  
-  .timrx-3dprint .history-upload-btn:active {
-    background: #c8f240;
-  }
-  
-  .timrx-3dprint .history-upload-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  @media (max-width: 640px) {
-    .timrx-3dprint .history-search-strip {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
-  
-    .timrx-3dprint .history-upload-btn {
-      width: 100%;
-      justify-content: center;
-    }
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
   }
   
   /* History Head */
@@ -1310,13 +1120,15 @@
     margin: 0 auto;
     height: auto;
     min-height: 0;
+    overflow: visible;
     padding: 0 24px;
   }
   
   /* History grid becomes free-flowing, no internal scroll */
   body.history-expanded .timrx-3dprint .history .history-grid {
     max-height: none;
-    overflow: visible;
+    overflow-y: visible;
+    overflow-x: hidden;
   }
   
   /* Default pager hidden in expanded gallery mode */
@@ -2583,300 +2395,8 @@
   }
   
   /* ╔════════════════════════════════════════════════════════════════════╗
-     ║  GENERATION HISTORY – Rows + Horizontal Thumbnails (Right Panel)  ║
+     ║  HISTORY UTILITIES + SHARED ACTION CONTROLS                       ║
      ╚════════════════════════════════════════════════════════════════════╝ */
-  
-  /* Main history container inside the right panel.
-     Keep the legacy .history-card selector for compatibility, but also target
-     the real live markup (.card.history). */
-  .timrx-3dprint .history-card {
-    background: transparent;
-    border: 0;
-    padding: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    max-height: calc(88vh - 240px);
-    min-width: 0;
-    overflow: auto;
-    position: relative;
-  }
-  
-  /* Toolbar row: search + per-page selector */
-  .timrx-3dprint .history-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding: 0;
-  }
-  
-  /* Search input */
-  .timrx-3dprint .history-search {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .timrx-3dprint .history-search::placeholder {
-    color: rgba(229, 231, 235, 0.65);
-  }
-  
-  .timrx-3dprint .history-search:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
-  }
-  
-  /* "Per page" label + select */
-  .timrx-3dprint .per-page {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    color: #9ca3af;
-    font-weight: 600;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-  
-  /* ── Generation Rows ────────────────────────────────────────────────── */
-  
-  /* Each row = one generation group */
-  .timrx-3dprint .generation-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 24px;
-    padding: 24px 0;
-    width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    background: none;
-    box-shadow: none;
-    border-radius: 0;
-    transition: background 0.18s ease;
-  }
-  
-  .timrx-3dprint .generation-row:hover {
-    background: radial-gradient(
-      circle at top left,
-      rgba(148, 163, 184, 0.09),
-      transparent 55%
-    );
-  }
-  
-  .timrx-3dprint .generation-row:last-child {
-    border-bottom: 0;
-  }
-  
-  /* Left column: model name + "view all" link */
-  .timrx-3dprint .row-header {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 140px;
-    max-width: 140px;
-    flex-shrink: 0;
-  }
-  
-  .timrx-3dprint .model-name {
-    color: #ededed;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
-    word-break: break-word;
-  }
-  
-  .timrx-3dprint .view-all-link {
-    color: #9ca3af;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    transition: color 0.18s ease, transform 0.18s ease;
-  }
-  
-  .timrx-3dprint .view-all-link svg {
-    width: 12px;
-    height: 12px;
-  }
-  
-  .timrx-3dprint .view-all-link:hover {
-    color: #0ea5e9;
-    transform: translateX(1px);
-  }
-  
-  /* ── Horizontal Thumbnails Strip ────────────────────────────────────── */
-  
-  .timrx-3dprint .assets-container {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: visible;
-    padding: 2px;
-    margin: -2px;
-    flex: 1;
-    min-width: 0;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
-  }
-  
-  .timrx-3dprint .assets-container::-webkit-scrollbar {
-    height: 6px;
-  }
-  
-  .timrx-3dprint .assets-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .timrx-3dprint .assets-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.14);
-    border-radius: 3px;
-  }
-  
-  .timrx-3dprint .assets-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-  
-  /* Single asset card */
-  .timrx-3dprint .asset-item {
-    position: relative;
-    flex-shrink: 0;
-    width: 110px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: none;
-    box-shadow: none;
-    border: none;
-  }
-  
-  /* Thumbnail frame */
-  .timrx-3dprint .asset-thumb-wrapper {
-    position: relative;
-    width: 110px;
-    height: 110px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: radial-gradient(circle at 20% 0%, #111827, #020617);
-    cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      opacity 0.2s ease,
-      box-shadow 0.2s ease,
-      border-color 0.2s ease;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    box-shadow:
-      0 1px 3px rgba(15, 23, 42, 0.4),
-      0 0 0 1px rgba(15, 23, 42, 0.7);
-  }
-  
-  .timrx-3dprint .asset-thumb-wrapper:hover {
-    transform: translateY(-3px);
-    opacity: 0.96;
-    box-shadow:
-      0 10px 22px rgba(15, 23, 42, 0.75),
-      0 0 0 1px rgba(56, 189, 248, 0.4);
-  }
-  
-  /* Thumbnail image */
-  .timrx-3dprint .asset-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  
-  /* ── Status Badge Overlay ───────────────────────────────────────────── */
-  
-  .timrx-3dprint .status-badge-thumb {
-    position: absolute;
-    bottom: 6px;
-    left: 6px;
-    right: 6px;
-    text-align: center;
-    padding: 4px 8px;
-    background: rgba(0, 0, 0, 0.82);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #ffffff;
-    border: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  
-  /* Status color accents */
-  .timrx-3dprint .status-badge-thumb.preview {
-    color: #60a5fa;
-  }
-  
-  .timrx-3dprint .status-badge-thumb.refined {
-    color: #34d399;
-  }
-  
-  .timrx-3dprint .status-badge-thumb.remeshed {
-    color: #a78bfa;
-  }
-  
-  .timrx-3dprint .status-badge-thumb.textured {
-    color: #fbbf24;
-  }
-  
-  /* ── Responsive Tweaks ─────────────────────────────────────────────── */
-  
-  @media (max-width: 1200px) {
-    .timrx-3dprint .history-card {
-      max-height: none;
-    }
-  
-    .timrx-3dprint .generation-row {
-      align-items: flex-start;
-      gap: 18px;
-    }
-  
-    .timrx-3dprint .row-header {
-      min-width: 120px;
-      max-width: 160px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .timrx-3dprint .generation-row {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 18px 0;
-    }
-  
-    .timrx-3dprint .row-header {
-      max-width: 100%;
-    }
-  
-    .timrx-3dprint .assets-container {
-      width: 100%;
-    }
-  
-    .timrx-3dprint .asset-item,
-    .timrx-3dprint .asset-thumb-wrapper {
-      width: 120px;
-      height: 120px;
-    }
-  }
   
   /* Utility Classes */
   .timrx-3dprint .hidden {
@@ -2932,92 +2452,6 @@
     
     .timrx-3dprint .tab-btn.active:hover {
       background: rgba(255, 255, 255, 0.12) !important;
-    }
-    
-    
-    /* ╔════════════════════════════════════════════════════════════════════╗
-       ║  RESPONSIVE LAYOUT FOR WORKSPACE GRID                             ║
-       ╚════════════════════════════════════════════════════════════════════╝ */
-    
-    /* Medium screens – hide right panel, keep sidebar + left + viewer */
-    @media (max-width: 1280px) {
-      .timrx-3dprint .ws-grid {
-        grid-template-columns: 40px clamp(240px, 28vw, 300px) 1fr;
-      }
-  
-      /* Right panel collapses on medium screens – history moves into main flow */
-      .timrx-3dprint .ws-right {
-        display: none;
-      }
-  
-      .timrx-3dprint .ws-rail {
-        gap: 2px;
-      }
-  
-      .timrx-3dprint .rail-btn {
-        padding: 6px 4px;
-      }
-  
-      .timrx-3dprint .rail-btn svg {
-        width: 16px;
-        height: 16px;
-      }
-  
-      .timrx-3dprint .rail-btn span {
-        font-size: 7px;
-      }
-    }
-  
-    /* Small screens – single column, tools rail becomes a horizontal bar */
-    @media (max-width: 1024px) {
-      .timrx-3dprint .ws-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 8px;
-      }
-  
-      /* Icon rail turns into centered horizontal toolbar */
-      .timrx-3dprint .ws-rail {
-        flex-direction: row;
-        position: static;
-        justify-content: center;
-        padding: 8px 0;
-        gap: 8px;
-      }
-  
-      .timrx-3dprint .rail-btn {
-        flex-direction: row;
-        padding: 6px 10px;
-      }
-  
-      .timrx-3dprint .rail-btn span {
-        font-size: 9px;
-      }
-  
-      .timrx-3dprint .ws-left,
-      .timrx-3dprint .ws-viewer,
-      .timrx-3dprint .ws-right {
-        width: 100%;
-        position: static;
-        border-radius: 12px;
-      }
-  
-      .timrx-3dprint .ws-viewer,
-      .timrx-3dprint .ws-right {
-        height: auto;
-        min-height: 0;
-      }
-    
-      /* Right panel reappears stacked under viewer on mobile */
-      .timrx-3dprint .ws-right {
-        display: flex;
-        padding: 0 12px;
-      }
-    
-      /* Viewer gets a taller fixed height for better touch interaction */
-      .timrx-3dprint .viewer-wrap {
-        height: 60vh;
-      }
     }
     
     
@@ -3534,76 +2968,6 @@
        Clean search with sort button, no extra background
        ═══════════════════════════════════════════════════════════════ */
   
-    /* ═══════════════════════════════════════════════════════════════
-       2. VIEW / FILTER TOOLBAR
-       Transparent toolbar with icon-style controls
-       ═══════════════════════════════════════════════════════════════ */
-    
-    .timrx-3dprint .history-toolbar-side {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .timrx-3dprint .history-toolbar-side--left {
-      flex-wrap: wrap;
-    }
-    
-    .timrx-3dprint .history-toolbar-side--right {
-      flex-shrink: 0;
-    }
-    
-    /* Icon buttons (filters, layout toggles, etc.) */
-    .timrx-3dprint .history-toolbar-btn {
-      width: 28px;
-      height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: rgba(255, 255, 255, 0.4);
-      cursor: pointer;
-      transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
-    }
-    
-    .timrx-3dprint .history-toolbar-btn svg {
-      width: 15px;
-      height: 15px;
-    }
-    
-    .timrx-3dprint .history-toolbar-btn:hover {
-      color: rgba(255, 255, 255, 0.9);
-      background: rgba(148, 163, 184, 0.12);
-      transform: translateY(-1px);
-    }
-    
-    .timrx-3dprint .history-toolbar-btn.active {
-      color: var(--history-lime);
-      background: rgba(214, 255, 60, 0.12);
-    }
-    
-    /* Text-style button variant */
-    .timrx-3dprint .history-toolbar-btn--text {
-      width: auto;
-      padding: 0 12px;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    
-    /* Optional divider row under toolbar */
-    .timrx-3dprint .history-toolbar-divider {
-      display: block;
-      width: 100%;
-      height: 1px;
-      margin: 0;
-      background: var(--history-line);
-    }
-  
   /* ===========================================================
      HISTORY PANEL – GRID + THUMBNAILS
      Scoped under .timrx-3dprint to avoid leaks
@@ -3614,10 +2978,12 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    width: 100%;
     padding: 8px 0;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
@@ -3633,105 +2999,6 @@
   .history .history-grid::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
-  }
-  
-  /* Each generation row */
-  .timrx-3dprint .history-row {
-    display: flex;
-    flex-direction: column;
-    padding: 12px 0;
-    position: relative;
-  }
-  
-  /* Separator line between rows */
-  .timrx-3dprint .history-row::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 20%;
-    right: 20%;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.06);
-  }
-  
-  .timrx-3dprint .history-row:last-child::after {
-    display: none;
-  }
-  
-  /* Row meta info (date, etc) */
-  .timrx-3dprint .history-row__meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 0 4px;
-  }
-  
-  .timrx-3dprint .history-row__date {
-    font-size: 11px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  /* Thumbnails container - 3-column grid (matches images) */
-  .timrx-3dprint .history-row__thumbs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  /* Hide thumbnails after the 4th one */
-  .timrx-3dprint .history-row__thumbs .history-thumb:nth-child(n+5) {
-    display: none;
-  }
-  
-  /* When row is expanded, show all */
-  .timrx-3dprint .history-row.expanded .history-row__thumbs .history-thumb:nth-child(n+5) {
-    display: flex;
-  }
-  
-  /* "ALL N ASSETS" button */
-  .timrx-3dprint .history-row__expand {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    min-width: 70px;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-  }
-  
-  /* Show expand button when row has more than 3 items */
-  .timrx-3dprint .history-row.has-more .history-row__expand {
-    display: flex;
-  }
-  
-  /* Hide expand button when expanded */
-  .timrx-3dprint .history-row.expanded .history-row__expand {
-    display: none;
-  }
-  
-  .timrx-3dprint .history-row__expand:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.8);
-  }
-  
-  /* Row divider - not used in this layout */
-  .timrx-3dprint .history-row__divider {
-    display: none;
   }
   
   /* ===========================================================
@@ -5051,25 +4318,17 @@
      MOBILE / TABLET HISTORY — Tab-controlled visibility (≤1024px)
      ========================================================================== */
   @media (max-width: 1024px) {
-    .timrx-3dprint .ws-right {
-      display: none;
-      padding: 0 4px;
-    }
-    .timrx-3dprint .ws-right.mob-active {
-      display: flex;
-    }
-  
     body.history-expanded .timrx-3dprint .ws-mobile-tabs {
       display: none;
     }
   
     body.history-expanded .timrx-3dprint .ws-right {
       display: flex;
-      padding: 0;
     }
   
     body.history-expanded .timrx-3dprint .history {
       width: 100%;
+      min-width: 0;
     }
   
     body.history-expanded .timrx-3dprint .history-head {
@@ -5177,38 +4436,6 @@
   
     .timrx-3dprint .history-pager {
       padding: 6px 0;
-    }
-  
-    body.history-expanded .expanded-thumbs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
-      padding: 20px 0;
-    }
-  
-    body.history-expanded .expanded-thumb {
-      width: 100%;
-      min-width: 0;
-      max-width: none;
-      aspect-ratio: 4 / 3;
-      border-radius: 12px;
-    }
-  
-    body.history-expanded .expanded-thumb__status {
-      left: 6px;
-      right: 6px;
-      bottom: 6px;
-      padding: 3px 6px;
-      font-size: 9px;
-    }
-  
-    body.history-expanded .expanded-thumb__name {
-      font-size: 11px;
-      bottom: 26px;
-    }
-  
-    body.history-expanded .expanded-thumb__stage {
-      font-size: 11px;
     }
   
     /* Hide image & video dropdown menus on mobile — thumbs too small for tap targets */

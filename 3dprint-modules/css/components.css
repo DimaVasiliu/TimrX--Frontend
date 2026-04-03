@@ -1,34 +1,3 @@
-/* ===== WORKSPACE COLUMN ALIGNMENT ===== */
-/* Align ws-rail, viewer-wrap, and history card at the same top line */
-.timrx-3dprint .ws-grid {
-  align-items: start !important;
-}
-
-/* Remove decorative gradient lines under pane headers */
-.timrx-3dprint .pane-head::after {
-  display: none !important;
-}
-
-/* Remove decorative corner accent on viewer-wrap */
-.timrx-3dprint .viewer-wrap::after {
-  display: none !important;
-}
-
-/* Push ws-rail down to align with viewer-wrap top edge */
-.timrx-3dprint .ws-rail {
-  margin-top: 160px !important;
-  padding-top: 0 !important;
-}
-
-/* Align history section with viewer */
-.timrx-3dprint .ws-right .pane-head {
-  margin-bottom: 12px;
-}
-
-.timrx-3dprint .ws-right .card.history {
-  margin-top: 0;
-}
-
 /* ===== BUTTONS ===== */
 .btn {
   display: inline-flex;
