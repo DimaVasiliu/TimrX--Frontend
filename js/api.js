@@ -5418,9 +5418,17 @@ export async function onPostProcessFromHistory(item, type) {
 }
 
 export async function startRefineFromHistory(item, origin = 'history') {
+  // If a prior refine modal was dismissed, the lock may still be held
+  // momentarily. Force-release it if no generating placeholder is active.
   if (postProcessLock) {
-    console.warn('[Refine] Blocked by postProcessLock — another operation is in progress');
-    return;
+    const hasActivePlaceholder = document.querySelector('.history-thumb--generating');
+    if (!hasActivePlaceholder) {
+      console.warn('[Refine] Clearing stale postProcessLock');
+      postProcessLock = false;
+    } else {
+      console.warn('[Refine] Blocked by postProcessLock — another operation is in progress');
+      return;
+    }
   }
   if (!item) return;
 

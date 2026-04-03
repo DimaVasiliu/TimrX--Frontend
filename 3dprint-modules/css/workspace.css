@@ -1766,7 +1766,7 @@
   background: rgba(3, 4, 8, 0.78);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  z-index: 1200;
+  z-index: 1300;
 }
 
 .workspace-modal {

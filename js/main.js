@@ -1820,6 +1820,11 @@ function wireGallery() {
 
       if (act === 'refine') {
         console.log('[Refine] Dispatching refine for item:', item.id, 'stage:', item.stage, 'preview_task_id:', item.preview_task_id);
+        // Close print panel if open so the refine modal isn't hidden behind it
+        document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
+        document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
+        // Remove any stale refine settings overlay from a prior cancelled flow
+        document.getElementById('refineSettingsOverlay')?.remove();
         await API.onPostProcessFromHistory(item, 'refine');
         return;
       }
