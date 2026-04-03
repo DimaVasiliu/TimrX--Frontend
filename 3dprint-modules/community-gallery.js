@@ -1066,7 +1066,9 @@
       <div class="ccg-comments" data-post-id="${postId}">
         <div class="ccg-comments__header">
           <span class="ccg-comments__title">Comments</span>
-          <span class="ccg-comments__count" id="ccgCommentCount">${commentCount || ''}</span>
+          <span class="ccg-comments__count" id="ccgCommentCount" data-count="${commentCount}">
+            ${renderCommentCountBadge(commentCount, [], post.display_name || '')}
+          </span>
         </div>
         <div class="ccg-comments__composer">
           <input type="text" class="ccg-comments__input" id="ccgCommentInput" placeholder="Write a comment..." maxlength="500" />
@@ -1513,6 +1515,45 @@
     if (reactions) reactions.textContent = '0';
   }
 
+  function getUniqueCommentPeople(comments = [], fallbackName = '') {
+    const seen = new Set();
+    const people = [];
+
+    comments.forEach((comment) => {
+      const rawName = (comment?.display_name || '').trim();
+      const key = rawName.toLowerCase();
+      if (!rawName || seen.has(key)) return;
+      seen.add(key);
+      people.push({ name: rawName });
+    });
+
+    if (people.length === 0 && fallbackName) {
+      people.push({ name: fallbackName });
+    }
+
+    return people.slice(0, 3);
+  }
+
+  function renderCommentCountBadge(commentCount, comments = [], fallbackName = '') {
+    const total = Number(commentCount) || 0;
+    const people = getUniqueCommentPeople(comments, fallbackName);
+    const avatars = people.length
+      ? people.map((person) => `
+          <span class="ccg-comments__count-avatar" style="background:${avatarColor(person.name)}">
+            ${sanitize(getInitials(person.name))}
+          </span>
+        `).join('')
+      : '<span class="ccg-comments__count-avatar ccg-comments__count-avatar--empty">0</span>';
+
+    return `
+      <span class="ccg-comments__count-avatars" aria-hidden="true">${avatars}</span>
+      <span class="ccg-comments__count-copy">
+        <strong>${total}</strong>
+        <span>${total === 1 ? 'Comment' : 'Comments'}</span>
+      </span>
+    `;
+  }
+
   // ─── Comments ───────────────────────────────────────────────────────────
 
   async function loadComments(postId) {
@@ -1525,7 +1566,15 @@
       const data = await res.json();
       if (!data.ok) { list.innerHTML = ''; return; }
 
-      if (countEl) countEl.textContent = data.comment_count || '';
+      if (countEl) {
+        const total = Number(data.comment_count) || 0;
+        countEl.dataset.count = String(total);
+        countEl.innerHTML = renderCommentCountBadge(
+          total,
+          data.comments || [],
+          detailEl?._currentPost?.display_name || ''
+        );
+      }
 
       if (!data.comments || data.comments.length === 0) {
         list.innerHTML = '<div class="ccg-comments__empty">Be the first to comment</div>';
@@ -1628,8 +1677,12 @@
           // Update count
           const countEl = document.getElementById('ccgCommentCount');
           if (countEl) {
-            const cur = parseInt(countEl.textContent) || 0;
-            countEl.textContent = cur + 1;
+            const cur = Number(countEl.dataset.count) || 0;
+            const next = cur + 1;
+            const people = Array.from(list?.querySelectorAll('.ccg-comment__name') || [])
+              .map((el) => ({ display_name: el.textContent || '' }));
+            countEl.dataset.count = String(next);
+            countEl.innerHTML = renderCommentCountBadge(next, people, myName || 'Anonymous');
           }
           // Update card count in feed
           updateCardCommentCount(postId, 1);

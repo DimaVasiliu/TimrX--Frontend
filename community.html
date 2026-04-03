@@ -1028,8 +1028,7 @@
     body.community-page .community-involve-icon,
     body.community-page .ccg-featured__card-kicker,
     body.community-page .ccg-card__status,
-    body.community-page .ccg-card__metric,
-    body.community-page .ccg-comments__count {
+    body.community-page .ccg-card__metric {
       background: rgba(125, 211, 252, 0.1);
       border-color: rgba(125, 211, 252, 0.22);
       color: #7dd3fc;
@@ -1163,14 +1162,28 @@
     body.community-page .ccg-card__metric,
     body.community-page .ccg-card__status,
     body.community-page .ccg-comments__title,
-    body.community-page .ccg-comments__count {
+    body.community-page .ccg-comments__count-copy span {
       color: var(--ccg-text-2);
     }
 
     body.community-page .ccg-card__status,
     body.community-page .ccg-card__metric,
-    body.community-page .ccg-comments__count,
+    body.community-page .ccg-comments__count-copy strong,
     body.community-page .ccg-featured__card-kicker {
+      color: #7dd3fc;
+    }
+
+    body.community-page .ccg-comments__count {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    body.community-page .ccg-comments__count-avatar {
+      box-shadow: 0 0 0 2px rgba(8, 9, 11, 0.98);
+    }
+
+    body.community-page .ccg-comments__count-avatar--empty {
+      background: rgba(125, 211, 252, 0.1);
       color: #7dd3fc;
     }
 
