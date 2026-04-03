@@ -2230,6 +2230,17 @@
   transform: translate(-50%, -55%) translateY(0) scale(1);
 }
 
+/* ── Hide history thumb overlays when print panel is open ────────── */
+body.print-panel-open .history-thumb__status-bar,
+body.print-panel-open .history-thumb__stage,
+body.print-panel-open .history-thumb__menu-wrap,
+body.print-panel-open .history-thumb__name,
+body.print-panel-open .history-thumb__date {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* ── Header ───────────────────────────────────────────────────────── */
 .viewer-print-dialog__header {
   display: flex;

@@ -261,25 +261,24 @@
    image/video/model history cards rendered from history.js. */
 .timrx-3dprint .history-thumb__menu-wrap {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
+  right: 2px;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  z-index: 6;
+  z-index: 4;
   padding: 0;
   margin: 0;
   cursor: pointer;
 }
 
 .timrx-3dprint .history-thumb__menu-btn {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border: none;
-  background: rgba(0, 0, 0, 0.55);
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
+  background: transparent;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -289,12 +288,6 @@
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: background 0.15s ease;
-}
-
-.timrx-3dprint .history-thumb__menu-btn:hover {
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
 }
 
 .timrx-3dprint .history-thumb__menu-btn svg {
@@ -3527,8 +3520,8 @@ body.has-modal {
     position: relative;
     border-radius: 10px;
     overflow: hidden;
-    background: var(--history-thumb-bg, rgba(255,255,255,0.03));
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--history-thumb-bg);
+    border: 1px solid var(--history-thumb-border);
     box-shadow: inset 0 0 12px rgba(16, 160, 255, 0.04);
     display: flex;
     flex-direction: column;
@@ -3572,13 +3565,10 @@ body.has-modal {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 9px;
     letter-spacing: 0.03em;
-    color: rgba(255, 255, 255, 0.85);
-    padding: 3px 6px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.55);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 4px 6px;
     z-index: 5;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   }
 
   .history-thumb__status-label {
@@ -3820,17 +3810,17 @@ body.has-modal {
     bottom: 6px;
     left: 6px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.6);
-    color: #c084fc;
-    -webkit-text-fill-color: currentColor;
+    background: linear-gradient(135deg, #a855f7, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     z-index: 5;
-    pointer-events: none;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+    animation: refinedGlow 2s ease-in-out infinite;
   }
 
   @keyframes refinedGlow {

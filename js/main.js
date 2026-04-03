@@ -715,6 +715,7 @@ function initViewerToolbar() {
   function togglePrintPanel(show) {
     printPanel?.classList.toggle('is-visible', !!show);
     printBackdrop?.classList.toggle('is-visible', !!show);
+    document.body.classList.toggle('print-panel-open', !!show);
   }
 
   // ── Print Readiness Check ──

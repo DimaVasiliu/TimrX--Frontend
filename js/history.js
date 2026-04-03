@@ -699,7 +699,11 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   // Clean up prefixes like "(refine)", "(texture)", "(remesh)", "(rig)", "(image2-3d)" from model names
   modelName = modelName.replace(/^\s*\((refine|texture|remesh|image2?-?3d)\)\s*/i, '');
   const createdLabel = dateLabel(displayModel.created_at);
-  const canRefine = displayModel.stage === 'preview' && status === 'finished';
+  const canRefine = status === 'finished' && !!(
+    displayModel.stage === 'preview' ||
+    displayModel.preview_task_id ||
+    (displayModel.payload || {}).preview_task_id
+  );
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
   const _hasCredits = window.WorkspaceCredits?.canDownloadAssets?.() ?? false;
