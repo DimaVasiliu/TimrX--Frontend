@@ -450,6 +450,8 @@
     }
   
     .print-prep-section > .print-panel-export-btn {
+      grid-column: 1;
+      grid-row: auto;
       width: 100%;
       justify-self: stretch;
     }
