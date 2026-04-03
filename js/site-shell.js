@@ -196,6 +196,9 @@
           <nav class="site-shell-mobile-nav" aria-label="Mobile navigation">
             ${mobileLinks}
           </nav>
+          <div class="site-shell-mobile-footer">
+            <span class="site-shell-mobile-footer-text">TimrX / Dima Vasiliu</span>
+          </div>
         </div>
       </div>
     `;

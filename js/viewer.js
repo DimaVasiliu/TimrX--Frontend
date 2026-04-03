@@ -145,6 +145,7 @@ export function clearModel() {
             }
         });
         currentModel = null;
+        window._timrxCurrentModel = null;
     }
 
     // Also clear any Inspire-loaded model to prevent stacking
@@ -229,6 +230,7 @@ export async function loadGlbFromUrl(url) {
     return new Promise((resolve, reject) => {
         loader.load(url, (gltf) => {
             currentModel = gltf.scene;
+            window._timrxCurrentModel = currentModel;
 
             // Double-check scene is still valid before adding
             if (!scene) {

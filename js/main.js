@@ -875,7 +875,7 @@ function initViewerToolbar() {
 
         // Fallback: client-side export from viewer model
         if (window.timrx3D && window.timrx3D.scene) {
-          const model = window._timrxCurrentModel || null;
+          const model = window._timrxCurrentModel || window.inspireCurrentModel || null;
           if (!model) {
             alert('No model loaded in viewer. Please load a model first.');
             return;

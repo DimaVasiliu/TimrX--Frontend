@@ -764,7 +764,7 @@
   .timrx-3dprint .card p,
   .timrx-3dprint .card label {
     font-size: 12px;
-    margin-bottom: 2px;
+    margin: 3px;
   }
 
   .timrx-3dprint .card label {
@@ -2447,14 +2447,40 @@
 }
 
 /* ── Surface cards (sections) ─────────────────────────────────────── */
-.print-panel-surface,
-.print-prep-section {
+.print-panel-surface {
   display: grid;
   gap: 10px;
   padding: 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.print-prep-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  padding: 16px 18px 18px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Header & dimensions span full width */
+.print-prep-section > .print-panel-surface-head,
+.print-prep-section > .print-prep-dimensions,
+.print-prep-section > [id="printDimensionsDisplay"],
+.print-prep-section > [id="printScaledDimensions"] {
+  grid-column: 1 / -1;
+}
+
+/* Export button: full width row, but button itself is compact */
+.print-prep-section > .print-panel-export-btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: auto;
+  margin-top: 4px;
 }
 
 .print-panel-surface-head {
@@ -2667,7 +2693,8 @@
 }
 
 .print-panel-export-btn {
-  width: 100%;
+  width: auto;
+  padding: 0 22px;
   background: linear-gradient(180deg, #3d85f0, #2563eb);
   color: #fff;
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);

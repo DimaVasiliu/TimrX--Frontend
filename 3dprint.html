@@ -1002,25 +1002,28 @@
     var wsRight= document.getElementById('ws-right-panel');
     if (!wsLeft || !wsRight) return;
 
+    function setTabState(target) {
+      tabs.forEach(function(t){
+        var isActive = t.dataset.tab === target;
+        t.classList.toggle('is-active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      if (target === 'history') {
+        wsLeft.classList.add('mob-hidden');
+        wsRight.classList.add('mob-active');
+      } else {
+        wsLeft.classList.remove('mob-hidden');
+        wsRight.classList.remove('mob-active');
+      }
+    }
+
+    setTabState(tabBar.querySelector('.ws-mobile-tab.is-active')?.dataset.tab || 'controls');
+
     tabBar.addEventListener('click', function(e){
       var tab = e.target.closest('.ws-mobile-tab');
       if (!tab) return;
-      var target = tab.dataset.tab;
-
-      tabs.forEach(function(t){
-        t.classList.remove('is-active');
-        t.setAttribute('aria-selected','false');
-      });
-      tab.classList.add('is-active');
-      tab.setAttribute('aria-selected','true');
-
-      if (target === 'controls') {
-        wsLeft.classList.remove('mob-hidden');
-        wsRight.classList.remove('mob-active');
-      } else if (target === 'history') {
-        wsLeft.classList.add('mob-hidden');
-        wsRight.classList.add('mob-active');
-      }
+      setTabState(tab.dataset.tab);
     });
   })();
   </script>

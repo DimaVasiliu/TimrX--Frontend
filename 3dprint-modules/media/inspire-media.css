@@ -2,113 +2,114 @@
    INSPIRE-MEDIA.CSS — Responsive Rules extracted from css/inspire.css
    ========================================================================== */
 
-@media (hover: hover) {
-  .inspire-card:hover .inspire-card__image {
-    animation: none !important;
-    transform: scale(1.05);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+   @media (hover: hover) {
+    .inspire-card:hover .inspire-card__image {
+      animation: none !important;
+      transform: scale(1.05);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   }
-}
-@media (max-width: 768px) {
-  .inspire-trigger-btn span {
-    display: none;
+  @media (max-width: 768px) {
+    .inspire-trigger-btn span {
+      display: none;
+    }
+    .inspire-trigger-btn {
+      padding: 7px 9px;
+    }
   }
-  .inspire-trigger-btn {
-    padding: 7px 9px;
+  @media (max-width: 1100px) {
+    .inspire-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
   }
-}
-@media (max-width: 1100px) {
-  .inspire-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  @media (max-width: 800px) {
+    .inspire-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+  
+    .inspire-header__actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .inspire-content {
+      padding: 16px;
+    }
+  
+    .inspire-potd {
+      flex-direction: column;
+      gap: 12px;
+    }
+  
+    .inspire-potd__cta {
+      width: 100%;
+      justify-content: center;
+    }
+  
+    .inspire-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
   }
-}
-@media (max-width: 800px) {
-  .inspire-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
+  @media (max-width: 768px) {
+    .inspire-overlay {
+      top: var(--ws-navH, 56px) !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      border-radius: 0;
+      border: none;
+    }
+  
+    .inspire-header {
+      padding: 12px 14px;
+      gap: 10px;
+    }
+  
+    .inspire-header__icon {
+      display: none;
+    }
+  
+    .inspire-header__title h2 {
+      font-size: 14px;
+    }
+  
+    .inspire-header__title p {
+      font-size: 11px;
+    }
+  
+    .inspire-potd {
+      display: none !important;
+    }
+  
+    .inspire-content {
+      padding: 12px;
+    }
+  
+    .inspire-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+  
+    .inspire-card {
+      border-radius: 8px;
+    }
+  
+    .inspire-filters {
+      gap: 4px;
+    }
+  
+    .inspire-filter-btn {
+      font-size: 10px;
+      padding: 5px 10px;
+    }
+  
+    .inspire-close-btn {
+      width: 36px;
+      height: 36px;
+    }
   }
-
-  .inspire-header__actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .inspire-content {
-    padding: 16px;
-  }
-
-  .inspire-potd {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .inspire-potd__cta {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .inspire-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-}
-@media (max-width: 768px) {
-  .inspire-overlay {
-    top: var(--ws-navH, 56px) !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    border-radius: 0;
-    border: none;
-  }
-
-  .inspire-header {
-    padding: 12px 14px;
-    gap: 10px;
-  }
-
-  .inspire-header__icon {
-    display: none;
-  }
-
-  .inspire-header__title h2 {
-    font-size: 14px;
-  }
-
-  .inspire-header__title p {
-    font-size: 11px;
-  }
-
-  .inspire-potd {
-    display: none !important;
-  }
-
-  .inspire-content {
-    padding: 12px;
-  }
-
-  .inspire-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .inspire-card {
-    border-radius: 8px;
-  }
-
-  .inspire-filters {
-    gap: 4px;
-  }
-
-  .inspire-filter-btn {
-    font-size: 10px;
-    padding: 5px 10px;
-  }
-
-  .inspire-close-btn {
-    width: 36px;
-    height: 36px;
-  }
-}
+  

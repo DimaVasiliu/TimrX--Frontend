@@ -834,71 +834,91 @@
 
           <div class="card-divider"></div>
 
-          <div class="field-row">
-            <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
-            <select id="modelAIModel" class="field-select-inline">
-              <option value="latest" selected>Meshy 6</option>
-              <option value="meshy-5">Meshy 5</option>
-            </select>
-          </div>
+          <div class="field-row-grid">
+            <div class="field-row">
+              <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
+              <select id="modelAIModel" class="field-select-inline">
+                <option value="latest" selected>Meshy 6</option>
+                <option value="meshy-5">Meshy 5</option>
+              </select>
+            </div>
 
-          <div class="field-row">
-            <span class="field-label-inline">Pose Mode <span class="info-dot" title="Generate in a specific pose for rigging">ⓘ</span></span>
-            <select id="modelPoseMode" class="field-select-inline">
-              <option value="" selected>None</option>
-              <option value="a-pose">A-Pose</option>
-              <option value="t-pose">T-Pose</option>
-            </select>
-          </div>
+            <div class="field-row">
+              <span class="field-label-inline">Pose Mode <span class="info-dot" title="Generate in a specific pose for rigging">ⓘ</span></span>
+              <select id="modelPoseMode" class="field-select-inline">
+                <option value="" selected>None</option>
+                <option value="a-pose">A-Pose</option>
+                <option value="t-pose">T-Pose</option>
+              </select>
+            </div>
 
-          <div class="field-row">
-            <span class="field-label-inline">Number of Generations</span>
-            <div class="stepper-input">
-              <input type="number" id="modelBatchCount" value="1" min="1" max="4">
-              <div class="stepper-arrows">
-                <button type="button" class="stepper-up" aria-label="Increase">▲</button>
-                <button type="button" class="stepper-down" aria-label="Decrease">▼</button>
+            <div class="field-row">
+              <span class="field-label-inline">Number of Generations</span>
+              <div class="stepper-input">
+                <input type="number" id="modelBatchCount" value="1" min="1" max="4">
+                <div class="stepper-arrows">
+                  <button type="button" class="stepper-up" aria-label="Increase">▲</button>
+                  <button type="button" class="stepper-down" aria-label="Decrease">▼</button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="field-group">
-            <span class="field-label-inline">License <span class="info-dot" title="Choose license type">ⓘ</span></span>
-            <div class="segment-group" data-segment-group data-target="#modelLicense">
-              <button type="button" class="segment" data-value="cc-by-4">CC BY 4.0</button>
-              <button type="button" class="segment is-active" data-value="private">Private</button>
+            <div class="field-group">
+              <span class="field-label-inline">License <span class="info-dot" title="Choose license type">ⓘ</span></span>
+              <div class="segment-group" data-segment-group data-target="#modelLicense">
+                <button type="button" class="segment" data-value="cc-by-4">CC BY 4.0</button>
+                <button type="button" class="segment is-active" data-value="private">Private</button>
+              </div>
+              <input type="hidden" id="modelLicense" value="private">
             </div>
-            <input type="hidden" id="modelLicense" value="private">
-          </div>
 
-          <div class="field-group">
-            <span class="field-label-inline">Symmetry</span>
-            <div class="segment-group" data-segment-group data-target="#modelSymmetry">
-              <button type="button" class="segment" data-value="off">Off</button>
-              <button type="button" class="segment is-active" data-value="auto">Auto</button>
-              <button type="button" class="segment" data-value="on">On</button>
+            <div class="field-group">
+              <span class="field-label-inline">Symmetry</span>
+              <div class="segment-group" data-segment-group data-target="#modelSymmetry">
+                <button type="button" class="segment" data-value="off">Off</button>
+                <button type="button" class="segment is-active" data-value="auto">Auto</button>
+                <button type="button" class="segment" data-value="on">On</button>
+              </div>
+              <input type="hidden" id="modelSymmetry" value="auto">
             </div>
-            <input type="hidden" id="modelSymmetry" value="auto">
-          </div>
 
-          <div class="field-row">
-            <span class="field-label-inline">Model Type <span class="info-dot" title="Standard for detailed models, Low Poly for simplified geometry">ⓘ</span></span>
-            <select id="modelModelType" class="field-select-inline">
-              <option value="" selected>Default</option>
-              <option value="standard">Standard</option>
-              <option value="lowpoly">Low Poly</option>
-            </select>
+            <div class="field-row">
+              <span class="field-label-inline">Model Type <span class="info-dot" title="Standard for detailed models, Low Poly for simplified geometry">ⓘ</span></span>
+              <select id="modelModelType" class="field-select-inline">
+                <option value="" selected>Default</option>
+                <option value="standard">Standard</option>
+                <option value="lowpoly">Low Poly</option>
+              </select>
+            </div>
           </div>
 
           <details class="advanced-toggles" style="margin-top:8px">
             <summary style="font-size:11px;color:#888;cursor:pointer;user-select:none">Advanced Preview Settings</summary>
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
-              <div class="field-row">
-                <span class="field-label-inline">Auto-remesh Output</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="modelShouldRemesh">
-                  <span class="toggle-slider"></span>
-                </label>
+              <div class="field-row-grid field-row-grid--toggles">
+                <div class="field-row">
+                  <span class="field-label-inline">Auto-remesh Output</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelShouldRemesh">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <span class="field-label-inline">Content Moderation</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelModeration">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <span class="field-label-inline">Auto Size</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelAutoSize">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
               </div>
 
               <div id="modelRemeshSettings" class="model-preview-advanced-group" style="display:none">
@@ -913,22 +933,6 @@
                   <label for="modelTargetPolycount">Target Polycount</label>
                   <input type="number" id="modelTargetPolycount" value="30000" min="100" max="300000" step="1000">
                 </div>
-              </div>
-
-              <div class="field-row">
-                <span class="field-label-inline">Content Moderation</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="modelModeration">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div class="field-row">
-                <span class="field-label-inline">Auto Size</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="modelAutoSize">
-                  <span class="toggle-slider"></span>
-                </label>
               </div>
 
               <div id="modelAutoSizeSettings" class="model-preview-advanced-group" style="display:none">
@@ -1953,6 +1957,42 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const camera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
       camera.position.set(3.1, 2.7, 4.4);
 
+      function getViewerSceneProfile(r) {
+        const width = Math.max(r.width || 0, 1);
+        const height = Math.max(r.height || 0, 1);
+        const aspect = width / height;
+        const isShortLandscape = height <= 640 && width >= 900;
+        const isTabletLandscape = width >= 1024 && height <= 800;
+        const scaleBoost = isShortLandscape ? 1.42 : isTabletLandscape ? 1.28 : width >= 1280 ? 1.2 : width >= 1024 ? 1.12 : 1;
+        const cameraFov = isShortLandscape ? 36 : isTabletLandscape ? 39 : 42;
+        const cameraPosition = isShortLandscape
+          ? [2.4, 2.0, 3.2]
+          : isTabletLandscape
+            ? [2.7, 2.25, 3.75]
+            : aspect > 1.8
+              ? [2.9, 2.45, 4.05]
+              : [3.1, 2.7, 4.4];
+
+        return { scaleBoost, cameraFov, cameraPosition };
+      }
+
+      function applyViewerSceneProfile(r) {
+        const profile = getViewerSceneProfile(r);
+        camera.fov = profile.cameraFov;
+        camera.position.set(...profile.cameraPosition);
+        camera.lookAt(0, 0.2, 0);
+
+        if (grid) {
+          grid.scale.setScalar(profile.scaleBoost);
+          grid.position.y = -0.5;
+        }
+
+        if (placeholderCube) {
+          placeholderCube.scale.setScalar(profile.scaleBoost);
+          placeholderCube.position.y = 0.1 + ((profile.scaleBoost - 1) * 0.12);
+        }
+      }
+
       // Try to create renderer with error handling
       let renderer;
       try {
@@ -2081,10 +2121,16 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
        */
       function onResize() {
         const r = model3dWrap.getBoundingClientRect();
+        applyViewerSceneProfile(r);
         camera.aspect = r.width / r.height;
         camera.updateProjectionMatrix();
         renderer.setSize(r.width, r.height, false);
+        if (window.timrxControls) {
+          window.timrxControls.target.set(0, 0.2, 0);
+          window.timrxControls.update();
+        }
       }
+      applyViewerSceneProfile(rect);
       window.addEventListener('resize', onResize);
   
       /**

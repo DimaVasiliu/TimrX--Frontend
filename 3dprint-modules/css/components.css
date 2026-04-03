@@ -382,6 +382,12 @@ textarea {
 }
 
 /* ===== FIELD GROUP (label on top, content below) ===== */
+.field-row-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .field-group {
   display: flex;
   flex-direction: column;
