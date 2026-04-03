@@ -707,8 +707,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   );
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
-  const _hasCredits = window.WorkspaceCredits?.canDownloadAssets?.() ?? false;
-  const canDownload = !!displayModel.glb_url && _hasCredits;
+  const canDownload = !!(displayModel.glb_url || displayModel.glb_proxy);
   const isActive = models.some((m) => m && m.id === historyActiveModelId);
   const isFreshThumb = models.some((m) => historyFreshThumbs.has(m.id));
   const variantCount = models.length;

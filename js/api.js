@@ -26,6 +26,12 @@ import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js'
 let startLock = false;
 let postProcessLock = false;
 
+// ============================================================================
+// MESHY PROMPT LIMITS
+// ============================================================================
+const MESHY_PROMPT_HARD_LIMIT = 800;   // API rejects above this
+const MESHY_PROMPT_WARN_LIMIT = 600;   // Show warning colour above this
+
 /**
  * Acquire the submit lock — prevents duplicate generation requests.
  * Mirrors the lock into GenerationState so there is one queryable authority.
@@ -632,6 +638,121 @@ function _showStyledGeneralCreditsModal(required, available, needed) {
   document.addEventListener('keydown', escHandler);
 
   document.getElementById('insuffGeneralCreditsCtaBtn')?.focus();
+}
+
+// ============================================================================
+// PROMPT LENGTH VALIDATION
+// ============================================================================
+
+/**
+ * Show a modal warning the user their prompt exceeds Meshy's character limit.
+ * Includes a live character counter and lets the user trim the prompt inline.
+ */
+function showPromptLimitModal(prompt, textareaRef) {
+  const existing = document.getElementById('promptLimitOverlay');
+  if (existing) existing.remove();
+
+  const len = prompt.length;
+  const over = len - MESHY_PROMPT_HARD_LIMIT;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'promptLimitOverlay';
+  overlay.className = 'workspace-modal-overlay';
+  overlay.innerHTML = `
+    <div class="workspace-modal prompt-limit-modal" role="dialog" aria-modal="true">
+      <div class="workspace-modal__header">
+        <div>
+          <p class="workspace-modal__eyebrow">Prompt too long</p>
+          <h3 class="workspace-modal__title">Shorten your prompt to continue</h3>
+          <p class="workspace-modal__subtitle">Meshy's API accepts a maximum of ${MESHY_PROMPT_HARD_LIMIT} characters. Your prompt is <strong>${over}</strong> characters over the limit.</p>
+        </div>
+        <button type="button" class="workspace-modal__close" id="promptLimitClose">&times;</button>
+      </div>
+      <div class="workspace-modal__body">
+        <div class="card">
+          <div class="prompt-limit__counter-row">
+            <span class="prompt-limit__label">Characters</span>
+            <span class="prompt-limit__counter ${len > MESHY_PROMPT_HARD_LIMIT ? 'is-over' : len > MESHY_PROMPT_WARN_LIMIT ? 'is-warn' : ''}" id="promptLimitCount">${len} / ${MESHY_PROMPT_HARD_LIMIT}</span>
+          </div>
+          <textarea id="promptLimitTextarea" class="prompt-limit__textarea" spellcheck="false">${prompt.replace(/</g, '&lt;')}</textarea>
+          <p class="field-hint">Edit your prompt above. The counter updates as you type.</p>
+        </div>
+      </div>
+      <div class="workspace-modal__footer">
+        <div class="prompt-limit__bar">
+          <div class="prompt-limit__bar-fill" id="promptLimitBar" style="width:${Math.min(100, (len / MESHY_PROMPT_HARD_LIMIT) * 100)}%"></div>
+        </div>
+        <div class="workspace-modal__actions">
+          <button type="button" class="gen-btn gen-btn--rail workspace-modal__ghost" id="promptLimitCancel">Cancel</button>
+          <button type="button" class="gen-btn" id="promptLimitApply" ${len > MESHY_PROMPT_HARD_LIMIT ? 'disabled' : ''}>Use this prompt</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const cleanup = () => { overlay.remove(); };
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
+
+  const onKey = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); cleanup(); } };
+  document.addEventListener('keydown', onKey);
+
+  document.body.appendChild(overlay);
+
+  const textarea = overlay.querySelector('#promptLimitTextarea');
+  const counter  = overlay.querySelector('#promptLimitCount');
+  const bar      = overlay.querySelector('#promptLimitBar');
+  const applyBtn = overlay.querySelector('#promptLimitApply');
+
+  const updateCounter = () => {
+    const l = textarea.value.length;
+    counter.textContent = `${l} / ${MESHY_PROMPT_HARD_LIMIT}`;
+    counter.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
+    counter.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
+    bar.style.width = `${Math.min(100, (l / MESHY_PROMPT_HARD_LIMIT) * 100)}%`;
+    bar.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
+    bar.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
+    applyBtn.disabled = l > MESHY_PROMPT_HARD_LIMIT || l === 0;
+  };
+
+  textarea.addEventListener('input', updateCounter);
+
+  overlay.querySelector('#promptLimitClose')?.addEventListener('click', cleanup);
+  overlay.querySelector('#promptLimitCancel')?.addEventListener('click', cleanup);
+
+  applyBtn.addEventListener('click', () => {
+    if (textareaRef) textareaRef.value = textarea.value.trim();
+    document.removeEventListener('keydown', onKey);
+    cleanup();
+  });
+
+  textarea.focus();
+  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+}
+
+/**
+ * Wire a live character counter onto the model prompt textarea.
+ * Call once during init.
+ */
+export function wirePromptCharCounter() {
+  const textarea = byId('modelPrompt');
+  if (!textarea) return;
+
+  // Create counter element
+  const counter = document.createElement('span');
+  counter.className = 'prompt-char-counter';
+  counter.setAttribute('aria-live', 'polite');
+  textarea.parentElement?.appendChild(counter);
+
+  const update = () => {
+    const l = textarea.value.length;
+    counter.textContent = `${l}/${MESHY_PROMPT_HARD_LIMIT}`;
+    counter.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
+    counter.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
+  };
+
+  textarea.addEventListener('input', update);
+  update();
 }
 
 /**
@@ -2699,6 +2820,15 @@ export async function onGenerateClick() {
     if (!prompt) {
       prog.clear();
       alert('Please type a prompt describing what you want to generate.');
+      return;
+    }
+
+    // Meshy enforces an 800-character hard limit on prompts
+    if (prompt.length > MESHY_PROMPT_HARD_LIMIT) {
+      prog.clear();
+      showPromptLimitModal(prompt, promptTextarea);
+      releaseSubmitLock();
+      allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
       return;
     }
 

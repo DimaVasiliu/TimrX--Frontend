@@ -1993,6 +1993,108 @@
   width: min(620px, 100%);
 }
 
+/* ── Prompt limit modal ───────────────────────────────────────────── */
+.prompt-limit-modal {
+  width: min(540px, 100%);
+}
+
+.prompt-limit__counter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.prompt-limit__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.prompt-limit__counter {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.15s ease;
+}
+
+.prompt-limit__counter.is-warn {
+  color: #fbbf24;
+}
+
+.prompt-limit__counter.is-over {
+  color: #f87171;
+}
+
+.prompt-limit__textarea {
+  width: 100%;
+  min-height: 120px;
+  max-height: 200px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.55;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.prompt-limit__textarea:focus {
+  outline: none;
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
+
+/* Progress bar in footer */
+.prompt-limit__bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.prompt-limit__bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  transition: width 0.15s ease, background 0.15s ease;
+}
+
+.prompt-limit__bar-fill.is-warn {
+  background: #fbbf24;
+}
+
+.prompt-limit__bar-fill.is-over {
+  background: #f87171;
+}
+
+/* ── Live char counter on textarea ────────────────────────────────── */
+.prompt-char-counter {
+  display: block;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+  transition: color 0.15s ease;
+}
+
+.prompt-char-counter.is-warn {
+  color: #fbbf24;
+}
+
+.prompt-char-counter.is-over {
+  color: #f87171;
+}
+
 /* ==========================================================================
    VIEWER ACTION BAR (Accept / Revert)
    ========================================================================== */

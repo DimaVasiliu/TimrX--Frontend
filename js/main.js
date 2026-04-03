@@ -1641,17 +1641,14 @@ function wireGallery() {
         return;
       }
 
-      if ((act === 'download' || act === 'print') && item.glb_url) {
-        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
-          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
-          return;
-        }
+      if ((act === 'download' || act === 'print') && (item.glb_url || item.glb_proxy)) {
+        const downloadUrl = item.glb_url || item.glb_proxy;
         const filename = buildItemDownloadFilename(item, {
           type: 'model',
-          sourceUrl: item.glb_url,
-          extension: inferExtensionFromUrl(item.glb_url) || 'glb',
+          sourceUrl: downloadUrl,
+          extension: inferExtensionFromUrl(downloadUrl) || 'glb',
         });
-        startWorkspaceDownload(item.glb_url, filename);
+        startWorkspaceDownload(downloadUrl, filename);
         return;
       }
 
@@ -2196,6 +2193,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Set up generate button listeners
     setupGenerateButtonListeners();
+
+    // Wire live character counter on model prompt textarea
+    API.wirePromptCharCounter();
 
     // Initialize viewer toolbar
     initViewerToolbar();
