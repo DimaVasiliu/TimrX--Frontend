@@ -361,7 +361,7 @@
         }
       });
 
-      menu.style.display = 'block';
+      menu.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:100002; background:#080808; overflow-y:auto;';
       requestAnimationFrame(function(){
         burger.classList.add('is-open');
         burger.setAttribute('aria-expanded','true');
@@ -378,7 +378,7 @@
       menu.classList.remove('is-open');
       menu.setAttribute('aria-hidden','true');
       document.body.classList.remove('menu-open');
-      setTimeout(function(){ menu.style.display = 'none'; }, 450);
+      setTimeout(function(){ menu.style.cssText = 'display:none;'; }, 450);
     }
 
     burger.addEventListener('click', function(){

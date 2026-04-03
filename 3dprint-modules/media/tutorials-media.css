@@ -73,6 +73,127 @@
     min-height: 350px;
   }
 }
+
+@media (max-width: 1024px) and (min-width: 641px) {
+  .tutorials-section--with-model {
+    max-width: 100%;
+  }
+
+  .tutorials-section--with-model .tutorials-split-layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    order: 2;
+  }
+
+  .tutorials-section--with-model .tutorials-split-cards:not(.tutorials-split-cards--grid):not(.tutorials-split-cards--grid-with-extra) > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .tutorials-section--with-model .tutorials-card {
+    height: 100%;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model {
+    position: relative;
+    top: 0;
+    order: -1;
+    min-height: 420px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
+  .tutorials-section--with-model .tutorial-inline-model__stage {
+    min-height: 420px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
+    min-height: 520px;
+  }
+
+  .tutorials-section--with-model .tutorial-inline-model {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .tutorials-section--with-model .tutorial-inline-model__frame {
+    min-height: 0;
+  }
+
+  .tutorials-section--with-model .tutorial-inline-model__caption {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+  }
+
+  .tutorials-section--with-model .tutorials-reference-img {
+    min-height: 220px;
+  }
+
+  .tutorials-section--model-right .tutorials-split-cards {
+    order: 2;
+  }
+
+  .tutorials-section--model-right .tutorials-split-model {
+    order: -1;
+  }
+}
+
+@media (max-width: 820px) and (min-width: 641px) {
+  .tutorials-section--with-model .tutorials-split-layout {
+    gap: 20px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-cards {
+    gap: 14px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model {
+    min-height: 380px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
+  .tutorials-section--with-model .tutorial-inline-model__stage {
+    min-height: 380px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
+    min-height: 460px;
+  }
+
+  .tutorials-section--with-model .tutorial-inline-model__title {
+    font-size: clamp(20px, 3vw, 28px);
+  }
+
+  .tutorials-section--with-model .tutorial-inline-model__copy {
+    max-width: 42ch;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+  .tutorials-section--with-model .tutorials-split-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model {
+    min-height: 360px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
+  .tutorials-section--with-model .tutorial-inline-model__stage {
+    min-height: 360px;
+  }
+
+  .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
+    min-height: 420px;
+  }
+}
+
 @media (max-width: 768px) {
   .tutorials-hero h1,
   .tutorials-title {

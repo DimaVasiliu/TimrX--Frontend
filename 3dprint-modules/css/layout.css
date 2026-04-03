@@ -23,7 +23,7 @@
   
   body.print3d-page > .ws-header {
     position: fixed;
-    z-index: 100000;
+    z-index: 100003;
   }
   
   .ws-header-left {
@@ -1390,19 +1390,19 @@
   /* Mobile menu overlay */
   .ws-mobile-menu {
     display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100000;
-    background: rgba(8,8,8,0.96);
-    -webkit-backdrop-filter: blur(30px) saturate(1.2);
-    backdrop-filter: blur(30px) saturate(1.2);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 100002 !important;
+    background: #080808 !important;
     opacity: 0;
     transition: opacity 0.45s ease;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
   }
@@ -1414,8 +1414,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 100%;
+    min-height: 100%;
     padding: calc(var(--ws-navH, 56px) + 16px) 20px 20px;
+    box-sizing: border-box;
   }
   
   /* Nav links — numbered editorial style (matches hub) */
@@ -1571,6 +1572,13 @@
   
   /* Lock body scroll when menu is open */
   body.menu-open {
-    overflow: hidden;
+    overflow: hidden !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+  
+  body.menu-open .timrx-3dprint {
+    overflow: hidden !important;
+    pointer-events: none;
   }
   

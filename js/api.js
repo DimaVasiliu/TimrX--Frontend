@@ -5418,15 +5418,28 @@ export async function onPostProcessFromHistory(item, type) {
 }
 
 export async function startRefineFromHistory(item, origin = 'history') {
-  if (postProcessLock) return;
+  if (postProcessLock) {
+    console.warn('[Refine] Blocked by postProcessLock — another operation is in progress');
+    return;
+  }
   if (!item) return;
 
   const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
-  const previewTaskId = item.preview_task_id || (stage === 'preview' ? item.id : null);
+  const payload = item.payload || {};
+  const previewTaskId =
+    item.preview_task_id ||
+    payload.preview_task_id ||
+    item.source_task_id ||
+    payload.source_task_id ||
+    item.upstream_job_id ||
+    payload.original_job_id ||
+    (stage === 'preview' ? item.id : null);
   if (!previewTaskId) {
+    console.warn('[Refine] No preview_task_id found:', { id: item.id, stage, keys: Object.keys(item) });
     alert('Only finished preview models can be refined. Select a preview result first.');
     return;
   }
+  console.log('[Refine] Starting with previewTaskId:', previewTaskId, 'stage:', stage, 'origin:', origin);
 
   if (!checkCreditsFor('refine')) return;
 
