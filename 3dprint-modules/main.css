@@ -23,33 +23,44 @@
 
 /* 1. Root Variables & Body Styles */
 @import url('css/variables.css');
+@import url('media/variables-media.css');
 
 /* 2. Navigation & Brand */
 @import url('css/layout.css');
+@import url('media/layout-media.css');
 
 /* 3. Buttons, Forms, Tabs, Chips */
 @import url('css/components.css');
+@import url('media/components-media.css');
 
 /* 4. Workspace Grid & Cards */
 @import url('css/workspace.css');
+@import url('media/workspace-media.css');
 
 /* 5. 3D Viewer Controls */
 @import url('css/viewer.css');
+@import url('media/viewer-media.css');
 
 /* 6. History Panel */
 @import url('css/history.css');
+@import url('media/history-media.css');
 
 /* 7. Tutorials Styles */
 @import url('css/tutorials.css');
+@import url('media/tutorials-media.css');
 
 /* 8. Community Styles */
 @import url('css/community.css');
+@import url('media/community-media.css');
 
 /* 9. Docs Styles */
 @import url('css/docs.css');
+@import url('media/docs-media.css');
 
 /* 10. Inspire Section */
 @import url('css/inspire.css');
+@import url('media/inspire-media.css');
 
 /* 11. Notification Center */
 @import url('css/notifications.css');
+@import url('media/notifications-media.css');

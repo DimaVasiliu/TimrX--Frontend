@@ -1,0 +1,171 @@
+/* ==========================================================================
+   TUTORIALS-MEDIA.CSS — Responsive Rules extracted from css/tutorials.css
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .tutorials-expanded-view {
+    max-width: 100%;
+    padding: 0 clamp(20px, 4vw, 40px);
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .tutorials-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tutorials-guides-grid,
+  .tutorials-resource-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .tutorials-best-practices-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .tutorials-faq-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+  }
+
+  .tutorials-video-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .tutorials-split-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .tutorials-split-model {
+    position: relative;
+    top: 0;
+    order: -1;
+    min-height: 350px;
+  }
+}
+@media (max-width: 768px) {
+  .tutorials-hero h1,
+  .tutorials-title {
+    font-size: clamp(28px, 8vw, 42px);
+  }
+
+  .tutorials-hero-stats {
+    justify-content: center;
+    gap: 24px;
+  }
+
+  .tutorials-guides-grid,
+  .tutorials-resource-grid,
+  .tutorials-steps-grid,
+  .tutorials-best-practices-grid,
+  .tutorials-faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorials-section {
+    margin-top: clamp(40px, 8vw, 60px);
+  }
+
+  .tutorials-section-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .tutorials-section-content {
+    text-align: center;
+  }
+
+  .tutorials-highlight {
+    margin-top: 8px;
+  }
+
+  .tutorials-exit-btn {
+    top: 16px;
+    right: 16px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .tutorials-expanded-shell {
+    padding: 0;
+  }
+
+  .tutorials-hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .tutorials-video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .tutorials-expanded-shell {
+    padding: 0;
+  }
+
+  .tutorials-card {
+    padding: 20px;
+  }
+
+  .tutorials-step {
+    padding: 24px 20px 20px;
+  }
+
+  .tutorials-practice-card {
+    padding: 80px 20px 20px 20px;
+  }
+
+  .practice-icon {
+    left: 20px;
+    top: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 28px;
+  }
+
+  .tutorials-primary-btn,
+  .tutorials-secondary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tutorials-hero-stats {
+    gap: 20px;
+  }
+
+  .tutorials-hero-stats li span {
+    font-size: 20px;
+  }
+}
+@media (max-width: 768px) {
+  .tutorials-model-showcase {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .tutorials-model-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+@media (max-width: 480px) {
+  .tutorials-model-showcase {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .tutorials-model-card__content {
+    padding: 10px 12px;
+  }
+
+  .tutorials-model-card__title {
+    font-size: 12px;
+  }
+}

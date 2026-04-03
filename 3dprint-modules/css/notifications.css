@@ -51,7 +51,6 @@
   40% { transform: rotate(0); }
 }
 
-
 /* ── Badge (unread count) ────────────────────────────────────────────────── */
 
 .notification-badge {
@@ -92,7 +91,6 @@
   line-height: 1;
 }
 
-
 /* ── Dropdown Panel ──────────────────────────────────────────────────────── */
 
 .notif-dropdown {
@@ -119,7 +117,6 @@
   transform: translateY(0);
   pointer-events: auto;
 }
-
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 
@@ -153,7 +150,6 @@
   opacity: 1;
   background: rgba(255,255,255,.04);
 }
-
 
 /* ── Tabs ────────────────────────────────────────────────────────────────── */
 
@@ -192,7 +188,6 @@
   background: rgba(255,255,255,.06);
 }
 
-
 /* ── Notification List ───────────────────────────────────────────────────── */
 
 .notif-list {
@@ -201,7 +196,6 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,.08) transparent;
 }
-
 
 /* ── Notification Item ───────────────────────────────────────────────────── */
 
@@ -313,7 +307,6 @@
   background: rgba(255,255,255,.06);
 }
 
-
 /* ── Empty State ─────────────────────────────────────────────────────────── */
 
 .notif-empty {
@@ -334,7 +327,6 @@
   font-weight: 400;
   opacity: .5;
 }
-
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 
@@ -361,39 +353,6 @@
   opacity: 1;
   background: rgba(255,255,255,.04);
 }
-
-
-/* ── Responsive ──────────────────────────────────────────────────────────── */
-
-@media (max-width: 600px) {
-  .notification-bell-ws {
-    width: 30px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .notification-badge {
-    min-width: 14px;
-    height: 14px;
-    font-size: 9px;
-    top: 1px;
-    right: -1px;
-  }
-  .notif-dropdown {
-    top: var(--ws-navH, 56px) !important;
-    left: 0 !important;
-    right: 0;
-    width: 100%;
-    max-height: calc(100vh - var(--ws-navH, 56px));
-    border-radius: 0 0 12px 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .notif-dropdown {
-    max-height: 80vh;
-  }
-}
-
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /* RICH NOTIFICATION ITEMS — Images, CTAs, Badges, Emoji                     */

@@ -1,0 +1,88 @@
+/* ==========================================================================
+   LAYOUT-MEDIA.CSS — Responsive Rules extracted from css/layout.css
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-blog-cta {
+    animation: none;
+  }
+}
+@media (max-width: 900px) {
+  .ws-header {
+    padding: 12px 16px;
+  }
+}
+@media (max-width: 640px) {
+  .ws-credits-buy {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .account-pill {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .account-icon:not(.account-icon--notif) {
+    display: none;
+  }
+
+  .account-bar {
+    gap: 4px;
+  }
+}
+@media (max-width: 940px) {
+  .credits-group { display: none; }
+}
+@media (max-width: 600px) {
+  .account-shield-ws {
+    width: 44px;
+    height: 44px;
+    font-size: 13px;
+    margin: 0;
+  }
+  .account-shield-ws .account-initial {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    line-height: 28px;
+  }
+}
+@media (max-width: 1280px) {
+  .ws-burger {
+    display: flex;
+  }
+  .ws-nav,
+  .ticker-header,
+  .inspire-trigger-btn,
+  .account-shield-ws {
+    display: none !important;
+  }
+  .ws-header {
+    grid-template-columns: auto 1fr auto;
+  }
+  .ws-credits {
+    justify-self: end;
+    gap: 8px;
+    align-items: center;
+  }
+  .ws-nav-logo {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+  }
+}
+@media (max-width: 768px) {
+  .ws-nav-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .ws-credits-pill,
+  .ws-credits-buy {
+    display: none;
+  }
+}

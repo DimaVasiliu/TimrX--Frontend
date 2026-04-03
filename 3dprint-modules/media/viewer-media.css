@@ -1,0 +1,48 @@
+/* ==========================================================================
+   VIEWER-MEDIA.CSS — Responsive Rules extracted from css/history.css
+   ========================================================================== */
+
+@media (max-height: 800px) {
+  /* Reduce viewer height a bit to avoid crowding bottom */
+  .timrx-3dprint .ws-viewer {
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 1.5));
+  }
+
+  /* Smaller gear button + closer to edges */
+  .timrx-3dprint .viewer-gear {
+    --gear-size: 34px;
+    right: 12px;
+    bottom: 12px;
+    font-size: 16px;
+  }
+
+  /* Autorotate pill hugs gear closer and is more compact */
+  .timrx-3dprint .viewer-autorotate {
+    right: 12px;
+    bottom: calc(12px + var(--gear-size, 34px) + 8px);
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .timrx-3dprint .viewer-autorotate .label {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .timrx-3dprint .viewer-autorotate .toggle {
+    --w: 34px;
+    --h: 20px;
+    --knob: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* On narrow layouts, pull controls slightly inward */
+  .timrx-3dprint .viewer-gear {
+    right: 10px;
+  }
+
+  .timrx-3dprint .viewer-autorotate {
+    right: 10px;
+  }
+}

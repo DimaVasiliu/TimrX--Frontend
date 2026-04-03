@@ -128,13 +128,6 @@
     }
   }
   
-  @media (prefers-reduced-motion: reduce) {
-    .ws-blog-cta {
-      animation: none;
-    }
-  }
-  
-  
   /* --- Center Navigation (matching index nav-links style) --- */
   .ws-nav {
     position: absolute;
@@ -418,19 +411,6 @@
   /* Hide old nav on 3dprint page */
   .print3d-page .nav {
     display: none !important;
-  }
-  
-  /* Responsive */
-  @media (max-width: 900px) {
-    .ws-header {
-      padding: 12px 16px;
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .ws-credits-buy {
-      display: none;
-    }
   }
   
   /* ===== NAVIGATION ===== */
@@ -1161,23 +1141,6 @@
     color: #fca5a5;
   }
   
-  /* === Responsive === */
-  @media (max-width: 900px) {
-    .account-pill {
-      display: none;
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .account-icon:not(.account-icon--notif) {
-      display: none;
-    }
-  
-    .account-bar {
-      gap: 4px;
-    }
-  }
-  
   /* ==========================================================================
      WORKSPACE CREDITS GROUP (Nav Pill + Buy Button)
      ========================================================================== */
@@ -1306,10 +1269,6 @@
   }
   
   /* Hide on mobile */
-  @media (max-width: 940px) {
-    .credits-group { display: none; }
-  }
-  
   /* ==========================================================================
      ACCOUNT SHIELD - Workspace navbar safety indicator
      Color reflects state: red (anon) / amber (unverified) / green (verified)
@@ -1366,23 +1325,6 @@
     text-transform: uppercase;
     box-shadow: 0 0 0 2px rgba(52,211,153,.25);
   }
-  
-  /* Mobile responsive */
-  @media (max-width: 600px) {
-    .account-shield-ws {
-      width: 44px;
-      height: 44px;
-      font-size: 13px;
-      margin: 0;
-    }
-    .account-shield-ws .account-initial {
-      width: 28px;
-      height: 28px;
-      font-size: 12px;
-      line-height: 28px;
-    }
-  }
-  
   
   /* ==========================================================================
      MOBILE BURGER + MENU (workspace header)
@@ -1625,48 +1567,6 @@
   .ws-header.nav-hidden {
     transform: translateY(-100%);
     pointer-events: none;
-  }
-  
-  /* Show burger, hide desktop nav on tablet + mobile */
-  @media (max-width: 1280px) {
-    .ws-burger {
-      display: flex;
-    }
-    .ws-nav,
-    .ticker-header,
-    .inspire-trigger-btn,
-    .account-shield-ws {
-      display: none !important;
-    }
-    .ws-header {
-      grid-template-columns: auto 1fr auto;
-    }
-    .ws-credits {
-      justify-self: end;
-      gap: 8px;
-      align-items: center;
-    }
-    .ws-nav-logo {
-      width: 40px;
-      height: 40px;
-      border: none;
-      border-radius: 10px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .ws-nav-logo {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .ws-credits-pill,
-    .ws-credits-buy {
-      display: none;
-    }
   }
   
   /* Lock body scroll when menu is open */

@@ -58,7 +58,6 @@
   box-sizing: border-box;
 }
 
-
 .timrx-3dprint * {
   box-sizing: border-box;
   margin: 0;
@@ -143,15 +142,4 @@ body.print3d-page > .nav {
 .hidden,
 [hidden] {
   display: none !important;
-}
-
-/* Mobile / Tablet — unlock scroll */
-@media (max-width: 1280px) {
-  .timrx-3dprint,
-  body.print3d-page {
-    height: auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
 }
