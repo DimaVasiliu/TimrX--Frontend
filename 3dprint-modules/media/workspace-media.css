@@ -441,27 +441,27 @@
       grid-template-columns: 1fr;
     }
   
+    .print-prep-section > [id="printDimensionsDisplay"],
+    .print-prep-section > .print-prep-scale-control,
+    .print-prep-section > .print-prep-printer-select {
+      grid-column: 1;
+      grid-row: auto;
+      width: 100%;
+    }
+  
     .print-prep-section > .print-panel-export-btn {
       width: 100%;
       justify-self: stretch;
     }
   }
   @media (max-width: 720px) {
-    .print-prep-section > [id="printDimensionsDisplay"] {
-      width: 100%;
-    }
-  
     .print-prep-dimensions {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 420px) {
     .viewer-print-toast {
       border-radius: 10px;
-    }
-  
-    .print-prep-dimensions {
-      grid-template-columns: 1fr;
     }
   
     .print-panel-checks,
