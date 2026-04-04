@@ -460,6 +460,23 @@ function groupByLineage(items = []) {
   const fingerprintCounts = new Map();
   let fallbackCount = 0;
 
+  // ── Pass 0: Detect batch groups ──
+  // Batch siblings share batch_group_id but each has lineage_origin_id = self.
+  // We need to merge them into one lineage entry so they appear as one card.
+  const batchGroupMap = new Map(); // batch_group_id → group key
+  items.forEach(item => {
+    if (!item) return;
+    const bgid = item.batch_group_id
+      || (item.payload && item.payload.batch_group_id)
+      || null;
+    const bc = parseInt(item.batch_count || (item.payload && item.payload.batch_count), 10) || 1;
+    if (bgid && bc > 1) {
+      if (!batchGroupMap.has(bgid)) {
+        batchGroupMap.set(bgid, `batch:${bgid}`);
+      }
+    }
+  });
+
   items.forEach(item => {
     const fp = itemPromptFingerprint(item);
     if (!fp) return;
@@ -471,14 +488,29 @@ function groupByLineage(items = []) {
 
   items.forEach(item => {
     if (!item) return;
+
+    // ── Check if this item belongs to a batch group ──
+    const bgid = item.batch_group_id
+      || (item.payload && item.payload.batch_group_id)
+      || null;
+    const bc = parseInt(item.batch_count || (item.payload && item.payload.batch_count), 10) || 1;
+    const isBatchSibling = bgid && bc > 1 && batchGroupMap.has(bgid);
+
     const lineageKey = getLineageKey(item);
     const hasExplicitLineage = !!(item.lineage_origin_id || item.lineage_root_id);
     const fingerprint = itemPromptFingerprint(item);
     const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 3;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
-    const rootKey = (hasExplicitLineage ? lineageKey : '') || promptKey || lineageKey || String(item.id || '');
 
-    if (!hasExplicitLineage && !promptKey) fallbackCount++;
+    // If this is a batch sibling, force group by batch_group_id
+    let rootKey;
+    if (isBatchSibling) {
+      rootKey = batchGroupMap.get(bgid);
+    } else {
+      rootKey = (hasExplicitLineage ? lineageKey : '') || promptKey || lineageKey || String(item.id || '');
+    }
+
+    if (!hasExplicitLineage && !promptKey && !isBatchSibling) fallbackCount++;
 
     if (!lineages.has(rootKey)) {
       lineages.set(rootKey, {
@@ -486,12 +518,20 @@ function groupByLineage(items = []) {
         rootId: rootKey,
         title: shortTitle(item),
         created_at: item.created_at,
-        models: []
+        models: [],
+        isBatchGroup: isBatchSibling,
+        batchGroupId: isBatchSibling ? bgid : null,
+        batchCount: isBatchSibling ? bc : 0,
       });
     }
 
     const lineage = lineages.get(rootKey);
     lineage.models.push(item);
+    if (isBatchSibling) {
+      lineage.isBatchGroup = true;
+      lineage.batchGroupId = bgid;
+      lineage.batchCount = Math.max(lineage.batchCount || 0, bc);
+    }
 
     // Pick group title from the oldest item, preferring base stages over derived
     const stage = (item.stage || '').toLowerCase();
@@ -1944,6 +1984,9 @@ function _renderHistoryImpl() {
     slice = sortedLineages;
   }
 
+  // Separate container for grouped cards that need DOM elements (not HTML strings)
+  const _groupedCardSlots = new Map(); // rowKey → { items }
+
   const timelineMarkup = slice.map(lineage => {
     const rowKey = String(lineage.rootId || lineage.id);
     const previousCount = historyLineageCounts.has(rowKey)
@@ -1952,6 +1995,18 @@ function _renderHistoryImpl() {
     const delta = Math.max(0, lineage.models.length - previousCount);
     const showBump = delta > 0;
     historyLineageCounts.set(rowKey, lineage.models.length);
+
+    // ── Batch group: render as a single grouped card ──
+    if (lineage.isBatchGroup && lineage.models.length > 1) {
+      const sortedBatchModels = [...lineage.models].sort((a, b) => {
+        const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
+        const slotB = parseInt(b.batch_slot || (b.payload && b.payload.batch_slot), 10) || 0;
+        return slotA - slotB;
+      });
+      _groupedCardSlots.set(rowKey, { items: sortedBatchModels, lineage });
+      // Return a placeholder div that will be replaced with the real DOM element
+      return `<div class="history-grouped-placeholder" data-group-key="${rowKey}"></div>`;
+    }
 
     const sortedModels = [...lineage.models].sort(compareHistoryModels);
     const bundles = buildLineageBundles(sortedModels);
@@ -2115,6 +2170,22 @@ function _renderHistoryImpl() {
     });
 
     grid.innerHTML = (skeletonMarkup || '') + timelineMarkup;
+
+    // Replace grouped card placeholders with real DOM elements
+    if (_groupedCardSlots.size > 0) {
+      _groupedCardSlots.forEach(({ items, lineage }, key) => {
+        const placeholder = grid.querySelector(`.history-grouped-placeholder[data-group-key="${CSS.escape(key)}"]`);
+        if (!placeholder) return;
+        const group = {
+          id: lineage.batchGroupId || key,
+          model_count: lineage.batchCount || items.length,
+          completed_count: items.filter(i => i.status === 'finished' || !i.status).length,
+          failed_count: items.filter(i => i.status === 'error' || i.status === 'failed').length,
+        };
+        const card = buildGroupedCard(group, items);
+        placeholder.replaceWith(card);
+      });
+    }
 
     // Restore expanded state after rebuild
     if (_expandedRoots.size) {
