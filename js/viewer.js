@@ -801,12 +801,33 @@ export function clearVideoViewer() {
         item: items[i],
       };
       _state.viewports.push(vp);
-
-      // Load model async
-      _loadModelIntoViewport(i, items[i]);
     }
 
     _requestRender();
+
+    // Load models sequentially to avoid overwhelming the server
+    for (let i = 0; i < count; i++) {
+      // Bail if user navigated away from grouped view during loading
+      if (_state.mode !== "grouped" || _state.groupId !== groupId) break;
+      await _loadModelIntoViewport(i, items[i]);
+    }
+  }
+
+  // Shared GLTFLoader + DRACO instance for grouped viewer (avoids re-creating per model)
+  var _groupedLoader = null;
+  function _getGroupedLoader() {
+    var THREE = window.THREE;
+    if (!THREE || !THREE.GLTFLoader) return null;
+    if (!_groupedLoader) {
+      _groupedLoader = new THREE.GLTFLoader();
+      _groupedLoader.setCrossOrigin('anonymous');
+      if (THREE.DRACOLoader) {
+        var draco = new THREE.DRACOLoader();
+        draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        _groupedLoader.setDRACOLoader(draco);
+      }
+    }
+    return _groupedLoader;
   }
 
   async function _loadModelIntoViewport(index, item) {
@@ -826,14 +847,10 @@ export function clearVideoViewer() {
       // Resolve URL using same logic as main viewer: prefer S3 direct, else proxy
       const resolvedUrl = isTimrxS3Url(rawUrl) ? rawUrl : (item.glb_proxy || getLoadableModelUrl(rawUrl));
 
+      const loader = _getGroupedLoader();
+      if (!loader) throw new Error("GLTFLoader not available");
+
       const gltf = await new Promise(function (resolve, reject) {
-        const loader = new THREE.GLTFLoader();
-        // Attach DRACO decoder if available for faster loading
-        if (THREE.DRACOLoader) {
-          const draco = new THREE.DRACOLoader();
-          draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-          loader.setDRACOLoader(draco);
-        }
         loader.load(resolvedUrl,
           function (g) { resolve(g); },
           undefined,

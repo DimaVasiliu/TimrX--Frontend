@@ -110,6 +110,12 @@ function bindGroupedCardEvents(container) {
     if (!items) return;
     card.onclick = function (e) {
       e.stopPropagation();
+      // Close expanded gallery view first so the 3D viewer is visible
+      if (historyState.galleryExpanded) {
+        historyState.galleryExpanded = false;
+        renderHistory();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       if (typeof window.openGroupedViewer === 'function') {
         window.openGroupedViewer(gid, items);
       }
@@ -1878,12 +1884,6 @@ function _renderHistoryImpl() {
       })
     : src;
   const lineages = groupByLineage(srcForLineage);
-  // DEBUG: log batch detection results
-  const batchLineages = lineages.filter(l => l.isBatchGroup);
-  if (batchLineages.length || !isGallery) {
-    console.log('[History] groupByLineage:', { total: lineages.length, batchGroups: batchLineages.length, isGallery, filter: historyState.filter });
-    batchLineages.forEach(l => console.log('[History] batch lineage:', { rootId: l.rootId, models: l.models.length, batchCount: l.batchCount, bgid: l.batchGroupId }));
-  }
   const currentLineageKeys = new Set(lineages.map(l => String(l.rootId || l.id)));
   historyLineageCounts.forEach((_, key) => {
     if (!currentLineageKeys.has(key)) historyLineageCounts.delete(key);
@@ -1945,7 +1945,6 @@ function _renderHistoryImpl() {
     historyLineageCounts.set(rowKey, lineage.models.length);
 
     // ── Batch group: render as a single grouped card (inline HTML) ──
-    console.log('[History] timeline lineage:', { rowKey, isBatchGroup: lineage.isBatchGroup, modelsLen: lineage.models.length, batchCount: lineage.batchCount, bgid: lineage.batchGroupId, isGallery });
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const sortedBatchModels = [...lineage.models].sort((a, b) => {
         const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
