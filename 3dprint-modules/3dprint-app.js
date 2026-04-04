@@ -5250,29 +5250,26 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         syncRemeshPresetDefaults(initialPreset);
       }
 
-      // ── Update remesh model-state label on panel open ──────────────
-      const remeshStateLabel = leftStack.querySelector('#remeshModelStateLabel');
-      if (remeshStateLabel) {
-        const updateRemeshStateLabel = () => {
-          const item = window.getActiveHistoryItem?.();
-          if (!item) { remeshStateLabel.textContent = 'No model loaded'; return; }
-          const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
-          const stageMap = {
-            preview: 'Preview mesh — Refine first for best print results',
-            refine: 'Refined mesh — good base for remeshing',
-            retexture: 'Retextured mesh — remesh after texture changes',
-            remesh: 'Already remeshed — re-remesh only if settings need changing',
-            image3d: 'Image-to-3D mesh — remeshing recommended before print',
-          };
-          remeshStateLabel.textContent = stageMap[stage] || `Stage: ${stage || 'unknown'}`;
+      // ── Update remesh model-state label when active item changes ────
+      const updateRemeshStateLabel = () => {
+        const label = document.getElementById('remeshModelStateLabel');
+        if (!label) return;
+        const item = window.getActiveHistoryItem?.();
+        if (!item) { label.textContent = 'No model loaded'; return; }
+        const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
+        const stageMap = {
+          preview: 'Preview mesh \u2014 Refine first for best print results',
+          refine: 'Refined mesh \u2014 good base for remeshing',
+          retexture: 'Retextured mesh \u2014 remesh after texture changes',
+          remesh: 'Already remeshed \u2014 re-remesh only if settings need changing',
+          image3d: 'Image-to-3D mesh \u2014 remeshing recommended before print',
         };
-        // Update on panel visibility and periodically when active item changes
-        const observer = new MutationObserver(() => {
-          if (leftStack.querySelector('#remeshModelState')) updateRemeshStateLabel();
-        });
-        observer.observe(leftStack, { childList: true, subtree: true });
-        updateRemeshStateLabel();
-      }
+        label.textContent = stageMap[stage] || ('Stage: ' + (stage || 'unknown'));
+      };
+      // Run once now and again whenever the user switches rail panels
+      // (the leftStack innerHTML is replaced, so re-query each time via ID)
+      updateRemeshStateLabel();
+      window._updateRemeshStateLabel = updateRemeshStateLabel;
 
       if (remeshAdvancedToggle && remeshAdvanced) {
         remeshAdvancedToggle.addEventListener('click', () => {
@@ -6266,6 +6263,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       updateLeftPanel(panelType);
       switchViewer(panelType);
+
+      // Refresh remesh model-state label when switching to that panel
+      if (panelType === 'remesh' && window._updateRemeshStateLabel) {
+        window._updateRemeshStateLabel();
+      }
     }
 
     function consumePendingCommunityRemix() {
