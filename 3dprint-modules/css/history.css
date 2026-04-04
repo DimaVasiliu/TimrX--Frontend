@@ -1140,8 +1140,8 @@ body.history-expanded .timrx-3dprint .history-pager {
 /* Grid container for expanded view thumbnails */
 .expanded-thumbs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
   padding: 16px 0;
 }
 
@@ -1164,7 +1164,7 @@ body.history-expanded .timrx-3dprint .history-pager {
   width: 100%;
   min-width: 0;
   max-width: none;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
   position: relative;
   border-radius: 10px;
   background: #0a0b0f;
@@ -2056,8 +2056,244 @@ body.history-expanded .timrx-3dprint .history-pager {
 }
 
 /* ╔════════════════════════════════════════════════════════════════════╗
-   ║  EXPANDED VIEW                                                     ║
+   ║  EXPANDED VIEW – Community-Inspired Card Enhancement               ║
+   ║  Applies ONLY to expanded gallery cards, NOT history panel thumbs  ║
    ╚════════════════════════════════════════════════════════════════════╝ */
+
+/* --- Card container: border, glow, refined radius --- */
+.expanded-thumb {
+  border-radius: 16px;
+  background: #0c0c10;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.expanded-thumb:hover {
+  border-color: rgba(139, 92, 246, 0.15);
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(139, 92, 246, 0.03);
+  z-index: 2;
+}
+
+/* Top glow line on hover (community signature) */
+.expanded-thumb::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 10%, rgba(139, 92, 246, 0.15) 50%, transparent 90%);
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.expanded-thumb:hover::before { opacity: 1; }
+
+/* --- Image: smooth zoom on hover --- */
+.expanded-thumb__image img,
+.expanded-thumb__video-click img {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+}
+.expanded-thumb:hover .expanded-thumb__image img,
+.expanded-thumb:hover .expanded-thumb__video-click img {
+  transform: scale(1.04);
+}
+
+/* --- Stage badge: glassmorphic pill (community type-badge style) --- */
+.expanded-thumb__stage {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+  z-index: 5;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Stage color variants matching community */
+.expanded-thumb__stage[data-stage="texture"],
+.expanded-thumb__stage[data-stage="textured"] {
+  color: #fbbf24;
+}
+.expanded-thumb__stage[data-stage="refine"],
+.expanded-thumb__stage[data-stage="refined"] {
+  color: #a78bfa;
+}
+.expanded-thumb__stage[data-stage="remesh"],
+.expanded-thumb__stage[data-stage="remeshed"] {
+  color: #34d399;
+}
+.expanded-thumb__stage[data-stage="rig"],
+.expanded-thumb__stage[data-stage="rigged"] {
+  color: #f87171;
+}
+.expanded-thumb__stage[data-stage="animate"],
+.expanded-thumb__stage[data-stage="animation"],
+.expanded-thumb__stage[data-stage="animated"] {
+  color: #38bdf8;
+}
+.expanded-thumb__stage[data-stage="image3d"] {
+  color: #c084fc;
+}
+
+/* --- Name overlay: deeper gradient scrim, better typography --- */
+.expanded-thumb__name {
+  padding: 32px 12px 10px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 20%,
+    rgba(0, 0, 0, 0.5) 60%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.94);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.expanded-thumb:hover .expanded-thumb__name { opacity: 1; }
+
+/* --- Video name overlay: same treatment --- */
+.expanded-thumb__video-name {
+  padding: 32px 12px 10px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 20%,
+    rgba(0, 0, 0, 0.5) 60%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+/* --- Status bar: glassmorphic date chip --- */
+.expanded-thumb__status-date {
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* --- Overlay pill: refined community-style --- */
+.expanded-thumb__overlay-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(214, 255, 60, 0.2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* --- Rig indicator: glassmorphic badge --- */
+.expanded-thumb__rig {
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Play button: refined glassmorphic circle --- */
+.expanded-thumb__play-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.3s ease;
+}
+.expanded-thumb:hover .expanded-thumb__play-btn {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* --- Processing overlay: community glass feel --- */
+.expanded-thumb__processing,
+.expanded-thumb__processing--image {
+  background: rgba(12, 12, 16, 0.82);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* --- Composite tiles: subtle gap, rounded inner corners --- */
+.expanded-thumb__composite {
+  gap: 2px;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.expanded-thumb__composite-tile {
+  background: #0c0c10;
+}
+.expanded-thumb__composite-tile img {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.expanded-thumb__composite-tile:hover img {
+  transform: scale(1.06);
+}
+
+/* --- Error state: community-inspired accent --- */
+.expanded-thumb--error {
+  border-color: rgba(239, 68, 68, 0.15);
+}
+.expanded-thumb--error:hover {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.08);
+}
+
+/* --- Grid: more columns, smaller cards, community-like density --- */
+.expanded-thumbs-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+/* --- Menu button: glassmorphic on hover --- */
+.expanded-thumb .expanded-thumb__menu-btn {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: none;
+  transition: all 0.2s ease;
+}
+.expanded-thumb .expanded-thumb__menu-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+  transform: scale(1.1);
+}
 
 /* Reduced motion support */
 /* ╔════════════════════════════════════════════════════════════════════╗

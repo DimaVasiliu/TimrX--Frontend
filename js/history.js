@@ -836,7 +836,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const thumbSrc = displayModel.thumbnail_url || displayModel.image_url || '';
     const fullSrc = displayModel.image_url || displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
-    const imgCanDownload = !!fullSrc && _hasCredits;
+    const imgCanDownload = !!fullSrc && (typeof _hasCredits !== 'undefined' ? _hasCredits : true);
     const artifactFormat = (displayModel.artifact_format || displayModel.meta?.artifact_format || displayModel.format || 'png').toLowerCase();
     const isVectorImage = artifactFormat === 'svg';
     const isImageFailed = status === 'failed';
@@ -967,7 +967,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const videoSrc = displayModel.video_url || '';
     const thumbSrc = displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
-    const videoCanDownload = !!videoSrc && _hasCredits;
+    const videoCanDownload = !!videoSrc && (typeof _hasCredits !== 'undefined' ? _hasCredits : true);
     const isFailed = status === 'failed';
     const statusLabel = displayModel.status_label || '';
     const videoProcessingLabel = statusLabel
@@ -1232,7 +1232,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
         </div>
       ` : ''}
-      ${stageLabel ? `<span class="${thumbPrefix}__stage">${stageLabel}</span>` : ''}
+      ${stageLabel ? `<span class="${thumbPrefix}__stage" data-stage="${(stageVal || '').toLowerCase()}">${stageLabel}</span>` : ''}
       ${!isExpanded ? `
       <div class="${thumbPrefix}__menu-wrap">
         <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Model actions" data-history-menu>
