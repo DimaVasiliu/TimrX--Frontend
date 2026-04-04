@@ -485,3 +485,493 @@ export function clearVideoViewer() {
     if (videoPh) videoPh.classList.remove('hidden');
     if (videoV) videoV.classList.add('hidden');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// GROUPED MULTI-MODEL VIEWER
+// ═══════════════════════════════════════════════════════════════
+
+(function () {
+  "use strict";
+
+  const LAYOUTS = {
+    2: [
+      { x: 0,   y: 0, w: 0.5, h: 1 },
+      { x: 0.5, y: 0, w: 0.5, h: 1 },
+    ],
+    3: [
+      { x: 0,    y: 0.5, w: 0.5,  h: 0.5 },
+      { x: 0.5,  y: 0.5, w: 0.5,  h: 0.5 },
+      { x: 0.125, y: 0,  w: 0.75, h: 0.5 },
+    ],
+    4: [
+      { x: 0,   y: 0.5, w: 0.5, h: 0.5 },
+      { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
+      { x: 0,   y: 0,   w: 0.5, h: 0.5 },
+      { x: 0.5, y: 0,   w: 0.5, h: 0.5 },
+    ],
+  };
+
+  const _state = {
+    mode: "empty",      // empty | single | grouped | focus
+    groupId: null,
+    viewports: [],      // { scene, camera, controls, model, overlay, label, mixer, clock, item }
+    focusIndex: -1,
+    renderRequested: false,
+    animationActive: false,
+  };
+
+  function _getRenderer() {
+    return window.timrxRenderer || null;
+  }
+
+  function _getCanvas() {
+    const r = _getRenderer();
+    return r ? r.domElement : null;
+  }
+
+  function _getContainer() {
+    const canvas = _getCanvas();
+    return canvas ? canvas.parentElement : null;
+  }
+
+  function _addLights(scene) {
+    const THREE = window.THREE;
+    if (!THREE) return;
+    scene.background = new THREE.Color(0x2a2a2e);
+    const amb = new THREE.AmbientLight(0xffffff, 0.6);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 1.4);
+    const key = new THREE.DirectionalLight(0xffffff, 2.5);
+    key.position.set(5, 8, 5);
+    const fill = new THREE.DirectionalLight(0xffffff, 1.5);
+    fill.position.set(-4, 4, 6);
+    const rim = new THREE.DirectionalLight(0xadd8ff, 1.0);
+    rim.position.set(-3, 6, -6);
+    const bottom = new THREE.DirectionalLight(0xffffff, 0.8);
+    bottom.position.set(0, -5, 2);
+    [amb, hemi, key, fill, rim, bottom].forEach(l => scene.add(l));
+
+    // Grid
+    const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
+    grid.material.transparent = true;
+    grid.material.opacity = 0.25;
+    grid.position.y = -0.5;
+    scene.add(grid);
+  }
+
+  function _fitCamera(camera, controls, model) {
+    const THREE = window.THREE;
+    if (!THREE || !model) return;
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const isHumanoid = size.y > size.x * 1.5 && size.y > size.z * 1.5;
+    const dir = isHumanoid
+      ? new THREE.Vector3(0, 0.22, 1).normalize()
+      : new THREE.Vector3(1, 1, 1).normalize();
+    const dist = maxDim / (2 * Math.tan((camera.fov * Math.PI) / 360));
+    camera.position.copy(center).add(dir.multiplyScalar(dist * 1.4));
+    camera.near = maxDim / 100;
+    camera.far = maxDim * 100;
+    camera.updateProjectionMatrix();
+    controls.target.copy(center);
+    controls.maxDistance = maxDim * 12;
+    controls.update();
+  }
+
+  function _requestRender() {
+    if (_state.renderRequested) return;
+    _state.renderRequested = true;
+    requestAnimationFrame(_renderFrame);
+  }
+
+  function _renderFrame() {
+    _state.renderRequested = false;
+    if (_state.mode === "grouped") {
+      _renderGrouped();
+    } else if (_state.mode === "focus") {
+      _renderFocused();
+    }
+    // If animations are active, keep the loop going
+    if (_state.animationActive) {
+      _state.renderRequested = true;
+      requestAnimationFrame(_renderFrame);
+    }
+  }
+
+  function _renderGrouped() {
+    const renderer = _getRenderer();
+    if (!renderer) return;
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const count = _state.viewports.length;
+    const layout = LAYOUTS[Math.min(count, 4)];
+    if (!layout) return;
+
+    renderer.setScissorTest(true);
+    renderer.autoClear = false;
+    renderer.clear();
+
+    let hasAnimation = false;
+
+    for (let i = 0; i < count; i++) {
+      const vp = _state.viewports[i];
+      const lp = layout[i];
+      if (!lp) continue;
+
+      const x = Math.floor(lp.x * width);
+      const y = Math.floor(lp.y * height);
+      const w = Math.floor(lp.w * width);
+      const h = Math.floor(lp.h * height);
+
+      renderer.setViewport(x, y, w, h);
+      renderer.setScissor(x, y, w, h);
+
+      vp.camera.aspect = w / h;
+      vp.camera.updateProjectionMatrix();
+      vp.controls.update();
+
+      if (vp.mixer) {
+        if (!vp.clock) vp.clock = new THREE.Clock();
+        vp.mixer.update(vp.clock.getDelta());
+        hasAnimation = true;
+      }
+
+      renderer.render(vp.scene, vp.camera);
+    }
+
+    renderer.setScissorTest(false);
+    renderer.autoClear = true;
+
+    _state.animationActive = hasAnimation;
+  }
+
+  function _renderFocused() {
+    const renderer = _getRenderer();
+    if (!renderer) return;
+    const vp = _state.viewports[_state.focusIndex];
+    if (!vp) return;
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    renderer.setViewport(0, 0, width, height);
+    vp.camera.aspect = width / height;
+    vp.camera.updateProjectionMatrix();
+    vp.controls.update();
+
+    if (vp.mixer) {
+      if (!vp.clock) vp.clock = new THREE.Clock();
+      vp.mixer.update(vp.clock.getDelta());
+    }
+
+    renderer.render(vp.scene, vp.camera);
+  }
+
+  async function openGroupedViewer(groupId, items) {
+    const THREE = window.THREE;
+    const renderer = _getRenderer();
+    if (!THREE || !renderer) {
+      console.warn("[GroupedViewer] Three.js or renderer not available");
+      return;
+    }
+
+    // Dispose existing grouped view
+    disposeGroupedView();
+
+    // Hide single-model view elements
+    const placeholder = document.getElementById("viewerPlaceholder");
+    if (placeholder) placeholder.style.display = "none";
+
+    _state.mode = "grouped";
+    _state.groupId = groupId;
+    _state.viewports = [];
+
+    const container = _getContainer();
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const count = Math.min(items.length, 4);
+    const layout = LAYOUTS[count];
+    if (!layout) return;
+
+    // Create back button (hidden until focus mode)
+    let backBtn = container.querySelector(".viewer-back-to-group");
+    if (!backBtn) {
+      backBtn = document.createElement("button");
+      backBtn.className = "viewer-back-to-group";
+      backBtn.textContent = "\u2190 Back to group";
+      backBtn.style.display = "none";
+      backBtn.addEventListener("click", function () {
+        backToGroupedView();
+      });
+      container.appendChild(backBtn);
+    }
+
+    for (let i = 0; i < count; i++) {
+      const scene = new THREE.Scene();
+      _addLights(scene);
+
+      const lp = layout[i];
+      const vpW = rect.width * lp.w;
+      const vpH = rect.height * lp.h;
+      const camera = new THREE.PerspectiveCamera(42, vpW / vpH, 0.1, 1000);
+      camera.position.set(3, 2.5, 4);
+
+      // Overlay div for OrbitControls
+      const overlay = document.createElement("div");
+      overlay.className = "viewer-viewport-overlay";
+      overlay.style.position = "absolute";
+      // CSS coordinates: top-left origin (flip y from WebGL convention)
+      overlay.style.left = (lp.x * 100) + "%";
+      overlay.style.bottom = (lp.y * 100) + "%";
+      overlay.style.width = (lp.w * 100) + "%";
+      overlay.style.height = (lp.h * 100) + "%";
+      overlay.style.cursor = "grab";
+      overlay.style.zIndex = "2";
+      overlay.style.touchAction = "none";
+      overlay.dataset.viewportIndex = i;
+      container.appendChild(overlay);
+
+      // Controls
+      const controls = new THREE.OrbitControls(camera, overlay);
+      controls.enableDamping = true;
+      controls.target.set(0, 0.2, 0);
+      controls.addEventListener("change", _requestRender);
+
+      // Label
+      const label = document.createElement("div");
+      label.className = "viewer-viewport-label";
+      label.textContent = "Variant " + (i + 1);
+      overlay.appendChild(label);
+
+      // Loading indicator
+      const loader = document.createElement("div");
+      loader.className = "viewer-viewport-loader";
+      loader.textContent = "Loading\u2026";
+      overlay.appendChild(loader);
+
+      // Double-click to focus
+      overlay.addEventListener("dblclick", function () {
+        focusModel(i);
+      });
+
+      const vp = {
+        scene, camera, controls, overlay, label, loader,
+        model: null, mixer: null, clock: null,
+        item: items[i],
+      };
+      _state.viewports.push(vp);
+
+      // Load model async
+      _loadModelIntoViewport(i, items[i]);
+    }
+
+    _requestRender();
+  }
+
+  async function _loadModelIntoViewport(index, item) {
+    const THREE = window.THREE;
+    const vp = _state.viewports[index];
+    if (!vp || !THREE) return;
+
+    const url = item.glb_url || item.glb_proxy || (item.payload && item.payload.glb_url);
+    if (!url) {
+      vp.label.textContent = "Variant " + (index + 1) + " — no model";
+      vp.label.classList.add("error");
+      if (vp.loader) vp.loader.style.display = "none";
+      return;
+    }
+
+    try {
+      // Resolve proxy URL if needed
+      let resolvedUrl = url;
+      if (url.includes("/api/") || url.includes("/_mod/")) {
+        // Already a proxy URL
+        resolvedUrl = url;
+      }
+
+      const gltf = await new Promise(function (resolve, reject) {
+        const loader = new THREE.GLTFLoader();
+        loader.load(resolvedUrl,
+          function (g) { resolve(g); },
+          undefined,
+          function (err) { reject(err); }
+        );
+      });
+
+      const model = gltf.scene;
+
+      // Center and ground model
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.set(-center.x, -box.min.y + 0.5, -center.z);
+      // Note: +0.5 accounts for grid at y=-0.5
+
+      vp.scene.add(model);
+      vp.model = model;
+
+      // Fit camera
+      _fitCamera(vp.camera, vp.controls, model);
+
+      // Animations
+      if (gltf.animations && gltf.animations.length > 0) {
+        vp.mixer = new THREE.AnimationMixer(model);
+        vp.clock = new THREE.Clock();
+        gltf.animations.forEach(function (clip) {
+          vp.mixer.clipAction(clip).play();
+        });
+        _state.animationActive = true;
+      }
+
+      // Hide loader, update label
+      if (vp.loader) vp.loader.style.display = "none";
+      vp.label.textContent = "Variant " + (index + 1);
+
+      _requestRender();
+    } catch (err) {
+      console.error("[GroupedViewer] Failed to load model " + index + ":", err);
+      vp.label.textContent = "Variant " + (index + 1) + " — failed";
+      vp.label.classList.add("error");
+      if (vp.loader) {
+        vp.loader.textContent = "Failed to load";
+        vp.loader.classList.add("error");
+      }
+    }
+  }
+
+  function focusModel(index) {
+    if (index < 0 || index >= _state.viewports.length) return;
+    _state.mode = "focus";
+    _state.focusIndex = index;
+
+    const count = _state.viewports.length;
+    const layout = LAYOUTS[Math.min(count, 4)];
+
+    // Show only focused overlay, fullscreen
+    _state.viewports.forEach(function (vp, i) {
+      if (i === index) {
+        vp.overlay.style.left = "0";
+        vp.overlay.style.bottom = "0";
+        vp.overlay.style.width = "100%";
+        vp.overlay.style.height = "100%";
+        vp.overlay.style.display = "block";
+        vp.label.textContent = "Variant " + (i + 1) + " (focused)";
+      } else {
+        vp.overlay.style.display = "none";
+      }
+    });
+
+    // Show back button
+    const container = _getContainer();
+    if (container) {
+      const btn = container.querySelector(".viewer-back-to-group");
+      if (btn) btn.style.display = "block";
+    }
+
+    _requestRender();
+  }
+
+  function backToGroupedView() {
+    _state.mode = "grouped";
+    _state.focusIndex = -1;
+
+    const count = _state.viewports.length;
+    const layout = LAYOUTS[Math.min(count, 4)];
+
+    _state.viewports.forEach(function (vp, i) {
+      const lp = layout[i];
+      if (!lp) return;
+      vp.overlay.style.display = "block";
+      vp.overlay.style.left = (lp.x * 100) + "%";
+      vp.overlay.style.bottom = (lp.y * 100) + "%";
+      vp.overlay.style.width = (lp.w * 100) + "%";
+      vp.overlay.style.height = (lp.h * 100) + "%";
+      vp.label.textContent = "Variant " + (i + 1);
+      vp.label.classList.remove("error");
+    });
+
+    // Hide back button
+    const container = _getContainer();
+    if (container) {
+      const btn = container.querySelector(".viewer-back-to-group");
+      if (btn) btn.style.display = "none";
+    }
+
+    _requestRender();
+  }
+
+  function disposeGroupedView() {
+    const THREE = window.THREE;
+    _state.viewports.forEach(function (vp) {
+      if (vp.model && THREE) {
+        vp.model.traverse(function (o) {
+          if (o.geometry) o.geometry.dispose();
+          if (o.material) {
+            var mats = Array.isArray(o.material) ? o.material : [o.material];
+            mats.forEach(function (m) {
+              if (m.map) m.map.dispose();
+              if (m.normalMap) m.normalMap.dispose();
+              if (m.roughnessMap) m.roughnessMap.dispose();
+              if (m.metalnessMap) m.metalnessMap.dispose();
+              if (m.emissiveMap) m.emissiveMap.dispose();
+              if (m.aoMap) m.aoMap.dispose();
+              m.dispose();
+            });
+          }
+        });
+        vp.scene.remove(vp.model);
+      }
+      if (vp.mixer) {
+        vp.mixer.stopAllAction();
+        vp.mixer.uncacheRoot(vp.mixer.getRoot());
+      }
+      if (vp.controls) vp.controls.dispose();
+      if (vp.overlay) vp.overlay.remove();
+    });
+
+    _state.viewports = [];
+    _state.mode = "empty";
+    _state.groupId = null;
+    _state.focusIndex = -1;
+    _state.animationActive = false;
+
+    // Remove back button
+    const container = _getContainer();
+    if (container) {
+      const btn = container.querySelector(".viewer-back-to-group");
+      if (btn) btn.style.display = "none";
+    }
+  }
+
+  function handleResize() {
+    if (_state.mode !== "grouped" && _state.mode !== "focus") return;
+    _requestRender();
+  }
+
+  function getState() {
+    return { mode: _state.mode, groupId: _state.groupId, focusIndex: _state.focusIndex, viewportCount: _state.viewports.length };
+  }
+
+  function isGroupedActive() {
+    return _state.mode === "grouped" || _state.mode === "focus";
+  }
+
+  // Expose API
+  window.GroupedViewer = {
+    open: openGroupedViewer,
+    focus: focusModel,
+    backToGroup: backToGroupedView,
+    dispose: disposeGroupedView,
+    resize: handleResize,
+    requestRender: _requestRender,
+    getState: getState,
+    isActive: isGroupedActive,
+  };
+
+  // Also expose as the function the history panel calls
+  window.openGroupedViewer = openGroupedViewer;
+
+  // Listen for resize
+  window.addEventListener("resize", handleResize);
+})();

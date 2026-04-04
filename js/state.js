@@ -1815,6 +1815,33 @@ window.hasActiveJobs = hasActiveJobs;
 // ============================================================================
 // EXPOSE GENERATION STATE GLOBALLY
 // ============================================================================
+// ── Generation Groups ──
+export const generationGroups = new Map();
+
+export function setGenerationGroup(groupId, group, items) {
+  generationGroups.set(groupId, { group, items });
+}
+
+export function getGenerationGroup(groupId) {
+  return generationGroups.get(groupId);
+}
+
+export function updateGroupProgress(groupId, updates) {
+  const g = generationGroups.get(groupId);
+  if (g) Object.assign(g.group, updates);
+}
+
+// ── Viewer Mode State ──
+export let viewerMode = "empty"; // empty | single | grouped | focus
+export let viewerGroupId = null;
+export let viewerFocusIndex = -1;
+
+export function setViewerMode(mode, groupId = null, focusIndex = -1) {
+  viewerMode = mode;
+  viewerGroupId = groupId;
+  viewerFocusIndex = focusIndex;
+}
+
 window.GenerationState = {
   // State object (read-only reference)
   get generation() { return generation; },

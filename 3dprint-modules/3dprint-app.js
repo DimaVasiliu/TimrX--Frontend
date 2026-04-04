@@ -2034,6 +2034,9 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       renderer.toneMappingExposure = 1.5;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+      // Expose renderer globally for grouped viewer
+      window.timrxRenderer = renderer;
+
       const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
       grid.position.y = -0.5;
       grid.material.opacity = 0.4;
@@ -2143,6 +2146,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           window.timrxControls.target.set(0, 0.2, 0);
           window.timrxControls.update();
         }
+        if (window.GroupedViewer) window.GroupedViewer.resize();
       }
       applyViewerSceneProfile(rect);
       window.addEventListener('resize', onResize);
@@ -2152,6 +2156,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
        */
       function animate() {
         requestAnimationFrame(animate);
+        // Skip main render loop when grouped viewer is handling rendering
+        if (window.GroupedViewer && window.GroupedViewer.isActive()) {
+          return;
+        }
         if (rotationState.enabled && placeholderCube && placeholderCube.visible) {
           placeholderCube.rotation.y += rotationState.speed;
         }

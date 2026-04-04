@@ -37,6 +37,116 @@ let _galleryActiveFilter = 'all';     // current gallery filter tab
 let _galleryScrollBound = false;      // scroll listener attached
 let _galleryFetching = false;         // prevent concurrent DB fetches
 
+// ============================================================================
+// GROUPED CARD BUILDER
+// ============================================================================
+/**
+ * Build a grouped multi-model card DOM element
+ */
+function buildGroupedCard(group, items) {
+  const count = items.length;
+  const el = document.createElement("div");
+  el.className = "history-group-card";
+  el.dataset.groupId = group.id;
+  el.dataset.count = count;
+
+  // Composite thumbnail grid
+  const grid = document.createElement("div");
+  grid.className = "history-group-card__thumbs history-group-card__thumbs--" + Math.min(count, 4);
+
+  items.slice(0, 4).forEach((item, i) => {
+    const img = document.createElement("img");
+    img.src = item.thumbnail_url || item.image_url || "";
+    img.alt = "Variant " + (i + 1);
+    img.loading = "lazy";
+    img.className = "history-group-card__thumb-img";
+    img.onerror = function () { this.style.background = "#333"; this.alt = ""; };
+    grid.appendChild(img);
+  });
+
+  // Overlay with title
+  const overlay = document.createElement("div");
+  overlay.className = "history-group-card__overlay";
+  const nameEl = document.createElement("div");
+  nameEl.className = "history-group-card__name";
+  const title = items[0]?.title || items[0]?.prompt || "Untitled";
+  nameEl.textContent = title.length > 50 ? title.slice(0, 47) + "..." : title;
+  overlay.appendChild(nameEl);
+
+  // Status bar
+  const status = document.createElement("div");
+  status.className = "history-group-card__status";
+
+  const allDone = (group.completed_count || 0) >= (group.model_count || count);
+  const hasFailed = (group.failed_count || 0) > 0;
+  const inProgress = !allDone && !hasFailed;
+
+  if (allDone && !hasFailed) {
+    status.textContent = count + " variants · done";
+  } else if (allDone && hasFailed) {
+    status.textContent = (group.completed_count || 0) + "/" + (group.model_count || count) + " · " + (group.failed_count || 0) + " failed";
+    status.classList.add("has-error");
+  } else if (inProgress) {
+    status.textContent = (group.completed_count || 0) + "/" + (group.model_count || count) + " generating…";
+    status.classList.add("is-generating");
+  } else {
+    status.textContent = count + " variants";
+  }
+
+  el.appendChild(grid);
+  el.appendChild(overlay);
+  el.appendChild(status);
+
+  // Click: open grouped viewer
+  el.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (typeof window.openGroupedViewer === "function") {
+      window.openGroupedViewer(group.id, items);
+    } else {
+      // Fallback: open first model
+      const first = items[0];
+      if (first && typeof window.loadModelFromHistory === "function") {
+        window.loadModelFromHistory(first);
+      }
+    }
+  });
+
+  return el;
+}
+
+/**
+ * Helper: detect and extract generation groups from history items
+ */
+function extractGenerationGroups(items) {
+  const groupMap = new Map();
+  const ungrouped = [];
+
+  for (const item of items) {
+    const gid = item.generation_group_id;
+    const gcount = parseInt(item.group_model_count) || 0;
+
+    if (gid && gcount > 1) {
+      if (!groupMap.has(gid)) {
+        groupMap.set(gid, {
+          group: {
+            id: gid,
+            model_count: gcount,
+            completed_count: parseInt(item.group_completed_count) || 0,
+            failed_count: parseInt(item.group_failed_count) || 0,
+            status: item.group_status || "completed",
+          },
+          items: [],
+        });
+      }
+      groupMap.get(gid).items.push(item);
+    } else {
+      ungrouped.push(item);
+    }
+  }
+
+  return { groupMap, ungrouped };
+}
+
 /**
  * Show / hide / update the loading sentinel at the bottom of the gallery.
  */
@@ -1556,12 +1666,34 @@ function _renderHistoryImpl() {
     }
 
     const activeId = historyActiveModelId;
-    const imageCards = slice.map(img => {
-      const bundle = { models: [img], isBundle: false };
-      // fingerprint: status + active flag — if either changes, card must be replaced
-      const fp = (img.status || 'finished') + (img.id === activeId ? ':A' : '');
-      return { id: img.id, fp, html: buildHistoryThumb(bundle, false) };
-    });
+
+    // Extract generation groups from slice
+    const { groupMap, ungrouped } = extractGenerationGroups(slice);
+    const seenGroups = new Set();
+
+    const imageCards = [];
+    const imageCardElements = [];
+
+    for (const item of slice) {
+      const gid = item.generation_group_id;
+
+      // If item is part of a group with multiple models, render as grouped card
+      if (gid && groupMap.has(gid)) {
+        if (!seenGroups.has(gid)) {
+          seenGroups.add(gid);
+          const gdata = groupMap.get(gid);
+          const groupElement = buildGroupedCard(gdata.group, gdata.items);
+          const fp = gdata.group.status + (gdata.items.some(i => i.id === activeId) ? ':A' : '');
+          imageCards.push({ id: gid, fp, isGroup: true });
+          imageCardElements.push({ element: groupElement, fp, id: gid });
+        }
+      } else {
+        // Single item — render as individual card
+        const bundle = { models: [item], isBundle: false };
+        const fp = (item.status || 'finished') + (item.id === activeId ? ':A' : '');
+        imageCards.push({ id: item.id, fp, html: buildHistoryThumb(bundle, false) });
+      }
+    }
 
     // Surgical update: if the grid already shows the same image IDs in the
     // same order, patch only the cards whose fingerprint changed.  This
@@ -1575,25 +1707,48 @@ function _renderHistoryImpl() {
     if (canPatchImages) {
       for (let i = 0; i < imageCards.length; i++) {
         const child = existingImageGrid.children[i];
-        if (child.dataset._fp === imageCards[i].fp) continue; // unchanged — skip
-        const temp = document.createElement('div');
-        temp.innerHTML = imageCards[i].html;
-        const replacement = temp.firstElementChild;
+        const card = imageCards[i];
+        if (child.dataset._fp === card.fp) continue; // unchanged — skip
+
+        let replacement;
+        if (card.isGroup && imageCardElements[i]) {
+          replacement = imageCardElements[i].element.cloneNode(true);
+        } else {
+          const temp = document.createElement('div');
+          temp.innerHTML = card.html;
+          replacement = temp.firstElementChild;
+        }
+
         if (replacement) {
-          replacement.dataset._fp = imageCards[i].fp;
+          replacement.dataset._fp = card.fp;
           existingImageGrid.replaceChild(replacement, child);
         }
       }
     } else {
-      // Full rebuild — tag each child with fingerprint for future patches
-      const markup = imageCards.map(c => c.html).join('');
-      grid.innerHTML = `<div class="history-image-grid">${markup}</div>`;
-      const builtGrid = grid.querySelector('.history-image-grid');
-      if (builtGrid) {
-        Array.from(builtGrid.children).forEach((child, i) => {
-          if (imageCards[i]) child.dataset._fp = imageCards[i].fp;
-        });
+      // Full rebuild — build the grid with both grouped and individual cards
+      const gridContainer = document.createElement('div');
+      gridContainer.className = 'history-image-grid';
+
+      for (let i = 0; i < imageCards.length; i++) {
+        const card = imageCards[i];
+        let cardElement;
+
+        if (card.isGroup && imageCardElements[i]) {
+          cardElement = imageCardElements[i].element.cloneNode(true);
+        } else {
+          const temp = document.createElement('div');
+          temp.innerHTML = card.html;
+          cardElement = temp.firstElementChild;
+        }
+
+        if (cardElement) {
+          cardElement.dataset._fp = card.fp;
+          gridContainer.appendChild(cardElement);
+        }
       }
+
+      grid.innerHTML = '';
+      grid.appendChild(gridContainer);
     }
 
     if (pageLabel) {
