@@ -897,7 +897,7 @@
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
               <div class="field-row-grid field-row-grid--toggles">
                 <div class="field-row">
-                  <span class="field-label-inline">Auto-remesh Output</span>
+                  <span class="field-label-inline">Auto-remesh Output <span class="info-dot" title="When enabled, Meshy rebuilds the mesh topology during preview generation. Leave off to get the raw high-detail mesh, then use the Remesh panel for controlled print prep.">i</span></span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelShouldRemesh">
                     <span class="toggle-slider"></span>
@@ -968,7 +968,7 @@
                 <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add OBJ / FBX / STL / USDZ only when you want those preview exports generated too.</p>
               </div>
 
-              <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want Meshy preview to honor topology and target polycount.</p>
+              <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want Meshy to apply topology cleanup during preview generation. For print workflows, it is usually better to leave this off and use the dedicated Remesh panel after refining, which gives you more control over the result.</p>
             </div>
           </details>
 
@@ -989,9 +989,21 @@
   
       remesh: `
         <div class="card">
-          <h3>Model Selection</h3>
+          <h3>Prepare for Print</h3>
+          <p class="card-desc" style="margin:0 0 10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.5">
+            Remeshing rebuilds the mesh topology to fix common AI-generation artifacts:
+            open edges, non-manifold faces, and irregular polygon distribution.
+            This is the most important step before exporting for 3D printing.
+          </p>
+
+          <div class="remesh-model-state" id="remeshModelState" style="margin-bottom:12px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);font-size:12px;color:rgba(255,255,255,.6)">
+            <span style="font-weight:600;color:rgba(255,255,255,.8)">Model state:</span>
+            <span id="remeshModelStateLabel" style="margin-left:4px">No model loaded</span>
+          </div>
+
+          <h4 style="margin:0 0 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.02em">Source</h4>
           <div class="inline-field">
-            <label for="remeshModelSelect">Source</label>
+            <label for="remeshModelSelect">Model</label>
             <select id="remeshModelSelect">
               <option value="current" selected>Current Model</option>
               <option value="upload">Upload New Model</option>
@@ -1005,34 +1017,45 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               <p style="margin:0 0 3px;font-size:12px;color:#ccc">Click or Drag & Drop</p>
-              <span style="font-size:11px;color:#666">OBJ, FBX, STL, GLTF</span>
+              <span style="font-size:11px;color:#666">GLB, OBJ, FBX, STL, GLTF</span>
               <input type="file" id="remeshModelUpload" accept=".obj,.fbx,.stl,.gltf,.glb" hidden />
             </div>
             <div id="remeshModelFileName" style="display:none;margin-top:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:7px;font-size:12px;color:#ccc"></div>
           </div>
 
           <div class="card-divider"></div>
+
+          <h4 style="margin:0 0 8px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.02em">Remesh Preset</h4>
           <div class="remesh-presets" id="remeshPresets">
             <button type="button" class="remesh-preset is-active" data-preset="print-ready" data-poly="50000" data-topo="triangle">
               <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.72 13.829a5.25 5.25 0 01-.905-2.578L4.5 10.5l1.315-.751A5.25 5.25 0 016.72 7.171L8 6l.754 1.321a5.25 5.25 0 012.578.905L12.5 9.5l-1.168.674a5.25 5.25 0 01-.905 2.578L9.5 14l-.754-1.321a5.25 5.25 0 01-2.026.15z"/><path d="M15 4l.5 1a3.5 3.5 0 001.5 1.5l1 .5-1 .5a3.5 3.5 0 00-1.5 1.5L15 10l-.5-1a3.5 3.5 0 00-1.5-1.5L12 7l1-.5a3.5 3.5 0 001.5-1.5L15 4z"/><path d="M6 14v4a2 2 0 002 2h8a2 2 0 002-2v-4"/></svg>
               <span class="remesh-preset__name">Print Ready</span>
-              <span class="remesh-preset__desc">50K polys - optimized for 3D printing</span>
+              <span class="remesh-preset__desc">50K tris — watertight mesh for FDM/resin slicers</span>
             </button>
-            <button type="button" class="remesh-preset" data-preset="game-asset" data-poly="10000" data-topo="triangle">
-              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875S10.5 3.089 10.5 4.125c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.95 3.064 2.109 4.112A6.002 6.002 0 0112 12a6.002 6.002 0 013.461-1.458 6.998 6.998 0 002.109-4.112 48.39 48.39 0 01-4.163.3.64.64 0 01-.657-.643z"/><path d="M3 18h18M5.25 18v-3h13.5v3"/></svg>
-              <span class="remesh-preset__name">Game Asset</span>
-              <span class="remesh-preset__desc">10K polys - low-poly for real-time</span>
+            <button type="button" class="remesh-preset" data-preset="miniature" data-poly="80000" data-topo="triangle">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
+              <span class="remesh-preset__name">Figurine / Mini</span>
+              <span class="remesh-preset__desc">80K tris — preserves fine detail for small resin prints</span>
             </button>
             <button type="button" class="remesh-preset" data-preset="high-detail" data-poly="100000" data-topo="triangle">
               <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/><path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
               <span class="remesh-preset__name">High Detail</span>
-              <span class="remesh-preset__desc">100K polys - maximum fidelity</span>
+              <span class="remesh-preset__desc">100K tris — maximum fidelity for large display pieces</span>
             </button>
-            <button type="button" class="remesh-preset" data-preset="quad-clean" data-poly="30000" data-topo="quad">
-              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              <span class="remesh-preset__name">Quad Clean</span>
-              <span class="remesh-preset__desc">30K quads - clean topology for animation</span>
+            <button type="button" class="remesh-preset" data-preset="game-asset" data-poly="10000" data-topo="triangle">
+              <svg class="remesh-preset__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875S10.5 3.089 10.5 4.125c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.95 3.064 2.109 4.112A6.002 6.002 0 0012 12a6.002 6.002 0 013.461-1.458 6.998 6.998 0 002.109-4.112 48.39 48.39 0 01-4.163.3.64.64 0 01-.657-.643z"/><path d="M3 18h18M5.25 18v-3h13.5v3"/></svg>
+              <span class="remesh-preset__name">Game / Low-Poly</span>
+              <span class="remesh-preset__desc">10K tris — optimized for real-time rendering, not print</span>
             </button>
+          </div>
+
+          <div class="remesh-guidance" style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);font-size:11px;line-height:1.55;color:rgba(255,255,255,.55)">
+            <strong style="color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Recommended workflow for printing:</strong>
+            1. Generate your model (Text or Image to 3D)<br>
+            2. Refine it (adds high-quality textures + improves geometry)<br>
+            3. Remesh with <strong>Print Ready</strong> preset (fixes topology for slicing)<br>
+            4. Run <strong>Print Check</strong> in the viewer toolbar to verify<br>
+            5. Export STL from the Print Check panel
           </div>
 
           <button type="button" class="remesh-advanced-toggle" id="remeshAdvancedToggle">
@@ -1045,15 +1068,6 @@
               <input type="number" id="targetPolyCount" value="50000" min="100" max="1000000" step="1000">
             </div>
             <div class="inline-field">
-              <label for="remeshMode">Mode</label>
-              <select id="remeshMode">
-                <option value="uniform">Uniform</option>
-                <option value="adaptive" selected>Adaptive</option>
-                <option value="feature-preserving">Feature Preserving</option>
-                <option value="quad-based">Quad Based</option>
-              </select>
-            </div>
-            <div class="inline-field">
               <label for="remeshResizeHeight">Resize Height (m)</label>
               <input type="number" id="remeshResizeHeight" min="0" step="0.01" placeholder="0 = keep original">
             </div>
@@ -1061,7 +1075,7 @@
               <label for="remeshOriginAt">Origin</label>
               <select id="remeshOriginAt">
                 <option value="" selected>Keep Original</option>
-                <option value="bottom">Bottom</option>
+                <option value="bottom">Bottom (recommended for print)</option>
                 <option value="center">Center</option>
               </select>
             </div>
@@ -1089,16 +1103,16 @@
                   <span class="texture-format-chip">BLEND</span>
                 </label>
               </div>
-              <p class="field-hint texture-setting-note">GLB always stays enabled for in-app preview. Add STL for print, OBJ / FBX for DCC, USDZ for AR, or BLEND for Blender delivery.</p>
+              <p class="field-hint texture-setting-note">GLB is always included for in-app preview. Check STL for 3D printing. OBJ/FBX for 3D editing software. USDZ for AR preview.</p>
             </div>
             <div class="field-row">
-              <span class="field-label-inline">Format Only Conversion</span>
+              <span class="field-label-inline">Format Only (skip remesh)</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="remeshConvertFormatOnly">
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <p class="field-hint texture-setting-note" id="remeshConvertOnlyNote">When enabled, Meshy only exports the selected formats and skips topology cleanup, origin changes, and resizing.</p>
+            <p class="field-hint texture-setting-note" id="remeshConvertOnlyNote">When enabled, Meshy exports the selected formats without changing topology, origin, or size. Use this to convert an already-clean mesh to different file formats.</p>
           </div>
         </div>
 
@@ -5204,21 +5218,20 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const remeshResizeHeight = leftStack.querySelector('#remeshResizeHeight');
       const remeshOriginAt = leftStack.querySelector('#remeshOriginAt');
       const remeshPolyInput = leftStack.querySelector('#targetPolyCount');
-      const remeshModeInput = leftStack.querySelector('#remeshMode');
 
       const syncRemeshPresetDefaults = (card) => {
         if (!card) return;
         if (remeshPolyInput) remeshPolyInput.value = card.dataset.poly || '50000';
-        if (remeshModeInput) remeshModeInput.value = card.dataset.topo === 'quad' ? 'quad-based' : 'adaptive';
         if (remeshFormatContainer) {
           const stlInput = remeshFormatContainer.querySelector('input[value="stl"]');
-          if (stlInput) stlInput.checked = card.dataset.preset === 'print-ready';
+          const printPresets = ['print-ready', 'miniature', 'high-detail'];
+          if (stlInput) stlInput.checked = printPresets.includes(card.dataset.preset);
         }
       };
 
       const syncRemeshAdvancedState = () => {
         const convertOnly = !!remeshConvertFormatOnly?.checked;
-        [remeshPolyInput, remeshModeInput, remeshResizeHeight, remeshOriginAt].forEach((el) => {
+        [remeshPolyInput, remeshResizeHeight, remeshOriginAt].forEach((el) => {
           if (!el) return;
           el.disabled = convertOnly;
         });
@@ -5235,6 +5248,30 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
         const initialPreset = remeshPresetsWrap.querySelector('.remesh-preset.is-active') || remeshPresetsWrap.querySelector('.remesh-preset');
         syncRemeshPresetDefaults(initialPreset);
+      }
+
+      // ── Update remesh model-state label on panel open ──────────────
+      const remeshStateLabel = leftStack.querySelector('#remeshModelStateLabel');
+      if (remeshStateLabel) {
+        const updateRemeshStateLabel = () => {
+          const item = window.getActiveHistoryItem?.();
+          if (!item) { remeshStateLabel.textContent = 'No model loaded'; return; }
+          const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
+          const stageMap = {
+            preview: 'Preview mesh — Refine first for best print results',
+            refine: 'Refined mesh — good base for remeshing',
+            retexture: 'Retextured mesh — remesh after texture changes',
+            remesh: 'Already remeshed — re-remesh only if settings need changing',
+            image3d: 'Image-to-3D mesh — remeshing recommended before print',
+          };
+          remeshStateLabel.textContent = stageMap[stage] || `Stage: ${stage || 'unknown'}`;
+        };
+        // Update on panel visibility and periodically when active item changes
+        const observer = new MutationObserver(() => {
+          if (leftStack.querySelector('#remeshModelState')) updateRemeshStateLabel();
+        });
+        observer.observe(leftStack, { childList: true, subtree: true });
+        updateRemeshStateLabel();
       }
 
       if (remeshAdvancedToggle && remeshAdvanced) {

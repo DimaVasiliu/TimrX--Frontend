@@ -3033,6 +3033,38 @@ body.print-panel-open .history-thumb__date {
   color: rgba(255, 255, 255, 0.4);
 }
 
+/* ── Model-state banner ──────────────────────────────────────────── */
+.print-model-state-banner {
+  animation: fadeIn .25s ease;
+}
+
+.print-model-state-badge {
+  transition: all .2s ease;
+}
+
+.print-model-state-advice {
+  transition: color .2s ease;
+}
+
+/* ── Remesh guidance ─────────────────────────────────────────────── */
+.remesh-guidance {
+  animation: fadeIn .3s ease;
+}
+
+.remesh-guidance strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.remesh-model-state {
+  animation: fadeIn .25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* ── Spinner ──────────────────────────────────────────────────────── */
 .print-panel-spinner {
   width: 32px;

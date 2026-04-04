@@ -1709,11 +1709,10 @@ function getRemeshFormValues() {
     topology = activePreset.dataset.topo || 'triangle';
   } else {
     const polyInput = byId('targetPolyCount');
-    const modeInput = byId('remeshMode');
     target_polycount = parseInt(polyInput?.value || '0', 10);
     if (!Number.isFinite(target_polycount) || target_polycount <= 0) target_polycount = 45000;
-    const remeshMode = (modeInput?.value || '').toLowerCase();
-    topology = remeshMode.includes('quad') ? 'quad' : 'triangle';
+    // Topology is determined by the active preset; default to triangle
+    topology = activePreset?.dataset.topo || 'triangle';
   }
 
   const target_formats = Array.from(new Set([

@@ -685,15 +685,27 @@
             <div id="printPanelResults" class="viewer-print-state" style="display:none">
               <div class="print-panel-layout">
                 <aside class="print-panel-sidebar">
+
+                  <!-- Model State Banner -->
+                  <div class="print-model-state-banner" id="printModelStateBanner" style="padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:2px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                      <span class="print-model-state-badge" id="printModelStateBadge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)">Unknown</span>
+                      <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8)" id="printModelStateTitle">Model state</span>
+                    </div>
+                    <p class="print-model-state-advice" id="printModelStateAdvice" style="margin:0;font-size:11px;line-height:1.5;color:rgba(255,255,255,.5)">
+                      Run a print check to see model state information.
+                    </p>
+                  </div>
+
                   <div class="print-panel-score-row">
                     <div class="print-panel-score-badge" id="printScoreBadge">0</div>
                     <div class="print-panel-score-info">
-                      <p class="print-panel-verdict" id="printVerdict">—</p>
+                      <p class="print-panel-verdict" id="printVerdict">&mdash;</p>
                       <p class="print-panel-score-label">Print readiness score</p>
                     </div>
                   </div>
 
-                  <p class="print-panel-summary">
+                  <p class="print-panel-summary" id="printPanelSummary">
                     Use the score as a quick signal, then review the detailed geometry checks below before exporting for print.
                   </p>
 
@@ -764,29 +776,45 @@
                     </section>
                   </div>
 
+                  <!-- Pre-Export Guidance -->
+                  <section class="print-panel-surface" id="printGuidanceSection">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">Before you print</p>
+                        <p class="print-panel-surface-note">Important considerations for AI-generated models.</p>
+                      </div>
+                    </div>
+                    <div style="display:grid;gap:6px;font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.55)">
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">AI models are not automatically production-ready.</strong> They are generated approximations. Always verify in a slicer (PrusaSlicer, Cura, Lychee) before committing to a print run.</p>
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Textures do not affect physical prints.</strong> For FDM/resin printing, only geometry matters. Focus on mesh quality, not visual appearance. Paint or finish the physical object after printing.</p>
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Check for hidden internal geometry.</strong> AI models may contain floating fragments or overlapping faces inside the mesh. Open the STL in Blender or Meshmixer to inspect before selling printed copies.</p>
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Consider orientation and supports.</strong> Rotate the model in your slicer to minimize overhangs and support material. This affects print quality, time, and cost significantly.</p>
+                    </div>
+                  </section>
+
                   <section class="print-panel-surface">
                     <div class="print-panel-surface-head">
                       <div>
-                        <p class="viewer-print-toast__subtitle">One-click print services</p>
-                        <p class="print-panel-surface-note">Export your STL above, then compare pricing or upload directly to a print service.</p>
+                        <p class="viewer-print-toast__subtitle">Print services</p>
+                        <p class="print-panel-surface-note">Export your STL above, then upload to a print service. All accept STL files.</p>
                       </div>
                     </div>
                     <div class="print-service-grid">
                       <a href="https://craftcloud3d.com/" target="_blank" rel="noopener" class="print-service-btn">
                         <span class="print-service-name">Craftcloud</span>
-                        <span class="print-service-desc">Compare 150+ services</span>
+                        <span class="print-service-desc">Compare 150+ services &amp; materials</span>
                       </a>
                       <a href="https://i.materialise.com/" target="_blank" rel="noopener" class="print-service-btn">
                         <span class="print-service-name">i.materialise</span>
-                        <span class="print-service-desc">Industrial quality</span>
+                        <span class="print-service-desc">Industrial quality, metals &amp; ceramics</span>
                       </a>
                       <a href="https://jlc3dp.com/" target="_blank" rel="noopener" class="print-service-btn">
                         <span class="print-service-name">JLCPCB 3DP</span>
-                        <span class="print-service-desc">Fast &amp; affordable</span>
+                        <span class="print-service-desc">Fast turnaround, competitive pricing</span>
                       </a>
                       <a href="https://www.sculpteo.com/" target="_blank" rel="noopener" class="print-service-btn">
                         <span class="print-service-name">Sculpteo</span>
-                        <span class="print-service-desc">Premium materials</span>
+                        <span class="print-service-desc">Premium finishes, batch production</span>
                       </a>
                     </div>
                   </section>
@@ -1662,8 +1690,9 @@
               <p class="tutorials-card__body">Start from a preset, then open Advanced Settings when you need custom density, resize, origin placement, or export-only conversion.</p>
               <ul class="tutorials-card__list">
                 <li>Print Ready: triangle mesh + STL-focused output</li>
-                <li>Game Asset: lighter triangle mesh for runtime use</li>
-                <li>High Detail / Quad Clean: fidelity or animation cleanup</li>
+                <li>Figurine / Mini: higher detail for small resin prints</li>
+                <li>High Detail: maximum fidelity for large display pieces</li>
+                <li>Game / Low-Poly: real-time rendering only, not for printing</li>
                 <li>Advanced: poly count, resize height, origin, format-only</li>
               </ul>
             </article>
@@ -2361,7 +2390,7 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Presets &amp; Topology</dt>
-                <dd>Start with Print Ready, Game Asset, High Detail, or Quad Clean, then fine-tune triangle vs quad output and custom poly count in Advanced Settings.</dd>
+                <dd>Start with Print Ready, Figurine / Mini, or High Detail for printing. Use Game / Low-Poly only for real-time rendering. Fine-tune poly count in Advanced Settings.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Size &amp; Origin</dt>

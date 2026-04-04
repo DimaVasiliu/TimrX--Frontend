@@ -766,6 +766,53 @@ function initViewerToolbar() {
         : `The model has critical geometry issues for ${printerLabel} printing. Remesh the model to repair it before exporting.`;
     }
 
+    // ── Model-state banner ─────────────────────────────────────────
+    const stateBadge = document.getElementById('printModelStateBadge');
+    const stateTitle = document.getElementById('printModelStateTitle');
+    const stateAdvice = document.getElementById('printModelStateAdvice');
+    const stateBanner = document.getElementById('printModelStateBanner');
+    if (stateBanner) {
+      const stage = data.model_stage || 'unknown';
+      const isRemeshed = data.is_remeshed === true;
+      const isRefined = data.is_refined === true;
+
+      const stageLabels = {
+        preview:     { label: 'Preview',     color: '#f59e0b', bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.25)' },
+        refined:     { label: 'Refined',     color: '#3b82f6', bg: 'rgba(59,130,246,.12)', border: 'rgba(59,130,246,.25)' },
+        retextured:  { label: 'Retextured',  color: '#8b5cf6', bg: 'rgba(139,92,246,.12)', border: 'rgba(139,92,246,.25)' },
+        remeshed:    { label: 'Remeshed',    color: '#22c55e', bg: 'rgba(34,197,94,.12)',  border: 'rgba(34,197,94,.25)' },
+        image3d:     { label: 'Image-to-3D', color: '#06b6d4', bg: 'rgba(6,182,212,.12)',  border: 'rgba(6,182,212,.25)' },
+        unknown:     { label: 'Unknown',     color: '#888',    bg: 'rgba(255,255,255,.04)', border: 'rgba(255,255,255,.08)' },
+      };
+      const info = stageLabels[stage] || stageLabels.unknown;
+
+      if (stateBadge) {
+        stateBadge.textContent = info.label;
+        stateBadge.style.background = info.bg;
+        stateBadge.style.borderColor = info.border;
+        stateBadge.style.color = info.color;
+        stateBadge.style.border = `1px solid ${info.border}`;
+      }
+
+      let advice = '';
+      if (isRemeshed) {
+        advice = 'This model has been remeshed. It should have clean topology suitable for slicing. Verify dimensions, export STL, and run a final check in your slicer.';
+      } else if (stage === 'preview') {
+        advice = 'This is a preview-grade mesh with rough geometry. For best print results: Refine first (improves geometry + adds textures), then Remesh with the Print Ready preset before exporting.';
+      } else if (isRefined) {
+        advice = 'This model is refined with high-quality textures. For printing, textures do not matter — only geometry does. Remesh with the Print Ready preset to produce clean, watertight topology before exporting STL.';
+      } else if (stage === 'retextured') {
+        advice = 'This model has been retextured. Retexturing changes surface appearance but may have altered mesh topology. Remesh with Print Ready preset to ensure clean geometry for printing.';
+      } else if (stage === 'image3d') {
+        advice = 'This model was generated from an image. Image-to-3D models typically need remeshing before printing. Use the Remesh panel with the Print Ready preset, then re-run this check.';
+      } else {
+        advice = 'Model source unknown. Run a Remesh with Print Ready preset to ensure the mesh is watertight and suitable for slicing before exporting.';
+      }
+
+      if (stateAdvice) stateAdvice.textContent = advice;
+      if (stateTitle) stateTitle.textContent = isRemeshed ? 'Ready for print prep' : 'Recommended: Remesh before export';
+    }
+
     // Checks grid
     const grid = document.getElementById('printChecksGrid');
     if (grid) {
