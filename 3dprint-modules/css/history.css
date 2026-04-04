@@ -4162,19 +4162,136 @@ body.has-modal {
 }
 
 /* ── Grouped Multi-Model Cards ── */
-.history-group-card { position: relative; border-radius: 10px; overflow: hidden; cursor: pointer; background: var(--surface-2, #1e1e22); transition: transform 0.15s ease, box-shadow 0.15s ease; margin: 8px 12px; }
-.history-group-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
-.history-group-card__thumbs { display: grid; gap: 2px; aspect-ratio: 16 / 9; background: #111; min-height: 80px; }
+
+/* Base card: used in history panel sidebar */
+.history-group-card {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #0c0c10;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.history-group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+
+/* Thumbnail grid: fills all available space */
+.history-group-card__thumbs {
+  display: grid;
+  gap: 2px;
+  background: #111;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.history-group-card__thumbs--1 { grid-template-columns: 1fr; }
 .history-group-card__thumbs--2 { grid-template-columns: 1fr 1fr; }
 .history-group-card__thumbs--3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 .history-group-card__thumbs--3 .history-group-card__thumb-img:nth-child(3) { grid-column: 1 / -1; }
 .history-group-card__thumbs--4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-.history-group-card__thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.history-group-card__overlay { position: absolute; bottom: 22px; left: 0; right: 0; padding: 16px 8px 4px; background: linear-gradient(transparent, rgba(0,0,0,0.75)); pointer-events: none; }
-.history-group-card__name { color: #fff; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-.history-group-card__status { padding: 4px 8px; font-size: 11px; color: rgba(255,255,255,0.55); background: var(--surface-2, #1e1e22); }
+
+.history-group-card__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  min-height: 0;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.history-group-card:hover .history-group-card__thumb-img {
+  transform: scale(1.04);
+}
+
+/* Gradient overlay for title */
+.history-group-card__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px 10px 30px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.history-group-card__name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Status footer */
+.history-group-card__status {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  background: rgba(12, 12, 16, 0.95);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  letter-spacing: 0.02em;
+}
 .history-group-card__status.is-generating { color: #6bb5ff; }
 .history-group-card__status.has-error { color: #ff7b7b; }
-.history-group-card__thumb-placeholder { display: flex; align-items: center; justify-content: center; background: #2a2a2e; }
-.history-group-card__spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #6bb5ff; border-radius: 50%; animation: groupCardSpin 0.8s linear infinite; }
+
+/* Placeholder + spinner */
+.history-group-card__thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1e;
+}
+.history-group-card__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: #6bb5ff;
+  border-radius: 50%;
+  animation: groupCardSpin 0.8s linear infinite;
+}
 @keyframes groupCardSpin { to { transform: rotate(360deg); } }
+
+/* ── Expanded view overrides: no margin, fill the expanded-thumb wrapper ── */
+.expanded-thumb .history-group-card {
+  margin: 0;
+  border-radius: inherit;
+  border: none;
+  background: transparent;
+}
+/* Remove the card's own hover inside expanded-thumb (parent handles it) */
+.expanded-thumb .history-group-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+/* Community-style: top glow on hover for grouped cards too */
+.expanded-thumb:has(.history-group-card):hover {
+  border-color: rgba(139, 92, 246, 0.15);
+}
+.expanded-thumb:has(.history-group-card)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 10%, rgba(139, 92, 246, 0.15) 50%, transparent 90%);
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.expanded-thumb:has(.history-group-card):hover::before { opacity: 1; }
+
+/* Grouped cards in expand view: squarer ratio fits 2x2 grid better */
+.expanded-thumb:has(.history-group-card) {
+  aspect-ratio: 4 / 5;
+}

@@ -1945,6 +1945,7 @@ function _renderHistoryImpl() {
     historyLineageCounts.set(rowKey, lineage.models.length);
 
     // ── Batch group: render as a single grouped card (inline HTML) ──
+    console.log('[History] timeline lineage:', { rowKey, isBatchGroup: lineage.isBatchGroup, modelsLen: lineage.models.length, batchCount: lineage.batchCount, bgid: lineage.batchGroupId, isGallery });
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const sortedBatchModels = [...lineage.models].sort((a, b) => {
         const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
