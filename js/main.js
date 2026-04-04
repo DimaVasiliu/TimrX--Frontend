@@ -1358,14 +1358,16 @@ function initUi() {
   // ESC to close modal — handled by 3dprint-app.js
 
   // Migrate history data (one-time, skips if already done)
-  if (!localStorage.getItem('timrx_history_titles_migrated')) {
-    migrateHistoryTitles();
-    localStorage.setItem('timrx_history_titles_migrated', '1');
-  }
-  if (!localStorage.getItem('timrx_history_dates_migrated')) {
-    migrateHistoryDates();
-    localStorage.setItem('timrx_history_dates_migrated', '1');
-  }
+  try {
+    if (!localStorage.getItem('timrx_history_titles_migrated')) {
+      migrateHistoryTitles();
+      localStorage.setItem('timrx_history_titles_migrated', '1');
+    }
+    if (!localStorage.getItem('timrx_history_dates_migrated')) {
+      migrateHistoryDates();
+      localStorage.setItem('timrx_history_dates_migrated', '1');
+    }
+  } catch (_) { /* Safari: localStorage may be blocked */ }
 
   // Initialize custom selects
   UI.initNiceSelects();

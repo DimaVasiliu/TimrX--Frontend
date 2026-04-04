@@ -667,7 +667,7 @@
     // --- Greeting bubble (appears once after 4s, dismissed on click or chat open)
     (function greetingBubble(){
       var KEY = 'timrx_chat_greeted';
-      if (sessionStorage.getItem(KEY)) return;
+      try { if (sessionStorage.getItem(KEY)) return; } catch(_) {}
 
       var bubble = document.createElement('div');
       bubble.className = 'chat-greeting';
@@ -681,7 +681,7 @@
         clearTimeout(showTimer);
         clearTimeout(hideTimer);
         bubble.classList.remove('is-visible');
-        sessionStorage.setItem(KEY, '1');
+        try { sessionStorage.setItem(KEY, '1'); } catch(_) {}
         setTimeout(function(){ bubble.remove(); }, 350);
       }
 

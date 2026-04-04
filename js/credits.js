@@ -276,7 +276,9 @@
   };
 
   // Current pricing mode
-  let pricingMode = localStorage.getItem('timrx_pricing_mode') || 'one_time';
+  let pricingMode;
+  try { pricingMode = localStorage.getItem('timrx_pricing_mode'); } catch (_) { /* Safari: storage blocked */ }
+  pricingMode = pricingMode || 'one_time';
 
   // DOM elements
   const creditsPill = document.getElementById('creditsPill');
@@ -654,7 +656,7 @@
    */
   function setPricingMode(mode) {
     pricingMode = mode;
-    localStorage.setItem('timrx_pricing_mode', mode);
+    try { localStorage.setItem('timrx_pricing_mode', mode); } catch (_) { /* Safari: storage blocked */ }
 
     // Notify calculator of mode change
     window.dispatchEvent(new CustomEvent('timrx:pricing-mode', { detail: { mode } }));
@@ -1179,11 +1181,13 @@
       const data = result.data;
       if (data.checkout_url) {
         // Store subscription context for return handling
-        sessionStorage.setItem('timrx_pending_sub_plan', selectedSubPlan.plan_code);
-        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
-        if (data.payment_id) {
-          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
-        }
+        try {
+          sessionStorage.setItem('timrx_pending_sub_plan', selectedSubPlan.plan_code);
+          sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+          if (data.payment_id) {
+            sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+          }
+        } catch (_) { /* Safari: storage blocked */ }
 
         window.location.href = data.checkout_url;
       } else {
@@ -1638,21 +1642,23 @@
 
       const data = result.data;
       if (data.checkout_url) {
-        // Store payment_id for post-redirect confirmation
-        if (data.payment_id) {
-          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
-          console.log('[Credits] Video: Stored payment_id for confirmation:', data.payment_id);
-        }
+        try {
+          // Store payment_id for post-redirect confirmation
+          if (data.payment_id) {
+            sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+            console.log('[Credits] Video: Stored payment_id for confirmation:', data.payment_id);
+          }
 
-        // Store current balance BEFORE redirect
-        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
-        sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
-        console.log('[Credits] Video: Stored pre-checkout balance:', walletAvailable || 0, 'video:', WalletStore._state.videoAvailable || 0);
+          // Store current balance BEFORE redirect
+          sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+          sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
+          console.log('[Credits] Video: Stored pre-checkout balance:', walletAvailable || 0, 'video:', WalletStore._state.videoAvailable || 0);
 
-        // Store the plan's credit grant and plan code for post-return type detection
-        sessionStorage.setItem('timrx_pending_plan_credits', String(plan.credits));
-        sessionStorage.setItem('timrx_pending_plan_code', selectedVideoPlan);
-        console.log('[Credits] Video: Stored plan credits:', plan.credits, 'plan_code:', selectedVideoPlan);
+          // Store the plan's credit grant and plan code for post-return type detection
+          sessionStorage.setItem('timrx_pending_plan_credits', String(plan.credits));
+          sessionStorage.setItem('timrx_pending_plan_code', selectedVideoPlan);
+          console.log('[Credits] Video: Stored plan credits:', plan.credits, 'plan_code:', selectedVideoPlan);
+        } catch (_) { /* Safari: storage blocked */ }
 
         // Redirect to Mollie checkout
         trackCheckoutEvent('redirect_started', { flow: 'video', plan: selectedVideoPlan });
@@ -1838,7 +1844,8 @@
       if (successCard) successCard.classList.add('celebrate');
 
       // Show "+N credits" badge
-      const modalPlanCredits = successModalState.planCredits || parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+      let _ssPlanCredits = '0'; try { _ssPlanCredits = sessionStorage.getItem('timrx_pending_plan_credits') || '0'; } catch (_) {}
+      const modalPlanCredits = successModalState.planCredits || parseInt(_ssPlanCredits, 10);
       if (addedBadge && modalPlanCredits > 0) {
         addedBadge.textContent = `+${modalPlanCredits.toLocaleString()} ${poolLabel}`;
         addedBadge.classList.add('visible');
@@ -1913,7 +1920,8 @@
     if (creditsDisplay) creditsDisplay.style.display = '';
 
     // Show added badge
-    const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+    let _ssPlanCredits2 = '0'; try { _ssPlanCredits2 = sessionStorage.getItem('timrx_pending_plan_credits') || '0'; } catch (_) {}
+    const planCredits = parseInt(_ssPlanCredits2, 10);
     if (addedBadge && planCredits > 0) {
       addedBadge.textContent = `+${planCredits.toLocaleString()} ${poolLabel}`;
       addedBadge.classList.add('visible');
@@ -2616,24 +2624,26 @@
 
       const data = result.data;
       if (data.checkout_url) {
-        // Store payment_id for post-redirect confirmation
-        if (data.payment_id) {
-          sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
-          console.log('[Credits] Stored payment_id for confirmation:', data.payment_id);
-        }
+        try {
+          // Store payment_id for post-redirect confirmation
+          if (data.payment_id) {
+            sessionStorage.setItem('timrx_pending_payment_id', data.payment_id);
+            console.log('[Credits] Stored payment_id for confirmation:', data.payment_id);
+          }
 
-        // Store current balance BEFORE redirect - used to detect balance change on return
-        // This is critical: if webhook arrives before redirect, walletAvailable will already be updated
-        sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
-        sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
-        console.log('[Credits] Stored pre-checkout balance:', walletAvailable || 0);
+          // Store current balance BEFORE redirect - used to detect balance change on return
+          // This is critical: if webhook arrives before redirect, walletAvailable will already be updated
+          sessionStorage.setItem('timrx_pre_checkout_balance', String(walletAvailable || 0));
+          sessionStorage.setItem('timrx_pre_checkout_video_balance', String(WalletStore._state.videoAvailable || 0));
+          console.log('[Credits] Stored pre-checkout balance:', walletAvailable || 0);
 
-        // Store the plan's credit grant and plan code for post-return type detection
-        const planCredits = selectedPlan.credits || PLANS[selectedPlan.id]?.credits || 0;
-        const planCode = selectedPlan.plan_code || selectedPlan.id || '';
-        sessionStorage.setItem('timrx_pending_plan_credits', String(planCredits));
-        sessionStorage.setItem('timrx_pending_plan_code', planCode);
-        console.log('[Credits] Stored plan credits:', planCredits, 'plan_code:', planCode);
+          // Store the plan's credit grant and plan code for post-return type detection
+          const planCredits = selectedPlan.credits || PLANS[selectedPlan.id]?.credits || 0;
+          const planCode = selectedPlan.plan_code || selectedPlan.id || '';
+          sessionStorage.setItem('timrx_pending_plan_credits', String(planCredits));
+          sessionStorage.setItem('timrx_pending_plan_code', planCode);
+          console.log('[Credits] Stored plan credits:', planCredits, 'plan_code:', planCode);
+        } catch (_) { /* Safari: storage blocked */ }
 
         // Redirect to Mollie checkout
         trackCheckoutEvent('redirect_started', { flow: 'general', plan: selectedPlan.id });
@@ -3384,14 +3394,12 @@
   const checkoutStatus = urlParams.get('checkout');
 
   // Check if this was a subscription return
-  const pendingSubPlan = sessionStorage.getItem('timrx_pending_sub_plan');
+  let pendingSubPlan; try { pendingSubPlan = sessionStorage.getItem('timrx_pending_sub_plan'); } catch (_) {}
 
   if (checkoutStatus === 'success' && pendingSubPlan) {
     // ── Subscription return flow ──
     window.history.replaceState({}, '', window.location.pathname);
-    sessionStorage.removeItem('timrx_pending_sub_plan');
-    sessionStorage.removeItem('timrx_pre_checkout_balance');
-    sessionStorage.removeItem('timrx_pending_payment_id');
+    try { sessionStorage.removeItem('timrx_pending_sub_plan'); sessionStorage.removeItem('timrx_pre_checkout_balance'); sessionStorage.removeItem('timrx_pending_payment_id'); } catch (_) {}
     void handleSubscriptionCheckoutReturn(pendingSubPlan);
 
   } else if (checkoutStatus === 'success') {
@@ -3400,11 +3408,14 @@
     window.history.replaceState({}, '', window.location.pathname);
 
     // Get stored payment_id, pre-checkout balances, plan credits, and plan code from sessionStorage
-    const pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
-    const preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
-    const preCheckoutVideoBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_video_balance') || '0', 10);
-    const planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
-    const pendingPlanCode = sessionStorage.getItem('timrx_pending_plan_code') || '';
+    let pendingPaymentId, preCheckoutBalance = 0, preCheckoutVideoBalance = 0, planCredits = 0, pendingPlanCode = '';
+    try {
+      pendingPaymentId = sessionStorage.getItem('timrx_pending_payment_id');
+      preCheckoutBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_balance') || '0', 10);
+      preCheckoutVideoBalance = parseInt(sessionStorage.getItem('timrx_pre_checkout_video_balance') || '0', 10);
+      planCredits = parseInt(sessionStorage.getItem('timrx_pending_plan_credits') || '0', 10);
+      pendingPlanCode = sessionStorage.getItem('timrx_pending_plan_code') || '';
+    } catch (_) { /* Safari: storage blocked */ }
     const isVideoPlan = pendingPlanCode.startsWith('video_');
     trackCheckoutEvent('return_success', {
       flow: isVideoPlan ? 'video' : 'general',
@@ -3417,7 +3428,8 @@
 
     // Calculate OPTIMISTIC balance for the correct pool
     const optimisticBalance = initialBalance + planCredits;
-    const displayBalance = walletAvailable || parseInt(localStorage.getItem('timrx_credits_last') || '0', 10);
+    let _lsCreditsLast = '0'; try { _lsCreditsLast = localStorage.getItem('timrx_credits_last') || '0'; } catch (_) {}
+    const displayBalance = walletAvailable || parseInt(_lsCreditsLast, 10);
 
     console.log('[Credits] Checkout success - plan:', pendingPlanCode, 'isVideo:', isVideoPlan,
       'pre:', initialBalance, 'credits:', planCredits, 'optimistic:', optimisticBalance);
@@ -3467,10 +3479,12 @@
     }
 
     // Clean up stored values (keep plan credits in successModalState for badge)
-    sessionStorage.removeItem('timrx_pre_checkout_balance');
-    sessionStorage.removeItem('timrx_pre_checkout_video_balance');
-    sessionStorage.removeItem('timrx_pending_plan_credits');
-    sessionStorage.removeItem('timrx_pending_plan_code');
+    try {
+      sessionStorage.removeItem('timrx_pre_checkout_balance');
+      sessionStorage.removeItem('timrx_pre_checkout_video_balance');
+      sessionStorage.removeItem('timrx_pending_plan_credits');
+      sessionStorage.removeItem('timrx_pending_plan_code');
+    } catch (_) { /* Safari: storage blocked */ }
 
     // Quick delayed refresh to pick up welcome bonus and real balance
     setTimeout(async () => {
@@ -3508,7 +3522,7 @@
           });
 
           // Clear stored payment_id regardless of result
-          sessionStorage.removeItem('timrx_pending_payment_id');
+          try { sessionStorage.removeItem('timrx_pending_payment_id'); } catch (_) {}
 
           if (confirmResult.ok && confirmResult.data) {
             const confirmData = confirmResult.data;
@@ -3572,7 +3586,7 @@
         }
       } else {
         console.log('[Credits] No payment_id found, starting wallet refresh');
-        sessionStorage.removeItem('timrx_pending_payment_id');
+        try { sessionStorage.removeItem('timrx_pending_payment_id'); } catch (_) {}
       }
 
       // Step 2: Refresh wallet to reconcile with server (even if we showed optimistic balance)
@@ -3629,8 +3643,7 @@
   } else if (checkoutStatus === 'cancelled' || checkoutStatus === 'failed' || checkoutStatus === 'expired') {
     // Clean URL and clear stored values
     window.history.replaceState({}, '', window.location.pathname);
-    sessionStorage.removeItem('timrx_pending_payment_id');
-    sessionStorage.removeItem('timrx_pending_sub_plan');
+    try { sessionStorage.removeItem('timrx_pending_payment_id'); sessionStorage.removeItem('timrx_pending_sub_plan'); } catch (_) {}
     if (checkoutStatus !== 'cancelled') {
       console.log(`[Credits] Checkout ${checkoutStatus}`);
     }

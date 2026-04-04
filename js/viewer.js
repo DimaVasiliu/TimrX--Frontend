@@ -6,7 +6,8 @@
  * IMPORTANT: All functions guard against missing WebGL/scene/renderer to prevent crashes.
  */
 
-import { byId, log, isTimrxS3Url } from './config.js';
+import { byId, log, isTimrxS3Url, getLoadableModelUrl } from './config.js';
+import { setHistoryActiveModelId, resetModelVersionStack } from './state.js';
 
 let scene, camera, renderer, controls;
 let viewerPlaceholder = null;
@@ -751,7 +752,45 @@ export function clearVideoViewer() {
       loader.textContent = "Loading\u2026";
       overlay.appendChild(loader);
 
-      // Double-click to focus
+      // Single-click: open this model in the main single-model viewer
+      overlay.addEventListener("click", function (e) {
+        // Ignore if drag/orbit happened (movement since mousedown)
+        if (overlay._wasDragging) { overlay._wasDragging = false; return; }
+        e.stopPropagation();
+        const clickedItem = items[i];
+        if (!clickedItem) return;
+        const glbUrl = clickedItem.glb_proxy || clickedItem.glb_url;
+        if (!glbUrl) return;
+        // Dispose grouped view and load this model in the normal viewer
+        disposeGroupedView();
+        // Restore placeholder visibility
+        const ph = document.getElementById("viewerPlaceholder");
+        if (ph) ph.style.display = "";
+        // Use module-scoped isTimrxS3Url and getLoadableModelUrl
+        const loadUrl = isTimrxS3Url(clickedItem.glb_url) ? clickedItem.glb_url : (clickedItem.glb_proxy || getLoadableModelUrl(clickedItem.glb_url));
+        setHistoryActiveModelId(clickedItem.id);
+        resetModelVersionStack({
+          id: clickedItem.id,
+          glb_url: loadUrl,
+          thumbnail_url: clickedItem.thumbnail_url || "",
+          stage: clickedItem.stage || "preview",
+          prompt: clickedItem.prompt || ""
+        });
+        const actionBar = document.getElementById("viewerActionBar");
+        if (actionBar) actionBar.classList.add("hidden");
+        const primary = loadUrl;
+        const fallback = (clickedItem.glb_url && clickedItem.glb_url !== primary) ? clickedItem.glb_url : null;
+        // loadModelWithFallback is in the same module scope (viewer.js)
+        loadModelWithFallback(primary, fallback);
+        const genHint = document.getElementById("genHint");
+        if (genHint) genHint.textContent = "Loading model…";
+      });
+
+      // Track dragging to distinguish click from orbit
+      overlay.addEventListener("mousedown", function () { overlay._wasDragging = false; });
+      overlay.addEventListener("mousemove", function () { overlay._wasDragging = true; });
+
+      // Double-click to focus (expand one viewport to fullscreen within grouped view)
       overlay.addEventListener("dblclick", function () {
         focusModel(i);
       });
@@ -775,8 +814,8 @@ export function clearVideoViewer() {
     const vp = _state.viewports[index];
     if (!vp || !THREE) return;
 
-    const url = item.glb_url || item.glb_proxy || (item.payload && item.payload.glb_url);
-    if (!url) {
+    const rawUrl = item.glb_url || item.glb_proxy || (item.payload && item.payload.glb_url);
+    if (!rawUrl) {
       vp.label.textContent = "Variant " + (index + 1) + " — no model";
       vp.label.classList.add("error");
       if (vp.loader) vp.loader.style.display = "none";
@@ -784,15 +823,17 @@ export function clearVideoViewer() {
     }
 
     try {
-      // Resolve proxy URL if needed
-      let resolvedUrl = url;
-      if (url.includes("/api/") || url.includes("/_mod/")) {
-        // Already a proxy URL
-        resolvedUrl = url;
-      }
+      // Resolve URL using same logic as main viewer: prefer S3 direct, else proxy
+      const resolvedUrl = isTimrxS3Url(rawUrl) ? rawUrl : (item.glb_proxy || getLoadableModelUrl(rawUrl));
 
       const gltf = await new Promise(function (resolve, reject) {
         const loader = new THREE.GLTFLoader();
+        // Attach DRACO decoder if available for faster loading
+        if (THREE.DRACOLoader) {
+          const draco = new THREE.DRACOLoader();
+          draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+          loader.setDRACOLoader(draco);
+        }
         loader.load(resolvedUrl,
           function (g) { resolve(g); },
           undefined,

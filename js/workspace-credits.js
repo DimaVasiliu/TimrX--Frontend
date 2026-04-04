@@ -170,13 +170,15 @@ function renderCachedCreditsEarly() {
  * Save credits balance to localStorage for next page load
  */
 function cacheCreditsBalance(balance, videoBalance) {
-  if (typeof balance === 'number' && Number.isFinite(balance) && balance >= 0) {
-    localStorage.setItem(CREDITS_CACHE_KEY, balance.toString());
-    log('[Credits] Cached balance to localStorage:', balance);
-  }
-  if (typeof videoBalance === 'number' && Number.isFinite(videoBalance) && videoBalance >= 0) {
-    localStorage.setItem(VIDEO_CREDITS_CACHE_KEY, videoBalance.toString());
-  }
+  try {
+    if (typeof balance === 'number' && Number.isFinite(balance) && balance >= 0) {
+      localStorage.setItem(CREDITS_CACHE_KEY, balance.toString());
+      log('[Credits] Cached balance to localStorage:', balance);
+    }
+    if (typeof videoBalance === 'number' && Number.isFinite(videoBalance) && videoBalance >= 0) {
+      localStorage.setItem(VIDEO_CREDITS_CACHE_KEY, videoBalance.toString());
+    }
+  } catch (_) { /* Safari: localStorage may be blocked */ }
 }
 
 // ============================================================================

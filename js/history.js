@@ -55,13 +55,22 @@ function buildGroupedCard(group, items) {
   grid.className = "history-group-card__thumbs history-group-card__thumbs--" + Math.min(count, 4);
 
   items.slice(0, 4).forEach((item, i) => {
-    const img = document.createElement("img");
-    img.src = item.thumbnail_url || item.image_url || "";
-    img.alt = "Variant " + (i + 1);
-    img.loading = "lazy";
-    img.className = "history-group-card__thumb-img";
-    img.onerror = function () { this.style.background = "#333"; this.alt = ""; };
-    grid.appendChild(img);
+    const thumbSrc = item.thumbnail_url || item.image_url || "";
+    if (thumbSrc) {
+      const img = document.createElement("img");
+      img.src = thumbSrc;
+      img.alt = "Variant " + (i + 1);
+      img.loading = "lazy";
+      img.className = "history-group-card__thumb-img";
+      img.onerror = function () { this.style.background = "#333"; this.alt = ""; };
+      grid.appendChild(img);
+    } else {
+      // Placeholder for items still generating (no thumbnail yet)
+      const placeholder = document.createElement("div");
+      placeholder.className = "history-group-card__thumb-img history-group-card__thumb-placeholder";
+      placeholder.innerHTML = '<div class="history-group-card__spinner"></div>';
+      grid.appendChild(placeholder);
+    }
   });
 
   // Overlay with title
@@ -863,6 +872,82 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const variantCount = models.length;
   const editSubmenuId = `edit-${displayModel.id}`;
   const overlayVisible = hasVariants || (Math.max(1, parseInt(displayModel.batch_count, 10) || 1) > 1);
+  const stageVal = (displayModel.stage || '').toLowerCase();
+  const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
+    : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
+    : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
+    : stageVal === 'image3d' ? 'Image to 3D'
+    : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
+    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
+    : 'Preview';
+  const isAnimatedStage = stageVal === 'rig' || stageVal === 'rigged' || stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated';
+  const galleryTone = itemType === 'image'
+    ? 'image'
+    : itemType === 'video'
+      ? (isAnimatedStage ? 'animated' : 'video')
+      : (isAnimatedStage ? 'animated' : 'model');
+
+  function buildExpandedFooter(title, metaItems = []) {
+    const pills = metaItems.map((item) => {
+      if (!item) return '';
+      if (typeof item === 'string') {
+        return `<span class="${thumbPrefix}__pill">${item}</span>`;
+      }
+      const toneClass = item.tone ? ` ${thumbPrefix}__pill--${item.tone}` : '';
+      return `<span class="${thumbPrefix}__pill${toneClass}">${item.label}</span>`;
+    }).join('');
+
+    return `
+      <div class="${thumbPrefix}__footer">
+        <div class="${thumbPrefix}__copy">
+          <h3 class="${thumbPrefix}__title">${title}</h3>
+          ${pills ? `<div class="${thumbPrefix}__meta-row">${pills}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function buildExpandedHover(hoverLabel = 'Open creation') {
+    return `
+      <div class="${thumbPrefix}__media-overlay">
+        <div class="${thumbPrefix}__hover-meta">
+          <span class="${thumbPrefix}__hover-label">${hoverLabel}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function buildExpandedShell({
+    extraClasses = '',
+    mediaMarkup = '',
+    footerTitle = '',
+    footerMeta = [],
+    typeBadge = '',
+    hoverLabel = 'Open creation',
+    processingMarkup = '',
+    mediaExtras = '',
+  }) {
+    const typeBadgeMarkup = typeBadge
+      ? `<span class="${thumbPrefix}__type-badge ${thumbPrefix}__type-badge--${galleryTone}">${typeBadge}</span>`
+      : '';
+
+    return `
+      <div class="${thumbPrefix} expanded-thumb--gallery-card ${extraClasses}">
+        <div class="${thumbPrefix}__media">
+          ${typeBadgeMarkup}
+          <div class="${thumbPrefix}__status-bar">
+            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+          </div>
+          ${mediaMarkup}
+          ${processingMarkup}
+          ${mediaExtras}
+          ${buildExpandedHover(hoverLabel)}
+        </div>
+        ${buildExpandedFooter(footerTitle, footerMeta)}
+      </div>
+    `;
+  }
+
   // IMAGE TYPE
   if (itemType === 'image') {
     // Use smallest available URL for card display (saves bandwidth),
@@ -874,6 +959,49 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const artifactFormat = (displayModel.artifact_format || displayModel.meta?.artifact_format || displayModel.format || 'png').toLowerCase();
     const isVectorImage = artifactFormat === 'svg';
     const isImageFailed = status === 'failed';
+
+    if (isExpanded) {
+      const imageMedia = isImageFailed
+        ? `
+          <div class="${thumbPrefix}__error-card">
+            <span class="${thumbPrefix}__error-icon">&#9888;</span>
+            <span class="${thumbPrefix}__error-text">${displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed'}</span>
+          </div>
+        `
+        : `
+          <div class="${thumbPrefix}__image-wrapper">
+            <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
+                    type="button"
+                    data-act="open"
+                    data-id="${displayModel.id}"
+                    aria-label="Open ${name}">
+              ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : '<div class="thumb-no-image">No preview</div>'}
+            </button>
+          </div>
+        `;
+
+      const imageProcessing = isProcessing ? `
+        <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
+          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
+          <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
+          <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
+            <div class="${thumbPrefix}__progress-fill"></div>
+          </div>
+        </div>
+      ` : '';
+
+      return buildExpandedShell({
+        extraClasses: `${thumbPrefix}--image ${statusClass} ${isImageFailed ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
+        mediaMarkup: imageMedia,
+        footerTitle: name,
+        footerMeta: [
+          { label: isVectorImage ? 'SVG' : 'Image', tone: 'image' },
+          isImageFailed ? 'Failed' : (isProcessing ? processingLabel.replace(/\.\.\.$/, '') : 'Ready'),
+        ],
+        typeBadge: 'Image',
+        processingMarkup: imageProcessing,
+      });
+    }
 
     // Failed image card
     if (isImageFailed) {
@@ -1011,23 +1139,84 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       : status === 'queued' ? 'Queued...'
       : processingLabel;
     const videoStatusClass = isFailed ? 'status-failed' : statusClass;
+    const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Video generation failed';
+    const errorCode = displayModel.error_code || '';
+    const isStalled = displayModel.provider_stalled;
+    const failBadge = isStalled ? 'Timed out' : 'Failed';
+    const failRes = displayModel.failure_resolution || displayModel.resolution || '';
+    const isTimeout = errorCode.includes('timeout') || errorCode.includes('deadline') ||
+                      errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('deadline');
+    const isHighRes = failRes === '4k' || failRes === '1080p';
+    const suggestLowerRes = isTimeout && isHighRes;
+    const retryLabel = suggestLowerRes
+      ? `<span>&#8635;</span> Retry at ${failRes === '4k' ? '1080p' : '720p'}`
+      : '<span>&#8635;</span> Retry';
+    const retryResAttr = suggestLowerRes
+      ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
+      : '';
+
+    if (isExpanded) {
+      const expandedVideoType = isAnimatedStage ? 'Animated' : 'Video';
+      const videoMedia = isFailed
+        ? `
+          <div class="${thumbPrefix}__error-card">
+            <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
+            <span class="${thumbPrefix}__error-text">${errorMsg.length > 120 ? errorMsg.slice(0, 120) + '...' : errorMsg}</span>
+            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}"${retryResAttr}>
+              ${retryLabel}
+            </button>
+          </div>
+        `
+        : `
+          <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
+                  type="button"
+                  data-act="open-video"
+                  data-id="${displayModel.id}"
+                  data-video-url="${videoSrc}"
+                  aria-label="Play ${name}"
+                  ${isProcessing ? 'disabled' : ''}>
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `
+              <div class="${thumbPrefix}__video-empty">
+                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+              </div>
+            `}
+            ${!isProcessing && videoSrc ? `
+              <span class="${thumbPrefix}__play-btn">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <polygon points="9 6 18 12 9 18 9 6" fill="currentColor"/>
+                </svg>
+              </span>
+            ` : ''}
+          </button>
+        `;
+
+      const videoProcessing = isProcessing ? `
+        <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
+          <div class="${thumbPrefix}__video-spinner">
+            <span class="${thumbPrefix}__video-spinner-dot"></span>
+          </div>
+          <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
+        </div>
+      ` : '';
+
+      return buildExpandedShell({
+        extraClasses: `${thumbPrefix}--video ${videoStatusClass} ${isFailed ? `${thumbPrefix}--failed` : ''} ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
+        mediaMarkup: videoMedia,
+        footerTitle: name,
+        footerMeta: [
+          { label: expandedVideoType, tone: isAnimatedStage ? 'animated' : 'video' },
+          isFailed ? failBadge : (isProcessing ? videoProcessingLabel.replace(/\.\.\.$/, '') : 'Playable'),
+        ],
+        typeBadge: expandedVideoType,
+        hoverLabel: 'Play creation',
+        processingMarkup: videoProcessing,
+      });
+    }
 
     // Failed video card
     if (isFailed) {
-      // Prefer status_label (friendly) > error_message (raw) > fallback
-      const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Video generation failed';
-      const errorCode = displayModel.error_code || '';
-      const isStalled = displayModel.provider_stalled;
-      const failBadge = isStalled ? 'Timed out' : 'Failed';
-
       // Resolution-aware retry: if a high-res job failed (4K/1080p timeout),
       // suggest retrying at a lower resolution instead of blind retry.
-      const failRes = displayModel.failure_resolution || displayModel.resolution || '';
-      const isTimeout = errorCode.includes('timeout') || errorCode.includes('deadline') ||
-                        errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('deadline');
-      const isHighRes = failRes === '4k' || failRes === '1080p';
-      const suggestLowerRes = isTimeout && isHighRes;
-
       // Build retry menu items with fallback options
       let retryMenuItems = `
                 <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
@@ -1048,14 +1237,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 </button>`;
         });
       }
-
-      // Main retry button label
-      const retryLabel = suggestLowerRes
-        ? `<span>&#8635;</span> Retry at ${failRes === '4k' ? '1080p' : '720p'}`
-        : '<span>&#8635;</span> Retry';
-      const retryResAttr = suggestLowerRes
-        ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
-        : '';
 
       return `
         <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''}">
@@ -1213,7 +1394,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     `;
   };
 
-  const stageVal = (displayModel.stage || '').toLowerCase();
   const failLabel = stageVal === 'rig' || stageVal === 'rigged' ? 'Rigging failed'
     : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animation failed'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Texturing failed'
@@ -1243,13 +1423,36 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     </div>
   ` : '';
 
-  const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
-    : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
-    : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
-    : stageVal === 'image3d' ? 'Image to 3D'
-    : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
-    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
-    : 'Preview';
+  if (isExpanded) {
+    return buildExpandedShell({
+      extraClasses: `${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}`.trim(),
+      mediaMarkup: previewMarkup,
+      footerTitle: modelName,
+      footerMeta: [
+        { label: stageLabel, tone: galleryTone },
+        hasVariants ? `${variantCount} variants` : 'Model',
+      ],
+      typeBadge: galleryTone === 'animated' ? 'Animated' : 'Model',
+      mediaExtras: `${displayModel.is_rigged || stageVal === 'rig' || stageVal === 'rigged' ? `
+        <span class="${thumbPrefix}__rig" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v6"/>
+            <path d="M8 10l4 4 4-4"/>
+            <path d="M7 21l2-6 3-1 3 1 2 6"/>
+          </svg>
+        </span>
+      ` : ''}${overlayVisible ? overlayMarkup : ''}`,
+      processingMarkup: isProcessing ? `
+        <div class="${thumbPrefix}__processing" data-job-id="${displayModel.id}">
+          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
+          <span class="${thumbPrefix}__processing-pct">0%</span>
+          <div class="${thumbPrefix}__progress-bar">
+            <div class="${thumbPrefix}__progress-fill"></div>
+          </div>
+        </div>
+      ` : '',
+    });
+  }
 
   return `
     <div class="${thumbPrefix} ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}">
@@ -1395,6 +1598,25 @@ function _buildGalleryCards(lineages) {
   const cards = [];
   lineages.forEach((lineage, groupIndex) => {
     if (!lineage || !Array.isArray(lineage.models) || !lineage.models.length) return;
+
+    // Batch group: emit a single grouped-card placeholder instead of individual cards
+    if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
+      const delay = globalIndex * 0.03;
+      globalIndex++;
+      const sortedBatch = [...lineage.models].sort((a, b) => {
+        const sa = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
+        const sb = parseInt(b.batch_slot || (b.payload && b.payload.batch_slot), 10) || 0;
+        return sa - sb;
+      });
+      const groupKey = String(lineage.rootId || lineage.id);
+      // Store data for DOM replacement after innerHTML
+      if (!window._galleryGroupedSlots) window._galleryGroupedSlots = new Map();
+      window._galleryGroupedSlots.set(groupKey, { items: sortedBatch, lineage });
+      const html = `<div class="expanded-thumb history-gallery-grouped-placeholder" data-gallery-group-key="${groupKey}" data-gid="${groupKey}" style="animation-delay: ${delay}s"></div>`;
+      cards.push({ id: groupKey, status: 'finished', html });
+      return;
+    }
+
     const models = lineage.models.sort(compareHistoryModels);
     const bundles = buildLineageBundles(models);
     bundles.forEach((b, bundleIndex) => {
@@ -1997,7 +2219,8 @@ function _renderHistoryImpl() {
     historyLineageCounts.set(rowKey, lineage.models.length);
 
     // ── Batch group: render as a single grouped card ──
-    if (lineage.isBatchGroup && lineage.models.length > 1) {
+    // Show grouped card even with 1 model if batchCount > 1 (more are generating)
+    if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const sortedBatchModels = [...lineage.models].sort((a, b) => {
         const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
         const slotB = parseInt(b.batch_slot || (b.payload && b.payload.batch_slot), 10) || 0;
@@ -2157,6 +2380,26 @@ function _renderHistoryImpl() {
           existingGrid.replaceChild(replacement, child);
         }
       });
+    }
+
+    // Replace gallery grouped card placeholders with real DOM elements
+    if (window._galleryGroupedSlots && window._galleryGroupedSlots.size > 0) {
+      const galleryGrid = grid.querySelector('.expanded-thumbs-grid') || grid;
+      window._galleryGroupedSlots.forEach(({ items, lineage }, key) => {
+        const placeholder = galleryGrid.querySelector(`.history-gallery-grouped-placeholder[data-gallery-group-key="${CSS.escape(key)}"]`);
+        if (!placeholder) return;
+        const group = {
+          id: lineage.batchGroupId || key,
+          model_count: lineage.batchCount || items.length,
+          completed_count: items.filter(i => i.status === 'finished' || !i.status).length,
+          failed_count: items.filter(i => i.status === 'error' || i.status === 'failed').length,
+        };
+        const card = buildGroupedCard(group, items);
+        // Wrap in expanded-thumb sizing container
+        card.style.gridColumn = 'span 1';
+        placeholder.replaceWith(card);
+      });
+      window._galleryGroupedSlots.clear();
     }
   } else {
     _unbindGalleryScroll();

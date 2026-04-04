@@ -223,10 +223,12 @@ function getCurrentIdentityId() {
  * Clear all user-scoped caches (history, active jobs, pending jobs)
  */
 function clearUserCaches() {
-  localStorage.removeItem(HISTORY_CACHE_KEY);
-  localStorage.removeItem(HISTORY_OWNER_KEY);
-  localStorage.removeItem(ACTIVE_JOBS_STORAGE_KEY);
-  localStorage.removeItem(PENDING_JOBS_STORAGE_KEY);
+  try {
+    localStorage.removeItem(HISTORY_CACHE_KEY);
+    localStorage.removeItem(HISTORY_OWNER_KEY);
+    localStorage.removeItem(ACTIVE_JOBS_STORAGE_KEY);
+    localStorage.removeItem(PENDING_JOBS_STORAGE_KEY);
+  } catch (_) { /* Safari: localStorage may be blocked */ }
 }
 
 /**
@@ -327,7 +329,7 @@ async function migrateOldHistory() {
   const MIGRATION_FLAG = 'meshy_history_migrated';
 
   // Check if already migrated
-  if (localStorage.getItem(MIGRATION_FLAG)) return;
+  try { if (localStorage.getItem(MIGRATION_FLAG)) return; } catch (_) { return; /* Safari: storage blocked */ }
 
   try {
     const oldData = localStorage.getItem(OLD_HISTORY_KEY);
