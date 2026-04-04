@@ -757,13 +757,20 @@ function initViewerToolbar() {
     }
     if (summary) {
       const isWatertight = data.checks?.is_manifold;
-      summary.textContent = data.score >= 90
-        ? `Excellent mesh quality. Adjust the target size if needed and export a print-ready STL.`
-        : data.score >= 70
-        ? `The model clears the main ${printerLabel} checks. ${!isWatertight ? 'Remesh to close open edges for a higher score and complete diagnostics. ' : ''}Review below, adjust size, and export.`
-        : data.score >= 60
-        ? `The model can be printed but has geometry issues. ${!isWatertight ? 'Use Remesh to repair open edges — this will unlock wall thickness analysis and improve the score significantly.' : 'Review the issues below.'}`
-        : `The model has critical geometry issues for ${printerLabel} printing. Remesh the model to repair it before exporting.`;
+      const wasRemeshed = data.is_remeshed === true || (data.model_stage === 'remeshed');
+      if (data.score >= 90) {
+        summary.textContent = `Excellent mesh quality. Adjust the target size if needed and export a print-ready STL.`;
+      } else if (data.score >= 70) {
+        summary.textContent = `The model clears the main ${printerLabel} checks. ${!isWatertight ? (wasRemeshed ? 'The mesh still has open edges after remesh — most slicers can auto-repair this. ' : 'Remesh to close open edges for a higher score. ') : ''}Review below, adjust size, and export.`;
+      } else if (data.score >= 60) {
+        summary.textContent = wasRemeshed && !isWatertight
+          ? `The model was remeshed but still has open edges — a known limitation with some AI geometry. Export the STL and let your slicer's auto-repair handle it, or fix manually in Blender/Meshmixer.`
+          : `The model can be printed but has geometry issues. ${!isWatertight ? 'Use Remesh to repair open edges — this will unlock wall thickness analysis and improve the score.' : 'Review the issues below.'}`;
+      } else {
+        summary.textContent = wasRemeshed
+          ? `The remeshed model still has significant geometry issues. This AI-generated mesh may need manual repair in Blender or Meshmixer. Export the STL and use their auto-repair tools before printing.`
+          : `The model has critical geometry issues for ${printerLabel} printing. Remesh the model to repair it before exporting.`;
+      }
     }
 
     // ── Model-state banner ─────────────────────────────────────────
@@ -795,8 +802,11 @@ function initViewerToolbar() {
       }
 
       let advice = '';
-      if (isRemeshed) {
-        advice = 'This model has been remeshed. It should have clean topology suitable for slicing. Verify dimensions, export STL, and run a final check in your slicer.';
+      const isWatertight = data.checks?.is_manifold === true;
+      if (isRemeshed && isWatertight) {
+        advice = 'This model has been remeshed and has clean, watertight topology. Verify dimensions, export STL, and do a final check in your slicer.';
+      } else if (isRemeshed && !isWatertight) {
+        advice = 'This model has been remeshed but still has open edges. This is a known limitation with some AI-generated geometry. Export the STL and use your slicer\'s auto-repair, or fix in Blender/Meshmixer before printing.';
       } else if (stage === 'preview') {
         advice = 'This is a preview-grade mesh with rough geometry. For best print results: Refine first (improves geometry + adds textures), then Remesh with the Print Ready preset before exporting.';
       } else if (isRefined) {
@@ -810,7 +820,15 @@ function initViewerToolbar() {
       }
 
       if (stateAdvice) stateAdvice.textContent = advice;
-      if (stateTitle) stateTitle.textContent = isRemeshed ? 'Ready for print prep' : 'Recommended: Remesh before export';
+      if (stateTitle) {
+        if (isRemeshed && isWatertight) {
+          stateTitle.textContent = 'Ready for print prep';
+        } else if (isRemeshed && !isWatertight) {
+          stateTitle.textContent = 'Remeshed — needs slicer repair';
+        } else {
+          stateTitle.textContent = 'Recommended: Remesh before export';
+        }
+      }
     }
 
     // Checks grid
