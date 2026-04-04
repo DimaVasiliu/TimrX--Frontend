@@ -889,82 +889,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const variantCount = models.length;
   const editSubmenuId = `edit-${displayModel.id}`;
   const overlayVisible = hasVariants || (Math.max(1, parseInt(displayModel.batch_count, 10) || 1) > 1);
-  const stageVal = (displayModel.stage || '').toLowerCase();
-  const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
-    : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
-    : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
-    : stageVal === 'image3d' ? 'Image to 3D'
-    : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
-    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
-    : 'Preview';
-  const isAnimatedStage = stageVal === 'rig' || stageVal === 'rigged' || stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated';
-  const galleryTone = itemType === 'image'
-    ? 'image'
-    : itemType === 'video'
-      ? (isAnimatedStage ? 'animated' : 'video')
-      : (isAnimatedStage ? 'animated' : 'model');
-
-  function buildExpandedFooter(title, metaItems = []) {
-    const pills = metaItems.map((item) => {
-      if (!item) return '';
-      if (typeof item === 'string') {
-        return `<span class="${thumbPrefix}__pill">${item}</span>`;
-      }
-      const toneClass = item.tone ? ` ${thumbPrefix}__pill--${item.tone}` : '';
-      return `<span class="${thumbPrefix}__pill${toneClass}">${item.label}</span>`;
-    }).join('');
-
-    return `
-      <div class="${thumbPrefix}__footer">
-        <div class="${thumbPrefix}__copy">
-          <h3 class="${thumbPrefix}__title">${title}</h3>
-          ${pills ? `<div class="${thumbPrefix}__meta-row">${pills}</div>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  function buildExpandedHover(hoverLabel = 'Open creation') {
-    return `
-      <div class="${thumbPrefix}__media-overlay">
-        <div class="${thumbPrefix}__hover-meta">
-          <span class="${thumbPrefix}__hover-label">${hoverLabel}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function buildExpandedShell({
-    extraClasses = '',
-    mediaMarkup = '',
-    footerTitle = '',
-    footerMeta = [],
-    typeBadge = '',
-    hoverLabel = 'Open creation',
-    processingMarkup = '',
-    mediaExtras = '',
-  }) {
-    const typeBadgeMarkup = typeBadge
-      ? `<span class="${thumbPrefix}__type-badge ${thumbPrefix}__type-badge--${galleryTone}">${typeBadge}</span>`
-      : '';
-
-    return `
-      <div class="${thumbPrefix} history-media-card ${thumbPrefix}--gallery-card ${extraClasses}">
-        <div class="${thumbPrefix}__media">
-          ${typeBadgeMarkup}
-          <div class="${thumbPrefix}__status-bar">
-            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
-          </div>
-          ${mediaMarkup}
-          ${processingMarkup}
-          ${mediaExtras}
-          ${buildExpandedHover(hoverLabel)}
-        </div>
-        ${buildExpandedFooter(footerTitle, footerMeta)}
-      </div>
-    `;
-  }
-
   // IMAGE TYPE
   if (itemType === 'image') {
     // Use smallest available URL for card display (saves bandwidth),
@@ -977,162 +901,124 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const isVectorImage = artifactFormat === 'svg';
     const isImageFailed = status === 'failed';
 
-    if (isExpanded) {
-      const imageMedia = isImageFailed
-        ? `
-          <div class="${thumbPrefix}__error-card">
-            <span class="${thumbPrefix}__error-icon">&#9888;</span>
-            <span class="${thumbPrefix}__error-text">${displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed'}</span>
-          </div>
-        `
-        : `
-          <div class="${thumbPrefix}__image-wrapper">
-            <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
-                    type="button"
-                    data-act="open"
-                    data-id="${displayModel.id}"
-                    aria-label="Open ${name}">
-              ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : '<div class="thumb-no-image">No preview</div>'}
-            </button>
-          </div>
-        `;
-
-      const imageProcessing = isProcessing ? `
-        <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
-          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
-          <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
-          <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
-            <div class="${thumbPrefix}__progress-fill"></div>
-          </div>
-        </div>
-      ` : '';
-
-      return buildExpandedShell({
-        extraClasses: `${thumbPrefix}--image ${statusClass} ${isImageFailed ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
-        mediaMarkup: imageMedia,
-        footerTitle: name,
-        footerMeta: [
-          { label: isVectorImage ? 'SVG' : 'Image', tone: 'image' },
-          isImageFailed ? 'Failed' : (isProcessing ? processingLabel.replace(/\.\.\.$/, '') : 'Ready'),
-        ],
-        typeBadge: 'Image',
-        processingMarkup: imageProcessing,
-      });
-    }
-
-    const imageMenuMarkup = !isExpanded ? (isImageFailed ? `
-      <div class="${thumbPrefix}__menu-wrap">
-        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="19" cy="12" r="2"/>
-          </svg>
-        </button>
-        <div class="card-menu" role="menu" aria-label="Image actions">
-          <div class="card-menu__list">
-            <button class="card-menu__item card-menu__item--danger" type="button" data-act="delete" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128465;</span>
-                <span>Delete</span>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    ` : `
-      <div class="${thumbPrefix}__menu-wrap">
-        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="19" cy="12" r="2"/>
-          </svg>
-        </button>
-        <div class="card-menu" role="menu" aria-label="Image actions">
-          <div class="card-menu__list">
-            <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#127912;</span>
-                <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
-              </span>
-              <span class="card-menu__arrow">></span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#127909;</span>
-                <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
-              </span>
-              <span class="card-menu__badge">45c</span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#8595;</span>
-                <span>Download</span>
-              </span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#9651;</span>
-                <span>Share to Community</span>
-              </span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128465;</span>
-                <span>Delete</span>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `) : '';
-
-    const imageDisplayError = (() => {
+    // Failed image card
+    if (isImageFailed) {
       const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed';
-      return errorMsg.includes('safety system') || errorMsg.includes('moderation')
+      const displayError = errorMsg.includes('safety system') || errorMsg.includes('moderation')
         ? 'Blocked by content policy'
         : (errorMsg.length > 50 ? errorMsg.slice(0, 50) + '...' : errorMsg);
-    })();
-
-    return buildExpandedShell({
-      extraClasses: `${thumbPrefix}--image ${statusClass} ${isImageFailed ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
-      mediaMarkup: isImageFailed ? `
-        <div class="${thumbPrefix}__error-card">
-          <span class="${thumbPrefix}__error-icon">&#9888;</span>
-          <span class="${thumbPrefix}__error-text">${isExpanded ? (displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed') : imageDisplayError}</span>
+      return `
+        <div class="${thumbPrefix} ${thumbPrefix}--image ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
+          <div class="${thumbPrefix}__status-bar">
+            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+            <span class="${thumbPrefix}__image-badge ${thumbPrefix}__image-badge--failed">Failed</span>
+          </div>
+          <div class="${thumbPrefix}__error-card">
+            <span class="${thumbPrefix}__error-icon">&#9888;</span>
+            <span class="${thumbPrefix}__error-text">${displayError}</span>
+          </div>
+          <span class="${thumbPrefix}__name">${name}</span>
+          ${!isExpanded ? `
+          <div class="${thumbPrefix}__menu-wrap">
+            <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="19" cy="12" r="2"/>
+              </svg>
+            </button>
+            <div class="card-menu" role="menu" aria-label="Image actions">
+              <div class="card-menu__list">
+                <button class="card-menu__item card-menu__item--danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#128465;</span>
+                    <span>Delete</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          ` : ''}
         </div>
-      ` : `
+      `;
+    }
+
+    return `
+      <div class="${thumbPrefix} ${thumbPrefix}--image ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
+        <div class="${thumbPrefix}__status-bar">
+          <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+        </div>
         <div class="${thumbPrefix}__image-wrapper">
           <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
                   type="button"
                   data-act="open"
                   data-id="${displayModel.id}"
                   aria-label="Open ${name}">
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : '<div class="thumb-no-image">No preview</div>'}
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : ''}
           </button>
         </div>
-      `,
-      footerTitle: name,
-      footerMeta: [
-        { label: isVectorImage ? 'SVG' : 'Image', tone: 'image' },
-        isImageFailed ? 'Failed' : (isProcessing ? processingLabel.replace(/\.\.\.$/, '') : 'Ready'),
-      ],
-      typeBadge: 'Image',
-      processingMarkup: !isImageFailed && isProcessing ? `
-        <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
-          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
-          <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
-          <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
-            <div class="${thumbPrefix}__progress-fill"></div>
+        ${isProcessing ? `
+          <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
+            <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
+            <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
+            <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
+              <div class="${thumbPrefix}__progress-fill"></div>
+            </div>
+          </div>
+        ` : ''}
+        <span class="${thumbPrefix}__name">${name}</span>
+        ${!isExpanded ? `
+        <div class="${thumbPrefix}__menu-wrap">
+          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <circle cx="19" cy="12" r="2"/>
+            </svg>
+          </button>
+          <div class="card-menu" role="menu" aria-label="Image actions">
+            <div class="card-menu__list">
+              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#127912;</span>
+                  <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
+                </span>
+                <span class="card-menu__arrow">></span>
+              </button>
+              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#127909;</span>
+                  <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
+                </span>
+                <span class="card-menu__badge">45c</span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#8595;</span>
+                  <span>Download</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#9651;</span>
+                  <span>Share to Community</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#128465;</span>
+                  <span>Delete</span>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
-      ` : '',
-      mediaExtras: imageMenuMarkup,
-    });
+        ` : ''}
+      </div>
+    `;
   }
 
   // VIDEO TYPE
@@ -1166,69 +1052,10 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
       : '';
 
-    if (isExpanded) {
-      const expandedVideoType = isAnimatedStage ? 'Animated' : 'Video';
-      const videoMedia = isFailed
-        ? `
-          <div class="${thumbPrefix}__error-card">
-            <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
-            <span class="${thumbPrefix}__error-text">${errorMsg.length > 120 ? errorMsg.slice(0, 120) + '...' : errorMsg}</span>
-            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}"${retryResAttr}>
-              ${retryLabel}
-            </button>
-          </div>
-        `
-        : `
-          <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
-                  type="button"
-                  data-act="open-video"
-                  data-id="${displayModel.id}"
-                  data-video-url="${videoSrc}"
-                  aria-label="Play ${name}"
-                  ${isProcessing ? 'disabled' : ''}>
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `
-              <div class="${thumbPrefix}__video-empty">
-                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
-              </div>
-            `}
-            ${!isProcessing && videoSrc ? `
-              <span class="${thumbPrefix}__play-btn">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <polygon points="9 6 18 12 9 18 9 6" fill="currentColor"/>
-                </svg>
-              </span>
-            ` : ''}
-          </button>
-        `;
-
-      const videoProcessing = isProcessing ? `
-        <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
-          <div class="${thumbPrefix}__video-spinner">
-            <span class="${thumbPrefix}__video-spinner-dot"></span>
-          </div>
-          <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
-        </div>
-      ` : '';
-
-      return buildExpandedShell({
-        extraClasses: `${thumbPrefix}--video ${videoStatusClass} ${isFailed ? `${thumbPrefix}--failed` : ''} ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
-        mediaMarkup: videoMedia,
-        footerTitle: name,
-        footerMeta: [
-          { label: expandedVideoType, tone: isAnimatedStage ? 'animated' : 'video' },
-          isFailed ? failBadge : (isProcessing ? videoProcessingLabel.replace(/\.\.\.$/, '') : 'Playable'),
-        ],
-        typeBadge: expandedVideoType,
-        hoverLabel: 'Play creation',
-        processingMarkup: videoProcessing,
-      });
-    }
-
     // Failed video card
-    if (isFailed && isExpanded) {
+    if (isFailed) {
       // Resolution-aware retry: if a high-res job failed (4K/1080p timeout),
       // suggest retrying at a lower resolution instead of blind retry.
-      // Build retry menu items with fallback options
       let retryMenuItems = `
                 <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
                   <span class="card-menu__item-inner">
@@ -1290,102 +1117,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       `;
     }
 
-    const videoMenuMarkup = !isExpanded ? (isFailed ? `
-      <div class="${thumbPrefix}__menu-wrap">
-        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="19" cy="12" r="2"/>
-          </svg>
-        </button>
-        <div class="card-menu" role="menu" aria-label="Video actions">
-          <div class="card-menu__list">
-            ${(() => {
-              let retryMenuItems = `
-                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
-                  <span class="card-menu__item-inner">
-                    <span class="card-menu__icon">&#8635;</span>
-                    <span>Retry Generation</span>
-                  </span>
-                </button>`;
-              if (suggestLowerRes) {
-                const fallbackRes = failRes === '4k' ? ['1080p', '720p'] : ['720p'];
-                fallbackRes.forEach(res => {
-                  retryMenuItems += `
-                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}" data-retry-resolution="${res}">
-                  <span class="card-menu__item-inner">
-                    <span class="card-menu__icon">&#8595;</span>
-                    <span>Retry at ${res}</span>
-                  </span>
-                </button>`;
-                });
-              }
-              return retryMenuItems;
-            })()}
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128465;</span>
-                <span>Delete</span>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    ` : `
-      <div class="${thumbPrefix}__menu-wrap">
-        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="19" cy="12" r="2"/>
-          </svg>
-        </button>
-        <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
-          <div class="card-menu__list">
-            <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#8595;</span>
-                <span>Download</span>
-              </span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128279;</span>
-                <span>Copy Link</span>
-              </span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#9651;</span>
-                <span>Share to Community</span>
-              </span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128465;</span>
-                <span>Delete</span>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `) : '';
-
-    return buildExpandedShell({
-      extraClasses: `${thumbPrefix}--video ${videoStatusClass} ${isFailed ? `${thumbPrefix}--failed` : ''} ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
-      mediaMarkup: isFailed ? `
-        <div class="${thumbPrefix}__error-card">
-          <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
-          <span class="${thumbPrefix}__error-text">${errorMsg.length > 80 ? errorMsg.slice(0, 80) + '...' : errorMsg}</span>
-          <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}"${retryResAttr}>
-            ${retryLabel}
-          </button>
-        </div>
-      ` : `
+    // Normal/processing video card - Clean modern design with big click area
+    return `
+      <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
         <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
                 type="button"
                 data-act="open-video"
@@ -1405,25 +1139,59 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </svg>
             </span>
           ` : ''}
+          <span class="${thumbPrefix}__video-name">${name}</span>
         </button>
-      `,
-      footerTitle: name,
-      footerMeta: [
-        { label: isAnimatedStage ? 'Animated' : 'Video', tone: isAnimatedStage ? 'animated' : 'video' },
-        isFailed ? failBadge : (isProcessing ? videoProcessingLabel.replace(/\.\.\.$/, '') : 'Playable'),
-      ],
-      typeBadge: isAnimatedStage ? 'Animated' : 'Video',
-      hoverLabel: 'Play creation',
-      processingMarkup: !isFailed && isProcessing ? `
+        ${isProcessing ? `
         <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
           <div class="${thumbPrefix}__video-spinner">
             <span class="${thumbPrefix}__video-spinner-dot"></span>
           </div>
           <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
         </div>
-      ` : '',
-      mediaExtras: videoMenuMarkup,
-    });
+        ` : ''}
+        ${!isExpanded ? `
+        <div class="${thumbPrefix}__menu-wrap">
+          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <circle cx="19" cy="12" r="2"/>
+            </svg>
+          </button>
+          <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
+            <div class="card-menu__list">
+              <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#8595;</span>
+                  <span>Download</span>
+                </span>
+              </button>
+              <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#128279;</span>
+                  <span>Copy Link</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#9651;</span>
+                  <span>Share to Community</span>
+                </span>
+              </button>
+              <div class="card-menu__divider"></div>
+              <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#128465;</span>
+                  <span>Delete</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    `;
   }
 
   // MODEL TYPE
@@ -1493,171 +1261,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     </div>
   ` : '';
 
-  if (isExpanded) {
-    return buildExpandedShell({
-      extraClasses: `${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}`.trim(),
-      mediaMarkup: previewMarkup,
-      footerTitle: modelName,
-      footerMeta: [
-        { label: stageLabel, tone: galleryTone },
-        hasVariants ? `${variantCount} variants` : 'Model',
-      ],
-      typeBadge: galleryTone === 'animated' ? 'Animated' : 'Model',
-      mediaExtras: `${displayModel.is_rigged || stageVal === 'rig' || stageVal === 'rigged' ? `
-        <span class="${thumbPrefix}__rig" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v6"/>
-            <path d="M8 10l4 4 4-4"/>
-            <path d="M7 21l2-6 3-1 3 1 2 6"/>
-          </svg>
-        </span>
-      ` : ''}${overlayVisible ? overlayMarkup : ''}`,
-      processingMarkup: isProcessing ? `
-        <div class="${thumbPrefix}__processing" data-job-id="${displayModel.id}">
-          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
-          <span class="${thumbPrefix}__processing-pct">0%</span>
-          <div class="${thumbPrefix}__progress-bar">
-            <div class="${thumbPrefix}__progress-fill"></div>
-          </div>
-        </div>
-      ` : '',
-    });
-  }
-
-  if (!isExpanded) {
-    const modelMenuMarkup = `
-      <div class="${thumbPrefix}__menu-wrap">
-        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Model actions" data-history-menu>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="19" cy="12" r="2"/>
-          </svg>
-        </button>
-        <div class="card-menu" role="menu" aria-label="Model actions">
-          <div class="card-menu__list">
-            <button class="card-menu__item" type="button" data-submenu-open="${editSubmenuId}" aria-expanded="false">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#11042;</span>
-                <span>Edit Model</span>
-              </span>
-              <span class="card-menu__arrow">></span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="print" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128424;</span>
-                <span>Print</span>
-              </span>
-              <span class="card-menu__arrow">></span>
-            </button>
-            <div class="card-menu__divider"></div>
-            <button class="card-menu__item" type="button" data-submenu-open="share-${displayModel.id}" aria-expanded="false">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#8599;</span>
-                <span>Share</span>
-              </span>
-              <span class="card-menu__arrow">></span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="download" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#8595;</span>
-                <span>Download</span>
-              </span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="license" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#10227;</span>
-                <span>Change License</span>
-              </span>
-              <span class="card-menu__badge">${licenseLabel(displayModel.license)}</span>
-            </button>
-            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128465;</span>
-                <span>Delete</span>
-              </span>
-            </button>
-          </div>
-        </div>
-        <div class="card-submenu" data-submenu-panel="${editSubmenuId}">
-          <button class="card-submenu__item" type="button" data-act="texture" data-id="${displayModel.id}" ${!canTexture ? 'disabled' : ''}>
-            <span class="card-menu__icon">&#9639;</span>
-            Texture
-          </button>
-          <button class="card-submenu__item" type="button" data-act="remesh" data-id="${displayModel.id}" ${!canRemesh ? 'disabled' : ''}>
-            <span class="card-menu__icon">&#11041;</span>
-            Remesh
-          </button>
-          <div class="card-submenu__divider"></div>
-          <button class="card-submenu__item" type="button" data-act="refine" data-id="${displayModel.id}" ${!canRefine ? 'disabled' : ''}>
-            <span class="card-menu__icon">&#10022;</span>
-            Refine Preview
-          </button>
-        </div>
-        <div class="card-submenu" data-submenu-panel="share-${displayModel.id}">
-          <button class="card-submenu__item" type="button" data-act="copy-link" data-id="${displayModel.id}">
-            <span class="card-menu__icon">&#128279;</span>
-            Copy Link
-          </button>
-          <button class="card-submenu__item" type="button" data-act="embed" data-id="${displayModel.id}">
-            <span class="card-menu__icon">&#9723;</span>
-            Embed Code
-          </button>
-          <div class="card-submenu__divider"></div>
-          <button class="card-submenu__item" type="button" data-act="share-twitter" data-id="${displayModel.id}">
-            <span class="card-menu__icon">&#120143;</span>
-            Share on X
-          </button>
-          <button class="card-submenu__item" type="button" data-act="share-facebook" data-id="${displayModel.id}">
-            <span class="card-menu__icon">f</span>
-            Share on Facebook
-          </button>
-          <button class="card-submenu__item" type="button" data-act="share-linkedin" data-id="${displayModel.id}">
-            <span class="card-menu__icon">in</span>
-            Share on LinkedIn
-          </button>
-          <button class="card-submenu__item" type="button" data-act="share-discord" data-id="${displayModel.id}">
-            <span class="card-menu__icon">&#9670;</span>
-            Share on Discord
-          </button>
-          <div class="card-submenu__divider"></div>
-          <button class="card-submenu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}" data-type="${displayModel.item_type || 'model'}" data-thumb="${displayModel.thumbnail_url || ''}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
-            <span class="card-menu__icon">&#9651;</span>
-            Share to Community
-          </button>
-        </div>
-      </div>
-    `;
-
-    return buildExpandedShell({
-      extraClasses: `${statusClass} ${status === 'failed' ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}`.trim(),
-      mediaMarkup: previewMarkup,
-      footerTitle: modelName,
-      footerMeta: [
-        { label: stageLabel, tone: galleryTone },
-        status === 'failed' ? 'Failed' : (hasVariants ? `${variantCount} variants` : 'Model'),
-      ],
-      typeBadge: galleryTone === 'animated' ? 'Animated' : 'Model',
-      processingMarkup: isProcessing ? `
-        <div class="${thumbPrefix}__processing" data-job-id="${displayModel.id}">
-          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
-          <span class="${thumbPrefix}__processing-pct">0%</span>
-          <div class="${thumbPrefix}__progress-bar">
-            <div class="${thumbPrefix}__progress-fill"></div>
-          </div>
-        </div>
-      ` : '',
-      mediaExtras: `${modelMenuMarkup}${displayModel.is_rigged || stageVal === 'rig' || stageVal === 'rigged' ? `
-        <span class="${thumbPrefix}__rig" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v6"/>
-            <path d="M8 10l4 4 4-4"/>
-            <path d="M7 21l2-6 3-1 3 1 2 6"/>
-          </svg>
-        </span>
-      ` : ''}${overlayVisible ? overlayMarkup : ''}`,
-    });
-  }
+  const stageVal = (displayModel.stage || '').toLowerCase();
+  const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
+    : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
+    : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
+    : stageVal === 'image3d' ? 'Image to 3D'
+    : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
+    : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animated'
+    : 'Preview';
 
   return `
     <div class="${thumbPrefix} ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}">
