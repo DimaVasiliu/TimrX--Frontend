@@ -6485,9 +6485,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     function handleFileSelect(file) {
       const maxSize = 50 * 1024 * 1024;
       const valid   = ['.glb', '.gltf'];
+      const validMime = ['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', ''];
       const ext     = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-  
-      if (!valid.includes(ext)) {
+
+      if (!valid.includes(ext) || (file.type && !validMime.includes(file.type.toLowerCase()))) {
         if (modelFileHint) {
           modelFileHint.textContent = 'Invalid file format. Please upload a GLB or GLTF file.';
           modelFileHint.style.color = '#ff6b6b';

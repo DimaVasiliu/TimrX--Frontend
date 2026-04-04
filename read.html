@@ -63,7 +63,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="read.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
 </head>
 <body class="read-page">
   <div id="progressBar" class="progress-bar" aria-hidden="true"></div>
@@ -395,6 +395,72 @@
   // Year in footer
   (function(){ const y=qs('#year'); if(y) y.textContent = new Date().getFullYear(); })();
 
+  // ── Security: HTML escaping & sanitization ───────────────────────────────
+  // Full entity escape — for attribute values and plain text contexts
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Whitelist sanitizer for rich text (Editor.js paragraph/header/list content
+  // intentionally contains <b>, <i>, <a>, <br>, <mark> etc.)
+  // Strips everything except safe inline formatting tags.
+  function sanitizeRichText(html) {
+    if (!html) return '';
+    const ALLOWED = /^(b|i|u|em|strong|a|br|mark|code|sub|sup|s|span)$/i;
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    (function walk(node) {
+      const children = Array.from(node.childNodes);
+      for (const child of children) {
+        if (child.nodeType === 1) { // Element
+          if (!ALLOWED.test(child.tagName)) {
+            // Replace disallowed element with its text content
+            child.replaceWith(document.createTextNode(child.textContent));
+          } else {
+            // For <a> tags, validate href — block javascript: URIs
+            if (child.tagName === 'A') {
+              const href = (child.getAttribute('href') || '').trim().toLowerCase();
+              if (href.startsWith('javascript:') || href.startsWith('data:')) {
+                child.removeAttribute('href');
+              }
+              child.setAttribute('rel', 'noopener');
+            }
+            // Remove event handler attributes from allowed elements
+            for (const attr of Array.from(child.attributes)) {
+              if (attr.name.startsWith('on')) child.removeAttribute(attr.name);
+            }
+            walk(child);
+          }
+        }
+      }
+    })(div);
+    return div.innerHTML;
+  }
+
+  // Validate URL — only allow http/https protocols
+  function safeUrl(url) {
+    if (!url) return '';
+    try {
+      const p = new URL(url, location.origin);
+      if (p.protocol === 'http:' || p.protocol === 'https:') return p.href;
+    } catch {}
+    return '';
+  }
+
+  // Configure marked to disable raw HTML passthrough
+  if (typeof marked !== 'undefined') {
+    marked.setOptions({ breaks: true });
+    // Override the HTML renderer to escape raw HTML in markdown
+    const renderer = new marked.Renderer();
+    renderer.html = function(html) {
+      // Strip raw HTML blocks — only allow markdown-generated HTML
+      var text = typeof html === 'object' ? (html.text || html.raw || '') : String(html || '');
+      return esc(text);
+    };
+    marked.use({ renderer: renderer });
+  }
+
   // Render Editor.js blocks to HTML
   function renderBlocks(blocksData) {
     let data;
@@ -409,98 +475,93 @@
       const d = block.data || {};
       switch (block.type) {
         case 'paragraph':
-          return `<p>${d.text || ''}</p>`;
+          return `<p>${sanitizeRichText(d.text)}</p>`;
         case 'header':
           const lvl = d.level || 2;
-          return `<h${lvl}>${d.text || ''}</h${lvl}>`;
+          return `<h${lvl}>${sanitizeRichText(d.text)}</h${lvl}>`;
         case 'list':
           const tag = d.style === 'ordered' ? 'ol' : 'ul';
           const items = (d.items || []).map(item => {
             const text = typeof item === 'string' ? item : (item.content || '');
-            return `<li>${text}</li>`;
+            return `<li>${sanitizeRichText(text)}</li>`;
           }).join('');
           return `<${tag}>${items}</${tag}>`;
         case 'image':
-          const url = d.file?.url || d.url || '';
+          const url = safeUrl(d.file?.url || d.url || '');
           const cap = d.caption || '';
-          // Strip HTML tags for alt attribute to prevent broken markup
-          const altText = cap.replace(/<[^>]+>/g, '').replace(/"/g, '&quot;') || 'Image';
-          return `<figure class="post-image"><img src="${url}" alt="${altText}"/>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+          const altText = esc(cap.replace(/<[^>]+>/g, '')) || 'Image';
+          return `<figure class="post-image">${url ? `<img src="${esc(url)}" alt="${altText}"/>` : ''}${cap ? `<figcaption>${sanitizeRichText(cap)}</figcaption>` : ''}</figure>`;
         case 'code':
-          const code = (d.code || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return `<pre><code>${code}</code></pre>`;
+          return `<pre><code>${esc(d.code)}</code></pre>`;
         case 'quote':
-          const quote = d.text || '';
-          const author = d.caption || '';
-          return `<blockquote><p>${quote}</p>${author ? `<cite>— ${author}</cite>` : ''}</blockquote>`;
+          return `<blockquote><p>${sanitizeRichText(d.text)}</p>${d.caption ? `<cite>— ${sanitizeRichText(d.caption)}</cite>` : ''}</blockquote>`;
         case 'delimiter':
           return '<hr class="delimiter"/>';
         case 'checklist':
           const checks = (d.items || []).map(item => {
             const checked = item.checked ? 'checked' : '';
-            return `<li class="checklist-item ${checked}"><span class="checkbox"></span>${item.text || ''}</li>`;
+            return `<li class="checklist-item ${checked}"><span class="checkbox"></span>${sanitizeRichText(item.text)}</li>`;
           }).join('');
           return `<ul class="checklist">${checks}</ul>`;
         case 'warning':
-          return `<div class="warning-block"><strong>${d.title || 'Warning'}</strong><p>${d.message || ''}</p></div>`;
+          return `<div class="warning-block"><strong>${esc(d.title || 'Warning')}</strong><p>${sanitizeRichText(d.message)}</p></div>`;
         case 'product_card': {
-          const t = d.title || 'Product';
-          const badge = d.badge || '';
-          const score = d.score || 0;
-          const sLabel = d.score_label || '';
-          let img = d.image || '';
+          const t = esc(d.title || 'Product');
+          const badge = esc(d.badge || '');
+          const score = Number(d.score) || 0;
+          const sLabel = esc(d.score_label || '');
+          let img = safeUrl(d.image || '');
           if (img && /amazon\.com|media-amazon|images-amazon|ssl-images-amazon/i.test(img)) img = '/img/product-placeholder.svg';
-          const url = d.affiliate_url || '';
-          const cta = d.cta || 'View Deal';
+          const pUrl = safeUrl(d.affiliate_url || '');
+          const cta = esc(d.cta || 'View Deal');
           const feats = (d.features || []).slice(0, 6);
-          if (!url) return '';
+          if (!pUrl) return '';
           const sPct = Math.min(100, Math.max(0, score * 10));
-          return `<div class="aff-product-card">${badge ? `<div class="aff-badge">${badge}</div>` : ''}${img ? `<div class="aff-product-img"><img src="${img}" alt="${t}" loading="lazy" decoding="async"/></div>` : ''}<div class="aff-product-body"><h3 class="aff-product-title">${t}</h3>${score ? `<div class="aff-rating"><span class="aff-rating-score">${score}</span><div class="aff-rating-bar"><div class="aff-rating-fill" style="width:${sPct}%"></div></div>${sLabel ? `<span class="aff-rating-label">${sLabel}</span>` : ''}</div>` : ''}${feats.length ? `<ul class="aff-features">${feats.map(f=>`<li>${f}</li>`).join('')}</ul>` : ''}<a href="${url}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${cta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
+          return `<div class="aff-product-card">${badge ? `<div class="aff-badge">${badge}</div>` : ''}${img ? `<div class="aff-product-img"><img src="${esc(img)}" alt="${t}" loading="lazy" decoding="async"/></div>` : ''}<div class="aff-product-body"><h3 class="aff-product-title">${t}</h3>${score ? `<div class="aff-rating"><span class="aff-rating-score">${score}</span><div class="aff-rating-bar"><div class="aff-rating-fill" style="width:${sPct}%"></div></div>${sLabel ? `<span class="aff-rating-label">${sLabel}</span>` : ''}</div>` : ''}${feats.length ? `<ul class="aff-features">${feats.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>` : ''}<a href="${esc(pUrl)}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${cta}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
         }
         case 'product': {
-          // Backward compat: old product blocks → simplified product_card
-          const url = d.url || '';
-          if (!url) return '';
-          const desc = d.description || '';
-          return `<div class="aff-product-card"><div class="aff-product-body"><h3 class="aff-product-title">${d.name || 'Product'}</h3>${desc ? `<ul class="aff-features"><li>${desc}</li></ul>` : ''}<a href="${url}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${d.cta || 'View Deal'}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
+          const pUrl = safeUrl(d.url || '');
+          if (!pUrl) return '';
+          const desc = esc(d.description || '');
+          return `<div class="aff-product-card"><div class="aff-product-body"><h3 class="aff-product-title">${esc(d.name || 'Product')}</h3>${desc ? `<ul class="aff-features"><li>${desc}</li></ul>` : ''}<a href="${esc(pUrl)}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${esc(d.cta || 'View Deal')}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div></div>`;
         }
         case 'comparison_table': {
           const cols = d.columns || [];
           const rows = d.rows || [];
           const links = d.links || [];
-          const ctitle = d.title || '';
+          const ctitle = esc(d.title || '');
           if (!cols.length || !rows.length) return '';
-          const thead = cols.map(c=>`<th>${c}</th>`).join('');
-          const tbody = rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
-          const linksHtml = links.filter(l=>l.url).map(l=>`<a href="${l.url}" class="aff-cta aff-cta--sm" target="_blank" rel="nofollow sponsored noopener">${l.label||'View'}</a>`).join('');
+          const thead = cols.map(c=>`<th>${esc(c)}</th>`).join('');
+          const tbody = rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('');
+          const linksHtml = links.filter(l=>safeUrl(l.url)).map(l=>`<a href="${esc(safeUrl(l.url))}" class="aff-cta aff-cta--sm" target="_blank" rel="nofollow sponsored noopener">${esc(l.label||'View')}</a>`).join('');
           return `<div class="aff-comparison">${ctitle?`<h3 class="aff-comparison-title">${ctitle}</h3>`:''}<div class="aff-table-wrap"><table class="aff-table"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>${linksHtml?`<div class="aff-comparison-links">${linksHtml}</div>`:''}</div>`;
         }
         case 'pros_cons': {
           const pros = d.pros || [];
           const cons = d.cons || [];
           if (!pros.length && !cons.length) return '';
-          const prosHtml = pros.length ? `<div class="aff-pros"><div class="aff-proscons-head aff-proscons-head--pro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Pros</div><ul>${pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>` : '';
-          const consHtml = cons.length ? `<div class="aff-cons"><div class="aff-proscons-head aff-proscons-head--con"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Cons</div><ul>${cons.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : '';
+          const prosHtml = pros.length ? `<div class="aff-pros"><div class="aff-proscons-head aff-proscons-head--pro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Pros</div><ul>${pros.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+          const consHtml = cons.length ? `<div class="aff-cons"><div class="aff-proscons-head aff-proscons-head--con"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Cons</div><ul>${cons.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>` : '';
           return `<div class="aff-proscons">${prosHtml}${consHtml}</div>`;
         }
         case 'deal_alert': {
-          const dUrl = d.affiliate_url || '';
+          const dUrl = safeUrl(d.affiliate_url || '');
           if (!dUrl) return '';
-          const dTitle = d.title || 'Deal Alert';
-          const dText = d.text || '';
-          const dCta = d.cta || 'Check Deal';
-          const dVar = d.variant || 'blue';
-          const popupAttrs = d.popup ? ` data-deal-popup="true" data-deal-title="${dTitle}" data-deal-url="${dUrl}" data-deal-cta="${dCta}"` : '';
-          return `<div class="aff-deal aff-deal--${dVar}"${popupAttrs}><div class="aff-deal-body"><strong class="aff-deal-title">${dTitle}</strong>${dText?`<span class="aff-deal-text">${dText}</span>`:''}</div><a href="${dUrl}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${dCta}</a></div>`;
+          const dTitle = esc(d.title || 'Deal Alert');
+          const dText = esc(d.text || '');
+          const dCta = esc(d.cta || 'Check Deal');
+          const dVar = esc(d.variant || 'blue');
+          const popupAttrs = d.popup ? ` data-deal-popup="true" data-deal-title="${dTitle}" data-deal-url="${esc(dUrl)}" data-deal-cta="${dCta}"` : '';
+          return `<div class="aff-deal aff-deal--${dVar}"${popupAttrs}><div class="aff-deal-body"><strong class="aff-deal-title">${dTitle}</strong>${dText?`<span class="aff-deal-text">${dText}</span>`:''}</div><a href="${esc(dUrl)}" class="aff-cta" target="_blank" rel="nofollow sponsored noopener">${dCta}</a></div>`;
         }
         case 'rating_meter': {
-          const rScore = d.score || 0;
-          const rLbl = d.label || '';
+          const rScore = Number(d.score) || 0;
+          const rLbl = esc(d.label || '');
           const subs = d.subscores || [];
           const rPct = Math.min(100, Math.max(0, rScore * 10));
           const subsHtml = subs.map(s => {
-            const vPct = Math.min(100, Math.max(0, (s.value||0) * 10));
-            return `<div class="aff-subscore"><span class="aff-subscore-name">${s.name||''}</span><div class="aff-subscore-bar"><div class="aff-subscore-fill" style="width:${vPct}%"></div></div><span class="aff-subscore-val">${s.value||0}</span></div>`;
+            const vPct = Math.min(100, Math.max(0, (Number(s.value)||0) * 10));
+            return `<div class="aff-subscore"><span class="aff-subscore-name">${esc(s.name)}</span><div class="aff-subscore-bar"><div class="aff-subscore-fill" style="width:${vPct}%"></div></div><span class="aff-subscore-val">${Number(s.value)||0}</span></div>`;
           }).join('');
           return `<div class="aff-rating-meter"><div class="aff-meter-main"><span class="aff-meter-score">${rScore}</span><div class="aff-meter-bar"><div class="aff-meter-fill" style="width:${rPct}%"></div></div>${rLbl?`<span class="aff-meter-label">${rLbl}</span>`:''}</div>${subs.length?`<div class="aff-subscores">${subsHtml}</div>`:''}</div>`;
         }
@@ -508,22 +569,24 @@
           const cards = d.cards || [];
           if (!cards.length) return '';
           const cardsHtml = cards.map((card, idx) => {
-            const escClaim = (card.claim || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-            const escResponse = (card.response || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
-            const escShort = (card.shortClaim || '').replace(/</g, '&lt;');
+            const escClaim = esc(card.claim);
+            const escResponse = esc(card.response).replace(/\n/g, '<br>');
+            const escShort = esc(card.shortClaim);
+            const escEmoji = esc(card.emoji || '?');
+            const verdict = esc(card.verdict || 'unknown');
             // Extract first URL from response for linking
-            const urlMatch = (card.response || '').match(/https?:\/\/[^\s<>"]+/);
-            const sourceUrl = urlMatch ? urlMatch[0] : '';
-            return `<div class="vref-card vref-${card.verdict || 'unknown'}" data-idx="${idx}">
-              <span class="vref-emoji">${card.emoji || '?'}</span>
+            const urlMatch = (card.response || '').match(/https?:\/\/[^\s<>"']+/);
+            const sourceUrl = urlMatch ? safeUrl(urlMatch[0]) : '';
+            return `<div class="vref-card vref-${verdict}" data-idx="${idx}">
+              <span class="vref-emoji">${escEmoji}</span>
               <span class="vref-claim">${escShort}</span>
               <div class="vref-tooltip">
                 <div class="vref-tooltip-header">
-                  <span class="vref-verdict-badge vref-${card.verdict}">${card.emoji} ${card.verdict === 'supported' ? 'Supported' : card.verdict === 'partial' ? 'Partially Supported' : 'Not Supported'}</span>
+                  <span class="vref-verdict-badge vref-${verdict}">${escEmoji} ${verdict === 'supported' ? 'Supported' : verdict === 'partial' ? 'Partially Supported' : 'Not Supported'}</span>
                 </div>
                 <p class="vref-full-claim">${escClaim}</p>
-                <div class="vref-evidence">${escResponse.substring(0, 400)}${card.response.length > 400 ? '...' : ''}</div>
-                ${sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="vref-source-link">View Source →</a>` : ''}
+                <div class="vref-evidence">${escResponse.substring(0, 400)}${(card.response||'').length > 400 ? '...' : ''}</div>
+                ${sourceUrl ? `<a href="${esc(sourceUrl)}" target="_blank" rel="noopener" class="vref-source-link">View Source →</a>` : ''}
               </div>
             </div>`;
           }).join('');

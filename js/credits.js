@@ -9,6 +9,16 @@
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 
+  // Security: validate checkout redirect URLs against trusted payment domains
+  const TRUSTED_CHECKOUT_HOSTS = ['checkout.mollie.com', 'www.mollie.com', 'checkout.stripe.com'];
+  function isSafeCheckoutUrl(url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') return false;
+      return TRUSTED_CHECKOUT_HOSTS.some(h => parsed.hostname === h || parsed.hostname.endsWith('.' + h));
+    } catch { return false; }
+  }
+
   // ─────────────────────────────────────────────────────────────
   // Checkout Funnel Analytics
   // Lightweight event tracking for the verify-before-checkout flow.
@@ -1189,6 +1199,7 @@
           }
         } catch (_) { /* Safari: storage blocked */ }
 
+        if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
         throw new Error('No checkout URL returned');
@@ -1662,6 +1673,7 @@
 
         // Redirect to Mollie checkout
         trackCheckoutEvent('redirect_started', { flow: 'video', plan: selectedVideoPlan });
+        if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
         throw new Error('No checkout URL returned');
@@ -2647,6 +2659,7 @@
 
         // Redirect to Mollie checkout
         trackCheckoutEvent('redirect_started', { flow: 'general', plan: selectedPlan.id });
+        if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
         throw new Error('No checkout URL returned');

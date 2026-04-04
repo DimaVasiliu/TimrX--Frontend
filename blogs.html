@@ -597,6 +597,12 @@
       qs('#feat-2')?.classList.remove('feat--loading');
     }
 
+    // HTML entity escaping — prevents XSS from API data
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
     // Show error banner
     function showErrorBanner(message) {
       // Remove existing banner if any
@@ -606,7 +612,7 @@
       const banner = document.createElement('div');
       banner.id = 'api-error-banner';
       banner.style.cssText = 'background:#dc2626;color:#fff;padding:12px 20px;text-align:center;font-size:14px;position:sticky;top:0;z-index:9999;';
-      banner.innerHTML = `<strong>Error:</strong> ${message} <button onclick="this.parentElement.remove()" style="margin-left:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;">Dismiss</button>`;
+      banner.innerHTML = `<strong>Error:</strong> ${esc(message)} <button onclick="this.parentElement.remove()" style="margin-left:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;">Dismiss</button>`;
       document.body.insertBefore(banner, document.body.firstChild);
     }
 
@@ -641,21 +647,21 @@
     // Generate card HTML (direct link to canonical /blog/<slug> - no redirect)
     function cardHTML(p){
       const url = `/blog/${encodeURIComponent(p.slug)}`;
-      const tag = (p.tags||'').split(',')[0] || 'Post';
+      const tag = esc((p.tags||'').split(',')[0] || 'Post');
       const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
       return `
         <a class="card" href="${url}" role="listitem">
           <div class="thumb">
-            <img src="${p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop'}" alt="" loading="lazy" decoding="async"/>
+            <img src="${esc(p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop')}" alt="" loading="lazy" decoding="async"/>
             <span class="pill">${tag}</span>
           </div>
           <div class="info">
-            <h3 class="title">${p.title}</h3>
-            <p class="excerpt">${p.excerpt || ''}</p>
+            <h3 class="title">${esc(p.title)}</h3>
+            <p class="excerpt">${esc(p.excerpt || '')}</p>
             <div class="card-footer">
               <div class="author-mini">
-                <img class="author-mini-avatar" src="${p.author_avatar || '/img/dima.jpg'}" alt="${p.author || 'Dima Vasiliu'}" loading="lazy"/>
-                <span class="author-mini-name">${p.author || 'Dima V'}</span>
+                <img class="author-mini-avatar" src="${esc(p.author_avatar || '/img/dima.jpg')}" alt="${esc(p.author || 'Dima Vasiliu')}" loading="lazy"/>
+                <span class="author-mini-name">${esc(p.author || 'Dima V')}</span>
               </div>
               <div class="meta"><span>${date}</span> • <span>${p.minutes||Math.max(3,Math.round((p.excerpt||p.title).length/60))} min</span></div>
             </div>
@@ -735,7 +741,7 @@
       if (tagsEl) {
         const allTags = (post.tags || '').split(',').filter(Boolean);
         if (allTags.length > 1) {
-          tagsEl.innerHTML = allTags.map(function(t){ return '<span class="featured-tag">'+t.trim()+'</span>'; }).join('');
+          tagsEl.innerHTML = allTags.map(function(t){ return '<span class="featured-tag">'+esc(t.trim())+'</span>'; }).join('');
         }
       }
     }

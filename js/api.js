@@ -1818,10 +1818,8 @@ async function getTextureFormValues() {
     const mime = (uploadedStyleFile.type || '').toLowerCase();
     const fileName = (uploadedStyleFile.name || '').toLowerCase();
     const hasAllowedExtension = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
-    if (mime && !['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
-      throw new Error('Texture style image must be a JPG or PNG file.');
-    }
-    if (!mime && !hasAllowedExtension) {
+    // Require either valid MIME type OR allowed extension (both must be checked)
+    if (!['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
       throw new Error('Texture style image must be a JPG or PNG file.');
     }
     image_style_url = await fileToDataURL(uploadedStyleFile);
@@ -2037,10 +2035,8 @@ async function openRefineSettingsModal(item = {}) {
           const mime = (uploadedStyleFile.type || '').toLowerCase();
           const fileName = (uploadedStyleFile.name || '').toLowerCase();
           const hasAllowedExtension = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
-          if (mime && !['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
-            throw new Error('Refine style image must be a JPG or PNG file.');
-          }
-          if (!mime && !hasAllowedExtension) {
+          // Require either valid MIME type OR allowed extension (both must be checked)
+          if (!['image/jpeg', 'image/png'].includes(mime) && !hasAllowedExtension) {
             throw new Error('Refine style image must be a JPG or PNG file.');
           }
           texture_image_url = await fileToDataURL(uploadedStyleFile);

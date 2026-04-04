@@ -6830,7 +6830,7 @@
           } catch (e) {
             // Response wasn't JSON
           }
-          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${errorMsg}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${escapeHtmlText(errorMsg)}</td></tr>`;
           return;
         }
 
@@ -6838,7 +6838,7 @@
 
         if (!j.ok) {
           const errorMsg = typeof j.error === 'string' ? j.error : (j.error?.message || j.message || 'Failed to load');
-          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${errorMsg}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${escapeHtmlText(errorMsg)}</td></tr>`;
           return;
         }
 
@@ -6902,7 +6902,7 @@
 
       } catch (err) {
         console.error('Billing fetch error:', err);
-        tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="muted">Error: ${escapeHtmlText(err.message)}</td></tr>`;
       }
     }
 
@@ -7366,9 +7366,9 @@
         const prodTbody = $('#marginByProductTable tbody');
         prodTbody.innerHTML = data.by_product.map(p => `
           <tr>
-            <td><strong>${p.category}</strong></td>
-            <td>${p.jobs.toLocaleString()}</td>
-            <td>${p.credits_used.toLocaleString()}</td>
+            <td><strong>${escapeHtmlText(p.category)}</strong></td>
+            <td>${Number(p.jobs).toLocaleString()}</td>
+            <td>${Number(p.credits_used).toLocaleString()}</td>
             <td>${fmt(p.cost_gbp)}</td>
             <td>${fmt(p.cost_per_job)}</td>
           </tr>
@@ -7378,9 +7378,9 @@
         const provTbody = $('#marginByProviderTable tbody');
         provTbody.innerHTML = data.by_provider.map(p => `
           <tr>
-            <td><strong>${p.provider || '—'}</strong></td>
-            <td>${p.jobs.toLocaleString()}</td>
-            <td>${p.credits_used.toLocaleString()}</td>
+            <td><strong>${escapeHtmlText(p.provider || '—')}</strong></td>
+            <td>${Number(p.jobs).toLocaleString()}</td>
+            <td>${Number(p.credits_used).toLocaleString()}</td>
             <td>${fmt(p.cost_gbp)}</td>
             <td>${fmt(p.cost_per_job)}</td>
           </tr>
@@ -7393,11 +7393,11 @@
           const alertTbody = $('#marginAlertsTable tbody');
           alertTbody.innerHTML = data.alerts.map(a => `
             <tr class="row-${a.severity === 'critical' ? 'red' : 'amber'}">
-              <td>${a.email}</td>
+              <td>${escapeHtmlText(a.email)}</td>
               <td>${fmt(a.revenue_gbp)}</td>
               <td>${fmt(a.cost_gbp)}</td>
-              <td>${a.margin_pct.toFixed(1)}%</td>
-              <td><span class="margin-badge ${a.severity}">${a.severity}</span></td>
+              <td>${Number(a.margin_pct).toFixed(1)}%</td>
+              <td><span class="margin-badge ${escapeHtmlText(a.severity)}">${escapeHtmlText(a.severity)}</span></td>
             </tr>
           `).join('');
         } else {
@@ -7411,7 +7411,7 @@
           const rowClass = u.margin_pct < 40 ? (u.margin_pct < 20 ? 'row-red' : 'row-amber') : '';
           return `
             <tr class="${rowClass}">
-              <td title="${u.identity_id}">${u.email}</td>
+              <td title="${escapeHtmlText(u.identity_id)}">${escapeHtmlText(u.email)}</td>
               <td>${u.jobs.toLocaleString()}</td>
               <td>${fmt(u.revenue_gbp)}</td>
               <td>${fmt(u.cost_gbp)}</td>

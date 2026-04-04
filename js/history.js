@@ -43,83 +43,100 @@ let _galleryFetching = false;         // prevent concurrent DB fetches
 /**
  * Build a grouped multi-model card DOM element
  */
-function buildGroupedCard(group, items) {
+/**
+ * Build grouped card as an HTML string for inline rendering in timeline/gallery.
+ * After innerHTML is set, call bindGroupedCardEvents(container) to wire up click handlers.
+ */
+function buildGroupedCardHTML(group, items) {
   const count = items.length;
-  const el = document.createElement("div");
-  el.className = "history-group-card";
-  el.dataset.groupId = group.id;
-  el.dataset.count = count;
+  const gridCount = Math.min(count, 4);
 
-  // Composite thumbnail grid
-  const grid = document.createElement("div");
-  grid.className = "history-group-card__thumbs history-group-card__thumbs--" + Math.min(count, 4);
-
+  let thumbsHtml = '';
   items.slice(0, 4).forEach((item, i) => {
-    const thumbSrc = item.thumbnail_url || item.image_url || "";
+    const thumbSrc = item.thumbnail_url || item.image_url || '';
     if (thumbSrc) {
-      const img = document.createElement("img");
-      img.src = thumbSrc;
-      img.alt = "Variant " + (i + 1);
-      img.loading = "lazy";
-      img.className = "history-group-card__thumb-img";
-      img.onerror = function () { this.style.background = "#333"; this.alt = ""; };
-      grid.appendChild(img);
+      thumbsHtml += `<img src="${thumbSrc}" alt="Variant ${i + 1}" loading="lazy" class="history-group-card__thumb-img" onerror="this.style.background='#333';this.alt='';">`;
     } else {
-      // Placeholder for items still generating (no thumbnail yet)
-      const placeholder = document.createElement("div");
-      placeholder.className = "history-group-card__thumb-img history-group-card__thumb-placeholder";
-      placeholder.innerHTML = '<div class="history-group-card__spinner"></div>';
-      grid.appendChild(placeholder);
+      thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
     }
   });
-
-  // Overlay with title
-  const overlay = document.createElement("div");
-  overlay.className = "history-group-card__overlay";
-  const nameEl = document.createElement("div");
-  nameEl.className = "history-group-card__name";
-  const title = items[0]?.title || items[0]?.prompt || "Untitled";
-  nameEl.textContent = title.length > 50 ? title.slice(0, 47) + "..." : title;
-  overlay.appendChild(nameEl);
-
-  // Status bar
-  const status = document.createElement("div");
-  status.className = "history-group-card__status";
-
-  const allDone = (group.completed_count || 0) >= (group.model_count || count);
-  const hasFailed = (group.failed_count || 0) > 0;
-  const inProgress = !allDone && !hasFailed;
-
-  if (allDone && !hasFailed) {
-    status.textContent = count + " variants · done";
-  } else if (allDone && hasFailed) {
-    status.textContent = (group.completed_count || 0) + "/" + (group.model_count || count) + " · " + (group.failed_count || 0) + " failed";
-    status.classList.add("has-error");
-  } else if (inProgress) {
-    status.textContent = (group.completed_count || 0) + "/" + (group.model_count || count) + " generating…";
-    status.classList.add("is-generating");
-  } else {
-    status.textContent = count + " variants";
+  // Fill remaining slots if fewer items than batchCount
+  const batchTotal = group.model_count || count;
+  for (let i = count; i < Math.min(batchTotal, 4); i++) {
+    thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
   }
 
-  el.appendChild(grid);
-  el.appendChild(overlay);
-  el.appendChild(status);
+  const title = items[0]?.title || items[0]?.prompt || 'Untitled';
+  const safeTitle = title.length > 50 ? title.slice(0, 47) + '...' : title;
+  const escapedTitle = safeTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // Click: open grouped viewer
-  el.addEventListener("click", function (e) {
-    e.stopPropagation();
-    if (typeof window.openGroupedViewer === "function") {
-      window.openGroupedViewer(group.id, items);
-    } else {
-      // Fallback: open first model
-      const first = items[0];
-      if (first && typeof window.loadModelFromHistory === "function") {
-        window.loadModelFromHistory(first);
+  const completedCount = group.completed_count || 0;
+  const modelCount = group.model_count || count;
+  const failedCount = group.failed_count || 0;
+  const allDone = completedCount >= modelCount;
+  const hasFailed = failedCount > 0;
+  const inProgress = !allDone && !hasFailed;
+
+  let statusText, statusClass = '';
+  if (allDone && !hasFailed) {
+    statusText = `${count} variants · done`;
+  } else if (allDone && hasFailed) {
+    statusText = `${completedCount}/${modelCount} · ${failedCount} failed`;
+    statusClass = ' has-error';
+  } else if (inProgress) {
+    statusText = `${completedCount}/${modelCount} generating…`;
+    statusClass = ' is-generating';
+  } else {
+    statusText = `${count} variants`;
+  }
+
+  const safeGroupId = String(group.id || '').replace(/"/g, '&quot;');
+
+  return `<div class="history-group-card" data-group-id="${safeGroupId}" data-group-count="${gridCount}">
+    <div class="history-group-card__thumbs history-group-card__thumbs--${Math.min(Math.max(gridCount, batchTotal), 4)}">
+      ${thumbsHtml}
+    </div>
+    <div class="history-group-card__overlay">
+      <div class="history-group-card__name">${escapedTitle}</div>
+    </div>
+    <div class="history-group-card__status${statusClass}">${statusText}</div>
+  </div>`;
+}
+
+// Store for binding click events after innerHTML is set
+const _groupedCardData = new Map(); // groupId → items array
+
+/**
+ * After setting innerHTML, call this to bind click events on all grouped cards in the container.
+ */
+function bindGroupedCardEvents(container) {
+  if (!container) return;
+  container.querySelectorAll('.history-group-card[data-group-id]').forEach(card => {
+    const gid = card.dataset.groupId;
+    const items = _groupedCardData.get(gid);
+    if (!items) return;
+    // Remove old listener if any
+    card.onclick = function (e) {
+      e.stopPropagation();
+      if (typeof window.openGroupedViewer === 'function') {
+        window.openGroupedViewer(gid, items);
       }
+    };
+  });
+}
+
+// Legacy DOM-based buildGroupedCard kept for backward compat
+function buildGroupedCard(group, items) {
+  const html = buildGroupedCardHTML(group, items);
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const el = temp.firstElementChild;
+  el.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (typeof window.openGroupedViewer === 'function') {
+      window.openGroupedViewer(group.id, items);
     }
   });
-
   return el;
 }
 
@@ -932,7 +949,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       : '';
 
     return `
-      <div class="${thumbPrefix} expanded-thumb--gallery-card ${extraClasses}">
+      <div class="${thumbPrefix} history-media-card ${thumbPrefix}--gallery-card ${extraClasses}">
         <div class="${thumbPrefix}__media">
           ${typeBadgeMarkup}
           <div class="${thumbPrefix}__status-bar">
@@ -1003,125 +1020,119 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       });
     }
 
-    // Failed image card
-    if (isImageFailed) {
+    const imageMenuMarkup = !isExpanded ? (isImageFailed ? `
+      <div class="${thumbPrefix}__menu-wrap">
+        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+        <div class="card-menu" role="menu" aria-label="Image actions">
+          <div class="card-menu__list">
+            <button class="card-menu__item card-menu__item--danger" type="button" data-act="delete" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128465;</span>
+                <span>Delete</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div class="${thumbPrefix}__menu-wrap">
+        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+        <div class="card-menu" role="menu" aria-label="Image actions">
+          <div class="card-menu__list">
+            <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#127912;</span>
+                <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
+              </span>
+              <span class="card-menu__arrow">></span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#127909;</span>
+                <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
+              </span>
+              <span class="card-menu__badge">45c</span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#8595;</span>
+                <span>Download</span>
+              </span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#9651;</span>
+                <span>Share to Community</span>
+              </span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128465;</span>
+                <span>Delete</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `) : '';
+
+    const imageDisplayError = (() => {
       const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed';
-      // Make moderation errors user-friendly
-      const displayError = errorMsg.includes('safety system') || errorMsg.includes('moderation')
+      return errorMsg.includes('safety system') || errorMsg.includes('moderation')
         ? 'Blocked by content policy'
         : (errorMsg.length > 50 ? errorMsg.slice(0, 50) + '...' : errorMsg);
-      return `
-        <div class="${thumbPrefix} ${thumbPrefix}--image ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
-          <div class="${thumbPrefix}__status-bar">
-            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
-            <span class="${thumbPrefix}__image-badge ${thumbPrefix}__image-badge--failed">Failed</span>
-          </div>
-          <div class="${thumbPrefix}__error-card">
-            <span class="${thumbPrefix}__error-icon">&#9888;</span>
-            <span class="${thumbPrefix}__error-text">${displayError}</span>
-          </div>
-          <span class="${thumbPrefix}__name">${name}</span>
-          ${!isExpanded ? `
-          <div class="${thumbPrefix}__menu-wrap">
-            <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="5" cy="12" r="2"/>
-                <circle cx="12" cy="12" r="2"/>
-                <circle cx="19" cy="12" r="2"/>
-              </svg>
-            </button>
-            <div class="card-menu" role="menu" aria-label="Image actions">
-              <div class="card-menu__list">
-                <button class="card-menu__item card-menu__item--danger" type="button" data-act="delete" data-id="${displayModel.id}">
-                  <span class="card-menu__item-inner">
-                    <span class="card-menu__icon">&#128465;</span>
-                    <span>Delete</span>
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-        </div>
-      `;
-    }
+    })();
 
-    return `
-      <div class="${thumbPrefix} ${thumbPrefix}--image ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
-        <div class="${thumbPrefix}__status-bar">
-          <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+    return buildExpandedShell({
+      extraClasses: `${thumbPrefix}--image ${statusClass} ${isImageFailed ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
+      mediaMarkup: isImageFailed ? `
+        <div class="${thumbPrefix}__error-card">
+          <span class="${thumbPrefix}__error-icon">&#9888;</span>
+          <span class="${thumbPrefix}__error-text">${isExpanded ? (displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed') : imageDisplayError}</span>
         </div>
+      ` : `
         <div class="${thumbPrefix}__image-wrapper">
           <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
                   type="button"
                   data-act="open"
                   data-id="${displayModel.id}"
                   aria-label="Open ${name}">
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : ''}
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : '<div class="thumb-no-image">No preview</div>'}
           </button>
         </div>
-        ${isProcessing ? `
-          <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
-            <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
-            <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
-            <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
-              <div class="${thumbPrefix}__progress-fill"></div>
-            </div>
-          </div>
-        ` : ''}
-        <span class="${thumbPrefix}__name">${name}</span>
-        ${!isExpanded ? `
-        <div class="${thumbPrefix}__menu-wrap">
-          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="5" cy="12" r="2"/>
-              <circle cx="12" cy="12" r="2"/>
-              <circle cx="19" cy="12" r="2"/>
-            </svg>
-          </button>
-          <div class="card-menu" role="menu" aria-label="Image actions">
-            <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#127912;</span>
-                  <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
-                </span>
-                <span class="card-menu__arrow">></span>
-              </button>
-              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#127909;</span>
-                  <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
-                </span>
-                <span class="card-menu__badge">45c</span>
-              </button>
-              <div class="card-menu__divider"></div>
-              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#8595;</span>
-                  <span>Download</span>
-                </span>
-              </button>
-              <div class="card-menu__divider"></div>
-              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#9651;</span>
-                  <span>Share to Community</span>
-                </span>
-              </button>
-              <div class="card-menu__divider"></div>
-              <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#128465;</span>
-                  <span>Delete</span>
-                </span>
-              </button>
-            </div>
+      `,
+      footerTitle: name,
+      footerMeta: [
+        { label: isVectorImage ? 'SVG' : 'Image', tone: 'image' },
+        isImageFailed ? 'Failed' : (isProcessing ? processingLabel.replace(/\.\.\.$/, '') : 'Ready'),
+      ],
+      typeBadge: 'Image',
+      processingMarkup: !isImageFailed && isProcessing ? `
+        <div class="${thumbPrefix}__processing ${thumbPrefix}__processing--image" data-job-id="${displayModel.id}">
+          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
+          <span class="${thumbPrefix}__processing-pct ${thumbPrefix}__processing-pct--indeterminate"></span>
+          <div class="${thumbPrefix}__progress-bar ${thumbPrefix}__progress-bar--indeterminate">
+            <div class="${thumbPrefix}__progress-fill"></div>
           </div>
         </div>
-        ` : ''}
-      </div>
-    `;
+      ` : '',
+      mediaExtras: imageMenuMarkup,
+    });
   }
 
   // VIDEO TYPE
@@ -1214,7 +1225,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     }
 
     // Failed video card
-    if (isFailed) {
+    if (isFailed && isExpanded) {
       // Resolution-aware retry: if a high-res job failed (4K/1080p timeout),
       // suggest retrying at a lower resolution instead of blind retry.
       // Build retry menu items with fallback options
@@ -1279,9 +1290,102 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       `;
     }
 
-    // Normal/processing video card - Clean modern design with big click area
-    return `
-      <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
+    const videoMenuMarkup = !isExpanded ? (isFailed ? `
+      <div class="${thumbPrefix}__menu-wrap">
+        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+        <div class="card-menu" role="menu" aria-label="Video actions">
+          <div class="card-menu__list">
+            ${(() => {
+              let retryMenuItems = `
+                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#8635;</span>
+                    <span>Retry Generation</span>
+                  </span>
+                </button>`;
+              if (suggestLowerRes) {
+                const fallbackRes = failRes === '4k' ? ['1080p', '720p'] : ['720p'];
+                fallbackRes.forEach(res => {
+                  retryMenuItems += `
+                <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}" data-retry-resolution="${res}">
+                  <span class="card-menu__item-inner">
+                    <span class="card-menu__icon">&#8595;</span>
+                    <span>Retry at ${res}</span>
+                  </span>
+                </button>`;
+                });
+              }
+              return retryMenuItems;
+            })()}
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128465;</span>
+                <span>Delete</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div class="${thumbPrefix}__menu-wrap">
+        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+        <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
+          <div class="card-menu__list">
+            <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#8595;</span>
+                <span>Download</span>
+              </span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128279;</span>
+                <span>Copy Link</span>
+              </span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#9651;</span>
+                <span>Share to Community</span>
+              </span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128465;</span>
+                <span>Delete</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `) : '';
+
+    return buildExpandedShell({
+      extraClasses: `${thumbPrefix}--video ${videoStatusClass} ${isFailed ? `${thumbPrefix}--failed` : ''} ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}`.trim(),
+      mediaMarkup: isFailed ? `
+        <div class="${thumbPrefix}__error-card">
+          <span class="${thumbPrefix}__error-icon">${isStalled ? '&#9203;' : '&#9888;'}</span>
+          <span class="${thumbPrefix}__error-text">${errorMsg.length > 80 ? errorMsg.slice(0, 80) + '...' : errorMsg}</span>
+          <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}"${retryResAttr}>
+            ${retryLabel}
+          </button>
+        </div>
+      ` : `
         <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
                 type="button"
                 data-act="open-video"
@@ -1301,59 +1405,25 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </svg>
             </span>
           ` : ''}
-          <span class="${thumbPrefix}__video-name">${name}</span>
         </button>
-        ${isProcessing ? `
-          <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
-            <div class="${thumbPrefix}__video-spinner">
-              <span class="${thumbPrefix}__video-spinner-dot"></span>
-            </div>
-            <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
+      `,
+      footerTitle: name,
+      footerMeta: [
+        { label: isAnimatedStage ? 'Animated' : 'Video', tone: isAnimatedStage ? 'animated' : 'video' },
+        isFailed ? failBadge : (isProcessing ? videoProcessingLabel.replace(/\.\.\.$/, '') : 'Playable'),
+      ],
+      typeBadge: isAnimatedStage ? 'Animated' : 'Video',
+      hoverLabel: 'Play creation',
+      processingMarkup: !isFailed && isProcessing ? `
+        <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
+          <div class="${thumbPrefix}__video-spinner">
+            <span class="${thumbPrefix}__video-spinner-dot"></span>
           </div>
-        ` : ''}
-        ${!isExpanded ? `
-        <div class="${thumbPrefix}__menu-wrap">
-          <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="5" cy="12" r="2"/>
-              <circle cx="12" cy="12" r="2"/>
-              <circle cx="19" cy="12" r="2"/>
-            </svg>
-          </button>
-          <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
-            <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#8595;</span>
-                  <span>Download</span>
-                </span>
-              </button>
-              <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#128279;</span>
-                  <span>Copy Link</span>
-                </span>
-              </button>
-              <div class="card-menu__divider"></div>
-              <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}">
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#9651;</span>
-                  <span>Share to Community</span>
-                </span>
-              </button>
-              <div class="card-menu__divider"></div>
-              <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
-                <span class="card-menu__item-inner">
-                  <span class="card-menu__icon">&#128465;</span>
-                  <span>Delete</span>
-                </span>
-              </button>
-            </div>
-          </div>
+          <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
         </div>
-        ` : ''}
-      </div>
-    `;
+      ` : '',
+      mediaExtras: videoMenuMarkup,
+    });
   }
 
   // MODEL TYPE
@@ -1451,6 +1521,141 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
         </div>
       ` : '',
+    });
+  }
+
+  if (!isExpanded) {
+    const modelMenuMarkup = `
+      <div class="${thumbPrefix}__menu-wrap">
+        <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Model actions" data-history-menu>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+        <div class="card-menu" role="menu" aria-label="Model actions">
+          <div class="card-menu__list">
+            <button class="card-menu__item" type="button" data-submenu-open="${editSubmenuId}" aria-expanded="false">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#11042;</span>
+                <span>Edit Model</span>
+              </span>
+              <span class="card-menu__arrow">></span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="print" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128424;</span>
+                <span>Print</span>
+              </span>
+              <span class="card-menu__arrow">></span>
+            </button>
+            <div class="card-menu__divider"></div>
+            <button class="card-menu__item" type="button" data-submenu-open="share-${displayModel.id}" aria-expanded="false">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#8599;</span>
+                <span>Share</span>
+              </span>
+              <span class="card-menu__arrow">></span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="download" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#8595;</span>
+                <span>Download</span>
+              </span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="license" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#10227;</span>
+                <span>Change License</span>
+              </span>
+              <span class="card-menu__badge">${licenseLabel(displayModel.license)}</span>
+            </button>
+            <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#128465;</span>
+                <span>Delete</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="card-submenu" data-submenu-panel="${editSubmenuId}">
+          <button class="card-submenu__item" type="button" data-act="texture" data-id="${displayModel.id}" ${!canTexture ? 'disabled' : ''}>
+            <span class="card-menu__icon">&#9639;</span>
+            Texture
+          </button>
+          <button class="card-submenu__item" type="button" data-act="remesh" data-id="${displayModel.id}" ${!canRemesh ? 'disabled' : ''}>
+            <span class="card-menu__icon">&#11041;</span>
+            Remesh
+          </button>
+          <div class="card-submenu__divider"></div>
+          <button class="card-submenu__item" type="button" data-act="refine" data-id="${displayModel.id}" ${!canRefine ? 'disabled' : ''}>
+            <span class="card-menu__icon">&#10022;</span>
+            Refine Preview
+          </button>
+        </div>
+        <div class="card-submenu" data-submenu-panel="share-${displayModel.id}">
+          <button class="card-submenu__item" type="button" data-act="copy-link" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#128279;</span>
+            Copy Link
+          </button>
+          <button class="card-submenu__item" type="button" data-act="embed" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#9723;</span>
+            Embed Code
+          </button>
+          <div class="card-submenu__divider"></div>
+          <button class="card-submenu__item" type="button" data-act="share-twitter" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#120143;</span>
+            Share on X
+          </button>
+          <button class="card-submenu__item" type="button" data-act="share-facebook" data-id="${displayModel.id}">
+            <span class="card-menu__icon">f</span>
+            Share on Facebook
+          </button>
+          <button class="card-submenu__item" type="button" data-act="share-linkedin" data-id="${displayModel.id}">
+            <span class="card-menu__icon">in</span>
+            Share on LinkedIn
+          </button>
+          <button class="card-submenu__item" type="button" data-act="share-discord" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#9670;</span>
+            Share on Discord
+          </button>
+          <div class="card-submenu__divider"></div>
+          <button class="card-submenu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}" data-type="${displayModel.item_type || 'model'}" data-thumb="${displayModel.thumbnail_url || ''}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
+            <span class="card-menu__icon">&#9651;</span>
+            Share to Community
+          </button>
+        </div>
+      </div>
+    `;
+
+    return buildExpandedShell({
+      extraClasses: `${statusClass} ${status === 'failed' ? `${thumbPrefix}--failed` : ''} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}`.trim(),
+      mediaMarkup: previewMarkup,
+      footerTitle: modelName,
+      footerMeta: [
+        { label: stageLabel, tone: galleryTone },
+        status === 'failed' ? 'Failed' : (hasVariants ? `${variantCount} variants` : 'Model'),
+      ],
+      typeBadge: galleryTone === 'animated' ? 'Animated' : 'Model',
+      processingMarkup: isProcessing ? `
+        <div class="${thumbPrefix}__processing" data-job-id="${displayModel.id}">
+          <span class="${thumbPrefix}__processing-label">${processingLabel}</span>
+          <span class="${thumbPrefix}__processing-pct">0%</span>
+          <div class="${thumbPrefix}__progress-bar">
+            <div class="${thumbPrefix}__progress-fill"></div>
+          </div>
+        </div>
+      ` : '',
+      mediaExtras: `${modelMenuMarkup}${displayModel.is_rigged || stageVal === 'rig' || stageVal === 'rigged' ? `
+        <span class="${thumbPrefix}__rig" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v6"/>
+            <path d="M8 10l4 4 4-4"/>
+            <path d="M7 21l2-6 3-1 3 1 2 6"/>
+          </svg>
+        </span>
+      ` : ''}${overlayVisible ? overlayMarkup : ''}`,
     });
   }
 
@@ -1599,7 +1804,7 @@ function _buildGalleryCards(lineages) {
   lineages.forEach((lineage, groupIndex) => {
     if (!lineage || !Array.isArray(lineage.models) || !lineage.models.length) return;
 
-    // Batch group: emit a single grouped-card placeholder instead of individual cards
+    // Batch group: emit a single grouped card inline instead of individual cards
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const delay = globalIndex * 0.03;
       globalIndex++;
@@ -1609,10 +1814,15 @@ function _buildGalleryCards(lineages) {
         return sa - sb;
       });
       const groupKey = String(lineage.rootId || lineage.id);
-      // Store data for DOM replacement after innerHTML
-      if (!window._galleryGroupedSlots) window._galleryGroupedSlots = new Map();
-      window._galleryGroupedSlots.set(groupKey, { items: sortedBatch, lineage });
-      const html = `<div class="expanded-thumb history-gallery-grouped-placeholder" data-gallery-group-key="${groupKey}" data-gid="${groupKey}" style="animation-delay: ${delay}s"></div>`;
+      const group = {
+        id: lineage.batchGroupId || groupKey,
+        model_count: lineage.batchCount || sortedBatch.length,
+        completed_count: sortedBatch.filter(i => i.status === 'finished' || !i.status).length,
+        failed_count: sortedBatch.filter(i => i.status === 'error' || i.status === 'failed').length,
+      };
+      _groupedCardData.set(String(group.id), sortedBatch);
+      const cardHtml = buildGroupedCardHTML(group, sortedBatch);
+      const html = `<div class="expanded-thumb" data-gid="${groupKey}" style="animation-delay: ${delay}s">${cardHtml}</div>`;
       cards.push({ id: groupKey, status: 'finished', html });
       return;
     }
@@ -2206,9 +2416,6 @@ function _renderHistoryImpl() {
     slice = sortedLineages;
   }
 
-  // Separate container for grouped cards that need DOM elements (not HTML strings)
-  const _groupedCardSlots = new Map(); // rowKey → { items }
-
   const timelineMarkup = slice.map(lineage => {
     const rowKey = String(lineage.rootId || lineage.id);
     const previousCount = historyLineageCounts.has(rowKey)
@@ -2218,17 +2425,22 @@ function _renderHistoryImpl() {
     const showBump = delta > 0;
     historyLineageCounts.set(rowKey, lineage.models.length);
 
-    // ── Batch group: render as a single grouped card ──
-    // Show grouped card even with 1 model if batchCount > 1 (more are generating)
+    // ── Batch group: render as a single grouped card (inline HTML) ──
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const sortedBatchModels = [...lineage.models].sort((a, b) => {
         const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
         const slotB = parseInt(b.batch_slot || (b.payload && b.payload.batch_slot), 10) || 0;
         return slotA - slotB;
       });
-      _groupedCardSlots.set(rowKey, { items: sortedBatchModels, lineage });
-      // Return a placeholder div that will be replaced with the real DOM element
-      return `<div class="history-grouped-placeholder" data-group-key="${rowKey}"></div>`;
+      const group = {
+        id: lineage.batchGroupId || rowKey,
+        model_count: lineage.batchCount || sortedBatchModels.length,
+        completed_count: sortedBatchModels.filter(i => i.status === 'finished' || !i.status).length,
+        failed_count: sortedBatchModels.filter(i => i.status === 'error' || i.status === 'failed').length,
+      };
+      // Store items for click event binding after innerHTML
+      _groupedCardData.set(String(group.id), sortedBatchModels);
+      return buildGroupedCardHTML(group, sortedBatchModels);
     }
 
     const sortedModels = [...lineage.models].sort(compareHistoryModels);
@@ -2328,6 +2540,7 @@ function _renderHistoryImpl() {
           }
         });
         builtGrid.appendChild(fragment);
+        bindGroupedCardEvents(builtGrid);
       }
       _bindGalleryScroll();
       // Show sentinel if DB has more pages
@@ -2353,6 +2566,7 @@ function _renderHistoryImpl() {
         }
       });
       existingGrid.appendChild(fragment);
+      bindGroupedCardEvents(existingGrid);
       // Update sentinel
       _updateGallerySentinel(historyHasMore(), existingGrid.children.length);
       // Update header stats count
@@ -2382,25 +2596,8 @@ function _renderHistoryImpl() {
       });
     }
 
-    // Replace gallery grouped card placeholders with real DOM elements
-    if (window._galleryGroupedSlots && window._galleryGroupedSlots.size > 0) {
-      const galleryGrid = grid.querySelector('.expanded-thumbs-grid') || grid;
-      window._galleryGroupedSlots.forEach(({ items, lineage }, key) => {
-        const placeholder = galleryGrid.querySelector(`.history-gallery-grouped-placeholder[data-gallery-group-key="${CSS.escape(key)}"]`);
-        if (!placeholder) return;
-        const group = {
-          id: lineage.batchGroupId || key,
-          model_count: lineage.batchCount || items.length,
-          completed_count: items.filter(i => i.status === 'finished' || !i.status).length,
-          failed_count: items.filter(i => i.status === 'error' || i.status === 'failed').length,
-        };
-        const card = buildGroupedCard(group, items);
-        // Wrap in expanded-thumb sizing container
-        card.style.gridColumn = 'span 1';
-        placeholder.replaceWith(card);
-      });
-      window._galleryGroupedSlots.clear();
-    }
+    // Bind click events on grouped cards rendered in the gallery
+    bindGroupedCardEvents(grid);
   } else {
     _unbindGalleryScroll();
     // Preserve which lineage collections are expanded before DOM rebuild.
@@ -2414,21 +2611,8 @@ function _renderHistoryImpl() {
 
     grid.innerHTML = (skeletonMarkup || '') + timelineMarkup;
 
-    // Replace grouped card placeholders with real DOM elements
-    if (_groupedCardSlots.size > 0) {
-      _groupedCardSlots.forEach(({ items, lineage }, key) => {
-        const placeholder = grid.querySelector(`.history-grouped-placeholder[data-group-key="${CSS.escape(key)}"]`);
-        if (!placeholder) return;
-        const group = {
-          id: lineage.batchGroupId || key,
-          model_count: lineage.batchCount || items.length,
-          completed_count: items.filter(i => i.status === 'finished' || !i.status).length,
-          failed_count: items.filter(i => i.status === 'error' || i.status === 'failed').length,
-        };
-        const card = buildGroupedCard(group, items);
-        placeholder.replaceWith(card);
-      });
-    }
+    // Bind click events on grouped cards rendered as inline HTML
+    bindGroupedCardEvents(grid);
 
     // Restore expanded state after rebuild
     if (_expandedRoots.size) {

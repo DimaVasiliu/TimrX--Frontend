@@ -530,8 +530,18 @@ function navigateToLink(link, n) {
     if (trigger) { trigger.click(); return; }
   }
 
-  if (link.startsWith('/') || link.startsWith('http')) {
+  if (link.startsWith('/')) {
     window.location.href = link;
+  } else if (link.startsWith('http')) {
+    // Only allow same-origin or trusted external links
+    try {
+      const parsed = new URL(link);
+      if (parsed.hostname === location.hostname || parsed.hostname.endsWith('.timrx.live')) {
+        window.location.href = link;
+      } else {
+        console.warn('[Notifications] Blocked redirect to untrusted host:', parsed.hostname);
+      }
+    } catch { /* malformed URL — ignore */ }
   } else if (link.startsWith('#')) {
     window.location.hash = link;
   }

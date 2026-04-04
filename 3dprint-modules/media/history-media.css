@@ -264,25 +264,25 @@
   }
   
   @media (max-width: 1024px) {
-    .expanded-thumb--gallery-card {
+    .history-media-card {
       aspect-ratio: auto;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__media {
+    .history-media-card :is(.history-thumb__media, .expanded-thumb__media) {
       aspect-ratio: 4 / 5;
     }
   }
   
   @media (max-width: 768px) {
-    .expanded-thumb--gallery-card .expanded-thumb__footer {
+    .history-media-card :is(.history-thumb__footer, .expanded-thumb__footer) {
       padding: 12px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__title {
+    .history-media-card :is(.history-thumb__title, .expanded-thumb__title) {
       font-size: 12px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__pill {
+    .history-media-card :is(.history-thumb__pill, .expanded-thumb__pill) {
       min-height: 22px;
       padding: 3px 8px;
       font-size: 9px;
@@ -290,31 +290,31 @@
   }
   
   @media (max-width: 640px) {
-    .expanded-thumb--gallery-card {
+    .history-media-card {
       aspect-ratio: auto;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__media {
+    .history-media-card :is(.history-thumb__media, .expanded-thumb__media) {
       aspect-ratio: 1 / 1.14;
     }
   }
   
   @media (max-width: 480px) {
-    .expanded-thumb--gallery-card {
+    .history-media-card {
       aspect-ratio: auto;
       border-radius: 12px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__media {
+    .history-media-card :is(.history-thumb__media, .expanded-thumb__media) {
       aspect-ratio: 1 / 1.08;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__status-bar {
+    .history-media-card :is(.history-thumb__status-bar, .expanded-thumb__status-bar) {
       top: 10px;
       right: 10px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__type-badge {
+    .history-media-card :is(.history-thumb__type-badge, .expanded-thumb__type-badge) {
       top: 10px;
       left: 10px;
       min-height: 24px;
@@ -322,18 +322,18 @@
       font-size: 9px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__status-date {
+    .history-media-card :is(.history-thumb__status-date, .expanded-thumb__status-date) {
       min-height: 24px;
       padding: 0 8px;
       font-size: 9px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__hover-meta {
+    .history-media-card :is(.history-thumb__hover-meta, .expanded-thumb__hover-meta) {
       min-height: 30px;
       padding: 0 10px;
     }
   
-    .expanded-thumb--gallery-card .expanded-thumb__hover-label {
+    .history-media-card :is(.history-thumb__hover-label, .expanded-thumb__hover-label) {
       font-size: 9px;
     }
   }
