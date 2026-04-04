@@ -977,6 +977,22 @@ export function clearVideoViewer() {
     _state.focusIndex = -1;
     _state.animationActive = false;
 
+    // Reset renderer viewport/scissor to full canvas so the main viewer
+    // isn't stuck rendering into the last grouped-view quadrant.
+    var renderer = window.timrxRenderer;
+    if (renderer) {
+      var canvas = renderer.domElement;
+      if (canvas) {
+        var w = canvas.clientWidth || canvas.width;
+        var h = canvas.clientHeight || canvas.height;
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, w, h);
+        renderer.setScissor(0, 0, w, h);
+        renderer.autoClear = true;
+        renderer.clear();
+      }
+    }
+
     // Remove back button
     const container = _getContainer();
     if (container) {

@@ -161,7 +161,7 @@
     }
   }
   
-  /* ---- 768px — full screen overlay, 2-col grid ---- */
+  /* ---- 768px — full screen overlay, compact 3-col grid ---- */
   @media (max-width: 768px) {
     .inspire-overlay {
       top: var(--ws-navH, 52px) !important;
@@ -193,17 +193,17 @@
       display: none !important;
     }
   
-    .inspire-content {
-      padding: 10px;
-    }
-  
     .inspire-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
     }
   
     .inspire-card {
       border-radius: 8px;
+    }
+  
+    .inspire-content {
+      padding: 8px;
     }
   
     .inspire-filters {
@@ -233,19 +233,19 @@
     }
   }
   
-  /* ---- 640px — tighter 2-col ---- */
+  /* ---- 640px — keep 3-col, reduce spacing further ---- */
   @media (max-width: 640px) {
     .inspire-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-    }
-  
-    .inspire-content {
-      padding: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 5px;
     }
   
     .inspire-header {
       padding: 8px 10px;
+    }
+  
+    .inspire-content {
+      padding: 7px;
     }
   
     .inspire-section__title {
@@ -263,11 +263,15 @@
     }
   }
   
-  /* ---- 430px — single column ---- */
+  /* ---- 430px — preserve compact 3-col mobile grid ---- */
   @media (max-width: 430px) {
     .inspire-grid {
-      grid-template-columns: 1fr;
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+    }
+  
+    .inspire-content {
+      padding: 6px;
     }
   
     .inspire-header__title h2 {

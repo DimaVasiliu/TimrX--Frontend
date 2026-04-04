@@ -1878,6 +1878,12 @@ function _renderHistoryImpl() {
       })
     : src;
   const lineages = groupByLineage(srcForLineage);
+  // DEBUG: log batch detection results
+  const batchLineages = lineages.filter(l => l.isBatchGroup);
+  if (batchLineages.length || !isGallery) {
+    console.log('[History] groupByLineage:', { total: lineages.length, batchGroups: batchLineages.length, isGallery, filter: historyState.filter });
+    batchLineages.forEach(l => console.log('[History] batch lineage:', { rootId: l.rootId, models: l.models.length, batchCount: l.batchCount, bgid: l.batchGroupId }));
+  }
   const currentLineageKeys = new Set(lineages.map(l => String(l.rootId || l.id)));
   historyLineageCounts.forEach((_, key) => {
     if (!currentLineageKeys.has(key)) historyLineageCounts.delete(key);
