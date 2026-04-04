@@ -4304,8 +4304,7 @@ body.has-modal {
   cursor: pointer;
   background: var(--surface-2, #1e1e22);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  margin: 8px;
-  border: 2px solid rgba(107, 181, 255, 0.4);
+  margin: 8px 12px;
 }
 .history-group-card:hover {
   transform: translateY(-2px);
