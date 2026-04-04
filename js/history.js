@@ -40,9 +40,7 @@ let _galleryFetching = false;         // prevent concurrent DB fetches
 // ============================================================================
 // GROUPED CARD BUILDER
 // ============================================================================
-/**
- * Build a grouped multi-model card DOM element
- */
+
 /**
  * Build grouped card as an HTML string for inline rendering in timeline/gallery.
  * After innerHTML is set, call bindGroupedCardEvents(container) to wire up click handlers.
@@ -60,7 +58,6 @@ function buildGroupedCardHTML(group, items) {
       thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
     }
   });
-  // Fill remaining slots if fewer items than batchCount
   const batchTotal = group.model_count || count;
   for (let i = count; i < Math.min(batchTotal, 4); i++) {
     thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
@@ -103,19 +100,14 @@ function buildGroupedCardHTML(group, items) {
   </div>`;
 }
 
-// Store for binding click events after innerHTML is set
-const _groupedCardData = new Map(); // groupId → items array
+const _groupedCardData = new Map();
 
-/**
- * After setting innerHTML, call this to bind click events on all grouped cards in the container.
- */
 function bindGroupedCardEvents(container) {
   if (!container) return;
   container.querySelectorAll('.history-group-card[data-group-id]').forEach(card => {
     const gid = card.dataset.groupId;
     const items = _groupedCardData.get(gid);
     if (!items) return;
-    // Remove old listener if any
     card.onclick = function (e) {
       e.stopPropagation();
       if (typeof window.openGroupedViewer === 'function') {
@@ -123,54 +115,6 @@ function bindGroupedCardEvents(container) {
       }
     };
   });
-}
-
-// Legacy DOM-based buildGroupedCard kept for backward compat
-function buildGroupedCard(group, items) {
-  const html = buildGroupedCardHTML(group, items);
-  const temp = document.createElement('div');
-  temp.innerHTML = html;
-  const el = temp.firstElementChild;
-  el.addEventListener('click', function (e) {
-    e.stopPropagation();
-    if (typeof window.openGroupedViewer === 'function') {
-      window.openGroupedViewer(group.id, items);
-    }
-  });
-  return el;
-}
-
-/**
- * Helper: detect and extract generation groups from history items
- */
-function extractGenerationGroups(items) {
-  const groupMap = new Map();
-  const ungrouped = [];
-
-  for (const item of items) {
-    const gid = item.generation_group_id;
-    const gcount = parseInt(item.group_model_count) || 0;
-
-    if (gid && gcount > 1) {
-      if (!groupMap.has(gid)) {
-        groupMap.set(gid, {
-          group: {
-            id: gid,
-            model_count: gcount,
-            completed_count: parseInt(item.group_completed_count) || 0,
-            failed_count: parseInt(item.group_failed_count) || 0,
-            status: item.group_status || "completed",
-          },
-          items: [],
-        });
-      }
-      groupMap.get(gid).items.push(item);
-    } else {
-      ungrouped.push(item);
-    }
-  }
-
-  return { groupMap, ungrouped };
 }
 
 /**
@@ -487,9 +431,7 @@ function groupByLineage(items = []) {
   let fallbackCount = 0;
 
   // ── Pass 0: Detect batch groups ──
-  // Batch siblings share batch_group_id but each has lineage_origin_id = self.
-  // We need to merge them into one lineage entry so they appear as one card.
-  const batchGroupMap = new Map(); // batch_group_id → group key
+  const batchGroupMap = new Map();
   items.forEach(item => {
     if (!item) return;
     const bgid = item.batch_group_id
@@ -515,7 +457,6 @@ function groupByLineage(items = []) {
   items.forEach(item => {
     if (!item) return;
 
-    // ── Check if this item belongs to a batch group ──
     const bgid = item.batch_group_id
       || (item.payload && item.payload.batch_group_id)
       || null;
@@ -528,7 +469,6 @@ function groupByLineage(items = []) {
     const shouldUsePromptCohort = !hasExplicitLineage && fingerprint && fingerprintCounts.get(fingerprint) >= 3;
     const promptKey = shouldUsePromptCohort ? `prompt:${fingerprint}` : '';
 
-    // If this is a batch sibling, force group by batch_group_id
     let rootKey;
     if (isBatchSibling) {
       rootKey = batchGroupMap.get(bgid);
@@ -904,6 +844,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     // Failed image card
     if (isImageFailed) {
       const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Image generation failed';
+      // Make moderation errors user-friendly
       const displayError = errorMsg.includes('safety system') || errorMsg.includes('moderation')
         ? 'Blocked by content policy'
         : (errorMsg.length > 50 ? errorMsg.slice(0, 50) + '...' : errorMsg);
@@ -1036,26 +977,24 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       : status === 'queued' ? 'Queued...'
       : processingLabel;
     const videoStatusClass = isFailed ? 'status-failed' : statusClass;
-    const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Video generation failed';
-    const errorCode = displayModel.error_code || '';
-    const isStalled = displayModel.provider_stalled;
-    const failBadge = isStalled ? 'Timed out' : 'Failed';
-    const failRes = displayModel.failure_resolution || displayModel.resolution || '';
-    const isTimeout = errorCode.includes('timeout') || errorCode.includes('deadline') ||
-                      errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('deadline');
-    const isHighRes = failRes === '4k' || failRes === '1080p';
-    const suggestLowerRes = isTimeout && isHighRes;
-    const retryLabel = suggestLowerRes
-      ? `<span>&#8635;</span> Retry at ${failRes === '4k' ? '1080p' : '720p'}`
-      : '<span>&#8635;</span> Retry';
-    const retryResAttr = suggestLowerRes
-      ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
-      : '';
 
     // Failed video card
     if (isFailed) {
+      // Prefer status_label (friendly) > error_message (raw) > fallback
+      const errorMsg = displayModel.status_label || displayModel.error_message || displayModel.error || 'Video generation failed';
+      const errorCode = displayModel.error_code || '';
+      const isStalled = displayModel.provider_stalled;
+      const failBadge = isStalled ? 'Timed out' : 'Failed';
+
       // Resolution-aware retry: if a high-res job failed (4K/1080p timeout),
       // suggest retrying at a lower resolution instead of blind retry.
+      const failRes = displayModel.failure_resolution || displayModel.resolution || '';
+      const isTimeout = errorCode.includes('timeout') || errorCode.includes('deadline') ||
+                        errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('deadline');
+      const isHighRes = failRes === '4k' || failRes === '1080p';
+      const suggestLowerRes = isTimeout && isHighRes;
+
+      // Build retry menu items with fallback options
       let retryMenuItems = `
                 <button class="card-menu__item" type="button" data-act="retry-video" data-id="${displayModel.id}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
                   <span class="card-menu__item-inner">
@@ -1075,6 +1014,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 </button>`;
         });
       }
+
+      // Main retry button label
+      const retryLabel = suggestLowerRes
+        ? `<span>&#8635;</span> Retry at ${failRes === '4k' ? '1080p' : '720p'}`
+        : '<span>&#8635;</span> Retry';
+      const retryResAttr = suggestLowerRes
+        ? ` data-retry-resolution="${failRes === '4k' ? '1080p' : '720p'}"`
+        : '';
 
       return `
         <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''}">
@@ -1142,12 +1089,12 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           <span class="${thumbPrefix}__video-name">${name}</span>
         </button>
         ${isProcessing ? `
-        <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
-          <div class="${thumbPrefix}__video-spinner">
-            <span class="${thumbPrefix}__video-spinner-dot"></span>
+          <div class="${thumbPrefix}__video-processing" data-job-id="${displayModel.id}">
+            <div class="${thumbPrefix}__video-spinner">
+              <span class="${thumbPrefix}__video-spinner-dot"></span>
+            </div>
+            <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
           </div>
-          <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
-        </div>
         ` : ''}
         ${!isExpanded ? `
         <div class="${thumbPrefix}__menu-wrap">
@@ -1232,6 +1179,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     `;
   };
 
+  const stageVal = (displayModel.stage || '').toLowerCase();
   const failLabel = stageVal === 'rig' || stageVal === 'rigged' ? 'Rigging failed'
     : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animation failed'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Texturing failed'
@@ -1261,7 +1209,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     </div>
   ` : '';
 
-  const stageVal = (displayModel.stage || '').toLowerCase();
   const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
     : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
@@ -1415,7 +1362,7 @@ function _buildGalleryCards(lineages) {
   lineages.forEach((lineage, groupIndex) => {
     if (!lineage || !Array.isArray(lineage.models) || !lineage.models.length) return;
 
-    // Batch group: emit a single grouped card inline instead of individual cards
+    // Batch group: emit a single grouped card
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const delay = globalIndex * 0.03;
       globalIndex++;
@@ -1749,34 +1696,12 @@ function _renderHistoryImpl() {
     }
 
     const activeId = historyActiveModelId;
-
-    // Extract generation groups from slice
-    const { groupMap, ungrouped } = extractGenerationGroups(slice);
-    const seenGroups = new Set();
-
-    const imageCards = [];
-    const imageCardElements = [];
-
-    for (const item of slice) {
-      const gid = item.generation_group_id;
-
-      // If item is part of a group with multiple models, render as grouped card
-      if (gid && groupMap.has(gid)) {
-        if (!seenGroups.has(gid)) {
-          seenGroups.add(gid);
-          const gdata = groupMap.get(gid);
-          const groupElement = buildGroupedCard(gdata.group, gdata.items);
-          const fp = gdata.group.status + (gdata.items.some(i => i.id === activeId) ? ':A' : '');
-          imageCards.push({ id: gid, fp, isGroup: true });
-          imageCardElements.push({ element: groupElement, fp, id: gid });
-        }
-      } else {
-        // Single item — render as individual card
-        const bundle = { models: [item], isBundle: false };
-        const fp = (item.status || 'finished') + (item.id === activeId ? ':A' : '');
-        imageCards.push({ id: item.id, fp, html: buildHistoryThumb(bundle, false) });
-      }
-    }
+    const imageCards = slice.map(img => {
+      const bundle = { models: [img], isBundle: false };
+      // fingerprint: status + active flag — if either changes, card must be replaced
+      const fp = (img.status || 'finished') + (img.id === activeId ? ':A' : '');
+      return { id: img.id, fp, html: buildHistoryThumb(bundle, false) };
+    });
 
     // Surgical update: if the grid already shows the same image IDs in the
     // same order, patch only the cards whose fingerprint changed.  This
@@ -1790,48 +1715,25 @@ function _renderHistoryImpl() {
     if (canPatchImages) {
       for (let i = 0; i < imageCards.length; i++) {
         const child = existingImageGrid.children[i];
-        const card = imageCards[i];
-        if (child.dataset._fp === card.fp) continue; // unchanged — skip
-
-        let replacement;
-        if (card.isGroup && imageCardElements[i]) {
-          replacement = imageCardElements[i].element.cloneNode(true);
-        } else {
-          const temp = document.createElement('div');
-          temp.innerHTML = card.html;
-          replacement = temp.firstElementChild;
-        }
-
+        if (child.dataset._fp === imageCards[i].fp) continue; // unchanged — skip
+        const temp = document.createElement('div');
+        temp.innerHTML = imageCards[i].html;
+        const replacement = temp.firstElementChild;
         if (replacement) {
-          replacement.dataset._fp = card.fp;
+          replacement.dataset._fp = imageCards[i].fp;
           existingImageGrid.replaceChild(replacement, child);
         }
       }
     } else {
-      // Full rebuild — build the grid with both grouped and individual cards
-      const gridContainer = document.createElement('div');
-      gridContainer.className = 'history-image-grid';
-
-      for (let i = 0; i < imageCards.length; i++) {
-        const card = imageCards[i];
-        let cardElement;
-
-        if (card.isGroup && imageCardElements[i]) {
-          cardElement = imageCardElements[i].element.cloneNode(true);
-        } else {
-          const temp = document.createElement('div');
-          temp.innerHTML = card.html;
-          cardElement = temp.firstElementChild;
-        }
-
-        if (cardElement) {
-          cardElement.dataset._fp = card.fp;
-          gridContainer.appendChild(cardElement);
-        }
+      // Full rebuild — tag each child with fingerprint for future patches
+      const markup = imageCards.map(c => c.html).join('');
+      grid.innerHTML = `<div class="history-image-grid">${markup}</div>`;
+      const builtGrid = grid.querySelector('.history-image-grid');
+      if (builtGrid) {
+        Array.from(builtGrid.children).forEach((child, i) => {
+          if (imageCards[i]) child.dataset._fp = imageCards[i].fp;
+        });
       }
-
-      grid.innerHTML = '';
-      grid.appendChild(gridContainer);
     }
 
     if (pageLabel) {
@@ -2049,7 +1951,6 @@ function _renderHistoryImpl() {
         completed_count: sortedBatchModels.filter(i => i.status === 'finished' || !i.status).length,
         failed_count: sortedBatchModels.filter(i => i.status === 'error' || i.status === 'failed').length,
       };
-      // Store items for click event binding after innerHTML
       _groupedCardData.set(String(group.id), sortedBatchModels);
       return buildGroupedCardHTML(group, sortedBatchModels);
     }
@@ -2177,7 +2078,6 @@ function _renderHistoryImpl() {
         }
       });
       existingGrid.appendChild(fragment);
-      bindGroupedCardEvents(existingGrid);
       // Update sentinel
       _updateGallerySentinel(historyHasMore(), existingGrid.children.length);
       // Update header stats count
@@ -2206,9 +2106,6 @@ function _renderHistoryImpl() {
         }
       });
     }
-
-    // Bind click events on grouped cards rendered in the gallery
-    bindGroupedCardEvents(grid);
   } else {
     _unbindGalleryScroll();
     // Preserve which lineage collections are expanded before DOM rebuild.
@@ -2221,8 +2118,6 @@ function _renderHistoryImpl() {
     });
 
     grid.innerHTML = (skeletonMarkup || '') + timelineMarkup;
-
-    // Bind click events on grouped cards rendered as inline HTML
     bindGroupedCardEvents(grid);
 
     // Restore expanded state after rebuild
