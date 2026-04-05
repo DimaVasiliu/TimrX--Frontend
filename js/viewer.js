@@ -754,6 +754,20 @@ export function clearVideoViewer() {
     const placeholder = document.getElementById("viewerPlaceholder");
     if (placeholder) placeholder.style.display = "none";
 
+    // Hide upload button, gear, and toolbar — not relevant in grouped mode
+    const uploadBtn = document.getElementById("openUploadModalTop");
+    const gearBtn = document.getElementById("viewerGear");
+    const toolbar = document.getElementById("viewerToolbar");
+    if (uploadBtn) uploadBtn.style.display = "none";
+    if (gearBtn) gearBtn.style.display = "none";
+    if (toolbar) toolbar.classList.remove("visible");
+
+    // Update header to prompt user to pick a variant
+    const viewerTitle = document.getElementById("viewerTitle");
+    const genHint = document.getElementById("genHint");
+    if (viewerTitle) viewerTitle.textContent = "Select a model";
+    if (genHint) genHint.textContent = "Click a variant to continue with refine, texture, remesh, or export.";
+
     _state.mode = "grouped";
     _state.groupId = groupId;
     _state.viewports = [];
@@ -832,9 +846,8 @@ export function clearVideoViewer() {
         if (!glbUrl) return;
         // Dispose grouped view and load this model in the normal viewer
         disposeGroupedView();
-        // Restore placeholder visibility
-        const ph = document.getElementById("viewerPlaceholder");
-        if (ph) ph.style.display = "";
+        // Restore single-model UI elements
+        _restoreSingleModelUI();
         // Use module-scoped isTimrxS3Url and getLoadableModelUrl
         const loadUrl = isTimrxS3Url(clickedItem.glb_url) ? clickedItem.glb_url : (clickedItem.glb_proxy || getLoadableModelUrl(clickedItem.glb_url));
         setHistoryActiveModelId(clickedItem.id);
@@ -1085,6 +1098,19 @@ export function clearVideoViewer() {
     }
 
     _requestRender();
+  }
+
+  function _restoreSingleModelUI() {
+    const ph = document.getElementById("viewerPlaceholder");
+    if (ph) ph.style.display = "";
+    const uploadBtn = document.getElementById("openUploadModalTop");
+    const gearBtn = document.getElementById("viewerGear");
+    if (uploadBtn) uploadBtn.style.display = "";
+    if (gearBtn) gearBtn.style.display = "";
+    const viewerTitle = document.getElementById("viewerTitle");
+    const genHint = document.getElementById("genHint");
+    if (viewerTitle) viewerTitle.textContent = "3D Preview";
+    if (genHint) genHint.textContent = "Enter a descriptive prompt, then Generate.";
   }
 
   function disposeGroupedView() {
