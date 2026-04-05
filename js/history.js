@@ -178,10 +178,19 @@ function buildGroupedCardHTML(group, items) {
     ? `${groupedState.completedCount}/${batchTotal}`
     : `0/${batchTotal}`;
 
+  // Determine stage label from first item
+  const firstStage = (items[0]?.stage || 'preview').toLowerCase();
+  const stageLabel = firstStage === 'refine' || firstStage === 'refined' ? 'Refined'
+    : firstStage === 'remesh' || firstStage === 'remeshed' ? 'Remeshed'
+    : firstStage === 'texture' || firstStage === 'textured' ? 'Textured'
+    : firstStage === 'image3d' ? 'Image to 3D'
+    : 'Preview';
+
   return `<div class="history-group-card" data-group-id="${safeGroupId}" data-group-count="${gridCount}">
     <div class="history-group-card__thumbs history-group-card__thumbs--${Math.min(Math.max(gridCount, batchTotal), 4)}">
       ${thumbsHtml}
     </div>
+    <span class="history-group-card__stage" data-stage="${firstStage}">${stageLabel}</span>
     <div class="history-group-card__footer">
       <span class="history-group-card__count-pill">${completedLabel}</span>
       <span class="history-group-card__status-dot${groupedState.statusClass}"></span>
