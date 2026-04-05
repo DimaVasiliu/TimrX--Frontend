@@ -7,6 +7,7 @@ import { byId, dateLabel, normalizeEpochMs, HISTORY_MENU_EDGE_PAD, HISTORY_SUBME
 import {
   getHistory,
   getActiveJobs,
+  getPendingMeta,
   historyState,
   historyLineageCounts,
   historyFreshThumbs,
@@ -36,6 +37,65 @@ let _galleryAllCards = [];            // full card list from current data
 let _galleryActiveFilter = 'all';     // current gallery filter tab
 let _galleryScrollBound = false;      // scroll listener attached
 let _galleryFetching = false;         // prevent concurrent DB fetches
+
+function inferPendingStatus(meta = {}) {
+  const stage = String(meta.stage || '').toLowerCase();
+  if (stage === 'refine') return 'refining';
+  if (stage === 'remesh') return 'remeshing';
+  if (stage === 'texture') return 'texturing';
+  if (stage === 'rig') return 'rigging';
+  if (stage === 'animate' || stage === 'animation') return 'animating';
+  return 'generating';
+}
+
+function materializePendingHistoryItems(items = []) {
+  const list = Array.isArray(items) ? items : [];
+  const existingIds = new Set(list.map(item => String(item?.id || '')));
+  const pendingMeta = typeof getPendingMeta === 'function' ? (getPendingMeta() || {}) : {};
+  const activeIds = typeof getActiveJobs === 'function' ? (getActiveJobs() || []) : [];
+  if (!activeIds.length) return list;
+
+  const synthetic = [];
+  activeIds.forEach((id, index) => {
+    const key = String(id || '');
+    if (!key || existingIds.has(key)) return;
+
+    const meta = pendingMeta[key];
+    if (!meta || typeof meta !== 'object') return;
+
+    const type = meta.type || (meta.stage === 'image' ? 'image' : meta.stage === 'video' ? 'video' : 'model');
+    const createdAt = meta.created_at || (Date.now() + index);
+    const status = inferPendingStatus(meta);
+    synthetic.push({
+      id: key,
+      type,
+      status,
+      status_label: meta.status_label || 'Generating...',
+      created_at: createdAt,
+      prompt: meta.prompt || '',
+      root_prompt: meta.root_prompt || meta.prompt || '',
+      title: meta.title || meta.prompt || meta.status_label || 'Generating...',
+      model: meta.model || 'latest',
+      license: meta.license || 'private',
+      symmetry_mode: meta.symmetry_mode || 'auto',
+      pose_mode: meta.pose_mode || '',
+      stage: meta.stage || '',
+      thumbnail_url: meta.thumbnail_url || '',
+      glb_url: meta.glb_url || '',
+      glb_proxy: meta.glb_proxy || '',
+      preview_task_id: meta.preview_task_id || null,
+      batch_count: Math.max(1, parseInt(meta.batch_count, 10) || 1),
+      batch_slot: Math.max(1, parseInt(meta.batch_slot, 10) || 1),
+      batch_group_id: meta.batch_group_id || null,
+      generation_group_id: meta.generation_group_id || null,
+      progress_pct: typeof meta.progress_pct === 'number' ? meta.progress_pct : 0,
+      lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.batch_group_id || key,
+      lineage_root_id: meta.lineage_root_id || meta.lineage_origin_id || meta.batch_group_id || key,
+    });
+  });
+
+  return synthetic.length ? [...synthetic, ...list] : list;
+}
 
 // ============================================================================
 // GROUPED CARD BUILDER
@@ -1537,7 +1597,7 @@ export function getFilteredHistory() {
   // Use the per-tab DB-backed cache.  getTabHistory() returns the
   // tab-specific items if loaded, or falls back to filtering the
   // global "all" cache for backward compatibility.
-  const raw = getTabHistory();
+  const raw = materializePendingHistoryItems(getTabHistory());
   let arr = dedupeHistoryItems(raw);
   if (arr.length !== raw.length) {
     console.info('[history] deduped items', { before: raw.length, after: arr.length });

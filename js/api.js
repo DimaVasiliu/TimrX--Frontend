@@ -1449,6 +1449,7 @@ function preferHttpUrl(urlLike) {
 function updateThumbnailProgress(jobId, pct) {
   const roundedPct = Math.max(0, Math.min(100, Math.round(pct || 0)));
   const historyItem = State.findHistoryItem(jobId);
+  const pendingMeta = State.getPendingMeta()?.[jobId] || {};
   if (historyItem) {
     State.updateHistoryItem(jobId, { progress_pct: roundedPct });
   }
@@ -1489,18 +1490,29 @@ function updateThumbnailProgress(jobId, pct) {
     parseInt(
       historyItem?.batch_count
       || historyItem?.payload?.batch_count
-      || State.getPendingMeta()?.[jobId]?.batch_count,
+      || pendingMeta.batch_count,
       10
     ) || 1
   );
   const batchGroupId = historyItem?.batch_group_id
     || historyItem?.payload?.batch_group_id
-    || State.getPendingMeta()?.[jobId]?.batch_group_id
+    || pendingMeta.batch_group_id
     || null;
 
   // Grouped cards render aggregated progress from local history state, so
   // re-render them when a multi-model batch advances.
   if (batchGroupId && batchCount > 1) {
+    window.GroupedViewer?.upsertItem?.(batchGroupId, {
+      ...(historyItem || {}),
+      ...pendingMeta,
+      id: jobId,
+      batch_count: batchCount,
+      batch_group_id: batchGroupId,
+      batch_slot: pendingMeta.batch_slot || historyItem?.batch_slot || 1,
+      progress_pct: roundedPct,
+      status: historyItem?.status || inferProgressStatus(pendingMeta?.stage),
+      status_label: `${roundedPct}%`,
+    });
     renderHistory();
   }
 }
@@ -1525,6 +1537,16 @@ function normalizePendingMeta(meta) {
     }
   }
   return typeof meta === 'object' ? meta : {};
+}
+
+function inferProgressStatus(stage = '') {
+  const normalized = String(stage || '').toLowerCase();
+  if (normalized === 'refine') return 'refining';
+  if (normalized === 'remesh') return 'remeshing';
+  if (normalized === 'texture') return 'texturing';
+  if (normalized === 'rig') return 'rigging';
+  if (normalized === 'animate' || normalized === 'animation') return 'animating';
+  return 'generating';
 }
 
 // ============================================================================
@@ -2472,9 +2494,16 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         renderHistory();
 
         if (!isRecovery) {
-          prog.jump(99, 'Downloading model...');
-          await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
-          const doneLabel = st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.';
+          const isBatchPreview = historyData.batch_group_id && historyData.batch_count > 1;
+          prog.jump(99, isBatchPreview ? `Loading variant ${historyData.batch_slot}/${historyData.batch_count}...` : 'Downloading model...');
+          if (isBatchPreview) {
+            window.GroupedViewer?.upsertItem?.(historyData.batch_group_id, historyData);
+          } else {
+            await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
+          }
+          const doneLabel = isBatchPreview
+            ? `Loaded variant ${historyData.batch_slot}/${historyData.batch_count}.`
+            : (st.stage === 'refine' ? 'Loaded refined model.' : 'Loaded preview model.');
           const durationSuffix = st.generation_duration_ms
             ? ` Generated in ${Math.round(st.generation_duration_ms / 1000)}s.`
             : '';
@@ -2880,6 +2909,24 @@ export async function onGenerateClick() {
     const symmetry = (byId('modelSymmetry')?.value || 'auto').trim() || 'auto';
     const poseMode = byId('modelPoseMode')?.value || '';
     const batchGroupId = createBatchGroupId();
+    if (batchCount > 1) {
+      window.GroupedViewer?.reserve?.(batchGroupId, Array.from({ length: batchCount }, (_, index) => ({
+        id: `${batchGroupId}:${index + 1}`,
+        batch_group_id: batchGroupId,
+        batch_count: batchCount,
+        batch_slot: index + 1,
+        prompt,
+        root_prompt: prompt,
+        model,
+        license,
+        pose_mode: poseMode,
+        symmetry_mode: symmetry,
+        stage: 'preview',
+        status: 'generating',
+        status_label: 'Generating...',
+        progress_pct: 0,
+      })));
+    }
 
     log('Generating with:', { prompt, model, batchCount, symmetry, poseMode, license });
 
@@ -3011,6 +3058,9 @@ export async function onGenerateClick() {
       };
       State.savePendingMeta(job_id, jobMeta);
       addGeneratingPlaceholder(job_id, jobMeta);
+      if (batchCount > 1) {
+        window.GroupedViewer?.upsertItem?.(batchGroupId, { id: job_id, ...jobMeta, status: 'generating' });
+      }
       watchJob(job_id);
       return job_id;
     };

@@ -586,6 +586,75 @@ export function clearVideoViewer() {
     requestAnimationFrame(_renderFrame);
   }
 
+  function _clearViewportModel(vp) {
+    const THREE = window.THREE;
+    if (!vp || !THREE || !vp.model) return;
+    vp.model.traverse(function (o) {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) {
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach(function (m) {
+          if (m.map) m.map.dispose();
+          if (m.normalMap) m.normalMap.dispose();
+          if (m.roughnessMap) m.roughnessMap.dispose();
+          if (m.metalnessMap) m.metalnessMap.dispose();
+          if (m.emissiveMap) m.emissiveMap.dispose();
+          if (m.aoMap) m.aoMap.dispose();
+          m.dispose();
+        });
+      }
+    });
+    vp.scene.remove(vp.model);
+    vp.model = null;
+    if (vp.mixer) {
+      vp.mixer.stopAllAction();
+      vp.mixer.uncacheRoot(vp.mixer.getRoot());
+      vp.mixer = null;
+    }
+    vp.clock = null;
+  }
+
+  function _syncViewportDisplay(vp, index) {
+    if (!vp) return;
+    const item = vp.item || {};
+    const rawUrl = item.glb_url || item.glb_proxy || (item.payload && item.payload.glb_url);
+    const pct = Number(item.progress_pct);
+    const hasPct = Number.isFinite(pct) && pct > 0;
+    const status = String(item.status || '').toLowerCase();
+    const pending = !rawUrl && status !== "finished";
+
+    if (vp.label) {
+      if (vp.model) {
+        vp.label.textContent = "Variant " + (index + 1);
+      } else if (pending) {
+        vp.label.textContent = "Variant " + (index + 1) + " — generating";
+      } else if (!rawUrl) {
+        vp.label.textContent = "Variant " + (index + 1) + " — waiting";
+      } else {
+        vp.label.textContent = "Variant " + (index + 1);
+      }
+      vp.label.classList.toggle("error", status === "failed" || status === "error");
+    }
+
+    if (vp.loader) {
+      if (vp.model) {
+        vp.loader.style.display = "none";
+      } else {
+        vp.loader.style.display = "";
+        if (status === "failed" || status === "error") {
+          vp.loader.textContent = item.error_message || "Failed to load";
+          vp.loader.classList.add("error");
+        } else if (hasPct) {
+          vp.loader.textContent = Math.round(pct) + "%";
+          vp.loader.classList.remove("error");
+        } else {
+          vp.loader.textContent = item.status_label || "Generating…";
+          vp.loader.classList.remove("error");
+        }
+      }
+    }
+  }
+
   function _renderFrame() {
     _state.renderRequested = false;
     if (_state.mode === "grouped") {
@@ -757,7 +826,7 @@ export function clearVideoViewer() {
         // Ignore if drag/orbit happened (movement since mousedown)
         if (overlay._wasDragging) { overlay._wasDragging = false; return; }
         e.stopPropagation();
-        const clickedItem = items[i];
+        const clickedItem = _state.viewports[i]?.item || items[i];
         if (!clickedItem) return;
         const glbUrl = clickedItem.glb_proxy || clickedItem.glb_url;
         if (!glbUrl) return;
@@ -801,6 +870,7 @@ export function clearVideoViewer() {
         item: items[i],
       };
       _state.viewports.push(vp);
+      _syncViewportDisplay(vp, i);
     }
 
     _requestRender();
@@ -835,17 +905,20 @@ export function clearVideoViewer() {
     const vp = _state.viewports[index];
     if (!vp || !THREE) return;
 
-    const rawUrl = item.glb_url || item.glb_proxy || (item.payload && item.payload.glb_url);
+    vp.item = { ...(vp.item || {}), ...(item || {}) };
+    _syncViewportDisplay(vp, index);
+
+    const rawUrl = vp.item.glb_url || vp.item.glb_proxy || (vp.item.payload && vp.item.payload.glb_url);
     if (!rawUrl) {
-      vp.label.textContent = "Variant " + (index + 1) + " — no model";
-      vp.label.classList.add("error");
-      if (vp.loader) vp.loader.style.display = "none";
+      _requestRender();
       return;
     }
 
     try {
+      _clearViewportModel(vp);
+
       // Resolve URL using same logic as main viewer: prefer S3 direct, else proxy
-      const resolvedUrl = isTimrxS3Url(rawUrl) ? rawUrl : (item.glb_proxy || getLoadableModelUrl(rawUrl));
+      const resolvedUrl = isTimrxS3Url(rawUrl) ? rawUrl : (vp.item.glb_proxy || getLoadableModelUrl(rawUrl));
 
       const loader = _getGroupedLoader();
       if (!loader) throw new Error("GLTFLoader not available");
@@ -883,19 +956,74 @@ export function clearVideoViewer() {
       }
 
       // Hide loader, update label
-      if (vp.loader) vp.loader.style.display = "none";
-      vp.label.textContent = "Variant " + (index + 1);
+      _syncViewportDisplay(vp, index);
 
       _requestRender();
     } catch (err) {
       console.error("[GroupedViewer] Failed to load model " + index + ":", err);
-      vp.label.textContent = "Variant " + (index + 1) + " — failed";
-      vp.label.classList.add("error");
-      if (vp.loader) {
-        vp.loader.textContent = "Failed to load";
-        vp.loader.classList.add("error");
-      }
+      vp.item = { ...(vp.item || {}), status: "failed", error_message: err?.message || "Failed to load" };
+      _syncViewportDisplay(vp, index);
     }
+  }
+
+  function reserveGroupedViewer(groupId, itemsOrCount) {
+    const count = Array.isArray(itemsOrCount)
+      ? Math.max(1, Math.min(itemsOrCount.length, 4))
+      : Math.max(1, Math.min(parseInt(itemsOrCount, 10) || 1, 4));
+    const items = Array.isArray(itemsOrCount)
+      ? itemsOrCount.slice(0, 4)
+      : Array.from({ length: count }, function (_, index) {
+          return {
+            id: groupId + ":" + (index + 1),
+            batch_group_id: groupId,
+            batch_count: count,
+            batch_slot: index + 1,
+            status: "generating",
+            status_label: "Generating…",
+            progress_pct: 0,
+          };
+        });
+    openGroupedViewer(groupId, items);
+    return true;
+  }
+
+  function upsertGroupedItem(groupId, item) {
+    if (!groupId || !item) return false;
+    const count = Math.max(1, Math.min(parseInt(item.batch_count, 10) || _state.viewports.length || 1, 4));
+    const slotIndex = Math.max(0, Math.min(count - 1, (parseInt(item.batch_slot, 10) || 1) - 1));
+
+    if (_state.groupId !== groupId || !_state.viewports.length) {
+      const placeholders = Array.from({ length: count }, function (_, index) {
+        if (index === slotIndex) return item;
+        return {
+          id: groupId + ":" + (index + 1),
+          batch_group_id: groupId,
+          batch_count: count,
+          batch_slot: index + 1,
+          status: "generating",
+          status_label: "Generating…",
+          progress_pct: 0,
+        };
+      });
+      openGroupedViewer(groupId, placeholders);
+      return true;
+    }
+
+    const vp = _state.viewports[slotIndex];
+    if (!vp) return false;
+
+    const prevUrl = vp.item?.glb_url || vp.item?.glb_proxy || (vp.item?.payload && vp.item.payload.glb_url);
+    const nextItem = { ...(vp.item || {}), ...item };
+    const nextUrl = nextItem.glb_url || nextItem.glb_proxy || (nextItem.payload && nextItem.payload.glb_url);
+    vp.item = nextItem;
+    _syncViewportDisplay(vp, slotIndex);
+
+    if (nextUrl && (!vp.model || nextUrl !== prevUrl)) {
+      _loadModelIntoViewport(slotIndex, nextItem);
+    } else {
+      _requestRender();
+    }
+    return true;
   }
 
   function focusModel(index) {
@@ -1034,6 +1162,8 @@ export function clearVideoViewer() {
   // Expose API
   window.GroupedViewer = {
     open: openGroupedViewer,
+    reserve: reserveGroupedViewer,
+    upsertItem: upsertGroupedItem,
     focus: focusModel,
     backToGroup: backToGroupedView,
     dispose: disposeGroupedView,
