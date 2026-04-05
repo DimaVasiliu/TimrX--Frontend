@@ -2061,6 +2061,59 @@ function wireGallery() {
         return;
       }
 
+      if (act === 'retry-job') {
+        // Retry a failed Meshy job via the backend retry endpoint
+        // This creates a new job with the same parameters and charges credits
+        const retryBtn = btn;
+        const originalText = retryBtn.textContent;
+        retryBtn.textContent = 'Retrying...';
+        retryBtn.disabled = true;
+
+        try {
+          const res = await apiFetch(`/api/jobs/${encodeURIComponent(id)}/retry`, {
+            method: 'POST',
+          });
+
+          if (res.ok && res.data?.ok) {
+            const newJobId = res.data.new_job_id;
+            if (window.showToast) {
+              window.showToast(`Retrying generation (${res.data.cost_credits || '?'} credits)...`, 'info');
+            }
+
+            // Add the new job as active and start watching it
+            State.addActiveJob(newJobId);
+            State.addHistoryItem({
+              id: newJobId,
+              type: item?.type || 'model',
+              status: 'generating',
+              prompt: item?.prompt || '',
+              thumbnail_url: item?.thumbnail_url || '',
+              created_at: Date.now(),
+              stage: item?.stage || 'preview',
+            });
+
+            // Start polling the new job
+            if (window.API?.watchJob) {
+              window.API.watchJob(newJobId);
+            }
+
+            // Refresh history UI
+            if (window.renderHistory) window.renderHistory();
+          } else {
+            const errMsg = res.data?.error?.message || res.error || 'Retry failed';
+            if (window.showToast) window.showToast(errMsg, 'error');
+            else alert(errMsg);
+          }
+        } catch (err) {
+          console.error('[Retry] Failed:', err);
+          if (window.showToast) window.showToast('Retry failed. Please try again.', 'error');
+        } finally {
+          retryBtn.textContent = originalText;
+          retryBtn.disabled = false;
+        }
+        return;
+      }
+
       if (act === 'retry-video') {
         // Pre-fill video prompt with the original prompt and switch to video tab
         const originalPrompt = btn.getAttribute('data-prompt') || item.prompt || '';

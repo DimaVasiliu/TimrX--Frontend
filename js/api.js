@@ -1549,6 +1549,20 @@ function inferProgressStatus(stage = '') {
   return 'generating';
 }
 
+function revealFreshHistoryEntry(type = 'model') {
+  const currentFilter = State.historyState?.filter || 'all';
+  if (currentFilter !== 'all' && currentFilter !== type) return;
+  if (State.historyState) {
+    State.historyState.page = 1;
+  }
+  requestAnimationFrame(() => {
+    const panel = document.getElementById('ws-right-panel');
+    if (panel) panel.scrollTop = 0;
+    const grid = document.getElementById('historyGrid');
+    if (grid) grid.scrollTop = 0;
+  });
+}
+
 // ============================================================================
 // ERROR MODAL FOR EXPIRED/OLD MODELS
 // ============================================================================
@@ -2208,6 +2222,7 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
   State.setHistoryActiveModelId(jobId);
   State.historyFreshThumbs.add(jobId);
   renderHistory();
+  revealFreshHistoryEntry(placeholder.type || 'model');
 }
 
 // ============================================================================

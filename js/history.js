@@ -952,6 +952,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           <div class="${thumbPrefix}__error-card">
             <span class="${thumbPrefix}__error-icon">&#9888;</span>
             <span class="${thumbPrefix}__error-text">${displayError}</span>
+            <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-job" data-id="${displayModel.id}">Retry</button>
           </div>
           <span class="${thumbPrefix}__name">${name}</span>
           ${!isExpanded ? `
@@ -1285,6 +1286,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     ? `<div class="${thumbPrefix}__error-card">
         <span class="${thumbPrefix}__error-icon">:(</span>
         <span class="${thumbPrefix}__error-text">${failLabel}</span>
+        <button class="${thumbPrefix}__retry-btn" type="button" data-act="retry-job" data-id="${displayModel.id}">Retry</button>
       </div>`
     : isProcessing
       ? `<div class="${thumbPrefix}__processing-placeholder"></div>`
