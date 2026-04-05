@@ -4193,6 +4193,12 @@ body.has-modal {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* Keep card geometry stable while menu is open so fixed-position menu math stays correct */
+.history-group-card.is-menu-open,
+.history-group-card.is-menu-open:hover {
+  transform: none;
+}
+
 /* Thumbnail grid */
 .history-group-card__thumbs {
   display: grid;
