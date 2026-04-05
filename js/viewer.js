@@ -120,6 +120,25 @@ function updatePlaceholder() {
 }
 
 export function clearModel() {
+    // If grouped viewer is active, dispose it and restore single-model UI
+    // before loading the new model. This prevents the new model from rendering
+    // into a leftover split-viewport from the grouped view.
+    if (window.GroupedViewer?.isActive?.()) {
+        window.GroupedViewer.dispose();
+        // Restore header, upload button, gear — the grouped viewer hid them
+        const overlayHead = document.querySelector(".viewer-overlay-head");
+        if (overlayHead) overlayHead.style.display = "";
+        const uploadBtn = document.getElementById("openUploadModalTop");
+        const gearBtn = document.getElementById("viewerGear");
+        if (uploadBtn) uploadBtn.style.display = "";
+        if (gearBtn) gearBtn.style.display = "";
+        const container = document.getElementById("viewerCanvas")?.parentElement;
+        if (container) {
+            const banner = container.querySelector(".viewer-grouped-banner");
+            if (banner) banner.style.display = "none";
+        }
+    }
+
     // Guard: Check if scene is available
     if (!scene) {
         log('[Viewer] clearModel: scene not available');
