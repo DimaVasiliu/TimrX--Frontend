@@ -743,9 +743,23 @@ export function clearVideoViewer() {
     const THREE = window.THREE;
     const renderer = _getRenderer();
     if (!THREE || !renderer) {
-      console.warn("[GroupedViewer] Three.js or renderer not available");
+      console.warn("[GroupedViewer] Three.js or renderer not available. THREE:", !!THREE, "renderer:", !!renderer, "timrxRenderer:", !!window.timrxRenderer);
+      // Try to restore the UI so user isn't stuck with a blank viewer
+      _restoreSingleModelUI();
       return;
     }
+
+    const container = _getContainer();
+    if (!container) {
+      console.warn("[GroupedViewer] Canvas container not found. Canvas:", !!_getCanvas());
+      _restoreSingleModelUI();
+      return;
+    }
+
+    console.log("[GroupedViewer] Opening:", groupId, "items:", items.length,
+      "renderer:", !!renderer, "container:", container.id || container.className,
+      "containerSize:", container.clientWidth + "x" + container.clientHeight,
+      "itemUrls:", items.map(i => !!(i.glb_url || i.glb_proxy)).join(","));
 
     // Dispose existing grouped view
     disposeGroupedView();
@@ -783,8 +797,6 @@ export function clearVideoViewer() {
     _state.groupId = groupId;
     _state.viewports = [];
 
-    const container = _getContainer();
-    if (!container) return;
     const rect = container.getBoundingClientRect();
     const count = Math.min(items.length, 4);
     const layout = LAYOUTS[count];

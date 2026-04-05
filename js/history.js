@@ -225,9 +225,24 @@ function bindGroupedCardEvents(container) {
       if (imageViewer) imageViewer.classList.add('hidden');
       if (videoViewer) videoViewer.classList.add('hidden');
 
-      if (typeof window.openGroupedViewer === 'function') {
-        window.openGroupedViewer(gid, items);
+      // Ensure Three.js viewer is booted (canvas + renderer must exist)
+      if (typeof window.TimrXViewer?.checkViewerAvailable === 'function') {
+        window.TimrXViewer.checkViewerAvailable();
       }
+      // 3dprint-app.js exposes ensureThreeViewer via timrx3D — trigger a resize
+      // to force canvas creation if it hasn't happened yet
+      if (window.timrx3D?.resize) {
+        window.timrx3D.resize();
+      }
+
+      // Small delay to let the DOM settle after panel switch, then open grouped viewer
+      requestAnimationFrame(() => {
+        if (typeof window.openGroupedViewer === 'function') {
+          console.log('[GroupedCard] Opening grouped viewer:', gid, 'items:', items.length,
+            'renderer:', !!window.timrxRenderer, 'canvas:', !!window.timrxRenderer?.domElement);
+          window.openGroupedViewer(gid, items);
+        }
+      });
     };
   });
 }
