@@ -1967,13 +1967,26 @@ function _renderHistoryImpl() {
     'generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating',
     'processing', 'queued', 'pending',
   ]);
+  // Filter out failed placeholder items that have no useful content
+  // (no thumbnail, no model, no image, no video). These are jobs that
+  // failed before producing any output (e.g., insufficient credits).
+  const srcFiltered = src.filter(item => {
+    if (!item) return false;
+    if (item.status !== 'failed' && item.status !== 'error') return true;
+    // Keep failed items that have actual content the user can see or retry
+    if (item.thumbnail_url || item.glb_url || item.glb_proxy ||
+        item.image_url || item.video_url) return true;
+    // Remove empty failed placeholders — they have no content and just clutter the UI
+    return false;
+  });
+
   const srcForLineage = (historyState.filter === 'all' && !isGallery)
-    ? src.filter(item => {
+    ? srcFiltered.filter(item => {
         const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
         if (type === 'model') return true;
         return _IN_PROGRESS_STATUSES.has(item.status);
       })
-    : src;
+    : srcFiltered;
   const lineages = groupByLineage(srcForLineage);
   const currentLineageKeys = new Set(lineages.map(l => String(l.rootId || l.id)));
   historyLineageCounts.forEach((_, key) => {
