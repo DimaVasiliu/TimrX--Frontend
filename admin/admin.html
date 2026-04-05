@@ -1268,6 +1268,15 @@
     .ops-pstat-value { color: #ccc; font-weight: 500; }
     .ops-pstat-value.warn { color: #fbbf24; }
     .ops-pstat-value.crit { color: #ef4444; }
+    .ops-provider-meta {
+      margin-top: 10px;
+      font-size: 10px;
+      line-height: 1.45;
+      color: #8f8f8f;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 8px;
+      word-break: break-word;
+    }
 
     /* Provider card border by status */
     .ops-provider-card.status-warning { border-color: rgba(251,191,36,0.3); }
@@ -3610,10 +3619,13 @@
                 <option value="">Select...</option>
                 <option value="meshy">Meshy</option>
                 <option value="openai">OpenAI</option>
-                <option value="google">Google</option>
+                <option value="google">Google Account (Imagen + Nano)</option>
+                <option value="piapi">PiAPI Account (Seedance + Nano Banana)</option>
                 <option value="vertex">Vertex</option>
-                <option value="seedance">Seedance</option>
                 <option value="fal_seedance">fal Seedance</option>
+                <option value="flux_pro">FLUX.2 Pro</option>
+                <option value="ideogram_v3">Ideogram V3</option>
+                <option value="recraft_v4">Recraft V4</option>
               </select>
             </div>
             <div class="ops-form-field">
@@ -7628,6 +7640,13 @@
 
     let _opsProviderData = null;  // cache for spend table reuse
 
+    function formatOpsLatency(ms) {
+      if (ms == null) return '--';
+      if (ms >= 60000) return `${(ms / 60000).toFixed(1)}m`;
+      if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
+      return `${Math.round(ms)}ms`;
+    }
+
     async function loadOpsHealth() {
       const grid = $('#opsProviderGrid');
       grid.innerHTML = '<div class="ops-loading">Loading provider health...</div>';
@@ -7663,22 +7682,35 @@
           const rate = p.success_rate_24h != null ? (p.success_rate_24h * 100).toFixed(0) + '%' : '--';
           const statusClass = p.status || 'unknown';
           const cardClass = (statusClass === 'warning' || statusClass === 'down') ? ` status-${statusClass}` : '';
+          const displayName = p.display_label || p.provider;
+          const configLabel = p.configured ? 'configured' : 'missing';
+          const configClass = p.configured ? '' : ' crit';
+          const topError = Array.isArray(p.top_error_codes) && p.top_error_codes.length ? p.top_error_codes[0] : null;
+          const providerNotes = [];
+          if (p.last_success_at) providerNotes.push(`Last success: ${formatDateUK(p.last_success_at)}`);
+          if (p.last_failure_at) providerNotes.push(`Last failure: ${formatDateUK(p.last_failure_at)}`);
+          if (topError) providerNotes.push(`Top error: ${escapeHtmlText(topError.code || 'unknown')} x${topError.count || 0}`);
+          if (!p.configured && p.config_error) providerNotes.push(`Config: ${escapeHtmlText(p.config_error)}`);
           return `
             <div class="ops-provider-card${cardClass}">
               <div class="ops-provider-top">
                 <span>
-                  <span class="ops-provider-name">${escapeHtmlText(p.provider)}</span>
+                  <span class="ops-provider-name">${escapeHtmlText(displayName)}</span>
                   <span class="ops-provider-feature">${escapeHtmlText(p.feature_area)}</span>
                 </span>
                 <span class="ops-status-badge ${statusClass}">${statusClass}</span>
               </div>
               <div class="ops-provider-stats">
                 <div class="ops-pstat"><span class="ops-pstat-label">Jobs 24h</span><span class="ops-pstat-value">${p.jobs_24h || 0}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Jobs 1h</span><span class="ops-pstat-value">${p.jobs_1h || 0}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Success</span><span class="ops-pstat-value">${rate}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Latency</span><span class="ops-pstat-value">${formatOpsLatency(p.avg_success_latency_ms_24h)}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Credits 24h</span><span class="ops-pstat-value">${p.credits_consumed_24h || 0} cr</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Provider Cost 24h</span><span class="ops-pstat-value">\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Alerts</span><span class="ops-pstat-value${p.active_alerts > 0 ? ' crit' : ''}">${p.active_alerts || 0}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Config</span><span class="ops-pstat-value${configClass}">${configLabel}</span></div>
               </div>
+              ${providerNotes.length ? `<div class="ops-provider-meta">${providerNotes.join('<br/>')}</div>` : ''}
             </div>`;
         }).join('');
 
@@ -7825,7 +7857,10 @@
         const actionCount = summary.action_needed_count || 0;
         const warnCount = summary.warning_count || 0;
         if (actionCount > 0) {
-          const names = providers.filter(p => p.balance_status === 'action_needed').map(p => p.provider).join(', ');
+          const names = providers
+            .filter(p => p.balance_status === 'action_needed')
+            .map(p => p.display_label || p.provider)
+            .join(', ');
           actionBar.innerHTML = `<div class="ops-bal-action-bar">
             <strong>${actionCount} provider${actionCount > 1 ? 's' : ''} need attention:</strong>
             ${escapeHtmlText(names)} — check balance / update snapshot
@@ -7969,7 +8004,7 @@
           <thead><tr><th>Provider</th><th>Feature</th><th>Provider Cost 24h (&pound;)</th><th>Provider Cost MTD (&pound;)</th></tr></thead>
           <tbody>
             ${sorted.map(p => `<tr>
-              <td>${escapeHtmlText(p.provider)}</td>
+              <td>${escapeHtmlText(p.display_label || p.provider)}</td>
               <td style="color:#888;text-transform:uppercase;font-size:10px;">${escapeHtmlText(p.feature_area)}</td>
               <td>\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</td>
               <td>\u00A3${(p.estimated_spend_month_gbp || 0).toFixed(2)}</td>
@@ -8232,12 +8267,15 @@
           const amtStr = e.amount_gbp != null ? `\u00A3${e.amount_gbp.toFixed(2)}` : '';
           const snapStr = e.balance_snapshot_gbp != null ? `bal: \u00A3${e.balance_snapshot_gbp.toFixed(2)}` : '';
           const display = amtStr || snapStr || '';
+          const detail = [e.description || e.reference || '', e.recorded_by ? `by ${e.recorded_by}` : '']
+            .filter(Boolean)
+            .join(' · ');
           return `
             <div class="ops-ledger-item">
               <span class="ops-ledger-type ${e.entry_type}">${e.entry_type.replace('_', ' ')}</span>
-              <span class="ops-ledger-provider">${escapeHtmlText(e.provider)}</span>
+              <span class="ops-ledger-provider">${escapeHtmlText(e.display_label || e.provider)}</span>
               <span class="ops-ledger-amount">${display}</span>
-              <span class="ops-ledger-desc">${escapeHtmlText(e.description || e.reference || '')}</span>
+              <span class="ops-ledger-desc">${escapeHtmlText(detail)}</span>
               <span class="ops-ledger-date">${formatDateUK(e.created_at)}</span>
             </div>`;
         }).join('');
@@ -8318,6 +8356,8 @@
 
     async function loadOpsMonthly() {
       const wrap = $('#opsMonthlyWrap');
+      const oldSnap = $('#opsSnapshots');
+      if (oldSnap) oldSnap.remove();
       wrap.innerHTML = '<div class="ops-loading">Loading monthly spend...</div>';
       try {
         const r = await adminFetch(`${BACKEND}/api/admin/provider-spend/monthly?months=3`, { headers: headers(), credentials: 'include' });
@@ -8351,8 +8391,10 @@
           const monthLabel = formatMonthLabel(month);
           tableHtml += `<tr class="month-header"><td colspan="6">${escapeHtmlText(monthLabel)}</td></tr>`;
           for (const row of byMonth[month]) {
+            const rowLabel = row.display_label || row.provider;
+            const rowSubtitle = row.display_subtitle ? `<div style="font-size:9px;color:#888;">${escapeHtmlText(row.display_subtitle)}</div>` : '';
             tableHtml += `<tr>
-              <td>${escapeHtmlText(row.provider)}</td>
+              <td>${escapeHtmlText(rowLabel)}${rowSubtitle}</td>
               <td>\u00A3${(row.estimated_usage_gbp || 0).toFixed(2)}</td>
               <td>${row.job_count || 0}</td>
               <td>${row.topup_count ? `\u00A3${(row.topups_gbp || 0).toFixed(2)} (${row.topup_count})` : '\u2014'}</td>
@@ -8370,9 +8412,12 @@
         if (snapKeys.length) {
           const snapHtml = snapKeys.map(prov => {
             const s = snapshots[prov];
+            const snapLabel = s.display_label || prov;
+            const snapSubtitle = s.display_subtitle ? `<span class="snap-date" style="color:#888;">${escapeHtmlText(s.display_subtitle)}</span>` : '';
             return `<div class="ops-snapshot-card">
-              <span class="snap-prov">${escapeHtmlText(prov)}</span>
+              <span class="snap-prov">${escapeHtmlText(snapLabel)}</span>
               <span class="snap-bal">\u00A3${s.balance_gbp.toFixed(2)}</span>
+              ${snapSubtitle}
               <span class="snap-date">${formatDateUK(s.recorded_at)}</span>
             </div>`;
           }).join('');

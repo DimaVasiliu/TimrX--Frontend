@@ -4282,13 +4282,11 @@ body.has-modal {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-.history-group-card:hover .history-group-card__menu-btn,
-.history-group-card__menu-btn.is-open {
   opacity: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .history-group-card__menu-btn:hover {
