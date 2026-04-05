@@ -2295,78 +2295,36 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         return;
       }
 
-      if (!window.THREE || !window.THREE.GLTFLoader) {
-        console.error('[Viewer] Three.js or GLTFLoader not available');
-        return;
-      }
-
       ensureThreeViewer();
-      const viewer = window.timrx3D;
-      if (!viewer || !viewer.scene) {
-        console.error('[Viewer] 3D viewer not initialized');
+
+      // Create a blob URL from the local file and load it through the
+      // proper viewer module (viewer.js). This ensures correct camera
+      // fitting, placeholder hiding, animation playback, and model
+      // tracking — all of which the old inline GLTFLoader.parse path skipped.
+      const blobUrl = URL.createObjectURL(file);
+
+      const loadViaViewer = window.TimrXViewer?.loadGlbFromUrl || window.loadGlbFromUrl;
+      if (!loadViaViewer) {
+        console.error('[Viewer] No viewer load function available');
+        URL.revokeObjectURL(blobUrl);
         return;
       }
-  
-      const THREE = window.THREE;
-      const loader = new THREE.GLTFLoader();
-      const reader = new FileReader();
-  
-      reader.onload = function (e) {
-        const arrayBuffer = e.target.result;
-  
-        loader.parse(arrayBuffer, '', function (gltf) {
-          const scene  = viewer.scene;
-          const camera = viewer.camera;
-  
-          const toRemove = [];
-          scene.children.forEach((child) => {
-            const keepAlive = child.isGridHelper || child.isLight || child.userData?.keepAlive;
-            if (!keepAlive && (child.isMesh || child.type === 'Group' || child.type === 'Object3D')) {
-              toRemove.push(child);
-            }
-          });
-          toRemove.forEach((obj) => scene.remove(obj));
-  
-          const model = gltf.scene;
-          model.name  = modelName || file.name;
-          scene.add(model);
-  
-          const box    = new THREE.Box3().setFromObject(model);
-          const center = box.getCenter(new THREE.Vector3());
-          const size   = box.getSize(new THREE.Vector3());
-  
-          // Scale to fit
-          const maxDim = Math.max(size.x, size.y, size.z) || 1;
-          const scale  = 2 / maxDim;
-          model.scale.set(scale, scale, scale);
 
-          // Recalculate after scaling
-          const sBox = new THREE.Box3().setFromObject(model);
-          const sCenter = sBox.getCenter(new THREE.Vector3());
+      if (genHint) genHint.textContent = 'Loading model...';
 
-          // Center XZ, ground on grid (grid y = -0.5)
-          model.position.x = -sCenter.x;
-          model.position.z = -sCenter.z;
-          model.position.y = -sBox.min.y - 0.5;
-
-          const lookY = (sBox.max.y - sBox.min.y) * scale * 0.4 - 0.5;
-          camera.position.set(3.1, 2.2, 4.4);
-          camera.lookAt(0, lookY, 0);
-
-          if (window.timrxControls) {
-            window.timrxControls.target.set(0, lookY, 0);
-            window.timrxControls.update();
-          }
-  
-          if (placeholderCube) placeholderCube.visible = false;
-          if (viewerEmpty) viewerEmpty.style.display = 'none';
-        }, function (error) {
-          console.error('Error loading model:', error);
+      loadViaViewer(blobUrl)
+        .then(() => {
+          if (genHint) genHint.textContent = `Loaded: ${modelName || file.name}`;
+          console.log('[Viewer] Local model loaded:', modelName || file.name);
+        })
+        .catch((err) => {
+          console.error('[Viewer] Error loading local model:', err);
           alert('Failed to load model. Please check the file format and try again.');
+          if (genHint) genHint.textContent = 'Enter a descriptive prompt, then Generate.';
+        })
+        .finally(() => {
+          URL.revokeObjectURL(blobUrl);
         });
-      };
-  
-      reader.readAsArrayBuffer(file);
     }
   
     /**
