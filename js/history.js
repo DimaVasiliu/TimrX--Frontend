@@ -52,18 +52,18 @@ function materializePendingHistoryItems(items = []) {
   const list = Array.isArray(items) ? items : [];
   const existingIds = new Set(list.map(item => String(item?.id || '')));
   const pendingMeta = typeof getPendingMeta === 'function' ? (getPendingMeta() || {}) : {};
-  const activeIds = typeof getActiveJobs === 'function' ? (getActiveJobs() || []) : [];
-  if (!activeIds.length) return list;
+  const currentFilter = historyState.filter || 'all';
+  const pendingEntries = Object.entries(pendingMeta);
+  if (!pendingEntries.length) return list;
 
   const synthetic = [];
-  activeIds.forEach((id, index) => {
+  pendingEntries.forEach(([id, meta], index) => {
     const key = String(id || '');
     if (!key || existingIds.has(key)) return;
-
-    const meta = pendingMeta[key];
     if (!meta || typeof meta !== 'object') return;
 
     const type = meta.type || (meta.stage === 'image' ? 'image' : meta.stage === 'video' ? 'video' : 'model');
+    if (currentFilter !== 'all' && type !== currentFilter) return;
     const createdAt = meta.created_at || (Date.now() + index);
     const status = inferPendingStatus(meta);
     synthetic.push({
