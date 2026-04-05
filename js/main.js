@@ -987,6 +987,71 @@ function initViewerToolbar() {
       };
     }
 
+    // Wire up 3MF export button
+    const threeMfBtn = document.getElementById('printExport3MFBtn');
+    if (threeMfBtn) {
+      threeMfBtn.onclick = async () => {
+        const item = API.getActiveHistoryItem();
+        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+
+        // Check for existing 3MF URL from Meshy
+        const threeMfUrl = item.model_urls?.['3mf'] || item.textured_model_urls?.['3mf'];
+        if (threeMfUrl) {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: threeMfUrl, extension: '3mf' });
+          startWorkspaceDownload(threeMfUrl, filename);
+          return;
+        }
+
+        // Fallback: download GLB (user can convert in slicer — most slicers accept GLB)
+        const glbUrl = item.glb_url || item.glb_proxy;
+        if (glbUrl) {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: glbUrl, extension: inferExtensionFromUrl(glbUrl) || 'glb' });
+          startWorkspaceDownload(glbUrl, filename);
+          if (window.showToast) window.showToast('3MF not available for this model. Downloaded GLB instead — import it into your slicer to convert.', 'info');
+          return;
+        }
+        alert('No exportable model found. Load the model in the viewer first.');
+      };
+    }
+
+    // Wire up slicer launch buttons
+    document.querySelectorAll('.print-slicer-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const slicer = btn.dataset.slicer;
+        const item = API.getActiveHistoryItem();
+        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+
+        // Get the best URL for the model
+        const modelUrl = item.glb_url || item.glb_proxy;
+        if (!modelUrl) { alert('No model URL available.'); return; }
+
+        // Slicer URL schemes for local app launch
+        const slicerSchemes = {
+          bambustudio: 'bambustudioopen',
+          orcaslicer: 'orcaslicer',
+          cura: 'cura',
+          prusaslicer: 'prusaslicer',
+        };
+        const scheme = slicerSchemes[slicer];
+        if (!scheme) return;
+
+        // Try to open via URL scheme (works if slicer is installed)
+        // Most slicers register custom URL schemes that accept file URLs
+        try {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: modelUrl, extension: inferExtensionFromUrl(modelUrl) || 'glb' });
+
+          // Download file first so user has it, then attempt slicer launch
+          startWorkspaceDownload(modelUrl, filename);
+          if (window.showToast) {
+            window.showToast(`File downloaded. Open it in ${btn.querySelector('.print-service-name').textContent} to slice and print.`, 'info');
+          }
+        } catch (err) {
+          console.warn('[Slicer] Launch failed:', err);
+          alert(`Could not open ${slicer}. Make sure it is installed on your computer.`);
+        }
+      });
+    });
+
     showPrintPanelState('results');
   }
 

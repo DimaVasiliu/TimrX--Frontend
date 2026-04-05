@@ -743,14 +743,24 @@
                       <span class="field-hint">Updates wall thickness and overhang thresholds for the selected process.</span>
                     </div>
 
-                    <button type="button" class="print-panel-export-btn" id="printExportSTLBtn">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      Export STL for printing
-                    </button>
+                    <div style="display:flex;gap:8px">
+                      <button type="button" class="print-panel-export-btn" id="printExportSTLBtn" style="flex:1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export STL
+                      </button>
+                      <button type="button" class="print-panel-export-btn print-panel-export-btn--3mf" id="printExport3MFBtn" style="flex:1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export 3MF
+                      </button>
+                    </div>
                   </div>
                 </aside>
 
@@ -786,18 +796,47 @@
                       </div>
                     </div>
                     <div style="display:grid;gap:6px;font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.55)">
-                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">AI models are not automatically production-ready.</strong> They are generated approximations. Always verify in a slicer (PrusaSlicer, Cura, Lychee) before committing to a print run.</p>
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">AI models are not automatically production-ready.</strong> They are generated approximations. Always verify in a slicer (Bambu Studio, PrusaSlicer, Cura, OrcaSlicer) before committing to a print run.</p>
                       <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Textures do not affect physical prints.</strong> For FDM/resin printing, only geometry matters. Focus on mesh quality, not visual appearance. Paint or finish the physical object after printing.</p>
-                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Check for hidden internal geometry.</strong> AI models may contain floating fragments or overlapping faces inside the mesh. Open the STL in Blender or Meshmixer to inspect before selling printed copies.</p>
+                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Use Meshy's Blender plugin for quick repairs.</strong> Install the <a href="https://docs.meshy.ai/en/blender-plugin/model-cleanup" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:underline">Meshy for Blender</a> plugin and use the one-click "Make Manifold" tool to auto-fix holes, remove internal faces, and make normals consistent.</p>
                       <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Consider orientation and supports.</strong> Rotate the model in your slicer to minimize overhangs and support material. This affects print quality, time, and cost significantly.</p>
                     </div>
                   </section>
 
+                  <!-- Open in Slicer -->
+                  <section class="print-panel-surface">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">Open in slicer</p>
+                        <p class="print-panel-surface-note">Launch your slicer directly with the exported file. Requires the slicer installed on your computer.</p>
+                      </div>
+                    </div>
+                    <div class="print-service-grid">
+                      <button type="button" class="print-service-btn print-slicer-btn" data-slicer="bambustudio">
+                        <span class="print-service-name">Bambu Studio</span>
+                        <span class="print-service-desc">Multi-color AMS support</span>
+                      </button>
+                      <button type="button" class="print-service-btn print-slicer-btn" data-slicer="orcaslicer">
+                        <span class="print-service-name">OrcaSlicer</span>
+                        <span class="print-service-desc">Advanced open-source slicer</span>
+                      </button>
+                      <button type="button" class="print-service-btn print-slicer-btn" data-slicer="cura">
+                        <span class="print-service-name">Cura</span>
+                        <span class="print-service-desc">Ultimaker, community profiles</span>
+                      </button>
+                      <button type="button" class="print-service-btn print-slicer-btn" data-slicer="prusaslicer">
+                        <span class="print-service-name">PrusaSlicer</span>
+                        <span class="print-service-desc">Prusa &amp; generic printers</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Print Services -->
                   <section class="print-panel-surface">
                     <div class="print-panel-surface-head">
                       <div>
                         <p class="viewer-print-toast__subtitle">Print services</p>
-                        <p class="print-panel-surface-note">Export your STL above, then upload to a print service. All accept STL files.</p>
+                        <p class="print-panel-surface-note">No printer? Upload your file to a print service and have it shipped to you.</p>
                       </div>
                     </div>
                     <div class="print-service-grid">
@@ -813,9 +852,9 @@
                         <span class="print-service-name">JLCPCB 3DP</span>
                         <span class="print-service-desc">Fast turnaround, competitive pricing</span>
                       </a>
-                      <a href="https://www.sculpteo.com/" target="_blank" rel="noopener" class="print-service-btn">
-                        <span class="print-service-name">Sculpteo</span>
-                        <span class="print-service-desc">Premium finishes, batch production</span>
+                      <a href="https://makerworld.com/" target="_blank" rel="noopener" class="print-service-btn">
+                        <span class="print-service-name">MakerWorld</span>
+                        <span class="print-service-desc">Bambu Lab community &amp; printing</span>
                       </a>
                     </div>
                   </section>

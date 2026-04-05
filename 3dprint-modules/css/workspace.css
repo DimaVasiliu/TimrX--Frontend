@@ -2738,11 +2738,11 @@ body.print-panel-open .history-thumb__date {
   grid-row: 3;
 }
 
-/* Export button: full width row, but button itself is compact */
-.print-prep-section > .print-panel-export-btn {
+/* Export buttons row */
+.print-prep-section > div:last-child {
   grid-column: 2;
   grid-row: 4;
-  justify-self: start;
+  justify-self: stretch;
   align-self: start;
   width: auto;
   margin-top: 4px;
@@ -2983,6 +2983,26 @@ body.print-panel-open .history-thumb__date {
 .print-panel-export-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+}
+
+.print-panel-export-btn--3mf {
+  background: linear-gradient(180deg, #7c3aed, #6d28d9);
+  box-shadow: 0 8px 20px rgba(109, 40, 217, 0.2);
+}
+
+.print-panel-export-btn--3mf:hover {
+  box-shadow: 0 10px 24px rgba(109, 40, 217, 0.3);
+}
+
+/* Slicer launch buttons */
+button.print-slicer-btn {
+  cursor: pointer;
+  text-align: left;
+}
+
+button.print-slicer-btn:hover {
+  border-color: rgba(96, 165, 250, 0.3);
+  background: rgba(96, 165, 250, 0.08);
 }
 
 .print-panel-retry-btn {
