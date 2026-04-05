@@ -172,20 +172,20 @@ function buildGroupedCardHTML(group, items) {
     thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
   }
 
-  const title = items[0]?.title || items[0]?.prompt || 'Untitled';
-  const safeTitle = title.length > 50 ? title.slice(0, 47) + '...' : title;
-  const escapedTitle = safeTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
   const safeGroupId = String(group.id || '').replace(/"/g, '&quot;');
+
+  const completedLabel = groupedState.completedCount > 0
+    ? `${groupedState.completedCount}/${batchTotal}`
+    : `0/${batchTotal}`;
 
   return `<div class="history-group-card" data-group-id="${safeGroupId}" data-group-count="${gridCount}">
     <div class="history-group-card__thumbs history-group-card__thumbs--${Math.min(Math.max(gridCount, batchTotal), 4)}">
       ${thumbsHtml}
     </div>
-    <div class="history-group-card__overlay">
-      <div class="history-group-card__name">${escapedTitle}</div>
+    <div class="history-group-card__footer">
+      <span class="history-group-card__count-pill">${completedLabel}</span>
+      <span class="history-group-card__status-dot${groupedState.statusClass}"></span>
     </div>
-    <div class="history-group-card__status${groupedState.statusClass}">${groupedState.statusText}</div>
   </div>`;
 }
 
