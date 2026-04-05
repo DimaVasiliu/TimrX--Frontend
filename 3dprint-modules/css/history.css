@@ -297,12 +297,14 @@
 }
 
 .timrx-3dprint .history-thumb.is-menu-open,
-.timrx-3dprint .expanded-thumb.is-menu-open {
+.timrx-3dprint .expanded-thumb.is-menu-open,
+.timrx-3dprint .history-group-card.is-menu-open {
   z-index: 1302;
 }
 
 .timrx-3dprint .history-thumb.is-menu-open,
 .timrx-3dprint .expanded-thumb.is-menu-open,
+.timrx-3dprint .history-group-card.is-menu-open,
 .timrx-3dprint .history-video-grid .history-thumb--video.is-menu-open {
   overflow: visible !important;
 }
@@ -326,7 +328,8 @@ body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expand
 body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expanded-thumb__stage,
 body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expanded-thumb__rig,
 body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expanded-thumb__overlay,
-body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expanded-thumb__name {
+body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expanded-thumb__name,
+body.history-menu-open .timrx-3dprint .history-group-card:not(.is-menu-open) .history-group-card__menu-btn {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -336,7 +339,9 @@ body.history-menu-open .timrx-3dprint .expanded-thumb:not(.is-menu-open) .expand
 body.history-menu-open .timrx-3dprint .expanded-thumb.is-menu-open .expanded-thumb__status-bar,
 body.history-menu-open .timrx-3dprint .expanded-thumb.is-menu-open .expanded-thumb__stage,
 body.history-menu-open .timrx-3dprint .history-thumb.is-menu-open .history-thumb__status-bar,
-body.history-menu-open .timrx-3dprint .history-thumb.is-menu-open .history-thumb__stage {
+body.history-menu-open .timrx-3dprint .history-thumb.is-menu-open .history-thumb__stage,
+body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-group-card__stage,
+body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-group-card__footer {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;

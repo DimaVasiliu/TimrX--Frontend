@@ -258,6 +258,7 @@ function bindGroupedCardEvents(container) {
     const menu = card.querySelector('.card-menu');
     if (menuBtn && menu) {
       menuBtn.addEventListener('click', function (e) {
+        e.preventDefault();
         e.stopPropagation();
         const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
         if (isOpen) {
