@@ -972,8 +972,8 @@ export function clearVideoViewer() {
       // Center and ground model
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
-      model.position.set(-center.x, -box.min.y + 0.5, -center.z);
-      // Note: +0.5 accounts for grid at y=-0.5
+      model.position.set(-center.x, -box.min.y - 0.5, -center.z);
+      // Grid is at y=-0.5, so ground the model there
 
       vp.scene.add(model);
       vp.model = model;
