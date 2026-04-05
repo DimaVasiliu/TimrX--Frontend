@@ -252,8 +252,12 @@ function bindGroupedCardEvents(container) {
     const items = _groupedCardData.get(gid);
     if (!items) return;
     card.onclick = function (e) {
-      // Don't open grouped viewer if clicking the menu button or menu items
-      if (e.target.closest('[data-history-menu]') || e.target.closest('.card-menu') || e.target.closest('[data-act]')) return;
+      // Let menu button clicks, menu items, and action buttons bubble up
+      // to the grid's event delegation handler — don't intercept them here
+      if (e.target.closest('[data-history-menu]') || e.target.closest('.card-menu') || e.target.closest('[data-act]')) {
+        // Don't stopPropagation — let it reach the grid handler
+        return;
+      }
       e.stopPropagation();
       // Close expanded gallery view first so the 3D viewer is visible
       if (historyState.galleryExpanded) {
@@ -461,7 +465,7 @@ export function resetGalleryInfiniteScroll(filter) {
 }
 
 function getHistoryMenuHost(node) {
-  return node?.closest?.('.history-thumb, .expanded-thumb') || null;
+  return node?.closest?.('.history-thumb, .expanded-thumb, .history-group-card') || null;
 }
 
 // Export getters for menu state (needed by main.js)

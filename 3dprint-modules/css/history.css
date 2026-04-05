@@ -4291,6 +4291,12 @@ body.has-modal {
   color: #fff;
 }
 
+/* Allow menu to overflow when open */
+.history-group-card.is-menu-open {
+  overflow: visible !important;
+  z-index: 1302;
+}
+
 .history-group-card__menu-btn svg {
   width: 14px;
   height: 14px;
