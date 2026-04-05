@@ -251,11 +251,26 @@ function bindGroupedCardEvents(container) {
     const gid = card.dataset.groupId;
     const items = _groupedCardData.get(gid);
     if (!items) return;
+
+    // Wire up the menu button directly — event delegation through the card
+    // doesn't work because card.onclick stopPropagation blocks grid bubbling.
+    const menuBtn = card.querySelector('[data-history-menu]');
+    const menu = card.querySelector('.card-menu');
+    if (menuBtn && menu) {
+      menuBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          closeActiveHistoryMenu();
+        } else {
+          openHistoryMenu(menuBtn, menu);
+        }
+      });
+    }
+
     card.onclick = function (e) {
-      // Let menu button clicks, menu items, and action buttons bubble up
-      // to the grid's event delegation handler — don't intercept them here
+      // Don't open grouped viewer if clicking menu or action buttons
       if (e.target.closest('[data-history-menu]') || e.target.closest('.card-menu') || e.target.closest('[data-act]')) {
-        // Don't stopPropagation — let it reach the grid handler
         return;
       }
       e.stopPropagation();
