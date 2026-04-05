@@ -762,11 +762,22 @@ export function clearVideoViewer() {
     if (gearBtn) gearBtn.style.display = "none";
     if (toolbar) toolbar.classList.remove("visible");
 
-    // Update header to prompt user to pick a variant
-    const viewerTitle = document.getElementById("viewerTitle");
-    const genHint = document.getElementById("genHint");
-    if (viewerTitle) viewerTitle.textContent = "Select a model";
-    if (genHint) genHint.textContent = "Click a variant to continue with refine, texture, remesh, or export.";
+    // Hide the regular header text (we'll show our own centered banner)
+    const overlayHead = document.querySelector(".viewer-overlay-head");
+    if (overlayHead) overlayHead.style.display = "none";
+
+    // Add centered selection banner above all viewports
+    let banner = container.querySelector(".viewer-grouped-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.className = "viewer-grouped-banner";
+      banner.innerHTML = `
+        <h3>Select a model</h3>
+        <p>Click a variant to continue with refine, texture, remesh, or export.</p>
+      `;
+      container.appendChild(banner);
+    }
+    banner.style.display = "";
 
     _state.mode = "grouped";
     _state.groupId = groupId;
@@ -1107,10 +1118,15 @@ export function clearVideoViewer() {
     const gearBtn = document.getElementById("viewerGear");
     if (uploadBtn) uploadBtn.style.display = "";
     if (gearBtn) gearBtn.style.display = "";
-    const viewerTitle = document.getElementById("viewerTitle");
-    const genHint = document.getElementById("genHint");
-    if (viewerTitle) viewerTitle.textContent = "3D Preview";
-    if (genHint) genHint.textContent = "Enter a descriptive prompt, then Generate.";
+    // Restore the regular header
+    const overlayHead = document.querySelector(".viewer-overlay-head");
+    if (overlayHead) overlayHead.style.display = "";
+    // Remove grouped banner
+    const container = _getContainer();
+    if (container) {
+      const banner = container.querySelector(".viewer-grouped-banner");
+      if (banner) banner.style.display = "none";
+    }
   }
 
   function disposeGroupedView() {
