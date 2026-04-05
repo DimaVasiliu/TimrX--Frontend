@@ -3704,6 +3704,11 @@ body.has-modal {
     gap: 12px;
   }
 
+  /* Batch group card: single full-width column */
+  .history-collection__thumbs--batch {
+    grid-template-columns: 1fr;
+  }
+
   /* Extra thumbnails - hidden by default, shown when collection is expanded */
   .history-collection__thumbs-extra {
     display: none;

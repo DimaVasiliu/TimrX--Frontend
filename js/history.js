@@ -2048,7 +2048,7 @@ function _renderHistoryImpl() {
     const showBump = delta > 0;
     historyLineageCounts.set(rowKey, lineage.models.length);
 
-    // ── Batch group: render as a single grouped card (inline HTML) ──
+    // ── Batch group: render as a single grouped card inside a collection wrapper ──
     if (lineage.isBatchGroup && (lineage.models.length > 1 || (lineage.batchCount || 0) > 1)) {
       const sortedBatchModels = [...lineage.models].sort((a, b) => {
         const slotA = parseInt(a.batch_slot || (a.payload && a.payload.batch_slot), 10) || 0;
@@ -2062,7 +2062,20 @@ function _renderHistoryImpl() {
         failed_count: sortedBatchModels.filter(i => i.status === 'error' || i.status === 'failed').length,
       };
       _groupedCardData.set(String(group.id), sortedBatchModels);
-      return buildGroupedCardHTML(group, sortedBatchModels);
+      const lineageTitle = shortTitle(lineage.title || sortedBatchModels[0] || '');
+      const groupedState = getGroupedCardState(group, sortedBatchModels);
+      return `
+        <div class="history-collection" data-lineage-root="${rowKey}">
+          <span class="history-collection__divider" aria-hidden="true"></span>
+          <div class="history-collection__head">
+            <div class="history-collection__title" title="${lineageTitle}">${lineageTitle}</div>
+            <span class="history-collection__count">${groupedState.statusText}</span>
+          </div>
+          <div class="history-collection__thumbs history-collection__thumbs--batch">
+            ${buildGroupedCardHTML(group, sortedBatchModels)}
+          </div>
+        </div>
+      `;
     }
 
     const sortedModels = [...lineage.models].sort(compareHistoryModels);
