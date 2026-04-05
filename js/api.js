@@ -1447,6 +1447,12 @@ function preferHttpUrl(urlLike) {
  * Handles both regular view (history-thumb) and expanded/gallery view (expanded-thumb)
  */
 function updateThumbnailProgress(jobId, pct) {
+  const roundedPct = Math.max(0, Math.min(100, Math.round(pct || 0)));
+  const historyItem = State.findHistoryItem(jobId);
+  if (historyItem) {
+    State.updateHistoryItem(jobId, { progress_pct: roundedPct });
+  }
+
   // Find processing elements in both regular and expanded views
   const selectors = [
     `.history-thumb__processing[data-job-id="${jobId}"]`,
@@ -1463,7 +1469,7 @@ function updateThumbnailProgress(jobId, pct) {
     const barEl = processingEl.querySelector('[class*="__progress-bar"]');
 
     // Remove indeterminate state when we have actual progress
-    if (pct > 0) {
+    if (roundedPct > 0) {
       if (pctEl) {
         pctEl.classList.remove('history-thumb__processing-pct--indeterminate');
         pctEl.classList.remove('expanded-thumb__processing-pct--indeterminate');
@@ -1474,9 +1480,29 @@ function updateThumbnailProgress(jobId, pct) {
       }
     }
 
-    if (pctEl) pctEl.textContent = `${Math.round(pct)}%`;
-    if (fillEl) fillEl.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${roundedPct}%`;
+    if (fillEl) fillEl.style.width = `${roundedPct}%`;
   });
+
+  const batchCount = Math.max(
+    1,
+    parseInt(
+      historyItem?.batch_count
+      || historyItem?.payload?.batch_count
+      || State.getPendingMeta()?.[jobId]?.batch_count,
+      10
+    ) || 1
+  );
+  const batchGroupId = historyItem?.batch_group_id
+    || historyItem?.payload?.batch_group_id
+    || State.getPendingMeta()?.[jobId]?.batch_group_id
+    || null;
+
+  // Grouped cards render aggregated progress from local history state, so
+  // re-render them when a multi-model batch advances.
+  if (batchGroupId && batchCount > 1) {
+    renderHistory();
+  }
 }
 
 /**
@@ -1486,6 +1512,19 @@ function promptFingerprint(input = '') {
   const normalized = (input || '').trim().toLowerCase().replace(/\s+/g, ' ');
   if (!normalized) return '';
   return normalized.length > 200 ? normalized.slice(0, 200) : normalized;
+}
+
+function normalizePendingMeta(meta) {
+  if (!meta) return {};
+  if (typeof meta === 'string') {
+    try {
+      const parsed = JSON.parse(meta);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+  return typeof meta === 'object' ? meta : {};
 }
 
 // ============================================================================
@@ -2133,6 +2172,8 @@ function addGeneratingPlaceholder(jobId, meta = {}) {
     batch_count: meta.batch_count || 1,
     batch_slot: meta.batch_slot || 1,
     batch_group_id: meta.batch_group_id || null,
+    generation_group_id: meta.generation_group_id || null,
+    progress_pct: typeof meta.progress_pct === 'number' ? meta.progress_pct : 0,
     stage,
     thumbnail_url: meta.thumbnail_url || '',
     glb_url: meta.glb_url ?? '',
@@ -2403,6 +2444,8 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           batch_count: Math.max(1, parseInt(meta.batch_count, 10) || 1),
           batch_slot: meta.batch_slot || 1,
           batch_group_id: meta.batch_group_id || null,
+          generation_group_id: meta.generation_group_id || null,
+          progress_pct: 100,
           stage,
           thumbnail_url: st.thumbnail_url || '',
           glb_url: st.glb_url,
@@ -2583,6 +2626,11 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           target_formats: meta.target_formats || [],
           auto_size: !!meta.auto_size,
           origin_at: meta.origin_at || '',
+          batch_count: Math.max(1, parseInt(meta.batch_count, 10) || 1),
+          batch_slot: meta.batch_slot || 1,
+          batch_group_id: meta.batch_group_id || null,
+          generation_group_id: meta.generation_group_id || null,
+          progress_pct: 100,
           stage: kind,
           thumbnail_url: st.thumbnail_url || meta.thumbnail_url || '',
           glb_url: glbDirect,
@@ -2958,7 +3006,8 @@ export async function onGenerateClick() {
         origin_at: previewValues.origin_at || '',
         batch_count: batchCount,
         batch_slot: slot + 1,
-        batch_group_id: batchGroupId
+        batch_group_id: batchGroupId,
+        generation_group_id: data.generation_group_id || null
       };
       State.savePendingMeta(job_id, jobMeta);
       addGeneratingPlaceholder(job_id, jobMeta);
@@ -7327,7 +7376,7 @@ async function _doResumePendingJobs(options = {}) {
         log(`[Recovery] Discovered job ${id} strategy=${strategy} (${job.action_code || ''})`);
       }
       // Ensure pendingMeta exists for watcher selection
-      const meta = job.meta || {};
+      const meta = normalizePendingMeta(job.meta);
       State.savePendingMeta(id, {
         stage,
         resume_strategy: strategy,
@@ -7339,6 +7388,11 @@ async function _doResumePendingJobs(options = {}) {
         internal_job_id: job.id,
         provider_job_id: job.provider_job_id || job.upstream_job_id || null,
         created_at: job.created_at || null,
+        batch_count: job.batch_count || meta.batch_count || 1,
+        batch_slot: job.batch_slot || meta.batch_slot || 1,
+        batch_group_id: job.batch_group_id || meta.batch_group_id || null,
+        generation_group_id: job.generation_group_id || meta.generation_group_id || null,
+        progress_pct: typeof job.progress === 'number' ? job.progress : (typeof meta.progress_pct === 'number' ? meta.progress_pct : 0),
         lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.source_task_id || null,
         lineage_root_id: meta.lineage_root_id || meta.lineage_origin_id || meta.source_task_id || null,
         source_task_id: meta.source_task_id || meta.preview_task_id || meta.rig_task_id || null,
@@ -7402,6 +7456,11 @@ async function _doResumePendingJobs(options = {}) {
             root_prompt: item.root_prompt || item.prompt || '',
             title: item.title || '',
             thumbnail_url: item.thumbnail_url || '',
+            batch_count: item.batch_count || item.payload?.batch_count || 1,
+            batch_slot: item.batch_slot || item.payload?.batch_slot || 1,
+            batch_group_id: item.batch_group_id || item.payload?.batch_group_id || null,
+            generation_group_id: item.generation_group_id || item.payload?.generation_group_id || null,
+            progress_pct: typeof item.progress_pct === 'number' ? item.progress_pct : 0,
             lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || null,
             lineage_root_id: item.lineage_root_id || item.lineage_origin_id || null,
           });
@@ -7426,6 +7485,11 @@ async function _doResumePendingJobs(options = {}) {
         root_prompt: item.root_prompt || item.prompt || '',
         title: item.title || '',
         thumbnail_url: item.thumbnail_url || '',
+        batch_count: item.batch_count || item.payload?.batch_count || 1,
+        batch_slot: item.batch_slot || item.payload?.batch_slot || 1,
+        batch_group_id: item.batch_group_id || item.payload?.batch_group_id || null,
+        generation_group_id: item.generation_group_id || item.payload?.generation_group_id || null,
+        progress_pct: typeof item.progress_pct === 'number' ? item.progress_pct : 0,
         lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || null,
         lineage_root_id: item.lineage_root_id || item.lineage_origin_id || null,
       });

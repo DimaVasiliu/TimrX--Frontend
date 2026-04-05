@@ -194,6 +194,10 @@ function shouldSkipRemoteHistoryItem(item = {}) {
   if (item.status && item.status !== 'finished') return true;
   // Don't skip if we have a valid ID for any content type
   if (item.model_id || item.image_id || item.video_id) return false;
+  // Finished assets can still be synced by URL even if the canonical asset ID
+  // has not been hydrated into the frontend payload yet.
+  if ((item.type === 'model' || item.glb_url || item.glb_proxy) && (item.glb_url || item.glb_proxy || item.thumbnail_url)) return false;
+  if (item.type === 'image' && (item.image_url || item.thumbnail_url)) return false;
   // Also check if this is a video with a video_url (completed video)
   if (item.type === 'video' && item.video_url) return false;
   return true;
@@ -298,7 +302,9 @@ function saveHistoryCache(arr) {
       preview_task_id: item.preview_task_id,
       batch_count: item.batch_count,
       batch_slot: item.batch_slot,
-      batch_group_id: item.batch_group_id
+      batch_group_id: item.batch_group_id,
+      generation_group_id: item.generation_group_id,
+      progress_pct: item.progress_pct
     }));
     localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(minimal));
   } catch (e) {
@@ -795,7 +801,13 @@ export function updateHistoryItem(jobId, updates = {}) {
   const idx = historyCache.findIndex(x => x.id === jobId);
 
   if (idx !== -1) {
-    const updated = { ...historyCache[idx], ...updates, status: updates.status || 'finished' };
+    const current = historyCache[idx] || {};
+    const updated = { ...current, ...updates };
+    if (Object.prototype.hasOwnProperty.call(updates, 'status')) {
+      updated.status = updates.status;
+    } else if (current.status !== undefined) {
+      updated.status = current.status;
+    }
     historyCache[idx] = updated;
     saveHistoryCache(historyCache);
     // Invalidate tab caches so getTabHistory() re-derives from updated global cache
@@ -808,7 +820,9 @@ export function updateHistoryItem(jobId, updates = {}) {
     // Update in database
     apiFetch(`/api/_mod/history/item/${encodeURIComponent(jobId)}`, {
       method: 'PATCH',
-      body: { ...updates, status: updates.status || 'finished' }
+      body: Object.prototype.hasOwnProperty.call(updates, 'status')
+        ? updates
+        : { ...updates, status: updated.status }
     }).catch(err => {
       console.warn('[History] Failed to update item in DB:', err.message);
     });

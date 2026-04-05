@@ -45,6 +45,54 @@ let _galleryFetching = false;         // prevent concurrent DB fetches
  * Build grouped card as an HTML string for inline rendering in timeline/gallery.
  * After innerHTML is set, call bindGroupedCardEvents(container) to wire up click handlers.
  */
+function getGroupedCardState(group, items) {
+  const count = Array.isArray(items) ? items.length : 0;
+  const batchTotal = Math.max(1, parseInt(group?.model_count || count, 10) || count || 1);
+  const completedCount = Math.max(0, parseInt(group?.completed_count, 10) || 0);
+  const failedCount = Math.max(0, parseInt(group?.failed_count, 10) || 0);
+
+  let progressTotal = 0;
+  (items || []).forEach((item) => {
+    const status = (item?.status || '').toLowerCase();
+    if (!status || status === 'finished') {
+      progressTotal += 100;
+      return;
+    }
+    const pct = Number(item?.progress_pct);
+    progressTotal += Number.isFinite(pct) ? Math.max(0, Math.min(99, Math.round(pct))) : 0;
+  });
+  const avgProgress = Math.max(0, Math.min(100, Math.round(progressTotal / batchTotal)));
+  const pendingCount = Math.max(0, batchTotal - completedCount - failedCount);
+
+  let statusText = `${count} variants`;
+  let statusClass = '';
+  let statusKey = `idle:${count}:${batchTotal}`;
+
+  if (pendingCount <= 0 && failedCount === 0) {
+    statusText = `${batchTotal} variants · done`;
+    statusKey = `done:${batchTotal}`;
+  } else if (pendingCount <= 0 && failedCount > 0) {
+    statusText = `${completedCount}/${batchTotal} ready · ${failedCount} failed`;
+    statusClass = ' has-error';
+    statusKey = `failed:${completedCount}:${failedCount}:${batchTotal}`;
+  } else {
+    const prefix = avgProgress > 0 ? `${avgProgress}% · ` : '';
+    statusText = `${prefix}${completedCount}/${batchTotal} generating...`;
+    statusClass = failedCount > 0 ? ' has-error' : ' is-generating';
+    statusKey = `generating:${avgProgress}:${completedCount}:${failedCount}:${batchTotal}`;
+  }
+
+  return {
+    batchTotal,
+    completedCount,
+    failedCount,
+    avgProgress,
+    statusText,
+    statusClass,
+    statusKey,
+  };
+}
+
 function buildGroupedCardHTML(group, items) {
   const count = items.length;
   const gridCount = Math.min(count, 4);
@@ -58,7 +106,8 @@ function buildGroupedCardHTML(group, items) {
       thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
     }
   });
-  const batchTotal = group.model_count || count;
+  const groupedState = getGroupedCardState(group, items);
+  const batchTotal = groupedState.batchTotal;
   for (let i = count; i < Math.min(batchTotal, 4); i++) {
     thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
   }
@@ -66,26 +115,6 @@ function buildGroupedCardHTML(group, items) {
   const title = items[0]?.title || items[0]?.prompt || 'Untitled';
   const safeTitle = title.length > 50 ? title.slice(0, 47) + '...' : title;
   const escapedTitle = safeTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-  const completedCount = group.completed_count || 0;
-  const modelCount = group.model_count || count;
-  const failedCount = group.failed_count || 0;
-  const allDone = completedCount >= modelCount;
-  const hasFailed = failedCount > 0;
-  const inProgress = !allDone && !hasFailed;
-
-  let statusText, statusClass = '';
-  if (allDone && !hasFailed) {
-    statusText = `${count} variants · done`;
-  } else if (allDone && hasFailed) {
-    statusText = `${completedCount}/${modelCount} · ${failedCount} failed`;
-    statusClass = ' has-error';
-  } else if (inProgress) {
-    statusText = `${completedCount}/${modelCount} generating…`;
-    statusClass = ' is-generating';
-  } else {
-    statusText = `${count} variants`;
-  }
 
   const safeGroupId = String(group.id || '').replace(/"/g, '&quot;');
 
@@ -96,7 +125,7 @@ function buildGroupedCardHTML(group, items) {
     <div class="history-group-card__overlay">
       <div class="history-group-card__name">${escapedTitle}</div>
     </div>
-    <div class="history-group-card__status${statusClass}">${statusText}</div>
+    <div class="history-group-card__status${groupedState.statusClass}">${groupedState.statusText}</div>
   </div>`;
 }
 
@@ -1387,7 +1416,7 @@ function _buildGalleryCards(lineages) {
       _groupedCardData.set(String(group.id), sortedBatch);
       const cardHtml = buildGroupedCardHTML(group, sortedBatch);
       const html = `<div class="expanded-thumb" data-gid="${groupKey}" style="animation-delay: ${delay}s">${cardHtml}</div>`;
-      cards.push({ id: groupKey, status: 'finished', html });
+      cards.push({ id: groupKey, status: getGroupedCardState(group, sortedBatch).statusKey, html });
       return;
     }
 
