@@ -214,6 +214,17 @@ function bindGroupedCardEvents(container) {
         renderHistory();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+      // Switch to model panel to ensure the 3D viewer is visible
+      const modelRailBtn = document.querySelector('[data-panel="model"]');
+      if (modelRailBtn) modelRailBtn.click();
+      // Ensure the 3D viewer wrapper is visible (not hidden by image/video mode)
+      const model3dViewer = document.getElementById('model3dViewer');
+      if (model3dViewer) model3dViewer.classList.remove('hidden');
+      const imageViewer = document.getElementById('imageViewer');
+      const videoViewer = document.getElementById('videoViewer');
+      if (imageViewer) imageViewer.classList.add('hidden');
+      if (videoViewer) videoViewer.classList.add('hidden');
+
       if (typeof window.openGroupedViewer === 'function') {
         window.openGroupedViewer(gid, items);
       }
