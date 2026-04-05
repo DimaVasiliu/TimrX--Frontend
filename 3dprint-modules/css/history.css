@@ -4256,6 +4256,47 @@ body.has-modal {
   50% { opacity: 1; transform: scale(1.2); }
 }
 
+/* Menu button — top-right, matches other thumb menus */
+.history-group-card__menu-wrap {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 6;
+}
+
+.history-group-card__menu-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.history-group-card:hover .history-group-card__menu-btn,
+.history-group-card__menu-btn.is-open {
+  opacity: 1;
+}
+
+.history-group-card__menu-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+}
+
+.history-group-card__menu-btn svg {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
 /* Stage label — matches history-thumb__stage */
 .history-group-card__stage {
   position: absolute;

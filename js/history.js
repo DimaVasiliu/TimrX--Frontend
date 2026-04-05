@@ -186,6 +186,12 @@ function buildGroupedCardHTML(group, items) {
     : firstStage === 'image3d' ? 'Image to 3D'
     : 'Preview';
 
+  // Collect item IDs for batch delete
+  const itemIds = items.map(i => i.id).filter(Boolean);
+  const safeItemIds = itemIds.join(',').replace(/"/g, '&quot;');
+  const firstItem = items[0] || {};
+  const canDownload = items.some(i => i.glb_url || i.glb_proxy);
+
   return `<div class="history-group-card" data-group-id="${safeGroupId}" data-group-count="${gridCount}">
     <div class="history-group-card__thumbs history-group-card__thumbs--${Math.min(Math.max(gridCount, batchTotal), 4)}">
       ${thumbsHtml}
@@ -194,6 +200,45 @@ function buildGroupedCardHTML(group, items) {
     <div class="history-group-card__footer">
       <span class="history-group-card__count-pill">${completedLabel}</span>
       <span class="history-group-card__status-dot${groupedState.statusClass}"></span>
+    </div>
+    <div class="history-group-card__menu-wrap">
+      <button class="history-group-card__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Group actions" data-history-menu>
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <circle cx="5" cy="12" r="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <circle cx="19" cy="12" r="2"/>
+        </svg>
+      </button>
+      <div class="card-menu" role="menu" aria-label="Group actions">
+        <div class="card-menu__list">
+          <button class="card-menu__item" type="button" data-act="open-group" data-group-id="${safeGroupId}">
+            <span class="card-menu__item-inner">
+              <span class="card-menu__icon">&#9638;</span>
+              <span>Open in Viewer</span>
+            </span>
+          </button>
+          <button class="card-menu__item" type="button" data-act="download" data-id="${firstItem.id || ''}" ${!canDownload ? 'disabled' : ''}>
+            <span class="card-menu__item-inner">
+              <span class="card-menu__icon">&#8595;</span>
+              <span>Download Best</span>
+            </span>
+          </button>
+          <div class="card-menu__divider"></div>
+          <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${firstItem.id || ''}">
+            <span class="card-menu__item-inner">
+              <span class="card-menu__icon">&#9651;</span>
+              <span>Share to Community</span>
+            </span>
+          </button>
+          <div class="card-menu__divider"></div>
+          <button class="card-menu__item is-danger" type="button" data-act="delete-group" data-group-ids="${safeItemIds}">
+            <span class="card-menu__item-inner">
+              <span class="card-menu__icon">&#128465;</span>
+              <span>Delete All (${itemIds.length})</span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>`;
 }
@@ -207,6 +252,8 @@ function bindGroupedCardEvents(container) {
     const items = _groupedCardData.get(gid);
     if (!items) return;
     card.onclick = function (e) {
+      // Don't open grouped viewer if clicking the menu button or menu items
+      if (e.target.closest('[data-history-menu]') || e.target.closest('.card-menu') || e.target.closest('[data-act]')) return;
       e.stopPropagation();
       // Close expanded gallery view first so the 3D viewer is visible
       if (historyState.galleryExpanded) {
