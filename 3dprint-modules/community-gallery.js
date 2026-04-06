@@ -540,8 +540,9 @@
         if (data.stats) {
           updateHeroStats(data.stats);
         } else if (!_statsLoaded) {
-          // API didn't include stats — try dedicated endpoint, then compute from cache
-          fetchAndUpdateStats();
+          // API didn't include stats — compute a best-effort fallback from loaded posts.
+          const computed = computeStatsFromCache();
+          if (computed) updateHeroStats(computed);
         }
       }
     } catch (err) {
@@ -600,29 +601,6 @@
       total_creators: creatorSet.size,
       total_reactions: totalReactions
     };
-  }
-
-  /**
-   * Try to fetch stats from the dedicated endpoint.
-   * Falls back to computing from cache if the endpoint doesn't exist.
-   */
-  async function fetchAndUpdateStats() {
-    if (_statsLoaded) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/_mod/community/stats`, { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && (data.total_posts != null || data.stats)) {
-          updateHeroStats(data.stats || data);
-          return;
-        }
-      }
-    } catch (e) {
-      // Endpoint may not exist — that's fine
-    }
-    // Fallback: compute from whatever posts we have cached
-    const computed = computeStatsFromCache();
-    if (computed) updateHeroStats(computed);
   }
 
   function animateCounter(el, target) {
