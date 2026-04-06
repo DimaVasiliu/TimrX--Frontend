@@ -895,24 +895,32 @@ export function openHistorySubmenu(submenuBtn, submenu) {
 function positionHistoryMenu(anchorBtn, menu) {
   if (!anchorBtn || !menu) return;
   const spacing = HISTORY_MENU_EDGE_PAD;
-  const btnSpacing = 2;
+  const gap = 6;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
   const btnRect = anchorBtn.getBoundingClientRect();
+  // Reset so getBoundingClientRect returns the menu's natural size
   menu.style.left = '0px';
   menu.style.top = '0px';
-
   const menuRect = menu.getBoundingClientRect();
-  let left = btnRect.right - menuRect.width;
-  let top = btnRect.bottom + btnSpacing;
 
-  if (left < spacing) left = spacing;
+  // Try to place the menu to the RIGHT of the button, top-aligned
+  let left = btnRect.right + gap;
+  let top = btnRect.top;
+
+  // If it overflows the right edge, place it LEFT of the button
   if (left + menuRect.width + spacing > viewportWidth) {
+    left = btnRect.left - menuRect.width - gap;
+  }
+  // If that also overflows left, just flush to the right edge
+  if (left < spacing) {
     left = viewportWidth - menuRect.width - spacing;
   }
+
+  // Vertical: if it overflows the bottom, shift up
   if (top + menuRect.height + spacing > viewportHeight) {
-    top = btnRect.top - menuRect.height - btnSpacing;
+    top = viewportHeight - menuRect.height - spacing;
   }
   if (top < spacing) top = spacing;
 

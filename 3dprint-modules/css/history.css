@@ -304,7 +304,6 @@
 
 .timrx-3dprint .history-thumb.is-menu-open,
 .timrx-3dprint .expanded-thumb.is-menu-open,
-.timrx-3dprint .history-group-card.is-menu-open,
 .timrx-3dprint .history-video-grid .history-thumb--video.is-menu-open {
   overflow: visible !important;
 }
@@ -4300,9 +4299,8 @@ body.has-modal {
   color: #fff;
 }
 
-/* Allow menu to overflow when open */
+/* Menu is position:fixed so no overflow change needed — just raise z-index */
 .history-group-card.is-menu-open {
-  overflow: visible !important;
   z-index: 1302;
 }
 
