@@ -2150,12 +2150,17 @@ textarea {
   justify-content: center;
 }
 
+/* Bubble is rendered as a fixed-position tooltip by JS (field-help-init).
+   The inline .field-help__bubble is hidden — content is read from it. */
 .field-help__bubble {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-4px);
-  width: min(280px, calc(100vw - 40px));
+  display: none;
+}
+
+/* The actual visible tooltip — appended to <body> by JS */
+.field-help-tooltip {
+  position: fixed;
+  z-index: 10000;
+  width: min(280px, calc(100vw - 32px));
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid rgba(125, 211, 252, 0.15);
@@ -2163,47 +2168,27 @@ textarea {
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.6;
   white-space: normal;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
-  z-index: 100;
   pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-.field-help:hover .field-help__bubble,
-.field-help:focus .field-help__bubble,
-.field-help:focus-within .field-help__bubble {
+.field-help-tooltip.is-visible {
   opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
+  transform: translateY(0);
 }
 
-/* Tablet — keep centered, clamp width */
-@media (max-width: 1024px) {
-  .field-help__bubble {
-    width: min(260px, calc(100vw - 32px));
-  }
-}
-
-/* Mobile — shift to left-aligned to avoid clipping */
 @media (max-width: 640px) {
-  .field-help__bubble {
-    left: 0;
-    transform: translateX(0) translateY(-4px);
-    width: min(250px, calc(100vw - 24px));
+  .field-help-tooltip {
+    width: min(260px, calc(100vw - 24px));
     font-size: 11px;
     padding: 10px 12px;
-  }
-  .field-help:hover .field-help__bubble,
-  .field-help:focus .field-help__bubble,
-  .field-help:focus-within .field-help__bubble {
-    transform: translateX(0) translateY(0);
   }
 }
 

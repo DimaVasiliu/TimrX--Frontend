@@ -6310,6 +6310,94 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     }
   
     /**
+     * Field-help tooltips: shows a fixed-position tooltip on hover/focus
+     * of any .field-help element. The tooltip content comes from the
+     * hidden .field-help__bubble child. Using fixed positioning avoids
+     * clipping by overflow:hidden parent containers.
+     */
+    function initFieldHelpTooltips() {
+      let tooltip = document.querySelector('.field-help-tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = 'field-help-tooltip';
+        document.body.appendChild(tooltip);
+      }
+
+      let hideTimer = null;
+
+      function showTooltip(helpEl) {
+        clearTimeout(hideTimer);
+        const bubble = helpEl.querySelector('.field-help__bubble');
+        if (!bubble) return;
+
+        tooltip.innerHTML = bubble.innerHTML;
+
+        // Position: below the ? icon, centered horizontally on the left panel
+        const rect = helpEl.getBoundingClientRect();
+        const panel = helpEl.closest('.card, .ws-left, #leftStack');
+        const panelRect = panel ? panel.getBoundingClientRect() : { left: 16, right: window.innerWidth - 16, width: window.innerWidth - 32 };
+
+        // Center tooltip within the panel
+        const panelCenterX = panelRect.left + panelRect.width / 2;
+        const tooltipWidth = Math.min(280, window.innerWidth - 32);
+        let left = panelCenterX - tooltipWidth / 2;
+
+        // Clamp to viewport edges
+        left = Math.max(12, Math.min(left, window.innerWidth - tooltipWidth - 12));
+
+        let top = rect.bottom + 8;
+
+        // If not enough room below, show above
+        if (top + 120 > window.innerHeight) {
+          top = rect.top - 8;
+          tooltip.style.transform = 'translateY(4px)';
+          tooltip.style.top = '';
+          tooltip.style.bottom = (window.innerHeight - top) + 'px';
+        } else {
+          tooltip.style.bottom = '';
+          tooltip.style.top = top + 'px';
+          tooltip.style.transform = 'translateY(-4px)';
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.width = tooltipWidth + 'px';
+
+        // Show with animation
+        requestAnimationFrame(() => {
+          tooltip.classList.add('is-visible');
+          tooltip.style.transform = 'translateY(0)';
+        });
+      }
+
+      function hideTooltip() {
+        hideTimer = setTimeout(() => {
+          tooltip.classList.remove('is-visible');
+        }, 120);
+      }
+
+      // Delegate events on all .field-help elements
+      document.addEventListener('mouseenter', (e) => {
+        const help = e.target.closest('.field-help');
+        if (help) showTooltip(help);
+      }, true);
+
+      document.addEventListener('mouseleave', (e) => {
+        const help = e.target.closest('.field-help');
+        if (help) hideTooltip();
+      }, true);
+
+      document.addEventListener('focusin', (e) => {
+        const help = e.target.closest('.field-help');
+        if (help) showTooltip(help);
+      });
+
+      document.addEventListener('focusout', (e) => {
+        const help = e.target.closest('.field-help');
+        if (help) hideTooltip();
+      });
+    }
+
+    /**
      * Initializes modal triggers, buttons, and drop-zone behavior.
      */
     function initModal() {
@@ -6488,6 +6576,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     attachRailButtonHandlers();
     initViewerSettings();
     initModal();
+    initFieldHelpTooltips();
     bootstrapInitialPanel();
 
 })();
