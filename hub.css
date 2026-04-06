@@ -1925,7 +1925,7 @@ to   { opacity: 1; transform: translateY(0); }
 /* -- Headline — centered, two tiers -- */
 .hero-headline {
 font-family: "Bebas Neue", Inter, system-ui;
-font-size: clamp(72px, 9.5vw, 148px);
+font-size: clamp(68px, 8.9vw, 138px);
 line-height: 0.88;
 letter-spacing: 0.005em;
 margin: 0;
@@ -1944,7 +1944,7 @@ animation: hH1Reveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 /* "3D Models" — larger, gradient text */
 .hw--accent {
 position: relative;
-font-size: clamp(100px, 14vw, 220px);
+font-size: clamp(94px, 13.2vw, 205px);
 background: linear-gradient(180deg, #e0e4ec 0%, #8a9bb5 50%, #4a5568 100%);
 -webkit-background-clip: text;
 background-clip: text;
