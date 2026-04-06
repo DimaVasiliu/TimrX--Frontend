@@ -991,48 +991,48 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   text-align: center;
 }
 
+/* Filter buttons — rail-style: clean, no borders/bg, B&W */
 .timrx-3dprint .filter-btn {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid transparent;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  border-radius: 0;
   padding: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   outline: none;
-  transition: color 0.2s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .timrx-3dprint .filter-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke-width: 1.8;
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.6;
 }
 
 .timrx-3dprint .filter-btn:hover {
-  color: #fff;
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255,255,255,0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.timrx-3dprint .filter-btn:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
 }
 
 .timrx-3dprint .filter-btn.active {
-  color: rgba(125, 211, 252, 0.95);
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.18);
+  color: #fff;
 }
 
-/* Bigger filter buttons in expanded mode */
+/* Bigger filter icons in expanded mode */
 body.history-expanded .timrx-3dprint .filter-btn svg {
   width: 28px;
   height: 28px;
 }
 
-/* Expand view button active when in expanded mode */
 body.history-expanded .timrx-3dprint .filter-btn[data-filter="all"] {
   color: #fff;
 }
