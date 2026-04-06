@@ -6375,16 +6375,20 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         }, 120);
       }
 
-      // Delegate events on all .field-help elements
-      document.addEventListener('mouseenter', (e) => {
+      // Delegate events — mouseover/mouseout bubble (mouseenter/leave don't)
+      document.addEventListener('mouseover', (e) => {
         const help = e.target.closest('.field-help');
         if (help) showTooltip(help);
-      }, true);
+      });
 
-      document.addEventListener('mouseleave', (e) => {
+      document.addEventListener('mouseout', (e) => {
         const help = e.target.closest('.field-help');
-        if (help) hideTooltip();
-      }, true);
+        if (help) {
+          // Only hide if mouse left the .field-help entirely (not moving between children)
+          const related = e.relatedTarget;
+          if (!help.contains(related)) hideTooltip();
+        }
+      });
 
       document.addEventListener('focusin', (e) => {
         const help = e.target.closest('.field-help');
