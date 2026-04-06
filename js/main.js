@@ -19,6 +19,7 @@ import {
   updateActiveHistoryMenuPosition,
   getActiveHistoryMenu,
   getActiveHistorySubmenu,
+  getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js';
 import * as API from './api.js';
@@ -1714,6 +1715,70 @@ function wireGallery() {
       const id = btn.getAttribute('data-id');
       const act = btn.getAttribute('data-act');
       console.log(`[CardAction] act=${act} id=${id}`);
+
+      // ── Grouped card actions: handled before item lookup since they use
+      //    data-group-id / data-group-ids instead of data-id ──
+      if (act === 'open-group') {
+        const groupId = btn.getAttribute('data-group-id');
+        if (groupId && typeof window.openGroupedViewer === 'function') {
+          closeActiveHistoryMenu();
+          if (State.historyState.galleryExpanded) {
+            State.historyState.galleryExpanded = false;
+            renderHistory();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          const model3dViewer = document.getElementById('model3dViewer');
+          if (model3dViewer) model3dViewer.classList.remove('hidden');
+          const imageViewer = document.getElementById('imageViewer');
+          const videoViewer = document.getElementById('videoViewer');
+          if (imageViewer) imageViewer.classList.add('hidden');
+          if (videoViewer) videoViewer.classList.add('hidden');
+          const modelRailBtn = document.querySelector('[data-panel="model"]');
+          if (modelRailBtn) modelRailBtn.click();
+          if (window.timrx3D?.resize) window.timrx3D.resize();
+          requestAnimationFrame(() => {
+            let groupItems = getGroupedCardItems(groupId);
+            if (!groupItems || !groupItems.length) {
+              const allHistory = State.getHistory();
+              groupItems = allHistory.filter(i =>
+                i.batch_group_id === groupId ||
+                i.lineage_origin_id === groupId ||
+                i.lineage_root_id === groupId
+              );
+            }
+            if (groupItems && groupItems.length > 0) {
+              window.openGroupedViewer(groupId, groupItems);
+            }
+          });
+        }
+        return;
+      }
+
+      if (act === 'delete-group') {
+        const groupIdsStr = btn.getAttribute('data-group-ids') || '';
+        const groupIds = groupIdsStr.split(',').filter(Boolean);
+        if (!groupIds.length) return;
+        closeActiveHistoryMenu();
+        if (!confirm(`This will permanently delete all ${groupIds.length} variants in this batch. This action cannot be undone.`)) return;
+        let deleted = 0;
+        for (const itemId of groupIds) {
+          try {
+            const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+            if (result.ok || result.status === 404) {
+              State.deleteHistoryItem(itemId, { skipRemote: true });
+              deleted++;
+            }
+          } catch (err) {
+            console.warn(`[History] Delete group item failed: ${itemId}`, err?.message);
+            State.deleteHistoryItem(itemId, { skipRemote: true });
+            deleted++;
+          }
+        }
+        if (window.showToast) window.showToast(`Deleted ${deleted} variants.`, 'info');
+        renderHistory();
+        return;
+      }
+
       const item = State.findHistoryItem(id);
       if (!item) {
         console.warn(`[CardAction] Item not found in cache: id=${id} act=${act}`);
@@ -2130,64 +2195,6 @@ function wireGallery() {
         }
         // Focus the prompt input
         videoPromptEl?.focus();
-        return;
-      }
-
-      if (act === 'open-group') {
-        const groupId = btn.getAttribute('data-group-id');
-        if (groupId && typeof window.openGroupedViewer === 'function') {
-          closeActiveHistoryMenu();
-          const model3dViewer = document.getElementById('model3dViewer');
-          if (model3dViewer) model3dViewer.classList.remove('hidden');
-          const imageViewer = document.getElementById('imageViewer');
-          const videoViewer = document.getElementById('videoViewer');
-          if (imageViewer) imageViewer.classList.add('hidden');
-          if (videoViewer) videoViewer.classList.add('hidden');
-          const modelRailBtn = document.querySelector('[data-panel="model"]');
-          if (modelRailBtn) modelRailBtn.click();
-          if (window.timrx3D?.resize) window.timrx3D.resize();
-          requestAnimationFrame(() => {
-            // Look up items from history for this group
-            const allHistory = State.getHistory();
-            const groupItems = allHistory.filter(i =>
-              i.batch_group_id === groupId ||
-              i.lineage_origin_id === groupId ||
-              i.lineage_root_id === groupId
-            );
-            if (groupItems.length > 0) {
-              window.openGroupedViewer(groupId, groupItems);
-            }
-          });
-        }
-        return;
-      }
-
-      if (act === 'delete-group') {
-        const groupIdsStr = btn.getAttribute('data-group-ids') || '';
-        const groupIds = groupIdsStr.split(',').filter(Boolean);
-        if (!groupIds.length) return;
-
-        closeActiveHistoryMenu();
-        if (!confirm(`This will permanently delete all ${groupIds.length} variants in this batch. This action cannot be undone.`)) return;
-
-        let deleted = 0;
-        for (const itemId of groupIds) {
-          try {
-            const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(itemId)}`, {
-              method: 'DELETE'
-            });
-            if (result.ok || result.status === 404) {
-              State.deleteHistoryItem(itemId, { skipRemote: true });
-              deleted++;
-            }
-          } catch (err) {
-            console.warn(`[History] Delete group item failed: ${itemId}`, err?.message);
-            State.deleteHistoryItem(itemId, { skipRemote: true });
-            deleted++;
-          }
-        }
-        if (window.showToast) window.showToast(`Deleted ${deleted} variants.`, 'info');
-        renderHistory();
         return;
       }
 

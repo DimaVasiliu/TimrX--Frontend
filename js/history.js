@@ -189,8 +189,28 @@ function buildGroupedCardHTML(group, items) {
   // Collect item IDs for batch delete
   const itemIds = items.map(i => i.id).filter(Boolean);
   const safeItemIds = itemIds.join(',').replace(/"/g, '&quot;');
-  const firstItem = items[0] || {};
-  const canDownload = items.some(i => i.glb_url || i.glb_proxy);
+
+  // Build download variant list — each finished model gets its own download button
+  const downloadSubmenuId = `dl-group-${safeGroupId}`;
+  let downloadVariantItems = '';
+  items.forEach((item, i) => {
+    const hasGlb = !!(item.glb_url || item.glb_proxy);
+    const varLabel = `Variant ${i + 1}`;
+    const stg = (item.stage || 'preview').toLowerCase();
+    const badge = stg === 'refine' || stg === 'refined' ? ' · Refined'
+      : stg === 'remesh' || stg === 'remeshed' ? ' · Remeshed'
+      : stg === 'texture' || stg === 'textured' ? ' · Textured'
+      : '';
+    downloadVariantItems += `
+      <button class="card-menu__item" type="button" data-act="download" data-id="${item.id || ''}" ${!hasGlb ? 'disabled' : ''}>
+        <span class="card-menu__item-inner">
+          <span class="card-menu__icon">${hasGlb ? '&#8595;' : '&#8987;'}</span>
+          <span>${varLabel}${badge}</span>
+        </span>
+      </button>`;
+  });
+
+  const anyCanDownload = items.some(i => i.glb_url || i.glb_proxy);
 
   return `<div class="history-group-card" data-group-id="${safeGroupId}" data-group-count="${gridCount}">
     <div class="history-group-card__thumbs history-group-card__thumbs--${Math.min(Math.max(gridCount, batchTotal), 4)}">
@@ -217,14 +237,16 @@ function buildGroupedCardHTML(group, items) {
               <span>Open in Viewer</span>
             </span>
           </button>
-          <button class="card-menu__item" type="button" data-act="download" data-id="${firstItem.id || ''}" ${!canDownload ? 'disabled' : ''}>
+          <div class="card-menu__divider"></div>
+          <button class="card-menu__item" type="button" data-submenu-open="${downloadSubmenuId}" aria-expanded="false" ${!anyCanDownload ? 'disabled' : ''}>
             <span class="card-menu__item-inner">
               <span class="card-menu__icon">&#8595;</span>
-              <span>Download Best</span>
+              <span>Download</span>
             </span>
+            <span class="card-menu__arrow">></span>
           </button>
           <div class="card-menu__divider"></div>
-          <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${firstItem.id || ''}">
+          <button class="card-menu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${itemIds[0] || ''}">
             <span class="card-menu__item-inner">
               <span class="card-menu__icon">&#9651;</span>
               <span>Share to Community</span>
@@ -237,6 +259,11 @@ function buildGroupedCardHTML(group, items) {
               <span>Delete All (${itemIds.length})</span>
             </span>
           </button>
+        </div>
+      </div>
+      <div class="card-submenu" data-submenu-panel="${downloadSubmenuId}" role="menu" aria-label="Download variant">
+        <div class="card-menu__list">
+          ${downloadVariantItems}
         </div>
       </div>
     </div>
@@ -252,27 +279,14 @@ function bindGroupedCardEvents(container) {
     const items = _groupedCardData.get(gid);
     if (!items) return;
 
-    // Wire up the menu button directly — event delegation through the card
-    // doesn't work because card.onclick stopPropagation blocks grid bubbling.
-    const menuBtn = card.querySelector('[data-history-menu]');
-    const menu = card.querySelector('.card-menu');
-    if (menuBtn && menu) {
-      menuBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
-        if (isOpen) {
-          closeActiveHistoryMenu();
-        } else {
-          openHistoryMenu(menuBtn, menu);
-        }
-      });
-    }
-
     card.onclick = function (e) {
-      // Don't open grouped viewer if clicking menu or action buttons
-      if (e.target.closest('[data-history-menu]') || e.target.closest('.card-menu') || e.target.closest('[data-act]')) {
-        return;
+      // Let menu button, card-menu, submenu, and action buttons bubble to grid
+      if (e.target.closest('[data-history-menu]') ||
+          e.target.closest('.card-menu') ||
+          e.target.closest('.card-submenu') ||
+          e.target.closest('[data-act]') ||
+          e.target.closest('[data-submenu-open]')) {
+        return; // Don't stop propagation — let grid delegation handle it
       }
       e.stopPropagation();
       // Close expanded gallery view first so the 3D viewer is visible
@@ -292,21 +306,17 @@ function bindGroupedCardEvents(container) {
       if (imageViewer) imageViewer.classList.add('hidden');
       if (videoViewer) videoViewer.classList.add('hidden');
 
-      // Ensure Three.js viewer is booted (canvas + renderer must exist)
+      // Ensure Three.js viewer is booted
       if (typeof window.TimrXViewer?.checkViewerAvailable === 'function') {
         window.TimrXViewer.checkViewerAvailable();
       }
-      // 3dprint-app.js exposes ensureThreeViewer via timrx3D — trigger a resize
-      // to force canvas creation if it hasn't happened yet
       if (window.timrx3D?.resize) {
         window.timrx3D.resize();
       }
 
-      // Small delay to let the DOM settle after panel switch, then open grouped viewer
+      // Small delay to let the DOM settle after panel switch
       requestAnimationFrame(() => {
         if (typeof window.openGroupedViewer === 'function') {
-          console.log('[GroupedCard] Opening grouped viewer:', gid, 'items:', items.length,
-            'renderer:', !!window.timrxRenderer, 'canvas:', !!window.timrxRenderer?.domElement);
           window.openGroupedViewer(gid, items);
         }
       });
@@ -485,6 +495,10 @@ function getHistoryMenuHost(node) {
 }
 
 // Export getters for menu state (needed by main.js)
+export function getGroupedCardItems(groupId) {
+  return _groupedCardData.get(String(groupId)) || null;
+}
+
 export function getActiveHistoryMenu() {
   return { btn: activeHistoryMenuBtn, menu: activeHistoryMenu };
 }
