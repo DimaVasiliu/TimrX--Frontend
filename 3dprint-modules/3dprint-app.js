@@ -6309,97 +6309,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       applyPendingCommunityRemix();
     }
   
-    /**
-     * Field-help tooltips: shows a fixed-position tooltip on hover/focus
-     * of any .field-help element. The tooltip content comes from the
-     * hidden .field-help__bubble child. Using fixed positioning avoids
-     * clipping by overflow:hidden parent containers.
-     */
-    function initFieldHelpTooltips() {
-      let tooltip = document.querySelector('.field-help-tooltip');
-      if (!tooltip) {
-        tooltip = document.createElement('div');
-        tooltip.className = 'field-help-tooltip';
-        document.body.appendChild(tooltip);
-      }
-
-      let hideTimer = null;
-
-      function showTooltip(helpEl) {
-        clearTimeout(hideTimer);
-        const bubble = helpEl.querySelector('.field-help__bubble');
-        if (!bubble) return;
-
-        tooltip.innerHTML = bubble.innerHTML;
-
-        // Position: below the ? icon, centered horizontally on the left panel
-        const rect = helpEl.getBoundingClientRect();
-        const panel = helpEl.closest('.card, .ws-left, #leftStack');
-        const panelRect = panel ? panel.getBoundingClientRect() : { left: 16, right: window.innerWidth - 16, width: window.innerWidth - 32 };
-
-        // Center tooltip within the panel
-        const panelCenterX = panelRect.left + panelRect.width / 2;
-        const tooltipWidth = Math.min(280, window.innerWidth - 32);
-        let left = panelCenterX - tooltipWidth / 2;
-
-        // Clamp to viewport edges
-        left = Math.max(12, Math.min(left, window.innerWidth - tooltipWidth - 12));
-
-        let top = rect.bottom + 8;
-
-        // If not enough room below, show above
-        if (top + 120 > window.innerHeight) {
-          top = rect.top - 8;
-          tooltip.style.transform = 'translateY(4px)';
-          tooltip.style.top = '';
-          tooltip.style.bottom = (window.innerHeight - top) + 'px';
-        } else {
-          tooltip.style.bottom = '';
-          tooltip.style.top = top + 'px';
-          tooltip.style.transform = 'translateY(-4px)';
-        }
-
-        tooltip.style.left = left + 'px';
-        tooltip.style.width = tooltipWidth + 'px';
-
-        // Show with animation
-        requestAnimationFrame(() => {
-          tooltip.classList.add('is-visible');
-          tooltip.style.transform = 'translateY(0)';
-        });
-      }
-
-      function hideTooltip() {
-        hideTimer = setTimeout(() => {
-          tooltip.classList.remove('is-visible');
-        }, 120);
-      }
-
-      // Delegate events — mouseover/mouseout bubble (mouseenter/leave don't)
-      document.addEventListener('mouseover', (e) => {
-        const help = e.target.closest('.field-help');
-        if (help) showTooltip(help);
-      });
-
-      document.addEventListener('mouseout', (e) => {
-        const help = e.target.closest('.field-help');
-        if (help) {
-          // Only hide if mouse left the .field-help entirely (not moving between children)
-          const related = e.relatedTarget;
-          if (!help.contains(related)) hideTooltip();
-        }
-      });
-
-      document.addEventListener('focusin', (e) => {
-        const help = e.target.closest('.field-help');
-        if (help) showTooltip(help);
-      });
-
-      document.addEventListener('focusout', (e) => {
-        const help = e.target.closest('.field-help');
-        if (help) hideTooltip();
-      });
-    }
+    function initFieldHelpTooltips() { /* handled by standalone IIFE at end of file */ }
 
     /**
      * Initializes modal triggers, buttons, and drop-zone behavior.
@@ -6645,4 +6555,86 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
   menu.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', close);
   });
+})();
+
+/* =============================================================================
+   FIELD-HELP TOOLTIPS — standalone, runs independently of workspace IIFE
+   Fixed-position tooltip avoids overflow:hidden clipping in parent containers.
+   ============================================================================= */
+(function () {
+  'use strict';
+  // Wait for body to be ready
+  function boot() {
+    var tooltip = document.createElement('div');
+    tooltip.className = 'field-help-tooltip';
+    document.body.appendChild(tooltip);
+
+    var hideTimer = null;
+    var activeHelp = null;
+
+    function show(helpEl) {
+      if (activeHelp === helpEl) return;
+      clearTimeout(hideTimer);
+      activeHelp = helpEl;
+
+      var bubble = helpEl.querySelector('.field-help__bubble');
+      if (!bubble) { console.warn('[FieldHelp] No bubble found in', helpEl); return; }
+      var html = bubble.innerHTML;
+      if (!html || !html.trim()) { console.warn('[FieldHelp] Empty bubble'); return; }
+
+      tooltip.innerHTML = html;
+
+      var rect = helpEl.getBoundingClientRect();
+      var panel = helpEl.closest('.card') || helpEl.closest('#leftStack') || helpEl.closest('.ws-left');
+      var pLeft = panel ? panel.getBoundingClientRect().left : 16;
+      var pWidth = panel ? panel.getBoundingClientRect().width : (window.innerWidth - 32);
+
+      var tw = Math.min(280, window.innerWidth - 32);
+      var left = pLeft + (pWidth - tw) / 2;
+      left = Math.max(12, Math.min(left, window.innerWidth - tw - 12));
+
+      // Reset positioning
+      tooltip.style.cssText =
+        'position:fixed;z-index:10000;' +
+        'left:' + left + 'px;' +
+        'width:' + tw + 'px;' +
+        'top:' + (rect.bottom + 10) + 'px;';
+
+      // Flip above if overflows bottom
+      if (rect.bottom + 150 > window.innerHeight) {
+        tooltip.style.top = 'auto';
+        tooltip.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+      }
+
+      // Force layout then show
+      void tooltip.offsetHeight;
+      tooltip.classList.add('is-visible');
+    }
+
+    function hide() {
+      hideTimer = setTimeout(function () {
+        tooltip.classList.remove('is-visible');
+        activeHelp = null;
+      }, 120);
+    }
+
+    document.addEventListener('mouseover', function (e) {
+      var h = e.target.closest('.field-help');
+      if (h) show(h);
+    });
+    document.addEventListener('mouseout', function (e) {
+      var h = e.target.closest('.field-help');
+      if (h && (!e.relatedTarget || !h.contains(e.relatedTarget))) hide();
+    });
+    document.addEventListener('click', function (e) {
+      var h = e.target.closest('.field-help');
+      if (h) { e.preventDefault(); activeHelp === h ? hide() : show(h); }
+      else if (activeHelp) hide();
+    });
+
+    console.log('[FieldHelp] Tooltip system initialized');
+  }
+
+  if (document.body) boot();
+  else document.addEventListener('DOMContentLoaded', boot);
 })();

@@ -1268,7 +1268,7 @@
       font-size: 9px;
     }
   
-    .field-help__bubble,
+    /* .field-help__bubble is display:none — tooltip is JS-driven (.field-help-tooltip) */
     .info-bubble,
     .grid-cell-tooltip {
       width: min(176px, calc(100vw - 96px));
@@ -1279,20 +1279,6 @@
       white-space: normal;
       word-break: break-word;
       z-index: 120;
-    }
-  
-    .field-help__bubble {
-      left: 0;
-      right: auto;
-      top: auto;
-      bottom: calc(100% + 6px);
-      transform: translateY(4px);
-    }
-  
-    .field-help:hover .field-help__bubble,
-    .field-help:focus .field-help__bubble,
-    .field-help:focus-within .field-help__bubble {
-      transform: translateY(0);
     }
   
     .info-tooltip {
