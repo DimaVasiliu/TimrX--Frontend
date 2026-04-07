@@ -252,6 +252,12 @@ function buildGroupedCardHTML(group, items) {
               <span>Share to Community</span>
             </span>
           </button>
+          <button class="card-menu__item" type="button" data-act="share-inspire" data-id="${itemIds[0] || ''}">
+            <span class="card-menu__item-inner">
+              <span class="card-menu__icon">&#10024;</span>
+              <span>Share to Inspire</span>
+            </span>
+          </button>
           <div class="card-menu__divider"></div>
           <button class="card-menu__item is-danger" type="button" data-act="delete-group" data-group-ids="${safeItemIds}">
             <span class="card-menu__item-inner">
@@ -1192,6 +1198,12 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   <span>Share to Community</span>
                 </span>
               </button>
+              <button class="card-menu__item" type="button" data-act="share-inspire" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#10024;</span>
+                  <span>Share to Inspire</span>
+                </span>
+              </button>
               <div class="card-menu__divider"></div>
               <button class="card-menu__item is-danger" type="button" data-act="delete" data-id="${displayModel.id}">
                 <span class="card-menu__item-inner">
@@ -1369,6 +1381,12 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#9651;</span>
                   <span>Share to Community</span>
+                </span>
+              </button>
+              <button class="card-menu__item" type="button" data-act="share-inspire" data-id="${displayModel.id}">
+                <span class="card-menu__item-inner">
+                  <span class="card-menu__icon">&#10024;</span>
+                  <span>Share to Inspire</span>
                 </span>
               </button>
               <div class="card-menu__divider"></div>
@@ -1578,6 +1596,11 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           <button class="card-submenu__item card-submenu__item--community" type="button" data-act="share-community" data-id="${displayModel.id}" data-type="${displayModel.item_type || 'model'}" data-thumb="${displayModel.thumbnail_url || ''}" data-prompt="${(displayModel.prompt || '').replace(/"/g, '&quot;')}">
             <span class="card-menu__icon">&#9651;</span>
             Share to Community
+          </button>
+          <div class="card-submenu__divider"></div>
+          <button class="card-submenu__item" type="button" data-act="share-inspire" data-id="${displayModel.id}">
+            <span class="card-menu__icon">&#10024;</span>
+            Share to Inspire
           </button>
         </div>
       </div>

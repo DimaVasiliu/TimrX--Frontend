@@ -1148,6 +1148,17 @@ function initViewerToolbar() {
         }).then(() => alert('Shared to Discord!')).catch(() => alert('Failed to share to Discord.'));
         window.open('https://discord.gg/VpqT2UywDG', '_blank');
       }
+      if (act === 'share-inspire' && item) {
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/inspire/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, type: assetType, share: true }),
+        }).then(res => {
+          if (res.ok && window.showToast) window.showToast('Shared to Inspire!', 'success');
+          else if (window.showToast) window.showToast(res.data?.error || 'Failed to share', 'error');
+        }).catch(() => { if (window.showToast) window.showToast('Failed to share to Inspire', 'error'); });
+      }
       closeViewerPopovers();
     });
   }
@@ -2044,6 +2055,26 @@ function wireGallery() {
       if (act === 'share-community') {
         if (window.CommunityGallery && window.CommunityGallery.openShareModal) {
           window.CommunityGallery.openShareModal(item);
+        }
+        return;
+      }
+
+      if (act === 'share-inspire') {
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        try {
+          const res = await apiFetch('/api/_mod/inspire/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: item.id, type: assetType, share: true }),
+          });
+          if (res.ok) {
+            if (window.showToast) window.showToast('Shared to Inspire!', 'success');
+          } else {
+            if (window.showToast) window.showToast(res.data?.error || 'Failed to share', 'error');
+          }
+        } catch (err) {
+          console.error('[Inspire] share failed:', err);
+          if (window.showToast) window.showToast('Failed to share to Inspire', 'error');
         }
         return;
       }
