@@ -277,8 +277,8 @@
       <p class="tool-examples-intro">From cinematic landscapes to animated product shots, the AI video generator handles a wide range of creative styles. Here are examples of what users have produced with TimrX.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated cinematic ocean sunset video">
-            <source src="vid/vid1.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-1.png" aria-label="AI-generated cinematic ocean sunset video">
+            <source src="/vid/vid1.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Cinematic Ocean Sunset</h3>
@@ -286,8 +286,8 @@
           <p class="tool-example-desc">Perfect for travel content creators and filmmakers who need b-roll footage without the cost of drone shoots. The AI captures realistic water motion and warm lighting gradients that feel authentic.</p>
         </article>
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated product rotation video of sneakers">
-            <source src="vid/vid2.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-2.png" aria-label="AI-generated product rotation video of sneakers">
+            <source src="/vid/vid2.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Product Rotation — Sneaker Showcase</h3>
@@ -295,8 +295,8 @@
           <p class="tool-example-desc">E-commerce brands use this to create professional product videos from a single product photo. Upload your product image and the AI generates a polished rotation clip ready for your online store.</p>
         </article>
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated abstract particle flow animation">
-            <source src="vid/vid3.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-3.png" aria-label="AI-generated abstract particle flow animation">
+            <source src="/vid/vid3.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Abstract Particle Flow</h3>
@@ -304,8 +304,8 @@
           <p class="tool-example-desc">Ideal for motion backgrounds in presentations, music videos, and website hero sections. Abstract generative content like this is one of the strongest use cases for AI video tools.</p>
         </article>
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated futuristic city flythrough">
-            <source src="vid/vid4.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-4.png" aria-label="AI-generated futuristic city flythrough">
+            <source src="/vid/vid4.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Futuristic City Flythrough</h3>
@@ -313,8 +313,8 @@
           <p class="tool-example-desc">Game developers and concept artists use scenes like this to visualize environments before committing to full 3D production. Generate multiple variations quickly to explore different creative directions.</p>
         </article>
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated nature timelapse of flowers blooming">
-            <source src="vid/vid5.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-5.png" aria-label="AI-generated nature timelapse of flowers blooming">
+            <source src="/vid/vid5.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Nature Timelapse — Blooming Flowers</h3>
@@ -322,8 +322,8 @@
           <p class="tool-example-desc">Educational content, wellness apps, and meditation channels benefit from nature-style AI videos. The AI simulates organic growth and natural movement that would take hours to capture in real life.</p>
         </article>
         <article class="tool-example-card">
-          <video controls autoplay loop muted playsinline preload="auto" aria-label="AI-generated animated logo reveal">
-            <source src="vid/vid6.mp4" type="video/mp4" />
+          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-6.png" aria-label="AI-generated animated logo reveal">
+            <source src="/vid/vid6.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Animated Logo Reveal</h3>
@@ -595,20 +595,6 @@
       if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
       lastY=y;
     },{passive:true});
-  })();
-  </script>
-  <script>
-  (function(){
-    var videos=document.querySelectorAll('.tool-example-card video');
-    videos.forEach(function(video){
-      try{ video.load(); }catch(e){}
-      var tryPlay=function(){
-        var p=video.play();
-        if(p&&typeof p.catch==='function') p.catch(function(){});
-      };
-      if(video.readyState>=2) tryPlay();
-      else video.addEventListener('loadeddata', tryPlay, { once:true });
-    });
   })();
   </script>
 </body>
