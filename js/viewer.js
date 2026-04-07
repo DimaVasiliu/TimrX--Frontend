@@ -243,7 +243,12 @@ export async function loadGlbFromUrl(url) {
     }
 
     const loader = new THREE.GLTFLoader();
-    loader.setCrossOrigin('anonymous');
+    if (!isTimrxS3Url(url)) {
+        loader.setCrossOrigin('use-credentials');
+        loader.setWithCredentials(true);
+    } else {
+        loader.setCrossOrigin('anonymous');
+    }
 
     clearModel();
 
@@ -977,6 +982,15 @@ export function clearVideoViewer() {
 
       const loader = _getGroupedLoader();
       if (!loader) throw new Error("GLTFLoader not available");
+
+      // Set credentials per-load based on whether this is a proxy URL
+      if (!isTimrxS3Url(resolvedUrl)) {
+        loader.setCrossOrigin('use-credentials');
+        loader.setWithCredentials(true);
+      } else {
+        loader.setCrossOrigin('anonymous');
+        loader.setWithCredentials(false);
+      }
 
       const gltf = await new Promise(function (resolve, reject) {
         loader.load(resolvedUrl,
