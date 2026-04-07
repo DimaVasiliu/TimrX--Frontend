@@ -557,23 +557,23 @@ export function clearVideoViewer() {
   function _addLights(scene) {
     const THREE = window.THREE;
     if (!THREE) return;
-    scene.background = new THREE.Color(0x2a2a2e);
-    const amb = new THREE.AmbientLight(0xffffff, 0.6);
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 1.4);
-    const key = new THREE.DirectionalLight(0xffffff, 2.5);
-    key.position.set(5, 8, 5);
-    const fill = new THREE.DirectionalLight(0xffffff, 1.5);
+    scene.background = new THREE.Color(0x1a1a1e);
+    const amb = new THREE.AmbientLight(0xffffff, 0.5);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x666666, 0.9);
+    const key = new THREE.DirectionalLight(0xfff5e6, 2.0);
+    key.position.set(5, 10, 6);
+    const fill = new THREE.DirectionalLight(0xffffff, 1.0);
     fill.position.set(-4, 4, 6);
-    const rim = new THREE.DirectionalLight(0xadd8ff, 1.0);
+    const rim = new THREE.DirectionalLight(0x9ec5e6, 0.7);
     rim.position.set(-3, 6, -6);
-    const bottom = new THREE.DirectionalLight(0xffffff, 0.8);
-    bottom.position.set(0, -5, 2);
+    const bottom = new THREE.DirectionalLight(0xffffff, 0.4);
+    bottom.position.set(0, -4, 2);
     [amb, hemi, key, fill, rim, bottom].forEach(l => scene.add(l));
 
     // Grid
     const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
     grid.material.transparent = true;
-    grid.material.opacity = 0.25;
+    grid.material.opacity = 0.18;
     grid.position.y = -0.5;
     scene.add(grid);
   }
@@ -587,10 +587,10 @@ export function clearVideoViewer() {
     const maxDim = Math.max(size.x, size.y, size.z);
     const isHumanoid = size.y > size.x * 1.5 && size.y > size.z * 1.5;
     const dir = isHumanoid
-      ? new THREE.Vector3(0, 0.22, 1).normalize()
-      : new THREE.Vector3(1, 1, 1).normalize();
+      ? new THREE.Vector3(0, 0.18, 1).normalize()
+      : new THREE.Vector3(1, 0.8, 1).normalize();
     const dist = maxDim / (2 * Math.tan((camera.fov * Math.PI) / 360));
-    camera.position.copy(center).add(dir.multiplyScalar(dist * 1.4));
+    camera.position.copy(center).add(dir.multiplyScalar(dist * 1.8));
     camera.near = maxDim / 100;
     camera.far = maxDim * 100;
     camera.updateProjectionMatrix();
