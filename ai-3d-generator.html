@@ -37,6 +37,53 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    .model-showcase{
+      display:grid;grid-template-columns:5fr 7fr;gap:1.25rem;align-items:start;
+    }
+    @media(max-width:720px){
+      .model-showcase{grid-template-columns:1fr;}
+    }
+
+    .model-showcase__left{
+      display:flex;flex-direction:column;
+      background:#0d0d0f;border-radius:14px;overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .model-showcase__viewer-wrap{
+      width:100%;aspect-ratio:1/1;
+      background:#0a0a0a;
+    }
+    .model-showcase__viewer-wrap model-viewer{
+      width:100%;height:100%;display:block;
+      --poster-color:transparent;
+    }
+    .model-showcase__viewer-wrap model-viewer::part(default-progress-bar){display:none}
+    .model-showcase__viewer-wrap model-viewer::part(default-ar-button){display:none}
+    .model-showcase__info{
+      padding:1rem 1.15rem 1.15rem;
+      border-top:1px solid rgba(255,255,255,.04);
+    }
+    .model-showcase__info h3{margin:0 0 .35rem;font-size:1.05rem;color:#fff;font-weight:600;}
+    .model-showcase__info .tool-example-prompt{margin:0 0 .45rem;font-size:.82rem;color:#999;line-height:1.5;}
+    .model-showcase__info .tool-example-desc{margin:0;font-size:.78rem;color:#666;line-height:1.5;}
+
+    .tool-examples-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:.6rem;
+      align-content:start;
+    }
+    .model-thumb{
+      cursor:pointer;border-radius:10px;overflow:hidden;
+      border:2px solid rgba(255,255,255,.04);transition:border-color .2s,transform .15s;
+      background:#0d0d0f;
+    }
+    .model-thumb:hover{border-color:rgba(255,255,255,.15);transform:scale(1.03);}
+    .model-thumb.active{border-color:#3b82f6;box-shadow:0 0 12px rgba(59,130,246,.2);}
+    .model-thumb img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;opacity:.85;transition:opacity .2s;}
+    .model-thumb:hover img,.model-thumb.active img{opacity:1;}
+    .model-thumb__label{padding:5px 8px;font-size:.7rem;color:#888;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  </style>
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
@@ -260,43 +307,49 @@
     <div class="container">
       <h2 class="tool-examples-title">What You Can Create</h2>
       <p class="tool-examples-intro">From fantastical creatures to everyday objects, TimrX's AI 3D generator turns plain-language prompts into fully textured 3D models. Below are six examples showing the range of assets you can produce in minutes without any 3D modeling experience.</p>
-      <div class="tool-examples-grid">
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-1.webp" alt="AI-generated medieval sword 3D model" width="400" height="300" loading="lazy" />
-          <h3>Medieval Sword</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A detailed medieval longsword with a leather-wrapped grip and ornate crossguard"</p>
-          <p class="tool-example-desc">Ideal for game development props, tabletop RPG assets, or historical visualization projects. The generated mesh includes PBR textures for metallic and roughness channels, making it render-ready in Unity or Unreal Engine.</p>
-        </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-2.webp" alt="AI-generated succulent plant 3D model" width="400" height="300" loading="lazy" />
-          <h3>Potted Succulent</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A small succulent plant in a terracotta pot, soft diffused lighting"</p>
-          <p class="tool-example-desc">Perfect for architectural visualization, interior design mockups, and e-commerce product scenes. The AI captures organic leaf geometry and natural color gradients for a realistic look straight out of the generator.</p>
-        </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-3.webp" alt="AI-generated robot character 3D model" width="400" height="300" loading="lazy" />
-          <h3>Sci-Fi Robot</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A compact bipedal robot with glowing blue eyes and brushed-metal armor plating"</p>
-          <p class="tool-example-desc">Great for concept art pipelines, indie game characters, and animated short films. Export the GLB file and bring it into Blender or Mixamo for rigging and animation in your existing workflow.</p>
-        </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-4.webp" alt="AI-generated sneaker shoe 3D model" width="400" height="300" loading="lazy" />
-          <h3>Running Sneaker</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A modern running shoe with a chunky sole, white mesh upper, and neon green accents"</p>
-          <p class="tool-example-desc">Use case: product visualization and virtual try-on experiences. Footwear brands and marketplaces can generate 3D previews of shoe concepts before committing to physical prototypes, accelerating the design feedback loop.</p>
-        </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-5.webp" alt="AI-generated low-poly cabin 3D model" width="400" height="300" loading="lazy" />
-          <h3>Low-Poly Cabin</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cozy low-poly log cabin with a chimney, surrounded by pine trees"</p>
-          <p class="tool-example-desc">Designed for stylized game environments, mobile games, and AR experiences. The low polygon count keeps file sizes small while maintaining visual charm, and USDZ export enables Apple AR Quick Look previews.</p>
-        </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/3d-gen-6.webp" alt="AI-generated dragon figurine 3D model" width="400" height="300" loading="lazy" />
-          <h3>Dragon Figurine</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A stylized dragon figurine with folded wings, sitting on a rocky base"</p>
-          <p class="tool-example-desc">Excellent for 3D printing collectibles, board-game miniatures, and digital sculpting references. TimrX's remeshing pipeline produces watertight geometry so the model slices cleanly in Cura, PrusaSlicer, or Bambu Studio.</p>
-        </article>
+      <div class="model-showcase" id="modelShowcase">
+        <div class="model-showcase__left">
+          <div class="model-showcase__viewer-wrap">
+            <model-viewer id="showcaseViewer"
+              src="/vid/models/mod1.glb"
+              alt="AI-generated 3D model"
+              camera-controls auto-rotate rotation-per-second="22deg"
+              shadow-intensity="0.55" exposure="1.05" environment-image="neutral"
+              interaction-prompt="none" loading="lazy" reveal="auto">
+            </model-viewer>
+          </div>
+          <div class="model-showcase__info" id="showcaseInfo">
+            <h3>Dragon Knight</h3>
+            <p class="tool-example-prompt"><strong>Prompt:</strong> "A fierce dragon knight warrior in battle stance with spread wings and a long spiked tail, dark crimson armor with gold trim, holding a sword, fantasy figurine"</p>
+            <p class="tool-example-desc">Fantasy characters and creatures are one of the strongest use cases for AI 3D generation. This dragon warrior was created from a single text prompt and is ready for game engines, tabletop miniature printing, or concept art pipelines.</p>
+          </div>
+        </div>
+        <div class="tool-examples-grid">
+          <div class="model-thumb active" data-model="/vid/models/mod1.glb" data-title="Dragon Knight" data-prompt="A fierce dragon knight warrior in battle stance with spread wings and a long spiked tail, dark crimson armor with gold trim, holding a sword, fantasy figurine" data-desc="Fantasy characters and creatures are one of the strongest use cases for AI 3D generation. This dragon warrior was created from a single text prompt and is ready for game engines, tabletop miniature printing, or concept art pipelines.">
+            <img src="/img/model-posters/mod1.png" alt="Dragon Knight" loading="lazy" />
+            <div class="model-thumb__label">Dragon Knight</div>
+          </div>
+          <div class="model-thumb" data-model="/vid/models/mod2.glb" data-title="Rustic Village Cottage" data-prompt="A cozy rustic village cottage with a peaked shingled roof, wooden shuttered windows, arched front door, and a stone chimney, warm earthy brown tones, miniature diorama" data-desc="Architectural and environment assets are ideal for game level design, tabletop terrain, and diorama scenes. The AI generates detailed facades with windows, doors, and roofing that hold up from multiple viewing angles.">
+            <img src="/img/model-posters/mod2.png" alt="Rustic Cottage" loading="lazy" />
+            <div class="model-thumb__label">Village Cottage</div>
+          </div>
+          <div class="model-thumb" data-model="/vid/models/mod3.glb" data-title="Ornate Revolver" data-prompt="An ornate antique revolver with intricate scrollwork engravings on dark gunmetal, polished wooden grip with brass inlays, Victorian steampunk collectible" data-desc="Weapon and prop models for games, film pre-visualization, and collectible design. The engraved metalwork and wooden grip textures demonstrate the level of surface detail the AI can achieve on hard-surface objects.">
+            <img src="/img/model-posters/mod3.png" alt="Ornate Revolver" loading="lazy" />
+            <div class="model-thumb__label">Ornate Revolver</div>
+          </div>
+          <div class="model-thumb" data-model="/vid/models/mod4.glb" data-title="Cartoon Raccoon Character" data-prompt="A chubby cartoon raccoon character wearing a black and white striped suit with an orange bow tie, standing with arms at sides, stylized 3D collectible figurine" data-desc="Stylized characters for animation, indie games, and vinyl toy design. The AI captures exaggerated proportions and bold color blocking that works well for mascots, brand characters, and collectible figurines ready for 3D printing.">
+            <img src="/img/model-posters/mod4.png" alt="Cartoon Raccoon" loading="lazy" />
+            <div class="model-thumb__label">Cartoon Raccoon</div>
+          </div>
+          <div class="model-thumb" data-model="/vid/models/mod5.glb" data-title="Cyberpunk Character" data-prompt="A cyberpunk male character in a long dark teal trench coat with glowing neon green circuit accents, heavy combat boots, standing confidently, sci-fi RPG character" data-desc="Full character models for RPGs, sci-fi projects, and concept visualization. The neon accent lighting and detailed clothing folds show how the AI handles both hard and soft surface materials on a single character asset.">
+            <img src="/img/model-posters/mod5.png" alt="Cyberpunk Character" loading="lazy" />
+            <div class="model-thumb__label">Cyberpunk Character</div>
+          </div>
+          <div class="model-thumb" data-model="/vid/models/mod6.glb" data-title="Chibi Mushroom Warrior" data-prompt="A chibi mushroom warrior figurine on a square display pedestal, large red and white spotted cap as a helmet, holding a round shield, collectible miniature style" data-desc="Excellent for 3D printing collectibles, board-game miniatures, and digital sculpting references. TimrX's remeshing pipeline produces watertight geometry so the model slices cleanly in Cura, PrusaSlicer, or Bambu Studio.">
+            <img src="/img/model-posters/mod6.png" alt="Mushroom Warrior" loading="lazy" />
+            <div class="model-thumb__label">Mushroom Warrior</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -544,6 +597,26 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var viewer=document.getElementById('showcaseViewer');
+    var info=document.getElementById('showcaseInfo');
+    var thumbs=document.querySelectorAll('.model-thumb');
+    thumbs.forEach(function(thumb){
+      thumb.addEventListener('click',function(){
+        thumbs.forEach(function(t){t.classList.remove('active');});
+        thumb.classList.add('active');
+        var src=thumb.dataset.model;
+        if(viewer&&src)viewer.setAttribute('src',src);
+        if(info){
+          info.querySelector('h3').textContent=thumb.dataset.title;
+          info.querySelector('.tool-example-prompt').innerHTML='<strong>Prompt:</strong> \u201c'+thumb.dataset.prompt+'\u201d';
+          info.querySelector('.tool-example-desc').textContent=thumb.dataset.desc;
+        }
+      });
+    });
+  })();
+  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
