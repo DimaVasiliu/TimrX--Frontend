@@ -30,9 +30,9 @@
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
@@ -60,6 +60,92 @@
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
       { "@type": "ListItem", "position": 3, "name": "AI Image Generator", "item": "https://timrx.live/ai-image-generator" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is TimrX AI image generator free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, TimrX offers a free tier that lets you generate a limited number of AI images each day at no cost. The free plan includes access to standard resolution outputs and basic style options. If you need higher resolutions, faster generation speeds, or priority access to newer models, paid plans are available with flexible monthly and yearly pricing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What AI models does TimrX use for image generation?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX integrates several leading AI image models, including Stable Diffusion XL, DALL-E, and proprietary fine-tuned models optimized for specific tasks like texture creation and product photography. The platform automatically selects the best model based on your prompt and chosen style, though advanced users can manually pick a model from the settings panel."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use generated images commercially?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Images generated on paid TimrX plans come with a full commercial-use license, meaning you can use them in client work, marketing materials, products, and published media. Free-tier images are licensed for personal and non-commercial use only. Always review the terms of service for the most current licensing details before publishing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What image resolutions are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX supports output resolutions from 512x512 up to 2048x2048 pixels depending on the model and your subscription tier. Free-tier users can generate images at standard 1024x1024 resolution. Paid plans unlock higher resolutions and the ability to upscale generated images using AI-powered super-resolution, reaching print-quality outputs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is TimrX different from Midjourney?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "While Midjourney operates primarily through Discord, TimrX is a fully browser-based platform that does not require any third-party apps or bots. TimrX also goes beyond image generation by integrating 3D model creation, video generation, and 3D-print pipelines into a single workspace. This means you can generate an image and immediately convert it into a 3D model or animated video without leaving the platform."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I generate images from reference photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, TimrX supports image-to-image generation where you upload a reference photo and provide a text prompt to guide the transformation. This is ideal for style transfer, turning sketches into polished illustrations, or adapting existing visuals into new compositions. You can control the influence strength of the reference image to balance between fidelity and creative freedom."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I improve my AI image prompts?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The most effective AI image prompts are specific about subject, style, lighting, and mood. For example, instead of writing 'a cat', try 'a fluffy orange tabby cat sitting on a windowsill in warm afternoon sunlight, oil painting style'. Including artistic references, color palettes, and camera angles helps the AI understand your vision. TimrX also provides prompt suggestions and auto-enhancement features to help you get better results."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I convert generated images to 3D models?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. One of TimrX's standout features is its integrated pipeline from image generation to 3D modeling. After generating an image, you can send it directly to the Image-to-3D tool, which reconstructs a textured 3D model from the visual. This is perfect for game asset creation, product prototyping, and 3D printing workflows where you want to go from concept to physical object quickly."
+        }
+      }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Generate AI Images with TimrX",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Describe Your Image", "text": "Enter a text prompt describing the image you want. Be as specific or abstract as you like — style, lighting, composition, subject."},
+      {"@type": "HowToStep", "position": 2, "name": "Generate & Refine", "text": "The AI produces your image in seconds. Adjust your prompt, change styles, or generate variations until it matches your vision."},
+      {"@type": "HowToStep", "position": 3, "name": "Download or Continue", "text": "Save your image or use it as input for 3D model generation, video creation, or further editing within the TimrX platform."}
     ]
   }
   </script>
@@ -168,6 +254,160 @@
     </div>
   </section>
 
+  <!-- Example Gallery -->
+  <section class="tool-examples">
+    <div class="container">
+      <h2>What You Can Create</h2>
+      <p>The TimrX AI image generator handles an enormous range of visual styles and subjects. From photorealistic renders to abstract digital art, the platform adapts to your creative direction. Below are examples of what users have generated using simple text prompts, demonstrating the breadth of possibilities available to anyone with an idea and a few descriptive words.</p>
+      <div class="tool-examples-grid">
+        <div class="example-card">
+          <img src="/img/examples/image-gen-1.webp" alt="AI generated concept art of a futuristic city with neon lights and towering skyscrapers" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Futuristic cyberpunk city at night, neon signs reflecting off wet streets, cinematic wide-angle shot, hyper-detailed"</p>
+          <p>Concept art for game environments, film pre-production, or world-building projects. This style of generation is popular among indie game developers and creative directors who need to visualize settings rapidly before committing to full production artwork.</p>
+        </div>
+        <div class="example-card">
+          <img src="/img/examples/image-gen-2.webp" alt="AI generated photorealistic product mockup of a sleek white headphone on a marble surface" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Minimalist product photo of white wireless headphones on a marble countertop, soft studio lighting, commercial photography style"</p>
+          <p>Product mockups and e-commerce visuals generated without a physical photoshoot. Ideal for startups validating product concepts, Amazon listings that need professional-grade imagery, or marketing teams producing campaign assets at scale.</p>
+        </div>
+        <div class="example-card">
+          <img src="/img/examples/image-gen-3.webp" alt="AI generated seamless wood texture suitable for 3D modeling" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Seamless tileable dark walnut wood texture, high resolution, PBR-ready, natural grain detail"</p>
+          <p>Textures and materials for 3D artists and game developers. TimrX can generate seamless tileable textures that work directly in 3D modeling software, saving hours of manual texture creation and eliminating the need for expensive stock material libraries.</p>
+        </div>
+        <div class="example-card">
+          <img src="/img/examples/image-gen-4.webp" alt="AI generated watercolor illustration of a cozy cottage in an autumn forest" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Cozy stone cottage surrounded by autumn trees, watercolor painting style, warm golden light, soft edges"</p>
+          <p>Artistic illustrations for book covers, editorial content, greeting cards, and personal projects. The AI handles a wide variety of traditional art styles, including watercolor, oil painting, charcoal sketching, and ink drawing, allowing creators to experiment with styles they may not have mastered by hand.</p>
+        </div>
+        <div class="example-card">
+          <img src="/img/examples/image-gen-5.webp" alt="AI generated character design of a fantasy warrior with detailed armor" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Fantasy warrior character, ornate golden armor, dramatic lighting, full-body portrait, concept art style"</p>
+          <p>Character design for games, tabletop RPGs, animation, and storytelling. Dungeon masters, indie game studios, and comic artists use TimrX to quickly iterate on character concepts, exploring different armor sets, poses, and expressions before finalizing designs.</p>
+        </div>
+        <div class="example-card">
+          <img src="/img/examples/image-gen-6.webp" alt="AI generated social media graphic with bold typography and abstract gradient background" width="400" height="400" loading="lazy" />
+          <p class="example-prompt">"Abstract gradient background in purple and teal, bold geometric shapes, modern social media banner design"</p>
+          <p>Social media graphics, YouTube thumbnails, and digital marketing assets. Content creators and social media managers use TimrX to produce scroll-stopping visuals at a pace that keeps up with daily posting schedules, without needing a dedicated graphic designer on staff.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2>How TimrX Compares</h2>
+      <p>Choosing the right AI image generator depends on your workflow, budget, and creative goals. The table below compares TimrX against other popular AI image generation platforms across features that matter most to creators, designers, and developers. TimrX stands out by offering a fully integrated creative pipeline that extends beyond image generation into 3D modeling, video production, and 3D printing preparation.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>TimrX</th>
+              <th>Midjourney</th>
+              <th>DALL-E</th>
+              <th>Stable Diffusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Browser-based</td>
+              <td>Yes — no install required</td>
+              <td>No — requires Discord</td>
+              <td>Yes — via ChatGPT or API</td>
+              <td>No — local install or hosted UI</td>
+            </tr>
+            <tr>
+              <td>Free tier</td>
+              <td>Yes — daily free generations</td>
+              <td>No — paid plans only</td>
+              <td>Limited — credits deplete quickly</td>
+              <td>Yes — if self-hosted (requires GPU)</td>
+            </tr>
+            <tr>
+              <td>3D pipeline integration</td>
+              <td>Yes — generate images and convert to 3D models in one workflow</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Video pipeline</td>
+              <td>Yes — send generated images directly to AI video generation</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Export formats</td>
+              <td>PNG, JPEG, WebP — plus 3D formats via pipeline</td>
+              <td>PNG, JPEG</td>
+              <td>PNG</td>
+              <td>PNG, JPEG (depends on UI)</td>
+            </tr>
+            <tr>
+              <td>API access</td>
+              <td>Yes — RESTful API for developers</td>
+              <td>No official public API</td>
+              <td>Yes — OpenAI API</td>
+              <td>Yes — open-source, self-hosted API</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>TimrX is the only platform that combines AI image generation with a full creative pipeline including 3D model generation, AI video creation, and 3D-print preparation. If your workflow involves more than just generating images, TimrX eliminates the need to juggle multiple tools and subscriptions by bringing everything into a single browser-based workspace.</p>
+    </div>
+  </section>
+
+  <!-- Extended FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2>Frequently Asked Questions</h2>
+      <p>Below you will find answers to the most common questions about the TimrX AI image generator. Whether you are a first-time user exploring AI art or an experienced creator looking for a more integrated platform, these answers should help you understand what TimrX offers and how it fits into your workflow.</p>
+
+      <details>
+        <summary>Is TimrX AI image generator free?</summary>
+        <p>Yes, TimrX provides a free tier that allows you to generate a set number of AI images each day without any payment or credit card. The free plan includes access to standard resolution outputs and a selection of popular styles. For users who need higher-resolution images, faster processing times, batch generation, or priority access to the latest AI models, TimrX offers affordable paid plans with monthly and yearly billing options. The free tier is designed to let you fully explore the platform's capabilities before deciding whether to upgrade.</p>
+      </details>
+
+      <details>
+        <summary>What AI models does TimrX use for image generation?</summary>
+        <p>TimrX integrates several industry-leading AI image models including Stable Diffusion XL, DALL-E, and custom fine-tuned models built specifically for tasks like seamless texture generation and product photography. When you submit a prompt, the platform intelligently selects the best model based on your description and chosen style preset, though advanced users can override this and select a specific model manually. TimrX regularly updates its model library to include the latest advancements in AI image synthesis, ensuring you always have access to state-of-the-art generation quality.</p>
+      </details>
+
+      <details>
+        <summary>Can I use generated images commercially?</summary>
+        <p>Images generated on any paid TimrX plan include a full commercial-use license, which means you can use them in client deliverables, marketing campaigns, published books, merchandise, and any other commercial application. Free-tier generations are licensed for personal and non-commercial use only. TimrX does not claim ownership over the images you generate. We recommend reviewing the current terms of service for full licensing details, especially if you plan to use generated images in regulated industries or mass-produced physical products.</p>
+      </details>
+
+      <details>
+        <summary>What image resolutions are supported?</summary>
+        <p>The platform supports output resolutions ranging from 512x512 pixels up to 2048x2048 pixels, depending on the AI model selected and your subscription tier. Free-tier users generate images at a standard 1024x1024 resolution, which is suitable for social media, web content, and concept exploration. Paid plans unlock higher base resolutions as well as access to AI-powered upscaling tools that can enhance images to print-quality dimensions exceeding 4096 pixels on the longest edge. This makes TimrX suitable for everything from Instagram posts to large-format print materials.</p>
+      </details>
+
+      <details>
+        <summary>How is TimrX different from Midjourney?</summary>
+        <p>The most immediate difference is accessibility: TimrX is entirely browser-based and does not require Discord, a desktop application, or any third-party service to operate. You open your browser, type a prompt, and generate images. Beyond that, TimrX offers a uniquely integrated creative pipeline. After generating an image, you can convert it into a 3D model using the Image-to-3D tool, animate it with the AI video generator, or prepare it for 3D printing — all without leaving the platform. Midjourney focuses exclusively on image generation, so users who need a multi-step creative workflow must piece together separate tools on their own.</p>
+      </details>
+
+      <details>
+        <summary>Can I generate images from reference photos?</summary>
+        <p>Yes, TimrX fully supports image-to-image generation workflows. You can upload a reference photograph, sketch, or any existing visual and pair it with a text prompt that describes how you want the AI to transform it. This is especially useful for style transfer, turning rough hand-drawn sketches into polished digital illustrations, or adapting an existing product photo into a different setting or aesthetic. A strength slider lets you control how closely the output adheres to the original reference versus the text prompt, giving you fine-grained creative control over the final result.</p>
+      </details>
+
+      <details>
+        <summary>How do I improve my AI image prompts?</summary>
+        <p>Writing effective AI image prompts is part skill and part experimentation. The best prompts are specific about the subject, composition, lighting, color palette, and artistic style. For example, rather than writing "a dog," you might write "a golden retriever puppy sitting in a sunlit meadow, shallow depth of field, warm tones, professional pet photography." Including references to specific art movements, camera lenses, or well-known visual styles gives the AI more context to work with. TimrX also includes a built-in prompt enhancement feature that automatically expands short prompts with additional descriptive detail, helping beginners achieve high-quality results immediately.</p>
+      </details>
+
+      <details>
+        <summary>Can I convert generated images to 3D models?</summary>
+        <p>This is one of TimrX's most powerful features. After generating any image, you can send it directly to the Image-to-3D pipeline with a single click. The system analyzes the image, infers depth and geometry, and reconstructs a fully textured 3D model that you can view, rotate, and export in standard formats like GLB, OBJ, and STL. This workflow is invaluable for game developers who need to rapidly prototype 3D assets, product designers creating physical prototypes, and hobbyists who want to 3D-print their AI-generated artwork. No other major AI image generator offers this level of pipeline integration out of the box.</p>
+      </details>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
@@ -250,6 +490,17 @@
               <li><a href="/#works">Works</a></li>
               <li><a href="/#services">Services</a></li>
               <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
             </ul>
           </div>
           <div class="ft-col">

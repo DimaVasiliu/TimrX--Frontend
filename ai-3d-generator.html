@@ -30,9 +30,9 @@
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
@@ -60,6 +60,93 @@
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
       { "@type": "ListItem", "position": 3, "name": "AI 3D Generator", "item": "https://timrx.live/ai-3d-generator" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Generate 3D Models with AI",
+    "description": "Create 3D models from text descriptions or reference images using TimrX's AI generator.",
+    "step": [
+      { "@type": "HowToStep", "position": 1, "name": "Describe or Upload", "text": "Type a text description of the 3D model you want, or upload a reference image for the AI to convert." },
+      { "@type": "HowToStep", "position": 2, "name": "Generate & Refine", "text": "The AI creates a textured 3D mesh. Use TimrX's built-in remeshing and texture tools to refine the output." },
+      { "@type": "HowToStep", "position": 3, "name": "Export", "text": "Export as GLB, GLTF, STL, or USDZ for use in Blender, Unity, Unreal Engine, or 3D printing slicers." }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is TimrX AI 3D generator free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. No software installation or account is required to start creating."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What 3D formats can I export?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX supports exporting to GLB, GLTF, STL, and USDZ. These formats are compatible with Blender, Unity, Unreal Engine, 3D printing slicers, and Apple AR Quick Look."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use generated 3D models in Unity or Unreal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. Export your model as GLB or GLTF and import it directly into Unity or Unreal Engine. The exported files include geometry, textures, and materials."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How detailed are the generated 3D models?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Detail depends on the prompt specificity and generation settings. TimrX produces textured meshes suitable for game assets, prototypes, and 3D printing. Use the built-in remeshing tools to refine polygon count and topology."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I 3D print the generated models?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Generated models can be remeshed for watertight geometry and exported as STL or GLB files compatible with popular 3D printing slicers like Cura, PrusaSlicer, and Bambu Studio."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is TimrX different from Meshy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX runs entirely in the browser with no installation required. It combines text-to-3D, image-to-3D, remeshing, texture editing, and multi-format export in a single free pipeline. Meshy requires an account and has more limited free-tier options."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I generate 3D models from photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Upload a reference photo and TimrX's image-to-3D pipeline will generate a textured 3D mesh based on the visual content of your image."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I rig and animate the generated models?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Generated models export as standard GLB/GLTF files that you can import into Blender, Mixamo, or any 3D software for rigging and animation. The clean mesh topology from TimrX's remeshing tools helps ensure smooth deformation during animation."
+        }
+      }
     ]
   }
   </script>
@@ -168,6 +255,173 @@
     </div>
   </section>
 
+  <!-- Example Gallery -->
+  <section class="tool-examples">
+    <div class="container">
+      <h2 class="tool-examples-title">What You Can Create</h2>
+      <p class="tool-examples-intro">From fantastical creatures to everyday objects, TimrX's AI 3D generator turns plain-language prompts into fully textured 3D models. Below are six examples showing the range of assets you can produce in minutes without any 3D modeling experience.</p>
+      <div class="tool-examples-grid">
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-1.webp" alt="AI-generated medieval sword 3D model" width="400" height="300" loading="lazy" />
+          <h3>Medieval Sword</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A detailed medieval longsword with a leather-wrapped grip and ornate crossguard"</p>
+          <p class="tool-example-desc">Ideal for game development props, tabletop RPG assets, or historical visualization projects. The generated mesh includes PBR textures for metallic and roughness channels, making it render-ready in Unity or Unreal Engine.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-2.webp" alt="AI-generated succulent plant 3D model" width="400" height="300" loading="lazy" />
+          <h3>Potted Succulent</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A small succulent plant in a terracotta pot, soft diffused lighting"</p>
+          <p class="tool-example-desc">Perfect for architectural visualization, interior design mockups, and e-commerce product scenes. The AI captures organic leaf geometry and natural color gradients for a realistic look straight out of the generator.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-3.webp" alt="AI-generated robot character 3D model" width="400" height="300" loading="lazy" />
+          <h3>Sci-Fi Robot</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A compact bipedal robot with glowing blue eyes and brushed-metal armor plating"</p>
+          <p class="tool-example-desc">Great for concept art pipelines, indie game characters, and animated short films. Export the GLB file and bring it into Blender or Mixamo for rigging and animation in your existing workflow.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-4.webp" alt="AI-generated sneaker shoe 3D model" width="400" height="300" loading="lazy" />
+          <h3>Running Sneaker</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A modern running shoe with a chunky sole, white mesh upper, and neon green accents"</p>
+          <p class="tool-example-desc">Use case: product visualization and virtual try-on experiences. Footwear brands and marketplaces can generate 3D previews of shoe concepts before committing to physical prototypes, accelerating the design feedback loop.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-5.webp" alt="AI-generated low-poly cabin 3D model" width="400" height="300" loading="lazy" />
+          <h3>Low-Poly Cabin</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cozy low-poly log cabin with a chimney, surrounded by pine trees"</p>
+          <p class="tool-example-desc">Designed for stylized game environments, mobile games, and AR experiences. The low polygon count keeps file sizes small while maintaining visual charm, and USDZ export enables Apple AR Quick Look previews.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/3d-gen-6.webp" alt="AI-generated dragon figurine 3D model" width="400" height="300" loading="lazy" />
+          <h3>Dragon Figurine</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A stylized dragon figurine with folded wings, sitting on a rocky base"</p>
+          <p class="tool-example-desc">Excellent for 3D printing collectibles, board-game miniatures, and digital sculpting references. TimrX's remeshing pipeline produces watertight geometry so the model slices cleanly in Cura, PrusaSlicer, or Bambu Studio.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2 class="tool-comparison-title">How TimrX Compares to Other AI 3D Generators</h2>
+      <p class="tool-comparison-intro">Choosing the right AI 3D generation tool depends on your workflow, budget, and output requirements. The table below compares TimrX with three popular alternatives across the features that matter most to creators, developers, and makers.</p>
+      <div class="tool-comparison-wrap">
+        <table class="tool-comparison-table">
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">TimrX</th>
+              <th scope="col">Meshy</th>
+              <th scope="col">Shap-E</th>
+              <th scope="col">Point-E</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Browser-based</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No (Python)</td>
+              <td>No (Python)</td>
+            </tr>
+            <tr>
+              <td>Free tier</td>
+              <td>Yes</td>
+              <td>Limited</td>
+              <td>Yes (open-source)</td>
+              <td>Yes (open-source)</td>
+            </tr>
+            <tr>
+              <td>Text-to-3D</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Image-to-3D</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Remeshing</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Texturing</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Limited</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Export formats (GLB/STL/USDZ)</td>
+              <td>GLB, GLTF, STL, USDZ</td>
+              <td>GLB, FBX, OBJ</td>
+              <td>PLY, OBJ</td>
+              <td>PLY</td>
+            </tr>
+            <tr>
+              <td>Game engine ready</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Requires conversion</td>
+              <td>Requires conversion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tool-comparison-note">TimrX is the only option that combines browser-based access, a free tier, built-in remeshing, and multi-format export including USDZ for Apple AR Quick Look. If you need a single tool that covers the full pipeline from generation to print-ready output, TimrX is designed for that workflow.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>Is TimrX AI 3D generator free?</summary>
+          <p>Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. There is no software to install, no plugin to configure, and no account required to start creating. The free tier covers text-to-3D generation, image-to-3D conversion, basic remeshing, and GLB export.</p>
+        </details>
+        <details>
+          <summary>What 3D formats can I export?</summary>
+          <p>TimrX supports GLB, GLTF, STL, and USDZ export. GLB and GLTF are ideal for web viewers, game engines, and real-time rendering. STL is the standard for 3D printing slicers like Cura and PrusaSlicer. USDZ enables AR Quick Look on Apple devices, letting customers preview 3D products in their physical space.</p>
+        </details>
+        <details>
+          <summary>Can I use generated 3D models in Unity or Unreal?</summary>
+          <p>Absolutely. Export your model as a GLB or GLTF file and drag it into your Unity or Unreal Engine project. The file includes mesh geometry, UV maps, and PBR-compatible textures. Materials transfer automatically in most cases, reducing manual setup time when populating game scenes with AI-generated assets.</p>
+        </details>
+        <details>
+          <summary>How detailed are the generated 3D models?</summary>
+          <p>Model detail depends on prompt specificity and the complexity of the subject. Simple objects like cups or tools produce clean, game-ready meshes with minimal cleanup. Complex subjects like characters or vehicles benefit from the built-in remeshing tools, which let you adjust polygon density, smooth surfaces, and optimize topology before export.</p>
+        </details>
+        <details>
+          <summary>Can I 3D print the generated models?</summary>
+          <p>Yes. Use TimrX's remeshing pipeline to ensure the mesh is manifold (watertight) before exporting as STL or GLB. Import the file into your preferred slicer, set your layer height and infill, and print. Many users have successfully printed figurines, mechanical parts, and architectural models generated entirely by the AI.</p>
+        </details>
+        <details>
+          <summary>How is TimrX different from Meshy?</summary>
+          <p>Both platforms offer text-to-3D and image-to-3D capabilities, but TimrX differentiates itself with built-in remeshing, texture editing, and multi-format export including USDZ. TimrX runs entirely in the browser with no account walls on the free tier. Meshy requires registration and has more restrictive limits on free generations. TimrX also supports STL export natively, making it a better fit for 3D printing workflows.</p>
+        </details>
+        <details>
+          <summary>Can I generate 3D models from photos?</summary>
+          <p>Yes. Upload a reference photo and TimrX's image-to-3D pipeline interprets the visual content to generate a textured 3D mesh. This works best with clear, well-lit images of single objects against a neutral background. The AI extracts shape, color, and surface detail to produce a model you can further refine with the built-in editing tools.</p>
+        </details>
+        <details>
+          <summary>Can I rig and animate the generated models?</summary>
+          <p>Generated models export as standard GLB/GLTF files fully compatible with rigging and animation workflows. Import into Blender for manual rigging, or upload to Mixamo for automatic skeleton fitting and animation. TimrX's remeshing tools help produce clean quad-dominant topology that deforms smoothly during skeletal animation, reducing artifacts in joints and limbs.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
@@ -250,6 +504,17 @@
               <li><a href="/#works">Works</a></li>
               <li><a href="/#services">Services</a></li>
               <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
             </ul>
           </div>
           <div class="ft-col">

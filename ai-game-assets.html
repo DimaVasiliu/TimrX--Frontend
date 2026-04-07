@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Game Asset Generator — Create Game-Ready 3D Models | TimrX</title>
+  <meta name="description" content="Generate game-ready 3D assets with AI. Characters, vehicles, weapons, environments — optimized for Unity, Unreal Engine, and Godot." />
+  <meta name="keywords" content="AI game asset generator, game-ready 3D models AI, Unity 3D assets AI, Unreal Engine assets" />
+  <link rel="canonical" href="https://timrx.live/ai-game-assets" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/ai-game-assets" />
+  <meta property="og:title" content="AI Game Asset Generator — Create Game-Ready 3D Models | TimrX" />
+  <meta property="og:description" content="Generate game-ready 3D assets with AI. Characters, vehicles, weapons, environments — optimized for Unity, Unreal Engine, and Godot." />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/ai-game-assets" />
+  <meta name="twitter:title" content="AI Game Asset Generator — Create Game-Ready 3D Models | TimrX" />
+  <meta name="twitter:description" content="Generate game-ready 3D assets with AI. Characters, vehicles, weapons, environments — optimized for Unity, Unreal Engine, and Godot." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TimrX AI Game Asset Generator",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web",
+    "url": "https://timrx.live/ai-game-assets",
+    "description": "Generate game-ready 3D assets with AI. Characters, vehicles, weapons, and environments optimized for Unity, Unreal Engine, and Godot.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
+      { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
+      { "@type": "ListItem", "position": 3, "name": "AI Game Asset Generator", "item": "https://timrx.live/ai-game-assets" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What game engines are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX generates assets compatible with all major game engines including Unity, Unreal Engine, and Godot. Assets are exported in standard formats such as GLB, FBX, and OBJ with optimized polygon counts and properly configured UV maps, so they can be imported directly into your engine of choice without additional conversion steps."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are the generated assets optimized for real-time rendering?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, all generated game assets are optimized for real-time performance. The AI produces models with efficient polygon counts, clean topology, and properly unwrapped UVs. You can specify target polygon budgets during generation to ensure assets meet your project's performance requirements, whether you are building for mobile, console, or PC."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I generate characters with animations?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX generates fully rigged character models that are animation-ready. The AI applies standard skeletal rigs compatible with popular animation libraries like Mixamo, so you can apply walk cycles, combat animations, and custom motion capture data immediately after export. Rigging is handled automatically based on the character type detected in your prompt."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What types of game assets can I create?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can generate a wide range of game assets including player characters, NPCs, vehicles, weapons, props, environmental objects, buildings, terrain features, and UI elements. The AI handles both stylized and realistic art directions, so whether your game uses low-poly aesthetics or photorealistic visuals, TimrX can produce assets that match your project's visual style."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use the generated assets in commercial games?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Assets generated on paid TimrX plans include a full commercial-use license, meaning you can ship them in commercial games distributed on Steam, consoles, mobile app stores, or any other platform. Free-tier assets are licensed for personal and non-commercial use, such as prototyping and game jam entries. Review the terms of service for complete licensing details."
+        }
+      }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Generate AI Game Assets with TimrX",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Describe Your Asset", "text": "Enter a text prompt describing the game asset you need. Specify the type, art style, polygon budget, and any engine-specific requirements."},
+      {"@type": "HowToStep", "position": 2, "name": "Generate & Optimize", "text": "The AI generates your 3D asset with textures, proper topology, and optimized polygon counts. Refine with additional prompts or adjust parameters until the asset meets your needs."},
+      {"@type": "HowToStep", "position": 3, "name": "Export for Engine", "text": "Download your asset in GLB, FBX, or OBJ format and import it directly into Unity, Unreal Engine, Godot, or any other game engine."}
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">AI Tools</span><span class="mnl-sub">All AI tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT ME</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>AI Game Asset Generator — Create Game-Ready 3D Models</h1>
+      <p class="tool-subtitle">Generate production-quality 3D game assets from text prompts. Characters, vehicles, weapons, and environments — optimized for Unity, Unreal Engine, and Godot.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>AI game asset generation is transforming how studios and solo developers build their games. Instead of spending weeks modeling, texturing, and optimizing individual assets by hand, you describe what you need and the AI delivers a game-ready 3D model in seconds.</p>
+      <p>TimrX brings this capability into a single browser-based workspace. The platform generates 3D assets with clean topology, proper UV unwrapping, and optimized polygon counts that import directly into your game engine without manual cleanup or re-targeting.</p>
+      <p>Whether you are building a massive open-world RPG or a minimalist mobile puzzle game, TimrX adapts to your art direction and technical requirements, producing assets that match your visual style and performance budget from the very first generation.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Describe Your Asset</h3>
+          <p>Enter a text prompt describing the game asset you need. Specify the type, art style, polygon budget, and any engine-specific requirements.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Generate &amp; Optimize</h3>
+          <p>The AI generates your 3D asset with textures, proper topology, and optimized polygon counts. Refine with additional prompts or adjust parameters until the asset meets your needs.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Export for Engine</h3>
+          <p>Download your asset in GLB, FBX, or OBJ format and import it directly into Unity, Unreal Engine, Godot, or any other game engine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Indie Game Dev</h4>
+          <p>Solo developers and small studios can populate entire game worlds with unique characters, props, and environments without hiring a dedicated 3D art team.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Rapid Prototyping</h4>
+          <p>Test gameplay mechanics and level designs with production-quality placeholder assets instead of grey boxes, giving stakeholders a clear picture of the final product early in development.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Game Jams</h4>
+          <p>Generate polished 3D assets in minutes instead of hours during time-constrained game jams, letting your team focus on gameplay, code, and game feel.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Asset Libraries</h4>
+          <p>Build reusable asset libraries for your studio by generating themed collections of props, characters, and environment pieces that maintain a consistent art style across projects.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2>Frequently Asked Questions</h2>
+      <p>Answers to common questions about generating game assets with TimrX. Whether you are shipping your first indie title or managing assets for a large studio, these details will help you understand how TimrX fits into your game development pipeline.</p>
+
+      <details>
+        <summary>What game engines are supported?</summary>
+        <p>TimrX generates assets compatible with all major game engines including Unity, Unreal Engine, and Godot. Assets are exported in standard formats such as GLB, FBX, and OBJ with optimized polygon counts and properly configured UV maps, so they can be imported directly into your engine of choice without additional conversion steps. The platform also supports engine-specific material setups, meaning textures are exported with the correct PBR channels for each engine's rendering pipeline.</p>
+      </details>
+
+      <details>
+        <summary>Are the generated assets optimized for real-time rendering?</summary>
+        <p>Yes, all generated game assets are optimized for real-time performance. The AI produces models with efficient polygon counts, clean topology, and properly unwrapped UVs. You can specify target polygon budgets during generation to ensure assets meet your project's performance requirements, whether you are building for mobile, console, or PC. LOD (level-of-detail) variants can also be generated automatically, giving you multiple resolution versions of the same asset for distance-based rendering.</p>
+      </details>
+
+      <details>
+        <summary>Can I generate characters with animations?</summary>
+        <p>TimrX generates fully rigged character models that are animation-ready. The AI applies standard skeletal rigs compatible with popular animation libraries like Mixamo, so you can apply walk cycles, combat animations, and custom motion capture data immediately after export. Rigging is handled automatically based on the character type detected in your prompt, whether it is a humanoid, quadruped, or custom creature.</p>
+      </details>
+
+      <details>
+        <summary>What types of game assets can I create?</summary>
+        <p>You can generate a wide range of game assets including player characters, NPCs, vehicles, weapons, props, environmental objects, buildings, terrain features, and UI elements. The AI handles both stylized and realistic art directions, so whether your game uses low-poly aesthetics, cel-shaded visuals, or photorealistic rendering, TimrX can produce assets that match your project's visual identity consistently.</p>
+      </details>
+
+      <details>
+        <summary>Can I use the generated assets in commercial games?</summary>
+        <p>Assets generated on paid TimrX plans include a full commercial-use license, meaning you can ship them in commercial games distributed on Steam, consoles, mobile app stores, or any other platform. Free-tier assets are licensed for personal and non-commercial use, which covers prototyping, learning, and game jam entries. Review the terms of service for complete licensing details before publishing.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Start Generating Game Assets</h2>
+      <div class="tool-cta-buttons">
+        <a href="/hub" class="nav-cta">Open AI Hub</a>
+        <a href="/ai-tools" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse All Tools</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/ai-3d-generator" class="tool-link-card">
+          <h4>AI 3D Generator</h4>
+          <p>Create 3D models from text or image prompts.</p>
+        </a>
+        <a href="/text-to-3d" class="tool-link-card">
+          <h4>Text to 3D</h4>
+          <p>Convert text prompts into detailed 3D models.</p>
+        </a>
+        <a href="/image-to-3d" class="tool-link-card">
+          <h4>Image to 3D</h4>
+          <p>Convert any image into a textured 3D model.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-linked AI Tools -->
+  <section class="related-tools" style="max-width:1100px;margin:3rem auto;padding:0 1.5rem;">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;margin-bottom:1rem;">Explore More AI Tools</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+      <a href="/ai-image-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Image Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate AI-powered images from text prompts.</p>
+      </a>
+      <a href="/ai-video-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Video Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate AI-powered videos from text or image prompts.</p>
+      </a>
+      <a href="/ai-3d-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI 3D Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate 3D models from text descriptions using AI.</p>
+      </a>
+      <a href="/text-to-3d" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">Text to 3D</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Convert text prompts into detailed 3D models.</p>
+      </a>
+      <a href="/3d-print-model-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">3D Print Model Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate print-ready 3D models with AI assistance.</p>
+      </a>
+    </div>
+    <p style="margin-top:1.2rem;text-align:center;">
+      <a href="/docs" style="color:#3b82f6;text-decoration:none;font-size:.9rem;">View Documentation &rarr;</a>
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">AI Creative Platform</span>
+          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Explore</h3>
+            <ul class="ft-links">
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/#works">Works</a></li>
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/ai-game-assets">AI Game Assets</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Legal</h3>
+            <ul class="ft-links">
+              <li><a href="/terms">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/cookies">Cookies</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; AI creative tools</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+</body>
+</html>

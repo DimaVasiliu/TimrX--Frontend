@@ -8,6 +8,9 @@
 
   // API endpoint - always use the custom domain for proper cookie handling
   const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+  const CSRF_COOKIE_NAME = 'timrx_csrf';
+  const CSRF_HEADER_NAME = 'X-CSRF-Token';
+  const NATIVE_FETCH = window.fetch.bind(window);
 
   // Security: validate checkout redirect URLs against trusted payment domains
   const TRUSTED_CHECKOUT_HOSTS = ['checkout.mollie.com', 'www.mollie.com', 'checkout.stripe.com'];
@@ -57,6 +60,33 @@
 
   console.log('[Credits] Init - API_BASE:', API_BASE, 'hostname:', window.location.hostname);
   console.log('[Credits] Cross-origin API?', new URL(API_BASE).hostname !== window.location.hostname);
+
+  function readCookie(name) {
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function isStateChangingMethod(method = 'GET') {
+    return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || 'GET').toUpperCase());
+  }
+
+  async function ensureCsrfToken() {
+    if (window.TimrXApi?.ensureCsrfToken) return window.TimrXApi.ensureCsrfToken();
+    const existing = readCookie(CSRF_COOKIE_NAME);
+    if (existing) return existing;
+    try {
+      const response = await NATIVE_FETCH(`${API_BASE}/api/me`, {
+        method: 'GET',
+        credentials: 'include',
+        mode: 'cors',
+        headers: { Accept: 'application/json' },
+      });
+      await response.text().catch(() => '');
+    } catch (err) {
+      console.warn('[Credits][CSRF] Bootstrap failed:', err?.message || err);
+    }
+    return readCookie(CSRF_COOKIE_NAME);
+  }
 
   // ─────────────────────────────────────────────────────────────
   // Centralized API Client - ALWAYS includes credentials for cross-origin cookies
@@ -110,7 +140,21 @@
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
       try {
-        const response = await fetch(fullUrl, { ...fetchOptions, signal: controller.signal });
+        const requestHeaders = new Headers(fetchOptions.headers || {});
+        if (isStateChangingMethod(method) && !requestHeaders.has(CSRF_HEADER_NAME)) {
+          const token =
+            window.TimrXApi?.getCsrfToken?.()
+            || readCookie(CSRF_COOKIE_NAME)
+            || await ensureCsrfToken();
+          if (token) requestHeaders.set(CSRF_HEADER_NAME, token);
+        }
+
+        const fetchImpl = window.TimrXApi?.fetchWithCsrf || NATIVE_FETCH;
+        const response = await fetchImpl(fullUrl, {
+          ...fetchOptions,
+          headers: requestHeaders,
+          signal: controller.signal,
+        });
         clearTimeout(timeoutId);
 
         const text = await response.text();

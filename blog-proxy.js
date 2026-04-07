@@ -56,6 +56,9 @@ Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
+Disallow: /3dprint
+Disallow: /converter
+Disallow: /prompts
 
 # Sitemap index
 Sitemap: https://timrx.live/sitemap.xml
@@ -191,10 +194,26 @@ ${generateSeoSitemap()}
     // 8. Proxy dynamic SEO files to backend
     //    (sitemap index, page/recent sitemaps)
     // ─────────────────────────────────────────────────────────────
-    if (pathname === '/sitemap.xml' ||
-        pathname === '/sitemap-pages.xml' ||
+    if (pathname === '/sitemap-pages.xml' ||
         pathname === '/sitemap-recent.xml') {
       return proxyToBackend(request, `${BLOG_ORIGIN}${pathname}`);
+    }
+
+    // Sitemap index: proxy from backend then inject sitemap-seo.xml
+    if (pathname === '/sitemap.xml') {
+      const backendResponse = await proxyToBackend(request, `${BLOG_ORIGIN}/sitemap.xml`);
+      const xml = await backendResponse.text();
+      const injected = xml.replace(
+        '</sitemapindex>',
+        `  <sitemap>\n    <loc>https://timrx.live/sitemap-seo.xml</loc>\n    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n  </sitemap>\n</sitemapindex>`
+      );
+      return new Response(injected, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
     }
 
     // ─────────────────────────────────────────────────────────────

@@ -30,9 +30,9 @@
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
@@ -60,6 +60,69 @@
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
       { "@type": "ListItem", "position": 3, "name": "Image to 3D", "item": "https://timrx.live/image-to-3d" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Convert Images to 3D Models",
+    "description": "Upload any image and convert it into a textured 3D model using AI.",
+    "step": [
+      { "@type": "HowToStep", "position": 1, "name": "Upload an Image", "text": "Upload a photo, illustration, or screenshot of the object you want to convert to 3D." },
+      { "@type": "HowToStep", "position": 2, "name": "AI Processing", "text": "The AI analyzes the image and generates a 3D mesh with textures matching the original." },
+      { "@type": "HowToStep", "position": 3, "name": "Download", "text": "Download the 3D model as GLB or STL. Refine it with TimrX's built-in remeshing tools if needed." }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is image-to-3D free on TimrX?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. TimrX offers a free tier that lets you convert images to 3D models at no cost. Upload your image, generate the 3D mesh, and download the result without a subscription. Higher-resolution outputs and batch processing are available on paid plans." }
+      },
+      {
+        "@type": "Question",
+        "name": "What types of images work best?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Clear photographs of single objects against simple backgrounds produce the best results. Product photos, character art, and well-lit subjects with visible detail give the AI the most information to reconstruct accurate 3D geometry and textures." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use photos from my phone?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. Phone photos work well as input for image-to-3D conversion. For optimal results, make sure the subject is in focus, well lit, and centered in the frame. Avoid heavy motion blur or extreme angles." }
+      },
+      {
+        "@type": "Question",
+        "name": "What 3D export formats are available?",
+        "acceptedAnswer": { "@type": "Answer", "text": "TimrX supports GLB and STL export formats. GLB retains textures and materials, making it ideal for web viewers, game engines, and AR applications. STL is the standard format for 3D printing slicers like Cura and PrusaSlicer." }
+      },
+      {
+        "@type": "Question",
+        "name": "How accurate is the 3D reconstruction?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Accuracy depends on image quality and subject complexity. Simple, well-defined objects produce highly accurate meshes. Complex or occluded subjects may require manual refinement. The AI infers depth from a single image, so some geometric approximation is expected." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I 3D print the resulting model?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Export the model as STL and load it into your preferred slicer. For best print results, use TimrX's built-in remeshing tools to ensure the mesh is watertight and has uniform polygon density before slicing." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I retexture the generated model?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can retexture image-to-3D models using TimrX's AI retexturing tools or by importing the GLB file into Blender, Substance Painter, or any 3D software that supports PBR materials." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I animate image-to-3D models?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The generated mesh can be rigged and animated in external tools like Blender or Mixamo. Export as GLB, import into your animation software, add an armature, and animate. For character models, auto-rigging services can speed up the workflow." }
+      }
     ]
   }
   </script>
@@ -168,6 +231,183 @@
     </div>
   </section>
 
+  <!-- Example Gallery -->
+  <section class="tool-examples">
+    <div class="container">
+      <h2 class="tool-examples-title">What You Can Create</h2>
+      <p class="tool-examples-intro">From casual phone snapshots to polished product photography, TimrX image-to-3D handles a wide range of input styles. Below are six examples showing what was uploaded and what the AI produced. Each model was generated in under a minute with no manual editing.</p>
+      <div class="tool-examples-grid">
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-1.webp" alt="Running shoe photo converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Running Shoe</h3>
+          <p>A side-profile photo of a running shoe was uploaded from a phone camera. The AI reconstructed the sole tread, lace eyelets, and upper mesh fabric into a textured 3D model suitable for e-commerce product previews and augmented reality try-on experiences.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-2.webp" alt="Ceramic mug photo converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Ceramic Mug</h3>
+          <p>A studio-lit photograph of a handmade ceramic mug with a glazed finish. The resulting 3D mesh captured the handle curvature, rim thickness, and surface glaze reflections. The STL export was 3D printed at 0.12mm layer height with excellent fidelity.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-3.webp" alt="Fantasy character illustration converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Fantasy Character</h3>
+          <p>A digital illustration of a fantasy knight was used as input. Despite being a flat 2D drawing, the AI inferred armor plating depth, cape draping, and weapon geometry. The GLB output was imported directly into Unity for a game prototype.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-4.webp" alt="Bonsai tree photo converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Bonsai Tree</h3>
+          <p>An overhead photograph of a bonsai tree in a ceramic pot. The AI separated the trunk, branches, and foliage clusters into distinct geometry, preserving the organic branching structure. The textured model works well as a decorative asset in architectural renders.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-5.webp" alt="Vintage camera photo converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Vintage Camera</h3>
+          <p>A front-facing photo of a vintage film camera with visible dials, lens rings, and textured leather grip. The 3D reconstruction retained the mechanical detail of each control surface. Ideal for product visualization or museum digitization workflows.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/img-3d-6.webp" alt="Toy robot illustration converted to 3D model" width="400" height="300" loading="lazy">
+          <h3>Toy Robot</h3>
+          <p>A children's book illustration of a toy robot with rounded limbs and antenna. The AI translated the flat cartoon style into smooth, printable geometry with clean quad topology. After remeshing in TimrX, the model was 3D printed as a desk figurine.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2 class="tool-comparison-title">How TimrX Image-to-3D Compares</h2>
+      <p class="tool-comparison-intro">Choosing the right image-to-3D tool matters. Some platforms require desktop installs, others lock core features behind paywalls, and many lack export formats suitable for 3D printing. The table below compares TimrX against three popular alternatives across the features that matter most for creators, developers, and hobbyists working with AI-generated 3D content.</p>
+      <div class="tool-comparison-wrapper">
+        <table class="tool-comparison-table">
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">TimrX</th>
+              <th scope="col">Kaedim</th>
+              <th scope="col">Luma AI</th>
+              <th scope="col">InstantMesh</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Browser-based</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Free tier</td>
+              <td>Yes</td>
+              <td>Limited</td>
+              <td>Limited</td>
+              <td>Yes (open source)</td>
+            </tr>
+            <tr>
+              <td>Single image input</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Multi-view</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Texturing</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Limited</td>
+            </tr>
+            <tr>
+              <td>Remeshing</td>
+              <td>Yes (built-in)</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Export GLB / STL</td>
+              <td>Both</td>
+              <td>GLB only</td>
+              <td>GLB only</td>
+              <td>OBJ only</td>
+            </tr>
+            <tr>
+              <td>3D print ready</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No</td>
+              <td>Requires post-processing</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tool-comparison-note">TimrX is the only platform in this comparison that offers built-in remeshing alongside both GLB and STL export, making it uniquely suited for users who need print-ready models directly from the browser without additional software.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details class="tool-faq-item">
+          <summary>Is image-to-3D free on TimrX?</summary>
+          <div class="tool-faq-answer">
+            <p>Yes. TimrX offers a free tier that lets you convert images to 3D models at no cost. Upload your image, generate the 3D mesh, and download the result without a subscription. The free tier covers standard-resolution outputs suitable for prototyping, learning, and personal projects. Higher-resolution outputs, batch processing, and priority queue access are available on paid plans for professional and commercial workflows.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>What types of images work best?</summary>
+          <div class="tool-faq-answer">
+            <p>Clear photographs of single objects against simple, uncluttered backgrounds produce the best results. Product photos, character art, and well-lit subjects with visible surface detail give the AI the most information to reconstruct accurate 3D geometry and textures. Avoid images with heavy occlusion where large parts of the object are hidden, as the AI must infer those areas. Illustrations and concept art also work well, especially when the subject has defined edges and consistent lighting direction.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>Can I use photos from my phone?</summary>
+          <div class="tool-faq-answer">
+            <p>Absolutely. Phone photos work well as input for image-to-3D conversion. Modern smartphone cameras produce more than enough resolution and detail for accurate 3D reconstruction. For optimal results, make sure the subject is in focus, well lit with even lighting, and centered in the frame. Avoid heavy motion blur, extreme wide-angle distortion, or very low-light conditions. Portrait mode photos can also work, though the artificial background blur may slightly affect edge reconstruction.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>What 3D export formats are available?</summary>
+          <div class="tool-faq-answer">
+            <p>TimrX supports GLB and STL export formats. GLB (GL Transmission Format Binary) retains textures, materials, and color information, making it ideal for web 3D viewers, game engines like Unity and Unreal, and augmented reality applications. STL (Standard Tessellation Language) is the standard format for 3D printing slicers such as Cura, PrusaSlicer, and Bambu Studio. Choosing the right format depends on whether you need visual fidelity for rendering or geometric accuracy for fabrication.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>How accurate is the 3D reconstruction?</summary>
+          <div class="tool-faq-answer">
+            <p>Accuracy depends on image quality, subject complexity, and how much of the object is visible. Simple, well-defined objects like mugs, shoes, or furniture produce highly accurate meshes that closely match the source geometry. Complex subjects with thin features, transparency, or heavy self-occlusion may require manual refinement after generation. Since the AI infers depth and hidden surfaces from a single 2D image, some geometric approximation is inherent to the process. For critical dimensional accuracy, consider using multi-view input or photogrammetry as a complement.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>Can I 3D print the resulting model?</summary>
+          <div class="tool-faq-answer">
+            <p>Yes. Export the model as STL and load it directly into your preferred slicer software. For best print results, use TimrX's built-in remeshing tools to ensure the mesh is watertight, has uniform polygon density, and contains no non-manifold edges before slicing. Most generated models print well on FDM printers at standard settings. For resin printers, the high polygon count of AI-generated meshes is typically an advantage, as it preserves fine surface detail in the cured output.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>Can I retexture the generated model?</summary>
+          <div class="tool-faq-answer">
+            <p>Yes. You can retexture image-to-3D models using TimrX's AI retexturing tools, which let you apply new materials and color schemes without leaving the browser. Alternatively, export the GLB file and import it into Blender, Substance Painter, or any 3D software that supports PBR (physically based rendering) materials. The UV mapping generated by TimrX provides a solid foundation for manual texture painting or procedural material application.</p>
+          </div>
+        </details>
+        <details class="tool-faq-item">
+          <summary>Can I animate image-to-3D models?</summary>
+          <div class="tool-faq-answer">
+            <p>The generated mesh can be rigged and animated in external tools like Blender, Maya, or Mixamo. Export the model as GLB, import it into your animation software, add an armature or skeleton, and create keyframe or procedural animations. For character models, auto-rigging services such as Mixamo can significantly speed up the workflow by automatically placing bone structures. Mechanical objects can be animated with simple transform keyframes without rigging.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
@@ -250,6 +490,17 @@
               <li><a href="/#works">Works</a></li>
               <li><a href="/#services">Services</a></li>
               <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
             </ul>
           </div>
           <div class="ft-col">

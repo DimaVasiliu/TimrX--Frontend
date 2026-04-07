@@ -31,9 +31,9 @@
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="legal.css">
@@ -198,9 +198,8 @@
         <h2>3. Third-Party Services</h2>
         <p>The following external services are loaded on this site. Each may collect data according to their own privacy policies.</p>
 
-        <h3>3.1 Google Fonts</h3>
-        <p>All pages load web fonts from <strong>fonts.googleapis.com</strong> and <strong>fonts.gstatic.com</strong>. When your browser requests these fonts, Google receives your IP address and standard request headers (browser type, language, referring page). Google may use this data in accordance with their privacy policy.</p>
-        <p>Learn more: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a> &middot; <a href="https://developers.google.com/fonts/faq/privacy" target="_blank" rel="noopener">Google Fonts Privacy FAQ</a></p>
+        <h3>3.1 Fonts</h3>
+        <p>All web fonts (Inter, Bebas Neue, Space Grotesk) are self-hosted on our servers. No requests are made to Google Fonts or any third-party font service. Your font data stays entirely within our infrastructure.</p>
 
         <h3>3.2 YouTube Embeds</h3>
         <p>The 3D Print Hub page embeds YouTube videos. When you load a page with an embedded video, YouTube (Google) may set cookies and collect data such as your IP address, viewing history, and device information. This applies even if you do not play the video.</p>

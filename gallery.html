@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TimrX Gallery — AI-Generated Images, Videos &amp; 3D Models</title>
+  <meta name="description" content="Browse AI-generated images, videos, and 3D models created with TimrX. See what's possible with text-to-image, text-to-video, and text-to-3D generation." />
+  <link rel="canonical" href="https://timrx.live/gallery" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/gallery" />
+  <meta property="og:title" content="TimrX Gallery — AI-Generated Images, Videos &amp; 3D Models" />
+  <meta property="og:description" content="Browse AI-generated images, videos, and 3D models created with TimrX. See what's possible with text-to-image, text-to-video, and text-to-3D generation." />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/gallery" />
+  <meta name="twitter:title" content="TimrX Gallery — AI-Generated Images, Videos &amp; 3D Models" />
+  <meta name="twitter:description" content="Browse AI-generated images, videos, and 3D models created with TimrX. See what's possible with text-to-image, text-to-video, and text-to-3D generation." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: CollectionPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "TimrX Gallery — AI-Generated Images, Videos & 3D Models",
+    "description": "Browse AI-generated images, videos, and 3D models created with TimrX. See what's possible with text-to-image, text-to-video, and text-to-3D generation.",
+    "url": "https://timrx.live/gallery",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "TimrX",
+      "url": "https://timrx.live/"
+    }
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
+      { "@type": "ListItem", "position": 2, "name": "Gallery", "item": "https://timrx.live/gallery" }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">AI Tools</span><span class="mnl-sub">All AI tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT ME</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>AI Generation Gallery — Images, Videos &amp; 3D Models</h1>
+      <p class="tool-subtitle">Explore what creators have built with TimrX. Browse AI-generated images, videos, and 3D models — all created from simple text prompts.</p>
+    </div>
+  </section>
+
+  <!-- Filter Bar -->
+  <section class="tool-intro">
+    <div class="container">
+      <div class="gallery-filters" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:2rem;">
+        <button class="gallery-filter-btn" data-filter="all" style="padding:.5rem 1.25rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#fff;color:#0b0b0b;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;">All</button>
+        <button class="gallery-filter-btn" data-filter="image" style="padding:.5rem 1.25rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#fff;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;">Images</button>
+        <button class="gallery-filter-btn" data-filter="video" style="padding:.5rem 1.25rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#fff;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;">Videos</button>
+        <button class="gallery-filter-btn" data-filter="3d" style="padding:.5rem 1.25rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#fff;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;">3D Models</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Grid -->
+  <section class="tool-examples">
+    <div class="container">
+      <div class="tool-examples-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
+
+        <!-- IMAGE 1 -->
+        <div class="example-card" data-type="image">
+          <img src="/img/gallery/image-1.webp" alt="AI generated cyberpunk cityscape at sunset" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Cyberpunk cityscape at sunset, neon reflections on wet asphalt, volumetric fog, cinematic wide-angle"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-image-generator">AI Image Generator</a></span>
+        </div>
+
+        <!-- IMAGE 2 -->
+        <div class="example-card" data-type="image">
+          <img src="/img/gallery/image-2.webp" alt="AI generated watercolor portrait of a woman with flowers in her hair" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Watercolor portrait of a woman with wildflowers woven into her hair, soft pastel tones, loose brushstrokes"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-image-generator">AI Image Generator</a></span>
+        </div>
+
+        <!-- IMAGE 3 -->
+        <div class="example-card" data-type="image">
+          <img src="/img/gallery/image-3.webp" alt="AI generated photorealistic product shot of a perfume bottle on marble" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Luxury perfume bottle on white marble surface, soft studio lighting, commercial photography, shallow depth of field"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-image-generator">AI Image Generator</a></span>
+        </div>
+
+        <!-- IMAGE 4 -->
+        <div class="example-card" data-type="image">
+          <img src="/img/gallery/image-4.webp" alt="AI generated fantasy landscape with floating islands and waterfalls" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Fantasy landscape with floating islands, cascading waterfalls into clouds, golden hour lighting, matte painting style"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-image-generator">AI Image Generator</a></span>
+        </div>
+
+        <!-- VIDEO 1 -->
+        <div class="example-card" data-type="video">
+          <img src="/img/gallery/video-1.webp" alt="AI generated video of ocean waves crashing on rocky cliffs" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Cinematic slow-motion ocean waves crashing against dark rocky cliffs, aerial drone perspective, misty spray"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-video-generator">AI Video Generator</a></span>
+        </div>
+
+        <!-- VIDEO 2 -->
+        <div class="example-card" data-type="video">
+          <img src="/img/gallery/video-2.webp" alt="AI generated video of a cat walking through a neon-lit alley" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Black cat walking through a neon-lit Tokyo alley at night, rain puddles reflecting pink and blue signs, smooth tracking shot"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-video-generator">AI Video Generator</a></span>
+        </div>
+
+        <!-- VIDEO 3 -->
+        <div class="example-card" data-type="video">
+          <img src="/img/gallery/video-3.webp" alt="AI generated video of northern lights over a frozen lake" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Time-lapse of northern lights dancing over a frozen Scandinavian lake, stars visible, gentle green and purple aurora"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-video-generator">AI Video Generator</a></span>
+        </div>
+
+        <!-- VIDEO 4 -->
+        <div class="example-card" data-type="video">
+          <img src="/img/gallery/video-4.webp" alt="AI generated video of abstract liquid metal morphing shapes" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Abstract liquid chrome morphing into geometric shapes, dark background, reflective surface, smooth looping animation"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-video-generator">AI Video Generator</a></span>
+        </div>
+
+        <!-- 3D MODEL 1 -->
+        <div class="example-card" data-type="3d">
+          <img src="/img/gallery/3d-1.webp" alt="AI generated 3D model of a medieval sword with ornate handle" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Medieval longsword with ornate golden crossguard, leather-wrapped grip, high-detail game asset, PBR textures"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-3d-generator">AI 3D Generator</a></span>
+        </div>
+
+        <!-- 3D MODEL 2 -->
+        <div class="example-card" data-type="3d">
+          <img src="/img/gallery/3d-2.webp" alt="AI generated 3D model of a stylized low-poly fox" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Stylized low-poly fox sitting, soft orange and white gradient, clean topology, ready for 3D printing"</p>
+          <span class="gallery-tool">Generated with <a href="/text-to-3d">Text to 3D</a></span>
+        </div>
+
+        <!-- 3D MODEL 3 -->
+        <div class="example-card" data-type="3d">
+          <img src="/img/gallery/3d-3.webp" alt="AI generated 3D model of a futuristic helmet with visor" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Sci-fi tactical helmet with retractable visor, matte black with orange accents, hard-surface modeling style"</p>
+          <span class="gallery-tool">Generated with <a href="/ai-3d-generator">AI 3D Generator</a></span>
+        </div>
+
+        <!-- 3D MODEL 4 -->
+        <div class="example-card" data-type="3d">
+          <img src="/img/gallery/3d-4.webp" alt="AI generated 3D model of a succulent plant in a ceramic pot" width="400" height="400" loading="lazy" />
+          <p class="gallery-prompt">"Realistic succulent plant in a white ceramic pot, detailed leaf geometry, soft natural lighting, product visualization"</p>
+          <span class="gallery-tool">Generated with <a href="/image-to-3d">Image to 3D</a></span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Create Your Own</h2>
+      <div class="tool-cta-buttons">
+        <a href="/hub" class="nav-cta">Open AI Hub</a>
+        <a href="/ai-tools" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse All Tools</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">AI Creative Platform</span>
+          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Explore</h3>
+            <ul class="ft-links">
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/#works">Works</a></li>
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Legal</h3>
+            <ul class="ft-links">
+              <li><a href="/terms">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/cookies">Cookies</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; AI creative tools</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Animation Generator — Animate 3D Models with AI | TimrX</title>
+  <meta name="description" content="Animate 3D models with AI. Add walking, running, combat, and idle animations to your models. Rig and animate without manual keyframing." />
+  <meta name="keywords" content="AI animation generator, animate 3D model AI, AI rigging, auto-animate 3D" />
+  <link rel="canonical" href="https://timrx.live/ai-animation-generator" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/ai-animation-generator" />
+  <meta property="og:title" content="AI Animation Generator — Animate 3D Models with AI | TimrX" />
+  <meta property="og:description" content="Animate 3D models with AI. Add walking, running, combat, and idle animations without manual keyframing." />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/ai-animation-generator" />
+  <meta name="twitter:title" content="AI Animation Generator — Animate 3D Models with AI | TimrX" />
+  <meta name="twitter:description" content="Animate 3D models with AI. Add walking, running, combat, and idle animations without manual keyframing." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TimrX AI Animation Generator",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web",
+    "url": "https://timrx.live/ai-animation-generator",
+    "description": "Animate 3D models with AI. Add walking, running, combat, and idle animations. Rig and animate without manual keyframing.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
+      { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
+      { "@type": "ListItem", "position": 3, "name": "AI Animation Generator", "item": "https://timrx.live/ai-animation-generator" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is the AI animation generator free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, TimrX offers a free tier that lets you animate a limited number of 3D models each day at no cost. The free plan includes access to a library of standard animation presets such as walking, idle, and basic gestures. Paid plans unlock advanced animations, longer sequences, batch processing, and priority rendering."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What 3D file formats are supported for upload?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX supports GLB, GLTF, FBX, and OBJ formats for animation input. The platform automatically analyzes your model's mesh structure and applies an AI-generated rig before animating. For best results, upload models with clean topology and a T-pose or A-pose base position."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does the AI handle rigging automatically?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. TimrX's AI rigging system automatically detects the skeletal structure of humanoid and quadruped models and generates a complete rig with weighted bones. This eliminates the manual rigging step that traditionally takes hours in tools like Blender or Maya. You can review and adjust the auto-generated rig before applying animations."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use the animated models in game engines?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. Animated models can be exported in FBX and GLB formats, which are directly compatible with Unity, Unreal Engine, Godot, and other major game engines. The exported files include the skeletal rig and animation data, so you can import them into your project and use them immediately without additional setup."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What types of animations are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX provides a growing library of animation types including walking, running, jumping, idle breathing, combat attacks, dance moves, waving, sitting, and custom text-described motions. The AI can also blend multiple animation clips together for smooth transitions, and you can adjust speed, intensity, and looping behavior for each animation."
+        }
+      }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Animate 3D Models with AI on TimrX",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Upload 3D Model", "text": "Upload your 3D model in GLB, FBX, or OBJ format. The AI analyzes the mesh and automatically generates a skeleton rig."},
+      {"@type": "HowToStep", "position": 2, "name": "Choose Animation", "text": "Select from a library of preset animations or describe a custom motion with text. Adjust speed, intensity, and looping to match your needs."},
+      {"@type": "HowToStep", "position": 3, "name": "Export", "text": "Preview the animated model in the browser and export it as FBX or GLB with the rig and animation data included, ready for game engines or video production."}
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">AI Tools</span><span class="mnl-sub">All AI tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT ME</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>AI Animation Generator — Animate 3D Models with AI</h1>
+      <p class="tool-subtitle">Bring your 3D models to life with AI-powered animation. Upload a static model, choose a motion, and export a fully rigged and animated asset ready for games, film, or social media.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>Animating 3D models has traditionally required deep expertise in rigging, keyframing, and motion curves. AI animation changes that by automating the most tedious parts of the process, letting creators go from a static mesh to a moving character in minutes instead of days.</p>
+      <p>TimrX uses AI to analyze your 3D model's geometry, generate a skeleton rig, and apply realistic motion data from a library of animations or from custom text descriptions. Whether you need a character walking, fighting, dancing, or performing a product spin, the platform handles the heavy lifting.</p>
+      <p>Every animated model can be previewed directly in the browser, fine-tuned with speed and blending controls, and exported in industry-standard formats that work with Unity, Unreal Engine, Blender, and other production tools.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Upload 3D Model</h3>
+          <p>Upload your 3D model in GLB, FBX, or OBJ format. The AI analyzes the mesh and automatically generates a skeleton rig.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Choose Animation</h3>
+          <p>Select from a library of preset animations or describe a custom motion with text. Adjust speed, intensity, and looping to match your needs.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Export</h3>
+          <p>Preview the animated model in the browser and export it as FBX or GLB with the rig and animation data included, ready for game engines or video production.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Game Characters</h4>
+          <p>Add walk cycles, combat moves, and idle animations to game-ready characters without manual keyframing or mocap equipment.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Social Media Content</h4>
+          <p>Create animated 3D clips for TikTok, Instagram Reels, and YouTube Shorts that stand out from static imagery.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Product Demos</h4>
+          <p>Animate product models with turntable spins, exploded views, and assembly sequences for marketing and e-commerce.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Film Pre-viz</h4>
+          <p>Block out scenes with animated characters for pre-visualization, storyboarding, and pitch presentations before full production begins.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2>Frequently Asked Questions</h2>
+      <p>Below you will find answers to the most common questions about the TimrX AI animation generator. Whether you are a game developer looking to speed up asset creation or a content creator exploring animated 3D visuals, these answers should help you get started.</p>
+
+      <details>
+        <summary>Is the AI animation generator free to use?</summary>
+        <p>Yes, TimrX offers a free tier that lets you animate a limited number of 3D models each day at no cost. The free plan includes access to a library of standard animation presets such as walking, idle, and basic gestures. If you need advanced animations like combat sequences, longer clips, batch processing, or priority rendering speeds, paid plans are available with flexible monthly and yearly pricing options.</p>
+      </details>
+
+      <details>
+        <summary>What 3D file formats are supported for upload?</summary>
+        <p>TimrX supports GLB, GLTF, FBX, and OBJ formats for animation input. The platform automatically analyzes your model's mesh structure and applies an AI-generated rig before animating. For best results, upload models with clean topology and a T-pose or A-pose base position. Models with excessively high polygon counts may be automatically decimated to optimize processing speed without visibly affecting animation quality.</p>
+      </details>
+
+      <details>
+        <summary>Does the AI handle rigging automatically?</summary>
+        <p>Yes. TimrX's AI rigging system automatically detects the skeletal structure of humanoid and quadruped models and generates a complete rig with weighted bones. This eliminates the manual rigging step that traditionally takes hours in tools like Blender or Maya. You can review and adjust the auto-generated rig before applying animations, and the system supports custom bone configurations for non-standard character designs.</p>
+      </details>
+
+      <details>
+        <summary>Can I use the animated models in game engines?</summary>
+        <p>Absolutely. Animated models can be exported in FBX and GLB formats, which are directly compatible with Unity, Unreal Engine, Godot, and other major game engines. The exported files include the skeletal rig and animation data, so you can import them into your project and use them immediately without additional setup. Animation clips are exported as separate tracks, making it easy to wire them into state machines and animation controllers.</p>
+      </details>
+
+      <details>
+        <summary>What types of animations are available?</summary>
+        <p>TimrX provides a growing library of animation types including walking, running, jumping, idle breathing, combat attacks, dance moves, waving, sitting, and custom text-described motions. The AI can also blend multiple animation clips together for smooth transitions, and you can adjust speed, intensity, and looping behavior for each animation. New presets are added regularly based on community requests and emerging use cases in gaming, film, and social media content creation.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Start Animating Your Models</h2>
+      <div class="tool-cta-buttons">
+        <a href="/hub" class="nav-cta">Open AI Hub</a>
+        <a href="/ai-tools" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse All Tools</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/ai-3d-generator" class="tool-link-card">
+          <h4>AI 3D Generator</h4>
+          <p>Create 3D models from text or image prompts.</p>
+        </a>
+        <a href="/ai-video-generator" class="tool-link-card">
+          <h4>AI Video Generator</h4>
+          <p>Turn text or images into short video clips with AI.</p>
+        </a>
+        <a href="/image-to-3d" class="tool-link-card">
+          <h4>Image to 3D</h4>
+          <p>Convert any image into a textured 3D model.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-linked AI Tools -->
+  <section class="related-tools" style="max-width:1100px;margin:3rem auto;padding:0 1.5rem;">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;margin-bottom:1rem;">Explore More AI Tools</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+      <a href="/ai-image-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Image Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate AI-powered images from text prompts.</p>
+      </a>
+      <a href="/ai-video-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Video Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate AI-powered videos from text or image prompts.</p>
+      </a>
+      <a href="/ai-3d-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI 3D Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate 3D models from text descriptions using AI.</p>
+      </a>
+      <a href="/text-to-3d" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">Text to 3D</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Convert text prompts into detailed 3D models.</p>
+      </a>
+      <a href="/image-to-3d" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">Image to 3D</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Upload an image and convert it into a 3D model.</p>
+      </a>
+    </div>
+    <p style="margin-top:1.2rem;text-align:center;">
+      <a href="/docs" style="color:#3b82f6;text-decoration:none;font-size:.9rem;">View Documentation &rarr;</a>
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">AI Creative Platform</span>
+          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Explore</h3>
+            <ul class="ft-links">
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/#works">Works</a></li>
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/ai-animation-generator">AI Animation Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Legal</h3>
+            <ul class="ft-links">
+              <li><a href="/terms">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/cookies">Cookies</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; AI creative tools</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+</body>
+</html>

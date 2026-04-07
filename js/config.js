@@ -12,6 +12,12 @@ export const BLOG_API_BASE = TIMRX_ENV.blogApiBase || window.TIMRX_BLOGS_API_BAS
 export const BACKEND = TIMRX_ENV.threedApiBase || window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
 export const CHAT_API = TIMRX_ENV.chatApiBase || window.TIMRX_API_BASE || 'https://chat.timrx.live';
 
+const NATIVE_FETCH = window.fetch.bind(window);
+const CSRF_COOKIE_NAME = 'timrx_csrf';
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+let csrfBootstrapPromise = null;
+let globalFetchPatched = false;
+
 // Debug: log resolved environment at startup
 console.log('[Config] env:', FRONTEND_ENV, 'blog:', BLOG_API_BASE, '3d:', BACKEND, 'chat:', CHAT_API);
 console.log('[Config] Cross-origin 3D API?', new URL(BACKEND).hostname !== window.location.hostname);
@@ -47,6 +53,107 @@ export const byId = (id) => document.getElementById(id);
  */
 export function safe(el, fn) {
   if (el) fn();
+}
+
+function getCookieValue(name) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+function isStateChangingMethod(method = 'GET') {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || 'GET').toUpperCase());
+}
+
+function targets3dBackend(url) {
+  try {
+    const resolved = new URL(url, window.location.origin);
+    const backendOrigin = new URL(BACKEND, window.location.origin).origin;
+    return resolved.origin === backendOrigin && resolved.pathname.startsWith('/api/');
+  } catch {
+    return false;
+  }
+}
+
+export function getCsrfToken() {
+  return getCookieValue(CSRF_COOKIE_NAME);
+}
+
+export async function ensureCsrfToken() {
+  const existing = getCsrfToken();
+  if (existing) return existing;
+  if (csrfBootstrapPromise) return csrfBootstrapPromise;
+
+  csrfBootstrapPromise = (async () => {
+    try {
+      const response = await NATIVE_FETCH(`${BACKEND}/api/me`, {
+        method: 'GET',
+        credentials: 'include',
+        mode: 'cors',
+        headers: { Accept: 'application/json' },
+      });
+      await response.text().catch(() => '');
+    } catch (err) {
+      console.warn('[CSRF] Bootstrap request failed:', err?.message || err);
+    }
+    return getCsrfToken();
+  })().finally(() => {
+    csrfBootstrapPromise = null;
+  });
+
+  return csrfBootstrapPromise;
+}
+
+async function withCsrfHeaders(url, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  if (!isStateChangingMethod(method) || !targets3dBackend(url)) {
+    return options;
+  }
+
+  const headers = new Headers(options.headers || {});
+  if (!headers.has(CSRF_HEADER_NAME)) {
+    const token = getCsrfToken() || await ensureCsrfToken();
+    if (token) headers.set(CSRF_HEADER_NAME, token);
+  }
+
+  return {
+    ...options,
+    credentials: options.credentials || 'include',
+    headers,
+  };
+}
+
+export async function fetchWithCsrf(input, init = {}) {
+  const requestUrl = input instanceof Request ? input.url : String(input);
+  const requestInit = input instanceof Request
+    ? {
+        method: input.method,
+        headers: input.headers,
+        credentials: input.credentials,
+        mode: input.mode,
+        cache: input.cache,
+        redirect: input.redirect,
+        referrer: input.referrer,
+        referrerPolicy: input.referrerPolicy,
+        integrity: input.integrity,
+        keepalive: input.keepalive,
+        signal: input.signal,
+        ...init,
+      }
+    : init;
+
+  const finalInit = await withCsrfHeaders(requestUrl, requestInit);
+  if (input instanceof Request) {
+    return NATIVE_FETCH(new Request(input, finalInit));
+  }
+  return NATIVE_FETCH(input, finalInit);
+}
+
+function installGlobalCsrfFetchPatch() {
+  if (globalFetchPatched || typeof window.fetch !== 'function') return;
+  window.fetch = function patchedFetch(input, init) {
+    return fetchWithCsrf(input, init);
+  };
+  globalFetchPatched = true;
 }
 
 // ============================================================================
@@ -219,8 +326,9 @@ export async function apiFetch(url, options = {}) {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const response = await fetch(fullUrl, {
-        ...fetchOptions,
+      const requestOptions = await withCsrfHeaders(fullUrl, fetchOptions);
+      const response = await NATIVE_FETCH(fullUrl, {
+        ...requestOptions,
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -786,11 +894,16 @@ export function getLoadableModelUrl(url) {
 // ============================================================================
 // GLOBAL EXPOSURE - Allow non-module scripts (like credits.js) to use API helpers
 // ============================================================================
+installGlobalCsrfFetchPatch();
+
 window.TimrXApi = {
   BACKEND,
   apiFetch,
   apiGet,
   apiPost,
+  ensureCsrfToken,
+  fetchWithCsrf,
+  getCsrfToken,
   updateSessionInfo,
   readWalletCache,
   writeWalletCache,

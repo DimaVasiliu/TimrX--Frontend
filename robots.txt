@@ -9,6 +9,9 @@ Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
+Disallow: /3dprint
+Disallow: /converter
+Disallow: /prompts
 
 # Block SEO tools
 User-agent: AhrefsBot

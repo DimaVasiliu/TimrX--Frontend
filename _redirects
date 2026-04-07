@@ -32,6 +32,11 @@
 /3dprint-demo-video.html        /3dprint-demo-video       301
 /ai-tools.html                  /ai-tools                 301
 /ai-knowledge.html              /ai-knowledge             301
+/pricing.html                   /pricing                  301
+/gallery.html                   /gallery                  301
+/ai-animation-generator.html    /ai-animation-generator   301
+/ai-game-assets.html            /ai-game-assets           301
+/ai-texture-generator.html      /ai-texture-generator     301
 
 # ----------------------------
 # Admin rewrites (non-standard paths, Pretty URLs can't resolve these)
@@ -68,3 +73,8 @@
 /3dprint-demo-video/        /3dprint-demo-video       301
 /ai-tools/                  /ai-tools                 301
 /ai-knowledge/              /ai-knowledge             301
+/pricing/                   /pricing                  301
+/gallery/                   /gallery                  301
+/ai-animation-generator/    /ai-animation-generator   301
+/ai-game-assets/            /ai-game-assets           301
+/ai-texture-generator/      /ai-texture-generator     301

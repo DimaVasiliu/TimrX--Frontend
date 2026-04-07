@@ -233,15 +233,10 @@
       imagesizes="(max-width: 600px) 90vw, 600px"
       fetchpriority="high">
 
-<!-- Fonts: Preconnect + combined request + preload critical -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap"></noscript>
-<!-- Space Grotesk: only used in blog title (below fold) — loaded separately -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap"></noscript>
+<!-- Self-hosted fonts (no external DNS lookups) -->
+<link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
 
 <!-- Font Awesome: Async load (no preload — below fold, not critical) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
@@ -359,7 +354,7 @@
         <div class="hero-stage">
               <!-- decor -->
             <div class="hero-plate hide-mobile" aria-hidden="true"></div>
-            <div class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER" role="heading" aria-level="2">CREATIVE DEVELOPER</div>
+            <h2 class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</h2>
             <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
             <ul class="hero-list" aria-label="Capabilities">
                 <li><a href="#works">WEB DEVELOPMENT</a></li>
@@ -1133,29 +1128,37 @@
     <div class="container">
       <h2 class="seo-tools-title">Explore TimrX AI Tools</h2>
       <div class="seo-tools-grid">
-        <a href="/ai-tools" class="seo-tool-card">
-          <h3>AI Tools Directory</h3>
-          <p>Browse all AI-powered creative tools — image, video, and 3D generation in one place.</p>
+        <a href="/ai-image-generator" class="seo-tool-card">
+          <h3>AI Image Generator</h3>
+          <p>Generate stunning images from text prompts. Concept art, product mockups, textures, and creative visuals in seconds.</p>
         </a>
-        <a href="/hub" class="seo-tool-card">
-          <h3>AI Creative Hub</h3>
-          <p>Generate images, videos, and 3D models from text or image prompts in one workspace.</p>
+        <a href="/ai-video-generator" class="seo-tool-card">
+          <h3>AI Video Generator</h3>
+          <p>Create AI videos from text or images. Text-to-video and image-to-video with automatic motion and transitions.</p>
         </a>
-        <a href="/3dprint" class="seo-tool-card">
+        <a href="/ai-3d-generator" class="seo-tool-card">
           <h3>AI 3D Model Generator</h3>
-          <p>Create print-ready 3D models from text or images. Remesh, texture, and export GLB files.</p>
+          <p>Generate 3D models from text or images. AI-powered mesh creation with texturing and GLB export.</p>
         </a>
-        <a href="/ai-knowledge" class="seo-tool-card">
-          <h3>AI Knowledge Hub</h3>
-          <p>Tutorials and guides on AI image generation, video creation, 3D modeling, and creative workflows.</p>
+        <a href="/text-to-3d" class="seo-tool-card">
+          <h3>Text to 3D</h3>
+          <p>Describe any object and get a textured 3D model. No modeling experience needed.</p>
+        </a>
+        <a href="/image-to-3d" class="seo-tool-card">
+          <h3>Image to 3D</h3>
+          <p>Upload any image and convert it into a 3D model with AI-powered depth estimation.</p>
+        </a>
+        <a href="/3d-print-model-generator" class="seo-tool-card">
+          <h3>3D Print Model Generator</h3>
+          <p>Generate print-ready 3D models from text or images. Export STL for FDM and resin printers.</p>
+        </a>
+        <a href="/ai-tools" class="seo-tool-card">
+          <h3>All AI Tools</h3>
+          <p>Browse the complete directory of AI-powered creative tools on TimrX.</p>
         </a>
         <a href="/blogs" class="seo-tool-card">
           <h3>Blog</h3>
-          <p>Guides on AI workflows, 3D web development, Three.js, GSAP, and creative engineering.</p>
-        </a>
-        <a href="/archive" class="seo-tool-card">
-          <h3>Archive</h3>
-          <p>Browse all posts by category. Filter, search, and discover tutorials and deep dives.</p>
+          <p>Guides on AI workflows, 3D generation, video creation, and creative engineering.</p>
         </a>
       </div>
     </div>
@@ -1183,6 +1186,17 @@
               <li><a href="#works">Works</a></li>
               <li><a href="#services">Services</a></li>
               <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
             </ul>
           </div>
           <div class="ft-col">

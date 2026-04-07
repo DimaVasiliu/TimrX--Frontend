@@ -30,9 +30,9 @@
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
@@ -60,6 +60,93 @@
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
       { "@type": "ListItem", "position": 3, "name": "Text to 3D", "item": "https://timrx.live/text-to-3d" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Convert Text to 3D Models",
+    "description": "Turn text descriptions into textured 3D models using AI-powered text-to-3D generation.",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Write a Prompt", "text": "Describe the 3D object you want in plain text. Include details about shape, material, style, and intended use."},
+      {"@type": "HowToStep", "position": 2, "name": "Generate", "text": "The AI processes your prompt and generates a detailed 3D mesh with PBR textures."},
+      {"@type": "HowToStep", "position": 3, "name": "Refine & Export", "text": "Remesh, retexture, or adjust the model. Export as GLB for rendering or STL for 3D printing."}
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is text-to-3D free on TimrX?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. TimrX offers a free tier for text-to-3D generation. You can create 3D models from text prompts without a subscription. Free-tier users receive a set number of generations per day, and premium plans unlock higher limits and priority processing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What kind of prompts work best for text-to-3D?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Detailed, specific prompts produce the best results. Include information about shape, material, colour, style, and intended use. For example, 'a low-poly medieval wooden shield with iron rivets and a red dragon crest' will generate a far better model than simply 'shield'."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I edit the generated 3D model?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. After generation you can remesh, retexture, and adjust the model within the TimrX platform. You can also export it as GLB or STL and open it in Blender, ZBrush, or any other 3D editing software for further refinement."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What export formats are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TimrX supports GLB and STL exports. GLB is ideal for real-time rendering, game engines, and web viewers. STL is the standard format for 3D printing slicers like Cura, PrusaSlicer, and Bambu Studio."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does generation take?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Most text-to-3D generations complete within 30 seconds to 2 minutes depending on the complexity of the prompt and current server load. Simple objects generate faster, while highly detailed or multi-part scenes may take slightly longer."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use text-to-3D models for 3D printing?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. TimrX includes remeshing tools that optimise geometry for 3D printing. Export the model as STL, import it into your slicer, and print. The platform is designed with 3D printing workflows in mind."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What detail level can I expect?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "AI-generated 3D models typically capture overall shape, proportions, and surface detail well. Fine mechanical parts or intricate text may need manual refinement. The quality continues to improve with each model update."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I animate text-to-3D models?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Generated GLB models can be imported into animation tools like Blender or Mixamo. TimrX also integrates with AI animation pipelines, so you can rig and animate your model directly from the platform."
+        }
+      }
     ]
   }
   </script>
@@ -168,6 +255,173 @@
     </div>
   </section>
 
+  <!-- Example Gallery -->
+  <section class="tool-examples">
+    <div class="container">
+      <h2 class="tool-examples-title">What You Can Create</h2>
+      <p class="tool-examples-intro">From quick concept models to print-ready figurines, text-to-3D handles a wide range of creative tasks. Below are six examples generated entirely from text prompts, each demonstrating a different use case and style. Every model was exported as a GLB and required no manual modeling.</p>
+      <div class="tool-examples-grid">
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-1.webp" alt="Low-poly medieval castle generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Low-Poly Medieval Castle</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A low-poly medieval stone castle with four towers, a drawbridge, and a blue flag on the tallest tower."</p>
+          <p class="tool-example-desc">Ideal for game environments and tabletop terrain. The low-poly style keeps the file lightweight while retaining recognisable architectural details. Exported as GLB for Unity integration.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-2.webp" alt="Steampunk robot figurine generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Steampunk Robot Figurine</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A steampunk robot with brass gears, copper pipes, a top hat, and glowing green eyes. Display pose."</p>
+          <p class="tool-example-desc">A collectible-style figurine with rich surface detail. After remeshing, this model was 3D printed on a resin printer at 50-micron layer height with excellent results.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-3.webp" alt="Realistic succulent plant generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Realistic Succulent Plant</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A realistic potted succulent in a terracotta pot. Soft green leaves with slightly pink tips. Studio lighting."</p>
+          <p class="tool-example-desc">Perfect for architectural visualisation and product rendering. The PBR textures capture the waxy leaf surface and matte terracotta accurately, making it ready for interior scenes.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-4.webp" alt="Sci-fi blaster weapon generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Sci-Fi Blaster Prop</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A futuristic sci-fi blaster pistol with neon blue energy cells, matte black grip, and chrome barrel."</p>
+          <p class="tool-example-desc">Game-ready weapon prop with clean topology. The model was imported into Blender for minor UV adjustments before being used as an in-game asset for a first-person shooter prototype.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-5.webp" alt="Cartoon fox character generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Cartoon Fox Character</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cute cartoon fox sitting upright with a fluffy tail, big round eyes, and an orange-and-white colour scheme."</p>
+          <p class="tool-example-desc">Stylised character suitable for animation or 3D printing as a desk toy. The exaggerated proportions and smooth surfaces translated well to both FDM and resin printing workflows.</p>
+        </article>
+        <article class="tool-example-card">
+          <img src="/img/examples/text-3d-6.webp" alt="Miniature cityscape generated from a text prompt" width="400" height="300" loading="lazy" />
+          <h3>Miniature Cityscape</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A miniature modern cityscape with skyscrapers, a park, roads, and tiny cars. Isometric diorama style."</p>
+          <p class="tool-example-desc">An isometric diorama that works as both a digital render piece and a physical 3D print. The compact composition makes it a great desk ornament when printed at 150 percent scale.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2 class="tool-comparison-title">Text-to-3D Platform Comparison</h2>
+      <p class="tool-comparison-intro">Choosing the right text-to-3D tool depends on your workflow, budget, and output requirements. The table below compares TimrX against three popular alternatives across the features that matter most to creators, designers, and makers who need production-ready 3D models from text prompts.</p>
+      <div class="tool-comparison-wrap">
+        <table class="tool-comparison-table">
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">TimrX</th>
+              <th scope="col">Meshy</th>
+              <th scope="col">CSM</th>
+              <th scope="col">Luma Genie</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Browser-based</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Free tier</td>
+              <td>Yes</td>
+              <td>Limited</td>
+              <td>Limited</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Prompt quality</td>
+              <td>High</td>
+              <td>High</td>
+              <td>Medium</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td>Texturing</td>
+              <td>PBR auto-textured</td>
+              <td>PBR auto-textured</td>
+              <td>Basic colour</td>
+              <td>NeRF-based</td>
+            </tr>
+            <tr>
+              <td>Remeshing</td>
+              <td>Built-in</td>
+              <td>Not included</td>
+              <td>Not included</td>
+              <td>Not included</td>
+            </tr>
+            <tr>
+              <td>Export GLB / STL</td>
+              <td>Both</td>
+              <td>GLB only</td>
+              <td>GLB only</td>
+              <td>GLB only</td>
+            </tr>
+            <tr>
+              <td>3D print support</td>
+              <td>Full pipeline</td>
+              <td>Manual export</td>
+              <td>Not optimised</td>
+              <td>Not optimised</td>
+            </tr>
+            <tr>
+              <td>Animation pipeline</td>
+              <td>Integrated</td>
+              <td>Separate tool</td>
+              <td>Not available</td>
+              <td>Not available</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tool-comparison-note">TimrX stands out with its integrated 3D printing pipeline, built-in remeshing, and dual GLB/STL export. If your workflow ends at a 3D printer or a game engine, TimrX covers the entire path from prompt to finished output without switching tools.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>Is text-to-3D free on TimrX?</summary>
+          <p>Yes. TimrX offers a free tier for text-to-3D generation. You can create 3D models from text prompts without a paid subscription. Free-tier users receive a daily allocation of generations, and premium plans unlock higher limits, priority processing, and access to advanced features like batch generation.</p>
+        </details>
+        <details>
+          <summary>What kind of prompts work best for text-to-3D?</summary>
+          <p>The most effective prompts are detailed and specific. Describe the shape, material, colour palette, artistic style, and intended use of the object. For example, "a weathered wooden treasure chest with iron hinges, barnacles on the sides, and a slightly open lid revealing gold coins" will produce a much richer result than "treasure chest." Adding context like "low-poly," "realistic," or "cartoon style" further guides the AI toward your vision.</p>
+        </details>
+        <details>
+          <summary>Can I edit the generated 3D model?</summary>
+          <p>Absolutely. Within TimrX, you can remesh the geometry to adjust polygon density, retexture surfaces with new PBR materials, and tweak proportions. If you need deeper editing, export the model as GLB or STL and open it in external tools like Blender, ZBrush, or Meshmixer. The generated mesh is fully editable and not locked to the platform.</p>
+        </details>
+        <details>
+          <summary>What export formats are available?</summary>
+          <p>TimrX supports GLB and STL exports. GLB (GL Transmission Format Binary) is the standard for real-time 3D on the web, game engines like Unity and Unreal, and AR/VR applications. STL (Stereolithography) is the universal format for 3D printing slicers including Cura, PrusaSlicer, OrcaSlicer, and Bambu Studio. Both formats are generated with optimised geometry.</p>
+        </details>
+        <details>
+          <summary>How long does generation take?</summary>
+          <p>Most text-to-3D generations complete in 30 seconds to 2 minutes. Simple, low-detail objects generate fastest, while complex scenes with multiple elements or intricate surface detail may take up to 2 minutes. Server load can also affect processing time. Premium users benefit from priority queuing, which reduces wait times during peak hours.</p>
+        </details>
+        <details>
+          <summary>Can I use text-to-3D models for 3D printing?</summary>
+          <p>Yes, and TimrX is specifically designed for this. The platform includes built-in remeshing tools that repair non-manifold geometry, close holes, and optimise triangle count for slicing. Export as STL, import into your preferred slicer, and print. Whether you use FDM, SLA, or SLS printers, the exported files are print-ready with minimal post-processing required.</p>
+        </details>
+        <details>
+          <summary>What detail level can I expect?</summary>
+          <p>AI-generated models capture overall form, proportions, and broad surface detail reliably. Organic shapes like characters, animals, and plants tend to produce the best results. Fine mechanical details, small text, and thin protruding features may require manual refinement after generation. Model quality improves with each platform update as the underlying AI is continuously trained on larger datasets.</p>
+        </details>
+        <details>
+          <summary>Can I animate text-to-3D models?</summary>
+          <p>Yes. Exported GLB files are compatible with animation software including Blender, Maya, and Mixamo for auto-rigging. TimrX also connects to AI-powered animation pipelines, allowing you to rig and animate characters directly from the platform. This makes text-to-3D a viable starting point for animated content, game characters, and short-form video assets.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
@@ -250,6 +504,17 @@
               <li><a href="/#works">Works</a></li>
               <li><a href="/#services">Services</a></li>
               <li><a href="/#contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/ai-image-generator">AI Image Generator</a></li>
+              <li><a href="/ai-video-generator">AI Video Generator</a></li>
+              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
             </ul>
           </div>
           <div class="ft-col">

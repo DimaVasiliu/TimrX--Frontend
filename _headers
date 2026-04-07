@@ -1,6 +1,12 @@
 # Ensure correct MIME types for static assets
 # This prevents SPA fallback from serving HTML for static files
 
+/*
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
 /*.css
   Content-Type: text/css; charset=utf-8
 
@@ -23,13 +29,21 @@
   Content-Type: text/css; charset=utf-8
 
 # Font files
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /*.woff2
   Content-Type: font/woff2
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.woff
   Content-Type: font/woff
+  Cache-Control: public, max-age=31536000, immutable
 
-# Images
+# Images — long cache for all image assets
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /*.png
   Content-Type: image/png
 
@@ -47,3 +61,16 @@
 
 /*.ico
   Content-Type: image/x-icon
+
+# Versioned CSS/JS — long cache (cache-busted via ?v= param)
+/styles.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/media/index.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/script.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/app.js
+  Cache-Control: public, max-age=31536000, immutable

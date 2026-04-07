@@ -57,6 +57,16 @@ export function renderSeoPage(page) {
   }
   </script>
 
+  ${(page.faq && page.faq.length) ? `<script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[${page.faq.map(f => `
+      {"@type":"Question","name":"${f.q.replace(/"/g, '\\"')}","acceptedAnswer":{"@type":"Answer","text":"${f.a.replace(/"/g, '\\"')}"}}`).join(',')}
+    ]
+  }
+  </script>` : ''}
+
   <style>
     :root{--bg:#0b0b0b;--ink:#f5f5f5;--muted:#a9a9a9;--line:#1d1d1d;--panel:#0e0e0e;--maxw:1280px;--gutter:28px;--navH:70px}
     *{box-sizing:border-box;margin:0}
@@ -113,6 +123,24 @@ export function renderSeoPage(page) {
     .related-link{display:block;padding:16px 20px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;transition:all .2s}
     .related-link:hover{border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.04)}
     .related-link small{display:block;color:var(--muted);font-weight:400;margin-top:4px;font-size:12px}
+
+    /* Section headings */
+    .info-grid h2, .seo-faq h2, .more-prompts h2{font-size:24px;font-weight:800;margin-bottom:20px;grid-column:1/-1}
+
+    /* FAQ */
+    .seo-faq{margin:40px 0}
+    .seo-faq details{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+    .seo-faq summary{padding:16px 20px;font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .seo-faq summary::-webkit-details-marker{display:none}
+    .seo-faq summary::after{content:'+';font-size:20px;font-weight:300;color:var(--muted);transition:transform .2s}
+    .seo-faq details[open] summary::after{content:'\u2212'}
+    .seo-faq details p{padding:0 20px 16px;font-size:14px;line-height:1.7;color:var(--muted)}
+
+    /* More prompts */
+    .more-prompts{margin:40px 0}
+    .more-prompts ul{list-style:none;padding:0;display:grid;gap:10px}
+    .more-prompts li{padding:14px 20px;border:1px solid var(--line);border-radius:10px;font-size:14px;color:#ccc;font-style:italic;background:var(--panel);transition:border-color .2s}
+    .more-prompts li:hover{border-color:rgba(14,165,233,.4)}
 
     /* CTA */
     .seo-cta{text-align:center;padding:60px 0;margin:40px 0;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
@@ -195,6 +223,32 @@ export function renderSeoPage(page) {
       </div>
     </div>
   </section>
+
+  ${(page.tips && page.tips.length) ? `<section class="container">
+    <div class="info-grid">
+      <h2>Prompt Tips for ${page.h1}</h2>
+      ${page.tips.map(tip => `<div class="info-card"><p>${tip}</p></div>`).join('\n      ')}
+    </div>
+  </section>` : ''}
+
+  ${(page.useCases && page.useCases.length) ? `<section class="container">
+    <div class="info-grid">
+      <h2>Use Cases</h2>
+      ${page.useCases.map(uc => `<div class="info-card"><h3>${uc.title}</h3><p>${uc.desc}</p></div>`).join('\n      ')}
+    </div>
+  </section>` : ''}
+
+  ${(page.relatedPrompts && page.relatedPrompts.length) ? `<section class="container more-prompts">
+    <h2>More Prompts to Try</h2>
+    <ul>
+      ${page.relatedPrompts.map(p => `<li>${p}</li>`).join('\n      ')}
+    </ul>
+  </section>` : ''}
+
+  ${(page.faq && page.faq.length) ? `<section class="container seo-faq">
+    <h2>Frequently Asked Questions</h2>
+    ${page.faq.map(f => `<details><summary>${f.q}</summary><p>${f.a}</p></details>`).join('\n    ')}
+  </section>` : ''}
 
   <section class="container">
     <div class="seo-cta">
