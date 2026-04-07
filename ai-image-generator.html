@@ -37,6 +37,102 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <style>
+    .tool-examples-grid{
+      perspective:1400px;
+    }
+
+    .tool-examples .tool-example-card{
+      position:relative;
+      transform-style:preserve-3d;
+      background:
+        linear-gradient(180deg, rgba(20,20,20,.96) 0%, rgba(10,10,10,.98) 100%);
+      box-shadow:
+        0 18px 38px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.04);
+      transition:
+        transform .32s cubic-bezier(.22,.61,.36,1),
+        box-shadow .32s cubic-bezier(.22,.61,.36,1),
+        border-color .32s ease;
+      will-change:transform;
+    }
+
+    .tool-examples .tool-example-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.16) 0%, transparent 34%, transparent 66%, rgba(14,165,233,.14) 100%);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .32s ease;
+      z-index:2;
+    }
+
+    .tool-examples .tool-example-card::after{
+      content:"";
+      position:absolute;
+      left:18px;
+      right:18px;
+      bottom:-18px;
+      height:34px;
+      background:radial-gradient(circle at center, rgba(14,165,233,.22), transparent 72%);
+      filter:blur(16px);
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(10px);
+      transition:opacity .32s ease, transform .32s ease;
+      z-index:0;
+    }
+
+    .tool-examples .tool-example-card img{
+      position:relative;
+      z-index:1;
+      backface-visibility:hidden;
+      transform:translateZ(18px) scale(1);
+      transform-origin:center center;
+      filter:saturate(1.02) contrast(1.02);
+      transition:
+        transform .36s cubic-bezier(.22,.61,.36,1),
+        filter .36s ease;
+    }
+
+    .tool-examples .tool-example-card .tool-example-prompt,
+    .tool-examples .tool-example-card p:last-child{
+      position:relative;
+      z-index:1;
+      transform:translateZ(8px);
+    }
+
+    @media (hover:hover){
+      .tool-examples .tool-example-card:hover{
+        transform:translateY(-10px) rotateX(5deg) rotateY(-4deg);
+        border-color:rgba(14,165,233,.28);
+        box-shadow:
+          0 28px 54px rgba(0,0,0,.36),
+          0 0 0 1px rgba(255,255,255,.03),
+          inset 0 1px 0 rgba(255,255,255,.05);
+      }
+
+      .tool-examples .tool-example-card:nth-child(2n):hover{
+        transform:translateY(-10px) rotateX(5deg) rotateY(4deg);
+      }
+
+      .tool-examples .tool-example-card:hover::before{
+        opacity:1;
+      }
+
+      .tool-examples .tool-example-card:hover::after{
+        opacity:1;
+        transform:translateY(0);
+      }
+
+      .tool-examples .tool-example-card:hover img{
+        transform:translateZ(28px) scale(1.045);
+        filter:saturate(1.08) contrast(1.06) brightness(1.02);
+      }
+    }
+  </style>
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
