@@ -39,31 +39,12 @@
   <link rel="stylesheet" href="footer.css">
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <style>
-    .tool-examples-grid{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;
-    }
-    @media(max-width:720px){
-      .tool-examples-grid{grid-template-columns:1fr 1fr;}
-    }
-    @media(max-width:480px){
-      .tool-examples-grid{grid-template-columns:1fr;}
-    }
-    .tool-example-card{
-      background:#0d0d0f;border-radius:12px;overflow:hidden;
-      border:1px solid rgba(255,255,255,.06);
-      transition:border-color .2s,transform .2s;
-    }
-    .tool-example-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-2px);}
     .tool-example-card model-viewer{
-      display:block;width:100%;aspect-ratio:1/1;background:#0a0a0a;
-      --poster-color:transparent;
+      display:block;width:100%;aspect-ratio:4/3;
+      background:#0a0a0a;--poster-color:transparent;
     }
     .tool-example-card model-viewer::part(default-progress-bar){display:none}
     .tool-example-card model-viewer::part(default-ar-button){display:none}
-    .tool-example-card__body{padding:.85rem 1rem 1rem;border-top:1px solid rgba(255,255,255,.04);}
-    .tool-example-card__body h3{margin:0 0 .3rem;font-size:.95rem;color:#fff;font-weight:600;}
-    .tool-example-card__body .tool-example-prompt{margin:0 0 .4rem;font-size:.78rem;color:#999;line-height:1.45;}
-    .tool-example-card__body .tool-example-desc{margin:0;font-size:.75rem;color:#666;line-height:1.45;}
   </style>
 
   <!-- JSON-LD: SoftwareApplication -->
@@ -291,51 +272,39 @@
       <div class="tool-examples-grid">
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod1.glb" alt="AI-generated dragon knight 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Dragon Knight</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "A fierce dragon knight warrior in battle stance with spread wings and a long spiked tail, dark crimson armor with gold trim, holding a sword, fantasy figurine"</p>
-            <p class="tool-example-desc">Fantasy characters and creatures are one of the strongest use cases for AI 3D generation. Ready for game engines, tabletop miniature printing, or concept art pipelines.</p>
-          </div>
+          <h3>Dragon Knight</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A fierce dragon knight warrior in battle stance with spread wings and a long spiked tail, dark crimson armor with gold trim, holding a sword, fantasy figurine"</p>
+          <p class="tool-example-desc">Fantasy characters and creatures are one of the strongest use cases for AI 3D generation. Ready for game engines, tabletop miniature printing, or concept art pipelines.</p>
         </article>
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod2.glb" alt="AI-generated rustic cottage 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Rustic Village Cottage</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "A cozy rustic village cottage with a peaked shingled roof, wooden shuttered windows, arched front door, and a stone chimney, warm earthy brown tones, miniature diorama"</p>
-            <p class="tool-example-desc">Architectural and environment assets ideal for game level design, tabletop terrain, and diorama scenes.</p>
-          </div>
+          <h3>Rustic Village Cottage</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cozy rustic village cottage with a peaked shingled roof, wooden shuttered windows, arched front door, and a stone chimney, warm earthy brown tones, miniature diorama"</p>
+          <p class="tool-example-desc">Architectural and environment assets ideal for game level design, tabletop terrain, and diorama scenes.</p>
         </article>
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod3.glb" alt="AI-generated ornate revolver 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Ornate Revolver</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "An ornate antique revolver with intricate scrollwork engravings on dark gunmetal, polished wooden grip with brass inlays, Victorian steampunk collectible"</p>
-            <p class="tool-example-desc">Weapon and prop models for games, film pre-visualization, and collectible design with detailed surface textures.</p>
-          </div>
+          <h3>Ornate Revolver</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "An ornate antique revolver with intricate scrollwork engravings on dark gunmetal, polished wooden grip with brass inlays, Victorian steampunk collectible"</p>
+          <p class="tool-example-desc">Weapon and prop models for games, film pre-visualization, and collectible design with detailed surface textures.</p>
         </article>
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod4.glb" alt="AI-generated cartoon raccoon 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Cartoon Raccoon</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "A chubby cartoon raccoon character wearing a black and white striped suit with an orange bow tie, standing with arms at sides, stylized 3D collectible figurine"</p>
-            <p class="tool-example-desc">Stylized characters for animation, indie games, and vinyl toy design with exaggerated proportions and bold color blocking.</p>
-          </div>
+          <h3>Cartoon Raccoon</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A chubby cartoon raccoon character wearing a black and white striped suit with an orange bow tie, standing with arms at sides, stylized 3D collectible figurine"</p>
+          <p class="tool-example-desc">Stylized characters for animation, indie games, and vinyl toy design with exaggerated proportions and bold color blocking.</p>
         </article>
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod5.glb" alt="AI-generated cyberpunk character 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Cyberpunk Character</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "A cyberpunk male character in a long dark teal trench coat with glowing neon green circuit accents, heavy combat boots, standing confidently, sci-fi RPG character"</p>
-            <p class="tool-example-desc">Full character models for RPGs and sci-fi projects. Handles both hard and soft surface materials on a single character asset.</p>
-          </div>
+          <h3>Cyberpunk Character</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cyberpunk male character in a long dark teal trench coat with glowing neon green circuit accents, heavy combat boots, standing confidently, sci-fi RPG character"</p>
+          <p class="tool-example-desc">Full character models for RPGs and sci-fi projects. Handles both hard and soft surface materials on a single character asset.</p>
         </article>
         <article class="tool-example-card">
           <model-viewer src="/vid/models/mod6.glb" alt="AI-generated chibi mushroom warrior 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
-          <div class="tool-example-card__body">
-            <h3>Chibi Mushroom Warrior</h3>
-            <p class="tool-example-prompt"><strong>Prompt:</strong> "A chibi mushroom warrior figurine on a square display pedestal, large red and white spotted cap as a helmet, holding a round shield, collectible miniature style"</p>
-            <p class="tool-example-desc">3D printing collectibles and board-game miniatures. Remeshing produces watertight geometry for clean slicing.</p>
-          </div>
+          <h3>Chibi Mushroom Warrior</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A chibi mushroom warrior figurine on a square display pedestal, large red and white spotted cap as a helmet, holding a round shield, collectible miniature style"</p>
+          <p class="tool-example-desc">3D printing collectibles and board-game miniatures. Remeshing produces watertight geometry for clean slicing.</p>
         </article>
       </div>
     </div>
