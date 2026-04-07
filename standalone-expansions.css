@@ -1325,6 +1325,20 @@ body.converter-page .converter-export-btn {
     padding-top: 32px;
   }
 
+  body.company-page .about-hero-actions,
+  body.converter-page .converter-hero-actions {
+    gap: 10px;
+  }
+
+  body.company-page .about-primary-btn,
+  body.company-page .about-secondary-btn,
+  body.company-page .about-community-btn,
+  body.converter-page .converter-primary-btn,
+  body.converter-page .converter-secondary-btn {
+    padding: 11px 20px;
+    font-size: 12px;
+  }
+
   body.company-page .about-hero h1,
   body.company-page .about-title,
   body.converter-page .converter-hero h1,
@@ -1680,6 +1694,26 @@ body.converter-page .converter-format-info ul li::before {
   body.converter-page .converter-upload-content p {
     font-size: 13px;
   }
+
+  body.company-page .about-hero-actions,
+  body.converter-page .converter-hero-actions,
+  body.company-page .about-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  body.company-page .about-primary-btn,
+  body.company-page .about-secondary-btn,
+  body.company-page .about-community-btn,
+  body.converter-page .converter-primary-btn,
+  body.converter-page .converter-secondary-btn,
+  body.converter-page .converter-change-file,
+  body.converter-page .converter-export-btn {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 12px;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1730,8 +1764,20 @@ body.converter-page .converter-format-info ul li::before {
 
   body.company-page .about-primary-btn,
   body.company-page .about-secondary-btn,
-  body.company-page .about-community-btn {
+  body.company-page .about-community-btn,
+  body.converter-page .converter-primary-btn,
+  body.converter-page .converter-secondary-btn,
+  body.converter-page .converter-change-file,
+  body.converter-page .converter-export-btn {
     width: 100%;
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+
+  body.company-page .about-hero-actions,
+  body.converter-page .converter-hero-actions,
+  body.company-page .about-cta-buttons {
+    gap: 8px;
   }
 
   body.converter-page .converter-file-meta {
