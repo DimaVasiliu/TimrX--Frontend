@@ -38,98 +38,102 @@
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
   <style>
-    .tool-examples-grid{
-      perspective:1400px;
-    }
-
     .tool-examples .tool-example-card{
       position:relative;
-      transform-style:preserve-3d;
       background:
-        linear-gradient(180deg, rgba(20,20,20,.96) 0%, rgba(10,10,10,.98) 100%);
+        linear-gradient(180deg, rgba(18,18,18,.98) 0%, rgba(10,10,10,1) 100%);
       box-shadow:
         0 18px 38px rgba(0,0,0,.28),
         inset 0 1px 0 rgba(255,255,255,.04);
-      transition:
-        transform .32s cubic-bezier(.22,.61,.36,1),
-        box-shadow .32s cubic-bezier(.22,.61,.36,1),
-        border-color .32s ease;
-      will-change:transform;
+      overflow:hidden;
     }
 
     .tool-examples .tool-example-card::before{
       content:"";
       position:absolute;
-      inset:0;
+      top:18px;
+      left:22px;
+      right:22px;
+      height:62%;
+      border-radius:22px;
       background:
-        linear-gradient(135deg, rgba(255,255,255,.16) 0%, transparent 34%, transparent 66%, rgba(14,165,233,.14) 100%);
-      opacity:0;
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,.1), transparent 34%),
+        linear-gradient(135deg, rgba(14,165,233,.12), rgba(255,255,255,.03) 48%, rgba(245,158,11,.08));
+      filter:blur(20px);
+      opacity:.9;
       pointer-events:none;
-      transition:opacity .32s ease;
-      z-index:2;
+      z-index:0;
     }
 
     .tool-examples .tool-example-card::after{
       content:"";
       position:absolute;
-      left:18px;
-      right:18px;
-      bottom:-18px;
-      height:34px;
-      background:radial-gradient(circle at center, rgba(14,165,233,.22), transparent 72%);
-      filter:blur(16px);
-      opacity:0;
+      top:16px;
+      left:16px;
+      right:16px;
+      height:calc(56% - 4px);
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 55%);
       pointer-events:none;
-      transform:translateY(10px);
-      transition:opacity .32s ease, transform .32s ease;
-      z-index:0;
+      z-index:2;
     }
 
     .tool-examples .tool-example-card img{
       position:relative;
       z-index:1;
-      backface-visibility:hidden;
-      transform:translateZ(18px) scale(1);
+      width:calc(100% - 28px);
+      margin:14px auto 14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      aspect-ratio:4/3;
+      object-fit:cover;
+      box-shadow:
+        0 20px 28px rgba(0,0,0,.28),
+        0 10px 16px rgba(0,0,0,.2),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      filter:saturate(1.04) contrast(1.03);
       transform-origin:center center;
-      filter:saturate(1.02) contrast(1.02);
-      transition:
-        transform .36s cubic-bezier(.22,.61,.36,1),
-        filter .36s ease;
+      transform:perspective(1200px) rotateX(7deg) scale(1.01);
     }
 
     .tool-examples .tool-example-card .tool-example-prompt,
     .tool-examples .tool-example-card p:last-child{
       position:relative;
       z-index:1;
-      transform:translateZ(8px);
     }
 
-    @media (hover:hover){
-      .tool-examples .tool-example-card:hover{
-        transform:translateY(-10px) rotateX(5deg) rotateY(-4deg);
-        border-color:rgba(14,165,233,.28);
+    .tool-examples .tool-example-card:nth-child(3n+2) img{
+      transform:perspective(1200px) rotateX(7deg) rotateY(-2.5deg) scale(1.01);
+    }
+
+    .tool-examples .tool-example-card:nth-child(3n+3) img{
+      transform:perspective(1200px) rotateX(7deg) rotateY(2.5deg) scale(1.01);
+    }
+
+    @media (max-width:767px){
+      .tool-examples .tool-example-card img,
+      .tool-examples .tool-example-card:nth-child(3n+2) img,
+      .tool-examples .tool-example-card:nth-child(3n+3) img{
+        width:calc(100% - 20px);
+        margin:10px auto 12px;
+        border-radius:16px;
+        transform:none;
         box-shadow:
-          0 28px 54px rgba(0,0,0,.36),
-          0 0 0 1px rgba(255,255,255,.03),
-          inset 0 1px 0 rgba(255,255,255,.05);
+          0 14px 24px rgba(0,0,0,.24),
+          inset 0 1px 0 rgba(255,255,255,.1);
       }
 
-      .tool-examples .tool-example-card:nth-child(2n):hover{
-        transform:translateY(-10px) rotateX(5deg) rotateY(4deg);
+      .tool-examples .tool-example-card::before{
+        left:14px;
+        right:14px;
+        top:14px;
       }
 
-      .tool-examples .tool-example-card:hover::before{
-        opacity:1;
-      }
-
-      .tool-examples .tool-example-card:hover::after{
-        opacity:1;
-        transform:translateY(0);
-      }
-
-      .tool-examples .tool-example-card:hover img{
-        transform:translateZ(28px) scale(1.045);
-        filter:saturate(1.08) contrast(1.06) brightness(1.02);
+      .tool-examples .tool-example-card::after{
+        top:12px;
+        left:12px;
+        right:12px;
       }
     }
   </style>
