@@ -18,7 +18,7 @@ import {
   getPendingMeta,
   savePendingMeta,
   watchers,
-} from './state.js';
+} from './state.js?v=20260407d';
 
 // ============================================================================
 // CONSTANTS

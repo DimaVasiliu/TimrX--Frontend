@@ -19,7 +19,7 @@ import {
   getTabHistory,
   loadHistoryTab,
   loadMoreHistory
-} from './state.js';
+} from './state.js?v=20260407d';
 
 // ============================================================================
 // MENU STATE
