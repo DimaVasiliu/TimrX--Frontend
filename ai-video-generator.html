@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Video Generator — Text to Video and Image to Video | TimrX</title>
-  <meta name="description" content="Create AI-generated videos from text prompts or images. TimrX's video generator produces short clips, animations, and motion content in seconds." />
-  <link rel="canonical" href="https://timrx.live/ai-video-generator" />
+  <title>AI Image Generator — Create Images with Text Prompts | TimrX</title>
+  <meta name="description" content="Generate stunning AI images from text prompts. Use TimrX's AI image generator to create concept art, product visuals, textures, and more in seconds." />
+  <link rel="canonical" href="https://timrx.live/ai-image-generator" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
   <meta name="theme-color" content="#0b0b0b" />
@@ -13,20 +13,20 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://timrx.live/ai-video-generator" />
-  <meta property="og:title" content="AI Video Generator — Text to Video and Image to Video | TimrX" />
-  <meta property="og:description" content="Create AI-generated videos from text prompts or images. Produce short clips, animations, and motion content in seconds." />
-  <meta property="og:image" content="https://timrx.live/img/og-video-generator.png" />
+  <meta property="og:url" content="https://timrx.live/ai-image-generator" />
+  <meta property="og:title" content="AI Image Generator — Create Images with Text Prompts | TimrX" />
+  <meta property="og:description" content="Generate stunning AI images from text prompts. Create concept art, product visuals, textures, and more in seconds." />
+  <meta property="og:image" content="https://timrx.live/img/og-image-generator.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="TimrX" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://timrx.live/ai-video-generator" />
-  <meta name="twitter:title" content="AI Video Generator — Text to Video and Image to Video | TimrX" />
-  <meta name="twitter:description" content="Create AI-generated videos from text prompts or images. Produce short clips and animations in seconds." />
-  <meta name="twitter:image" content="https://timrx.live/img/og-video-generator.png" />
+  <meta name="twitter:url" content="https://timrx.live/ai-image-generator" />
+  <meta name="twitter:title" content="AI Image Generator — Create Images with Text Prompts | TimrX" />
+  <meta name="twitter:description" content="Generate stunning AI images from text prompts. Create concept art, product visuals, textures, and more." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-image-generator.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
@@ -38,18 +38,103 @@
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
   <style>
-    .tool-example-card video{
-      display:block;
-      width:100%;
-      height:auto;
-      aspect-ratio:16/9;
-      object-fit:cover;
-      background:#090909;
+    .tool-examples .tool-example-card{
+      position:relative;
+      background:
+        linear-gradient(180deg, rgba(18,18,18,.98) 0%, rgba(10,10,10,1) 100%);
+      box-shadow:
+        0 18px 38px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.04);
+      overflow:hidden;
     }
 
-    .tool-example-card video[poster]{
-      background-size:cover;
-      background-position:center;
+    .tool-examples .tool-example-card::before{
+      content:"";
+      position:absolute;
+      top:18px;
+      left:22px;
+      right:22px;
+      height:62%;
+      border-radius:22px;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,.1), transparent 34%),
+        linear-gradient(135deg, rgba(14,165,233,.12), rgba(255,255,255,.03) 48%, rgba(245,158,11,.08));
+      filter:blur(20px);
+      opacity:.9;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    .tool-examples .tool-example-card::after{
+      content:"";
+      position:absolute;
+      top:16px;
+      left:16px;
+      right:16px;
+      height:calc(56% - 4px);
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 55%);
+      pointer-events:none;
+      z-index:2;
+    }
+
+    .tool-examples .tool-example-card img{
+      position:relative;
+      z-index:1;
+      width:calc(100% - 28px);
+      margin:14px auto 14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      aspect-ratio:4/3;
+      object-fit:cover;
+      box-shadow:
+        0 20px 28px rgba(0,0,0,.28),
+        0 10px 16px rgba(0,0,0,.2),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      filter:saturate(1.04) contrast(1.03);
+      transform-origin:center center;
+      transform:perspective(1200px) rotateX(7deg) scale(1.01);
+    }
+
+    .tool-examples .tool-example-card .tool-example-prompt,
+    .tool-examples .tool-example-card p:last-child{
+      position:relative;
+      z-index:1;
+    }
+
+    .tool-examples .tool-example-card:nth-child(3n+2) img{
+      transform:perspective(1200px) rotateX(7deg) rotateY(-2.5deg) scale(1.01);
+    }
+
+    .tool-examples .tool-example-card:nth-child(3n+3) img{
+      transform:perspective(1200px) rotateX(7deg) rotateY(2.5deg) scale(1.01);
+    }
+
+    @media (max-width:767px){
+      .tool-examples .tool-example-card img,
+      .tool-examples .tool-example-card:nth-child(3n+2) img,
+      .tool-examples .tool-example-card:nth-child(3n+3) img{
+        width:calc(100% - 20px);
+        margin:10px auto 12px;
+        border-radius:16px;
+        transform:none;
+        box-shadow:
+          0 14px 24px rgba(0,0,0,.24),
+          inset 0 1px 0 rgba(255,255,255,.1);
+      }
+
+      .tool-examples .tool-example-card::before{
+        left:14px;
+        right:14px;
+        top:14px;
+      }
+
+      .tool-examples .tool-example-card::after{
+        top:12px;
+        left:12px;
+        right:12px;
+      }
     }
   </style>
 
@@ -58,11 +143,11 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "TimrX AI Video Generator",
+    "name": "TimrX AI Image Generator",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web",
-    "url": "https://timrx.live/ai-video-generator",
-    "description": "Generate AI videos from text prompts or images. Create short clips, animations, and motion content for creative projects.",
+    "url": "https://timrx.live/ai-image-generator",
+    "description": "Generate AI images from text prompts. Create concept art, product visuals, textures, and marketing graphics in seconds.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
   }
   </script>
@@ -74,7 +159,7 @@
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
-      { "@type": "ListItem", "position": 3, "name": "AI Video Generator", "item": "https://timrx.live/ai-video-generator" }
+      { "@type": "ListItem", "position": 3, "name": "AI Image Generator", "item": "https://timrx.live/ai-image-generator" }
     ]
   }
   </script>
@@ -86,66 +171,66 @@
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Is TimrX AI video generator free?",
+        "name": "Is TimrX AI image generator free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes, TimrX offers a free tier that lets you generate AI videos directly in your browser without signing up for a paid plan. The free tier includes a limited number of generations per day and standard resolution output. If you need higher resolution, longer clips, or faster processing, premium plans are available with expanded limits and additional features."
+          "text": "Yes, TimrX gives every new account 50 free credits on signup — no credit card required. These credits work across all tools including image generation. The free plan includes access to standard resolution outputs and basic style options. If you need more credits, higher resolutions, or priority processing, paid plans start at £9.99/month."
         }
       },
       {
         "@type": "Question",
-        "name": "What video formats can I export?",
+        "name": "What AI models does TimrX use for image generation?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX supports exporting generated videos in MP4 and WebM formats. MP4 is ideal for social media platforms, presentations, and general-purpose sharing because of its universal compatibility. WebM offers efficient compression for web embedding and is well suited for use on websites and in HTML5 video players."
+          "text": "TimrX integrates several leading AI image models, including Stable Diffusion XL, DALL-E, and proprietary fine-tuned models optimized for specific tasks like texture creation and product photography. The platform automatically selects the best model based on your prompt and chosen style, though advanced users can manually pick a model from the settings panel."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I create videos from still images?",
+        "name": "Can I use generated images commercially?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Absolutely. TimrX supports image-to-video generation, which lets you upload a still photograph or AI-generated image and animate it with realistic motion. The AI interprets the content of the image and adds camera movement, parallax effects, and natural object motion. This is particularly useful for product photography, concept art, and social media content where you want to bring a static visual to life."
+          "text": "Images generated on paid TimrX plans come with a full commercial-use license, meaning you can use them in client work, marketing materials, products, and published media. Free-tier images are licensed for personal and non-commercial use only. Always review the terms of service for the most current licensing details before publishing."
         }
       },
       {
         "@type": "Question",
-        "name": "How long can generated videos be?",
+        "name": "What image resolutions are supported?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Currently, TimrX generates video clips between 3 and 10 seconds in length depending on the model and settings you choose. While this may seem short, these clips are designed for social media, motion graphics, and creative prototyping where short-form content performs best. You can chain multiple clips together in an external editor for longer sequences."
+          "text": "TimrX supports output resolutions from 512x512 up to 2048x2048 pixels depending on the model and your subscription tier. Free-tier users can generate images at standard 1024x1024 resolution. Paid plans unlock higher resolutions and the ability to upscale generated images using AI-powered super-resolution, reaching print-quality outputs."
         }
       },
       {
         "@type": "Question",
-        "name": "How is TimrX different from Runway?",
+        "name": "How is TimrX different from Midjourney?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX differentiates itself by integrating video generation into a broader creative pipeline that includes AI image generation, 3D model creation, and 3D printing workflows. While Runway focuses primarily on video editing and generation, TimrX lets you move seamlessly from a text prompt to a video to a 3D asset. TimrX also runs entirely in the browser with a free tier, making it more accessible for hobbyists and independent creators."
+          "text": "While Midjourney operates primarily through Discord, TimrX is a fully browser-based platform that does not require any third-party apps or bots. TimrX also goes beyond image generation by integrating 3D model creation, video generation, and 3D-print pipelines into a single workspace. This means you can generate an image and immediately convert it into a 3D model or animated video without leaving the platform."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I use generated videos commercially?",
+        "name": "Can I generate images from reference photos?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes, videos generated with TimrX can be used for commercial purposes including marketing materials, social media campaigns, product demonstrations, and client work. You retain the rights to the content you create with the tool. We recommend reviewing the terms of service for any specific usage restrictions, but standard commercial use is fully permitted under all plans."
+          "text": "Yes, TimrX supports image-to-image generation where you upload a reference photo and provide a text prompt to guide the transformation. This is ideal for style transfer, turning sketches into polished illustrations, or adapting existing visuals into new compositions. You can control the influence strength of the reference image to balance between fidelity and creative freedom."
         }
       },
       {
         "@type": "Question",
-        "name": "What resolution are the generated videos?",
+        "name": "How do I improve my AI image prompts?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "The free tier generates videos at 720p resolution, which is suitable for most social media platforms and web use. Premium plans unlock 1080p and higher resolutions for professional-quality output. All videos maintain consistent frame rates and visual clarity regardless of the chosen resolution tier."
+          "text": "The most effective AI image prompts are specific about subject, style, lighting, and mood. For example, instead of writing 'a cat', try 'a fluffy orange tabby cat sitting on a windowsill in warm afternoon sunlight, oil painting style'. Including artistic references, color palettes, and camera angles helps the AI understand your vision. TimrX also provides prompt suggestions and auto-enhancement features to help you get better results."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I convert AI videos into 3D animations?",
+        "name": "Can I convert generated images to 3D models?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes, one of TimrX's unique strengths is its integrated 3D pipeline. You can take individual frames from a generated video and feed them into TimrX's image-to-3D or text-to-3D tools to create 3D models. From there, you can animate those models, prepare them for 3D printing, or export them for use in game engines and 3D applications. This end-to-end workflow is something no other AI video platform currently offers."
+          "text": "Absolutely. One of TimrX's standout features is its integrated pipeline from image generation to 3D modeling. After generating an image, you can send it directly to the Image-to-3D tool, which reconstructs a textured 3D model from the visual. This is perfect for game asset creation, product prototyping, and 3D printing workflows where you want to go from concept to physical object quickly."
         }
       }
     ]
@@ -156,12 +241,11 @@
   {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    "name": "How to Generate AI Videos with TimrX",
-    "description": "Create AI-generated videos from text prompts or images in three simple steps.",
+    "name": "How to Generate AI Images with TimrX",
     "step": [
-      {"@type": "HowToStep", "position": 1, "name": "Describe or Upload", "text": "Enter a text prompt describing your video, or upload a still image you want to animate. Add details about motion, camera angle, and style."},
-      {"@type": "HowToStep", "position": 2, "name": "Generate", "text": "The AI produces a short video clip. Preview it, adjust parameters, or try different prompts for variations."},
-      {"@type": "HowToStep", "position": 3, "name": "Download or Extend", "text": "Download your video or feed it into TimrX's 3D pipeline to create animated 3D content."}
+      {"@type": "HowToStep", "position": 1, "name": "Describe Your Image", "text": "Enter a text prompt describing the image you want. Be as specific or abstract as you like — style, lighting, composition, subject."},
+      {"@type": "HowToStep", "position": 2, "name": "Generate & Refine", "text": "The AI produces your image in seconds. Adjust your prompt, change styles, or generate variations until it matches your vision."},
+      {"@type": "HowToStep", "position": 3, "name": "Download or Continue", "text": "Save your image or use it as input for 3D model generation, video creation, or further editing within the TimrX platform."}
     ]
   }
   </script>
@@ -207,17 +291,17 @@
   <!-- Hero -->
   <section class="tool-hero">
     <div class="container">
-      <h1>AI Video Generator — Text to Video and Image to Video</h1>
-      <p class="tool-subtitle">Transform text descriptions or still images into short video clips. TimrX's AI video tools handle motion, transitions, and visual effects automatically.</p>
+      <h1>AI Image Generator — Create Images with Text Prompts</h1>
+      <p class="tool-subtitle">Turn any text description into high-quality images. TimrX uses advanced AI models to generate concept art, product mockups, textures, and creative visuals from simple prompts.</p>
     </div>
   </section>
 
   <!-- Intro -->
   <section class="tool-intro">
     <div class="container">
-      <p>AI video generation is changing how creators produce motion content. What once required hours of editing and rendering can now be achieved with a single text prompt or reference image.</p>
-      <p>TimrX supports both text-to-video and image-to-video workflows. Describe a scene and watch it come to life, or upload an image and let the AI animate it with natural motion and camera movement.</p>
-      <p>Generated clips integrate seamlessly with TimrX's image and 3D tools, enabling end-to-end creative production from concept to final output.</p>
+      <p>AI image generation transforms the way creators, designers, and marketers produce visual content. Instead of spending hours in traditional design tools, you describe what you want and the AI produces it in seconds.</p>
+      <p>TimrX integrates multiple AI image models into a single workspace. Whether you need photorealistic product shots, stylized illustrations, or seamless textures for 3D models, the platform handles it all through a unified interface.</p>
+      <p>Every generated image can be downloaded, iterated on with new prompts, or fed directly into TimrX's 3D and video pipelines for a complete creative workflow.</p>
     </div>
   </section>
 
@@ -228,18 +312,18 @@
       <div class="tool-steps-grid">
         <div class="tool-step">
           <span class="tool-step-num">01</span>
-          <h3>Write a Prompt or Upload an Image</h3>
-          <p>Describe the video scene you want, or provide a reference image as the starting frame for animation.</p>
+          <h3>Describe Your Image</h3>
+          <p>Enter a text prompt describing the image you want. Be as specific or abstract as you like — style, lighting, composition, subject.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">02</span>
-          <h3>Generate the Video</h3>
-          <p>The AI creates a short video clip with motion, camera movement, and visual effects based on your input.</p>
+          <h3>Generate &amp; Refine</h3>
+          <p>The AI produces your image in seconds. Adjust your prompt, change styles, or generate variations until it matches your vision.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">03</span>
-          <h3>Download &amp; Use</h3>
-          <p>Export your video clip for social media, presentations, or as part of a larger creative project.</p>
+          <h3>Download or Continue</h3>
+          <p>Save your image or use it as input for 3D model generation, video creation, or further editing within the TimrX platform.</p>
         </div>
       </div>
     </div>
@@ -251,20 +335,20 @@
       <h2 class="tool-usecases-title">Use Cases</h2>
       <div class="tool-usecases-grid">
         <div class="tool-usecase">
-          <h4>Social Media Clips</h4>
-          <p>Generate short-form video content for Instagram, TikTok, and YouTube without filming or editing.</p>
+          <h4>Concept Art</h4>
+          <p>Rapidly explore visual ideas for games, films, and creative projects without drawing from scratch.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Product Demos</h4>
-          <p>Animate product images into dynamic video showcases for e-commerce and marketing.</p>
+          <h4>Product Mockups</h4>
+          <p>Generate realistic product visuals for e-commerce, pitch decks, and marketing campaigns.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Motion Graphics</h4>
-          <p>Create animated visual effects, transitions, and background videos for presentations.</p>
+          <h4>Textures &amp; Materials</h4>
+          <p>Create seamless textures for 3D models — wood, metal, fabric, stone, and custom patterns.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Storyboarding</h4>
-          <p>Bring storyboard frames to life with motion to test pacing and visual flow before production.</p>
+          <h4>Social Media Content</h4>
+          <p>Produce eye-catching graphics for posts, ads, and thumbnails in seconds.</p>
         </div>
       </div>
     </div>
@@ -273,62 +357,38 @@
   <!-- Example Gallery -->
   <section class="tool-examples">
     <div class="container">
-      <h2 class="tool-examples-title">What You Can Create</h2>
-      <p class="tool-examples-intro">From cinematic landscapes to animated product shots, the AI video generator handles a wide range of creative styles. Here are examples of what users have produced with TimrX.</p>
+      <h2>What You Can Create</h2>
+      <p>The TimrX AI image generator handles an enormous range of visual styles and subjects. From photorealistic renders to abstract digital art, the platform adapts to your creative direction. Below are examples of what users have generated using simple text prompts, demonstrating the breadth of possibilities available to anyone with an idea and a few descriptive words.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-1.webp" aria-label="AI-generated cinematic ocean sunset video">
-            <source src="/vid/vid1.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Cinematic Ocean Sunset</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A slow drone shot flying over a calm ocean at golden hour, waves gently rolling, cinematic color grading"</p>
-          <p class="tool-example-desc">Perfect for travel content creators and filmmakers who need b-roll footage without the cost of drone shoots. The AI captures realistic water motion and warm lighting gradients that feel authentic.</p>
+          <img src="/img/AI-img-gen-1.png" alt="AI generated cinematic aerial view of a floating island with waterfalls, bioluminescent plants, and a golden sunset" loading="lazy" />
+          <p class="tool-example-prompt">"Cinematic aerial view of a floating island with cascading waterfalls, bioluminescent plants glowing turquoise, golden sunset light breaking through clouds, matte painting style, 8K detail"</p>
+          <p>Concept art and environment design for games, films, and creative projects. Generate breathtaking worlds from a single sentence — perfect for indie game developers, film pre-production, and world-building.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-2.webp" aria-label="AI-generated product rotation video of sneakers">
-            <source src="/vid/vid2.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Product Rotation — Sneaker Showcase</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "White sneakers rotating on a black pedestal, studio lighting, smooth 360-degree spin, clean background"</p>
-          <p class="tool-example-desc">E-commerce brands use this to create professional product videos from a single product photo. Upload your product image and the AI generates a polished rotation clip ready for your online store.</p>
+          <img src="/img/AI-img-gen-2.png" alt="AI generated photorealistic luxury perfume bottle on black volcanic rock with water droplets and moody lighting" loading="lazy" />
+          <p class="tool-example-prompt">"Luxury glass perfume bottle on black volcanic rock, water droplets on the surface, dramatic side lighting with warm amber highlights, dark moody background, commercial product photography, shallow depth of field"</p>
+          <p>Product photography without a studio. Generate high-end commercial visuals for e-commerce listings, brand campaigns, and pitch decks — no photographer or physical prototype needed.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-3.webp" aria-label="AI-generated abstract particle flow animation">
-            <source src="/vid/vid3.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Abstract Particle Flow</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "Glowing blue and purple particles flowing through a dark void, organic motion, abstract digital art"</p>
-          <p class="tool-example-desc">Ideal for motion backgrounds in presentations, music videos, and website hero sections. Abstract generative content like this is one of the strongest use cases for AI video tools.</p>
+          <img src="/img/AI-img-gen-3.png" alt="AI generated portrait of an elderly fisherman with weathered skin, deep wrinkles, and piercing blue eyes in golden hour light" loading="lazy" />
+          <p class="tool-example-prompt">"Close-up portrait of an elderly fisherman with deeply weathered skin, salt-and-pepper beard, piercing blue eyes, wearing a worn cable-knit sweater, golden hour sunlight on his face, photorealistic, shot on 85mm lens with shallow depth of field"</p>
+          <p>Photorealistic portraits and character references. Create lifelike faces for storytelling, character sheets, casting references, or editorial illustrations with full control over age, expression, and lighting.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-4.webp" aria-label="AI-generated futuristic city flythrough">
-            <source src="/vid/vid4.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Futuristic City Flythrough</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "Flying through a futuristic neon-lit city at night, rain reflecting on streets, cyberpunk aesthetic, smooth camera"</p>
-          <p class="tool-example-desc">Game developers and concept artists use scenes like this to visualize environments before committing to full 3D production. Generate multiple variations quickly to explore different creative directions.</p>
+          <img src="/img/AI-img-gen-4.png" alt="AI generated Japanese zen garden in autumn with maple trees, stone lantern, and morning mist in watercolor style" loading="lazy" />
+          <p class="tool-example-prompt">"Japanese zen garden in autumn, crimson maple trees reflected in a still koi pond, stone lantern covered in moss, gentle morning mist, traditional watercolor painting style with visible brushstrokes and soft ink washes"</p>
+          <p>Artistic illustrations in any traditional medium. The AI reproduces watercolor, oil paint, ink wash, and charcoal styles — ideal for book covers, wall art, editorial content, and greeting cards.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-5.webp" aria-label="AI-generated nature timelapse of flowers blooming">
-            <source src="/vid/vid5.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Nature Timelapse — Blooming Flowers</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "Cinematic drone glide through a bioluminescent forest at blue hour, glowing plants pulsing with turquoise light, mist drifting between ancient trees, fireflies swirling in the air, ultra-detailed fantasy realism"</p>
-          <p class="tool-example-desc">Educational content, wellness apps, and meditation channels benefit from nature-style AI videos. The AI simulates organic growth and natural movement that would take hours to capture in real life.</p>
+          <img src="/img/AI-img-gen-5.png" alt="AI generated dark fantasy sorceress with glowing purple magic, ornate black armor, and swirling arcane symbols" loading="lazy" />
+          <p class="tool-example-prompt">"Dark fantasy sorceress casting a spell, glowing purple arcane energy swirling around her hands, ornate black and silver armor with intricate engravings, flowing dark hair, dramatic rim lighting against a stormy sky, concept art style"</p>
+          <p>Character design for games, tabletop RPGs, and storytelling. Quickly iterate on character concepts — experiment with different outfits, poses, magic effects, and art styles before committing to final production artwork.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-6.webp" aria-label="AI-generated animated logo reveal">
-            <source src="/vid/vid6.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <h3>Animated Logo Reveal</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "Minimalist logo appearing with smooth metallic reveal animation, dark background, subtle light reflections"</p>
-          <p class="tool-example-desc">Freelancers and small studios use AI video generation to produce logo animations for clients without needing After Effects expertise. Upload your logo as an image and let the AI handle the animation.</p>
+          <img src="/img/AI-img-gen-6.png" alt="AI generated isometric miniature diorama of a cozy coffee shop interior with warm lighting and tiny details" loading="lazy" />
+          <p class="tool-example-prompt">"Isometric miniature diorama of a cozy coffee shop interior, warm string lights, tiny potted plants, steaming cups on wooden tables, tilt-shift photography effect, soft warm lighting, hyper-detailed miniature style"</p>
+          <p>Unique visual styles for social media, marketing, and creative projects. From isometric dioramas to 3D-rendered scenes, generate scroll-stopping content that stands out in crowded feeds.</p>
         </article>
       </div>
     </div>
@@ -337,121 +397,121 @@
   <!-- Comparison -->
   <section class="tool-comparison">
     <div class="container">
-      <h2 class="tool-comparison-title">How TimrX Compares</h2>
-      <p class="tool-comparison-intro">There are several AI video generation platforms available today. Here is how TimrX stacks up against the most popular alternatives across key features that matter to creators.</p>
-      <div class="tool-comparison-table-wrap">
-        <table class="tool-comparison-table">
+      <h2>How TimrX Compares</h2>
+      <p>Choosing the right AI image generator depends on your workflow, budget, and creative goals. The table below compares TimrX against other popular AI image generation platforms across features that matter most to creators, designers, and developers. TimrX stands out by offering a fully integrated creative pipeline that extends beyond image generation into 3D modeling, video production, and 3D printing preparation.</p>
+      <div style="overflow-x:auto;">
+        <table>
           <thead>
             <tr>
-              <th scope="col">Feature</th>
-              <th scope="col">TimrX</th>
-              <th scope="col">Runway</th>
-              <th scope="col">Pika</th>
-              <th scope="col">Sora</th>
+              <th>Feature</th>
+              <th>TimrX</th>
+              <th>Midjourney</th>
+              <th>DALL-E</th>
+              <th>Stable Diffusion</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Browser-based</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
+              <td>Yes — no install required</td>
+              <td>No — requires Discord</td>
+              <td>Yes — via ChatGPT or API</td>
+              <td>No — local install or hosted UI</td>
             </tr>
             <tr>
               <td>Free tier</td>
-              <td>Yes</td>
-              <td>Limited trial</td>
-              <td>Limited trial</td>
-              <td>No</td>
-            </tr>
-            <tr>
-              <td>Text-to-video</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Image-to-video</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
+              <td>Yes — daily free generations</td>
+              <td>No — paid plans only</td>
+              <td>Limited — credits deplete quickly</td>
+              <td>Yes — if self-hosted (requires GPU)</td>
             </tr>
             <tr>
               <td>3D pipeline integration</td>
-              <td>Yes</td>
+              <td>Yes — generate images and convert to 3D models in one workflow</td>
               <td>No</td>
               <td>No</td>
               <td>No</td>
             </tr>
             <tr>
-              <td>Max duration</td>
-              <td>Up to 10s</td>
-              <td>Up to 16s</td>
-              <td>Up to 4s</td>
-              <td>Up to 60s</td>
+              <td>Video pipeline</td>
+              <td>Yes — send generated images directly to AI video generation</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
             </tr>
             <tr>
               <td>Export formats</td>
-              <td>MP4, WebM</td>
-              <td>MP4</td>
-              <td>MP4</td>
-              <td>MP4</td>
+              <td>PNG, JPEG, WebP — plus 3D formats via pipeline</td>
+              <td>PNG, JPEG</td>
+              <td>PNG</td>
+              <td>PNG, JPEG (depends on UI)</td>
+            </tr>
+            <tr>
+              <td>API access</td>
+              <td>No — browser-only (API planned)</td>
+              <td>No official public API</td>
+              <td>Yes — OpenAI API</td>
+              <td>Yes — open-source, self-hosted API</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="tool-comparison-note">TimrX is the only platform that connects AI video generation directly to 3D model creation and 3D printing workflows. If your creative process extends beyond video into 3D content, TimrX provides an integrated pipeline that eliminates the need to switch between multiple tools. For creators focused purely on long-form video output, platforms like Sora may offer longer clip durations, but TimrX excels in versatility and accessibility with its free browser-based tier.</p>
+      <p>TimrX is the only platform that combines AI image generation with a full creative pipeline including 3D model generation, AI video creation, and 3D-print preparation. If your workflow involves more than just generating images, TimrX eliminates the need to juggle multiple tools and subscriptions by bringing everything into a single browser-based workspace.</p>
     </div>
   </section>
 
-  <!-- FAQ -->
+  <!-- Extended FAQ -->
   <section class="tool-faq">
     <div class="container">
-      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
-      <div class="tool-faq-list">
-        <details class="tool-faq-item">
-          <summary>Is TimrX AI video generator free?</summary>
-          <p>Yes, TimrX offers a free tier that lets you generate AI videos directly in your browser without signing up for a paid plan. The free tier includes a limited number of generations per day and standard resolution output. If you need higher resolution, longer clips, or faster processing, premium plans are available with expanded limits and additional features. There is no credit card required to get started.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>What video formats can I export?</summary>
-          <p>TimrX supports exporting generated videos in MP4 and WebM formats. MP4 is the most widely compatible format and works natively on social media platforms, mobile devices, and video editors. WebM offers efficient compression and smaller file sizes, making it a strong choice for embedding video on websites. Both formats maintain high visual quality and consistent frame rates across all output resolutions.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>Can I create videos from still images?</summary>
-          <p>Absolutely. TimrX supports a full image-to-video workflow that lets you upload a still photograph, digital illustration, or AI-generated image and transform it into an animated video clip. The AI analyzes the composition of the image and applies realistic motion, including camera pans, zoom effects, and parallax movement. This is especially useful for e-commerce product shots, concept art presentations, and social media content where you want to turn a static image into something dynamic.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>How long can generated videos be?</summary>
-          <p>Currently, TimrX generates video clips ranging from 3 to 10 seconds depending on the generation mode and parameters you select. Short-form clips in this range are optimized for social media, motion graphics, and rapid creative prototyping. If you need longer content, you can generate multiple clips and stitch them together using any standard video editing tool. We are actively working on extending maximum clip duration in future updates.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>How is TimrX different from Runway?</summary>
-          <p>While both TimrX and Runway offer AI-powered video generation, TimrX stands apart through its integrated creative pipeline. Runway focuses primarily on video editing and generation features, whereas TimrX connects video generation to AI image creation, text-to-3D modeling, image-to-3D conversion, and even 3D print preparation. This means you can go from a text prompt to a video to a physical 3D-printed object entirely within one platform. TimrX also provides a genuinely free tier with no credit card required, making it more accessible for independent creators, students, and hobbyists who want to experiment without financial commitment.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>Can I use generated videos commercially?</summary>
-          <p>Yes, all videos you generate using TimrX are yours to use for commercial purposes. This includes marketing campaigns, social media advertising, product videos, client deliverables, and any other business use. You retain full rights to the output content you create. We encourage reviewing our terms of service for detailed information, but standard commercial usage is permitted across all account tiers including the free plan.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>What resolution are the generated videos?</summary>
-          <p>Free tier users can generate videos at 720p resolution, which provides clear and sharp output suitable for most social media platforms and web applications. Premium plan users unlock access to 1080p and higher resolution outputs for professional-grade deliverables. All generated videos maintain smooth frame rates and visual consistency, ensuring that the quality meets the expectations of modern content platforms regardless of which resolution tier you use.</p>
-        </details>
-        <details class="tool-faq-item">
-          <summary>Can I convert AI videos into 3D animations?</summary>
-          <p>Yes, and this is one of TimrX's most distinctive capabilities. You can extract individual frames from any generated video and use them as input for TimrX's image-to-3D or text-to-3D tools. The resulting 3D models can then be animated, textured, and exported for use in game engines, 3D visualization software, or prepared for 3D printing. This end-to-end pipeline from video to 3D asset is unique to TimrX and opens up creative workflows that are not possible on other AI video generation platforms.</p>
-        </details>
-      </div>
+      <h2>Frequently Asked Questions</h2>
+      <p>Below you will find answers to the most common questions about the TimrX AI image generator. Whether you are a first-time user exploring AI art or an experienced creator looking for a more integrated platform, these answers should help you understand what TimrX offers and how it fits into your workflow.</p>
+
+      <details>
+        <summary>Is TimrX AI image generator free?</summary>
+        <p>Yes, every new TimrX account receives 50 free credits on signup — no credit card required. These credits can be used for image generation and any other tool on the platform. The free plan includes access to standard resolution outputs and a selection of popular styles. For users who need more credits, higher-resolution images, faster processing, or priority access to the latest AI models, paid plans start at £9.99/month. The free tier is designed to let you fully explore the platform before deciding whether to upgrade.</p>
+      </details>
+
+      <details>
+        <summary>What AI models does TimrX use for image generation?</summary>
+        <p>TimrX integrates several industry-leading AI image models including Stable Diffusion XL, DALL-E, and custom fine-tuned models built specifically for tasks like seamless texture generation and product photography. When you submit a prompt, the platform intelligently selects the best model based on your description and chosen style preset, though advanced users can override this and select a specific model manually. TimrX regularly updates its model library to include the latest advancements in AI image synthesis, ensuring you always have access to state-of-the-art generation quality.</p>
+      </details>
+
+      <details>
+        <summary>Can I use generated images commercially?</summary>
+        <p>Images generated on any paid TimrX plan include a full commercial-use license, which means you can use them in client deliverables, marketing campaigns, published books, merchandise, and any other commercial application. Free-tier generations are licensed for personal and non-commercial use only. TimrX does not claim ownership over the images you generate. We recommend reviewing the current terms of service for full licensing details, especially if you plan to use generated images in regulated industries or mass-produced physical products.</p>
+      </details>
+
+      <details>
+        <summary>What image resolutions are supported?</summary>
+        <p>The platform supports output resolutions ranging from 512x512 pixels up to 2048x2048 pixels, depending on the AI model selected and your subscription tier. Free-tier users generate images at a standard 1024x1024 resolution, which is suitable for social media, web content, and concept exploration. Paid plans unlock higher base resolutions as well as access to AI-powered upscaling tools that can enhance images to print-quality dimensions exceeding 4096 pixels on the longest edge. This makes TimrX suitable for everything from Instagram posts to large-format print materials.</p>
+      </details>
+
+      <details>
+        <summary>How is TimrX different from Midjourney?</summary>
+        <p>The most immediate difference is accessibility: TimrX is entirely browser-based and does not require Discord, a desktop application, or any third-party service to operate. You open your browser, type a prompt, and generate images. Beyond that, TimrX offers a uniquely integrated creative pipeline. After generating an image, you can convert it into a 3D model using the Image-to-3D tool, animate it with the AI video generator, or prepare it for 3D printing — all without leaving the platform. Midjourney focuses exclusively on image generation, so users who need a multi-step creative workflow must piece together separate tools on their own.</p>
+      </details>
+
+      <details>
+        <summary>Can I generate images from reference photos?</summary>
+        <p>Yes, TimrX fully supports image-to-image generation workflows. You can upload a reference photograph, sketch, or any existing visual and pair it with a text prompt that describes how you want the AI to transform it. This is especially useful for style transfer, turning rough hand-drawn sketches into polished digital illustrations, or adapting an existing product photo into a different setting or aesthetic. A strength slider lets you control how closely the output adheres to the original reference versus the text prompt, giving you fine-grained creative control over the final result.</p>
+      </details>
+
+      <details>
+        <summary>How do I improve my AI image prompts?</summary>
+        <p>Writing effective AI image prompts is part skill and part experimentation. The best prompts are specific about the subject, composition, lighting, color palette, and artistic style. For example, rather than writing "a dog," you might write "a golden retriever puppy sitting in a sunlit meadow, shallow depth of field, warm tones, professional pet photography." Including references to specific art movements, camera lenses, or well-known visual styles gives the AI more context to work with. TimrX also includes a built-in prompt enhancement feature that automatically expands short prompts with additional descriptive detail, helping beginners achieve high-quality results immediately.</p>
+      </details>
+
+      <details>
+        <summary>Can I convert generated images to 3D models?</summary>
+        <p>This is one of TimrX's most powerful features. After generating any image, you can send it directly to the Image-to-3D pipeline with a single click. The system analyzes the image, infers depth and geometry, and reconstructs a fully textured 3D model that you can view, rotate, and export in standard formats like GLB, OBJ, and STL. This workflow is invaluable for game developers who need to rapidly prototype 3D assets, product designers creating physical prototypes, and hobbyists who want to 3D-print their AI-generated artwork. No other major AI image generator offers this level of pipeline integration out of the box.</p>
+      </details>
     </div>
   </section>
 
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
-      <h2 class="tool-cta-title">Start Generating Videos</h2>
+      <h2 class="tool-cta-title">Start Generating Images</h2>
       <div class="tool-cta-buttons">
         <a href="/hub" class="nav-cta">Open AI Hub</a>
         <a href="/ai-tools" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse All Tools</a>
@@ -464,17 +524,17 @@
     <div class="container">
       <h2 class="tool-related-title">Related Tools</h2>
       <div class="tool-related-grid">
-        <a href="/ai-image-generator" class="tool-link-card">
-          <h4>AI Image Generator</h4>
-          <p>Create images from text prompts for use as video input.</p>
+        <a href="/ai-video-generator" class="tool-link-card">
+          <h4>AI Video Generator</h4>
+          <p>Turn text or images into short video clips with AI.</p>
         </a>
         <a href="/ai-3d-generator" class="tool-link-card">
           <h4>AI 3D Generator</h4>
-          <p>Generate 3D models from text or images.</p>
+          <p>Create 3D models from text or image prompts.</p>
         </a>
-        <a href="/text-to-3d" class="tool-link-card">
-          <h4>Text to 3D</h4>
-          <p>Turn text descriptions into 3D models.</p>
+        <a href="/image-to-3d" class="tool-link-card">
+          <h4>Image to 3D</h4>
+          <p>Convert any image into a textured 3D model.</p>
         </a>
       </div>
     </div>
@@ -484,9 +544,9 @@
   <section class="related-tools" style="max-width:1100px;margin:3rem auto;padding:0 1.5rem;">
     <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;margin-bottom:1rem;">Explore More AI Tools</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
-      <a href="/ai-image-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
-        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Image Generator</h3>
-        <p style="color:#888;font-size:.85rem;line-height:1.4;">Create stunning images from text prompts in seconds.</p>
+      <a href="/ai-video-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
+        <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI Video Generator</h3>
+        <p style="color:#888;font-size:.85rem;line-height:1.4;">Generate AI-powered videos from text or image prompts.</p>
       </a>
       <a href="/ai-3d-generator" style="display:block;padding:1.2rem;border-radius:12px;background:#111;border:1px solid #222;text-decoration:none;transition:border-color .2s;">
         <h3 style="color:#fff;font-size:1rem;margin-bottom:.4rem;">AI 3D Generator</h3>
