@@ -286,16 +286,16 @@
     position: relative;
     top: 0;
     order: -1;
-    min-height: 340px;
+    min-height: 380px;
   }
 
   .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
   .tutorials-section--with-model .tutorial-inline-model__stage {
-    min-height: 340px;
+    min-height: 380px;
   }
 
   .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
-    min-height: 380px;
+    min-height: 420px;
   }
 
   .tutorials-section--with-model .tutorials-split-cards {
@@ -421,16 +421,16 @@
   }
 
   .tutorials-section--with-model .tutorials-split-model {
-    min-height: 310px;
+    min-height: 350px;
   }
 
   .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
   .tutorials-section--with-model .tutorial-inline-model__stage {
-    min-height: 310px;
+    min-height: 350px;
   }
 
   .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
-    min-height: 340px;
+    min-height: 390px;
   }
 
   .tutorials-split-cards--grid-with-extra .tutorials-reference-img {
@@ -509,16 +509,16 @@
   }
 
   .tutorials-section--with-model .tutorials-split-model {
-    min-height: 280px;
+    min-height: 320px;
   }
 
   .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
   .tutorials-section--with-model .tutorial-inline-model__stage {
-    min-height: 280px;
+    min-height: 320px;
   }
 
   .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
-    min-height: 320px;
+    min-height: 360px;
   }
 
   .tutorials-section--with-model .tutorial-inline-model {
@@ -681,16 +681,16 @@
 
   /* Split model viewer at extra-small */
   .tutorials-section--with-model .tutorials-split-model {
-    min-height: 260px;
+    min-height: 300px;
   }
 
   .tutorials-section--with-model .tutorials-split-model .tutorial-3d-viewer,
   .tutorials-section--with-model .tutorial-inline-model__stage {
-    min-height: 260px;
+    min-height: 300px;
   }
 
   .tutorials-section--with-model .tutorials-split-model--tall .tutorial-3d-viewer {
-    min-height: 300px;
+    min-height: 340px;
   }
 
   .tutorials-section--with-model .tutorial-inline-model {
