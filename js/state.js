@@ -415,6 +415,16 @@ const _tabState = {
 function _currentTab() { return historyState.filter || 'all'; }
 function _ts(tab) { return _tabState[tab] || _tabState.all; }
 
+function inferHistoryTabType(item = {}) {
+  if (!item || typeof item !== 'object') return 'all';
+  const explicit = String(item.type || '').toLowerCase();
+  if (explicit === 'model' || explicit === 'image' || explicit === 'video') return explicit;
+  if (item.video_url || item.video_id) return 'video';
+  if (item.image_url || item.image_id) return 'image';
+  if (item.glb_url || item.glb_proxy || item.model_id) return 'model';
+  return 'all';
+}
+
 export function historyHasMore() { return _ts(_currentTab()).hasMore; }
 export function historyLoadingMore() { return _ts(_currentTab()).loading; }
 /** True if the current tab has fetched its first page from the DB. */
@@ -682,8 +692,11 @@ export function getTabHistory() {
  * placeholders) are visible immediately — getTabHistory() falls back to
  * the global historyCache which is the source of truth.
  */
-export function invalidateTabCaches() {
-  for (const key of Object.keys(_tabState)) {
+export function invalidateTabCaches(tabs = null) {
+  const keys = Array.isArray(tabs) && tabs.length
+    ? [...new Set(tabs.map((tab) => String(tab || 'all').toLowerCase()).filter((tab) => _tabState[tab]))]
+    : Object.keys(_tabState);
+  for (const key of keys) {
     _tabState[key].items = null;
     _tabState[key].hasMore = false;
     _tabState[key].nextCursor = null;
@@ -780,6 +793,7 @@ export function saveHistory(arr) {
  */
 export function addHistoryItem(item) {
   const sanitized = sanitizeHistoryItem(item);
+  const affectedTab = inferHistoryTabType(sanitized);
 
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
@@ -788,8 +802,9 @@ export function addHistoryItem(item) {
   // This is a soft cap — the user's full history is always reachable via load-more.
   if (historyCache.length > 500) historyCache.length = 500;
   saveHistoryCache(historyCache);
-  // Invalidate tab caches so getTabHistory() re-derives from updated global cache
-  invalidateTabCaches();
+  // Invalidate only the affected media tab plus "all" to preserve pagination
+  // state in unrelated tabs during background job polling.
+  invalidateTabCaches(['all', affectedTab]);
 
   if (shouldSkipRemoteHistoryItem(sanitized)) {
     return true;
@@ -827,6 +842,8 @@ export function updateHistoryItem(jobId, updates = {}) {
   if (idx !== -1) {
     const current = historyCache[idx] || {};
     const updated = { ...current, ...updates };
+    const currentTabType = inferHistoryTabType(current);
+    const updatedTabType = inferHistoryTabType(updated);
     if (Object.prototype.hasOwnProperty.call(updates, 'status')) {
       updated.status = updates.status;
     } else if (current.status !== undefined) {
@@ -834,8 +851,9 @@ export function updateHistoryItem(jobId, updates = {}) {
     }
     historyCache[idx] = updated;
     saveHistoryCache(historyCache);
-    // Invalidate tab caches so getTabHistory() re-derives from updated global cache
-    invalidateTabCaches();
+    // Preserve pagination in unrelated tabs while still refreshing "all" and
+    // whichever media tab this item belongs to.
+    invalidateTabCaches(['all', currentTabType, updatedTabType]);
 
     if (shouldSkipRemoteHistoryItem(updated)) {
       return true;
@@ -865,10 +883,12 @@ export function updateHistoryItem(jobId, updates = {}) {
 export function deleteHistoryItem(jobId, options = {}) {
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
+  const existing = historyCache.find(x => x.id === jobId) || null;
+  const affectedTab = inferHistoryTabType(existing);
   historyCache = historyCache.filter(x => x.id !== jobId);
   saveHistoryCache(historyCache);
-  // Invalidate tab caches so getTabHistory() re-derives from updated global cache
-  invalidateTabCaches();
+  // Preserve pagination in unrelated tabs.
+  invalidateTabCaches(['all', affectedTab]);
 
   if (!options.skipRemote) {
     // Delete from database
