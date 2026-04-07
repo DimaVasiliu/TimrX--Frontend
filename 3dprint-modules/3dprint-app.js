@@ -2389,13 +2389,16 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
   
       if (modelImageDrop && modelImageUpload && modelImagePreview) {
         modelImageDrop.addEventListener('click', () => modelImageUpload.click());
-        modelImageUpload.addEventListener('change', function () {
+        modelImageUpload.addEventListener('change', async function () {
           if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              modelImagePreview.src = e.target.result;
-            };
-            reader.readAsDataURL(this.files[0]);
+            try {
+              modelImagePreview.src = await readFileAsDataUrl(this.files[0]);
+            } catch (err) {
+              console.warn('[Image Upload] Invalid source image:', err);
+              this.value = '';
+              modelImagePreview.src = '';
+              showImageUploadError(err?.message || 'Invalid image file.');
+            }
           }
         });
         modelImageDrop.addEventListener('dragover', (e) => {
@@ -2419,6 +2422,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const multiImageGrid = leftStack.querySelector('#multiImageGrid');
       if (multiImageGrid) {
         const slots = multiImageGrid.querySelectorAll('.multi-img-slot');
+        const updateMultiImageCount = () => {
+          const count = multiImageGrid.querySelectorAll('.multi-img-preview[style*="display: block"], .multi-img-preview[style*="display:block"]').length;
+          const countEl = leftStack.querySelector('#multiImageCount');
+          if (countEl) countEl.textContent = `${count} / 4 images selected`;
+        };
         slots.forEach(slot => {
           const dropZone = slot.querySelector('.video-drop-zone');
           const fileInput = slot.querySelector('.multi-img-input');
@@ -2426,19 +2434,22 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
           if (dropZone && fileInput && preview) {
             dropZone.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', function () {
+            fileInput.addEventListener('change', async function () {
               if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  preview.src = e.target.result;
+                try {
+                  preview.src = await readFileAsDataUrl(this.files[0]);
                   preview.style.display = 'block';
                   dropZone.style.display = 'none';
-                  // Update count
-                  const count = multiImageGrid.querySelectorAll('.multi-img-preview[style*="display: block"], .multi-img-preview[style*="display:block"]').length;
-                  const countEl = leftStack.querySelector('#multiImageCount');
-                  if (countEl) countEl.textContent = `${count} / 4 images selected`;
-                };
-                reader.readAsDataURL(this.files[0]);
+                  updateMultiImageCount();
+                } catch (err) {
+                  console.warn('[Image Upload] Invalid multi-image slot file:', err);
+                  this.value = '';
+                  preview.style.display = 'none';
+                  preview.src = '';
+                  dropZone.style.display = '';
+                  updateMultiImageCount();
+                  showImageUploadError(err?.message || 'Invalid image file.');
+                }
               }
             });
             dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(255,255,255,.3)'; });
@@ -2457,9 +2468,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
               preview.src = '';
               dropZone.style.display = '';
               fileInput.value = '';
-              const count = multiImageGrid.querySelectorAll('.multi-img-preview[style*="display: block"], .multi-img-preview[style*="display:block"]').length;
-              const countEl = leftStack.querySelector('#multiImageCount');
-              if (countEl) countEl.textContent = `${count} / 4 images selected`;
+              updateMultiImageCount();
             });
           }
         });
@@ -2472,14 +2481,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       if (videoImageDrop && videoSource && videoImagePreview) {
         videoImageDrop.addEventListener('click', () => videoSource.click());
-        videoSource.addEventListener('change', function () {
+        videoSource.addEventListener('change', async function () {
           if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              videoImagePreview.src = e.target.result;
+            try {
+              videoImagePreview.src = await readFileAsDataUrl(this.files[0]);
               videoImagePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(this.files[0]);
+            } catch (err) {
+              console.warn('[Video Upload] Invalid source image:', err);
+              this.value = '';
+              videoImagePreview.src = '';
+              videoImagePreview.style.display = 'none';
+              showImageUploadError(err?.message || 'Invalid image file.');
+            }
           }
         });
         // Drag-n-drop
@@ -2533,11 +2546,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         if (!drop || !source || !preview) return;
 
         drop.addEventListener('click', () => source.click());
-        source.addEventListener('change', function () {
+        source.addEventListener('change', async function () {
           if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; };
-            reader.readAsDataURL(this.files[0]);
+            try {
+              preview.src = await readFileAsDataUrl(this.files[0]);
+              preview.style.display = 'block';
+            } catch (err) {
+              console.warn('[Video Upload] Invalid image file:', err);
+              this.value = '';
+              preview.src = '';
+              preview.style.display = 'none';
+              showImageUploadError(err?.message || 'Invalid image file.');
+            }
             validateVideoForm();
           }
         });
@@ -3841,8 +3861,44 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // Expose settings getter globally
       window.ImageJobControl.getSettings = getImageSettings;
 
-      function readFileAsDataUrl(file) {
+      function showImageUploadError(message) {
+        if (window.showToast) {
+          window.showToast(message, 'error');
+          return;
+        }
+        alert(message);
+      }
+
+      function validateImageFile(file) {
         return new Promise((resolve, reject) => {
+          if (!file) {
+            reject(new Error('No image file selected.'));
+            return;
+          }
+          if (file.type && !String(file.type).toLowerCase().startsWith('image/')) {
+            reject(new Error('Please select a real image file.'));
+            return;
+          }
+
+          const objectUrl = URL.createObjectURL(file);
+          const img = new Image();
+          const cleanup = () => URL.revokeObjectURL(objectUrl);
+
+          img.onload = () => {
+            cleanup();
+            resolve(file);
+          };
+          img.onerror = () => {
+            cleanup();
+            reject(new Error('Invalid image file. Please choose a real PNG, JPG, WEBP, or GIF image.'));
+          };
+          img.src = objectUrl;
+        });
+      }
+
+      async function readFileAsDataUrl(file) {
+        await validateImageFile(file);
+        return await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
           reader.onerror = reject;
@@ -4426,6 +4482,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             refreshImageAssetGroups();
           } catch (err) {
             console.warn('[Image Upload] Failed to read file:', err);
+            clearSelection();
+            showImageUploadError(err?.message || 'Invalid image file.');
           }
           validateImageForm();
         });
@@ -4474,6 +4532,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             refreshImageAssetGroups();
           } catch (err) {
             console.warn('[Image Upload] Failed to read files:', err);
+            input.value = '';
+            showImageUploadError(err?.message || 'Invalid image file.');
           }
           validateImageForm();
         });
