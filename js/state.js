@@ -26,6 +26,19 @@ const _HISTORY_DEDUP_MS = 5000; // skip duplicate calls within 5s
 // that compete for the same pool connections.
 let _historyFetchInFlight = null; // Promise | null
 
+const IN_PROGRESS_HISTORY_STATUSES = new Set([
+  'queued',
+  'processing',
+  'generating',
+  'refining',
+  'remeshing',
+  'texturing',
+  'rigging',
+  'animating',
+  'provider_pending',
+  'pending',
+]);
+
 // ============================================================================
 // JOB WATCHERS (shared Map for tracking active job polling)
 // ============================================================================
@@ -189,6 +202,11 @@ export function sanitizeHistoryItem(item = {}) {
   return copy;
 }
 
+function isInProgressHistoryItem(item = {}) {
+  const status = String(item?.status || '').toLowerCase();
+  return IN_PROGRESS_HISTORY_STATUSES.has(status);
+}
+
 function shouldSkipRemoteHistoryItem(item = {}) {
   if (!item || typeof item !== 'object') return true;
   if (item.status && item.status !== 'finished') return true;
@@ -284,12 +302,18 @@ function saveHistoryCache(arr) {
       id: item.id,
       type: item.type,
       status: item.status,
+      provider: item.provider,
+      provider_used: item.provider_used,
       title: item.title,
       prompt: item.prompt,
       thumbnail_url: item.thumbnail_url,
       image_url: item.image_url,
       video_url: item.video_url,
       video_id: item.video_id,
+      image_id: item.image_id,
+      model_id: item.model_id,
+      upstream_id: item.upstream_id,
+      original_id: item.original_id || item?.payload?.original_id,
       error_message: item.error_message,
       glb_url: item.glb_url,
       glb_proxy: item.glb_proxy,
@@ -454,10 +478,10 @@ export async function loadHistoryFromDB() {
           // while the DB fetch was running. Without this merge, items added by
           // addHistoryItem() (e.g., generating placeholders) would be silently
           // dropped when the DB response overwrites historyCache.
-          const dbIds = new Set(page.items.map(i => i.id));
-          const inFlightItems = (historyCache || []).filter(
-            i => i && !dbIds.has(i.id) && i.status && i.status !== 'finished'
-          );
+      const dbIds = new Set(page.items.map(i => i.id));
+      const inFlightItems = (historyCache || []).filter(
+            i => i && !dbIds.has(i.id) && isInProgressHistoryItem(i)
+      );
           historyCache = [...inFlightItems, ...page.items];
 
           _historyLastFetchedAt = Date.now();
@@ -533,7 +557,7 @@ export async function loadHistoryTab(tab) {
       const tabType = tab === 'all' ? null : tab;
       const inFlight = (historyCache || []).filter(i => {
         if (!i || dbIds.has(i.id)) return false;
-        if (!i.status || i.status === 'finished') return false;
+        if (!isInProgressHistoryItem(i)) return false;
         if (tabType) {
           const type = i.type || (i.glb_url ? 'model' : i.image_url ? 'image' : i.video_url ? 'video' : 'model');
           return type === tabType;
@@ -615,7 +639,7 @@ export async function loadMoreHistory() {
       if (tab === 'all') {
         const loadedIds = new Set(ts.items.map(h => h.id));
         const inFlight = (historyCache || []).filter(
-          h => h && !loadedIds.has(h.id) && h.status && h.status !== 'finished'
+          h => h && !loadedIds.has(h.id) && isInProgressHistoryItem(h)
         );
         historyCache = [...inFlight, ...ts.items];
         saveHistoryCache(historyCache);

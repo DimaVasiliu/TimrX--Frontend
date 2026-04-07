@@ -569,9 +569,18 @@ function symmetryLabel(value = '') {
 }
 
 function getDedupeKey(item = {}) {
-  const provider = item.provider || item.ai_provider || item?.payload?.provider || 'unknown';
-  const upstream = item.upstream_id || item.upstream_job_id || item?.payload?.upstream_id || item?.payload?.original_job_id || item?.payload?.job_id || '';
-  if (upstream) return `${provider}:${upstream}`;
+  const provider = item.provider || item.provider_used || item.ai_provider || item?.payload?.provider || 'unknown';
+  const upstream = item.upstream_id
+    || item.upstream_job_id
+    || item.original_id
+    || item?.payload?.upstream_id
+    || item?.payload?.original_id
+    || item?.payload?.original_job_id
+    || item?.payload?.job_id
+    || '';
+  if (upstream) return `job:${upstream}`;
+  if (item.image_id) return `image:${item.image_id}`;
+  if (item.model_id) return `model:${item.model_id}`;
   const glbUrl = item.glb_url || item?.payload?.glb_url || '';
   const imageUrl = item.image_url || item?.payload?.image_url || '';
   const contentHash = item.content_hash || item?.payload?.content_hash || '';
