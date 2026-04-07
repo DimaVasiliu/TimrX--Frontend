@@ -37,6 +37,21 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <style>
+    .tool-example-card video{
+      display:block;
+      width:100%;
+      height:auto;
+      aspect-ratio:16/9;
+      object-fit:cover;
+      background:#090909;
+    }
+
+    .tool-example-card video[poster]{
+      background-size:cover;
+      background-position:center;
+    }
+  </style>
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
@@ -262,37 +277,55 @@
       <p class="tool-examples-intro">From cinematic landscapes to animated product shots, the AI video generator handles a wide range of creative styles. Here are examples of what users have produced with TimrX.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-1.webp" alt="AI-generated cinematic ocean sunset video" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-1.webp" aria-label="AI-generated cinematic ocean sunset video">
+            <source src="/vid/vid1.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Cinematic Ocean Sunset</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A slow drone shot flying over a calm ocean at golden hour, waves gently rolling, cinematic color grading"</p>
           <p class="tool-example-desc">Perfect for travel content creators and filmmakers who need b-roll footage without the cost of drone shoots. The AI captures realistic water motion and warm lighting gradients that feel authentic.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-2.webp" alt="AI-generated product rotation video of sneakers" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-2.webp" aria-label="AI-generated product rotation video of sneakers">
+            <source src="/vid/vid2.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Product Rotation — Sneaker Showcase</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "White sneakers rotating on a black pedestal, studio lighting, smooth 360-degree spin, clean background"</p>
           <p class="tool-example-desc">E-commerce brands use this to create professional product videos from a single product photo. Upload your product image and the AI generates a polished rotation clip ready for your online store.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-3.webp" alt="AI-generated abstract particle flow animation" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-3.webp" aria-label="AI-generated abstract particle flow animation">
+            <source src="/vid/vid3.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Abstract Particle Flow</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "Glowing blue and purple particles flowing through a dark void, organic motion, abstract digital art"</p>
           <p class="tool-example-desc">Ideal for motion backgrounds in presentations, music videos, and website hero sections. Abstract generative content like this is one of the strongest use cases for AI video tools.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-4.webp" alt="AI-generated futuristic city flythrough" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-4.webp" aria-label="AI-generated futuristic city flythrough">
+            <source src="/vid/vid4.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Futuristic City Flythrough</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "Flying through a futuristic neon-lit city at night, rain reflecting on streets, cyberpunk aesthetic, smooth camera"</p>
           <p class="tool-example-desc">Game developers and concept artists use scenes like this to visualize environments before committing to full 3D production. Generate multiple variations quickly to explore different creative directions.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-5.webp" alt="AI-generated nature timelapse of flowers blooming" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-5.webp" aria-label="AI-generated nature timelapse of flowers blooming">
+            <source src="/vid/vid5.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Nature Timelapse — Blooming Flowers</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "Timelapse of colorful wildflowers blooming in a meadow, soft natural light, gentle breeze moving petals"</p>
           <p class="tool-example-desc">Educational content, wellness apps, and meditation channels benefit from nature-style AI videos. The AI simulates organic growth and natural movement that would take hours to capture in real life.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/video-gen-6.webp" alt="AI-generated animated logo reveal" width="400" height="225" loading="lazy" />
+          <video controls muted playsinline preload="metadata" poster="/img/examples/video-gen-6.webp" aria-label="AI-generated animated logo reveal">
+            <source src="/vid/vid6.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <h3>Animated Logo Reveal</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "Minimalist logo appearing with smooth metallic reveal animation, dark background, subtle light reflections"</p>
           <p class="tool-example-desc">Freelancers and small studios use AI video generation to produce logo animations for clients without needing After Effects expertise. Upload your logo as an image and let the AI handle the animation.</p>
