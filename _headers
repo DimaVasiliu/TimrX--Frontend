@@ -71,6 +71,18 @@
 /*.mov
   Content-Type: video/quicktime
 
+/*.glb
+  Content-Type: model/gltf-binary
+
+/*.gltf
+  Content-Type: model/gltf+json; charset=utf-8
+
+/*.bin
+  Content-Type: application/octet-stream
+
+/*.usdz
+  Content-Type: model/vnd.usdz+zip
+
 /*.ico
   Content-Type: image/x-icon
 

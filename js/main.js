@@ -1219,7 +1219,9 @@ function initViewerToolbar() {
     if (action === 'ar') {
       const item = API.getActiveHistoryItem();
       if (!item) return;
-      const modelUrl = item.glb_url || item.model_url || item.thumbnail_url;
+      const glbUrl = item.glb_proxy || item.glb_url || item.model_url || '';
+      const usdzUrl = item.processed_usdz_url || item.model_urls?.usdz || item.textured_model_urls?.usdz || '';
+      const modelUrl = usdzUrl || glbUrl;
       if (!modelUrl) {
         if (window.showToast) window.showToast('No model available for AR preview.', 'info');
         return;
@@ -1230,7 +1232,6 @@ function initViewerToolbar() {
         arViewer = document.createElement('model-viewer');
         arViewer.id = 'timrx-ar-viewer';
         arViewer.setAttribute('ar', '');
-        arViewer.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
         arViewer.setAttribute('camera-controls', '');
         arViewer.setAttribute('shadow-intensity', '0.5');
         arViewer.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(0,0,0,0.9);';
@@ -1246,7 +1247,13 @@ function initViewerToolbar() {
           import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
         }
       }
-      arViewer.setAttribute('src', modelUrl);
+      arViewer.setAttribute('ar-modes', usdzUrl ? 'webxr scene-viewer quick-look' : 'webxr scene-viewer');
+      arViewer.setAttribute('src', glbUrl || modelUrl);
+      if (usdzUrl) {
+        arViewer.setAttribute('ios-src', usdzUrl);
+      } else {
+        arViewer.removeAttribute('ios-src');
+      }
       arViewer.setAttribute('alt', item.title || item.prompt || '3D Model AR Preview');
       // Auto-activate AR if supported
       arViewer.addEventListener('load', function() {
