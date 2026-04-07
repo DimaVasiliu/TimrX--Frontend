@@ -24,14 +24,51 @@ let _injected = false;
 let _identityCache = null;
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const CSRF_COOKIE_NAME = 'timrx_csrf';
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+
+function _readCookie(name) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+async function _ensureCsrfToken(base) {
+  if (window.TimrXApi?.ensureCsrfToken) return window.TimrXApi.ensureCsrfToken();
+
+  const existing = _readCookie(CSRF_COOKIE_NAME);
+  if (existing) return existing;
+
+  try {
+    const response = await fetch(`${base}/api/me`, {
+      method: 'GET',
+      credentials: 'include',
+      mode: 'cors',
+      headers: { Accept: 'application/json' },
+    });
+    await response.text().catch(() => '');
+  } catch (_) {
+    // Let the real request surface the error if bootstrap fails.
+  }
+
+  return _readCookie(CSRF_COOKIE_NAME);
+}
 
 // ── API helper ──────────────────────────────────────────────────────────────
-function api(url, opts = {}) {
+async function api(url, opts = {}) {
   if (window.TimrXApi?.apiFetch) return window.TimrXApi.apiFetch(url, opts);
   const base = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+  const method = String(opts.method || 'GET').toUpperCase();
+  const headers = new Headers(opts.headers || { 'Content-Type': 'application/json' });
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !headers.has(CSRF_HEADER_NAME)) {
+    const token = _readCookie(CSRF_COOKIE_NAME) || await _ensureCsrfToken(base);
+    if (token) headers.set(CSRF_HEADER_NAME, token);
+  }
+
   return fetch(`${base}${url}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    mode: 'cors',
+    headers,
     ...opts,
   }).then(r => r.json().then(data => ({ ok: r.ok, status: r.status, data })));
 }
