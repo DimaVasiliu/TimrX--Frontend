@@ -6,7 +6,7 @@
 
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
-import * as State from './state.js?v=20260407d';
+import * as State from './state.js?v=20260407e';
 import * as Viewer from './viewer.js';
 import * as UI from './ui-utils.js';
 import {
@@ -21,8 +21,8 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260407d';
-import * as API from './api.js?v=20260407d';
+} from './history.js?v=20260407e';
+import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -1582,28 +1582,40 @@ function wireGallery() {
       next.setAttribute('disabled', '');
       next.classList.add('loading');
 
-      let added = [];
-      if (tabLoaded) {
-        added = await State.loadMoreHistory();
-      } else {
-        const tabItems = await State.loadHistoryTab(filter);
-        added = tabItems || [];
+      let lastAddedCount = 0;
+      let newTotalPages = totalPages;
+      const maxFetchPasses = (filter === 'model' || filter === 'all') ? 4 : 2;
+
+      for (let pass = 0; pass < maxFetchPasses; pass++) {
+        let added = [];
+        if (State.historyTabLoaded()) {
+          added = await State.loadMoreHistory();
+        } else {
+          const tabItems = await State.loadHistoryTab(filter);
+          added = tabItems || [];
+        }
+        lastAddedCount = added.length;
+
+        // Re-render after each fetch so lineage grouping can recalculate the
+        // true visible page count before deciding whether we can advance.
+        renderHistory();
+        newTotalPages = State.historyState._renderedTotalPages || 1;
+
+        if (State.historyState.page < newTotalPages) {
+          State.historyState.page++;
+          renderHistory();
+          break;
+        }
+
+        if (!State.historyHasMore() || added.length === 0) {
+          break;
+        }
       }
 
       next.classList.remove('loading');
       next.removeAttribute('disabled');
 
-      // Re-render first so _renderedTotalPages is updated with the new data
-      renderHistory();
-
-      if (added.length > 0) {
-        const newTotalPages = State.historyState._renderedTotalPages || 1;
-        if (State.historyState.page < newTotalPages) {
-          State.historyState.page++;
-          renderHistory(); // re-render with advanced page
-        }
-        log(`[Pagination] After load: filter=${filter} page=${State.historyState.page}/${newTotalPages}${State.historyHasMore() ? '+' : ''}`);
-      }
+      log(`[Pagination] After load: filter=${filter} page=${State.historyState.page}/${newTotalPages}${State.historyHasMore() ? '+' : ''} added=${lastAddedCount}`);
       scrollHistoryToTop();
     }
     // else: no more data, button should already be disabled by renderHistory
@@ -1863,8 +1875,10 @@ function wireGallery() {
         return;
       }
 
-      if ((act === 'download' || act === 'print') && (item.glb_url || item.glb_proxy)) {
-        const downloadUrl = item.glb_url || item.glb_proxy;
+      if (act === 'download' || act === 'print') {
+        const explicitDownloadUrl = btn.getAttribute('data-download-url') || '';
+        const downloadUrl = explicitDownloadUrl || item.glb_url || item.glb_proxy;
+        if (!downloadUrl) return;
         const filename = buildItemDownloadFilename(item, {
           type: 'model',
           sourceUrl: downloadUrl,

@@ -11,7 +11,7 @@ import { ACTIVE_JOBS_STORAGE_KEY, PENDING_JOBS_STORAGE_KEY, log, apiFetch, getCo
 // ============================================================================
 const HISTORY_CACHE_KEY = 'meshy_history_cache';
 const HISTORY_OWNER_KEY = 'meshy_history_owner';
-export const HISTORY_LIMIT = 50;
+export const HISTORY_LIMIT = 75;
 export const MAX_DATA_URI_LEN = 50000;
 
 // In-memory cache for history (populated from DB)
@@ -425,6 +425,39 @@ function inferHistoryTabType(item = {}) {
   return 'all';
 }
 
+function _tabIncludesItem(tab, item = {}) {
+  if (tab === 'all') return true;
+  return inferHistoryTabType(item) === tab;
+}
+
+function _syncLoadedTabCaches(previousItem = null, nextItem = null) {
+  const targetId = nextItem?.id || previousItem?.id;
+  if (!targetId) return;
+
+  const normalizedNextItem = nextItem ? sanitizeHistoryItem(nextItem) : null;
+
+  for (const [tab, tabState] of Object.entries(_tabState)) {
+    if (!Array.isArray(tabState.items)) continue;
+
+    const existingIndex = tabState.items.findIndex((item) => item?.id === targetId);
+    const shouldInclude = !!normalizedNextItem && _tabIncludesItem(tab, normalizedNextItem);
+
+    if (existingIndex !== -1) {
+      if (shouldInclude) {
+        tabState.items[existingIndex] = normalizedNextItem;
+      } else {
+        tabState.items.splice(existingIndex, 1);
+      }
+      continue;
+    }
+
+    if (shouldInclude) {
+      tabState.items.unshift(normalizedNextItem);
+      if (tabState.items.length > 500) tabState.items.length = 500;
+    }
+  }
+}
+
 export function historyHasMore() { return _ts(_currentTab()).hasMore; }
 export function historyLoadingMore() { return _ts(_currentTab()).loading; }
 /** True if the current tab has fetched its first page from the DB. */
@@ -793,7 +826,6 @@ export function saveHistory(arr) {
  */
 export function addHistoryItem(item) {
   const sanitized = sanitizeHistoryItem(item);
-  const affectedTab = inferHistoryTabType(sanitized);
 
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
@@ -802,9 +834,7 @@ export function addHistoryItem(item) {
   // This is a soft cap — the user's full history is always reachable via load-more.
   if (historyCache.length > 500) historyCache.length = 500;
   saveHistoryCache(historyCache);
-  // Invalidate only the affected media tab plus "all" to preserve pagination
-  // state in unrelated tabs during background job polling.
-  invalidateTabCaches(['all', affectedTab]);
+  _syncLoadedTabCaches(null, sanitized);
 
   if (shouldSkipRemoteHistoryItem(sanitized)) {
     return true;
@@ -842,8 +872,6 @@ export function updateHistoryItem(jobId, updates = {}) {
   if (idx !== -1) {
     const current = historyCache[idx] || {};
     const updated = { ...current, ...updates };
-    const currentTabType = inferHistoryTabType(current);
-    const updatedTabType = inferHistoryTabType(updated);
     if (Object.prototype.hasOwnProperty.call(updates, 'status')) {
       updated.status = updates.status;
     } else if (current.status !== undefined) {
@@ -851,9 +879,7 @@ export function updateHistoryItem(jobId, updates = {}) {
     }
     historyCache[idx] = updated;
     saveHistoryCache(historyCache);
-    // Preserve pagination in unrelated tabs while still refreshing "all" and
-    // whichever media tab this item belongs to.
-    invalidateTabCaches(['all', currentTabType, updatedTabType]);
+    _syncLoadedTabCaches(current, updated);
 
     if (shouldSkipRemoteHistoryItem(updated)) {
       return true;
@@ -884,11 +910,9 @@ export function deleteHistoryItem(jobId, options = {}) {
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
   const existing = historyCache.find(x => x.id === jobId) || null;
-  const affectedTab = inferHistoryTabType(existing);
   historyCache = historyCache.filter(x => x.id !== jobId);
   saveHistoryCache(historyCache);
-  // Preserve pagination in unrelated tabs.
-  invalidateTabCaches(['all', affectedTab]);
+  _syncLoadedTabCaches(existing, null);
 
   if (!options.skipRemote) {
     // Delete from database

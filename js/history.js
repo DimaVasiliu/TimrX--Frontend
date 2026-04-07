@@ -19,7 +19,7 @@ import {
   getTabHistory,
   loadHistoryTab,
   loadMoreHistory
-} from './state.js?v=20260407d';
+} from './state.js?v=20260407e';
 
 // ============================================================================
 // MENU STATE
@@ -1067,6 +1067,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
   const canDownload = !!(displayModel.glb_url || displayModel.glb_proxy);
+  const modelDownloadUrl = String(displayModel.glb_url || displayModel.glb_proxy || '').replace(/"/g, '&quot;');
   const isActive = models.some((m) => m && m.id === historyActiveModelId);
   const isFreshThumb = models.some((m) => historyFreshThumbs.has(m.id));
   const variantCount = models.length;
@@ -1496,7 +1497,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </span>
               <span class="card-menu__arrow">></span>
             </button>
-            <button class="card-menu__item" type="button" data-act="print" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
+            <button class="card-menu__item" type="button" data-act="print" data-id="${displayModel.id}" data-download-url="${modelDownloadUrl}" ${!canDownload ? 'disabled' : ''}>
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#128424;</span>
                 <span>Print</span>
@@ -1511,7 +1512,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </span>
               <span class="card-menu__arrow">></span>
             </button>
-            <button class="card-menu__item" type="button" data-act="download" data-id="${displayModel.id}" ${!canDownload ? 'disabled' : ''}>
+            <button class="card-menu__item" type="button" data-act="download" data-id="${displayModel.id}" data-download-url="${modelDownloadUrl}" ${!canDownload ? 'disabled' : ''}>
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#8595;</span>
                 <span>Download</span>
