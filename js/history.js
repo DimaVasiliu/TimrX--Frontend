@@ -970,26 +970,41 @@ export function updateActiveHistoryMenuPosition() {
 // ============================================================================
 
 function buildHistorySkeleton(rows = 2, thumbsPerRow = 3) {
-  return Array.from({ length: rows }).map(() => `
-    <div class="history-collection history-collection--skeleton">
-      <span class="history-collection__divider" aria-hidden="true"></span>
-      <div class="history-collection__head">
-        <span class="history-skeleton history-skeleton__line"></span>
-        <span class="history-skeleton history-skeleton__chip"></span>
-      </div>
-      <div class="history-collection__thumbs">
-        ${Array.from({ length: thumbsPerRow }).map(() => `
-          <div class="history-thumb history-thumb--skeleton">
-            <div class="history-thumb__status-bar">
-              <span class="history-skeleton history-skeleton__chip"></span>
-              <span class="history-skeleton history-skeleton__chip"></span>
-            </div>
-            <div class="history-skeleton history-skeleton__thumb"></div>
-          </div>
-        `).join('')}
+  const filterLabelMap = {
+    all: 'assets',
+    model: '3D models',
+    image: 'images',
+    video: 'videos',
+  };
+  const filter = historyState.filter || 'all';
+  const label = filterLabelMap[filter] || 'assets';
+  const title = filter === 'all' ? 'Loading history' : `Loading ${label}`;
+  const meta = filter === 'all'
+    ? 'Refreshing your latest creations and in-progress jobs.'
+    : `Pulling your latest ${label} into the history panel.`;
+
+  return `
+    <div class="history-loading-state" role="status" aria-live="polite">
+      <div class="history-loading-state__panel">
+        <div class="history-loading-state__orbital" aria-hidden="true">
+          <div class="history-loading-state__ring"></div>
+          <div class="history-loading-state__core"></div>
+          <span class="history-loading-state__dot history-loading-state__dot--a"></span>
+          <span class="history-loading-state__dot history-loading-state__dot--b"></span>
+          <span class="history-loading-state__dot history-loading-state__dot--c"></span>
+        </div>
+        <div class="history-loading-state__copy">
+          <p class="history-loading-state__title">${title}</p>
+          <p class="history-loading-state__meta">${meta}</p>
+        </div>
+        <div class="history-loading-state__chips" aria-hidden="true">
+          <span>3D</span>
+          <span>Image</span>
+          <span>Video</span>
+        </div>
       </div>
     </div>
-  `).join('');
+  `;
 }
 
 function buildHistoryThumb(bundle = {}, isExpanded = false) {

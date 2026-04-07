@@ -304,7 +304,7 @@ export async function loadGlbFromUrl(url) {
     });
 }
 
-function fitCameraToObject(object, offset = 0.62) {
+function fitCameraToObject(object, offset = 0.48) {
     const box = getVisualBounds(object);
     const boxSize = box.getSize(new THREE.Vector3());
     const size = boxSize.length();

@@ -2148,15 +2148,25 @@
 
         <!-- Grid -->
         <div class="ccg-grid" id="ccgGrid" aria-live="polite" aria-label="Community creations">
-          <div class="ccg-skeleton-grid" id="ccgSkeleton" aria-hidden="true">
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
-            <div class="ccg-skeleton-card"></div>
+          <div class="ccg-loading-state" id="ccgSkeleton" role="status" aria-live="polite">
+            <div class="ccg-loading-state__panel">
+              <div class="ccg-loading-state__orbital" aria-hidden="true">
+                <div class="ccg-loading-state__ring"></div>
+                <div class="ccg-loading-state__core"></div>
+                <span class="ccg-loading-state__dot ccg-loading-state__dot--a"></span>
+                <span class="ccg-loading-state__dot ccg-loading-state__dot--b"></span>
+                <span class="ccg-loading-state__dot ccg-loading-state__dot--c"></span>
+              </div>
+              <div class="ccg-loading-state__copy">
+                <p class="ccg-loading-state__title" id="ccgLoadingLabel">Loading creations</p>
+                <p class="ccg-loading-state__meta" id="ccgLoadingMeta">Refreshing the latest community work.</p>
+              </div>
+              <div class="ccg-loading-state__chips" aria-hidden="true">
+                <span>3D</span>
+                <span>Image</span>
+                <span>Video</span>
+              </div>
+            </div>
           </div>
         </div>
 

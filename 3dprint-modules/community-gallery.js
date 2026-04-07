@@ -37,6 +37,7 @@
 
   // DOM refs (resolved on init)
   let grid, skeleton, emptyState, loadMoreWrap, loadMoreBtn, filterBar;
+  let loadingLabel, loadingMeta;
   let featuredTrack, featuredPrev, featuredNext, featuredSection;
   let detailEl, detailBackdrop, detailClose, detailMedia, detailInfo;
   let searchInput, sortSelect, tickerTrack, spotlightTrack, spotlightSection;
@@ -448,8 +449,50 @@
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
+  function updateLoadingCopy() {
+    const filterLabels = {
+      all: 'creations',
+      model: '3D models',
+      image: 'images',
+      video: 'videos',
+    };
+    const filterLabel = filterLabels[currentFilter] || 'creations';
+    const primary = currentSearch ? `Searching ${filterLabel}` : `Loading ${filterLabel}`;
+
+    let secondary = 'Refreshing the latest community work.';
+    if (currentSearch) {
+      secondary = `Looking for matches for "${currentSearch}".`;
+    } else if (currentSort === 'popular') {
+      secondary = 'Reordering by popularity and reaction activity.';
+    } else if (currentSort === 'trending') {
+      secondary = 'Finding what is taking off in the community.';
+    }
+
+    if (loadingLabel) loadingLabel.textContent = primary;
+    if (loadingMeta) loadingMeta.textContent = secondary;
+  }
+
+  function showSkeleton() {
+    updateLoadingCopy();
+    if (skeleton) {
+      skeleton.hidden = false;
+      skeleton.setAttribute('aria-hidden', 'false');
+    }
+    if (grid) {
+      grid.classList.add('ccg-grid--loading');
+      grid.setAttribute('aria-busy', 'true');
+    }
+  }
+
   function hideSkeleton() {
-    if (skeleton) { skeleton.hidden = true; skeleton.setAttribute('aria-hidden', 'true'); }
+    if (skeleton) {
+      skeleton.hidden = true;
+      skeleton.setAttribute('aria-hidden', 'true');
+    }
+    if (grid) {
+      grid.classList.remove('ccg-grid--loading');
+      grid.setAttribute('aria-busy', 'false');
+    }
   }
 
   function clearCards() {
@@ -467,7 +510,6 @@
   }
 
   function renderPosts(posts, append) {
-    hideSkeleton();
     if (!append) clearCards();
     const frag = document.createDocumentFragment();
     const visiblePosts = posts.filter(p => !isExcludedPost(p));
@@ -501,14 +543,15 @@
     if (isLoading) return;
     isLoading = true;
     if (loadMoreBtn) loadMoreBtn.disabled = true;
+    const hadCards = !append && getRenderedCardCount() > 0;
+    const previousEmptyHidden = emptyState ? emptyState.hidden : true;
+    const previousLoadMoreHidden = loadMoreWrap ? loadMoreWrap.hidden : true;
 
     try {
       if (!append) {
-        clearCards();
-        hideSkeleton();
-        if (skeleton) skeleton.hidden = false;
-        emptyState.hidden = true;
-        loadMoreWrap.hidden = true;
+        showSkeleton();
+        if (emptyState) emptyState.hidden = true;
+        if (loadMoreWrap) loadMoreWrap.hidden = true;
       }
 
       const data = await fetchPage(filter, offset);
@@ -523,9 +566,8 @@
         if (!allPostsCache.find(c => c.id === p.id)) allPostsCache.push(p);
       });
 
-      hideSkeleton();
-
       const renderedCount = renderPosts(posts, append);
+      if (!append) hideSkeleton();
 
       if (!append && renderedCount === 0) {
         renderStatsFallback();
@@ -547,10 +589,15 @@
       }
     } catch (err) {
       console.warn('[CommunityGallery] load error:', err);
-      renderStatsFallback();
       hideSkeleton();
-      if (!append) clearCards();
-      syncGalleryChrome(false);
+      if (!append && !hadCards) {
+        renderStatsFallback();
+        clearCards();
+        syncGalleryChrome(false);
+      } else {
+        if (emptyState) emptyState.hidden = previousEmptyHidden;
+        if (loadMoreWrap) loadMoreWrap.hidden = previousLoadMoreHidden;
+      }
     } finally {
       isLoading = false;
       if (loadMoreBtn) loadMoreBtn.disabled = false;
@@ -1399,6 +1446,8 @@
     loadMoreWrap = document.getElementById('ccgLoadMoreWrap');
     loadMoreBtn = document.getElementById('ccgLoadMore');
     filterBar = document.querySelector('.ccg-filter-bar');
+    loadingLabel = document.getElementById('ccgLoadingLabel');
+    loadingMeta = document.getElementById('ccgLoadingMeta');
 
     // Featured refs
     featuredSection = document.getElementById('ccgFeatured');
