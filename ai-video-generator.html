@@ -277,8 +277,15 @@
       <p class="tool-examples-intro">From cinematic landscapes to animated product shots, the AI video generator handles a wide range of creative styles. Here are examples of what users have produced with TimrX.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-1.png" aria-label="AI-generated cinematic ocean sunset video">
-            <source src="/vid/vid1.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid1.mp4"
+            data-video-poster="/img/video-posters/vid1.jpg"
+            aria-label="AI-generated cinematic ocean sunset video">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Cinematic Ocean Sunset</h3>
@@ -286,8 +293,15 @@
           <p class="tool-example-desc">Perfect for travel content creators and filmmakers who need b-roll footage without the cost of drone shoots. The AI captures realistic water motion and warm lighting gradients that feel authentic.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-2.png" aria-label="AI-generated product rotation video of sneakers">
-            <source src="/vid/vid2.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid2.mp4"
+            data-video-poster="/img/video-posters/vid2.jpg"
+            aria-label="AI-generated product rotation video of sneakers">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Product Rotation — Sneaker Showcase</h3>
@@ -295,8 +309,15 @@
           <p class="tool-example-desc">E-commerce brands use this to create professional product videos from a single product photo. Upload your product image and the AI generates a polished rotation clip ready for your online store.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-3.png" aria-label="AI-generated abstract particle flow animation">
-            <source src="/vid/vid3.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid3.mp4"
+            data-video-poster="/img/video-posters/vid3.jpg"
+            aria-label="AI-generated abstract particle flow animation">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Abstract Particle Flow</h3>
@@ -304,8 +325,15 @@
           <p class="tool-example-desc">Ideal for motion backgrounds in presentations, music videos, and website hero sections. Abstract generative content like this is one of the strongest use cases for AI video tools.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-4.png" aria-label="AI-generated futuristic city flythrough">
-            <source src="/vid/vid4.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid4.mp4"
+            data-video-poster="/img/video-posters/vid4.jpg"
+            aria-label="AI-generated futuristic city flythrough">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Futuristic City Flythrough</h3>
@@ -313,8 +341,15 @@
           <p class="tool-example-desc">Game developers and concept artists use scenes like this to visualize environments before committing to full 3D production. Generate multiple variations quickly to explore different creative directions.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-5.png" aria-label="AI-generated nature timelapse of flowers blooming">
-            <source src="/vid/vid5.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid5.mp4"
+            data-video-poster="/img/video-posters/vid5.jpg"
+            aria-label="AI-generated nature timelapse of flowers blooming">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Nature Timelapse — Blooming Flowers</h3>
@@ -322,8 +357,15 @@
           <p class="tool-example-desc">Educational content, wellness apps, and meditation channels benefit from nature-style AI videos. The AI simulates organic growth and natural movement that would take hours to capture in real life.</p>
         </article>
         <article class="tool-example-card">
-          <video controls muted playsinline preload="metadata" poster="/img/AI-img-gen-6.png" aria-label="AI-generated animated logo reveal">
-            <source src="/vid/vid6.mp4" type="video/mp4" />
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid6.mp4"
+            data-video-poster="/img/video-posters/vid6.jpg"
+            aria-label="AI-generated animated logo reveal">
+            <source type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <h3>Animated Logo Reveal</h3>
@@ -570,6 +612,23 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var path = window.location.pathname || '';
+    var match = path.match(/^(.*\/TimrX---3D-Print-Hub-Edits\/TimrX\/Frontend)(?:\/|$)/);
+    var assetRoot = match ? match[1] : '';
+    document.querySelectorAll('video[data-video-src]').forEach(function(video){
+      var src = video.getAttribute('data-video-src');
+      var poster = video.getAttribute('data-video-poster');
+      var source = video.querySelector('source');
+      if (poster) video.setAttribute('poster', assetRoot + poster);
+      if (source && src) {
+        source.setAttribute('src', assetRoot + src);
+        video.load();
+      }
+    });
+  })();
+  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
