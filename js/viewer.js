@@ -304,7 +304,7 @@ export async function loadGlbFromUrl(url) {
     });
 }
 
-function fitCameraToObject(object, offset = 0.78) {
+function fitCameraToObject(object, offset = 0.62) {
     const box = getVisualBounds(object);
     const boxSize = box.getSize(new THREE.Vector3());
     const size = boxSize.length();
@@ -314,7 +314,7 @@ function fitCameraToObject(object, offset = 0.78) {
     // Bias the target slightly upward so tall rigged characters keep their head
     // and shoulders comfortably in frame when the camera is fitted.
     if (boxSize.y > 0) {
-        target.y += boxSize.y * 0.06;
+        target.y += boxSize.y * 0.04;
     }
 
     if (controls) {
@@ -332,8 +332,8 @@ function fitCameraToObject(object, offset = 0.78) {
     // glTF/Meshy convention: characters face -Z. Camera at +Z looks at the front.
     const isHumanoid = boxSize.y > boxSize.x * 1.5 && boxSize.y > boxSize.z * 1.5;
     const direction = isHumanoid
-        ? new THREE.Vector3(0, 0.22, 1).normalize()   // +Z = front of -Z-facing model
-        : new THREE.Vector3(1, 1, 1).normalize();     // generic diagonal
+        ? new THREE.Vector3(0, 0.18, 1).normalize()   // +Z = front of -Z-facing model
+        : new THREE.Vector3(1, 0.8, 1).normalize();   // slightly lower diagonal
     camera.position.copy(target).add(direction.multiplyScalar(size / offset));
     if (isHumanoid) {
         log('[Viewer] Humanoid camera: front-facing +Z');

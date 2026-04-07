@@ -1966,10 +1966,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       const rect = model3dWrap.getBoundingClientRect();
 
       const scene  = new THREE.Scene();
-      scene.background = new THREE.Color(0x2a2a2e);
+      scene.background = new THREE.Color(0x1a1a1e);
 
-      const camera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
-      camera.position.set(3.1, 2.7, 4.4);
+      const camera = new THREE.PerspectiveCamera(40, rect.width / rect.height, 0.1, 1000);
+      camera.position.set(3.5, 2.0, 5.0);
 
       function getViewerSceneProfile(r) {
         const width = Math.max(r.width || 0, 1);
@@ -1978,14 +1978,14 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const isShortLandscape = height <= 640 && width >= 900;
         const isTabletLandscape = width >= 1024 && height <= 800;
         const scaleBoost = isShortLandscape ? 1.42 : isTabletLandscape ? 1.28 : width >= 1280 ? 1.2 : width >= 1024 ? 1.12 : 1;
-        const cameraFov = isShortLandscape ? 36 : isTabletLandscape ? 39 : 42;
+        const cameraFov = isShortLandscape ? 34 : isTabletLandscape ? 36 : 38;
         const cameraPosition = isShortLandscape
-          ? [2.4, 2.0, 3.2]
+          ? [2.8, 1.6, 3.8]
           : isTabletLandscape
-            ? [2.7, 2.25, 3.75]
+            ? [3.2, 1.8, 4.2]
             : aspect > 1.8
-              ? [2.9, 2.45, 4.05]
-              : [3.1, 2.7, 4.4];
+              ? [3.4, 1.9, 4.6]
+              : [3.5, 2.0, 5.0];
 
         return { scaleBoost, cameraFov, cameraPosition };
       }
@@ -2031,7 +2031,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(rect.width, rect.height, false);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.5;
+      renderer.toneMappingExposure = 1.15;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       // Expose renderer globally for grouped viewer
@@ -2039,43 +2039,43 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
       grid.position.y = -0.5;
-      grid.material.opacity = 0.4;
+      grid.material.opacity = 0.18;
       grid.material.transparent = true;
       grid.isGridHelper = true;
       grid.userData.keepAlive = true;
       scene.add(grid);
 
       // Ambient light for base illumination
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
       ambientLight.userData.keepAlive = true;
       scene.add(ambientLight);
 
       // Hemisphere light (sky/ground) for natural fill
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x888888, 1.4);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x666666, 0.9);
       hemiLight.userData.keepAlive = true;
       scene.add(hemiLight);
 
-      // Key light (main light source)
-      const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
-      keyLight.position.set(5, 8, 5);
+      // Key light (main light source — warm-neutral)
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
+      keyLight.position.set(5, 10, 6);
       keyLight.castShadow = false;
       keyLight.userData.keepAlive = true;
       scene.add(keyLight);
 
       // Fill light (softens shadows from front-left)
-      const fillLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      const fillLight = new THREE.DirectionalLight(0xffffff, 1.0);
       fillLight.position.set(-4, 4, 6);
       fillLight.userData.keepAlive = true;
       scene.add(fillLight);
 
-      // Rim/back light (creates edge definition)
-      const rimLight = new THREE.DirectionalLight(0xadd8ff, 1.0);
+      // Rim/back light (creates edge definition — cool blue)
+      const rimLight = new THREE.DirectionalLight(0x9ec5e6, 0.7);
       rimLight.position.set(-3, 6, -6);
       rimLight.userData.keepAlive = true;
       scene.add(rimLight);
 
-      // Bottom fill light (illuminates underside details)
-      const bottomLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      // Bottom fill light (subtle — illuminates underside)
+      const bottomLight = new THREE.DirectionalLight(0xffffff, 0.4);
       bottomLight.position.set(0, -4, 2);
       bottomLight.userData.keepAlive = true;
       scene.add(bottomLight);
