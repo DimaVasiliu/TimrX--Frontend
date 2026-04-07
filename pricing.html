@@ -49,9 +49,10 @@
     "url": "https://timrx.live/pricing",
     "description": "Credit-based AI creative platform for image generation, video creation, 3D modeling, texturing, and more.",
     "offers": [
-      { "@type": "Offer", "name": "Free Tier", "price": "0", "priceCurrency": "GBP", "description": "Limited free credits for new users" },
-      { "@type": "Offer", "name": "Starter Plan", "price": "X", "priceCurrency": "GBP", "description": "Monthly credit bundle for casual creators" },
-      { "@type": "Offer", "name": "Pro Plan", "price": "X", "priceCurrency": "GBP", "description": "Higher credit allocation for professional workflows" }
+      { "@type": "Offer", "name": "Free Tier", "price": "0", "priceCurrency": "GBP", "description": "50 free credits on signup — no credit card required" },
+      { "@type": "Offer", "name": "Starter Plan", "price": "9.99", "priceCurrency": "GBP", "description": "300 general credits + 100 video credits per month" },
+      { "@type": "Offer", "name": "Creator Plan", "price": "24.99", "priceCurrency": "GBP", "description": "800 general credits + 300 video credits per month" },
+      { "@type": "Offer", "name": "Studio Plan", "price": "49.99", "priceCurrency": "GBP", "description": "2000 general credits + 800 video credits per month" }
     ]
   }
   </script>
@@ -188,38 +189,110 @@
           <tbody>
             <tr>
               <td>AI Image Generation</td>
-              <td>X credits</td>
-              <td>Generate an image from a text prompt at standard resolution.</td>
+              <td>4 – 18 credits</td>
+              <td>Generate an image from a text prompt. 4 credits at 1K standard, up to 18 credits for premium 4K output.</td>
             </tr>
             <tr>
               <td>AI Video Generation</td>
-              <td>X credits</td>
-              <td>Create a short video clip from text or image input.</td>
+              <td>45 – 240 credits</td>
+              <td>Create a video clip from text or image. Varies by duration (4s–15s), resolution (720p–4K), and model tier.</td>
             </tr>
             <tr>
               <td>Text to 3D</td>
-              <td>X credits</td>
-              <td>Generate a 3D model from a text description.</td>
+              <td>20 credits</td>
+              <td>Generate a textured 3D model from a text description with AI-powered mesh creation.</td>
             </tr>
             <tr>
               <td>Image to 3D</td>
-              <td>X credits</td>
-              <td>Convert an uploaded image into a textured 3D model.</td>
+              <td>30 credits</td>
+              <td>Convert an uploaded image into a textured 3D model using AI depth estimation.</td>
             </tr>
             <tr>
               <td>Remeshing</td>
-              <td>X credits</td>
-              <td>Optimize and clean up 3D model geometry for printing or rendering.</td>
+              <td>6 credits</td>
+              <td>Optimize 3D model geometry — retopology, watertight manifold, print-ready mesh cleanup.</td>
             </tr>
             <tr>
-              <td>Texturing</td>
-              <td>X credits</td>
-              <td>Apply AI-generated textures and materials to a 3D model.</td>
+              <td>Texturing / Retexture</td>
+              <td>5 credits</td>
+              <td>Apply or replace AI-generated PBR textures and materials on a 3D model.</td>
+            </tr>
+            <tr>
+              <td>Rigging</td>
+              <td>5 credits</td>
+              <td>Auto-rig a 3D model with a skeleton for animation.</td>
+            </tr>
+            <tr>
+              <td>Animation</td>
+              <td>3 credits</td>
+              <td>Apply AI animation presets (walk, run, idle, combat) to a rigged model.</td>
+            </tr>
+            <tr>
+              <td>Refine / Upscale</td>
+              <td>6 credits</td>
+              <td>Enhance and upscale a generated 3D model for higher detail and quality.</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p>Higher resolution outputs, longer video durations, and advanced model options may cost additional credits. Check the tool interface for exact costs before confirming each generation.</p>
+    </div>
+  </section>
+
+  <!-- Subscription Plans -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2>Subscription Plans</h2>
+      <p>Monthly plans offer the best value per credit, priority processing, and higher concurrent job limits. Save up to 17% with yearly billing.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Monthly Price</th>
+              <th>General Credits</th>
+              <th>Video Credits</th>
+              <th>Concurrent Jobs</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Free</strong></td>
+              <td>£0</td>
+              <td>50 (one-time)</td>
+              <td>—</td>
+              <td>1</td>
+              <td>Standard</td>
+            </tr>
+            <tr>
+              <td><strong>Starter</strong></td>
+              <td>£9.99</td>
+              <td>300 / month</td>
+              <td>100 / month</td>
+              <td>5</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td><strong>Creator</strong></td>
+              <td>£24.99</td>
+              <td>800 / month</td>
+              <td>300 / month</td>
+              <td>10</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Studio</strong></td>
+              <td>£49.99</td>
+              <td>2,000 / month</td>
+              <td>800 / month</td>
+              <td>20</td>
+              <td>Pro</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Yearly plans available: Starter £99/yr, Creator £249/yr, Studio £499/yr. One-time credit packs also available for pay-as-you-go usage.</p>
     </div>
   </section>
 
@@ -230,8 +303,8 @@
       <p style="color:#ccc;max-width:720px;margin:0 auto 2rem;text-align:center;">Every new TimrX account starts with free credits — no credit card required. The free tier is designed to let you explore every AI tool on the platform before committing to a paid plan.</p>
       <div class="tool-usecases-grid">
         <div class="tool-usecase">
-          <h4>Free Credits on Signup</h4>
-          <p>New accounts receive a starter allocation of credits that can be used across any AI tool — image generation, video, 3D modeling, and more.</p>
+          <h4>50 Free Credits on Signup</h4>
+          <p>New accounts receive 50 general credits that can be used across any AI tool — image generation, 3D modeling, texturing, remeshing, and more.</p>
         </div>
         <div class="tool-usecase">
           <h4>Access to All Tools</h4>
