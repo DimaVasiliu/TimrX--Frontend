@@ -20,13 +20,15 @@
 
   // Use the global backend URL (set in 3dprint.html) to avoid cross-origin issues
   // Frontend is on timrx.live, API is on 3d.timrx.live
-  const BACKEND = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+  const PROD_BACKEND = 'https://3d.timrx.live';
+  const BACKEND = window.TIMRX_3D_API_BASE || PROD_BACKEND;
 
   const CONFIG = {
     SESSION_KEY: 'timrx_inspire_session_shown', // sessionStorage key for one-time auto-open
     CACHE_KEY: 'timrx_inspire_cache',
     CACHE_TTL: 5 * 60 * 1000, // 5 minutes
     API_BASE: `${BACKEND}/api/_mod`,
+    FALLBACK_API_BASE: `${PROD_BACKEND}/api/_mod`,
     FETCH_LIMIT: 24,
     FETCH_TIMEOUT: 8000,
     FETCH_COOLDOWN: 10000, // 10 seconds between failed retries
@@ -444,6 +446,14 @@
   let isShuffling = false;        // Debounce flag for rapid clicking
   let cardElements = [];          // Persistent card DOM elements for in-place updates
 
+  function getApiBases() {
+    const bases = [CONFIG.API_BASE];
+    if (CONFIG.FALLBACK_API_BASE && CONFIG.FALLBACK_API_BASE !== CONFIG.API_BASE) {
+      bases.push(CONFIG.FALLBACK_API_BASE);
+    }
+    return bases;
+  }
+
   // =========================================================================
   // CACHE UTILITIES
   // =========================================================================
@@ -500,40 +510,45 @@
       return true;
     }
 
-    try {
-      const params = new URLSearchParams({
-        type: 'all',
-        shuffle: 'false', // Get consistent results, we shuffle locally
-        limit: String(POOL_FETCH_LIMIT),
-        mix: 'balanced'
-      });
+    const params = new URLSearchParams({
+      type: 'all',
+      shuffle: 'false', // Get consistent results, we shuffle locally
+      limit: String(POOL_FETCH_LIMIT),
+      mix: 'balanced'
+    });
 
-      const url = `${CONFIG.API_BASE}/inspire/feed?${params}`;
-      console.log('[Inspire] Fetching pool:', url);
+    for (const apiBase of getApiBases()) {
+      try {
+        const url = `${apiBase}/inspire/feed?${params}`;
+        console.log('[Inspire] Fetching pool:', url);
 
-      const result = await safeFetch(url);
+        const result = await safeFetch(url);
 
-      if (result.ok && result.data?.ok) {
-        const cards = (result.data.cards || []).map(card => ({
-          ...card,
-          thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
-        })).filter(card => card.thumbnail);
+        if (result.ok && result.data?.ok) {
+          const cards = (result.data.cards || []).map(card => ({
+            ...card,
+            thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+          })).filter(card => card.thumbnail);
 
-        INSPIRE_POOL = cards;
-        INSPIRE_POOL_TS = Date.now();
+          if (cards.length > 0) {
+            INSPIRE_POOL = cards;
+            INSPIRE_POOL_TS = Date.now();
 
-        // Keep the top prompt curated and type-aware.
-        if (result.data.prompt_of_the_day) {
-          memoryCache.promptOfTheDay = normalizePromptEntry(result.data.prompt_of_the_day);
-        } else if (!memoryCache.promptOfTheDay?.prompt) {
-          memoryCache.promptOfTheDay = pickPromptEntry(promptTypeForActiveFilter());
+            if (result.data.prompt_of_the_day) {
+              memoryCache.promptOfTheDay = normalizePromptEntry(result.data.prompt_of_the_day);
+            } else if (!memoryCache.promptOfTheDay?.prompt) {
+              memoryCache.promptOfTheDay = pickPromptEntry(promptTypeForActiveFilter());
+            }
+
+            console.log(`[Inspire] Pool loaded: ${INSPIRE_POOL.length} cards from ${apiBase}`);
+            return true;
+          }
+
+          console.warn(`[Inspire] Pool response from ${apiBase} had no cards`);
         }
-
-        console.log(`[Inspire] Pool loaded: ${INSPIRE_POOL.length} cards`);
-        return true;
+      } catch (err) {
+        console.warn('[Inspire] Pool fetch failed:', apiBase, err.message);
       }
-    } catch (err) {
-      console.warn('[Inspire] Pool fetch failed:', err.message);
     }
 
     // Fallback: try to use existing memoryCache
@@ -688,41 +703,51 @@
         mix: 'balanced'
       });
 
-      const url = `${CONFIG.API_BASE}/inspire/feed?${params}`;
-      console.log('[Inspire] Fetching:', url);
+      let lastError = null;
 
-      const result = await safeFetch(url);
+      for (const apiBase of getApiBases()) {
+        const url = `${apiBase}/inspire/feed?${params}`;
+        console.log('[Inspire] Fetching:', url);
 
-      if (result.ok && result.data?.ok) {
-        const data = result.data;
+        const result = await safeFetch(url);
 
-        // Normalize card format (backend uses thumb_url/thumb_preview, we also support thumbnail)
-        const cards = (data.cards || []).map(card => ({
-          ...card,
-          thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
-        })).filter(card => card.thumbnail); // Only cards with valid thumbnails
+        if (result.ok && result.data?.ok) {
+          const data = result.data;
 
-        // Update state and cache
-        memoryCache.promptOfTheDay = data.prompt_of_the_day
-          ? normalizePromptEntry(data.prompt_of_the_day)
-          : pickPromptEntry(promptTypeForActiveFilter());
-        memoryCache.cards = cards;
-        state.cards = [...cards];
+          // Normalize card format (backend uses thumb_url/thumb_preview, we also support thumbnail)
+          const cards = (data.cards || []).map(card => ({
+            ...card,
+            thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
+          })).filter(card => card.thumbnail); // Only cards with valid thumbnails
 
-        saveCacheContent({
-          promptOfTheDay: memoryCache.promptOfTheDay,
-          cards: cards
-        });
+          if (cards.length === 0) {
+            console.warn(`[Inspire] Feed from ${apiBase} returned zero cards`);
+            lastError = new Error(`No inspire cards from ${apiBase}`);
+            continue;
+          }
 
-        state.lastFetchTime = Date.now();
-        // Reset failure tracking on success
-        fetchState.consecutiveFailures = 0;
-        console.log(`[Inspire] Loaded ${cards.length} cards from API`);
-        return true;
+          // Update state and cache
+          memoryCache.promptOfTheDay = data.prompt_of_the_day
+            ? normalizePromptEntry(data.prompt_of_the_day)
+            : pickPromptEntry(promptTypeForActiveFilter());
+          memoryCache.cards = cards;
+          state.cards = [...cards];
 
-      } else {
-        throw new Error(result.error || 'API error');
+          saveCacheContent({
+            promptOfTheDay: memoryCache.promptOfTheDay,
+            cards: cards
+          });
+
+          state.lastFetchTime = Date.now();
+          fetchState.consecutiveFailures = 0;
+          console.log(`[Inspire] Loaded ${cards.length} cards from API ${apiBase}`);
+          return true;
+        }
+
+        lastError = new Error(result.error || 'API error');
       }
+
+      throw lastError || new Error('API error');
 
     } catch (err) {
       console.warn('[Inspire] API fetch failed:', err.message);
