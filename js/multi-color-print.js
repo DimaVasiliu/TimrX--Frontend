@@ -3,10 +3,12 @@
  *
  * Handles the complete workflow for multi-color 3D printing:
  * - Configuration of color count and level of detail
- * - Management of filament slot colors with inline picker
  * - 3D model viewer (Three.js)
  * - Job submission and polling
  * - Result download
+ *
+ * Note: Meshy auto-assigns colors during processing. The API only
+ * accepts max_colors + max_depth, not specific color choices.
  */
 
 import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
@@ -19,64 +21,8 @@ let _state = 'config'; // 'config' | 'processing' | 'done' | 'error'
 let _activeJobId = null;
 let _maxColors = 4;
 let _maxDepth = 4;
-let _slots = [];
 let _pollingInterval = null;
 let _taskId = null;
-
-// Three.js globals
-let _scene = null;
-let _renderer = null;
-let _camera = null;
-let _controls = null;
-let _model = null;
-
-// Color palettes (Bambu Lab official colors)
-const PLA_BASIC = [
-  { hex: '#FFFFFF', name: 'White' },
-  { hex: '#F5F5F0', name: 'Cool White' },
-  { hex: '#D1DBCF', name: 'Jade White' },
-  { hex: '#F4EE2A', name: 'Yellow' },
-  { hex: '#FDE047', name: 'Lemon Yellow' },
-  { hex: '#E8B455', name: 'Savanna Yellow' },
-  { hex: '#FAA256', name: 'Mandarin Orange' },
-  { hex: '#F97316', name: 'Orange' },
-  { hex: '#E63A2E', name: 'Red' },
-  { hex: '#C62828', name: 'Scarlet Red' },
-  { hex: '#EC4899', name: 'Pink' },
-  { hex: '#D946EF', name: 'Magenta' },
-  { hex: '#8B5CF6', name: 'Purple' },
-  { hex: '#2563EB', name: 'Blue' },
-  { hex: '#38BDF8', name: 'Sky Blue' },
-  { hex: '#06B6D4', name: 'Cyan' },
-  { hex: '#14B8A6', name: 'Teal' },
-  { hex: '#047857', name: 'Bambu Green' },
-  { hex: '#22C55E', name: 'Green' },
-  { hex: '#84CC16', name: 'Lime' },
-  { hex: '#D4A017', name: 'Gold' },
-  { hex: '#C0C0C0', name: 'Silver' },
-  { hex: '#1A1A1A', name: 'Black' }
-];
-
-const PLA_MATTE = [
-  { hex: '#404040', name: 'Charcoal' },
-  { hex: '#FFFFF0', name: 'Ivory White' },
-  { hex: '#FFB7C5', name: 'Sakura Pink' },
-  { hex: '#C8A2C8', name: 'Lilac Purple' },
-  { hex: '#FF8C00', name: 'Mandarin Orange' },
-  { hex: '#006400', name: 'Dark Green' },
-  { hex: '#6A5ACD', name: 'Slate Blue' },
-  { hex: '#DC143C', name: 'Crimson' },
-  { hex: '#C2B280', name: 'Sand' },
-  { hex: '#8B4513', name: 'Chocolate' },
-  { hex: '#2F4F4F', name: 'Dark Slate' },
-  { hex: '#B22222', name: 'Firebrick' },
-  { hex: '#556B2F', name: 'Olive' },
-  { hex: '#483D8B', name: 'Dark Indigo' },
-  { hex: '#D2691E', name: 'Copper' },
-  { hex: '#808080', name: 'Grey' }
-];
-
-const DEFAULT_SLOT_COLORS = ['#F4EE2A', '#F97316', '#2563EB', '#22C55E'];
 
 // ============================================================================
 // Initialization & DOM Creation
@@ -172,20 +118,6 @@ function _createModal() {
   document.body.appendChild(overlay);
 
   return { overlay, controls };
-}
-
-function _initializeSlots(count) {
-  _slots = [];
-  for (let i = 0; i < count; i++) {
-    const colorHex = DEFAULT_SLOT_COLORS[i % DEFAULT_SLOT_COLORS.length];
-    const colorData = PLA_BASIC.find(c => c.hex === colorHex) || { hex: colorHex, name: 'Custom' };
-    _slots.push({
-      index: i,
-      hex: colorData.hex,
-      name: colorData.name,
-      expanded: false
-    });
-  }
 }
 
 // ============================================================================
@@ -355,7 +287,7 @@ function _renderControls() {
 function _renderConfigPanel(panel) {
   const html = `
     <div class="multi-color-header">
-      <h2>Multi-Color Printing</h2>
+      <h2>Multi-Color 3MF</h2>
       <button class="multi-color-close-btn" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -377,6 +309,7 @@ function _renderConfigPanel(panel) {
         class="multi-color-slider"
         id="color-count-slider"
       />
+      <div class="multi-color-hint">Number of distinct colors in the output</div>
     </div>
 
     <div class="multi-color-section">
@@ -392,13 +325,16 @@ function _renderConfigPanel(panel) {
         class="multi-color-slider"
         id="detail-slider"
       />
+      <div class="multi-color-hint">Higher = finer color boundaries, longer processing</div>
     </div>
 
-    <div class="multi-color-section">
-      <label class="multi-color-label">Filament Slots</label>
-      <div class="multi-color-slots" id="slots-container">
-        ${_slots.map((slot, i) => _renderSlot(slot, i)).join('')}
-      </div>
+    <div class="multi-color-info">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex-shrink:0;margin-top:1px;">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>Colors are auto-assigned based on the model's texture. The output is a print-ready 3MF file for multi-color printers.</span>
     </div>
 
     <div class="multi-color-footer">
@@ -414,7 +350,7 @@ function _renderConfigPanel(panel) {
 
   panel.innerHTML = html;
 
-  // Attach event listeners — use 'input' for live badge updates
+  // Attach event listeners -- use 'input' for live badge updates
   const colorSlider = document.getElementById('color-count-slider');
   const detailSlider = document.getElementById('detail-slider');
 
@@ -423,12 +359,7 @@ function _renderConfigPanel(panel) {
     if (badge) badge.textContent = e.target.value;
   });
   colorSlider?.addEventListener('change', (e) => {
-    const newCount = parseInt(e.target.value);
-    if (newCount !== _maxColors) {
-      _maxColors = newCount;
-      _initializeSlots(newCount);
-      _renderControls();
-    }
+    _maxColors = parseInt(e.target.value);
   });
 
   detailSlider?.addEventListener('input', (e) => {
@@ -440,80 +371,6 @@ function _renderConfigPanel(panel) {
   });
 
   document.getElementById('generate-btn')?.addEventListener('click', _startJob);
-}
-
-function _renderSlot(slot, index) {
-  const isExpanded = slot.expanded;
-
-  let html = `
-    <div class="multi-color-slot" data-slot-index="${index}">
-      <div class="multi-color-slot-header" onclick="window.multiColorPrint?._toggleSlotExpanded?.(${index})">
-        <div class="multi-color-slot-swatch" style="background-color: ${slot.hex}"></div>
-        <div class="multi-color-slot-info">
-          <div class="multi-color-slot-hex">${slot.hex}</div>
-          <div class="multi-color-slot-name">${slot.name}</div>
-        </div>
-        <svg class="multi-color-slot-chevron ${isExpanded ? 'expanded' : ''}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </div>
-  `;
-
-  if (isExpanded) {
-    html += `
-      <div class="multi-color-slot-picker">
-        <div class="multi-color-custom-color">
-          <label class="multi-color-picker-label">Custom Color</label>
-          <div class="multi-color-custom-inputs">
-            <input
-              type="color"
-              value="${slot.hex}"
-              class="multi-color-color-input"
-              onchange="window.multiColorPrint?._setSlotColor?.(${index}, this.value)"
-            />
-            <input
-              type="text"
-              value="${slot.hex}"
-              class="multi-color-hex-input"
-              placeholder="#000000"
-              onchange="window.multiColorPrint?._setSlotColor?.(${index}, this.value)"
-            />
-          </div>
-        </div>
-
-        <div class="multi-color-palette">
-          <div class="multi-color-palette-label">PLA Basic</div>
-          <div class="multi-color-palette-grid">
-            ${PLA_BASIC.map(color => `
-              <div
-                class="multi-color-palette-swatch"
-                style="background-color: ${color.hex}"
-                title="${color.name}"
-                onclick="window.multiColorPrint?._setSlotColor?.(${index}, '${color.hex}')"
-              ></div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="multi-color-palette">
-          <div class="multi-color-palette-label">PLA Matte</div>
-          <div class="multi-color-palette-grid">
-            ${PLA_MATTE.map(color => `
-              <div
-                class="multi-color-palette-swatch"
-                style="background-color: ${color.hex}"
-                title="${color.name}"
-                onclick="window.multiColorPrint?._setSlotColor?.(${index}, '${color.hex}')"
-              ></div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  html += '</div>';
-  return html;
 }
 
 function _renderProcessingPanel(panel) {
@@ -591,39 +448,6 @@ function _renderErrorPanel(panel) {
     _state = 'config';
     _renderControls();
   });
-}
-
-// ============================================================================
-// Slot Management
-// ============================================================================
-
-function _toggleSlotExpanded(index) {
-  if (_slots[index]) {
-    _slots[index].expanded = !_slots[index].expanded;
-    _renderControls();
-  }
-}
-
-function _setSlotColor(index, colorHex) {
-  if (!_slots[index]) return;
-
-  // Normalize hex
-  colorHex = colorHex.toUpperCase();
-  if (!colorHex.startsWith('#')) {
-    colorHex = '#' + colorHex;
-  }
-
-  // Find color name from palettes
-  const colorData =
-    PLA_BASIC.find(c => c.hex.toUpperCase() === colorHex) ||
-    PLA_MATTE.find(c => c.hex.toUpperCase() === colorHex) ||
-    { hex: colorHex, name: 'Custom' };
-
-  _slots[index].hex = colorData.hex;
-  _slots[index].name = colorData.name;
-  _slots[index].expanded = false;
-
-  _renderControls();
 }
 
 // ============================================================================
@@ -748,8 +572,6 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
   _taskId = taskId;
   _pollingInterval = null;
 
-  _initializeSlots(_maxColors);
-
   // Create modal DOM
   const { overlay, controls } = _createModal();
 
@@ -772,9 +594,7 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
 
   // Expose functions globally for inline onclick handlers
   window.multiColorPrint = {
-    closeMultiColorModal,
-    _toggleSlotExpanded,
-    _setSlotColor
+    closeMultiColorModal
   };
 }
 
