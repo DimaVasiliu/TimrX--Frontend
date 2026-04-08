@@ -1810,6 +1810,18 @@ function wireGallery() {
         return;
       }
 
+      // Multi-color print — handled before item lookup since it only
+      // needs data-attributes from the button, not the full item object.
+      if (act === 'multi-color-print') {
+        closeActiveHistoryMenu();
+        openMultiColorModal({
+          taskId: id,
+          title: btn.getAttribute('data-title') || 'Untitled',
+          thumbnailUrl: btn.getAttribute('data-thumb') || '',
+        });
+        return;
+      }
+
       const item = State.findHistoryItem(id);
       if (!item) {
         console.warn(`[CardAction] Item not found in cache: id=${id} act=${act}`);
@@ -1911,16 +1923,6 @@ function wireGallery() {
           extension: inferExtensionFromUrl(downloadUrl) || 'glb',
         });
         startWorkspaceDownload(downloadUrl, filename);
-        return;
-      }
-
-      if (act === 'multi-color-print') {
-        closeActiveHistoryMenu();
-        openMultiColorModal({
-          taskId: id,
-          title: btn.getAttribute('data-title') || item.title || item.prompt || 'Untitled',
-          thumbnailUrl: btn.getAttribute('data-thumb') || item.thumbnail_url || '',
-        });
         return;
       }
 
