@@ -73,7 +73,7 @@
     "step": [
       { "@type": "HowToStep", "position": 1, "name": "Upload an Image", "text": "Upload a photo, illustration, or screenshot of the object you want to convert to 3D." },
       { "@type": "HowToStep", "position": 2, "name": "AI Processing", "text": "The AI analyzes the image and generates a 3D mesh with textures matching the original." },
-      { "@type": "HowToStep", "position": 3, "name": "Download", "text": "Download the 3D model as GLB or STL. Refine it with TimrX's built-in remeshing tools if needed." }
+      { "@type": "HowToStep", "position": 3, "name": "Download", "text": "Download the 3D model as GLB, STL, or full-color 3MF for multi-material printers. Refine it with TimrX's built-in remeshing tools if needed." }
     ]
   }
   </script>
@@ -101,7 +101,7 @@
       {
         "@type": "Question",
         "name": "What 3D export formats are available?",
-        "acceptedAnswer": { "@type": "Answer", "text": "TimrX supports GLB and STL export formats. GLB retains textures and materials, making it ideal for web viewers, game engines, and AR applications. STL is the standard format for 3D printing slicers like Cura and PrusaSlicer." }
+        "acceptedAnswer": { "@type": "Answer", "text": "TimrX supports GLB, OBJ, FBX, STL, USDZ, and 3MF export formats. GLB retains textures and materials for web and game engines. STL is standard for single-color 3D printing. 3MF is the modern format for multi-color printers (Bambu Lab AMS, Prusa MMU) — it maps textures into slicer-ready color regions with 1-16 filament colors." }
       },
       {
         "@type": "Question",

@@ -843,6 +843,7 @@
             <a href="#doc-remesh" class="docs-sidebar-link">Remesh</a>
             <a href="#doc-refine" class="docs-sidebar-link">Refine</a>
             <a href="#doc-texture" class="docs-sidebar-link">AI Texture</a>
+            <a href="#doc-multi-color" class="docs-sidebar-link">Full-Color 3MF</a>
           </div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Character &amp; Motion</span>
@@ -892,6 +893,7 @@
               <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
               <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
+              <li><strong>Full-Color 3MF</strong> — Convert textured models into slicer-ready 3MF files with 1-16 color palettes for multi-material printers (Bambu Lab, Prusa MMU, etc.). 10 credits.</li>
               <li><strong>Rig &amp; Animate</strong> — Bind humanoid characters, then apply library motion with optional post-processing outputs.</li>
               <li><strong>3D Viewer</strong> — Real-time Three.js viewer with orbit, zoom, and pan.</li>
               <li><strong>File Converter</strong> — Free client-side 3D format converter.</li>
@@ -1022,6 +1024,33 @@
             <p>When PBR Maps is enabled, Meshy generates base color plus roughness, metallic, and normal outputs. Preserve Original UV keeps existing UVs when the source model is already laid out correctly.</p>
             <p>Accepted model uploads: OBJ, FBX, STL, GLTF, GLB. Accepted style-image uploads: JPG and PNG.</p>
             <div class="docs-tip"><strong>Cost:</strong> 5 credits. Estimated time ~1.5 minutes.</div>
+          </article>
+
+          <!-- Full-Color 3MF Print -->
+          <article class="docs-article" id="doc-multi-color">
+            <h2>Full-Color 3MF Print</h2>
+            <p>Convert any textured 3D model into a slicer-ready 3MF file with configurable color palettes. The tool maps your model's textures into solid color regions that multi-material printers can reproduce using separate filament slots.</p>
+            <div class="docs-option-grid">
+              <dl class="docs-option-card">
+                <dt>Color Palette (1-16)</dt>
+                <dd>Choose how many filament colors your printer supports. Common presets: 2 colors (dual extruder), 4 colors (Bambu Lab AMS), 8 or 16 colors (multiple AMS units).</dd>
+              </dl>
+              <dl class="docs-option-card">
+                <dt>Color Detail (3-6)</dt>
+                <dd>Controls quadtree depth for color region precision. Higher values capture finer color transitions but increase file size. "Balanced" (4) works for most prints.</dd>
+              </dl>
+            </div>
+            <h3>How to use</h3>
+            <ol>
+              <li>Generate and texture a 3D model using any workflow (text-to-3D, image-to-3D, retexture).</li>
+              <li>Open the model's card menu in the history panel and click <strong>Full-Color 3MF</strong>.</li>
+              <li>Select a color palette (2, 4, 8, or 16 colors) and detail level.</li>
+              <li>Click <strong>Generate 3MF</strong>. The conversion takes about 1 minute.</li>
+              <li>Download the 3MF and open it in Bambu Studio, OrcaSlicer, Cura, or your slicer of choice.</li>
+            </ol>
+            <h3>Compatible printers</h3>
+            <p>Works with any multi-material FDM printer that accepts 3MF files: Bambu Lab X1/P1S (with AMS), Prusa XL / MK4 (with MMU3), Creality (multi-color kits), and others. Single-color printers can also use 3MF as a replacement for STL — it carries richer metadata.</p>
+            <div class="docs-tip"><strong>Cost:</strong> 10 credits per conversion. Estimated time ~1 minute.</div>
           </article>
 
           <!-- Rig & Animate -->

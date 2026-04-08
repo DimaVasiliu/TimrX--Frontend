@@ -73,7 +73,7 @@
     "step": [
       {"@type": "HowToStep", "position": 1, "name": "Write a Prompt", "text": "Describe the 3D object you want in plain text. Include details about shape, material, style, and intended use."},
       {"@type": "HowToStep", "position": 2, "name": "Generate", "text": "The AI processes your prompt and generates a detailed 3D mesh with PBR textures."},
-      {"@type": "HowToStep", "position": 3, "name": "Refine & Export", "text": "Remesh, retexture, or adjust the model. Export as GLB for rendering or STL for 3D printing."}
+      {"@type": "HowToStep", "position": 3, "name": "Refine & Export", "text": "Remesh, retexture, or adjust the model. Export as GLB for rendering, STL for single-color printing, or full-color 3MF for multi-material printers."}
     ]
   }
   </script>
@@ -112,7 +112,7 @@
         "name": "What export formats are available?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX supports GLB and STL exports. GLB is ideal for real-time rendering, game engines, and web viewers. STL is the standard format for 3D printing slicers like Cura, PrusaSlicer, and Bambu Studio."
+          "text": "TimrX supports GLB, OBJ, FBX, STL, USDZ, and 3MF exports. GLB is ideal for real-time rendering and game engines. STL is standard for single-color 3D printing. 3MF is the modern format for multi-color printers (Bambu Lab AMS, Prusa MMU) — it converts textures into slicer-ready color regions with 1-16 filament colors."
         }
       },
       {
@@ -354,8 +354,8 @@
               <td>Not included</td>
             </tr>
             <tr>
-              <td>Export GLB / STL</td>
-              <td>Both</td>
+              <td>Export GLB / STL / 3MF</td>
+              <td>All three + OBJ, FBX, USDZ</td>
               <td>GLB only</td>
               <td>GLB only</td>
               <td>GLB only</td>
@@ -377,7 +377,7 @@
           </tbody>
         </table>
       </div>
-      <p class="tool-comparison-note">TimrX stands out with its integrated 3D printing pipeline, built-in remeshing, and dual GLB/STL export. If your workflow ends at a 3D printer or a game engine, TimrX covers the entire path from prompt to finished output without switching tools.</p>
+      <p class="tool-comparison-note">TimrX stands out with its integrated 3D printing pipeline, built-in remeshing, full-color 3MF multi-material print support, and comprehensive export options. Whether your workflow ends at a multi-color 3D printer or a game engine, TimrX covers the entire path from prompt to finished output without switching tools.</p>
     </div>
   </section>
 
@@ -400,7 +400,7 @@
         </details>
         <details>
           <summary>What export formats are available?</summary>
-          <p>TimrX supports GLB and STL exports. GLB (GL Transmission Format Binary) is the standard for real-time 3D on the web, game engines like Unity and Unreal, and AR/VR applications. STL (Stereolithography) is the universal format for 3D printing slicers including Cura, PrusaSlicer, OrcaSlicer, and Bambu Studio. Both formats are generated with optimised geometry.</p>
+          <p>TimrX supports GLB, OBJ, FBX, STL, USDZ, and 3MF exports. GLB is the standard for real-time 3D on the web, game engines, and AR/VR. STL is universal for single-color 3D printing. 3MF is the modern format for multi-color printers (Bambu Lab AMS, Prusa MMU) — it converts model textures into slicer-ready color regions with 1-16 filament colors, ready for Bambu Studio, OrcaSlicer, and Cura. All formats are generated with optimised geometry.</p>
         </details>
         <details>
           <summary>How long does generation take?</summary>

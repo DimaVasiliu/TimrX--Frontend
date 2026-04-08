@@ -28,10 +28,10 @@
     </image:image>
   </url>
 
-  <!-- 3D Workspace -->
+  <!-- 3D Workspace (updated: multi-color 3MF, 3MF export format) -->
   <url>
     <loc>https://timrx.live/3dprint</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
@@ -41,10 +41,10 @@
     </image:image>
   </url>
 
-  <!-- AI Tools Directory -->
+  <!-- AI Tools Directory (updated: full-color 3MF print) -->
   <url>
     <loc>https://timrx.live/ai-tools</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -89,10 +89,10 @@
     <priority>0.85</priority>
   </url>
 
-  <!-- 3D Print Model Generator -->
+  <!-- 3D Print Model Generator (updated: multi-color 3MF, 3MF export) -->
   <url>
     <loc>https://timrx.live/3d-print-model-generator</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>

@@ -90,6 +90,17 @@
       category: 'generation',
       badge: 'textured',
       tags: ['character', 'detailed', 'intermediate']
+    },
+    {
+      id: 'tut-multi-color-print',
+      type: 'model',
+      title: 'Full-Color 3MF for Multi-Material Printing',
+      description: 'Convert textured models into slicer-ready 3MF files with 1-16 color palettes for AMS and MMU printers.',
+      glb_url: '3dprint-modules/3dmodels/astro.glb',
+      prompt: 'Colorful astronaut figure ready for multi-color 3D printing',
+      category: 'post-processing',
+      badge: 'print-ready',
+      tags: ['3mf', 'multi-color', 'printing', 'intermediate']
     }
   ];
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3D Print Model Generator — AI Powered Print-Ready Models | TimrX</title>
-  <meta name="description" content="Generate 3D-printable models with AI. TimrX creates watertight meshes from text or images, optimized for FDM and resin printers with GLB export." />
+  <meta name="description" content="Generate 3D-printable models with AI. TimrX creates watertight meshes from text or images, optimized for FDM and resin printers. Export as GLB, STL, or full-color 3MF for multi-color printing." />
   <link rel="canonical" href="https://timrx.live/3d-print-model-generator" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
@@ -15,7 +15,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/3d-print-model-generator" />
   <meta property="og:title" content="3D Print Model Generator — AI Powered Print-Ready Models | TimrX" />
-  <meta property="og:description" content="Generate 3D-printable models with AI. Create watertight meshes from text or images, optimized for FDM and resin printers." />
+  <meta property="og:description" content="Generate 3D-printable models with AI. Create watertight meshes from text or images. Export as GLB, STL, or full-color 3MF for multi-color printing." />
   <meta property="og:image" content="https://timrx.live/img/og-3d-print.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -25,7 +25,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/3d-print-model-generator" />
   <meta name="twitter:title" content="3D Print Model Generator — AI Powered Print-Ready Models | TimrX" />
-  <meta name="twitter:description" content="Generate 3D-printable models with AI. Create watertight meshes optimized for FDM and resin printers." />
+  <meta name="twitter:description" content="Generate 3D-printable models with AI. Create watertight meshes optimized for FDM and resin printers. Full-color 3MF export for multi-material printing." />
   <meta name="twitter:image" content="https://timrx.live/img/og-3d-print.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -47,7 +47,7 @@
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web",
     "url": "https://timrx.live/3d-print-model-generator",
-    "description": "Generate 3D-printable models from text or images using AI. Create watertight meshes optimized for FDM and resin printers with GLB export.",
+    "description": "Generate 3D-printable models from text or images using AI. Create watertight meshes optimized for FDM and resin printers. Export as GLB, STL, or full-color 3MF for multi-material printing.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
   }
   </script>
@@ -73,7 +73,7 @@
     "step": [
       { "@type": "HowToStep", "position": 1, "name": "Describe Your Model", "text": "Enter a text prompt describing the 3D printable object. Specify details like size, detail level, and style." },
       { "@type": "HowToStep", "position": 2, "name": "Generate & Check", "text": "The AI generates a 3D model. TimrX's print-check tool validates it for printability — wall thickness, overhangs, and manifold geometry." },
-      { "@type": "HowToStep", "position": 3, "name": "Export STL", "text": "Export as STL for your 3D printer slicer (Cura, PrusaSlicer, etc.) or GLB for further editing." }
+      { "@type": "HowToStep", "position": 3, "name": "Export for Printing", "text": "Export as STL for single-color prints, or generate a full-color 3MF file for multi-material printers (Bambu Lab, Prusa MMU). GLB also available for further editing." }
     ]
   }
   </script>
@@ -91,7 +91,7 @@
       {
         "@type": "Question",
         "name": "What file formats can I export for 3D printing?",
-        "acceptedAnswer": { "@type": "Answer", "text": "TimrX exports models in GLB format, which can be converted to STL or OBJ in any slicer or 3D editor. GLB preserves color and texture data, making it ideal for multi-material or painted prints. Most slicers — including Cura, PrusaSlicer, and Bambu Studio — import GLB directly." }
+        "acceptedAnswer": { "@type": "Answer", "text": "TimrX exports models in GLB, STL, OBJ, FBX, USDZ, and 3MF formats. For single-color FDM or resin prints, STL is the standard choice. For multi-color printers (Bambu Lab AMS, Prusa MMU), use the full-color 3MF export which maps textures into slicer-ready color regions with 1 to 16 filament colors. Most slicers — including Cura, PrusaSlicer, Bambu Studio, and OrcaSlicer — import 3MF directly." }
       },
       {
         "@type": "Question",
@@ -117,6 +117,11 @@
         "@type": "Question",
         "name": "Can I modify the model before printing?",
         "acceptedAnswer": { "@type": "Answer", "text": "Yes. Exported GLB files open in Blender, Meshmixer, ZBrush, or any 3D editor. You can scale, boolean-cut, hollow, add supports, or combine multiple generated models before slicing." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does multi-color 3MF printing work?",
+        "acceptedAnswer": { "@type": "Answer", "text": "After generating a textured 3D model, use the Full-Color 3MF tool to convert it into a print-ready 3MF file. You choose how many filament colors (1 to 16) and the color detail level. The tool maps the model's textures into solid color regions that your multi-color printer can reproduce. Works with any AMS or MMU printer including Bambu Lab X1, P1S, Prusa XL, and others. Costs 10 credits per conversion." }
       },
       {
         "@type": "Question",
@@ -169,7 +174,7 @@
   <section class="tool-hero">
     <div class="container">
       <h1>3D Print Model Generator — AI Powered Print-Ready Models</h1>
-      <p class="tool-subtitle">Generate watertight, print-ready 3D models from text or images. TimrX optimizes meshes for FDM and resin printers with built-in remeshing and GLB export.</p>
+      <p class="tool-subtitle">Generate watertight, print-ready 3D models from text or images. TimrX optimizes meshes for FDM and resin printers with built-in remeshing, full-color 3MF export for multi-material printers, and GLB/STL output.</p>
     </div>
   </section>
 
@@ -178,7 +183,7 @@
     <div class="container">
       <p>3D printing starts with a good model. TimrX's AI generates print-optimized meshes from simple text descriptions or reference images, eliminating the need for manual modeling.</p>
       <p>The built-in remeshing pipeline ensures watertight geometry suitable for both FDM and resin printers. Models are generated with uniform face distribution and clean topology.</p>
-      <p>From custom figurines and mechanical parts to artistic sculptures and functional prototypes, the 3D print model generator handles the entire workflow from concept to exportable GLB file.</p>
+      <p>From custom figurines and mechanical parts to artistic sculptures and functional prototypes, the 3D print model generator handles the entire workflow from concept to exportable file. Export as GLB for editing, STL for single-color prints, or full-color 3MF for multi-material printers like Bambu Lab and Prusa MMU.</p>
     </div>
   </section>
 
@@ -200,7 +205,7 @@
         <div class="tool-step">
           <span class="tool-step-num">03</span>
           <h3>Export for Printing</h3>
-          <p>Download the GLB file and load it into your slicer. The model is ready for FDM or resin printing.</p>
+          <p>Download as STL for single-color prints or generate a full-color 3MF for multi-material printers. Load directly into Bambu Studio, OrcaSlicer, Cura, or your slicer of choice.</p>
         </div>
       </div>
     </div>

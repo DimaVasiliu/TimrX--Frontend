@@ -408,6 +408,10 @@ export async function fetchActionCosts() {
       if (costsMap['video_image_animate']) {
         costsMap['image2video'] = costsMap['video_image_animate'];
       }
+      if (costsMap['multi_color_print']) {
+        costsMap['multi-color-print'] = costsMap['multi_color_print'];
+        costsMap['multicolor-print'] = costsMap['multi_color_print'];
+      }
 
       // If no costs were parsed, use defaults
       if (Object.keys(costsMap).length === 0) {
@@ -500,6 +504,7 @@ function getDefaultActionCosts() {
     'video_image_animate': 96,    // Image to video (equalized)
     'rig': 5,                     // Rig a 3D model
     'animate': 3,                 // Apply animation to rigged model
+    'multi_color_print': 10,      // Full-color 3MF print conversion
 
     // === LEGACY ALIASES (backwards compatibility) ===
     // Hyphenated variants
@@ -521,6 +526,7 @@ function getDefaultActionCosts() {
     'MESHY_REFINE': 6,
     'MESHY_RIGGING': 5,
     'MESHY_ANIMATION': 3,
+    'MESHY_MULTI_COLOR_PRINT': 10,
     'OPENAI_IMAGE': 4,
     'OPENAI_IMAGE_2K': 8,
     // OPENAI_IMAGE_4K removed — OpenAI does not support 4K
@@ -1493,6 +1499,7 @@ export function updateCreditsUI() {
  * - refine               (6c)  - Refine 3D model
  * - remesh               (6c)  - Remesh 3D model
  * - retexture            (5c)  - Retexture 3D model
+ * - multi_color_print   (10c) - Full-color 3MF print conversion
  * - video_generate       (48-156c) - Video generation (Vertex 12 c/s, varies by duration/resolution)
  * - video_text_generate  (48-156c) - Text to video (equalized with image-to-video)
  * - video_image_animate  (48-156c) - Image to video (equalized with text-to-video)

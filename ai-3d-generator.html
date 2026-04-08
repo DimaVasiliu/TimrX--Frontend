@@ -110,7 +110,7 @@
         "name": "What 3D formats can I export?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX supports exporting to GLB, GLTF, STL, and USDZ. These formats are compatible with Blender, Unity, Unreal Engine, 3D printing slicers, and Apple AR Quick Look."
+          "text": "TimrX supports exporting to GLB, OBJ, FBX, STL, USDZ, and 3MF. These formats are compatible with Blender, Unity, Unreal Engine, 3D printing slicers, and Apple AR Quick Look. The 3MF format is specifically designed for multi-color 3D printing with Bambu Lab, Prusa, and other multi-material printers."
         }
       },
       {
@@ -207,7 +207,7 @@
   <section class="tool-hero">
     <div class="container">
       <h1>AI 3D Generator — Create 3D Models from Text or Images</h1>
-      <p class="tool-subtitle">Generate 3D meshes from text descriptions or reference images. TimrX handles geometry creation, texturing, remeshing, and GLB export in one pipeline.</p>
+      <p class="tool-subtitle">Generate 3D meshes from text descriptions or reference images. TimrX handles geometry creation, texturing, remeshing, and export in GLB, STL, 3MF, and more — all in one pipeline.</p>
     </div>
   </section>
 
@@ -375,8 +375,8 @@
               <td>No</td>
             </tr>
             <tr>
-              <td>Export formats (GLB/STL/USDZ)</td>
-              <td>GLB, GLTF, STL, USDZ</td>
+              <td>Export formats</td>
+              <td>GLB, OBJ, FBX, STL, USDZ, 3MF</td>
               <td>GLB, FBX, OBJ</td>
               <td>PLY, OBJ</td>
               <td>PLY</td>
@@ -402,11 +402,11 @@
       <div class="tool-faq-list">
         <details>
           <summary>Is TimrX AI 3D generator free?</summary>
-          <p>Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. There is no software to install, no plugin to configure, and no account required to start creating. The free tier covers text-to-3D generation, image-to-3D conversion, basic remeshing, and GLB export.</p>
+          <p>Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. There is no software to install, no plugin to configure, and no account required to start creating. The free tier covers text-to-3D generation, image-to-3D conversion, basic remeshing, and GLB export. Full-color 3MF print conversion is available for 10 credits.</p>
         </details>
         <details>
           <summary>What 3D formats can I export?</summary>
-          <p>TimrX supports GLB, GLTF, STL, and USDZ export. GLB and GLTF are ideal for web viewers, game engines, and real-time rendering. STL is the standard for 3D printing slicers like Cura and PrusaSlicer. USDZ enables AR Quick Look on Apple devices, letting customers preview 3D products in their physical space.</p>
+          <p>TimrX supports GLB, OBJ, FBX, STL, USDZ, and 3MF export. GLB is ideal for web viewers and game engines. STL is the standard for single-color 3D printing. 3MF is the modern format for multi-color printers (Bambu Lab AMS, Prusa MMU) — it maps textures into slicer-ready color regions with 1-16 filament colors. USDZ enables AR Quick Look on Apple devices.</p>
         </details>
         <details>
           <summary>Can I use generated 3D models in Unity or Unreal?</summary>
