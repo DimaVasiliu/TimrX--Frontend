@@ -52,6 +52,86 @@ export function closeMultiColorModal() {
 
 // ─── Internal ───────────────────────────────────────────────────────────
 
+// Inject critical styles inline so the modal works even if the CSS file
+// hasn't loaded yet (cache, 404, slow CDN). Only injected once.
+let _stylesInjected = false;
+function _injectStylesOnce() {
+  if (_stylesInjected) return;
+  _stylesInjected = true;
+  const style = document.createElement('style');
+  style.id = 'mcp-critical-styles';
+  style.textContent = `
+    .mcp-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,5,8,.58);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:99999;opacity:0;transition:opacity .25s ease;padding:20px}
+    .mcp-overlay.open{opacity:1}
+    .mcp-modal{width:min(520px,100%);max-height:calc(100vh - 80px);display:flex;flex-direction:column;background:linear-gradient(135deg,rgba(15,15,15,.96),rgba(18,18,20,.97));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;transform:translateY(12px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+    .mcp-overlay.open .mcp-modal{transform:translateY(0) scale(1)}
+    .mcp-modal__header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .mcp-modal__eyebrow{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.38);margin-bottom:2px}
+    .mcp-modal__title{font-size:15px;font-weight:700;color:#f0f2f5;margin:0}
+    .mcp-modal__close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.55);cursor:pointer}
+    .mcp-modal__body{display:grid;gap:14px;padding:14px 16px;overflow-y:auto}
+    .mcp-modal__body--hidden{display:none!important}
+    .mcp-modal__footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 14px;border-top:1px solid rgba(255,255,255,.06)}
+    .mcp-modal__footer--hidden{display:none!important}
+    .mcp-source{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
+    .mcp-source__thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.04);flex-shrink:0}
+    .mcp-source__info{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .mcp-source__title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mcp-source__subtitle{font-size:11px;color:rgba(255,255,255,.4)}
+    .mcp-field{display:flex;flex-direction:column;gap:6px}
+    .mcp-field__label{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+    .mcp-field__hint{font-size:11px;color:rgba(255,255,255,.4);line-height:1.4}
+    .mcp-color-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .mcp-preset{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .18s ease}
+    .mcp-preset.is-active{background:rgba(14,165,233,.1);border-color:rgba(14,165,233,.35)}
+    .mcp-preset__swatches{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;max-width:56px}
+    .mcp-preset__swatches span{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
+    .mcp-preset__swatches--dense span{width:9px;height:9px}
+    .mcp-preset__label{font-size:10px;font-weight:600;color:rgba(255,255,255,.55);text-align:center}
+    .mcp-preset.is-active .mcp-preset__label{color:rgba(14,165,233,.9)}
+    .mcp-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .18s ease}
+    .mcp-btn--ghost{background:transparent;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1)}
+    .mcp-btn--primary{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(14,165,233,.25)}
+    .mcp-btn__badge{display:inline-flex;padding:2px 7px;background:rgba(255,255,255,.18);border-radius:999px;font-size:10px;font-weight:600}
+    .mcp-footer__meta{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.4)}
+    .mcp-footer__credits{display:flex;align-items:center;gap:4px;color:rgba(234,179,8,.8)}
+    .mcp-footer__actions{display:flex;gap:8px}
+    .mcp-info-card{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.12)}
+    .mcp-info-card svg{flex-shrink:0;color:rgba(14,165,233,.7);margin-top:1px}
+    .mcp-info-card div{display:flex;flex-direction:column;gap:2px}
+    .mcp-info-card strong{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+    .mcp-info-card span{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4}
+    .mcp-detail-row{display:flex;flex-direction:column;gap:6px}
+    .mcp-detail-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.1);outline:none}
+    .mcp-detail-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);cursor:pointer;border:2px solid rgba(15,15,15,.9)}
+    .mcp-detail-labels{display:flex;justify-content:space-between}
+    .mcp-detail-label{font-size:10px;color:rgba(255,255,255,.35);font-weight:500}
+    .mcp-detail-label.is-active{color:rgba(14,165,233,.85);font-weight:600}
+    .mcp-processing{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 16px}
+    .mcp-processing__spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.08);border-top-color:#0ea5e9;animation:mcp-spin .8s linear infinite}
+    @keyframes mcp-spin{to{transform:rotate(360deg)}}
+    .mcp-processing__title{font-size:14px;font-weight:600;color:rgba(255,255,255,.9);margin:0}
+    .mcp-processing__desc{font-size:12px;color:rgba(255,255,255,.45);margin:0}
+    .mcp-processing__progress{width:100%;max-width:280px;display:flex;flex-direction:column;align-items:center;gap:6px}
+    .mcp-processing__bar{width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+    .mcp-processing__fill{height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,#0ea5e9,#8b5cf6);transition:width .5s ease}
+    .mcp-processing__pct{font-size:11px;font-weight:600;color:rgba(14,165,233,.8);font-variant-numeric:tabular-nums}
+    .mcp-done{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:20px 16px}
+    .mcp-done__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(34,197,94,.1);color:#22c55e}
+    .mcp-done__title{font-size:15px;font-weight:700;color:rgba(255,255,255,.92);margin:0}
+    .mcp-done__desc{font-size:12px;color:rgba(255,255,255,.45);margin:0}
+    .mcp-done__download{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;transition:all .2s ease;box-shadow:0 4px 16px rgba(14,165,233,.3);margin-top:4px}
+    .mcp-done__slicer-hint{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+    .mcp-done__slicer-hint strong{color:rgba(255,255,255,.55)}
+    .mcp-error{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:20px 16px}
+    .mcp-error__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(239,68,68,.1);color:#ef4444}
+    .mcp-error__title{font-size:15px;font-weight:700;color:rgba(255,255,255,.92);margin:0}
+    .mcp-error__desc{font-size:12px;color:rgba(255,255,255,.5);margin:0;max-width:320px}
+    .mcp-error__retry{padding:10px 20px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+  `;
+  document.head.appendChild(style);
+}
+
 function _cleanup() {
   if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
   _activeJobId = null;
