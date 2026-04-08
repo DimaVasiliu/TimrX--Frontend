@@ -89,8 +89,17 @@
       font-size: 9px;
     }
   
+    .inspire-potd__target {
+      font-size: 9px;
+      padding: 2px 7px;
+    }
+  
     .inspire-potd__prompt {
       font-size: 12px;
+    }
+  
+    .inspire-potd__hint {
+      font-size: 10px;
     }
   
     .inspire-filter-btn {

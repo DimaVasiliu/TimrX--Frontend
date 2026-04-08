@@ -259,13 +259,49 @@ body.inspire-open .ws-right {
   min-width: 0;
 }
 
+.inspire-potd__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
 .inspire-potd__label {
   font-size: 10px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 4px;
+}
+
+.inspire-potd__target {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.inspire-potd__target.model {
+  background: rgba(57, 181, 74, 0.12);
+  border-color: rgba(57, 181, 74, 0.28);
+}
+
+.inspire-potd__target.image {
+  background: rgba(66, 165, 245, 0.12);
+  border-color: rgba(66, 165, 245, 0.28);
+}
+
+.inspire-potd__target.video {
+  background: rgba(255, 138, 101, 0.12);
+  border-color: rgba(255, 138, 101, 0.28);
 }
 
 .inspire-potd__prompt {
@@ -278,6 +314,13 @@ body.inspire-open .ws-right {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.inspire-potd__hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.58);
+  line-height: 1.4;
 }
 
 .inspire-potd__cta {

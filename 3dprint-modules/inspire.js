@@ -43,23 +43,334 @@
   };
 
   // =========================================================================
-  // CURATED FALLBACK PROMPTS
+  // CURATED PROMPT LIBRARY
   // =========================================================================
 
-  const CREATIVE_PROMPTS = [
-    "A mystical forest guardian made of twisted ancient vines and glowing mushrooms, ethereal atmosphere",
-    "Crystal dragon with iridescent scales perched on a volcanic rock formation, magma glow",
-    "Cyberpunk street food vendor stall with holographic menu, neon signs, steam rising",
-    "Robot samurai in meditation pose, cherry blossoms, zen garden background",
-    "Underwater temple ruins with coral growing through marble columns",
-    "Floating sky island with waterfalls cascading into clouds, tiny village on top",
-    "Biomechanical heart with organic tubes and metallic chambers, pulsing energy",
-    "Space station observation deck overlooking Saturn's rings",
-    "Wizard's study filled with floating books, glowing potions, telescope",
-    "Steampunk owl messenger with brass wings and clockwork eyes",
-    "Ancient treasure chest overflowing with glowing magical artifacts",
-    "Japanese temple at sunset with cherry blossoms and lanterns, koi pond"
-  ];
+  const PROMPT_TARGETS = {
+    model: {
+      panel: 'model',
+      label: '3D Model',
+      cta: 'Open in 3D',
+      inputSelectors: ['#modelPrompt']
+    },
+    image: {
+      panel: 'image',
+      label: 'Image',
+      cta: 'Open in Image',
+      inputSelectors: ['#imagePrompt']
+    },
+    video: {
+      panel: 'video',
+      label: 'Video',
+      cta: 'Open in Video',
+      inputSelectors: ['#videoTextPrompt', '#videoMotion']
+    }
+  };
+
+  const CURATED_PROMPT_SETS = {
+    model: [
+      {
+        title: 'Crystal Wyrm Reliquary',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Single-subject silhouette, premium materials, collectible finish.',
+        prompt: 'single centered collectible crystal wyrm statue, wings partially folded, translucent quartz scales with ember glow trapped inside, carved obsidian horns, polished basalt plinth fused into the tail, heroic clear silhouette, highly readable tabletop figure, premium fantasy artifact'
+      },
+      {
+        title: 'Retro Dive Helmet',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Hard-surface prop with strong shape language and visible materials.',
+        prompt: 'single isolated retro-futurist deep sea dive helmet, brushed brass shell, thick circular glass viewport, weathered copper valves, rubber neck gasket, tiny engraved depth markings, museum-grade prop design, centered on a clean background, crisp industrial silhouette'
+      },
+      {
+        title: 'Biomech Fox Mask',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Works well for stylized mask assets and cosplay props.',
+        prompt: 'single centered biomechanical fox mask, porcelain face plates split by glowing cobalt seams, carbon fiber ear fins, delicate etched circuit filigree, ceremonial sci-fi aesthetic, symmetrical front-facing design, clean silhouette, premium cosplay prop'
+      },
+      {
+        title: 'Lunar Rover Scout',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Mechanical props benefit from explicit function and structure.',
+        prompt: 'single isolated modular lunar rover scout, compact exploration chassis, six articulated suspension wheels, matte titanium panels, amber utility lights, fold-out sensor mast, realistic hard-surface detailing, centered clean presentation, production-friendly silhouette'
+      },
+      {
+        title: 'Gothic Lantern Core',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Good for ornate fantasy props with readable geometry.',
+        prompt: 'single floating gothic reliquary lantern, blackened iron frame, stained ruby glass chambers, suspended glowing core, chains and tiny cathedral arches, elegant fantasy prop, centered clean background, high-detail ornamental metalwork, readable silhouette'
+      },
+      {
+        title: 'Art Nouveau Perfume Bottle',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Strong for luxury product-style 3D objects.',
+        prompt: 'single centered art nouveau perfume bottle, frosted emerald glass, flowing brass vine filigree, dragonfly stopper, faceted crystal cap, luxury vanity object, elegant curves, premium materials, isolated product presentation, highly readable silhouette'
+      },
+      {
+        title: 'Desert Drone Salvage',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Clear functional parts improve mechanical generation.',
+        prompt: 'single isolated desert scavenger drone, asymmetrical repair plates, exposed turbine intake, folded landing legs, sand-worn orange paint, utility cables, improvised survival tech aesthetic, centered presentation, believable hard-surface detailing'
+      },
+      {
+        title: 'Alchemist Field Pack',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Inventories and straps create strong storytelling props.',
+        prompt: 'single centered fantasy alchemist field backpack, stitched leather satchel body, hanging potion vials, brass clamps, rolled maps, herb bundles, compact burner kit, travel-worn textures, adventure prop, clean silhouette, isolated asset presentation'
+      },
+      {
+        title: 'Spellbook Mimic',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Stylized characters work best with one main read.',
+        prompt: 'single centered spellbook mimic creature, thick leather tome body, carved eye clasp, layered parchment teeth, ribbon tongue, tiny clawed feet, whimsical dark fantasy style, readable silhouette, collectible creature figurine, isolated asset'
+      },
+      {
+        title: 'Cyber Monk Bust',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Busts give Meshy a strong focal hierarchy.',
+        prompt: 'single centered cyber monk bust, shaved head with luminous tattoo channels, ceramic facial plates, woven tech cowl, serene expression, premium collectible statue, high-detail portrait sculpt, isolated clean background, balanced symmetry'
+      },
+      {
+        title: 'Astronomical Orrery',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Nested rings and gears work well as hero props.',
+        prompt: 'single isolated antique astronomical orrery, concentric brass rings, suspended enamel planets, engraved celestial markings, velvet-black central sun sphere, luxury observatory artifact, centered clean staging, precise hard-surface detail'
+      },
+      {
+        title: 'Mecha Crab Toy',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Compact creature-mech hybrids produce readable tabletop assets.',
+        prompt: 'single centered toy-scale mecha crab walker, chunky armor shell, hydraulic claws, glowing sensor eyes, playful industrial design, clean silhouette, glossy painted panels, premium desktop collectible, isolated asset render'
+      },
+      {
+        title: 'Deep Sea Submersible',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Vehicle prompts land better when shape and use are explicit.',
+        prompt: 'single isolated deep sea research submersible, spherical observation cockpit, external floodlights, articulated sampling arms, pressure hull plating, scientific expedition design, centered product-style presentation, realistic hard-surface detailing'
+      },
+      {
+        title: 'Ceremonial Dagger',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Weapon props benefit from material contrast and clear profile.',
+        prompt: 'single centered ceremonial obsidian dagger, faceted black blade, hammered gold guard, wrapped ivory grip, red silk tassel, ancient royal artifact, clean side-readable silhouette, isolated premium prop presentation'
+      },
+      {
+        title: 'Mascot Astronaut',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Cute character figures work well as full-body collectibles.',
+        prompt: 'single centered plush-inspired mascot astronaut figure, oversized round helmet, stitched fabric suit panels, tiny utility patches, soft toy proportions, charming expression, collectible designer toy aesthetic, clean readable silhouette'
+      },
+      {
+        title: 'Shrine Bell Totem',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Good for mystical props with layered ornamentation.',
+        prompt: 'single isolated shrine bell totem, carved cedar frame, suspended bronze bell, braided ropes, paper talismans, faint spirit glow, elegant vertical silhouette, premium fantasy prop, clean centered asset'
+      }
+    ],
+    image: [
+      {
+        title: 'Luxury Watch Macro',
+        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        hint: 'Strong for premium product photography and material realism.',
+        prompt: 'macro product photograph of a luxury skeleton watch resting on dark volcanic stone, brushed titanium case, sapphire reflections, warm edge light, deep shadows, ultra-sharp dial details, premium editorial ad photography, clean composition'
+      },
+      {
+        title: 'Brutalist Cafe Editorial',
+        providerHint: 'Best with OpenAI or Imagen',
+        hint: 'Detailed environment, grounded materials, strong interior light.',
+        prompt: 'editorial interior photo of a brutalist cafe at blue hour, poured concrete walls, smoked glass, brushed steel counter, soft practical lamps, a few guests in tailored monochrome outfits, cinematic natural composition, premium architecture magazine style'
+      },
+      {
+        title: 'Streetwear Portrait',
+        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        hint: 'Portrait-driven fashion shots respond well to concrete styling cues.',
+        prompt: 'fashion portrait of a streetwear creative standing under a subway platform, oversized charcoal coat, silver jewelry, rain-slick pavement, moody side light, crisp skin texture, candid editorial energy, shallow depth of field'
+      },
+      {
+        title: 'Botanical Perfume Ad',
+        providerHint: 'Best with OpenAI or Imagen',
+        hint: 'Clear hero subject plus surrounding art direction.',
+        prompt: 'high-end perfume campaign image, emerald glass bottle surrounded by wet fig leaves and sliced pear, dramatic softbox lighting, luxury beauty ad composition, polished reflections, fresh green palette, premium brand mood'
+      },
+      {
+        title: 'Packaging Flat Lay',
+        providerHint: 'Best with Recraft or OpenAI',
+        hint: 'Useful for clean brand mockups and layout studies.',
+        prompt: 'top-down flat lay of a premium tea packaging system, three matte cartons, foil stamp details, dried botanicals, elegant spacing, warm natural light, art-directed product styling, minimal luxury brand photography'
+      },
+      {
+        title: 'Neon Transit Matte',
+        providerHint: 'Best with Imagen or FLUX.2 Pro',
+        hint: 'Scene scale, weather, and light cues help cinematic worldbuilding.',
+        prompt: 'cinematic matte painting of a futuristic transit station in heavy rain, neon route markers, reflective pavement, commuters with translucent umbrellas, volumetric fog, magenta and cyan glow, grand scale, richly layered urban atmosphere'
+      },
+      {
+        title: 'Childrens Book Meadow',
+        providerHint: 'Best with OpenAI or Imagen',
+        hint: 'Clear subject, medium, and tone create stable illustration results.',
+        prompt: 'children’s book illustration of a fox courier crossing a flower meadow with a satchel of letters, bright watercolor textures, warm morning sun, whimsical rounded shapes, friendly storybook charm, highly readable scene composition'
+      },
+      {
+        title: 'Travel Poster Type',
+        providerHint: 'Best with Ideogram or Recraft',
+        hint: 'Places quoted text near the start for better typography.',
+        prompt: '"VISIT LUCERNE" vintage travel poster, towering alpine lake, classic paddle steamer, elegant art deco layout, bold geometric framing, crisp typography, limited cobalt and cream palette, poster-ready vector graphic design'
+      },
+      {
+        title: 'Icon System Sheet',
+        providerHint: 'Best with Recraft Vector',
+        hint: 'Designed for SVG-friendly shape language and consistency.',
+        prompt: 'clean vector icon system for a sustainable home app, 12 icons, rounded geometric strokes, solar panel, water drop, heat pump, leaf, battery, recycling, minimalist grid layout, crisp monochrome with sage accent, product design presentation'
+      },
+      {
+        title: 'Album Cover Portrait',
+        providerHint: 'Best with OpenAI, FLUX.2 Pro, or Ideogram',
+        hint: 'Good for expressive portrait-led graphics.',
+        prompt: 'album cover portrait of a singer in profile under crimson stage haze, glitter tear makeup, dramatic rim light, grainy film texture, negative space for title treatment, bold emotional mood, premium music editorial style'
+      },
+      {
+        title: 'Dessert Hero Shot',
+        providerHint: 'Best with OpenAI or Imagen',
+        hint: 'Food prompts improve with texture and lighting specificity.',
+        prompt: 'hero food photograph of a glossy pistachio mille-feuille, flaky pastry layers, crushed pistachios, tiny edible flowers, dark moody background, studio side light, ultra-detailed textures, luxury patisserie advertising'
+      },
+      {
+        title: 'Minimal Desk Product',
+        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        hint: 'Works for clean tech product renders and landing-page imagery.',
+        prompt: 'minimal product render of a compact mechanical keyboard on a pale oak desk, soft daylight from the left, brushed aluminum frame, crisp shadows, modern creative workspace styling, airy premium tech aesthetic'
+      },
+      {
+        title: 'Skincare Billboard',
+        providerHint: 'Best with Ideogram or Recraft',
+        hint: 'Quote-first structure helps keep short ad copy readable.',
+        prompt: '"RESET YOUR SKIN" clean beauty billboard concept, frosted serum bottle splashing through clear water, pale stone backdrop, subtle mint accents, premium typography, luxury skincare campaign, modern editorial graphic design'
+      },
+      {
+        title: 'Fantasy Cover Art',
+        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        hint: 'Strong for character-plus-environment key art.',
+        prompt: 'epic fantasy book cover art, lone mage on a cliff above a storm-lit city, cloak whipping in the wind, electric blue runes, towering clouds, cinematic scale, dramatic focal lighting, premium cover illustration'
+      },
+      {
+        title: 'Isometric House Cutaway',
+        providerHint: 'Best with Recraft or Imagen',
+        hint: 'Explicit layout language helps for structured diagram scenes.',
+        prompt: 'isometric cutaway illustration of a compact eco house, visible rooms, solar battery wall, cozy reading loft, indoor plants, clean labels space, bright informative palette, polished architectural infographic style'
+      },
+      {
+        title: 'Coffee Brand Mark',
+        providerHint: 'Best with Recraft Vector or Ideogram',
+        hint: 'Short, design-led prompt for logos and marks.',
+        prompt: 'vector logo concept for a specialty coffee brand called "EMBER ROAST", elegant flame hidden inside a coffee bean shape, premium minimal geometry, warm copper and espresso palette, clean brand presentation on light background'
+      }
+    ],
+    video: [
+      {
+        title: 'Neon Alley Pursuit',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Subject, camera move, weather, and atmosphere are all explicit.',
+        prompt: 'A courier sprints through a neon alley at night, weaving past steam vents and glowing signs. Camera: handheld tracking shot from behind, then a quick arc to profile. Visual style: cinematic cyberpunk, wet reflections, electric magenta and teal, urgent momentum.'
+      },
+      {
+        title: 'Chef Fire Sequence',
+        providerHint: 'Best with Seedance or Veo with audio',
+        hint: 'Built for motion plus synchronized sound cues.',
+        prompt: 'Chef’s hands toss vegetables into a blazing wok in an open kitchen, flames bursting upward, steam rolling toward the lens. Audio: metal pan hits, sizzling oil, short bursts of fire, energetic kitchen ambience. Visual style: fast culinary commercial, crisp highlights, rich food detail.'
+      },
+      {
+        title: 'Arctic Sky Timelapse',
+        providerHint: 'Best with Veo',
+        hint: 'Simple scene-first structure works well for Veo clips.',
+        prompt: 'Wide shot of the northern lights rippling over a frozen arctic lake, stars sharp above the horizon, subtle wind drifting snow across the foreground. Camera: locked-off tripod timelapse. Visual style: photoreal, cold blue night, serene epic atmosphere.'
+      },
+      {
+        title: 'Island Drone Reveal',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Explicit drone motion and landscape staging.',
+        prompt: 'Sweeping aerial drone shot over a volcanic island at sunrise, sea mist wrapping dark cliffs, small waves flashing gold below. Camera: fast forward glide that rises to reveal the crater lake. Visual style: cinematic travel film, high contrast golden hour, grand scale.'
+      },
+      {
+        title: 'Wind Portrait Fashion',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Portrait plus subtle motion makes a clean hero clip.',
+        prompt: 'A fashion model stands on a rooftop in a tailored black coat, wind lifting loose strands of hair and the coat hem. Camera: slow dolly in from medium shot to close-up. Visual style: luxury editorial, soft overcast light, restrained monochrome palette, poised confidence.'
+      },
+      {
+        title: 'Coffee Pour Ad',
+        providerHint: 'Best with Seedance',
+        hint: 'Object action and texture changes read well in short clips.',
+        prompt: 'Fresh coffee pours in a smooth dark ribbon into a ceramic mug on a wooden table, steam rising as the surface ripples. Audio: liquid pour, soft ceramic clink, low cafe ambience. Camera: close-up with slight slider move. Visual style: premium cafe commercial, warm morning light.'
+      },
+      {
+        title: 'Noir Rack Focus',
+        providerHint: 'Best with Veo',
+        hint: 'Designed around focus change and mood.',
+        prompt: 'A detective’s gloved hand holds a brass key in the foreground under flickering streetlight. Camera: medium shot with a slow rack focus from the key to the detective’s tired face in the rain. Visual style: noir thriller, wet asphalt, deep shadows, moody contrast.'
+      },
+      {
+        title: 'Greenhouse Astronaut',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Strong contrast between subject and environment.',
+        prompt: 'An astronaut tends glowing plants inside a humid greenhouse on a distant moon base, water droplets drifting from glass pipes. Camera: slow orbit around the subject. Audio: soft ventilation hum, droplets, faint suit servos. Visual style: hopeful sci-fi, lush greens against white habitat walls.'
+      },
+      {
+        title: 'Storm Window Interior',
+        providerHint: 'Best with Seedance or Veo with audio',
+        hint: 'Audio cues help the scene feel grounded and alive.',
+        prompt: 'A candlelit apartment window during a thunderstorm, raindrops racing down the glass while lightning reveals the skyline beyond. Audio: rolling thunder, rain on the pane, quiet room tone. Camera: static close shot. Visual style: intimate cinematic realism, warm interior versus cold storm outside.'
+      },
+      {
+        title: 'Skate Follow Cam',
+        providerHint: 'Best with Seedance',
+        hint: 'Momentum and camera language are concise and clear.',
+        prompt: 'A skateboarder launches down a concrete river channel at sunset, wheels spraying dust and sparks from a brief slide. Camera: low follow cam racing alongside, then whip pan to landing. Visual style: energetic sports commercial, golden haze, high-speed grit.'
+      },
+      {
+        title: 'Library Shock Beat',
+        providerHint: 'Best with Seedance',
+        hint: 'Short narrative timing plus sound punctuation.',
+        prompt: 'Quiet library reading room, sudden heavy book slam on a table, everyone looks up, tension breaks into nervous laughter. Audio: paper rustle, sharp book impact, hushed reactions, soft room ambience. Visual style: grounded cinematic comedy, warm academic interior.'
+      },
+      {
+        title: 'Koi Pond Macro',
+        providerHint: 'Best with Veo',
+        hint: 'Macro visuals benefit from specific optical language.',
+        prompt: 'Extreme close-up of orange koi gliding beneath lily pads, concentric ripples catching sunlight on the water surface. Camera: macro lens, shallow depth of field, gentle floating drift. Visual style: meditative nature cinematography, delicate highlights, tranquil pacing.'
+      },
+      {
+        title: 'Robot Piano Recital',
+        providerHint: 'Best with Seedance or Veo with audio',
+        hint: 'Audio-first sequences give Seedance more to work with.',
+        prompt: 'A polished service robot performs a piano recital in a dark hall, articulated fingers moving precisely over ivory keys, audience silhouettes still in the background. Audio: resonant piano chords, pedal clicks, quiet room reverb. Camera: slow lateral dolly. Visual style: elegant futuristic concert film.'
+      },
+      {
+        title: 'Waterfall Trek Reveal',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Good travel-style clip with clear reveal motion.',
+        prompt: 'A hiker emerges from dense jungle foliage onto a ledge facing a colossal waterfall. Camera: over-the-shoulder push forward, then crane up to reveal the full falls. Visual style: lush adventure cinema, misty sunlight, rich greens, awe-filled scale.'
+      },
+      {
+        title: 'Boxing Gym Drill',
+        providerHint: 'Best with Seedance',
+        hint: 'Physical action plus foley creates punchy sports footage.',
+        prompt: 'A boxer drills combinations on a heavy bag in a worn gym, sweat catching hard side light as the bag swings back. Audio: sharp glove impacts, skipping rope in the distance, gritty gym room tone. Camera: handheld medium shot with short punch-ins. Visual style: raw sports documentary.'
+      },
+      {
+        title: 'Subway Door Moment',
+        providerHint: 'Best with Veo or Seedance',
+        hint: 'Short human moment with clean cinematic staging.',
+        prompt: 'A commuter catches the subway doors at the last second, steps inside, exhales, and looks up as tunnel lights streak past the windows. Audio: closing door chime, train rumble, breath, faint station announcement. Camera: medium shot that settles into a close-up. Visual style: contemporary city drama.'
+      }
+    ]
+  };
+
+  const CURATED_PROMPTS = Object.entries(CURATED_PROMPT_SETS).flatMap(([type, items]) =>
+    items.map((item, index) => ({
+      ...item,
+      id: `curated-${type}-${index + 1}`,
+      type
+    }))
+  );
 
   // =========================================================================
   // MOCK FEED GENERATOR (fallback when API + cache both fail)
@@ -72,12 +383,13 @@
 
     for (let i = 0; i < count; i++) {
       const type = types[i % types.length];
-      const prompt = CREATIVE_PROMPTS[i % CREATIVE_PROMPTS.length];
+      const promptEntry = pickPromptEntry(type);
+      const prompt = promptEntry.prompt;
       cards.push({
         id: `ins-mock-${i}`,
         type: type,
         prompt: prompt,
-        title: prompt.slice(0, 50),
+        title: promptEntry.title,
         thumbnail: '', // Will be filtered out, but shows empty state is intentional
         size: sizes[i % sizes.length],
         tags: ['community'],
@@ -86,10 +398,7 @@
     }
 
     return {
-      promptOfTheDay: {
-        prompt: CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)],
-        category: 'creative'
-      },
+      promptOfTheDay: pickPromptEntry(),
       cards: cards
     };
   }
@@ -213,9 +522,11 @@
         INSPIRE_POOL = cards;
         INSPIRE_POOL_TS = Date.now();
 
-        // Also update memoryCache for POTD
+        // Keep the top prompt curated and type-aware.
         if (result.data.prompt_of_the_day) {
-          memoryCache.promptOfTheDay = result.data.prompt_of_the_day;
+          memoryCache.promptOfTheDay = normalizePromptEntry(result.data.prompt_of_the_day);
+        } else if (!memoryCache.promptOfTheDay?.prompt) {
+          memoryCache.promptOfTheDay = pickPromptEntry(promptTypeForActiveFilter());
         }
 
         console.log(`[Inspire] Pool loaded: ${INSPIRE_POOL.length} cards`);
@@ -392,12 +703,14 @@
         })).filter(card => card.thumbnail); // Only cards with valid thumbnails
 
         // Update state and cache
-        memoryCache.promptOfTheDay = data.prompt_of_the_day;
+        memoryCache.promptOfTheDay = data.prompt_of_the_day
+          ? normalizePromptEntry(data.prompt_of_the_day)
+          : pickPromptEntry(promptTypeForActiveFilter());
         memoryCache.cards = cards;
         state.cards = [...cards];
 
         saveCacheContent({
-          promptOfTheDay: data.prompt_of_the_day,
+          promptOfTheDay: memoryCache.promptOfTheDay,
           cards: cards
         });
 
@@ -430,7 +743,7 @@
       // Final fallback: use mock feed so UI doesn't break
       console.log('[Inspire] Using mock feed as final fallback');
       const mock = generateMockFeed(12);
-      memoryCache.promptOfTheDay = mock.promptOfTheDay;
+      memoryCache.promptOfTheDay = normalizePromptEntry(mock.promptOfTheDay);
       // Note: mock cards have no thumbnails, so they'll show empty state
       // but POTD will still work
       state.cards = [];
@@ -480,8 +793,81 @@
     return result;
   }
 
+  function normalizePromptType(type) {
+    const normalized = String(type || '').toLowerCase();
+    if (normalized === 'models' || normalized === 'model' || normalized === '3d' || normalized === '3d-model') return 'model';
+    if (normalized === 'images' || normalized === 'image') return 'image';
+    if (normalized === 'videos' || normalized === 'video') return 'video';
+    return 'model';
+  }
+
+  function workspaceTargetForType(type) {
+    return PROMPT_TARGETS[normalizePromptType(type)] || PROMPT_TARGETS.model;
+  }
+
+  function pickPromptEntry(preferredType = null) {
+    const type = preferredType ? normalizePromptType(preferredType) : null;
+    const pool = type ? CURATED_PROMPT_SETS[type] || [] : CURATED_PROMPTS;
+
+    if (!pool.length) {
+      return {
+        id: 'curated-fallback',
+        type: 'model',
+        title: 'Featured Prompt',
+        providerHint: 'Best with Meshy text-to-3D',
+        hint: 'Single-subject prompt for a clear 3D asset.',
+        prompt: 'single centered fantasy relic, polished bronze and obsidian, clean silhouette, premium collectible prop'
+      };
+    }
+
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    return type ? { ...item, type, id: item.id || `curated-${type}` } : { ...item };
+  }
+
+  function normalizePromptEntry(entry, fallbackType = 'model') {
+    if (typeof entry === 'string') {
+      const fallbackTarget = workspaceTargetForType(fallbackType);
+      return {
+        id: `inline-${normalizePromptType(fallbackType)}`,
+        type: normalizePromptType(fallbackType),
+        title: fallbackTarget.label,
+        providerHint: '',
+        hint: '',
+        prompt: entry
+      };
+    }
+
+    if (!entry || typeof entry !== 'object') {
+      return pickPromptEntry(fallbackType);
+    }
+
+    const type = normalizePromptType(entry.type || entry.target_type || entry.category || fallbackType);
+    const target = workspaceTargetForType(type);
+
+    return {
+      id: entry.id || `inline-${type}`,
+      type,
+      title: entry.title || target.label,
+      providerHint: entry.providerHint || entry.provider_hint || entry.provider || '',
+      hint: entry.hint || entry.description || '',
+      prompt: entry.prompt || ''
+    };
+  }
+
+  function setPromptOfTheDay(entry) {
+    memoryCache.promptOfTheDay = normalizePromptEntry(entry);
+    updatePOTDDisplay();
+  }
+
+  function promptTypeForActiveFilter() {
+    if (state.activeFilter === 'models') return 'model';
+    if (state.activeFilter === 'images') return 'image';
+    if (state.activeFilter === 'videos') return 'video';
+    return null;
+  }
+
   function getRandomPrompt() {
-    return CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)];
+    return pickPromptEntry().prompt;
   }
 
   /**
@@ -518,7 +904,9 @@
       `<span class="inspire-card__tag ${tag}">${tag.replace('-', ' ')}</span>`
     ).join('');
 
-    const typeIcon = ICONS[card.type] || ICONS.model;
+    const normalizedType = normalizePromptType(card.type);
+    const typeIcon = ICONS[normalizedType] || ICONS.model;
+    const promptTarget = workspaceTargetForType(normalizedType);
     // Use normalized thumbnail fields (thumb_preview preferred, fallback to legacy)
     const thumbPreview = card.thumb_preview || card.thumbnail || card.thumb_url || '';
     const thumbRefined = card.thumb_refined || '';  // May be empty
@@ -555,7 +943,7 @@
     return `
       <article class="inspire-card ${aspect}${hasRefine ? ' has-refine' : ''}"
                data-id="${card.id}"
-               data-type="${card.type}"
+               data-type="${normalizedType}"
                data-thumb-preview="${thumbPreview}"
                data-thumb-refined="${thumbRefined}"
                data-video-url="${videoUrl}">
@@ -571,12 +959,12 @@
                onload="(function(img){var c=img.closest('.inspire-card');if(!c)return;var r=img.naturalWidth/img.naturalHeight;var a=r>1.3?'landscape':r<0.77?'portrait':'square';c.classList.remove('landscape','portrait','square');c.classList.add(a)})(this)"
                onerror="this.closest('.inspire-card').style.display='none'"/>
           ${videoLayer}
-          ${card.type === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
+          ${normalizedType === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
           ${hasRefine ? '<div class="inspire-card__refine-badge" title="Refined version available">&#10024;</div>' : ''}
         </div>
-        <div class="inspire-card__type-badge ${card.type}">${typeIcon}<span>${card.type}</span></div>
+        <div class="inspire-card__type-badge ${normalizedType}">${typeIcon}<span>${normalizedType}</span></div>
         <div class="inspire-card__actions">
-          <button class="inspire-card__action-btn" data-action="use" title="Use Prompt">${ICONS.use}</button>
+          <button class="inspire-card__action-btn" data-action="use" title="${promptTarget.cta}" aria-label="${promptTarget.cta}">${ICONS.use}</button>
         </div>
         <div class="inspire-card__overlay">
           <div class="inspire-card__info">
@@ -727,13 +1115,14 @@
 
       // Update data attributes
       el.dataset.id = card.id;
-      el.dataset.type = card.type;
+      el.dataset.type = normalizePromptType(card.type);
       el.dataset.thumbPreview = card.thumb_preview || card.thumbnail || card.thumb_url || '';
       el.dataset.thumbRefined = card.thumb_refined || '';
       el.dataset.videoUrl = card.video_url || '';
 
       // Update class for aspect ratio and refine badge
       const aspect = card.aspect || 'square';
+      const normalizedType = normalizePromptType(card.type);
       const hasRefine = card.has_refine || (card.thumb_refined && card.thumb_refined !== el.dataset.thumbPreview);
       el.className = `inspire-card ${aspect}${hasRefine ? ' has-refine' : ''}`;
 
@@ -754,9 +1143,16 @@
       // Update type badge
       const typeBadge = el.querySelector('.inspire-card__type-badge');
       if (typeBadge) {
-        const typeIcon = ICONS[card.type] || ICONS.model;
-        typeBadge.className = `inspire-card__type-badge ${card.type}`;
-        typeBadge.innerHTML = `${typeIcon}<span>${card.type}</span>`;
+        const typeIcon = ICONS[normalizedType] || ICONS.model;
+        typeBadge.className = `inspire-card__type-badge ${normalizedType}`;
+        typeBadge.innerHTML = `${typeIcon}<span>${normalizedType}</span>`;
+      }
+
+      const actionBtn = el.querySelector('.inspire-card__action-btn');
+      if (actionBtn) {
+        const target = workspaceTargetForType(normalizedType);
+        actionBtn.title = target.cta;
+        actionBtn.setAttribute('aria-label', target.cta);
       }
 
       // Update tags
@@ -770,7 +1166,7 @@
 
       // Update video layer
       let videoEl = el.querySelector('.inspire-card__video');
-      if (card.type === 'video' && card.video_url) {
+      if (normalizedType === 'video' && card.video_url) {
         if (!videoEl) {
           videoEl = document.createElement('video');
           videoEl.className = 'inspire-card__video';
@@ -793,7 +1189,7 @@
       // Use data-src so refined image only loads on first hover (not eagerly).
       let refinedImg = el.querySelector('.inspire-card__image-refined');
       const thumbRefined = card.thumb_refined || '';
-      if (card.type === 'model' && hasRefine && thumbRefined) {
+      if (normalizedType === 'model' && hasRefine && thumbRefined) {
         if (!refinedImg) {
           refinedImg = document.createElement('img');
           refinedImg.className = 'inspire-card__image-refined';
@@ -809,7 +1205,7 @@
       // Update video badge visibility
       const videoBadge = el.querySelector('.inspire-card__video-badge');
       if (videoBadge) {
-        videoBadge.style.display = card.type === 'video' ? '' : 'none';
+        videoBadge.style.display = normalizedType === 'video' ? '' : 'none';
       }
 
       // Update refine badge visibility
@@ -962,11 +1358,7 @@
         }
       }
 
-      // Update POTD with random prompt
-      const potdEl = overlayEl?.querySelector('.inspire-potd__prompt');
-      if (potdEl) {
-        potdEl.textContent = getRandomPrompt();
-      }
+      setPromptOfTheDay(pickPromptEntry(promptTypeForActiveFilter()));
     } finally {
       // Allow next shuffle after a small delay (prevents spam)
       setTimeout(() => {
@@ -1021,24 +1413,61 @@
     renderGrid();
   }
 
-  function usePrompt(prompt) {
-    // Find active prompt input
-    const promptInput = document.querySelector(
-      '#modelPrompt, #imagePrompt, #texturePrompt, #videoTextPrompt, textarea[name="prompt"]'
-    );
+  function findPromptInputByType(type) {
+    const target = workspaceTargetForType(type);
+    for (const selector of target.inputSelectors) {
+      const el = document.querySelector(selector);
+      if (el) return el;
+    }
+    return document.querySelector('#modelPrompt, #imagePrompt, #videoTextPrompt, #videoMotion, #texturePrompt, textarea[name="prompt"]');
+  }
 
-    if (promptInput) {
-      promptInput.value = prompt;
-      promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-      promptInput.focus();
-
-      // Visual feedback
-      promptInput.classList.add('inspire-filled');
-      setTimeout(() => promptInput.classList.remove('inspire-filled'), 1000);
+  function openWorkspacePanel(type) {
+    const normalizedType = normalizePromptType(type);
+    const target = workspaceTargetForType(normalizedType);
+    const panelBtn = document.querySelector(`[data-panel="${target.panel}"]`);
+    if (panelBtn) {
+      panelBtn.click();
     }
 
-    closeInspire();
-    window.dispatchEvent(new CustomEvent('inspire:prompt-used', { detail: { prompt } }));
+    if (normalizedType === 'video') {
+      const videoModeValue = document.getElementById('videoModeValue');
+      if (videoModeValue) {
+        videoModeValue.value = 'text2video';
+      }
+
+      document.querySelectorAll('.video-mode-btn').forEach((btn) => {
+        btn.classList.toggle('is-active', btn.getAttribute('data-mode') === 'text2video');
+      });
+
+      document.getElementById('text2videoContent')?.classList.remove('hidden');
+      document.getElementById('image2videoContent')?.classList.add('hidden');
+    }
+  }
+
+  function fillPromptInput(promptInput, prompt) {
+    if (!promptInput) return;
+    promptInput.value = prompt;
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+    promptInput.dispatchEvent(new Event('change', { bubbles: true }));
+    promptInput.focus();
+    promptInput.classList.add('inspire-filled');
+    setTimeout(() => promptInput.classList.remove('inspire-filled'), 1000);
+  }
+
+  function usePrompt(promptOrEntry, fallbackType = 'model') {
+    const promptEntry = normalizePromptEntry(promptOrEntry, fallbackType);
+    openWorkspacePanel(promptEntry.type);
+    fillPromptInput(findPromptInputByType(promptEntry.type), promptEntry.prompt);
+
+    closeInspire({ isManual: false });
+    window.dispatchEvent(new CustomEvent('inspire:prompt-used', {
+      detail: {
+        prompt: promptEntry.prompt,
+        type: promptEntry.type,
+        title: promptEntry.title
+      }
+    }));
   }
 
   // =========================================================================
@@ -1055,7 +1484,12 @@
     if (actionBtn && cardData) {
       e.stopPropagation();
       if (actionBtn.dataset.action === 'use') {
-        usePrompt(cardData.prompt);
+        usePrompt({
+          prompt: cardData.prompt,
+          type: cardData.type,
+          title: cardData.title || '',
+          providerHint: cardData.providerHint || ''
+        }, cardData.type);
       }
       return;
     }
@@ -1133,7 +1567,7 @@
         console.log('[Inspire] Loading via window.Viewer.loadGlbFromUrl');
         await window.Viewer.loadGlbFromUrl(glbUrl);
         console.log('[Inspire] Model loaded via Viewer');
-        if (cardData.prompt) usePrompt(cardData.prompt);
+        if (cardData.prompt) usePrompt(cardData.prompt, 'model');
         return;
       } catch (err) {
         console.error('[Inspire] Viewer.loadGlbFromUrl failed:', err);
@@ -1146,7 +1580,7 @@
         console.log('[Inspire] Loading via window.loadGlbFromUrl');
         await window.loadGlbFromUrl(glbUrl);
         console.log('[Inspire] Model loaded via loadGlbFromUrl');
-        if (cardData.prompt) usePrompt(cardData.prompt);
+        if (cardData.prompt) usePrompt(cardData.prompt, 'model');
         return;
       } catch (err) {
         console.error('[Inspire] loadGlbFromUrl failed:', err);
@@ -1159,7 +1593,7 @@
         console.log('[Inspire] Loading directly via THREE.GLTFLoader');
         await loadGlbDirectly(glbUrl, cardData);
         console.log('[Inspire] Model loaded directly into scene');
-        if (cardData.prompt) usePrompt(cardData.prompt);
+        if (cardData.prompt) usePrompt(cardData.prompt, 'model');
         return;
       } catch (err) {
         console.error('[Inspire] Direct GLTFLoader failed:', err);
@@ -1329,7 +1763,7 @@
 
     // Fill the prompt so user can generate similar
     if (cardData.prompt) {
-      usePrompt(cardData.prompt);
+      usePrompt(cardData.prompt, 'model');
     }
   }
 
@@ -1345,7 +1779,7 @@
 
     if (!videoUrl) {
       console.warn('[Inspire] No video URL found:', cardData.id);
-      usePrompt(cardData.prompt);
+      usePrompt(cardData.prompt, 'video');
       return;
     }
 
@@ -1380,7 +1814,7 @@
 
     if (!imageUrl) {
       console.warn('[Inspire] No image URL found:', cardData.id);
-      usePrompt(cardData.prompt);
+      usePrompt(cardData.prompt, 'image');
       return;
     }
 
@@ -1436,7 +1870,8 @@
     });
 
     // Get initial POTD from cache or fallback
-    const potd = memoryCache.promptOfTheDay || { prompt: getRandomPrompt(), category: 'creative' };
+    const potd = normalizePromptEntry(memoryCache.promptOfTheDay || pickPromptEntry(promptTypeForActiveFilter()));
+    const potdTarget = workspaceTargetForType(potd.type);
 
     overlay.innerHTML = `
       <header class="inspire-header">
@@ -1461,11 +1896,15 @@
         <div class="inspire-potd">
           <div class="inspire-potd__badge">${ICONS.star}</div>
           <div class="inspire-potd__content">
-            <div class="inspire-potd__label">Prompt of the Day</div>
+            <div class="inspire-potd__meta">
+              <div class="inspire-potd__label">Prompt of the Day</div>
+              <div class="inspire-potd__target ${potd.type}" id="inspirePotdTarget">${potdTarget.label}</div>
+            </div>
             <p class="inspire-potd__prompt">${potd.prompt}</p>
+            <p class="inspire-potd__hint" id="inspirePotdHint">${potd.providerHint || potd.hint || ''}</p>
           </div>
           <button class="inspire-potd__cta" data-action="use-potd">
-            ${ICONS.use}<span>Try it</span>
+            ${ICONS.use}<span id="inspirePotdCtaLabel">${potdTarget.cta}</span>
           </button>
         </div>
 
@@ -1508,9 +1947,7 @@
 
     // POTD button
     overlayEl.querySelector('[data-action="use-potd"]')?.addEventListener('click', () => {
-      const potdEl = overlayEl.querySelector('.inspire-potd__prompt');
-      const prompt = potdEl?.textContent || getRandomPrompt();
-      usePrompt(prompt);
+      usePrompt(memoryCache.promptOfTheDay || pickPromptEntry(promptTypeForActiveFilter()));
     });
 
     // Filter buttons (delegated)
@@ -1669,6 +2106,7 @@
     // Render cached content immediately for instant display
     if (memoryCache.cards?.length > 0) {
       state.cards = memoryCache.cards.slice(0, DISPLAY_LIMIT);
+      memoryCache.promptOfTheDay = normalizePromptEntry(memoryCache.promptOfTheDay || pickPromptEntry(promptTypeForActiveFilter()));
       // Also populate pool from cache for instant shuffles
       INSPIRE_POOL = [...memoryCache.cards];
       INSPIRE_POOL_TS = memoryCache.timestamp || 0;
@@ -1740,9 +2178,26 @@
   function updatePOTDDisplay() {
     if (!overlayEl) return;
 
+    const promptEntry = normalizePromptEntry(memoryCache.promptOfTheDay || pickPromptEntry(promptTypeForActiveFilter()));
     const potdEl = overlayEl.querySelector('.inspire-potd__prompt');
-    if (potdEl && memoryCache.promptOfTheDay?.prompt) {
-      potdEl.textContent = memoryCache.promptOfTheDay.prompt;
+    const targetEl = overlayEl.querySelector('#inspirePotdTarget');
+    const hintEl = overlayEl.querySelector('#inspirePotdHint');
+    const ctaLabelEl = overlayEl.querySelector('#inspirePotdCtaLabel');
+    const target = workspaceTargetForType(promptEntry.type);
+
+    if (potdEl) {
+      potdEl.textContent = promptEntry.prompt;
+    }
+    if (targetEl) {
+      targetEl.className = `inspire-potd__target ${promptEntry.type}`;
+      targetEl.textContent = target.label;
+    }
+    if (hintEl) {
+      hintEl.textContent = promptEntry.providerHint || promptEntry.hint || '';
+      hintEl.style.display = hintEl.textContent ? '' : 'none';
+    }
+    if (ctaLabelEl) {
+      ctaLabelEl.textContent = target.cta;
     }
   }
 
