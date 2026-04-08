@@ -1061,6 +1061,29 @@
     initCardVideos(grid);
   }
 
+  async function hydrateFeed(options = {}) {
+    const { forceRefresh = false } = options;
+
+    if (state.loading) return false;
+
+    if (!forceRefresh && state.cards.length > 0) {
+      renderGrid();
+      return true;
+    }
+
+    updateLoadingState();
+    const ok = await fetchInspireContent({ forceRefresh, shuffle: true, type: 'all' });
+
+    if (state.cards.length > 0) {
+      renderGrid();
+      updatePOTDDisplay();
+      return true;
+    }
+
+    updateLoadingState();
+    return ok;
+  }
+
   /**
    * Update existing card DOM elements in-place (no flicker).
    * Preloads images before swapping src to prevent blank flash.
@@ -1262,6 +1285,16 @@
       overlayEl.classList.add('is-open');
       overlayEl.querySelector('#inspireCloseBtn')?.focus();
     });
+
+    if (state.cards.length === 0 && !state.loading) {
+      hydrateFeed({ forceRefresh: true }).catch((err) => {
+        console.warn('[Inspire] Failed to hydrate feed on open:', err?.message || err);
+      });
+    } else if (state.cards.length > 0) {
+      renderGrid();
+    } else {
+      updateLoadingState();
+    }
 
     // Re-initialize video autoplay when panel opens
     const grid = overlayEl.querySelector('#inspireGrid');
@@ -2139,6 +2172,13 @@
       }
       return false;
     });
+
+    if (!hasContentReady) {
+      updateLoadingState();
+      hydrateFeed({ forceRefresh: false }).catch((err) => {
+        console.warn('[Inspire] Initial feed hydrate failed:', err?.message || err);
+      });
+    }
 
     console.log('[Inspire] Initialized');
 
