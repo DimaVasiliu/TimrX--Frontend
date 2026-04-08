@@ -33,11 +33,16 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl }) {
   _cleanup();
   _injectStylesOnce();
   _overlay = _createOverlay(taskId, title || 'Untitled Model', thumbnailUrl || '');
-  document.body.appendChild(_overlay);
+  // Append inside the workspace container so the modal respects the same
+  // stacking context as other workspace modals (upload, refine, etc.).
+  // The body > * { z-index: 2 } rule in variables.css would otherwise trap
+  // a body-level overlay behind the workspace.
+  const wsRoot = document.querySelector('.timrx-3dprint') || document.body;
+  wsRoot.appendChild(_overlay);
   requestAnimationFrame(() => {
     _overlay.classList.add('open');
     _overlay.inert = false;
-    console.log('[MultiColorPrint] Modal opened, overlay in DOM:', document.body.contains(_overlay));
+    console.log('[MultiColorPrint] Modal opened, overlay in DOM:', wsRoot.contains(_overlay));
   });
   document.body.classList.add('has-modal');
   document.addEventListener('keydown', _onEscape);
