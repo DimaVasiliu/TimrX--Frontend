@@ -4088,6 +4088,11 @@ body.has-modal {
     background: linear-gradient(135deg, #12161e 0%, #1a2030 100%);
   }
 
+  /* Fallback for grouped card thumbnails that failed to load */
+  .thumb-broken {
+    background: linear-gradient(135deg, #12161e 0%, #1a2030 100%) !important;
+  }
+
   /* Loading shimmer using global @keyframes shimmer */
   .history-thumb__preview.is-loading::after {
     content: '';

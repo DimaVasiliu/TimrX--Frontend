@@ -161,7 +161,7 @@ function buildGroupedCardHTML(group, items) {
   items.slice(0, 4).forEach((item, i) => {
     const thumbSrc = item.thumbnail_url || item.image_url || '';
     if (thumbSrc) {
-      thumbsHtml += `<img src="${thumbSrc}" alt="Variant ${i + 1}" loading="lazy" class="history-group-card__thumb-img" onerror="this.style.background='#333';this.alt='';">`;
+      thumbsHtml += `<img src="${thumbSrc}" alt="Variant ${i + 1}" loading="lazy" class="history-group-card__thumb-img" onerror="this.style.display='none';this.parentElement?.classList.add('thumb-broken');">`;
     } else {
       thumbsHtml += `<div class="history-group-card__thumb-img history-group-card__thumb-placeholder"><div class="history-group-card__spinner"></div></div>`;
     }
@@ -1146,7 +1146,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   data-act="open"
                   data-id="${displayModel.id}"
                   aria-label="Open ${name}">
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : ''}
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy" onerror="this.style.display='none';">` : ''}
           </button>
         </div>
         ${isProcessing ? `
@@ -1331,7 +1331,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 data-video-url="${videoSrc}"
                 aria-label="Play ${name}"
                 ${isProcessing ? 'disabled' : ''}>
-          ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy">` : `
+          ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy" onerror="this.style.display='none';">` : `
             <div class="${thumbPrefix}__video-empty">
               <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
             </div>
@@ -1414,7 +1414,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               data-id="${model.id}"
               aria-pressed="${isVariantActive ? 'true' : 'false'}"
               title="Open ${shortTitle(model)}">
-        ${model.thumbnail_url ? `<img src="${model.thumbnail_url}" alt="${shortTitle(model)}" loading="lazy">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
+        ${model.thumbnail_url ? `<img src="${model.thumbnail_url}" alt="${shortTitle(model)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(model)}</span>');">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
       </button>
     `;
   };
@@ -1429,7 +1429,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 data-act="open"
                 data-id="${variant.id}"
                 aria-label="Open variation ${idx + 1}">
-          ${variant.thumbnail_url ? `<img src="${variant.thumbnail_url}" alt="${shortTitle(variant)}" loading="lazy">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
+          ${variant.thumbnail_url ? `<img src="${variant.thumbnail_url}" alt="${shortTitle(variant)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(variant)}</span>');">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
         </button>
       `;
     }).join('');

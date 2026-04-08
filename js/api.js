@@ -7495,8 +7495,21 @@ async function _doResumePendingJobs(options = {}) {
       if (!hist) {
         State.removeActiveJob(id);
         log(`[Recovery] Removed stale local job ${id} (not on server)`);
+        continue;
       }
-      // If in history but not finished — keep it, the status endpoint will resolve it
+      // If in history but not finished — check age. Jobs older than 30 minutes
+      // that the backend no longer knows about are stuck/orphaned. Mark as failed
+      // and remove from active tracking to stop the infinite "Generating..." card.
+      const createdAt = hist.created_at ? new Date(hist.created_at).getTime() : 0;
+      const ageMs = createdAt ? (Date.now() - createdAt) : Infinity;
+      const STALE_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
+      if (ageMs > STALE_THRESHOLD_MS) {
+        State.removeActiveJob(id);
+        State.updateHistoryItem(id, { status: 'failed', status_label: 'Job expired' });
+        log(`[Recovery] Expired stale job ${id} (age=${Math.round(ageMs / 60000)}min, not on server)`);
+        continue;
+      }
+      // If recent and in history but not finished — keep it, the status endpoint will resolve it
     }
     ids = State.getActiveJobs();
     pendingMeta = State.getPendingMeta();
