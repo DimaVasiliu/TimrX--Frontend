@@ -242,15 +242,9 @@ export async function loadGlbFromUrl(url) {
         console.warn('[Viewer] HEAD prefetch failed, continuing:', prefetchErr.message);
     }
 
-    // Detect 3MF files by URL extension (e.g. .3mf or .3mf?querystring)
-    const urlPath = url.split('?')[0].split('#')[0];
-    // Also check the decoded URL for proxy-glb URLs that encode the real URL
-    const decodedUrl = decodeURIComponent(url);
-    const is3mf = urlPath.endsWith('.3mf') || decodedUrl.includes('.3mf');
-
-    if (is3mf && THREE.ThreeMFLoader) {
-        return _load3mfFromUrl(url);
-    }
+    // NOTE: 3MF viewer disabled — Three.js r160 ThreeMFLoader cannot parse
+    // Meshy's composite 3MF files. MCP cards use parent GLB for viewing;
+    // the 3MF is available via download from payload.three_mf_url.
 
     const loader = new THREE.GLTFLoader();
     if (!isTimrxS3Url(url)) {
