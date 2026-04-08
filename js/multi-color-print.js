@@ -456,12 +456,29 @@ async function _pollStatus() {
     if (data.status === 'done') {
       _stopPolling();
       _updateProgress(100);
-      const threeMfUrl = data.three_mf_url;
+      // Meshy returns 3MF URL in model_urls.3mf; backend also mirrors it as three_mf_url
+      const threeMfUrl = data.three_mf_url
+        || (data.model_urls && data.model_urls['3mf'])
+        || data.glb_url;
       if (threeMfUrl) {
         const downloadLink = _overlay.querySelector('[data-mcp-download]');
         if (downloadLink) downloadLink.href = threeMfUrl;
       }
       setTimeout(() => _switchState('done'), 400);
+
+      // Refresh workspace history so the new 3MF asset appears
+      try {
+        const stateModule = await import('./state.js');
+        const historyModule = await import('./history.js');
+        if (stateModule.loadHistoryTab) {
+          await stateModule.loadHistoryTab('all');
+        }
+        if (historyModule.renderHistory) {
+          historyModule.renderHistory();
+        }
+      } catch (_e) {
+        console.warn('[MultiColorPrint] history refresh skipped:', _e);
+      }
       return;
     }
 
@@ -474,6 +491,15 @@ async function _pollStatus() {
     // Still running — update progress
     const pct = data.pct || 0;
     _updateProgress(pct);
+
+    // Show queue position if available (Meshy returns preceding_tasks count)
+    if (data.preceding_tasks != null && data.preceding_tasks > 0 && pct === 0) {
+      const desc = _overlay?.querySelector('.mcp-processing__desc');
+      if (desc) desc.textContent = `Queued — ${data.preceding_tasks} task${data.preceding_tasks > 1 ? 's' : ''} ahead of you...`;
+    } else if (pct > 0) {
+      const desc = _overlay?.querySelector('.mcp-processing__desc');
+      if (desc) desc.textContent = 'Converting colors and optimizing mesh for printing...';
+    }
 
   } catch (err) {
     console.error('[MultiColorPrint] poll error:', err);
