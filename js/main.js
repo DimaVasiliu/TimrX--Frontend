@@ -21,7 +21,7 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260407e';
+} from './history.js?v=20260408a';
 import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';

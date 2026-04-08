@@ -469,7 +469,7 @@ async function _pollStatus() {
       // Refresh workspace history so the new 3MF asset appears
       try {
         const stateModule = await import('./state.js');
-        const historyModule = await import('./history.js');
+        const historyModule = await import('./history.js?v=20260408a');
         if (stateModule.loadHistoryTab) {
           await stateModule.loadHistoryTab('all');
         }
