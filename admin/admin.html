@@ -10,6 +10,21 @@
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="/admin/admin.css"/>
   <style>
+    /* AUTH GATE: Hide ALL page content until server-side auth succeeds.
+       The login modal (#login) is the only visible element on load.
+       JS removes this class after ensureAuth() passes. */
+    body:not(.admin-authenticated) main,
+    body:not(.admin-authenticated) header,
+    body:not(.admin-authenticated) nav,
+    body:not(.admin-authenticated) .tabs,
+    body:not(.admin-authenticated) .tab-content,
+    body:not(.admin-authenticated) .top-bar,
+    body:not(.admin-authenticated) #logout {
+      display: none !important;
+    }
+  </style>
+  <noscript><style>body { display: none !important; }</style></noscript>
+  <style>
     /* Validate Tab Styles */
     .validate-header {
       display: flex;
@@ -5022,6 +5037,7 @@
       const resumeAction = pendingTokenAction;
       try {
         if(await ensureAuth()){
+          document.body.classList.add('admin-authenticated');
           $('#login').classList.remove('show');
           pendingTokenAction = null;
           pendingTokenScope = null;
@@ -10311,7 +10327,7 @@
       if (el) { el.textContent = msg; el.style.color = color || '#9ca3af'; }
     }
 
-    (async function(){ if(await ensureAuth()){ await bootstrapAdminPage(); } })();
+    (async function(){ if(await ensureAuth()){ document.body.classList.add('admin-authenticated'); await bootstrapAdminPage(); } })();
   </script>
 </body>
 </html>

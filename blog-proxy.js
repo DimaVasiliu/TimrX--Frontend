@@ -221,20 +221,26 @@ ${generateSeoSitemap()}
     //    IMPORTANT: No caching for API responses to ensure fresh data
     // ─────────────────────────────────────────────────────────────
     if (pathname.startsWith('/api/')) {
+      // Resolve CORS origin against allowlist (no wildcard)
+      const ALLOWED_ORIGINS = ['https://timrx.live', 'https://www.timrx.live', 'https://3d.timrx.live'];
+      const requestOrigin = request.headers.get('Origin') || '';
+      const corsOrigin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
+
       // Handle CORS preflight at the edge (fast, no backend round-trip)
       if (request.method === 'OPTIONS') {
         return new Response(null, {
           status: 204,
           headers: {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': corsOrigin,
             'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': '*, Content-Type, X-Admin-Token',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
             'Access-Control-Max-Age': '600',
+            'Vary': 'Origin',
           },
         });
       }
       const backendUrl = `${BLOG_ORIGIN}${pathname}${url.search}`;
-      return proxyToBackend(request, backendUrl, { noCache: true });
+      return proxyToBackend(request, backendUrl, { noCache: true, corsOrigin });
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -275,11 +281,13 @@ async function proxyToBackend(request, backendUrl, options = {}) {
     // Clone response and modify headers if needed
     const newHeaders = new Headers(response.headers);
 
-    // Ensure CORS headers for API requests
+    // Ensure CORS headers for API requests (use allowlisted origin, not wildcard)
     if (request.url.includes('/api/')) {
-      newHeaders.set('Access-Control-Allow-Origin', '*');
+      const origin = options.corsOrigin || 'https://timrx.live';
+      newHeaders.set('Access-Control-Allow-Origin', origin);
       newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-      newHeaders.set('Access-Control-Allow-Headers', '*, Content-Type, X-Admin-Token');
+      newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Token');
+      newHeaders.set('Vary', 'Origin');
     }
 
     // Set no-cache headers for API responses to prevent stale data

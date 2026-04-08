@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <meta name="robots" content="noindex, nofollow" />
   <title>Edit Post — TimrX Admin</title>
+  <style>
+    /* AUTH GATE: Hide ALL page content until server-side auth succeeds. */
+    body:not(.admin-authenticated) main,
+    body:not(.admin-authenticated) header,
+    body:not(.admin-authenticated) nav,
+    body:not(.admin-authenticated) .editor-wrapper,
+    body:not(.admin-authenticated) .top-bar,
+    body:not(.admin-authenticated) #editorjs,
+    body:not(.admin-authenticated) #logout {
+      display: none !important;
+    }
+  </style>
+  <noscript><style>body { display: none !important; }</style></noscript>
   <!-- Self-hosted fonts -->
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts/fonts.css">
@@ -361,6 +374,7 @@
       if (!t) return;
       setToken(t);
       if (await ensureAuth()) {
+        document.body.classList.add('admin-authenticated');
         $('#login').classList.remove('show');
         loadPost();
       }
@@ -571,7 +585,7 @@
 
     // Init
     (async function() {
-      if (await ensureAuth()) loadPost();
+      if (await ensureAuth()) { document.body.classList.add('admin-authenticated'); loadPost(); }
     })();
   </script>
 </body>
