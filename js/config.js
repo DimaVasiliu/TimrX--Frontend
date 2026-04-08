@@ -823,24 +823,43 @@ export async function pollForCreditsUpdate(previousCredits, maxWaitMs = 10000, o
 // S3 URL HELPERS - Detect our S3 bucket URLs
 // ============================================================================
 
-/**
- * Our S3 bucket patterns - URLs from these don't need proxying
- * They're served directly with proper CORS headers
- */
-const TIMRX_S3_PATTERNS = [
-  'timrx-3d-models.s3.',        // Primary bucket pattern
+const TIMRX_S3_HOSTS = new Set([
   'timrx-3d-models.s3.eu-west-2.amazonaws.com',
   'timrx-3d-models.s3.amazonaws.com',
-];
+]);
+
+function isTimrxS3Host(hostname = '') {
+  const host = String(hostname || '').toLowerCase();
+  return TIMRX_S3_HOSTS.has(host) || host.startsWith('timrx-3d-models.s3.');
+}
 
 /**
- * Check if a URL is from our S3 bucket (doesn't need proxying)
+ * Check if a URL points directly at our S3 bucket.
+ * Important: this must inspect the URL host/path, not do a raw substring
+ * match, otherwise proxy URLs like `/api/_mod/proxy-glb?u=https://...s3...`
+ * get misclassified as S3 and lose credentials.
  * @param {string} url - URL to check
  * @returns {boolean} - True if URL is from our S3 bucket
  */
 export function isTimrxS3Url(url) {
   if (!url || typeof url !== 'string') return false;
-  return TIMRX_S3_PATTERNS.some(pattern => url.includes(pattern));
+
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (isTimrxS3Host(parsed.hostname)) return true;
+
+    // Support path-style S3 URLs such as:
+    // https://s3.amazonaws.com/timrx-3d-models/<key>
+    const path = (parsed.pathname || '').toLowerCase();
+    const host = (parsed.hostname || '').toLowerCase();
+    if ((host === 's3.amazonaws.com' || host.startsWith('s3.')) && path.startsWith('/timrx-3d-models/')) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /**
