@@ -7,7 +7,7 @@
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js';
+import * as Viewer from './viewer.js?v=20260408b';
 import * as UI from './ui-utils.js';
 import {
   renderHistory,

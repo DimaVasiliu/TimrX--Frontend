@@ -327,6 +327,14 @@ async function _load3mfFromUrl(url) {
     log('[Viewer] Loading 3MF file:', url.substring(0, 80));
     const loader = new THREE.ThreeMFLoader();
 
+    // Send session cookie through proxy-glb (same as GLTFLoader)
+    if (!isTimrxS3Url(url)) {
+        loader.setCrossOrigin('use-credentials');
+        loader.setWithCredentials(true);
+    } else {
+        loader.setCrossOrigin('anonymous');
+    }
+
     clearModel();
 
     return new Promise((resolve, reject) => {

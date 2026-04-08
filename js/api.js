@@ -16,7 +16,7 @@ import {
   isTimrxS3Url
 } from './config.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js';
+import * as Viewer from './viewer.js?v=20260408b';
 import * as UI from './ui-utils.js';
 import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260408a';
 
