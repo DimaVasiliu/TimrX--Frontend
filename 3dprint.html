@@ -1119,8 +1119,10 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     import { STLExporter }   from 'three/addons/exporters/STLExporter.js';
+    import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
     const THREE_MUT = Object.assign({}, THREE_NS);
     THREE_MUT.GLTFLoader      = GLTFLoader;
+    THREE_MUT.ThreeMFLoader   = ThreeMFLoader;
     THREE_MUT.OrbitControls   = OrbitControls;
     THREE_MUT.RoomEnvironment = RoomEnvironment;
     THREE_MUT.STLExporter     = STLExporter;

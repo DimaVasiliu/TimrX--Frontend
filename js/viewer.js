@@ -242,6 +242,16 @@ export async function loadGlbFromUrl(url) {
         console.warn('[Viewer] HEAD prefetch failed, continuing:', prefetchErr.message);
     }
 
+    // Detect 3MF files by URL extension (e.g. .3mf or .3mf?querystring)
+    const urlPath = url.split('?')[0].split('#')[0];
+    // Also check the decoded URL for proxy-glb URLs that encode the real URL
+    const decodedUrl = decodeURIComponent(url);
+    const is3mf = urlPath.endsWith('.3mf') || decodedUrl.includes('.3mf');
+
+    if (is3mf && THREE.ThreeMFLoader) {
+        return _load3mfFromUrl(url);
+    }
+
     const loader = new THREE.GLTFLoader();
     if (!isTimrxS3Url(url)) {
         loader.setCrossOrigin('use-credentials');
@@ -303,6 +313,71 @@ export async function loadGlbFromUrl(url) {
         }, undefined, (err) => {
             // Clean up any partially-allocated Three.js resources (geometries,
             // materials, textures) from a failed load to prevent VRAM leaks.
+            clearModel();
+            reject(err);
+        });
+    });
+}
+
+/**
+ * Load a 3MF file (multi-color print format) using Three.js ThreeMFLoader.
+ * 3MF files contain colored meshes — this renders them with vertex colors.
+ */
+async function _load3mfFromUrl(url) {
+    log('[Viewer] Loading 3MF file:', url.substring(0, 80));
+    const loader = new THREE.ThreeMFLoader();
+
+    clearModel();
+
+    return new Promise((resolve, reject) => {
+        loader.load(url, (object) => {
+            currentModel = object;
+            window._timrxCurrentModel = currentModel;
+
+            if (!scene) {
+                reject(new Error('Scene became unavailable'));
+                return;
+            }
+
+            scene.add(currentModel);
+
+            // Center model on grid (same as GLB handling)
+            const box = getVisualBounds(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            currentModel.position.set(0, 0, 0);
+            currentModel.position.x = -center.x;
+            currentModel.position.z = -center.z;
+            currentModel.position.y = -box.min.y - 0.5;
+
+            // 3MF files are often in mm — auto-scale if the model is huge
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim > 50) {
+                const scaleFactor = 2 / maxDim;
+                currentModel.scale.setScalar(scaleFactor);
+                // Recenter after scaling
+                currentModel.updateMatrixWorld(true);
+                const box2 = getVisualBounds(currentModel);
+                const center2 = box2.getCenter(new THREE.Vector3());
+                currentModel.position.x = -center2.x;
+                currentModel.position.z = -center2.z;
+                currentModel.position.y = -box2.min.y - 0.5;
+            }
+
+            if (demoCube) demoCube.visible = false;
+            window._timrxMixer = null;
+
+            fitCameraToObject(currentModel);
+            currentModel.updateMatrixWorld(true);
+            controls?.update?.();
+            renderer?.render?.(scene, camera);
+            byId('viewerToolbar')?.classList.add('visible');
+            updatePlaceholder();
+            log('[Viewer] 3MF loaded successfully');
+            resolve();
+        }, undefined, (err) => {
+            console.error('[Viewer] 3MF load failed:', err);
             clearModel();
             reject(err);
         });
