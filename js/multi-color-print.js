@@ -28,13 +28,16 @@ const CREDIT_COST = 10;
  * @param {string} opts.thumbnailUrl — Preview thumbnail URL
  */
 export function openMultiColorModal({ taskId, title, thumbnailUrl }) {
+  console.log('[MultiColorPrint] Opening modal for task:', taskId);
   if (!taskId) return;
   _cleanup();
+  _injectStylesOnce();
   _overlay = _createOverlay(taskId, title || 'Untitled Model', thumbnailUrl || '');
   document.body.appendChild(_overlay);
   requestAnimationFrame(() => {
     _overlay.classList.add('open');
     _overlay.inert = false;
+    console.log('[MultiColorPrint] Modal opened, overlay in DOM:', document.body.contains(_overlay));
   });
   document.body.classList.add('has-modal');
   document.addEventListener('keydown', _onEscape);
