@@ -7359,6 +7359,7 @@ function _inferStageFromAction(job) {
   if (code.includes('retexture') || code.includes('texture')) return 'texture';
   if (code.includes('rigging') || code === 'rig') return 'rig';
   if (code.includes('animation') || code === 'animate') return 'animate';
+  if (code.includes('multi_color_print') || code.includes('multi-color')) return 'multi_color_print';
   if (code.includes('video') || code.includes('seedance')) return 'video';
   if (code.includes('image') && !code.includes('3d')) return 'image';
   return 'preview';
@@ -7394,7 +7395,8 @@ const _STRATEGY_TO_STAGE = {
 function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
-    animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image' };
+    animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
+    multi_color_print: 'skip' };
   return map[stage] || 'meshy_text_to_3d';
 }
 
@@ -7577,6 +7579,12 @@ async function _doResumePendingJobs(options = {}) {
     }
     const meta = pendingMeta?.[id] || {};
     const strategy = meta.resume_strategy || _inferStrategyFromStage(meta.stage || 'preview');
+    // Skip jobs that handle their own polling (e.g. multi-color print modal)
+    if (strategy === 'skip') {
+      log(`[Recovery] Skipping ${id} — self-managed job (${meta.stage || 'unknown'})`);
+      State.removeActiveJob(id);
+      continue;
+    }
     const category = _STRATEGY_TO_CATEGORY[strategy] || 'text';
     (buckets[category] || buckets.text).push(id);
   }

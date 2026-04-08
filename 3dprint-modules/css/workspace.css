@@ -435,7 +435,7 @@
     clamp(335px, 27vw, 535px);        /* right/history - wider */
   gap: 12px;
   padding: 12px;
-  padding-top: 8px;
+  padding-top: 20px;
   height: calc(100vh - var(--ws-navH));
   overflow: hidden;
 }
