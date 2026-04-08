@@ -1,562 +1,823 @@
 /**
- * Multi-Color Print Modal
+ * Multi-Color Paint & Export
  *
- * Handles the complete workflow for multi-color 3D printing:
- * - Configuration of color count and level of detail
- * - 3D model viewer (Three.js)
- * - Job submission and polling
- * - Result download
- *
- * Note: Meshy auto-assigns colors during processing. The API only
- * accepts max_colors + max_depth, not specific color choices.
+ * Client-side model painting + 3MF export. No external API needed.
+ * 1. Load GLB model into Three.js viewer
+ * 2. User picks filament colors from real Bambu Lab palettes
+ * 3. User clicks on model to paint regions (raycaster + flood fill)
+ * 4. Export colored model as 3MF (JSZip) — instant, free, offline
  */
 
 import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
 
 // ============================================================================
-// State Management
+// Constants
 // ============================================================================
 
-let _state = 'config'; // 'config' | 'processing' | 'done' | 'error'
-let _activeJobId = null;
-let _maxColors = 4;
-let _maxDepth = 4;
-let _pollingInterval = null;
+const PLA_BASIC = [
+  { hex: '#FFFFFF', name: 'White' },
+  { hex: '#F5F5F0', name: 'Cool White' },
+  { hex: '#D1DBCF', name: 'Jade White' },
+  { hex: '#F4EE2A', name: 'Yellow' },
+  { hex: '#FDE047', name: 'Lemon Yellow' },
+  { hex: '#E8B455', name: 'Savanna Yellow' },
+  { hex: '#FAA256', name: 'Mandarin Orange' },
+  { hex: '#F97316', name: 'Orange' },
+  { hex: '#E63A2E', name: 'Red' },
+  { hex: '#C62828', name: 'Scarlet Red' },
+  { hex: '#EC4899', name: 'Pink' },
+  { hex: '#D946EF', name: 'Magenta' },
+  { hex: '#8B5CF6', name: 'Purple' },
+  { hex: '#2563EB', name: 'Blue' },
+  { hex: '#38BDF8', name: 'Sky Blue' },
+  { hex: '#06B6D4', name: 'Cyan' },
+  { hex: '#14B8A6', name: 'Teal' },
+  { hex: '#047857', name: 'Bambu Green' },
+  { hex: '#22C55E', name: 'Green' },
+  { hex: '#84CC16', name: 'Lime' },
+  { hex: '#D4A017', name: 'Gold' },
+  { hex: '#C0C0C0', name: 'Silver' },
+  { hex: '#1A1A1A', name: 'Black' },
+];
+const PLA_MATTE = [
+  { hex: '#404040', name: 'Charcoal' },
+  { hex: '#FFFFF0', name: 'Ivory White' },
+  { hex: '#FFB7C5', name: 'Sakura Pink' },
+  { hex: '#C8A2C8', name: 'Lilac Purple' },
+  { hex: '#FF8C00', name: 'Mandarin Orange' },
+  { hex: '#006400', name: 'Dark Green' },
+  { hex: '#6A5ACD', name: 'Slate Blue' },
+  { hex: '#DC143C', name: 'Crimson' },
+  { hex: '#C2B280', name: 'Sand' },
+  { hex: '#8B4513', name: 'Chocolate' },
+  { hex: '#2F4F4F', name: 'Dark Slate' },
+  { hex: '#B22222', name: 'Firebrick' },
+  { hex: '#556B2F', name: 'Olive' },
+  { hex: '#483D8B', name: 'Dark Indigo' },
+  { hex: '#D2691E', name: 'Copper' },
+  { hex: '#808080', name: 'Grey' },
+];
+
+const DEFAULT_FILAMENTS = [
+  { hex: '#E63A2E', name: 'Red' },
+  { hex: '#2563EB', name: 'Blue' },
+  { hex: '#22C55E', name: 'Green' },
+  { hex: '#F4EE2A', name: 'Yellow' },
+];
+
+// Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
+const FLOOD_FILL_ANGLE = 0.52;
+
+// ============================================================================
+// State
+// ============================================================================
+
+let _scene = null, _renderer = null, _camera = null, _controls = null;
+let _model = null;          // loaded gltf.scene
+let _paintMeshes = [];      // flat list of THREE.Mesh with BufferGeometry
+let _faceColors = null;     // Int32Array, one slot index per face (-1 = unpainted)
+let _faceToMeshIdx = null;  // which mesh each global face belongs to
+let _faceOffsets = null;     // cumulative face offsets per mesh
+let _totalFaces = 0;
+
+let _filaments = [];        // [{hex, name}]
+let _activeSlot = 0;        // which filament is selected for painting
+let _brushMode = 'region';  // 'region' | 'face'
+let _paintEnabled = true;
+
+let _raycaster = null;
+let _mouse = new (window.THREE?.Vector2 || function(){})();
+
 let _taskId = null;
+let _modelTitle = '';
 
 // ============================================================================
-// Initialization & DOM Creation
+// Modal DOM
 // ============================================================================
 
-function _injectStylesOnce() {
-  if (document.getElementById('multi-color-print-critical-styles')) return;
-
-  const style = document.createElement('style');
-  style.id = 'multi-color-print-critical-styles';
-  style.textContent = `
+function _injectStyles() {
+  if (document.getElementById('mcp-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'mcp-styles';
+  s.textContent = `
     #multi-color-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-      backdrop-filter: blur(4px);
+      position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
+      align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);
     }
-
-    .multi-color-container {
-      width: min(1100px, 90vw);
-      height: min(680px, 85vh);
-      background: linear-gradient(135deg, rgba(15,15,15,.96), rgba(18,18,20,.97));
-      border: 1px solid rgba(255,255,255,.07);
-      border-radius: 12px;
-      display: flex;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    .mcp-container {
+      width:min(1200px,92vw);height:min(720px,88vh);background:#0f0f11;
+      border:1px solid rgba(255,255,255,.07);border-radius:12px;
+      display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8);
     }
-
-    .multi-color-viewer {
-      flex: 1 1 55%;
-      min-width: 0;
-      background: rgb(18, 18, 20);
-      border-right: 1px solid rgba(255,255,255,.07);
-      position: relative;
+    .mcp-viewer {
+      flex:1 1 60%;min-width:0;background:#121214;position:relative;
+      border-right:1px solid rgba(255,255,255,.07);cursor:crosshair;
     }
-
-    .multi-color-controls {
-      flex: 0 0 340px;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
+    .mcp-viewer.orbiting { cursor:grab; }
+    .mcp-sidebar {
+      flex:0 0 340px;overflow-y:auto;padding:14px;display:flex;
+      flex-direction:column;gap:10px;scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.12) transparent;
     }
-
-    @media (max-width: 768px) {
-      .multi-color-container {
-        flex-direction: column;
-      }
-      .multi-color-viewer {
-        flex: 0 0 50%;
-        border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,.07);
-      }
-      .multi-color-controls {
-        flex: 1;
-      }
+    .mcp-sidebar::-webkit-scrollbar{width:5px;}
+    .mcp-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px;}
+    .mcp-header{display:flex;align-items:center;justify-content:space-between;}
+    .mcp-header h2{margin:0;font-size:14px;font-weight:700;color:rgba(255,255,255,.95);}
+    .mcp-close{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;
+      color:rgba(255,255,255,.5);cursor:pointer;transition:.15s;}
+    .mcp-close:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);}
+    .mcp-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.5);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+    .mcp-filaments{display:flex;flex-direction:column;gap:3px;}
+    .mcp-filament{display:flex;align-items:center;gap:8px;padding:5px 8px;
+      border:1px solid rgba(255,255,255,.06);border-radius:6px;cursor:pointer;
+      transition:.15s;user-select:none;}
+    .mcp-filament:hover{background:rgba(255,255,255,.03);}
+    .mcp-filament.active{border-color:rgba(14,165,233,.5);background:rgba(14,165,233,.06);}
+    .mcp-filament-swatch{width:22px;height:22px;border-radius:4px;
+      border:1px solid rgba(0,0,0,.3);flex-shrink:0;}
+    .mcp-filament-info{flex:1;min-width:0;}
+    .mcp-filament-name{font-size:11px;color:rgba(255,255,255,.8);font-weight:500;}
+    .mcp-filament-hex{font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;}
+    .mcp-filament-rm{width:18px;height:18px;display:flex;align-items:center;
+      justify-content:center;border-radius:4px;color:rgba(255,255,255,.25);
+      cursor:pointer;transition:.15s;font-size:12px;flex-shrink:0;}
+    .mcp-filament-rm:hover{color:#ef4444;background:rgba(239,68,68,.1);}
+    .mcp-add-row{display:flex;gap:6px;align-items:center;}
+    .mcp-add-btn{flex:1;padding:5px 0;border:1px dashed rgba(255,255,255,.1);
+      border-radius:6px;background:none;color:rgba(255,255,255,.4);font-size:10px;
+      cursor:pointer;transition:.15s;text-align:center;}
+    .mcp-add-btn:hover{border-color:rgba(14,165,233,.3);color:rgba(14,165,233,.7);}
+    .mcp-palette{display:flex;flex-direction:column;gap:4px;}
+    .mcp-palette-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;}
+    .mcp-palette-sw{aspect-ratio:1;border-radius:3px;border:1px solid rgba(0,0,0,.25);
+      cursor:pointer;transition:.12s;}
+    .mcp-palette-sw:hover{transform:scale(1.12);box-shadow:0 2px 6px rgba(0,0,0,.4);}
+    .mcp-palette-sw.selected{outline:2px solid #0ea5e9;outline-offset:1px;}
+    .mcp-section{padding:8px;background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.04);border-radius:8px;}
+    .mcp-brush-row{display:flex;gap:4px;}
+    .mcp-brush-btn{flex:1;padding:4px 0;border:1px solid rgba(255,255,255,.08);
+      border-radius:5px;background:none;color:rgba(255,255,255,.5);font-size:10px;
+      cursor:pointer;transition:.15s;text-align:center;}
+    .mcp-brush-btn.active{border-color:rgba(14,165,233,.4);color:#0ea5e9;
+      background:rgba(14,165,233,.08);}
+    .mcp-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;
+      padding-top:10px;border-top:1px solid rgba(255,255,255,.05);}
+    .mcp-btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;
+      border:none;cursor:pointer;transition:.2s;display:flex;align-items:center;
+      justify-content:center;gap:6px;white-space:nowrap;}
+    .mcp-btn-primary{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;
+      box-shadow:0 4px 12px rgba(14,165,233,.35);}
+    .mcp-btn-primary:hover{box-shadow:0 6px 16px rgba(14,165,233,.45);transform:translateY(-1px);}
+    .mcp-btn-secondary{background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+    .mcp-btn-secondary:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+    .mcp-btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+      color:rgba(239,68,68,.8);}
+    .mcp-btn-danger:hover{background:rgba(239,68,68,.15);}
+    .mcp-info{display:flex;gap:6px;padding:8px;background:rgba(14,165,233,.04);
+      border:1px solid rgba(14,165,233,.08);border-radius:6px;font-size:10px;
+      line-height:1.5;color:rgba(255,255,255,.45);}
+    .mcp-info svg{color:rgba(14,165,233,.4);flex-shrink:0;margin-top:1px;}
+    .mcp-stats{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
+    .mcp-viewer-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+      font-size:10px;color:rgba(255,255,255,.25);pointer-events:none;
+      background:rgba(0,0,0,.5);padding:3px 10px;border-radius:4px;}
+    @media(max-width:768px){
+      .mcp-container{flex-direction:column;}
+      .mcp-viewer{flex:0 0 50%;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
+      .mcp-sidebar{flex:1;padding:10px;}
     }
   `;
-
-  document.head.appendChild(style);
+  document.head.appendChild(s);
 }
 
 function _createModal() {
-  _injectStylesOnce();
-
+  _injectStyles();
   const overlay = document.createElement('div');
   overlay.id = 'multi-color-modal';
 
-  const container = document.createElement('div');
-  container.className = 'multi-color-container';
+  overlay.innerHTML = `
+    <div class="mcp-container">
+      <div class="mcp-viewer" id="mcp-viewer"></div>
+      <div class="mcp-sidebar" id="mcp-sidebar"></div>
+    </div>`;
 
-  // Left: 3D Viewer
-  const viewer = document.createElement('div');
-  viewer.className = 'multi-color-viewer';
-  viewer.id = 'multi-color-viewer-container';
-
-  // Right: Controls
-  const controls = document.createElement('div');
-  controls.className = 'multi-color-controls';
-  controls.id = 'multi-color-controls-panel';
-
-  container.appendChild(viewer);
-  container.appendChild(controls);
-  overlay.appendChild(container);
   document.body.appendChild(overlay);
-
-  return { overlay, controls };
+  return overlay;
 }
 
 // ============================================================================
-// 3D Viewer Setup
+// 3D Viewer
 // ============================================================================
 
-function _setupThreeJsViewer(glbUrl) {
-  const container = document.getElementById('multi-color-viewer-container');
+function _setupViewer(glbUrl) {
+  const container = document.getElementById('mcp-viewer');
   if (!container) return;
 
-  // Show loading state
-  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);font-size:12px;">Loading model...</div>';
-
-  if (!glbUrl) {
-    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.25);font-size:12px;">No model available</div>';
-    return;
-  }
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:12px;">Loading model...</div>';
+  if (!glbUrl) { container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.2);font-size:11px;">No model URL</div>'; return; }
 
   container.innerHTML = '';
+  const T = window.THREE;
+  const w = container.clientWidth, h = container.clientHeight;
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
+  _scene = new T.Scene();
+  _scene.background = new T.Color(0x121214);
+  _camera = new T.PerspectiveCamera(50, w / h, 0.01, 500);
+  _camera.position.set(0, 0, 3);
 
-  // Scene
-  _scene = new window.THREE.Scene();
-  _scene.background = new window.THREE.Color(0x121214);
-
-  // Camera
-  _camera = new window.THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-  _camera.position.set(0, 0, 2);
-
-  // Renderer
-  _renderer = new window.THREE.WebGLRenderer({ antialias: true, alpha: false });
-  _renderer.setSize(width, height);
+  _renderer = new T.WebGLRenderer({ antialias: true });
+  _renderer.setSize(w, h);
   _renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  _renderer.shadowMap.enabled = true;
-  _renderer.shadowMap.type = window.THREE.PCFSoftShadowMap;
-  _renderer.toneMapping = window.THREE.ACESFilmicToneMapping;
+  _renderer.toneMapping = T.ACESFilmicToneMapping;
   _renderer.toneMappingExposure = 1.0;
   container.appendChild(_renderer.domElement);
 
-  // Lighting — use RoomEnvironment if available, else fallback to directional lights
+  // Lighting
   try {
-    if (window.THREE.RoomEnvironment && window.THREE.PMREMGenerator) {
-      const environment = new window.THREE.RoomEnvironment();
-      const pmremGenerator = new window.THREE.PMREMGenerator(_renderer);
-      const envMap = pmremGenerator.fromScene(environment).texture;
-      _scene.environment = envMap;
-      pmremGenerator.dispose();
+    if (T.RoomEnvironment && T.PMREMGenerator) {
+      const pmrem = new T.PMREMGenerator(_renderer);
+      _scene.environment = pmrem.fromScene(new T.RoomEnvironment()).texture;
+      pmrem.dispose();
     }
-  } catch (e) {
-    console.warn('[MCP Viewer] RoomEnvironment unavailable, using fallback lights');
-  }
-  // Always add ambient + directional as baseline
-  _scene.add(new window.THREE.AmbientLight(0xffffff, 0.6));
-  const dirLight = new window.THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight.position.set(5, 10, 7);
-  _scene.add(dirLight);
+  } catch (_) {}
+  _scene.add(new T.AmbientLight(0xffffff, 0.5));
+  const dl = new T.DirectionalLight(0xffffff, 0.8);
+  dl.position.set(5, 10, 7);
+  _scene.add(dl);
 
-  // OrbitControls
-  _controls = new window.THREE.OrbitControls(_camera, _renderer.domElement);
+  _controls = new T.OrbitControls(_camera, _renderer.domElement);
   _controls.enableDamping = true;
-  _controls.dampingFactor = 0.05;
-  _controls.autoRotate = false;
-  _controls.autoRotateSpeed = 2;
+  _controls.dampingFactor = 0.08;
 
-  // Load GLB model
-  const loader = new window.THREE.GLTFLoader();
+  _raycaster = new T.Raycaster();
 
+  // Load model
+  const loader = new T.GLTFLoader();
   const loadUrl = getLoadableModelUrl(glbUrl);
+  if (!isTimrxS3Url(loadUrl)) { loader.setCrossOrigin('use-credentials'); loader.setWithCredentials(true); }
+  else { loader.setCrossOrigin('anonymous'); }
 
-  // Send session cookie through proxy-glb (same as viewer.js)
-  // Check loadUrl (the proxy URL), not glbUrl (the raw S3 URL)
-  if (!isTimrxS3Url(loadUrl)) {
-    loader.setCrossOrigin('use-credentials');
-    loader.setWithCredentials(true);
-  } else {
-    loader.setCrossOrigin('anonymous');
-  }
+  loader.load(loadUrl, (gltf) => {
+    _model = gltf.scene;
+    _scene.add(_model);
 
-  loader.load(
-    loadUrl,
-    (gltf) => {
-      _model = gltf.scene;
-      _scene.add(_model);
+    // Fit camera
+    const box = new T.Box3().setFromObject(_model);
+    const center = box.getCenter(new T.Vector3());
+    const size = box.getSize(new T.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    _camera.position.copy(center);
+    _camera.position.z += maxDim * 1.8;
+    _controls.target.copy(center);
+    _controls.update();
 
-      // Auto-fit camera to model
-      const box = new window.THREE.Box3().setFromObject(_model);
-      const size = box.getSize(new window.THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = _camera.fov * (Math.PI / 180);
-      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-      cameraZ *= 1.5; // add padding
+    // Prepare paint data
+    _preparePaintData();
+    _renderSidebar();
 
-      _camera.position.z = cameraZ;
-      _controls.target.copy(box.getCenter(new window.THREE.Vector3()));
-      _controls.update();
-    },
-    undefined,
-    (error) => {
-      console.error('Error loading model:', error);
-      const errDiv = document.createElement('div');
-      errDiv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.35);font-size:11px;text-align:center;max-width:80%;';
-      errDiv.textContent = 'Failed to load model';
-      container.appendChild(errDiv);
-    }
-  );
+    // Add click hint
+    const hint = document.createElement('div');
+    hint.className = 'mcp-viewer-hint';
+    hint.textContent = 'Click on the model to paint regions';
+    container.appendChild(hint);
+    setTimeout(() => hint.style.opacity = '0', 4000);
+  }, undefined, (err) => {
+    console.error('[MCP] Model load error:', err);
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:11px;">Failed to load model</div>';
+  });
 
-  // Resize handler
-  const _onResize = () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    if (w && h && _camera && _renderer) {
-      _camera.aspect = w / h;
+  // Click handler for painting
+  _renderer.domElement.addEventListener('pointerdown', _onPointerDown);
+  _renderer.domElement.addEventListener('pointerup', _onPointerUp);
+  let _pointerDownPos = null;
+  container._pointerDownPos = null;
+
+  // Resize
+  const onResize = () => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    if (nw && nh && _camera && _renderer) {
+      _camera.aspect = nw / nh;
       _camera.updateProjectionMatrix();
-      _renderer.setSize(w, h);
+      _renderer.setSize(nw, nh);
     }
   };
-  window.addEventListener('resize', _onResize);
-  container._resizeHandler = _onResize;
+  window.addEventListener('resize', onResize);
+  container._resizeHandler = onResize;
 
-  // Animation loop
-  let _animId = 0;
+  // Render loop
   const animate = () => {
-    _animId = requestAnimationFrame(animate);
+    container._animId = requestAnimationFrame(animate);
     if (_controls) _controls.update();
     if (_renderer && _scene && _camera) _renderer.render(_scene, _camera);
   };
-  container._animId = _animId;
   animate();
 }
 
-function _disposeThreeJs() {
-  const container = document.getElementById('multi-color-viewer-container');
+let _pDownX = 0, _pDownY = 0;
+function _onPointerDown(e) { _pDownX = e.clientX; _pDownY = e.clientY; }
+function _onPointerUp(e) {
+  // Only paint if it wasn't a drag (orbit)
+  const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
+  if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+  if (!_paintEnabled || !_paintMeshes.length) return;
+  _paintAtEvent(e);
+}
+
+// ============================================================================
+// Paint Data Preparation
+// ============================================================================
+
+function _preparePaintData() {
+  const T = window.THREE;
+  _paintMeshes = [];
+  _model.traverse((child) => {
+    if (child.isMesh && child.geometry) {
+      // Ensure non-indexed geometry for per-face vertex colors
+      let geo = child.geometry;
+      if (geo.index) {
+        geo = geo.toNonIndexed();
+        child.geometry = geo;
+      }
+      // Add vertex color attribute (default white)
+      const count = geo.attributes.position.count;
+      const colors = new Float32Array(count * 3);
+      colors.fill(1.0); // white
+      geo.setAttribute('color', new T.BufferAttribute(colors, 3));
+
+      // Enable vertex colors on material
+      if (Array.isArray(child.material)) {
+        child.material = child.material[0]?.clone() || new T.MeshStandardMaterial();
+      } else {
+        child.material = child.material.clone();
+      }
+      child.material.vertexColors = true;
+      child.material.needsUpdate = true;
+
+      _paintMeshes.push(child);
+    }
+  });
+
+  // Build global face index
+  _totalFaces = 0;
+  _faceOffsets = [];
+  for (const mesh of _paintMeshes) {
+    _faceOffsets.push(_totalFaces);
+    _totalFaces += mesh.geometry.attributes.position.count / 3;
+  }
+  _faceColors = new Int32Array(_totalFaces).fill(-1); // -1 = unpainted
+  console.log(`[MCP Paint] Ready: ${_paintMeshes.length} meshes, ${_totalFaces} faces`);
+}
+
+// ============================================================================
+// Painting Logic
+// ============================================================================
+
+function _paintAtEvent(e) {
+  const container = document.getElementById('mcp-viewer');
+  if (!container || !_renderer) return;
+  const rect = _renderer.domElement.getBoundingClientRect();
+  _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  _raycaster.setFromCamera(_mouse, _camera);
+  const intersects = _raycaster.intersectObjects(_paintMeshes, false);
+  if (!intersects.length) return;
+
+  const hit = intersects[0];
+  const meshIdx = _paintMeshes.indexOf(hit.object);
+  if (meshIdx < 0) return;
+
+  const localFaceIdx = hit.faceIndex;
+  const globalFace = _faceOffsets[meshIdx] + localFaceIdx;
+
+  if (_brushMode === 'face') {
+    _paintFace(globalFace, _activeSlot);
+  } else {
+    _floodFillRegion(globalFace, _activeSlot, meshIdx);
+  }
+
+  _applyColorsToMeshes();
+  _updateStats();
+}
+
+function _paintFace(globalIdx, slotIdx) {
+  _faceColors[globalIdx] = slotIdx;
+}
+
+function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
+  const mesh = _paintMeshes[meshIdx];
+  const posAttr = mesh.geometry.attributes.position;
+  const faceCount = posAttr.count / 3;
+  const offset = _faceOffsets[meshIdx];
+  const T = window.THREE;
+
+  // Compute face normals
+  const normals = [];
+  const vA = new T.Vector3(), vB = new T.Vector3(), vC = new T.Vector3();
+  const edge1 = new T.Vector3(), edge2 = new T.Vector3(), normal = new T.Vector3();
+
+  for (let i = 0; i < faceCount; i++) {
+    const i3 = i * 3;
+    vA.fromBufferAttribute(posAttr, i3);
+    vB.fromBufferAttribute(posAttr, i3 + 1);
+    vC.fromBufferAttribute(posAttr, i3 + 2);
+    edge1.subVectors(vB, vA);
+    edge2.subVectors(vC, vA);
+    normal.crossVectors(edge1, edge2).normalize();
+    normals.push(normal.clone());
+  }
+
+  // Build adjacency by shared vertices (using a spatial hash)
+  const vertKey = (x, y, z) => `${(x * 1000)|0},${(y * 1000)|0},${(z * 1000)|0}`;
+  const vertToFaces = new Map();
+
+  for (let i = 0; i < faceCount; i++) {
+    for (let v = 0; v < 3; v++) {
+      const idx = i * 3 + v;
+      const key = vertKey(
+        posAttr.getX(idx),
+        posAttr.getY(idx),
+        posAttr.getZ(idx)
+      );
+      if (!vertToFaces.has(key)) vertToFaces.set(key, []);
+      vertToFaces.get(key).push(i);
+    }
+  }
+
+  // Flood fill from start face
+  const localStart = startGlobal - offset;
+  const visited = new Uint8Array(faceCount);
+  const queue = [localStart];
+  visited[localStart] = 1;
+  const startNormal = normals[localStart];
+
+  while (queue.length > 0) {
+    const fi = queue.pop();
+    _faceColors[offset + fi] = slotIdx;
+
+    // Find neighbors via shared vertices
+    for (let v = 0; v < 3; v++) {
+      const idx = fi * 3 + v;
+      const key = vertKey(
+        posAttr.getX(idx),
+        posAttr.getY(idx),
+        posAttr.getZ(idx)
+      );
+      const neighbors = vertToFaces.get(key);
+      if (!neighbors) continue;
+      for (const ni of neighbors) {
+        if (visited[ni]) continue;
+        // Check normal similarity
+        const angle = normals[ni].angleTo(startNormal);
+        if (angle < FLOOD_FILL_ANGLE) {
+          visited[ni] = 1;
+          queue.push(ni);
+        }
+      }
+    }
+  }
+}
+
+function _applyColorsToMeshes() {
+  const T = window.THREE;
+  const tmpColor = new T.Color();
+
+  for (let mi = 0; mi < _paintMeshes.length; mi++) {
+    const mesh = _paintMeshes[mi];
+    const colorAttr = mesh.geometry.attributes.color;
+    const faceCount = colorAttr.count / 3;
+    const offset = _faceOffsets[mi];
+
+    for (let fi = 0; fi < faceCount; fi++) {
+      const slotIdx = _faceColors[offset + fi];
+      if (slotIdx >= 0 && slotIdx < _filaments.length) {
+        tmpColor.set(_filaments[slotIdx].hex);
+      } else {
+        tmpColor.set(0xffffff);
+      }
+      const base = fi * 3;
+      colorAttr.setXYZ(base, tmpColor.r, tmpColor.g, tmpColor.b);
+      colorAttr.setXYZ(base + 1, tmpColor.r, tmpColor.g, tmpColor.b);
+      colorAttr.setXYZ(base + 2, tmpColor.r, tmpColor.g, tmpColor.b);
+    }
+    colorAttr.needsUpdate = true;
+  }
+}
+
+function _clearAllPaint() {
+  if (_faceColors) _faceColors.fill(-1);
+  _applyColorsToMeshes();
+  _updateStats();
+}
+
+// ============================================================================
+// 3MF Export (client-side with JSZip)
+// ============================================================================
+
+async function _export3MF() {
+  // Dynamically load JSZip if not present
+  if (!window.JSZip) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    document.head.appendChild(script);
+    await new Promise((resolve, reject) => {
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Failed to load JSZip'));
+    });
+  }
+
+  const zip = new window.JSZip();
+
+  // Collect all geometry into single vertex/triangle arrays
+  let allVertices = [];
+  let allTriangles = [];
+  let vertexOffset = 0;
+
+  // Build materials list from filaments
+  const usedSlots = new Set();
+  for (let i = 0; i < _totalFaces; i++) {
+    if (_faceColors[i] >= 0) usedSlots.add(_faceColors[i]);
+  }
+  // If nothing painted, add default white
+  if (usedSlots.size === 0) usedSlots.add(-1);
+
+  // Map slot indices to material indices (0-based)
+  const slotToMatIdx = new Map();
+  const materials = [];
+  // Add "unpainted" as material 0
+  slotToMatIdx.set(-1, 0);
+  materials.push({ hex: '#FFFFFF', name: 'Unpainted' });
+  for (const slot of usedSlots) {
+    if (slot < 0) continue;
+    slotToMatIdx.set(slot, materials.length);
+    materials.push(_filaments[slot] || { hex: '#FFFFFF', name: 'Unknown' });
+  }
+
+  for (let mi = 0; mi < _paintMeshes.length; mi++) {
+    const mesh = _paintMeshes[mi];
+    const posAttr = mesh.geometry.attributes.position;
+    const faceCount = posAttr.count / 3;
+    const offset = _faceOffsets[mi];
+
+    // Get world matrix
+    mesh.updateWorldMatrix(true, false);
+    const matrix = mesh.matrixWorld;
+    const T = window.THREE;
+    const v = new T.Vector3();
+
+    for (let i = 0; i < posAttr.count; i++) {
+      v.fromBufferAttribute(posAttr, i);
+      v.applyMatrix4(matrix);
+      allVertices.push(v.x, v.y, v.z);
+    }
+
+    for (let fi = 0; fi < faceCount; fi++) {
+      const v1 = vertexOffset + fi * 3;
+      const v2 = v1 + 1;
+      const v3 = v1 + 2;
+      const slotIdx = _faceColors[offset + fi];
+      const matIdx = slotToMatIdx.get(slotIdx) ?? 0;
+      allTriangles.push({ v1, v2, v3, pid: 1, p1: matIdx });
+    }
+
+    vertexOffset += posAttr.count;
+  }
+
+  // Build 3MF XML
+  const matXml = materials.map((m, i) =>
+    `        <base name="${_escXml(m.name)}" displaycolor="${m.hex}FF" />`
+  ).join('\n');
+
+  const vertXml = [];
+  for (let i = 0; i < allVertices.length; i += 3) {
+    vertXml.push(`          <vertex x="${allVertices[i].toFixed(6)}" y="${allVertices[i+1].toFixed(6)}" z="${allVertices[i+2].toFixed(6)}" />`);
+  }
+
+  const triXml = allTriangles.map(t =>
+    `          <triangle v1="${t.v1}" v2="${t.v2}" v3="${t.v3}" pid="${t.pid}" p1="${t.p1}" />`
+  ).join('\n');
+
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+       xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+  <resources>
+    <basematerials id="1">
+${matXml}
+    </basematerials>
+    <object id="2" type="model">
+      <mesh>
+        <vertices>
+${vertXml.join('\n')}
+        </vertices>
+        <triangles>
+${triXml}
+        </triangles>
+      </mesh>
+    </object>
+  </resources>
+  <build>
+    <item objectid="2" />
+  </build>
+</model>`;
+
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />
+</Types>`;
+
+  const rels = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" />
+</Relationships>`;
+
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', rels);
+  zip.file('3D/3dmodel.model', modelXml);
+
+  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${_modelTitle || 'model'}-multicolor.3mf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function _escXml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ============================================================================
+// Sidebar UI
+// ============================================================================
+
+function _renderSidebar() {
+  const sb = document.getElementById('mcp-sidebar');
+  if (!sb) return;
+
+  const filamentRows = _filaments.map((f, i) => `
+    <div class="mcp-filament ${i === _activeSlot ? 'active' : ''}" data-slot="${i}">
+      <div class="mcp-filament-swatch" style="background:${f.hex}"></div>
+      <div class="mcp-filament-info">
+        <div class="mcp-filament-name">${f.name}</div>
+        <div class="mcp-filament-hex">${f.hex}</div>
+      </div>
+      ${_filaments.length > 1 ? `<div class="mcp-filament-rm" data-rm="${i}" title="Remove">&times;</div>` : ''}
+    </div>
+  `).join('');
+
+  const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
+  const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
+
+  sb.innerHTML = `
+    <div class="mcp-header">
+      <h2>Paint Model</h2>
+      <div class="mcp-close" id="mcp-close-btn">&times;</div>
+    </div>
+
+    <div class="mcp-section">
+      <div class="mcp-label">Brush Mode</div>
+      <div class="mcp-brush-row">
+        <button class="mcp-brush-btn ${_brushMode === 'region' ? 'active' : ''}" data-brush="region">Region Fill</button>
+        <button class="mcp-brush-btn ${_brushMode === 'face' ? 'active' : ''}" data-brush="face">Single Face</button>
+      </div>
+    </div>
+
+    <div class="mcp-section">
+      <div class="mcp-label">Filament Colors (${_filaments.length})</div>
+      <div class="mcp-filaments" id="mcp-filament-list">
+        ${filamentRows}
+      </div>
+      <div class="mcp-add-row" style="margin-top:6px;">
+        <button class="mcp-add-btn" id="mcp-add-filament">+ Add Filament</button>
+      </div>
+    </div>
+
+    <div class="mcp-section mcp-palette" id="mcp-palette-section" style="display:none;">
+      <div class="mcp-label">Pick Color</div>
+      <div class="mcp-label" style="margin-top:4px;">PLA Basic</div>
+      <div class="mcp-palette-grid">
+        ${PLA_BASIC.map(c => `<div class="mcp-palette-sw" style="background:${c.hex}" data-hex="${c.hex}" data-name="${c.name}" title="${c.name}"></div>`).join('')}
+      </div>
+      <div class="mcp-label" style="margin-top:6px;">PLA Matte</div>
+      <div class="mcp-palette-grid">
+        ${PLA_MATTE.map(c => `<div class="mcp-palette-sw" style="background:${c.hex}" data-hex="${c.hex}" data-name="${c.name}" title="${c.name}"></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="mcp-stats" id="mcp-stats">${pct}% painted (${paintedCount}/${_totalFaces} faces)</div>
+
+    <div class="mcp-info">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+      <span>Select a filament color, then click on the model to paint. Region fill paints connected faces with similar normals. Export as 3MF when done.</span>
+    </div>
+
+    <div class="mcp-actions">
+      <button class="mcp-btn mcp-btn-primary" id="mcp-export-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download 3MF
+      </button>
+      <button class="mcp-btn mcp-btn-danger" id="mcp-clear-btn">Clear All Paint</button>
+      <button class="mcp-btn mcp-btn-secondary" id="mcp-cancel-btn">Close</button>
+    </div>
+  `;
+
+  // Event listeners
+  sb.querySelector('#mcp-close-btn')?.addEventListener('click', closeMultiColorModal);
+  sb.querySelector('#mcp-cancel-btn')?.addEventListener('click', closeMultiColorModal);
+  sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
+  sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
+
+  // Filament selection
+  sb.querySelectorAll('.mcp-filament').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.mcp-filament-rm')) return;
+      _activeSlot = parseInt(el.dataset.slot);
+      _renderSidebar();
+    });
+  });
+
+  // Remove filament
+  sb.querySelectorAll('.mcp-filament-rm').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.rm);
+      _filaments.splice(idx, 1);
+      if (_activeSlot >= _filaments.length) _activeSlot = _filaments.length - 1;
+      // Remap face colors
+      for (let i = 0; i < _totalFaces; i++) {
+        if (_faceColors[i] === idx) _faceColors[i] = -1;
+        else if (_faceColors[i] > idx) _faceColors[i]--;
+      }
+      _applyColorsToMeshes();
+      _renderSidebar();
+    });
+  });
+
+  // Add filament — show palette
+  let _paletteMode = 'add'; // 'add' or index for replace
+  sb.querySelector('#mcp-add-filament')?.addEventListener('click', () => {
+    _paletteMode = 'add';
+    const palSec = sb.querySelector('#mcp-palette-section');
+    if (palSec) palSec.style.display = palSec.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  // Palette swatch click
+  sb.querySelectorAll('.mcp-palette-sw').forEach(el => {
+    el.addEventListener('click', () => {
+      const hex = el.dataset.hex;
+      const name = el.dataset.name;
+      _filaments.push({ hex, name });
+      _activeSlot = _filaments.length - 1;
+      _renderSidebar();
+    });
+  });
+
+  // Brush mode
+  sb.querySelectorAll('.mcp-brush-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      _brushMode = el.dataset.brush;
+      _renderSidebar();
+    });
+  });
+}
+
+function _updateStats() {
+  const el = document.getElementById('mcp-stats');
+  if (!el) return;
+  const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
+  const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
+  el.textContent = `${pct}% painted (${paintedCount}/${_totalFaces} faces)`;
+}
+
+// ============================================================================
+// Cleanup
+// ============================================================================
+
+function _dispose() {
+  const container = document.getElementById('mcp-viewer');
   if (container) {
     if (container._resizeHandler) window.removeEventListener('resize', container._resizeHandler);
     if (container._animId) cancelAnimationFrame(container._animId);
   }
+  if (_renderer?.domElement) {
+    _renderer.domElement.removeEventListener('pointerdown', _onPointerDown);
+    _renderer.domElement.removeEventListener('pointerup', _onPointerUp);
+  }
   if (_controls) { _controls.dispose(); _controls = null; }
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
-  _model = null;
-  _camera = null;
-}
-
-// ============================================================================
-// UI Rendering
-// ============================================================================
-
-function _renderControls() {
-  const panel = document.getElementById('multi-color-controls-panel');
-  if (!panel) return;
-
-  panel.innerHTML = '';
-
-  if (_state === 'config') {
-    _renderConfigPanel(panel);
-  } else if (_state === 'processing') {
-    _renderProcessingPanel(panel);
-  } else if (_state === 'done') {
-    _renderDonePanel(panel);
-  } else if (_state === 'error') {
-    _renderErrorPanel(panel);
-  }
-}
-
-function _renderConfigPanel(panel) {
-  const html = `
-    <div class="multi-color-header">
-      <h2>Multi-Color 3MF</h2>
-      <button class="multi-color-close-btn" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <div class="multi-color-section">
-      <div class="multi-color-section-header">
-        <label class="multi-color-label">Color Count</label>
-        <span class="multi-color-badge">${_maxColors}</span>
-      </div>
-      <input
-        type="range"
-        min="1"
-        max="16"
-        value="${_maxColors}"
-        class="multi-color-slider"
-        id="color-count-slider"
-      />
-      <div class="multi-color-hint">Number of distinct colors in the output</div>
-    </div>
-
-    <div class="multi-color-section">
-      <div class="multi-color-section-header">
-        <label class="multi-color-label">Level of Detail</label>
-        <span class="multi-color-badge">${_maxDepth}</span>
-      </div>
-      <input
-        type="range"
-        min="3"
-        max="6"
-        value="${_maxDepth}"
-        class="multi-color-slider"
-        id="detail-slider"
-      />
-      <div class="multi-color-hint">Higher = finer color boundaries, longer processing</div>
-    </div>
-
-    <div class="multi-color-info">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex-shrink:0;margin-top:1px;">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="16" x2="12" y2="12"></line>
-        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-      </svg>
-      <span>Colors are auto-assigned based on the model's texture. The output is a print-ready 3MF file for multi-color printers.</span>
-    </div>
-
-    <div class="multi-color-footer">
-      <button class="multi-color-btn multi-color-btn-primary" id="generate-btn">
-        Generate 3MF
-        <span class="multi-color-badge-cost">10 cr</span>
-      </button>
-      <button class="multi-color-btn multi-color-btn-secondary" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
-        Cancel
-      </button>
-    </div>
-  `;
-
-  panel.innerHTML = html;
-
-  // Attach event listeners -- use 'input' for live badge updates
-  const colorSlider = document.getElementById('color-count-slider');
-  const detailSlider = document.getElementById('detail-slider');
-
-  colorSlider?.addEventListener('input', (e) => {
-    const badge = e.target.closest('.multi-color-section')?.querySelector('.multi-color-badge');
-    if (badge) badge.textContent = e.target.value;
-  });
-  colorSlider?.addEventListener('change', (e) => {
-    _maxColors = parseInt(e.target.value);
-  });
-
-  detailSlider?.addEventListener('input', (e) => {
-    const badge = e.target.closest('.multi-color-section')?.querySelector('.multi-color-badge');
-    if (badge) badge.textContent = e.target.value;
-  });
-  detailSlider?.addEventListener('change', (e) => {
-    _maxDepth = parseInt(e.target.value);
-  });
-
-  document.getElementById('generate-btn')?.addEventListener('click', _startJob);
-}
-
-function _renderProcessingPanel(panel) {
-  const html = `
-    <div class="multi-color-header">
-      <h2>Processing...</h2>
-    </div>
-
-    <div class="multi-color-processing">
-      <div class="multi-color-spinner"></div>
-      <p class="multi-color-processing-text">Preparing your print file</p>
-      <p class="multi-color-processing-desc">Converting colors and optimizing mesh for printing...</p>
-      <div class="multi-color-progress">
-        <div class="multi-color-progress-track">
-          <div class="multi-color-progress-fill" style="width:0%"></div>
-        </div>
-        <span class="multi-color-progress-pct">0%</span>
-      </div>
-    </div>
-  `;
-
-  panel.innerHTML = html;
-}
-
-function _renderDonePanel(panel) {
-  const html = `
-    <div class="multi-color-header">
-      <h2>Ready to Download</h2>
-    </div>
-
-    <div class="multi-color-success">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="multi-color-success-icon">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      <p class="multi-color-success-text">Your multi-color print file is ready!</p>
-      <button class="multi-color-btn multi-color-btn-primary" id="download-btn">
-        Download 3MF
-      </button>
-      <button class="multi-color-btn multi-color-btn-secondary" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
-        Close
-      </button>
-    </div>
-  `;
-
-  panel.innerHTML = html;
-
-  document.getElementById('download-btn')?.addEventListener('click', _downloadResult);
-}
-
-function _renderErrorPanel(panel) {
-  const html = `
-    <div class="multi-color-header">
-      <h2>Error</h2>
-    </div>
-
-    <div class="multi-color-error">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="multi-color-error-icon">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-      <p class="multi-color-error-text">Failed to process multi-color print.</p>
-      <button class="multi-color-btn multi-color-btn-primary" id="retry-btn">
-        Retry
-      </button>
-      <button class="multi-color-btn multi-color-btn-secondary" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
-        Cancel
-      </button>
-    </div>
-  `;
-
-  panel.innerHTML = html;
-
-  document.getElementById('retry-btn')?.addEventListener('click', () => {
-    _state = 'config';
-    _renderControls();
-  });
-}
-
-// ============================================================================
-// Job Management
-// ============================================================================
-
-let _downloadUrl = null;
-
-async function _startJob() {
-  _state = 'processing';
-  _renderControls();
-
-  try {
-    const res = await apiFetch(`${BACKEND}/api/_mod/print/multi-color`, {
-      method: 'POST',
-      body: JSON.stringify({
-        input_task_id: _taskId,
-        max_colors: _maxColors,
-        max_depth: _maxDepth,
-      }),
-    });
-
-    if (!res.ok && !res.data?.ok) {
-      const msg = res.data?.message || res.data?.error || res.error || 'Failed to start job';
-      throw new Error(msg);
-    }
-
-    _activeJobId = res.data?.job_id;
-    if (!_activeJobId) throw new Error('No job ID returned');
-
-    // Update wallet display if new_balance is present
-    if (res.data?.new_balance != null) {
-      const badge = document.querySelector('.credits-balance, .wallet-balance, [data-wallet-balance]');
-      if (badge) badge.textContent = res.data.new_balance;
-    }
-
-    _pollJob();
-  } catch (error) {
-    console.error('[MultiColorPrint] start failed:', error);
-    _state = 'error';
-    _renderControls();
-  }
-}
-
-function _pollJob() {
-  const poll = async () => {
-    if (!_activeJobId) return;
-    try {
-      const res = await apiFetch(`${BACKEND}/api/_mod/print/multi-color/${_activeJobId}`);
-      const data = res.data || res;
-
-      if (data.status === 'done') {
-        clearInterval(_pollingInterval);
-        _pollingInterval = null;
-        _downloadUrl = data.three_mf_url || data.model_urls?.['3mf'] || data.glb_url || '';
-        _state = 'done';
-        _renderControls();
-        _refreshHistoryAndWallet();
-        return;
-      }
-
-      if (data.status === 'failed') {
-        clearInterval(_pollingInterval);
-        _pollingInterval = null;
-        _state = 'error';
-        _renderControls();
-        return;
-      }
-
-      // Update progress bar
-      const pct = data.pct || 0;
-      const fill = document.querySelector('.multi-color-progress-fill');
-      const pctLabel = document.querySelector('.multi-color-progress-pct');
-      if (fill) fill.style.width = `${pct}%`;
-      if (pctLabel) pctLabel.textContent = `${Math.round(pct)}%`;
-
-      // Show queue position
-      if (data.preceding_tasks > 0 && pct === 0) {
-        const desc = document.querySelector('.multi-color-processing-desc');
-        if (desc) desc.textContent = `Queued - ${data.preceding_tasks} task${data.preceding_tasks > 1 ? 's' : ''} ahead...`;
-      }
-    } catch (error) {
-      console.error('[MultiColorPrint] poll error:', error);
-    }
-  };
-
-  _pollingInterval = setInterval(poll, 3000);
-  setTimeout(poll, 800);
-}
-
-function _downloadResult() {
-  if (!_downloadUrl) return;
-  const link = document.createElement('a');
-  link.href = _downloadUrl;
-  link.download = 'multi-color-print.3mf';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-async function _refreshHistoryAndWallet() {
-  try {
-    const stateModule = await import('./state.js').catch(() => null);
-    const historyModule = await import('./history.js?v=20260408a').catch(() => null);
-    if (stateModule?.loadHistoryTab) await stateModule.loadHistoryTab('all');
-    if (historyModule?.renderHistory) historyModule.renderHistory();
-  } catch (_e) {
-    console.warn('[MultiColorPrint] history refresh skipped:', _e);
-  }
+  _model = null; _camera = null; _raycaster = null;
+  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _totalFaces = 0;
 }
 
 // ============================================================================
@@ -564,56 +825,31 @@ async function _refreshHistoryAndWallet() {
 // ============================================================================
 
 export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
-  // Reset state
-  _state = 'config';
-  _activeJobId = null;
-  _maxColors = 4;
-  _maxDepth = 4;
   _taskId = taskId;
-  _pollingInterval = null;
+  _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
+  _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
+  _activeSlot = 0;
+  _brushMode = 'region';
+  _paintEnabled = true;
 
-  // Create modal DOM
-  const { overlay, controls } = _createModal();
+  const overlay = _createModal();
+  _setupViewer(glbUrl);
+  _renderSidebar();
 
-  // Setup 3D viewer
-  _setupThreeJsViewer(glbUrl);
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeMultiColorModal(); });
+  const onEsc = (e) => { if (e.key === 'Escape') closeMultiColorModal(); };
+  document.addEventListener('keydown', onEsc);
+  overlay._escHandler = onEsc;
 
-  // Render controls
-  _renderControls();
-
-  // Close on overlay click (outside modal)
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeMultiColorModal();
-  });
-
-  // Close on Escape key
-  const _onEscape = (e) => { if (e.key === 'Escape') closeMultiColorModal(); };
-  document.addEventListener('keydown', _onEscape);
-  // Store ref so we can remove on cleanup
-  overlay._escHandler = _onEscape;
-
-  // Expose functions globally for inline onclick handlers
-  window.multiColorPrint = {
-    closeMultiColorModal
-  };
+  window.multiColorPrint = { closeMultiColorModal };
 }
 
 export function closeMultiColorModal() {
-  // Cleanup
-  if (_pollingInterval) {
-    clearInterval(_pollingInterval);
-    _pollingInterval = null;
-  }
-
-  _disposeThreeJs();
-
+  _dispose();
   const modal = document.getElementById('multi-color-modal');
   if (modal) {
     if (modal._escHandler) document.removeEventListener('keydown', modal._escHandler);
     modal.remove();
   }
-
-  _state = 'config';
-  _activeJobId = null;
-  _taskId = null;
 }
