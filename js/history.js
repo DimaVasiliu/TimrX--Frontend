@@ -184,6 +184,7 @@ function buildGroupedCardHTML(group, items) {
     : firstStage === 'remesh' || firstStage === 'remeshed' ? 'Remeshed'
     : firstStage === 'texture' || firstStage === 'textured' ? 'Textured'
     : firstStage === 'image3d' ? 'Image to 3D'
+    : firstStage === 'multi_color_print' ? '3D Print'
     : 'Preview';
 
   // Collect item IDs for batch delete
@@ -200,6 +201,7 @@ function buildGroupedCardHTML(group, items) {
     const badge = stg === 'refine' || stg === 'refined' ? ' · Refined'
       : stg === 'remesh' || stg === 'remeshed' ? ' · Remeshed'
       : stg === 'texture' || stg === 'textured' ? ' · Textured'
+      : stg === 'multi_color_print' ? ' · 3D Print'
       : '';
     downloadVariantItems += `
       <button class="card-menu__item" type="button" data-act="download" data-id="${item.id || ''}" ${!hasGlb ? 'disabled' : ''}>
