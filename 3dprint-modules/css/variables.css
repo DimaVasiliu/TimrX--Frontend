@@ -128,7 +128,7 @@ body.print3d-page::after {
 }
 
 /* Ensure all main content floats above the animated layer */
-body.print3d-page > *:not(.workspace-modal-overlay) {
+body.print3d-page > *:not(.workspace-modal-overlay):not(.mcp-overlay) {
   position: relative;
   z-index: 2;
 }
