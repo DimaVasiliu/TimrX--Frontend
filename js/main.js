@@ -26,6 +26,7 @@ import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
+import { openMultiColorModal } from './multi-color-print.js';
 
 // ============================================================================
 // MODULE STATE
@@ -1189,7 +1190,7 @@ function initViewerToolbar() {
 
     if (action === 'download' && activeItem?.glb_url) {
       if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
-        if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
+        Credits.showDownloadAccessRequiredMessage('model');
         return;
       }
       const filename = buildItemDownloadFilename(activeItem, {
@@ -1906,9 +1907,19 @@ function wireGallery() {
         return;
       }
 
+      if (act === 'multi-color-print') {
+        closeActiveHistoryMenu();
+        openMultiColorModal({
+          taskId: id,
+          title: btn.getAttribute('data-title') || item.title || item.prompt || 'Untitled',
+          thumbnailUrl: btn.getAttribute('data-thumb') || item.thumbnail_url || '',
+        });
+        return;
+      }
+
       if (act === 'download-image') {
         if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
-          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
+          Credits.showDownloadAccessRequiredMessage('image');
           return;
         }
         const imageUrl = btn.getAttribute('data-image-url') || item.image_url || item.thumbnail_url;
@@ -1936,7 +1947,7 @@ function wireGallery() {
       // Video actions
       if (act === 'download-video') {
         if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
-          if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
+          Credits.showDownloadAccessRequiredMessage('video');
           return;
         }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;

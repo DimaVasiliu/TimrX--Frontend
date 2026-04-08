@@ -2065,6 +2065,96 @@ export function canDownloadAssets() {
   return totalAvailable > 0;
 }
 
+/**
+ * Show a pool-aware modal when downloads are blocked due to zero available credits.
+ * Downloads do not consume a specific action cost here, but the modal still keeps
+ * general and video balances separate so the user can see both pools clearly.
+ *
+ * @param {string} assetType - model | image | video | sprite | asset
+ */
+export function showDownloadAccessRequiredMessage(assetType = 'asset') {
+  const normalizedType = String(assetType || 'asset').toLowerCase();
+  const isVideoAsset = normalizedType === 'video';
+  const assetLabel = {
+    model: '3D model',
+    image: 'image',
+    video: 'video',
+    sprite: 'sprite sheet',
+    asset: 'asset',
+  }[normalizedType] || 'asset';
+
+  const generalAvailable = Number(creditsState.wallet.available) || 0;
+  const videoAvailable = Number(creditsState.wallet.videoAvailable) || 0;
+  const balanceKnown = !!creditsState.loaded;
+
+  const closeModal = () => {
+    const modal = document.getElementById('downloadAccessCreditsModal');
+    if (modal) modal.remove();
+    document.removeEventListener('keydown', escHandler);
+  };
+  const escHandler = (e) => {
+    if (e.key === 'Escape') closeModal();
+  };
+
+  window._closeDownloadAccessCreditsModal = closeModal;
+  document.getElementById('downloadAccessCreditsModal')?.remove();
+
+  const generalDisplay = balanceKnown ? generalAvailable : '—';
+  const videoDisplay = balanceKnown ? videoAvailable : '—';
+  const statusLine = balanceKnown
+    ? `You currently have <strong style="color:#f0f0f0">${generalDisplay}</strong> general credits and <strong style="color:#f0f0f0">${videoDisplay}</strong> video credits.`
+    : `We couldn't confirm your balances yet. Refresh your wallet or open pricing to continue.`;
+  const helperLine = isVideoAsset
+    ? 'Video generation still uses the separate video credits pool.'
+    : 'General and video credits remain separate in the workspace.';
+
+  const modal = document.createElement('div');
+  modal.id = 'downloadAccessCreditsModal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-labelledby', 'downloadAccessCreditsTitle');
+  modal.setAttribute('aria-modal', 'true');
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:999999;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 700px at 50% 10%,rgba(255,255,255,.06),transparent 60%),rgba(0,0,0,.75);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);margin:0;padding:0';
+  modal.innerHTML = `
+    <div style="max-width:440px;text-align:center;padding:32px;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,0)),#0f0f0f;border:1px solid rgba(255,255,255,.14);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.50),inset 0 1px 0 rgba(255,255,255,.10)">
+      <button onclick="window._closeDownloadAccessCreditsModal()" aria-label="Close" style="position:absolute;top:12px;right:12px;background:transparent;border:0;color:#cfcfcf;font-size:22px;line-height:1;cursor:pointer;padding:6px;border-radius:10px">&times;</button>
+      <div style="width:72px;height:72px;margin:0 auto 20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)">
+        <i class="fa-solid fa-download" style="font-size:28px;color:#f0f0f0" aria-hidden="true"></i>
+      </div>
+      <h4 id="downloadAccessCreditsTitle" style="margin:0 0 16px;font-family:'Bebas Neue',system-ui,sans-serif;font-size:28px;letter-spacing:.5px;color:#f5f5f5">Credits Required</h4>
+      <p style="margin:0 0 16px;color:rgba(255,255,255,.72);font-size:15px;line-height:1.6">
+        ${assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1)} downloads are available once your account has an active credit balance.
+      </p>
+      <p style="margin:0 0 20px;color:rgba(255,255,255,.64);font-size:14px;line-height:1.6">
+        ${statusLine}
+      </p>
+      <div style="margin:0 0 18px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-align:left">
+        <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px;color:rgba(255,255,255,.7);margin-bottom:8px">
+          <span>General credits</span>
+          <strong style="color:#f0f0f0">${generalDisplay}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px;color:rgba(255,255,255,.7)">
+          <span>Video credits</span>
+          <strong style="color:#f0f0f0">${videoDisplay}</strong>
+        </div>
+      </div>
+      <p style="margin:0 0 24px;color:rgba(255,255,255,.56);font-size:13px;line-height:1.5">
+        ${helperLine}
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button onclick="window._closeDownloadAccessCreditsModal()" style="padding:14px 24px;background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.72);border-radius:12px;cursor:pointer;font-weight:600;font-size:14px">Cancel</button>
+        <a href="/hub#pricing" id="downloadAccessCreditsCtaBtn" style="padding:14px 24px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0)),#1a1a1a;border:1px solid rgba(255,255,255,.18);color:#f5f5f5;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 8px 20px rgba(0,0,0,.4)">Get Credits</a>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', escHandler);
+  document.getElementById('downloadAccessCreditsCtaBtn')?.focus();
+}
+
 // Expose globally for backward compatibility and cross-module access
 window.WorkspaceCredits = {
   // Original API
@@ -2086,6 +2176,7 @@ window.WorkspaceCredits = {
   getConfirmedBalance,
   getIdentityId,
   canDownloadAssets,
+  showDownloadAccessRequiredMessage,
   // Video credits API (separate pool)
   getVideoCredits,
   getVideoWallet,

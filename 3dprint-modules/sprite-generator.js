@@ -260,7 +260,7 @@
 
   function downloadDataUrl(dataUrl, filename) {
     if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
-      if (confirm('You need credits to download assets.\n\nWould you like to get credits?')) window.location.href = '/hub#pricing';
+      window.WorkspaceCredits?.showDownloadAccessRequiredMessage?.('sprite');
       return;
     }
     const link = document.createElement('a');

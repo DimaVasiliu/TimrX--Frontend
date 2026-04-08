@@ -1522,6 +1522,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </span>
               <span class="card-menu__arrow">></span>
             </button>
+            <button class="card-menu__item" type="button" data-act="multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" ${!canDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#127912;</span>
+                <span>Full-Color 3MF</span>
+              </span>
+              <span class="card-menu__badge" style="background:rgba(14,165,233,.18);color:#7dd3fc;font-size:9px;">10 cr</span>
+            </button>
             <div class="card-menu__divider"></div>
             <button class="card-menu__item" type="button" data-submenu-open="share-${displayModel.id}" aria-expanded="false">
               <span class="card-menu__item-inner">

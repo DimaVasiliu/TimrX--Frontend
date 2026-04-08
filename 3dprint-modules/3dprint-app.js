@@ -964,8 +964,12 @@
                     <input type="checkbox" value="usdz">
                     <span class="texture-format-chip">USDZ</span>
                   </label>
+                  <label class="texture-format-option">
+                    <input type="checkbox" value="3mf">
+                    <span class="texture-format-chip">3MF</span>
+                  </label>
                 </div>
-                <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add OBJ / FBX / STL / USDZ only when you want those preview exports generated too.</p>
+                <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add extra formats only when needed. 3MF is recommended for color 3D printing.</p>
               </div>
 
               <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want Meshy to apply topology cleanup during preview generation. For print workflows, it is usually better to leave this off and use the dedicated Remesh panel after refining, which gives you more control over the result.</p>
@@ -1102,8 +1106,12 @@
                   <input type="checkbox" value="blend">
                   <span class="texture-format-chip">BLEND</span>
                 </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="3mf">
+                  <span class="texture-format-chip">3MF</span>
+                </label>
               </div>
-              <p class="field-hint texture-setting-note">GLB is always included for in-app preview. Check STL for 3D printing. OBJ/FBX for 3D editing software. USDZ for AR preview.</p>
+              <p class="field-hint texture-setting-note">GLB is always included for in-app preview. STL for 3D printing. 3MF for color printing. OBJ/FBX for editing. USDZ for AR.</p>
             </div>
             <div class="field-row">
               <span class="field-label-inline">Format Only (skip remesh)</span>
@@ -1249,8 +1257,12 @@
                   <input type="checkbox" value="usdz" checked>
                   <span class="texture-format-chip">USDZ</span>
                 </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="3mf">
+                  <span class="texture-format-chip">3MF</span>
+                </label>
               </div>
-              <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add extra formats only when you need export-ready variants.</p>
+              <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add extra formats only when you need export-ready variants. 3MF is ideal for color printing.</p>
             </div>
           </div>
         </div>
