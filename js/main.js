@@ -26,7 +26,7 @@ import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal } from './multi-color-print.js?v=20260408d';
+import { openMultiColorModal } from './multi-color-print.js?v=20260408e';
 
 // ============================================================================
 // MODULE STATE

@@ -258,9 +258,12 @@ function _setupThreeJsViewer(glbUrl) {
   const loadUrl = getLoadableModelUrl(glbUrl);
 
   // Send session cookie through proxy-glb (same as viewer.js)
-  if (!isTimrxS3Url(glbUrl)) {
+  // Check loadUrl (the proxy URL), not glbUrl (the raw S3 URL)
+  if (!isTimrxS3Url(loadUrl)) {
     loader.setCrossOrigin('use-credentials');
     loader.setWithCredentials(true);
+  } else {
+    loader.setCrossOrigin('anonymous');
   }
 
   loader.load(
