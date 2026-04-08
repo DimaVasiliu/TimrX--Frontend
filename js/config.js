@@ -820,7 +820,7 @@ export async function pollForCreditsUpdate(previousCredits, maxWaitMs = 10000, o
 }
 
 // ============================================================================
-// S3 URL HELPERS - Detect our S3 bucket URLs (no proxy needed for these)
+// S3 URL HELPERS - Detect our S3 bucket URLs
 // ============================================================================
 
 /**
@@ -844,16 +844,17 @@ export function isTimrxS3Url(url) {
 }
 
 /**
- * Check if a URL needs to be proxied (external URLs like Meshy)
- * Returns false for our S3 URLs (load directly), true for others
+ * Check if a model URL should be routed through the backend asset proxy.
+ * The proxy handles ownership checks and fresh presigning for private S3 assets.
  * @param {string} url - URL to check
  * @returns {boolean} - True if URL should be proxied
  */
 export function shouldProxyUrl(url) {
   if (!url || typeof url !== 'string') return false;
 
-  // Our S3 URLs don't need proxying - load directly
-  if (isTimrxS3Url(url)) return false;
+  // Our S3 URLs should go through the proxy so the backend can issue
+  // a fresh presigned URL instead of relying on direct bucket access.
+  if (isTimrxS3Url(url)) return true;
 
   // Meshy asset URLs need proxying (CORS blocked)
   if (url.includes('assets.meshy.ai')) return true;
@@ -867,7 +868,7 @@ export function shouldProxyUrl(url) {
 
 /**
  * Get the best URL for loading a model:
- * - S3 URLs: return directly (no proxy needed)
+ * - S3 URLs: wrap in proxy so backend can presign them
  * - Meshy URLs: wrap in proxy
  * - Other: return directly
  *
@@ -876,13 +877,6 @@ export function shouldProxyUrl(url) {
  */
 export function getLoadableModelUrl(url) {
   if (!url) return '';
-
-  // S3 URLs load directly - CORS is configured
-  if (isTimrxS3Url(url)) {
-    return url;
-  }
-
-  // Meshy URLs need proxying
   if (shouldProxyUrl(url)) {
     return `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(url)}`;
   }

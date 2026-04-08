@@ -895,8 +895,7 @@ export function clearVideoViewer() {
         disposeGroupedView();
         // Restore single-model UI elements
         _restoreSingleModelUI();
-        // Use module-scoped isTimrxS3Url and getLoadableModelUrl
-        const loadUrl = isTimrxS3Url(clickedItem.glb_url) ? clickedItem.glb_url : (clickedItem.glb_proxy || getLoadableModelUrl(clickedItem.glb_url));
+        const loadUrl = clickedItem.glb_proxy || getLoadableModelUrl(clickedItem.glb_url);
         setHistoryActiveModelId(clickedItem.id);
         resetModelVersionStack({
           id: clickedItem.id,
@@ -909,10 +908,19 @@ export function clearVideoViewer() {
         if (actionBar) actionBar.classList.add("hidden");
         const primary = loadUrl;
         const fallback = (clickedItem.glb_url && clickedItem.glb_url !== primary) ? clickedItem.glb_url : null;
-        // loadModelWithFallback is in the same module scope (viewer.js)
-        loadModelWithFallback(primary, fallback);
         const genHint = document.getElementById("genHint");
         if (genHint) genHint.textContent = "Loading model…";
+        loadModelWithFallback(primary, fallback)
+          .then(() => {
+            if (genHint) genHint.textContent = "Loaded from history.";
+          })
+          .catch((err) => {
+            console.warn("[GroupedViewer] Failed to load selected model:", err);
+            if (genHint) genHint.textContent = "Failed to load model.";
+            if (window.showToast) {
+              window.showToast('Model failed to load. Please try again.', 'error');
+            }
+          });
       });
 
       // Track dragging to distinguish click from orbit
@@ -977,8 +985,8 @@ export function clearVideoViewer() {
     try {
       _clearViewportModel(vp);
 
-      // Resolve URL using same logic as main viewer: prefer S3 direct, else proxy
-      const resolvedUrl = isTimrxS3Url(rawUrl) ? rawUrl : (vp.item.glb_proxy || getLoadableModelUrl(rawUrl));
+      // Resolve URL using the same proxy-first logic as the main viewer.
+      const resolvedUrl = vp.item.glb_proxy || getLoadableModelUrl(rawUrl);
 
       const loader = _getGroupedLoader();
       if (!loader) throw new Error("GLTFLoader not available");

@@ -1875,7 +1875,7 @@ function wireGallery() {
         State.setHistoryActiveModelId(id);
 
         // Reset version stack for this model and hide action bar
-        const loadUrl = isTimrxS3Url(item.glb_url) ? item.glb_url : (item.glb_proxy || getLoadableModelUrl(item.glb_url));
+        const loadUrl = item.glb_proxy || getLoadableModelUrl(item.glb_url);
         State.resetModelVersionStack({
           id,
           glb_url: loadUrl,
@@ -1886,11 +1886,18 @@ function wireGallery() {
         const actionBar = byId('viewerActionBar');
         if (actionBar) actionBar.classList.add('hidden');
 
-        // Use S3 URL directly if available (no proxy needed), otherwise use glb_proxy for Meshy URLs
         const primary = loadUrl;
         const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
-        await Viewer.loadModelWithFallback(primary, fallback);
-        if (genHintEl) genHintEl.textContent = 'Loaded from history.';
+        try {
+          await Viewer.loadModelWithFallback(primary, fallback);
+          if (genHintEl) genHintEl.textContent = 'Loaded from history.';
+        } catch (err) {
+          console.warn('[History] Failed to load model into viewer:', err);
+          if (genHintEl) genHintEl.textContent = 'Failed to load model.';
+          if (window.showToast) {
+            window.showToast('Model failed to load. Please try again.', 'error');
+          }
+        }
         return;
       }
 
