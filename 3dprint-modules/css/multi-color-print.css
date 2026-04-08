@@ -13,28 +13,28 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
   
   .multi-color-header h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.95);
-    letter-spacing: -0.3px;
+    letter-spacing: -0.2px;
   }
   
   .multi-color-close-btn {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
+    border-radius: 6px;
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -53,12 +53,12 @@
   .multi-color-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding: 14px;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 8px;
   }
   
   .multi-color-section-header {
@@ -68,22 +68,22 @@
   }
   
   .multi-color-label {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
   }
   
   .multi-color-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 24px;
-    padding: 0 8px;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
     background: rgba(14, 165, 233, 0.15);
-    border-radius: 6px;
-    font-size: 11px;
+    border-radius: 4px;
+    font-size: 10px;
     font-weight: 700;
     color: rgba(14, 165, 233, 0.95);
     border: 1px solid rgba(14, 165, 233, 0.2);
@@ -97,10 +97,10 @@
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, rgba(14, 165, 233, 0.1), rgba(139, 92, 246, 0.1));
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
+    border: none;
     outline: none;
     cursor: pointer;
   }
@@ -108,8 +108,8 @@
   .multi-color-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
     border: 2px solid rgba(18, 18, 20, 0.9);
@@ -123,8 +123,8 @@
   }
   
   .multi-color-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
     border: 2px solid rgba(18, 18, 20, 0.9);
@@ -144,7 +144,7 @@
   .multi-color-slots {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
   
   .multi-color-slot {
@@ -163,19 +163,19 @@
   .multi-color-slot-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 11px 12px;
+    gap: 8px;
+    padding: 6px 8px;
     cursor: pointer;
     user-select: none;
   }
   
   .multi-color-slot-swatch {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
     border: 1px solid rgba(0, 0, 0, 0.2);
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
   .multi-color-slot-info {
@@ -187,15 +187,15 @@
   }
   
   .multi-color-slot-hex {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
     font-family: 'Monaco', 'Courier New', monospace;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
   }
   
   .multi-color-slot-name {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255, 255, 255, 0.5);
   }
   
@@ -215,38 +215,38 @@
      ============================================================================ */
   
   .multi-color-slot-picker {
-    padding: 12px;
+    padding: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.04);
     background: rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
   
   .multi-color-custom-color {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
   
   .multi-color-picker-label {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.55);
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
   }
   
   .multi-color-custom-inputs {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
   
   .multi-color-color-input {
-    width: 44px;
-    height: 36px;
+    width: 32px;
+    height: 28px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     padding: 2px;
     flex-shrink: 0;
@@ -254,11 +254,11 @@
   
   .multi-color-hex-input {
     flex: 1;
-    padding: 8px 10px;
+    padding: 5px 8px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-    font-size: 12px;
+    border-radius: 4px;
+    font-size: 11px;
     font-family: 'Monaco', 'Courier New', monospace;
     color: rgba(255, 255, 255, 0.85);
     transition: all 0.2s ease;
@@ -281,31 +281,31 @@
   .multi-color-palette {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
   
   .multi-color-palette-label {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.55);
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
   }
   
   .multi-color-palette-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
   }
   
   .multi-color-palette-swatch {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 6px;
+    border-radius: 3px;
     border: 1px solid rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
   
   .multi-color-palette-swatch:hover {
@@ -322,9 +322,9 @@
      ============================================================================ */
   
   .multi-color-btn {
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -388,9 +388,9 @@
   .multi-color-footer {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
   }
   
@@ -526,73 +526,25 @@
      Responsive Design
      ============================================================================ */
   
-  @media (max-width: 1024px) {
-    .multi-color-section {
-      padding: 12px;
-      gap: 10px;
-    }
-  
-    .multi-color-badge {
-      font-size: 10px;
-      min-width: 24px;
-      height: 22px;
-      padding: 0 6px;
-    }
-  }
-  
   @media (max-width: 768px) {
-    .multi-color-header h2 {
-      font-size: 18px;
-    }
-  
-    .multi-color-label {
-      font-size: 12px;
-    }
-  
-    .multi-color-slot-hex {
-      font-size: 11px;
-    }
-  
     .multi-color-palette-grid {
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
     }
   
     .multi-color-btn {
-      padding: 9px 14px;
-      font-size: 12px;
+      padding: 7px 12px;
+      font-size: 11px;
     }
   }
   
   @media (max-width: 480px) {
-    .multi-color-header {
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-    }
-  
     .multi-color-controls {
-      padding: 16px;
-    }
-  
-    .multi-color-section {
-      padding: 10px;
-      margin-bottom: 16px;
-    }
-  
-    .multi-color-label {
-      font-size: 11px;
+      padding: 12px;
     }
   
     .multi-color-palette-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-    }
-  
-    .multi-color-custom-inputs {
-      flex-direction: column;
-    }
-  
-    .multi-color-hex-input {
-      font-size: 11px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
     }
   }
   

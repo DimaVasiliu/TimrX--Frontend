@@ -103,8 +103,8 @@ function _injectStylesOnce() {
     }
 
     .multi-color-container {
-      width: 90vw;
-      height: 90vh;
+      width: min(1100px, 90vw);
+      height: min(680px, 85vh);
       background: linear-gradient(135deg, rgba(15,15,15,.96), rgba(18,18,20,.97));
       border: 1px solid rgba(255,255,255,.07);
       border-radius: 12px;
@@ -114,15 +114,17 @@ function _injectStylesOnce() {
     }
 
     .multi-color-viewer {
-      flex: 0 0 55%;
+      flex: 1 1 55%;
+      min-width: 0;
       background: rgb(18, 18, 20);
       border-right: 1px solid rgba(255,255,255,.07);
+      position: relative;
     }
 
     .multi-color-controls {
-      flex: 0 0 45%;
+      flex: 0 0 340px;
       overflow-y: auto;
-      padding: 24px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
     }
@@ -194,6 +196,14 @@ function _setupThreeJsViewer(glbUrl) {
   const container = document.getElementById('multi-color-viewer-container');
   if (!container) return;
 
+  // Show loading state
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);font-size:12px;">Loading model...</div>';
+
+  if (!glbUrl) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.25);font-size:12px;">No model available</div>';
+    return;
+  }
+
   container.innerHTML = '';
 
   const width = container.clientWidth;
@@ -210,17 +220,30 @@ function _setupThreeJsViewer(glbUrl) {
   // Renderer
   _renderer = new window.THREE.WebGLRenderer({ antialias: true, alpha: false });
   _renderer.setSize(width, height);
-  _renderer.setPixelRatio(window.devicePixelRatio);
+  _renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   _renderer.shadowMap.enabled = true;
-  _renderer.shadowMap.type = window.THREE.PCFShadowShadowMap;
+  _renderer.shadowMap.type = window.THREE.PCFSoftShadowMap;
+  _renderer.toneMapping = window.THREE.ACESFilmicToneMapping;
+  _renderer.toneMappingExposure = 1.0;
   container.appendChild(_renderer.domElement);
 
-  // Lighting with RoomEnvironment
-  const environment = new window.THREE.RoomEnvironment();
-  const pmremGenerator = new window.THREE.PMREMGenerator(_renderer);
-  const envMap = pmremGenerator.fromScene(environment).texture;
-  _scene.environment = envMap;
-  _scene.environmentIntensity = 1;
+  // Lighting — use RoomEnvironment if available, else fallback to directional lights
+  try {
+    if (window.THREE.RoomEnvironment && window.THREE.PMREMGenerator) {
+      const environment = new window.THREE.RoomEnvironment();
+      const pmremGenerator = new window.THREE.PMREMGenerator(_renderer);
+      const envMap = pmremGenerator.fromScene(environment).texture;
+      _scene.environment = envMap;
+      pmremGenerator.dispose();
+    }
+  } catch (e) {
+    console.warn('[MCP Viewer] RoomEnvironment unavailable, using fallback lights');
+  }
+  // Always add ambient + directional as baseline
+  _scene.add(new window.THREE.AmbientLight(0xffffff, 0.6));
+  const dirLight = new window.THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 7);
+  _scene.add(dirLight);
 
   // OrbitControls
   _controls = new window.THREE.OrbitControls(_camera, _renderer.domElement);
@@ -233,11 +256,11 @@ function _setupThreeJsViewer(glbUrl) {
   const loader = new window.THREE.GLTFLoader();
 
   const loadUrl = getLoadableModelUrl(glbUrl);
-  const loaderOptions = {};
 
-  if (isTimrxS3Url(glbUrl) || loadUrl.includes('proxy-glb')) {
-    loaderOptions.withCredentials = true;
-    loaderOptions.crossOrigin = 'use-credentials';
+  // Send session cookie through proxy-glb (same as viewer.js)
+  if (!isTimrxS3Url(glbUrl)) {
+    loader.setCrossOrigin('use-credentials');
+    loader.setWithCredentials(true);
   }
 
   loader.load(
@@ -261,36 +284,48 @@ function _setupThreeJsViewer(glbUrl) {
     undefined,
     (error) => {
       console.error('Error loading model:', error);
+      const errDiv = document.createElement('div');
+      errDiv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.35);font-size:11px;text-align:center;max-width:80%;';
+      errDiv.textContent = 'Failed to load model';
+      container.appendChild(errDiv);
     }
   );
 
-  // Animation loop
-  const animate = () => {
-    requestAnimationFrame(animate);
-    _controls.update();
-    _renderer.render(_scene, _camera);
+  // Resize handler
+  const _onResize = () => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (w && h && _camera && _renderer) {
+      _camera.aspect = w / h;
+      _camera.updateProjectionMatrix();
+      _renderer.setSize(w, h);
+    }
   };
+  window.addEventListener('resize', _onResize);
+  container._resizeHandler = _onResize;
+
+  // Animation loop
+  let _animId = 0;
+  const animate = () => {
+    _animId = requestAnimationFrame(animate);
+    if (_controls) _controls.update();
+    if (_renderer && _scene && _camera) _renderer.render(_scene, _camera);
+  };
+  container._animId = _animId;
   animate();
 }
 
 function _disposeThreeJs() {
-  if (_renderer) {
-    _renderer.dispose();
-    _renderer = null;
+  const container = document.getElementById('multi-color-viewer-container');
+  if (container) {
+    if (container._resizeHandler) window.removeEventListener('resize', container._resizeHandler);
+    if (container._animId) cancelAnimationFrame(container._animId);
   }
-  if (_scene) {
-    _scene.clear();
-    _scene = null;
-  }
-  if (_model) {
-    _model = null;
-  }
-  if (_controls) {
-    _controls = null;
-  }
-  if (_camera) {
-    _camera = null;
-  }
+  if (_controls) { _controls.dispose(); _controls = null; }
+  if (_renderer) { _renderer.dispose(); _renderer = null; }
+  if (_scene) { _scene.clear(); _scene = null; }
+  _model = null;
+  _camera = null;
 }
 
 // ============================================================================
@@ -319,7 +354,7 @@ function _renderConfigPanel(panel) {
     <div class="multi-color-header">
       <h2>Multi-Color Printing</h2>
       <button class="multi-color-close-btn" onclick="window.multiColorPrint?.closeMultiColorModal?.()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
@@ -376,8 +411,15 @@ function _renderConfigPanel(panel) {
 
   panel.innerHTML = html;
 
-  // Attach event listeners
-  document.getElementById('color-count-slider')?.addEventListener('change', (e) => {
+  // Attach event listeners — use 'input' for live badge updates
+  const colorSlider = document.getElementById('color-count-slider');
+  const detailSlider = document.getElementById('detail-slider');
+
+  colorSlider?.addEventListener('input', (e) => {
+    const badge = e.target.closest('.multi-color-section')?.querySelector('.multi-color-badge');
+    if (badge) badge.textContent = e.target.value;
+  });
+  colorSlider?.addEventListener('change', (e) => {
     const newCount = parseInt(e.target.value);
     if (newCount !== _maxColors) {
       _maxColors = newCount;
@@ -386,7 +428,11 @@ function _renderConfigPanel(panel) {
     }
   });
 
-  document.getElementById('detail-slider')?.addEventListener('change', (e) => {
+  detailSlider?.addEventListener('input', (e) => {
+    const badge = e.target.closest('.multi-color-section')?.querySelector('.multi-color-badge');
+    if (badge) badge.textContent = e.target.value;
+  });
+  detailSlider?.addEventListener('change', (e) => {
     _maxDepth = parseInt(e.target.value);
   });
 
@@ -404,7 +450,7 @@ function _renderSlot(slot, index) {
           <div class="multi-color-slot-hex">${slot.hex}</div>
           <div class="multi-color-slot-name">${slot.name}</div>
         </div>
-        <svg class="multi-color-slot-chevron ${isExpanded ? 'expanded' : ''}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="multi-color-slot-chevron ${isExpanded ? 'expanded' : ''}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
