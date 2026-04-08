@@ -26,7 +26,7 @@ import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal } from './multi-color-print.js';
+import { openMultiColorModal } from './multi-color-print.js?v=20260408c';
 
 // ============================================================================
 // MODULE STATE
@@ -1818,6 +1818,7 @@ function wireGallery() {
           taskId: id,
           title: btn.getAttribute('data-title') || 'Untitled',
           thumbnailUrl: btn.getAttribute('data-thumb') || '',
+          glbUrl: btn.getAttribute('data-glb') || '',
         });
         return;
       }
