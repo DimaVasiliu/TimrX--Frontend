@@ -622,99 +622,164 @@ async function _export3MF() {
   }
 
   const zip = new window.JSZip();
+  const T = window.THREE;
 
-  // Collect all geometry into single vertex/triangle arrays
-  let allVertices = [];
-  let allTriangles = [];
-  let vertexOffset = 0;
-
-  // Build materials list from filaments
-  const usedSlots = new Set();
-  for (let i = 0; i < _totalFaces; i++) {
-    if (_faceColors[i] >= 0) usedSlots.add(_faceColors[i]);
-  }
-  // If nothing painted, add default white
-  if (usedSlots.size === 0) usedSlots.add(-1);
-
-  // Map slot indices to material indices (0-based)
-  const slotToMatIdx = new Map();
-  const materials = [];
-  // Add "unpainted" as material 0
-  slotToMatIdx.set(-1, 0);
-  materials.push({ hex: '#FFFFFF', name: 'Unpainted' });
-  for (const slot of usedSlots) {
-    if (slot < 0) continue;
-    slotToMatIdx.set(slot, materials.length);
-    materials.push(_filaments[slot] || { hex: '#FFFFFF', name: 'Unknown' });
-  }
+  // ---- Collect all vertices + face data in world space ----
+  const allVerts = [];   // flat [x,y,z, ...]
+  const allFaces = [];   // {v1,v2,v3, colorSlot}
+  let vOff = 0;
 
   for (let mi = 0; mi < _paintMeshes.length; mi++) {
     const mesh = _paintMeshes[mi];
     const posAttr = mesh.geometry.attributes.position;
     const faceCount = posAttr.count / 3;
     const offset = _faceOffsets[mi];
-
-    // Get world matrix
     mesh.updateWorldMatrix(true, false);
-    const matrix = mesh.matrixWorld;
-    const T = window.THREE;
+    const mat = mesh.matrixWorld;
     const v = new T.Vector3();
 
     for (let i = 0; i < posAttr.count; i++) {
-      v.fromBufferAttribute(posAttr, i);
-      v.applyMatrix4(matrix);
-      allVertices.push(v.x, v.y, v.z);
+      v.fromBufferAttribute(posAttr, i).applyMatrix4(mat);
+      allVerts.push(v.x, v.y, v.z);
     }
-
     for (let fi = 0; fi < faceCount; fi++) {
-      const v1 = vertexOffset + fi * 3;
-      const v2 = v1 + 1;
-      const v3 = v1 + 2;
-      const slotIdx = _faceColors[offset + fi];
-      const matIdx = slotToMatIdx.get(slotIdx) ?? 0;
-      allTriangles.push({ v1, v2, v3, pid: 1, p1: matIdx });
+      allFaces.push({
+        v1: vOff + fi * 3,
+        v2: vOff + fi * 3 + 1,
+        v3: vOff + fi * 3 + 2,
+        colorSlot: _faceColors[offset + fi]   // -1 = unpainted
+      });
+    }
+    vOff += posAttr.count;
+  }
+
+  // ---- Group faces by color slot ----
+  // Bambu Studio needs separate <object> per color (each = one extruder volume)
+  const groups = new Map();  // colorSlot -> [faceIdx, ...]
+  for (let i = 0; i < allFaces.length; i++) {
+    const slot = allFaces[i].colorSlot;
+    if (!groups.has(slot)) groups.set(slot, []);
+    groups.get(slot).push(i);
+  }
+
+  // Sort groups: unpainted (-1) first, then by slot index
+  const sortedSlots = [...groups.keys()].sort((a, b) => a - b);
+
+  // ---- Build a separate <object> per color group ----
+  // Each sub-object gets its own vertex list (remapped) and triangles
+  const objectXmls = [];
+  const componentRefs = [];
+  let objId = 2; // ids start at 2 (1 reserved for basematerials)
+
+  for (const slot of sortedSlots) {
+    const faceIdxs = groups.get(slot);
+    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#FFFFFF', name: 'Unpainted' };
+
+    // Collect unique vertices used by this group, remap indices
+    const vertMap = new Map(); // original vertex index -> new index
+    let newIdx = 0;
+    const localVerts = [];
+    const localTris = [];
+
+    for (const fi of faceIdxs) {
+      const face = allFaces[fi];
+      const ids = [face.v1, face.v2, face.v3];
+      const mapped = [];
+      for (const vid of ids) {
+        if (!vertMap.has(vid)) {
+          vertMap.set(vid, newIdx);
+          const i3 = vid * 3;
+          localVerts.push(allVerts[i3], allVerts[i3 + 1], allVerts[i3 + 2]);
+          newIdx++;
+        }
+        mapped.push(vertMap.get(vid));
+      }
+      localTris.push(mapped);
     }
 
-    vertexOffset += posAttr.count;
-  }
+    const vXml = [];
+    for (let i = 0; i < localVerts.length; i += 3) {
+      vXml.push(`          <vertex x="${localVerts[i].toFixed(6)}" y="${localVerts[i+1].toFixed(6)}" z="${localVerts[i+2].toFixed(6)}" />`);
+    }
+    const tXml = localTris.map(t =>
+      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" />`
+    ).join('\n');
 
-  // Build 3MF XML
-  const matXml = materials.map((m, i) =>
-    `        <base name="${_escXml(m.name)}" displaycolor="${m.hex}FF" />`
-  ).join('\n');
-
-  const vertXml = [];
-  for (let i = 0; i < allVertices.length; i += 3) {
-    vertXml.push(`          <vertex x="${allVertices[i].toFixed(6)}" y="${allVertices[i+1].toFixed(6)}" z="${allVertices[i+2].toFixed(6)}" />`);
-  }
-
-  const triXml = allTriangles.map(t =>
-    `          <triangle v1="${t.v1}" v2="${t.v2}" v3="${t.v3}" pid="${t.pid}" p1="${t.p1}" />`
-  ).join('\n');
-
-  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
-<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
-       xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
-  <resources>
-    <basematerials id="1">
-${matXml}
-    </basematerials>
-    <object id="2" type="model">
+    objectXmls.push(`    <object id="${objId}" type="model" p:UUID="${_uuid()}" name="${_escXml(color.name)}">
       <mesh>
         <vertices>
-${vertXml.join('\n')}
+${vXml.join('\n')}
         </vertices>
         <triangles>
-${triXml}
+${tXml}
         </triangles>
       </mesh>
-    </object>
+    </object>`);
+
+    componentRefs.push(`        <component objectid="${objId}" />`);
+    objId++;
+  }
+
+  // Parent object that references all color volumes as components
+  const parentId = objId;
+  const parentXml = `    <object id="${parentId}" type="model" p:UUID="${_uuid()}">
+      <components>
+${componentRefs.join('\n')}
+      </components>
+    </object>`;
+
+  // ---- Extruder mapping metadata for Bambu Studio ----
+  // Maps each volume (sub-object) to an extruder (1-based)
+  const extruderMap = {};
+  const usedExtruders = new Set();
+  let extruderIdx = 1;
+  const slotToExtruder = new Map();
+  for (const slot of sortedSlots) {
+    slotToExtruder.set(slot, extruderIdx);
+    usedExtruders.add(extruderIdx);
+    extruderIdx++;
+  }
+
+  // ---- Build Bambu plate metadata ----
+  const plateObj = {
+    "name": "Plate_1",
+    "objects": [{
+      "identify_id": 0,
+      "name": _modelTitle || "model",
+      "extruder": "0",
+      "parts": sortedSlots.map((slot, i) => ({
+        "name": (slot >= 0 ? (_filaments[slot]?.name || `Color ${slot+1}`) : 'Unpainted'),
+        "extruder": String(slotToExtruder.get(slot))
+      }))
+    }]
+  };
+
+  // ---- Filament color metadata ----
+  const filamentMeta = sortedSlots.map((slot, i) => {
+    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF' }) : { hex: '#FFFFFF' };
+    return `    <Metadata name="filament_colour_${i + 1}" value="${color.hex}FF" />`;
+  }).join('\n');
+
+  // ---- Assemble 3MF model XML ----
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter"
+  xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+  xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
+  xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06"
+  requiredextensions="p">
+  <metadata name="Application">TimrX 3D Print Hub</metadata>
+  <metadata name="BambuStudio:3mfVersion">1</metadata>
+${filamentMeta}
+  <resources>
+${objectXmls.join('\n')}
+${parentXml}
   </resources>
-  <build>
-    <item objectid="2" />
+  <build p:UUID="${_uuid()}">
+    <item objectid="${parentId}" p:UUID="${_uuid()}" />
   </build>
 </model>`;
 
+  // ---- Content types & rels (standard 3MF boilerplate) ----
   const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
@@ -726,9 +791,11 @@ ${triXml}
   <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" />
 </Relationships>`;
 
+  // ---- Pack ZIP ----
   zip.file('[Content_Types].xml', contentTypes);
   zip.file('_rels/.rels', rels);
   zip.file('3D/3dmodel.model', modelXml);
+  zip.file('Metadata/plate_1.json', JSON.stringify(plateObj, null, 2));
 
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
   const url = URL.createObjectURL(blob);
@@ -739,6 +806,14 @@ ${triXml}
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// Simple UUID v4 generator for 3MF production extension
+function _uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
 }
 
 function _escXml(s) {
