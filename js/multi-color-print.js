@@ -415,7 +415,6 @@ function _preparePaintData() {
 
   // Precompute face centers in world space for brush radius checks
   _faceCenters = new Float32Array(_totalFaces * 3);
-  const T = window.THREE;
   const va = new T.Vector3(), vb = new T.Vector3(), vc = new T.Vector3();
 
   for (let mi = 0; mi < _paintMeshes.length; mi++) {
