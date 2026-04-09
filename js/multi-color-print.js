@@ -665,18 +665,24 @@ async function _export3MF() {
   // Sort groups: unpainted (-1) first, then by slot index
   const sortedSlots = [...groups.keys()].sort((a, b) => a - b);
 
+  // ---- Build basematerials (one per color group) ----
+  const baseMats = sortedSlots.map((slot, i) => {
+    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#FFFFFF', name: 'Unpainted' };
+    return `      <base name="${_escXml(color.name)}" displaycolor="${color.hex}FF" />`;
+  }).join('\n');
+
   // ---- Build a separate <object> per color group ----
-  // Each sub-object gets its own vertex list (remapped) and triangles
   const objectXmls = [];
   const componentRefs = [];
   let objId = 2; // ids start at 2 (1 reserved for basematerials)
 
-  for (const slot of sortedSlots) {
+  for (let gi = 0; gi < sortedSlots.length; gi++) {
+    const slot = sortedSlots[gi];
     const faceIdxs = groups.get(slot);
     const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#FFFFFF', name: 'Unpainted' };
 
     // Collect unique vertices used by this group, remap indices
-    const vertMap = new Map(); // original vertex index -> new index
+    const vertMap = new Map();
     let newIdx = 0;
     const localVerts = [];
     const localTris = [];
@@ -701,11 +707,13 @@ async function _export3MF() {
     for (let i = 0; i < localVerts.length; i += 3) {
       vXml.push(`          <vertex x="${localVerts[i].toFixed(6)}" y="${localVerts[i+1].toFixed(6)}" z="${localVerts[i+2].toFixed(6)}" />`);
     }
+    // Each triangle references pid="1" (basematerials) and p1=group index
     const tXml = localTris.map(t =>
-      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" />`
+      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" pid="1" p1="${gi}" />`
     ).join('\n');
 
-    objectXmls.push(`    <object id="${objId}" type="model" p:UUID="${_uuid()}" name="${_escXml(color.name)}">
+    const objUuid = _uuid();
+    objectXmls.push(`    <object id="${objId}" type="model" p:UUID="${objUuid}" name="${_escXml(color.name)}">
       <mesh>
         <vertices>
 ${vXml.join('\n')}
@@ -716,7 +724,7 @@ ${tXml}
       </mesh>
     </object>`);
 
-    componentRefs.push(`        <component objectid="${objId}" />`);
+    componentRefs.push(`        <component objectid="${objId}" p:UUID="${_uuid()}" transform="1 0 0 0 1 0 0 0 1 0 0 0" />`);
     objId++;
   }
 
@@ -754,10 +762,10 @@ ${componentRefs.join('\n')}
     }]
   };
 
-  // ---- Filament color metadata ----
+  // ---- Filament color metadata (slic3rpe format for Bambu Studio) ----
   const filamentMeta = sortedSlots.map((slot, i) => {
     const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF' }) : { hex: '#FFFFFF' };
-    return `    <Metadata name="filament_colour_${i + 1}" value="${color.hex}FF" />`;
+    return `  <metadata name="slic3rpe:filament_colour_${i}" value="${color.hex}FF" />`;
   }).join('\n');
 
   // ---- Assemble 3MF model XML ----
@@ -771,6 +779,9 @@ ${componentRefs.join('\n')}
   <metadata name="BambuStudio:3mfVersion">1</metadata>
 ${filamentMeta}
   <resources>
+    <basematerials id="1">
+${baseMats}
+    </basematerials>
 ${objectXmls.join('\n')}
 ${parentXml}
   </resources>
@@ -784,6 +795,8 @@ ${parentXml}
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
   <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />
+  <Default Extension="json" ContentType="application/json" />
+  <Default Extension="config" ContentType="text/xml" />
 </Types>`;
 
   const rels = `<?xml version="1.0" encoding="UTF-8"?>
@@ -791,10 +804,49 @@ ${parentXml}
   <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" />
 </Relationships>`;
 
+  // ---- model_settings.config (critical for Bambu Studio extruder mapping) ----
+  const partConfigs = sortedSlots.map((slot, i) => {
+    const ext = slotToExtruder.get(slot);
+    const name = slot >= 0 ? _escXml(_filaments[slot]?.name || `Color ${slot+1}`) : 'Unpainted';
+    return `    <part id="${i}" subtype="normal_part">
+      <metadata key="name" value="${name}"/>
+      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+      <metadata key="source_volume_id" value="${i}"/>
+      <metadata key="extruder" value="${ext}"/>
+    </part>`;
+  }).join('\n');
+
+  const modelSettingsConfig = `<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <object id="${parentId}">
+    <metadata key="name" value="${_escXml(_modelTitle || 'model')}"/>
+    <metadata key="extruder" value="0"/>
+${partConfigs}
+  </object>
+</config>`;
+
+  // ---- slice_info.config (filament colors for Bambu Studio) ----
+  const filamentPlates = sortedSlots.map((slot, i) => {
+    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF' }) : { hex: '#FFFFFF' };
+    const hexNoHash = color.hex.replace('#', '');
+    return `    <filament id="${i + 1}" type="PLA" color="${hexNoHash}FF" used="1"/>`;
+  }).join('\n');
+
+  const sliceInfoConfig = `<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <plate>
+    <metadata key="plater_id" value="1"/>
+    <metadata key="locked" value="false"/>
+${filamentPlates}
+  </plate>
+</config>`;
+
   // ---- Pack ZIP ----
   zip.file('[Content_Types].xml', contentTypes);
   zip.file('_rels/.rels', rels);
   zip.file('3D/3dmodel.model', modelXml);
+  zip.file('Metadata/model_settings.config', modelSettingsConfig);
+  zip.file('Metadata/slice_info.config', sliceInfoConfig);
   zip.file('Metadata/plate_1.json', JSON.stringify(plateObj, null, 2));
 
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
