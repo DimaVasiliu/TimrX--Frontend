@@ -82,11 +82,16 @@ let _totalFaces = 0;
 
 let _filaments = [];        // [{hex, name}]
 let _activeSlot = 0;        // which filament is selected for painting
-let _brushMode = 'region';  // 'region' | 'face'
+let _brushMode = 'brush';   // 'brush' | 'region' | 'face' | 'eraser'
+let _brushRadius = 0.05;    // world-space radius for brush mode (0.01 - 0.5)
 let _paintEnabled = true;
+let _isPainting = false;    // true while mouse held in brush/face/eraser mode
 
 let _raycaster = null;
 let _mouse = new (window.THREE?.Vector2 || function(){})();
+
+// Precomputed face centers for brush radius check (per mesh)
+let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
 
 let _taskId = null;
 let _modelTitle = '';
@@ -163,6 +168,10 @@ function _injectStyles() {
       cursor:pointer;transition:.15s;text-align:center;}
     .mcp-brush-btn.active{border-color:rgba(14,165,233,.4);color:#0ea5e9;
       background:rgba(14,165,233,.08);}
+    #mcp-brush-size::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+      border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+    #mcp-brush-size::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+      background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
     .mcp-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;
       padding-top:10px;border-top:1px solid rgba(255,255,255,.05);}
     .mcp-btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;
@@ -290,11 +299,12 @@ function _setupViewer(glbUrl) {
     container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:11px;">Failed to load model</div>';
   });
 
-  // Click handler for painting
-  _renderer.domElement.addEventListener('pointerdown', _onPointerDown);
-  _renderer.domElement.addEventListener('pointerup', _onPointerUp);
-  let _pointerDownPos = null;
-  container._pointerDownPos = null;
+  // Paint handlers — pointerdown/move/up for drag painting
+  const canvas = _renderer.domElement;
+  canvas.addEventListener('pointerdown', _onPointerDown);
+  canvas.addEventListener('pointermove', _onPointerMove);
+  canvas.addEventListener('pointerup', _onPointerUp);
+  canvas.addEventListener('pointerleave', _onPointerUp);
 
   // Resize
   const onResize = () => {
@@ -318,13 +328,46 @@ function _setupViewer(glbUrl) {
 }
 
 let _pDownX = 0, _pDownY = 0;
-function _onPointerDown(e) { _pDownX = e.clientX; _pDownY = e.clientY; }
-function _onPointerUp(e) {
-  // Only paint if it wasn't a drag (orbit)
-  const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
-  if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+let _didPaintThisStroke = false;
+
+function _onPointerDown(e) {
+  _pDownX = e.clientX; _pDownY = e.clientY;
+  _didPaintThisStroke = false;
   if (!_paintEnabled || !_paintMeshes.length) return;
+
+  // In brush/face/eraser mode, start drag-painting immediately
+  if (_brushMode === 'brush' || _brushMode === 'face' || _brushMode === 'eraser') {
+    _isPainting = true;
+    // Disable orbit while painting
+    if (_controls) _controls.enabled = false;
+    _paintAtEvent(e);
+    _didPaintThisStroke = true;
+  }
+}
+
+function _onPointerMove(e) {
+  if (!_isPainting || !_paintEnabled) return;
+  // Continuous painting while dragging
   _paintAtEvent(e);
+  _didPaintThisStroke = true;
+}
+
+function _onPointerUp(e) {
+  if (_isPainting) {
+    _isPainting = false;
+    if (_controls) _controls.enabled = true;
+    if (_didPaintThisStroke) { _applyColorsToMeshes(); _updateStats(); }
+    return;
+  }
+  // For region mode, only paint on click (not drag)
+  if (_brushMode === 'region') {
+    const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+    if (!_paintEnabled || !_paintMeshes.length) return;
+    _paintAtEvent(e);
+    _applyColorsToMeshes();
+    _updateStats();
+  }
 }
 
 // ============================================================================
@@ -369,6 +412,31 @@ function _preparePaintData() {
     _totalFaces += mesh.geometry.attributes.position.count / 3;
   }
   _faceColors = new Int32Array(_totalFaces).fill(-1); // -1 = unpainted
+
+  // Precompute face centers in world space for brush radius checks
+  _faceCenters = new Float32Array(_totalFaces * 3);
+  const T = window.THREE;
+  const va = new T.Vector3(), vb = new T.Vector3(), vc = new T.Vector3();
+
+  for (let mi = 0; mi < _paintMeshes.length; mi++) {
+    const mesh = _paintMeshes[mi];
+    mesh.updateWorldMatrix(true, false);
+    const posAttr = mesh.geometry.attributes.position;
+    const faceCount = posAttr.count / 3;
+    const offset = _faceOffsets[mi];
+
+    for (let fi = 0; fi < faceCount; fi++) {
+      const i3 = fi * 3;
+      va.fromBufferAttribute(posAttr, i3).applyMatrix4(mesh.matrixWorld);
+      vb.fromBufferAttribute(posAttr, i3 + 1).applyMatrix4(mesh.matrixWorld);
+      vc.fromBufferAttribute(posAttr, i3 + 2).applyMatrix4(mesh.matrixWorld);
+      const gIdx = (offset + fi) * 3;
+      _faceCenters[gIdx]     = (va.x + vb.x + vc.x) / 3;
+      _faceCenters[gIdx + 1] = (va.y + vb.y + vc.y) / 3;
+      _faceCenters[gIdx + 2] = (va.z + vb.z + vc.z) / 3;
+    }
+  }
+
   console.log(`[MCP Paint] Ready: ${_paintMeshes.length} meshes, ${_totalFaces} faces`);
 }
 
@@ -393,19 +461,43 @@ function _paintAtEvent(e) {
 
   const localFaceIdx = hit.faceIndex;
   const globalFace = _faceOffsets[meshIdx] + localFaceIdx;
+  const hitPoint = hit.point; // world-space hit position
+
+  const colorVal = _brushMode === 'eraser' ? -1 : _activeSlot;
 
   if (_brushMode === 'face') {
-    _paintFace(globalFace, _activeSlot);
-  } else {
-    _floodFillRegion(globalFace, _activeSlot, meshIdx);
+    _paintFace(globalFace, colorVal);
+  } else if (_brushMode === 'brush' || _brushMode === 'eraser') {
+    _paintBrush(hitPoint, colorVal);
+  } else if (_brushMode === 'region') {
+    _floodFillRegion(globalFace, colorVal, meshIdx);
   }
 
-  _applyColorsToMeshes();
-  _updateStats();
+  // For drag modes, apply every frame; for region, apply once in _onPointerUp
+  if (_isPainting) {
+    _applyColorsToMeshes();
+    _updateStats();
+  }
 }
 
 function _paintFace(globalIdx, slotIdx) {
   _faceColors[globalIdx] = slotIdx;
+}
+
+function _paintBrush(hitPoint, slotIdx) {
+  // Paint all faces whose center is within _brushRadius of hitPoint (world space)
+  const r2 = _brushRadius * _brushRadius;
+  const hx = hitPoint.x, hy = hitPoint.y, hz = hitPoint.z;
+
+  for (let i = 0; i < _totalFaces; i++) {
+    const i3 = i * 3;
+    const dx = _faceCenters[i3] - hx;
+    const dy = _faceCenters[i3 + 1] - hy;
+    const dz = _faceCenters[i3 + 2] - hz;
+    if (dx * dx + dy * dy + dz * dz <= r2) {
+      _faceColors[i] = slotIdx;
+    }
+  }
 }
 
 function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
@@ -685,9 +777,24 @@ function _renderSidebar() {
     <div class="mcp-section">
       <div class="mcp-label">Brush Mode</div>
       <div class="mcp-brush-row">
-        <button class="mcp-brush-btn ${_brushMode === 'region' ? 'active' : ''}" data-brush="region">Region Fill</button>
-        <button class="mcp-brush-btn ${_brushMode === 'face' ? 'active' : ''}" data-brush="face">Single Face</button>
+        <button class="mcp-brush-btn ${_brushMode === 'brush' ? 'active' : ''}" data-brush="brush">Brush</button>
+        <button class="mcp-brush-btn ${_brushMode === 'region' ? 'active' : ''}" data-brush="region">Region</button>
+        <button class="mcp-brush-btn ${_brushMode === 'face' ? 'active' : ''}" data-brush="face">Face</button>
+        <button class="mcp-brush-btn ${_brushMode === 'eraser' ? 'active' : ''}" data-brush="eraser" style="${_brushMode === 'eraser' ? 'border-color:rgba(239,68,68,.4);color:#ef4444;background:rgba(239,68,68,.08);' : ''}">Eraser</button>
       </div>
+      ${_brushMode === 'brush' || _brushMode === 'eraser' ? `
+      <div style="margin-top:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span style="font-size:9px;color:rgba(255,255,255,.4);">Brush Size</span>
+          <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_brushRadius.toFixed(2)}</span>
+        </div>
+        <input type="range" min="1" max="100" value="${Math.round(_brushRadius * 200)}"
+          style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
+          id="mcp-brush-size" />
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);margin-top:2px;">
+          <span>Fine</span><span>Wide</span>
+        </div>
+      </div>` : ''}
     </div>
 
     <div class="mcp-section">
@@ -719,7 +826,7 @@ function _renderSidebar() {
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
         <line x1="12" y1="8" x2="12.01" y2="8"/>
       </svg>
-      <span>Select a filament color, then click on the model to paint. Region fill paints connected faces with similar normals. Export as 3MF when done.</span>
+      <span>Brush: click &amp; drag to paint. Region: click to flood-fill. Face: single triangle. Eraser: remove paint. Hold drag for continuous painting.</span>
     </div>
 
     <div class="mcp-actions">
@@ -789,6 +896,16 @@ function _renderSidebar() {
       _renderSidebar();
     });
   });
+
+  // Brush size slider
+  const brushSlider = sb.querySelector('#mcp-brush-size');
+  if (brushSlider) {
+    brushSlider.addEventListener('input', (e) => {
+      _brushRadius = parseInt(e.target.value) / 200; // 0.005 - 0.5
+      const valEl = sb.querySelector('#mcp-brush-val');
+      if (valEl) valEl.textContent = _brushRadius.toFixed(2);
+    });
+  }
 }
 
 function _updateStats() {
@@ -811,13 +928,16 @@ function _dispose() {
   }
   if (_renderer?.domElement) {
     _renderer.domElement.removeEventListener('pointerdown', _onPointerDown);
+    _renderer.domElement.removeEventListener('pointermove', _onPointerMove);
     _renderer.domElement.removeEventListener('pointerup', _onPointerUp);
+    _renderer.domElement.removeEventListener('pointerleave', _onPointerUp);
   }
+  _isPainting = false;
   if (_controls) { _controls.dispose(); _controls = null; }
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
   _model = null; _camera = null; _raycaster = null;
-  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _totalFaces = 0;
+  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _totalFaces = 0;
 }
 
 // ============================================================================
