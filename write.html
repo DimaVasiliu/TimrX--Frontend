@@ -483,13 +483,14 @@
       const aiDraft = loadAIDraft();
       if (aiDraft) {
         // Fill form fields
-        if (aiDraft.title) $('#title').value = aiDraft.title;
-        if (aiDraft.excerpt) $('#excerpt').value = aiDraft.excerpt;
-        if (aiDraft.tags) $('#tags').value = aiDraft.tags;
-        if (aiDraft.type) $('#type').value = aiDraft.type;
+      if (aiDraft.title) $('#title').value = aiDraft.title;
+      if (aiDraft.excerpt) $('#excerpt').value = aiDraft.excerpt;
+      if (aiDraft.tags) $('#tags').value = aiDraft.tags;
+      if (aiDraft.type) $('#type').value = aiDraft.type;
+      if (aiDraft.cover_url) $('#cover').value = aiDraft.cover_url;
 
-        // Load blocks into editor
-        if (aiDraft.blocks && Array.isArray(aiDraft.blocks)) {
+      // Load blocks into editor
+      if (aiDraft.blocks && Array.isArray(aiDraft.blocks)) {
           editor.render({
             time: Date.now(),
             blocks: aiDraft.blocks,

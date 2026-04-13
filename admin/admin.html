@@ -5409,7 +5409,13 @@
     // Edit in full editor (modal version)
     $('#modalPreviewEdit').onclick = () => {
       if (!generatedBlog) return;
-      sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(generatedBlog));
+      const coverImage = blogDraftImagesState.coverImage;
+      const editorDraft = {
+        ...generatedBlog,
+        cover_url: coverImage?.url || generatedCoverUrl || generatedBlog.uploaded_cover?.url || '',
+        cover_attribution: coverImage?.attribution || ''
+      };
+      sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(editorDraft));
       window.location.href = '/write?ai=1';
     };
 
@@ -6621,18 +6627,13 @@
         const draft = await getRes.json();
         let blocks = draft.content_blocks?.blocks || [];
 
-        // Remove existing validation section if present
-        const existingRefIdx = blocks.findIndex(b =>
-          b.type === 'header' && b.data?.text?.includes('Validation References')
-        );
-        if (existingRefIdx >= 0) {
-          // Remove header and all following ref blocks
-          let endIdx = existingRefIdx + 1;
-          while (endIdx < blocks.length && blocks[endIdx].id?.startsWith('ref_')) {
-            endIdx++;
-          }
-          blocks.splice(existingRefIdx, endIdx - existingRefIdx);
-        }
+        // Remove any previous validation artifacts before adding the fresh result set.
+        blocks = blocks.filter((block) => {
+          if (!block) return false;
+          if (block.type === 'validationRefs') return false;
+          if (block.type === 'header' && block.data?.text?.includes('Validation References')) return false;
+          return true;
+        });
 
         // Add validation references section as a single compact block
         // Extract sources from responses for linking
