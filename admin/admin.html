@@ -5282,11 +5282,38 @@
           generatePayload.uploaded_images = uploadedImages;
         }
 
-        const j = await fetchJson(API + '/admin/ai/generate', {
+        // Use SSE streaming endpoint to avoid Cloudflare 524 timeout
+        const streamResp = await adminFetch(API + '/admin/ai/generate-stream', {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify(generatePayload)
-        }, 'Generate blog');
+        });
+        if (!streamResp.ok) {
+          const errText = await streamResp.text().catch(() => '');
+          throw new ApiRequestError('Generate blog failed: server error', {
+            endpoint: API + '/admin/ai/generate-stream',
+            status: streamResp.status,
+            preview: errText.slice(0, 200)
+          });
+        }
+        const _reader = streamResp.body.getReader();
+        const _dec = new TextDecoder();
+        let _sseBuf = '', j = null;
+        while (true) {
+          const { done, value } = await _reader.read();
+          if (done) break;
+          _sseBuf += _dec.decode(value, { stream: true });
+          let _idx;
+          while ((_idx = _sseBuf.indexOf('\n\n')) !== -1) {
+            const _evt = _sseBuf.slice(0, _idx).trim();
+            _sseBuf = _sseBuf.slice(_idx + 2);
+            if (!_evt || _evt.startsWith(':')) continue;
+            const _dm = _evt.match(/^data:\s*(.+)$/s);
+            if (_dm) { try { j = JSON.parse(_dm[1]); } catch(_) {} }
+          }
+        }
+        if (!j) throw new ApiRequestError('Generate blog failed: empty stream', { endpoint: API + '/admin/ai/generate-stream' });
+        if (j.error) throw new ApiRequestError('Generate blog failed: ' + j.error, { endpoint: API + '/admin/ai/generate-stream' });
 
         if (j.ok) {
           const normalizedStockPrompt = (j.stock_search_prompt || j.cover_prompt || '').trim();
