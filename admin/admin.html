@@ -2669,6 +2669,7 @@
               </select>
             </div>
             <button type="submit" class="action-btn" id="generateBtn">Generate Blog Post</button>
+            <button type="button" class="action-btn" id="resumeGenerationBtn" style="display:none; margin-top:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#ccc;">Resume Last Generation</button>
           </form>
 
           <div class="preview" id="generatePreview" style="display:none;">
@@ -4049,6 +4050,48 @@
     let savedDraftSlug = null;  // Slug of auto-saved draft
     let pendingCoverForDraft = null;
 
+    // ========== GENERATION SESSION PERSISTENCE ==========
+    // Save/restore modal state to sessionStorage so page refresh doesn't lose it
+    const _GEN_SESSION_KEY = 'TX_GEN_SESSION';
+
+    function saveGenerationSession() {
+      if (!generatedBlog) {
+        sessionStorage.removeItem(_GEN_SESSION_KEY);
+        return;
+      }
+      try {
+        sessionStorage.setItem(_GEN_SESSION_KEY, JSON.stringify({
+          generatedBlog,
+          savedDraftSlug,
+          generatedCoverUrl,
+          generatedCoverData,
+          blogDraftImagesState: typeof blogDraftImagesState !== 'undefined' ? blogDraftImagesState : null,
+        }));
+      } catch (e) { /* quota exceeded — ignore */ }
+    }
+
+    function restoreGenerationSession() {
+      try {
+        const raw = sessionStorage.getItem(_GEN_SESSION_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (!s.generatedBlog) return false;
+        generatedBlog = s.generatedBlog;
+        savedDraftSlug = s.savedDraftSlug || null;
+        generatedCoverUrl = s.generatedCoverUrl || null;
+        generatedCoverData = s.generatedCoverData || null;
+        if (s.blogDraftImagesState) blogDraftImagesState = s.blogDraftImagesState;
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function clearGenerationSession() {
+      generatedBlog = null;
+      generatedCoverData = null;
+      savedDraftSlug = null;
+      sessionStorage.removeItem(_GEN_SESSION_KEY);
+    }
+
     // ========== TOAST UTILITY ==========
     const Toast = {
       container: null,
@@ -4719,6 +4762,7 @@
           if (pendingCoverForDraft?.url) {
             CoverManager.updateDraftWithCover(pendingCoverForDraft);
           }
+          saveGenerationSession();
           load();  // Refresh posts list
         } else {
           statusEl.className = 'blog-draft-status error';
@@ -4745,6 +4789,7 @@
             generation_params: buildDraftGenerationParams(generatedBlog)
           })
         }, 'Update draft cover');
+        if (j.ok) saveGenerationSession();
         return j.ok;
       } catch (err) {
         logApiError(err, 'Update draft cover', false);
@@ -5025,6 +5070,10 @@
       await checkAI();
       loadAllOps();
       startOpsPolling();
+      // Restore generation session from sessionStorage (survives page refresh)
+      if (restoreGenerationSession()) {
+        updateResumeButton();
+      }
     }
 
     $('#enter').onclick = async ()=>{
@@ -5369,6 +5418,7 @@
 
           // Show modal
           $('#blogModal').classList.add('show');
+          updateResumeButton();
 
           // Auto-save as draft
           autoSaveDraft(generatedBlog);
@@ -5383,8 +5433,50 @@
       }
     };
 
-    // Close blog modal
-    $('#closeBlogModal').onclick = () => $('#blogModal').classList.remove('show');
+    // Close blog modal (with confirmation to prevent accidental loss)
+    function closeBlogModalSafe() {
+      if (generatedBlog && !confirm('Close this modal? You can reopen it with the "Resume Last Generation" button.')) return;
+      $('#blogModal').classList.remove('show');
+      updateResumeButton();
+    }
+    $('#closeBlogModal').onclick = closeBlogModalSafe;
+
+    // Resume button: shows when a generation session exists but modal is closed
+    function updateResumeButton() {
+      const btn = $('#resumeGenerationBtn');
+      if (!btn) return;
+      if (generatedBlog && !$('#blogModal').classList.contains('show')) {
+        const title = generatedBlog.title || 'Untitled';
+        btn.textContent = 'Resume: ' + (title.length > 40 ? title.slice(0, 37) + '...' : title);
+        btn.style.display = '';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    // Reopen the modal with existing state
+    $('#resumeGenerationBtn').onclick = () => {
+      if (!generatedBlog) return;
+      // Repopulate preview fields
+      $('#modalPreviewTitle').textContent = generatedBlog.title;
+      $('#modalPreviewExcerpt').textContent = generatedBlog.excerpt;
+      $('#modalPreviewType').textContent = generatedBlog.type;
+      $('#modalPreviewTags').textContent = generatedBlog.tags;
+      syncCoverPromptFields();
+      // Restore cover preview if we have one
+      const coverImg = blogDraftImagesState.coverImage;
+      if (coverImg) {
+        CoverManager.renderPreview(coverImg);
+      }
+      // Restore draft status display
+      if (savedDraftSlug) {
+        const statusEl = $('#blogDraftStatus');
+        statusEl.className = 'blog-draft-status';
+        statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + savedDraftSlug + '</span>';
+      }
+      $('#blogModal').classList.add('show');
+      updateResumeButton();
+    };
 
     // Save generated blog as draft (modal version) - guarded for optional button
     const modalPreviewPublish = $('#modalPreviewPublish');
@@ -5418,8 +5510,8 @@
             load();
             $('#blogModal').classList.remove('show');
             $('#ai_topic').value = '';
-            generatedBlog = null;
-            generatedCoverData = null;
+            clearGenerationSession();
+            updateResumeButton();
           } else {
             alert('Save failed: ' + (j.error || 'Unknown error'));
           }
@@ -5443,6 +5535,8 @@
         cover_attribution: coverImage?.attribution || ''
       };
       sessionStorage.setItem('TX_AI_DRAFT', JSON.stringify(editorDraft));
+      clearGenerationSession();
+      updateResumeButton();
       window.location.href = '/write?ai=1';
     };
 
@@ -5726,19 +5820,18 @@
     $('#search').oninput = ()=>{ clearTimeout(window.__t); window.__t=setTimeout(load,300); };
 
     // Close modals on backdrop click or Escape key
-    ['blogModal'].forEach(id => {
-      const modal = $('#' + id);
-      modal.addEventListener('click', e => {
-        if (e.target === modal) modal.classList.remove('show');
-      });
+    // Blog modal uses safe close with confirmation; other modals close freely
+    $('#blogModal').addEventListener('click', e => {
+      if (e.target === $('#blogModal')) closeBlogModalSafe();
     });
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        $('#blogModal').classList.remove('show');
+        if ($('#blogModal').classList.contains('show')) {
+          closeBlogModalSafe();
+        }
         $('#subsModal').classList.remove('show');
         $('#repoModal').classList.remove('show');
-        // Close all modals (ops modals + panel modal)
-        document.querySelectorAll('.modal.show, .panel-modal.show').forEach(m => m.classList.remove('show'));
+        document.querySelectorAll('.modal.show:not(#blogModal), .panel-modal.show').forEach(m => m.classList.remove('show'));
       }
     });
 
