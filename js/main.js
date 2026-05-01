@@ -26,7 +26,7 @@ import * as API from './api.js?v=20260407e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal } from './multi-color-print.js?v=20260408g';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260408h';
 
 // ============================================================================
 // MODULE STATE
@@ -1812,9 +1812,20 @@ function wireGallery() {
 
       // Multi-color print — handled before item lookup since it only
       // needs data-attributes from the button, not the full item object.
-      if (act === 'multi-color-print') {
+      if (act === 'manual-multi-color-print') {
         closeActiveHistoryMenu();
         openMultiColorModal({
+          taskId: id,
+          title: btn.getAttribute('data-title') || 'Untitled',
+          thumbnailUrl: btn.getAttribute('data-thumb') || '',
+          glbUrl: btn.getAttribute('data-glb') || '',
+        });
+        return;
+      }
+
+      if (act === 'meshy-multi-color-print') {
+        closeActiveHistoryMenu();
+        openMeshyMultiColorModal({
           taskId: id,
           title: btn.getAttribute('data-title') || 'Untitled',
           thumbnailUrl: btn.getAttribute('data-thumb') || '',

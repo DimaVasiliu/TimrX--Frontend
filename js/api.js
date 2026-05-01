@@ -2745,6 +2745,111 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
 }
 
 /**
+ * Watch a Meshy automatic multi-color print job until the 3MF is saved.
+ */
+export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
+  createPoller({
+    jobId: job_id,
+    endpoint: '/api/_mod/print/multi-color',
+    label: 'Meshy 3MF',
+    initialDelay: 4000,
+    steadyDelay: 8000,
+    notFoundRetries: 2,
+    restartFn: () => watchMultiColorPrintJob(job_id, { isRecovery: true }),
+    onTimeout: () => {
+      handleJobFailure('Meshy 3MF timed out after max attempts', 'multi_color_print', { isRecovery });
+    },
+    onStatus: async (st, prog) => {
+      const pct = typeof st.pct === 'number'
+        ? Math.min(98, Math.max(0, st.pct))
+        : (st.status === 'done' ? 100 : 15);
+      if (st.message) prog.label(st.message);
+      updateThumbnailProgress(job_id, pct);
+
+      if (st.status === 'done') {
+        const meta = State.getPendingMeta()[job_id] || {};
+        State.removeActiveJob(job_id);
+
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          if (typeof st.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
+            window.WorkspaceCredits.applyBackendBalance(st.new_balance, 'meshy_multi_color_done');
+          } else if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          } else {
+            refreshCreditsInBackground();
+          }
+        }
+
+        const threeMfUrl = st.three_mf_url || st.model_urls?.['3mf'] || '';
+        const sourceModelUrl = st.source_model_url || meta.source_model_url || meta.glb_url || '';
+        const sourceProxy = sourceModelUrl ? getLoadableModelUrl(sourceModelUrl) : '';
+        const title = meta.title || shortTitle(meta) || 'Meshy Auto 3MF';
+        const rootPrompt = meta.root_prompt || meta.prompt || title || '';
+
+        const historyData = {
+          id: job_id,
+          type: 'model',
+          status: 'finished',
+          status_label: 'Meshy 3MF ready',
+          created_at: normalizeEpochMs(st.created_at) || Date.now(),
+          prompt: meta.prompt || title || '',
+          root_prompt: rootPrompt,
+          prompt_fingerprint: promptFingerprint(rootPrompt),
+          title,
+          progress_pct: 100,
+          stage: 'multi_color_print',
+          thumbnail_url: st.thumbnail_url || meta.thumbnail_url || '',
+          glb_url: sourceModelUrl,
+          glb_proxy: sourceProxy,
+          preview_task_id: meta.source_task_id || st.source_task_id || null,
+          lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.source_task_id || job_id,
+          lineage_root_id: meta.lineage_root_id || meta.lineage_origin_id || meta.source_task_id || job_id,
+          model_urls: {
+            ...(st.model_urls || {}),
+            ...(threeMfUrl ? { '3mf': threeMfUrl } : {}),
+          },
+          three_mf_url: threeMfUrl,
+        };
+
+        if (State.historyHasJobId(job_id)) State.updateHistoryItem(job_id, historyData);
+        else State.addHistoryItem(historyData);
+
+        State.historyFreshThumbs.add(job_id);
+        setTimeout(() => {
+          State.historyFreshThumbs.delete(job_id);
+          renderHistory();
+        }, 1800);
+        renderHistory();
+        prog.done('Meshy 3MF ready.');
+        if (!isRecovery && window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
+        return 'done';
+      }
+
+      if (st.status === 'failed') {
+        State.removeActiveJob(job_id);
+        if (!creditsRefreshedJobs.has(job_id)) {
+          creditsRefreshedJobs.add(job_id);
+          if (window.WorkspaceCredits?.syncWithBackend) {
+            window.WorkspaceCredits.syncWithBackend();
+          } else {
+            refreshCreditsInBackground();
+          }
+        }
+        const errorMsg = st.message || st.error || 'Meshy 3MF failed';
+        prog.fail(errorMsg);
+        State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
+        renderHistory();
+        handleJobFailure(errorMsg, 'multi_color_print', { isRecovery });
+        return 'done';
+      }
+
+      return 'continue';
+    },
+  });
+}
+
+/**
  * @deprecated Use watchImageJob() instead — delegates to unified handler.
  */
 export function watchOpenAIImageJob(jobId, reservationId, meta = {}) {
@@ -7372,6 +7477,7 @@ const _STRATEGY_TO_CATEGORY = {
   meshy_image_to_3d: 'mesh',
   meshy_text_to_3d:  'text',
   meshy_refine:      'text',
+  meshy_multi_color_print: 'multiColor',
   meshy_rig:         'rig',
   meshy_animation:   'animate',
   video:             'video',
@@ -7385,6 +7491,7 @@ const _STRATEGY_TO_STAGE = {
   meshy_image_to_3d: 'image3d',
   meshy_text_to_3d:  'preview',
   meshy_refine:      'refine',
+  meshy_multi_color_print: 'multi_color_print',
   meshy_rig:         'rig',
   meshy_animation:   'animate',
   video:             'video',
@@ -7396,7 +7503,7 @@ function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
     animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
-    multi_color_print: 'skip' };
+    multi_color_print: 'meshy_multi_color_print' };
   return map[stage] || 'meshy_text_to_3d';
 }
 
@@ -7450,6 +7557,7 @@ async function _doResumePendingJobs(options = {}) {
         type: stage === 'video' ? 'video' : stage === 'image' ? 'image' : 'model',
         prompt: meta.prompt || job.prompt || '',
         root_prompt: meta.root_prompt || meta.prompt || job.prompt || '',
+        title: meta.title || job.title || '',
         job_type: job.job_type || '',
         provider: job.provider || '',
         internal_job_id: job.id,
@@ -7463,6 +7571,8 @@ async function _doResumePendingJobs(options = {}) {
         lineage_origin_id: meta.lineage_origin_id || meta.lineage_root_id || meta.source_task_id || null,
         lineage_root_id: meta.lineage_root_id || meta.lineage_origin_id || meta.source_task_id || null,
         source_task_id: meta.source_task_id || meta.preview_task_id || meta.rig_task_id || null,
+        source_model_url: meta.source_model_url || meta.glb_url || '',
+        glb_url: meta.glb_url || meta.source_model_url || '',
         thumbnail_url: meta.thumbnail_url || meta.source_thumbnail_url || '',
       });
     }
@@ -7583,7 +7693,7 @@ async function _doResumePendingJobs(options = {}) {
   }
 
   // ── Step 6: Categorize by resume_strategy and start watchers ──
-  const buckets = { mesh: [], text: [], video: [], rig: [], animate: [], image: [] };
+  const buckets = { mesh: [], text: [], video: [], rig: [], animate: [], image: [], multiColor: [] };
 
   for (const id of ids) {
     if (State.watchers.has(id)) {
@@ -7602,20 +7712,20 @@ async function _doResumePendingJobs(options = {}) {
     (buckets[category] || buckets.text).push(id);
   }
 
-  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate, ...buckets.image];
+  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate, ...buckets.image, ...buckets.multiColor];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
   }
 
-  log(`[Recovery] Resuming ${allToResume.length} job(s): mesh=${buckets.mesh.length} text=${buckets.text.length} video=${buckets.video.length} rig=${buckets.rig.length} animate=${buckets.animate.length} image=${buckets.image.length}`);
+  log(`[Recovery] Resuming ${allToResume.length} job(s): mesh=${buckets.mesh.length} text=${buckets.text.length} video=${buckets.video.length} rig=${buckets.rig.length} animate=${buckets.animate.length} image=${buckets.image.length} multiColor=${buckets.multiColor.length}`);
 
   // Mark recovered jobs as "generating" in history so cards show progress overlay
   const STATUS_LABELS = {
     texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
-    image: 'Generating image...',
+    image: 'Generating image...', multi_color_print: 'Preparing Meshy 3MF...',
   };
   for (const id of allToResume) {
     const meta = pendingMeta[id] || {};
@@ -7650,6 +7760,9 @@ async function _doResumePendingJobs(options = {}) {
     const meta = pendingMeta[id] || {};
     watchImageJob(id, null, meta);
     log(`[Recovery] Resumed image job ${id} (unified watcher)`);
+  }
+  for (const id of buckets.multiColor) {
+    watchMultiColorPrintJob(id, { isRecovery: true });
   }
 }
 
@@ -7905,6 +8018,7 @@ if (typeof document !== 'undefined') {
 // ============================================================================
 window.watchJob = watchJob;
 window.watchMeshyTask = watchMeshyTask;
+window.watchMultiColorPrintJob = watchMultiColorPrintJob;
 window.startRigFromPanel = startRigFromPanel;
 window.startAnimationFromPanel = startAnimationFromPanel;
 window.watchRigJob = watchRigJob;

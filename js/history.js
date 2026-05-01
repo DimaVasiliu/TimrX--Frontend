@@ -1524,10 +1524,16 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               </span>
               <span class="card-menu__arrow">></span>
             </button>
-            <button class="card-menu__item" type="button" data-act="multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${displayModel.glb_url || displayModel.glb_proxy || ''}" ${!canDownload ? 'disabled' : ''}>
+            <button class="card-menu__item" type="button" data-act="manual-multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${displayModel.glb_url || displayModel.glb_proxy || ''}" ${!canDownload ? 'disabled' : ''}>
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#127912;</span>
-                <span>Full-Color 3MF</span>
+                <span>Manual Paint 3MF</span>
+              </span>
+            </button>
+            <button class="card-menu__item" type="button" data-act="meshy-multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${displayModel.glb_url || displayModel.glb_proxy || ''}" ${!canDownload ? 'disabled' : ''}>
+              <span class="card-menu__item-inner">
+                <span class="card-menu__icon">&#9881;</span>
+                <span>Meshy Auto 3MF</span>
               </span>
               <span class="card-menu__badge" style="background:rgba(14,165,233,.18);color:#7dd3fc;font-size:9px;">10 cr</span>
             </button>

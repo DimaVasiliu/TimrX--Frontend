@@ -9,6 +9,7 @@
  */
 
 import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
+import * as State from './state.js?v=20260407e';
 
 // ============================================================================
 // Constants
@@ -95,6 +96,8 @@ let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
 
 let _taskId = null;
 let _modelTitle = '';
+let _autoPollTimer = null;
+let _autoJobId = null;
 
 // ============================================================================
 // Modal DOM
@@ -214,6 +217,48 @@ function _createModal() {
       <div class="mcp-sidebar" id="mcp-sidebar"></div>
     </div>`;
 
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function _createAutoModal() {
+  _injectStyles();
+  const overlay = document.createElement('div');
+  overlay.id = 'meshy-mcp-modal';
+  overlay.innerHTML = `
+    <div class="mcp-container" style="width:min(520px,92vw);height:auto;max-height:88vh;">
+      <div class="mcp-sidebar" style="flex:1 1 auto;">
+        <div class="mcp-header">
+          <h2>Meshy Auto 3MF</h2>
+          <div class="mcp-close" id="meshy-mcp-close">&times;</div>
+        </div>
+        <div class="mcp-section">
+          <div class="mcp-label">Color Count</div>
+          <input id="meshy-mcp-colors" type="range" min="1" max="16" value="4"
+            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;" />
+          <div id="meshy-mcp-colors-label" style="font-size:11px;color:rgba(255,255,255,.65);margin-top:6px;">4 colors</div>
+        </div>
+        <div class="mcp-section">
+          <div class="mcp-label">Color Detail</div>
+          <input id="meshy-mcp-depth" type="range" min="3" max="6" value="4"
+            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;" />
+          <div id="meshy-mcp-depth-label" style="font-size:11px;color:rgba(255,255,255,.65);margin-top:6px;">Level 4</div>
+        </div>
+        <div class="mcp-section" id="meshy-mcp-status" style="font-size:11px;line-height:1.5;color:rgba(255,255,255,.58);">
+          Ready to send to Meshy.
+        </div>
+        <div class="mcp-section" id="meshy-mcp-progress-wrap" style="display:none;">
+          <div style="height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;">
+            <div id="meshy-mcp-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#0ea5e9,#8b5cf6);transition:width .25s;"></div>
+          </div>
+        </div>
+        <div class="mcp-actions">
+          <button class="mcp-btn mcp-btn-primary" id="meshy-mcp-start">Start Meshy 3MF</button>
+          <button class="mcp-btn mcp-btn-secondary" id="meshy-mcp-download" style="display:none;">Download 3MF</button>
+          <button class="mcp-btn mcp-btn-secondary" id="meshy-mcp-cancel">Close</button>
+        </div>
+      </div>
+    </div>`;
   document.body.appendChild(overlay);
   return overlay;
 }
@@ -1041,6 +1086,174 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
   overlay._escHandler = onEsc;
 
   window.multiColorPrint = { closeMultiColorModal };
+}
+
+function _setAutoStatus(message, pct = null) {
+  const status = document.getElementById('meshy-mcp-status');
+  if (status) status.textContent = message;
+  const wrap = document.getElementById('meshy-mcp-progress-wrap');
+  const bar = document.getElementById('meshy-mcp-progress');
+  if (pct == null) {
+    if (wrap) wrap.style.display = 'none';
+    return;
+  }
+  if (wrap) wrap.style.display = 'block';
+  if (bar) bar.style.width = `${Math.max(0, Math.min(100, Math.round(pct)))}%`;
+}
+
+function _downloadAuto3mf(url, title) {
+  if (!url) return;
+  const safeTitle = (title || 'model').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
+  const params = new URLSearchParams({ u: url, download: '1', filename: `${safeTitle}-meshy-auto.3mf` });
+  const a = document.createElement('a');
+  a.href = `${BACKEND}/api/_mod/proxy-glb?${params.toString()}`;
+  a.download = `${safeTitle}-meshy-auto.3mf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function _refreshAfterAutoMcp() {
+  try {
+    if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+    if (window.loadHistoryFromDB) await window.loadHistoryFromDB();
+    if (window.renderHistory) window.renderHistory();
+  } catch (err) {
+    console.warn('[Meshy MCP] Refresh after completion failed:', err);
+  }
+}
+
+function _pollMeshyAutoJob(jobId, title) {
+  if (_autoPollTimer) clearTimeout(_autoPollTimer);
+  const poll = async () => {
+    try {
+      const res = await apiFetch(`/api/_mod/print/multi-color/${encodeURIComponent(jobId)}`);
+      if (!res.ok) throw new Error(res.error || 'Status check failed');
+      const st = res.data || {};
+      const pct = typeof st.pct === 'number' ? st.pct : (st.status === 'done' ? 100 : 15);
+      _setAutoStatus(st.message || (st.status === 'done' ? '3MF ready.' : 'Meshy is preparing the 3MF...'), pct);
+
+      if (st.status === 'done') {
+        State.removeActiveJob(jobId);
+        const threeMfUrl = st.three_mf_url || st.model_urls?.['3mf'];
+        const dl = document.getElementById('meshy-mcp-download');
+        if (dl && threeMfUrl) {
+          dl.style.display = 'flex';
+          dl.onclick = () => _downloadAuto3mf(threeMfUrl, title);
+        }
+        await _refreshAfterAutoMcp();
+        if (window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
+        _autoPollTimer = null;
+        return;
+      }
+
+      if (st.status === 'failed') {
+        State.removeActiveJob(jobId);
+        _setAutoStatus(st.message || st.error || 'Meshy 3MF failed.', 100);
+        if (window.showToast) window.showToast(st.message || 'Meshy 3MF failed.', 'error');
+        _autoPollTimer = null;
+        return;
+      }
+
+      _autoPollTimer = setTimeout(poll, 4000);
+    } catch (err) {
+      _setAutoStatus(err?.message || 'Status check failed.', null);
+      _autoPollTimer = setTimeout(poll, 8000);
+    }
+  };
+  poll();
+}
+
+export function openMeshyMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
+  _autoJobId = null;
+  const overlay = _createAutoModal();
+  const colors = overlay.querySelector('#meshy-mcp-colors');
+  const depth = overlay.querySelector('#meshy-mcp-depth');
+  const colorsLabel = overlay.querySelector('#meshy-mcp-colors-label');
+  const depthLabel = overlay.querySelector('#meshy-mcp-depth-label');
+  const start = overlay.querySelector('#meshy-mcp-start');
+
+  const syncLabels = () => {
+    if (colorsLabel) colorsLabel.textContent = `${colors?.value || 4} colors`;
+    if (depthLabel) depthLabel.textContent = `Level ${depth?.value || 4}`;
+  };
+  colors?.addEventListener('input', syncLabels);
+  depth?.addEventListener('input', syncLabels);
+  syncLabels();
+
+  start?.addEventListener('click', async () => {
+    start.disabled = true;
+    _setAutoStatus('Submitting to Meshy...', 2);
+    try {
+      const payload = {
+        input_task_id: taskId || '',
+        model_url: glbUrl || '',
+        prompt: title || '',
+        max_colors: parseInt(colors?.value || '4', 10),
+        max_depth: parseInt(depth?.value || '4', 10),
+      };
+      const res = await apiFetch('/api/_mod/print/multi-color', { method: 'POST', body: payload });
+      if (!res.ok) throw new Error(res.error || res.data?.message || 'Could not start Meshy 3MF');
+      _autoJobId = res.data?.job_id;
+      if (!_autoJobId) throw new Error('Meshy did not return a job ID');
+      const jobMeta = {
+        stage: 'multi_color_print',
+        resume_strategy: 'meshy_multi_color_print',
+        type: 'model',
+        prompt: title || '',
+        root_prompt: title || '',
+        title: title || 'Meshy Auto 3MF',
+        source_task_id: taskId || '',
+        source_model_url: glbUrl || '',
+        glb_url: glbUrl || '',
+        thumbnail_url: thumbnailUrl || '',
+        max_colors: payload.max_colors,
+        max_depth: payload.max_depth,
+      };
+      State.addActiveJob(_autoJobId);
+      State.savePendingMeta(_autoJobId, jobMeta);
+      if (!State.historyHasJobId(_autoJobId)) {
+        State.addHistoryItem({
+          id: _autoJobId,
+          ...jobMeta,
+          status: 'generating',
+          status_label: 'Preparing Meshy 3MF...',
+          progress_pct: 5,
+          created_at: Date.now(),
+        });
+        window.renderHistory?.();
+      }
+      _setAutoStatus('Meshy job started...', 5);
+      if (window.showToast) window.showToast('Meshy 3MF job started.', 'info');
+      _pollMeshyAutoJob(_autoJobId, title);
+    } catch (err) {
+      start.disabled = false;
+      _setAutoStatus(err?.message || 'Could not start Meshy 3MF.', null);
+      if (window.showToast) window.showToast(err?.message || 'Could not start Meshy 3MF.', 'error');
+    }
+  });
+
+  overlay.querySelector('#meshy-mcp-close')?.addEventListener('click', closeMeshyMultiColorModal);
+  overlay.querySelector('#meshy-mcp-cancel')?.addEventListener('click', closeMeshyMultiColorModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeMeshyMultiColorModal(); });
+  const onEsc = (e) => { if (e.key === 'Escape') closeMeshyMultiColorModal(); };
+  document.addEventListener('keydown', onEsc);
+  overlay._escHandler = onEsc;
+}
+
+export function closeMeshyMultiColorModal() {
+  if (_autoPollTimer) {
+    clearTimeout(_autoPollTimer);
+    _autoPollTimer = null;
+  }
+  if (_autoJobId && State.getActiveJobs().includes(_autoJobId) && !State.watchers.has(_autoJobId)) {
+    window.watchMultiColorPrintJob?.(_autoJobId, { isRecovery: true });
+  }
+  const modal = document.getElementById('meshy-mcp-modal');
+  if (modal) {
+    if (modal._escHandler) document.removeEventListener('keydown', modal._escHandler);
+    modal.remove();
+  }
 }
 
 export function closeMultiColorModal() {
