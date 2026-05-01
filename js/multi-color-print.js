@@ -108,7 +108,8 @@ function _injectStyles() {
   const s = document.createElement('style');
   s.id = 'mcp-styles';
   s.textContent = `
-    #multi-color-modal {
+    #multi-color-modal,
+    #meshy-mcp-modal {
       position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
       align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);
     }

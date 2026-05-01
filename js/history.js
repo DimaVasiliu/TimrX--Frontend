@@ -1075,6 +1075,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   const canRemesh = !!displayModel.prompt && status === 'finished';
   const canTexture = status === 'finished';
   const canDownload = !!(displayModel.glb_url || displayModel.glb_proxy);
+  const canMeshyAuto3mf = status === 'finished' && !!displayModel.id;
   const modelDownloadUrl = String(displayModel.glb_url || displayModel.glb_proxy || '').replace(/"/g, '&quot;');
   const isActive = models.some((m) => m && m.id === historyActiveModelId);
   const isFreshThumb = models.some((m) => historyFreshThumbs.has(m.id));
@@ -1530,7 +1531,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span>Manual Paint 3MF</span>
               </span>
             </button>
-            <button class="card-menu__item" type="button" data-act="meshy-multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${displayModel.glb_url || displayModel.glb_proxy || ''}" ${!canDownload ? 'disabled' : ''}>
+            <button class="card-menu__item" type="button" data-act="meshy-multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${displayModel.glb_url || displayModel.glb_proxy || ''}" ${!canMeshyAuto3mf ? 'disabled' : ''}>
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#9881;</span>
                 <span>Meshy Auto 3MF</span>
