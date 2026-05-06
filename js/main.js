@@ -22,11 +22,11 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js?v=20260408a';
-import * as API from './api.js?v=20260407e';
+import * as API from './api.js?v=20260507b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260507b';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260507c';
 
 // ============================================================================
 // MODULE STATE
@@ -1813,12 +1813,14 @@ function wireGallery() {
       // Multi-color print — handled before item lookup since it only
       // needs data-attributes from the button, not the full item object.
       if (act === 'manual-multi-color-print') {
+        const sourceItem = State.findHistoryItem(id);
         closeActiveHistoryMenu();
         openMultiColorModal({
           taskId: id,
           title: btn.getAttribute('data-title') || 'Untitled',
           thumbnailUrl: btn.getAttribute('data-thumb') || '',
           glbUrl: btn.getAttribute('data-glb') || '',
+          onRepair: sourceItem ? (options) => API.startPrintReadyRemeshFromItem(sourceItem, options) : null,
         });
         return;
       }

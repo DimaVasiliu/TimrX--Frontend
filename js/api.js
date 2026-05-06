@@ -7201,6 +7201,59 @@ export async function startRemeshFromHistory(item) {
 }
 
 /**
+ * Start a print-focused repair/remesh from a history item.
+ * Used by the manual paint workflow before users spend time coloring a mesh
+ * that slicers will later reject.
+ */
+export async function startPrintReadyRemeshFromItem(item, options = {}) {
+  if (!item) return;
+  State.setHistoryActiveModelId(item.id);
+  const source = buildMeshySourceFromItem(item);
+  if (!source.input_task_id && !source.model_url) {
+    alert('This model has no valid source for repair. Try generating or uploading a model first.');
+    return;
+  }
+
+  const targetHeight = Number.parseFloat(options.print_height_mm || options.resize_height || '');
+  const repairValues = {
+    topology: options.topology || 'triangle',
+    target_polycount: Number.parseInt(options.target_polycount || '120000', 10),
+    target_formats: Array.from(new Set(['glb', 'stl', '3mf', ...(options.target_formats || [])])),
+    origin_at: options.origin_at || 'bottom',
+    convert_format_only: false,
+  };
+
+  if (Number.isFinite(targetHeight) && targetHeight > 0) {
+    repairValues.resize_height = targetHeight;
+    repairValues.print_height_mm = targetHeight;
+  }
+
+  const meta = {
+    prompt: `Print repair ${shortTitle(item)}`,
+    root_prompt: item.root_prompt || item.prompt || '',
+    model: item.model || 'latest',
+    license: item.license || 'private',
+    lineage_origin_id: item.lineage_root_id || item.id,
+    source_model_id: item.id,
+    thumbnail_url: item.thumbnail_url || '',
+    topology: repairValues.topology,
+    target_polycount: repairValues.target_polycount,
+    target_formats: repairValues.target_formats,
+    resize_height: repairValues.resize_height,
+    origin_at: repairValues.origin_at,
+    convert_format_only: false,
+    print_height_mm: repairValues.print_height_mm || null,
+  };
+
+  try {
+    await beginMeshyTask('remesh', { ...source, ...repairValues }, meta);
+  } catch (err) {
+    console.error(err);
+    alert(err?.message || 'Print repair failed.');
+  }
+}
+
+/**
  * Start texture from a history item
  */
 export async function startTextureFromHistory(item, origin = 'history') {

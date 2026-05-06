@@ -98,6 +98,11 @@ let _taskId = null;
 let _modelTitle = '';
 let _autoPollTimer = null;
 let _autoJobId = null;
+let _manualRepairHandler = null;
+let _manualPrintCheck = { loading: false, result: null, error: '' };
+let _exportTargetHeightMm = '';
+let _exportWeldToleranceMm = 0.001;
+let _exportCenterOnPlate = true;
 
 // ============================================================================
 // Modal DOM
@@ -194,6 +199,26 @@ function _injectStyles() {
       border:1px solid rgba(14,165,233,.08);border-radius:6px;font-size:10px;
       line-height:1.5;color:rgba(255,255,255,.45);}
     .mcp-info svg{color:rgba(14,165,233,.4);flex-shrink:0;margin-top:1px;}
+    .mcp-check-card{border-radius:8px;border:1px solid rgba(255,255,255,.06);
+      background:rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:6px;}
+    .mcp-check-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .mcp-score{font-size:18px;font-weight:800;line-height:1;padding:6px 8px;border-radius:7px;
+      background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);min-width:48px;text-align:center;}
+    .mcp-score.good{background:rgba(34,197,94,.12);color:#22c55e;}
+    .mcp-score.warn{background:rgba(245,158,11,.14);color:#f59e0b;}
+    .mcp-score.bad{background:rgba(239,68,68,.14);color:#ef4444;}
+    .mcp-check-text{font-size:10px;line-height:1.45;color:rgba(255,255,255,.5);}
+    .mcp-check-list{display:flex;flex-direction:column;gap:3px;font-size:10px;color:rgba(255,255,255,.48);}
+    .mcp-check-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.04);padding-top:3px;}
+    .mcp-check-row strong{color:rgba(255,255,255,.7);font-weight:600;}
+    .mcp-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+    .mcp-field{display:flex;flex-direction:column;gap:3px;}
+    .mcp-field span{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.35);}
+    .mcp-field input{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);
+      color:rgba(255,255,255,.85);border-radius:6px;padding:6px 7px;font-size:11px;outline:none;}
+    .mcp-field input:focus{border-color:rgba(14,165,233,.45);}
+    .mcp-check-toggle{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.5);}
+    .mcp-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
     .mcp-stats{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
     .mcp-viewer-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
       font-size:10px;color:rgba(255,255,255,.25);pointer-events:none;
@@ -657,6 +682,12 @@ function _clearAllPaint() {
 // ============================================================================
 
 async function _export3MF() {
+  const score = _manualPrintCheck.result?.score;
+  if (Number.isFinite(Number(score)) && Number(score) < 60) {
+    const proceed = confirm('Print Check says this mesh needs repair before slicing. Export anyway?');
+    if (!proceed) return;
+  }
+
   // Dynamically load JSZip if not present
   if (!window.JSZip) {
     const script = document.createElement('script');
@@ -675,11 +706,25 @@ async function _export3MF() {
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
 
-  // ---- Collect all vertices + face data in world space ----
-  // No scale — export raw coordinates. User scales in slicer.
+  // ---- Collect welded vertices + face data in world space ----
+  // Paint uses non-indexed geometry in the viewer, but slicers need shared
+  // vertices. Otherwise every triangle is an isolated shell and Bambu reports
+  // millions of non-manifold edges.
   const allVerts = [];   // flat [x,y,z, ...]
   const allFaces = [];   // {v1,v2,v3, colorSlot}
-  let vOff = 0;
+  const vertexMap = new Map();
+  const weldTolerance = Math.min(0.05, Math.max(0.00001, Number(_exportWeldToleranceMm) || 0.001));
+  const weldScale = 1 / weldTolerance;
+  const vertexKey = (x, y, z) => `${Math.round(x * weldScale)},${Math.round(y * weldScale)},${Math.round(z * weldScale)}`;
+  const addVertex = (x, y, z) => {
+    const key = vertexKey(x, y, z);
+    const existing = vertexMap.get(key);
+    if (existing !== undefined) return existing;
+    const idx = allVerts.length / 3;
+    allVerts.push(x, y, z);
+    vertexMap.set(key, idx);
+    return idx;
+  };
 
   for (let mi = 0; mi < _paintMeshes.length; mi++) {
     const mesh = _paintMeshes[mi];
@@ -690,19 +735,62 @@ async function _export3MF() {
     const mat = mesh.matrixWorld;
     const v = new T.Vector3();
 
-    for (let i = 0; i < posAttr.count; i++) {
-      v.fromBufferAttribute(posAttr, i).applyMatrix4(mat);
-      allVerts.push(v.x, v.y, v.z);
-    }
     for (let fi = 0; fi < faceCount; fi++) {
+      const base = fi * 3;
+      v.fromBufferAttribute(posAttr, base).applyMatrix4(mat);
+      const v1 = addVertex(v.x, v.y, v.z);
+      v.fromBufferAttribute(posAttr, base + 1).applyMatrix4(mat);
+      const v2 = addVertex(v.x, v.y, v.z);
+      v.fromBufferAttribute(posAttr, base + 2).applyMatrix4(mat);
+      const v3 = addVertex(v.x, v.y, v.z);
+      if (v1 === v2 || v1 === v3 || v2 === v3) continue;
       allFaces.push({
-        v1: vOff + fi * 3,
-        v2: vOff + fi * 3 + 1,
-        v3: vOff + fi * 3 + 2,
+        v1,
+        v2,
+        v3,
         colorSlot: _faceColors[offset + fi]
       });
     }
-    vOff += posAttr.count;
+  }
+
+  if (!allFaces.length) {
+    throw new Error('No printable triangles found in the painted model.');
+  }
+
+  const targetHeight = Number.parseFloat(_exportTargetHeightMm);
+  if (Number.isFinite(targetHeight) && targetHeight > 0) {
+    let minZScale = Infinity, maxZScale = -Infinity;
+    for (let i = 2; i < allVerts.length; i += 3) {
+      if (allVerts[i] < minZScale) minZScale = allVerts[i];
+      if (allVerts[i] > maxZScale) maxZScale = allVerts[i];
+    }
+    const currentHeight = maxZScale - minZScale;
+    if (currentHeight > 0) {
+      const scale = targetHeight / currentHeight;
+      for (let i = 0; i < allVerts.length; i++) allVerts[i] *= scale;
+    }
+  }
+
+  // Keep the exported object centered and sitting on the build plate while
+  // preserving its source dimensions unless the user chose a target height.
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < allVerts.length; i += 3) {
+    const x = allVerts[i], y = allVerts[i + 1], z = allVerts[i + 2];
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (z < minZ) minZ = z;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  if (_exportCenterOnPlate) {
+    for (let i = 0; i < allVerts.length; i += 3) {
+      allVerts[i] -= centerX;
+      allVerts[i + 1] -= centerY;
+      allVerts[i + 2] -= minZ;
+    }
   }
 
   const usedSlots = [...new Set(allFaces.map(f => f.colorSlot).filter(s => s >= 0))].sort((a, b) => a - b);
@@ -987,6 +1075,81 @@ function _safeFileBase(name) {
 // Sidebar UI
 // ============================================================================
 
+function _printCheckSummaryHtml() {
+  if (_manualPrintCheck.loading) {
+    return `<div class="mcp-check-card"><div class="mcp-check-text">Running print analysis...</div></div>`;
+  }
+  if (_manualPrintCheck.error) {
+    return `<div class="mcp-check-card"><div class="mcp-check-text" style="color:#ef4444;">${_escXml(_manualPrintCheck.error)}</div></div>`;
+  }
+  const data = _manualPrintCheck.result;
+  if (!data) {
+    return `<div class="mcp-check-card"><div class="mcp-check-text">Run this before painting or exporting. It checks watertightness, face count, invalid faces, dimensions, and print-risk signals.</div></div>`;
+  }
+  const score = Number(data.score || 0);
+  const scoreClass = score >= 80 ? 'good' : score >= 60 ? 'warn' : 'bad';
+  const c = data.checks || {};
+  const dims = Array.isArray(c.bounding_box_mm) ? c.bounding_box_mm.map(v => Number(v).toFixed(1)).join(' x ') + ' mm' : 'Unknown';
+  const verdict = score >= 80 ? 'Good for paint/export' : score >= 60 ? 'Usable, repair recommended' : 'Repair before painting';
+  return `
+    <div class="mcp-check-card">
+      <div class="mcp-check-head">
+        <div>
+          <div class="mcp-label" style="margin:0 0 3px;">Result</div>
+          <div class="mcp-check-text">${verdict}</div>
+        </div>
+        <div class="mcp-score ${scoreClass}">${score}</div>
+      </div>
+      <div class="mcp-check-list">
+        <div class="mcp-check-row"><span>Watertight</span><strong>${c.is_manifold === true ? 'Yes' : c.is_manifold === false ? 'No' : 'Unknown'}</strong></div>
+        <div class="mcp-check-row"><span>Faces</span><strong>${c.face_count ? Number(c.face_count).toLocaleString() : 'Unknown'}</strong></div>
+        <div class="mcp-check-row"><span>Degenerate</span><strong>${c.degenerate_face_count ? Number(c.degenerate_face_count).toLocaleString() : '0'}</strong></div>
+        <div class="mcp-check-row"><span>Size</span><strong>${dims}</strong></div>
+      </div>
+      ${data.issues?.length ? `<div class="mcp-check-text" style="color:#f59e0b;">${_escXml(data.issues[0])}</div>` : ''}
+    </div>`;
+}
+
+async function _runManualPrintCheck() {
+  if (!_taskId || _manualPrintCheck.loading) return;
+  _manualPrintCheck = { loading: true, result: null, error: '' };
+  _renderSidebar();
+  try {
+    const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(_taskId)}`, {
+      method: 'POST',
+      body: { printer_type: 'fdm' },
+      timeout: 45000,
+    });
+    if (!res.ok) throw new Error(res.error || `Print check failed (${res.status})`);
+    _manualPrintCheck = { loading: false, result: res.data, error: '' };
+    const height = res.data?.checks?.bounding_box_mm?.[2];
+    if (!_exportTargetHeightMm && Number.isFinite(Number(height)) && Number(height) > 0) {
+      _exportTargetHeightMm = String(Math.round(Number(height) * 10) / 10);
+    }
+  } catch (err) {
+    _manualPrintCheck = { loading: false, result: null, error: err?.message || 'Print check failed.' };
+  }
+  _renderSidebar();
+}
+
+async function _startPrintRepair() {
+  if (typeof _manualRepairHandler !== 'function') {
+    alert('Repair is available from history items after the page finishes loading.');
+    return;
+  }
+  const targetHeight = Number.parseFloat(_exportTargetHeightMm);
+  await _manualRepairHandler({
+    print_height_mm: Number.isFinite(targetHeight) && targetHeight > 0 ? targetHeight : null,
+    target_polycount: 120000,
+    target_formats: ['glb', 'stl', '3mf'],
+    origin_at: 'bottom',
+  });
+  if (window.showToast) {
+    window.showToast('Print repair started. When the remesh finishes, open Manual Paint on the repaired history item.', 'info');
+  }
+  closeMultiColorModal();
+}
+
 function _renderSidebar() {
   const sb = document.getElementById('mcp-sidebar');
   if (!sb) return;
@@ -1058,6 +1221,34 @@ function _renderSidebar() {
 
     <div class="mcp-stats" id="mcp-stats">${pct}% painted (${paintedCount}/${_totalFaces} faces)</div>
 
+    <div class="mcp-section">
+      <div class="mcp-label">Print Preflight</div>
+      ${_printCheckSummaryHtml()}
+      <div class="mcp-brush-row" style="margin-top:6px;">
+        <button class="mcp-brush-btn" id="mcp-print-check-btn" ${_manualPrintCheck.loading ? 'disabled' : ''}>${_manualPrintCheck.loading ? 'Checking...' : 'Run Print Check'}</button>
+        <button class="mcp-brush-btn" id="mcp-repair-btn">Repair / Remesh</button>
+      </div>
+    </div>
+
+    <div class="mcp-section">
+      <div class="mcp-label">Export Cleanup</div>
+      <div class="mcp-input-grid">
+        <label class="mcp-field">
+          <span>Target height mm</span>
+          <input id="mcp-export-height" type="number" min="1" step="0.1" placeholder="Keep size" value="${_escXml(_exportTargetHeightMm)}">
+        </label>
+        <label class="mcp-field">
+          <span>Weld tolerance mm</span>
+          <input id="mcp-weld-tolerance" type="number" min="0.00001" max="0.05" step="0.0001" value="${_exportWeldToleranceMm}">
+        </label>
+      </div>
+      <label class="mcp-check-toggle" style="margin-top:7px;">
+        <input id="mcp-center-plate" type="checkbox" ${_exportCenterOnPlate ? 'checked' : ''}>
+        <span>Center model and place bottom on build plate</span>
+      </label>
+      <div class="mcp-check-text" style="margin-top:5px;">3MF export welds duplicate vertices and removes zero-area triangles. STL conversion should be used only for geometry repair because STL cannot keep colors.</div>
+    </div>
+
     <div class="mcp-info">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
@@ -1085,6 +1276,19 @@ function _renderSidebar() {
   sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
   sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);
   sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
+  sb.querySelector('#mcp-print-check-btn')?.addEventListener('click', _runManualPrintCheck);
+  sb.querySelector('#mcp-repair-btn')?.addEventListener('click', _startPrintRepair);
+
+  sb.querySelector('#mcp-export-height')?.addEventListener('input', (e) => {
+    _exportTargetHeightMm = e.target.value;
+  });
+  sb.querySelector('#mcp-weld-tolerance')?.addEventListener('input', (e) => {
+    const v = Number.parseFloat(e.target.value);
+    if (Number.isFinite(v)) _exportWeldToleranceMm = Math.min(0.05, Math.max(0.00001, v));
+  });
+  sb.querySelector('#mcp-center-plate')?.addEventListener('change', (e) => {
+    _exportCenterOnPlate = !!e.target.checked;
+  });
 
   // Filament selection
   sb.querySelectorAll('.mcp-filament').forEach(el => {
@@ -1179,19 +1383,25 @@ function _dispose() {
   if (_scene) { _scene.clear(); _scene = null; }
   _model = null; _camera = null; _raycaster = null;
   _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _totalFaces = 0;
+  _manualRepairHandler = null;
 }
 
 // ============================================================================
 // Public API
 // ============================================================================
 
-export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
+export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, onRepair } = {}) {
   _taskId = taskId;
   _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
   _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
   _activeSlot = 0;
   _brushMode = 'region';
   _paintEnabled = true;
+  _manualRepairHandler = typeof onRepair === 'function' ? onRepair : null;
+  _manualPrintCheck = { loading: false, result: null, error: '' };
+  _exportTargetHeightMm = '';
+  _exportWeldToleranceMm = 0.001;
+  _exportCenterOnPlate = true;
 
   const overlay = _createModal();
   _setupViewer(glbUrl);
