@@ -1,7 +1,7 @@
 /**
  * converter.js
  * Self-contained logic for the file converter tool (drag-and-drop 3D format converter).
- * Supports: GLB, GLTF, OBJ, STL, FBX import and GLB, GLTF, OBJ, STL export.
+ * Supports: GLB, GLTF, OBJ, STL, 3MF, FBX import and GLB, GLTF, OBJ, STL, 3MF export.
  */
 
 // ============================================================================
@@ -337,6 +337,11 @@ function loadModelToPreview(file) {
       const mesh = new THREE.Mesh(geometry, material);
       loadComplete(mesh);
     }, undefined, loadError);
+  } else if (ext === '3mf') {
+    const loader = new THREE.ThreeMFLoader();
+    loader.load(url, (object) => {
+      loadComplete(object);
+    }, undefined, loadError);
   } else if (ext === 'fbx') {
     const loader = new THREE.FBXLoader();
     loader.load(url, (fbxScene) => {
@@ -422,6 +427,111 @@ function resetUpload() {
   // Clean up preview but keep scene
   _disposeModel(converterModel, converterScene);
   converterModel = null;
+}
+
+async function ensureJSZip() {
+  if (window.JSZip) return;
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  document.head.appendChild(script);
+  await new Promise((resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Failed to load JSZip'));
+  });
+}
+
+function uuid4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function collectGeometryFor3MF(root) {
+  const vertices = [];
+  const triangles = [];
+  let vertexOffset = 0;
+  const v = new THREE.Vector3();
+
+  root.updateMatrixWorld(true);
+  root.traverse((child) => {
+    if (!child.isMesh || !child.geometry?.attributes?.position) return;
+    const geo = child.geometry;
+    const pos = geo.attributes.position;
+
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(child.matrixWorld);
+      vertices.push(v.x, v.y, v.z);
+    }
+
+    if (geo.index) {
+      const idx = geo.index.array;
+      for (let i = 0; i + 2 < idx.length; i += 3) {
+        triangles.push(vertexOffset + idx[i], vertexOffset + idx[i + 1], vertexOffset + idx[i + 2]);
+      }
+    } else {
+      for (let i = 0; i + 2 < pos.count; i += 3) {
+        triangles.push(vertexOffset + i, vertexOffset + i + 1, vertexOffset + i + 2);
+      }
+    }
+    vertexOffset += pos.count;
+  });
+
+  return { vertices, triangles };
+}
+
+async function exportBasic3MF(root) {
+  await ensureJSZip();
+  const zip = new window.JSZip();
+  const { vertices, triangles } = collectGeometryFor3MF(root);
+  if (!vertices.length || !triangles.length) throw new Error('No mesh geometry found for 3MF export');
+
+  const vLines = [];
+  for (let i = 0; i < vertices.length; i += 3) {
+    vLines.push(`     <vertex x="${vertices[i].toFixed(6)}" y="${vertices[i + 1].toFixed(6)}" z="${vertices[i + 2].toFixed(6)}"/>`);
+  }
+  const tLines = [];
+  for (let i = 0; i < triangles.length; i += 3) {
+    tLines.push(`     <triangle v1="${triangles[i]}" v2="${triangles[i + 1]}" v3="${triangles[i + 2]}"/>`);
+  }
+
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US"
+ xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+ xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
+ requiredextensions="p">
+ <metadata name="Application">TimrX Converter</metadata>
+ <resources>
+  <object id="1" type="model" p:UUID="${uuid4()}">
+   <mesh>
+    <vertices>
+${vLines.join('\n')}
+    </vertices>
+    <triangles>
+${tLines.join('\n')}
+    </triangles>
+   </mesh>
+  </object>
+ </resources>
+ <build p:UUID="${uuid4()}">
+  <item objectid="1" p:UUID="${uuid4()}" printable="1"/>
+ </build>
+</model>`;
+
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+ <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+ <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+ <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`;
+
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', rels);
+  zip.file('3D/3dmodel.model', modelXml);
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
 }
 
 // ============================================================================
@@ -578,6 +688,12 @@ async function exportModel(format) {
         blob = new Blob([result], { type: 'text/plain' });
       }
       filename = baseName + '.stl';
+    } else if (format === '3mf') {
+      if (progressFill) progressFill.style.width = '50%';
+      if (progressText) progressText.textContent = 'Exporting geometry-only 3MF...';
+
+      blob = await exportBasic3MF(modelToExport, baseName);
+      filename = baseName + '.3mf';
     } else if (format === 'usdz') {
       if (!THREE.USDZExporter) {
         throw new Error('USDZExporter not available');

@@ -94,9 +94,9 @@
                 </svg>
                 <h2>Drop your 3D file here</h2>
                 <p>or click to browse</p>
-                <span class="converter-formats-hint">Supports: GLB, GLTF, OBJ, STL, FBX</span>
+                <span class="converter-formats-hint">Supports: GLB, GLTF, OBJ, STL, 3MF, FBX</span>
               </div>
-              <input type="file" id="converterFileInput" accept=".glb,.gltf,.obj,.stl,.fbx" hidden>
+              <input type="file" id="converterFileInput" accept=".glb,.gltf,.obj,.stl,.3mf,.fbx" hidden>
             </div>
 
             <div class="converter-file-info hidden" id="converterFileInfo">
@@ -150,6 +150,13 @@
                     <span class="converter-format-card">
                       <strong>STL</strong>
                       <small>3D printing standard</small>
+                    </span>
+                  </label>
+                  <label class="converter-format-option">
+                    <input type="radio" name="exportFormat" value="3mf">
+                    <span class="converter-format-card">
+                      <strong>3MF</strong>
+                      <small>Geometry-only print package</small>
                     </span>
                   </label>
                   <label class="converter-format-option">
@@ -467,18 +474,20 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
     import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+    import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
     import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
     import { STLExporter } from 'three/addons/exporters/STLExporter.js';
     import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
-    import { init as initConverter } from './js/converter.js';
+    import { init as initConverter } from './js/converter.js?v=20260507a';
 
     window.THREE = Object.assign({}, THREE_NS, {
       OrbitControls,
       GLTFLoader,
       OBJLoader,
       STLLoader,
+      ThreeMFLoader,
       FBXLoader,
       GLTFExporter,
       OBJExporter,

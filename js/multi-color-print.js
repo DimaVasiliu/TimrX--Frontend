@@ -704,69 +704,43 @@ async function _export3MF() {
     vOff += posAttr.count;
   }
 
-  // ---- Group faces by color slot → separate volume per color ----
-  const groups = new Map();
-  for (let i = 0; i < allFaces.length; i++) {
-    const s = allFaces[i].colorSlot;
-    if (!groups.has(s)) groups.set(s, []);
-    groups.get(s).push(i);
+  const usedSlots = [...new Set(allFaces.map(f => f.colorSlot).filter(s => s >= 0))].sort((a, b) => a - b);
+  const maxPaintSlot = Math.max(-1, ...usedSlots);
+  if (maxPaintSlot > 14) {
+    throw new Error('Bambu export supports up to 15 painted colors plus the default base color.');
   }
-  const sortedSlots = [...groups.keys()].sort((a, b) => a - b); // -1 first
 
-  // ---- Build one external object model per color group.
-  // Bambu is much more stable with the same package shape it writes itself:
-  // root /3D/3dmodel.model + component objects in /3D/Objects/*.model.
-  const componentRefs = [];
-  const partSettings = [];    // for model_settings.config
-  const filamentColors = [];
-  let objId = 1;
-  let extruderNum = 1;
+  // Bambu/Orca color painting stores one intact mesh and writes paint_color on
+  // painted triangles. Splitting painted faces into separate meshes creates
+  // open, non-manifold surface patches, so do not split by color here.
+  const objectId = 1;
+  const parentId = 2;
+  const parentUuid = _u();
+  const objectUuid = _u();
+  const filamentColors = [
+    '#C8C8C8',
+    ..._filaments.slice(0, 15).map(f => _normalizeBambuColor(f.hex)),
+  ];
 
-  for (const slot of sortedSlots) {
-    const faceIdxs = groups.get(slot);
-    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#C8C8C8', name: 'Default' };
-    const objectPath = `/3D/Objects/object_${objId}.model`;
-    const objectFile = `3D/Objects/object_${objId}.model`;
-    const objectUuid = _u();
+  const vLines = [];
+  for (let i = 0; i < allVerts.length; i += 3) {
+    vLines.push(`     <vertex x="${allVerts[i].toFixed(6)}" y="${allVerts[i + 1].toFixed(6)}" z="${allVerts[i + 2].toFixed(6)}"/>`);
+  }
 
-    // Remap vertices: only include vertices used by this group
-    const vertMap = new Map();
-    let newIdx = 0;
-    const localVerts = [];
-    const localTris = [];
+  const tLines = allFaces.map((face) => {
+    const paintSlot = face.colorSlot >= 0 ? face.colorSlot + 2 : 0; // slot 1 is base/default
+    const paintAttr = paintSlot > 1 ? ` paint_color="${_bambuPaintCode(paintSlot)}"` : '';
+    return `     <triangle v1="${face.v1}" v2="${face.v2}" v3="${face.v3}"${paintAttr}/>`;
+  }).join('\n');
 
-    for (const fi of faceIdxs) {
-      const face = allFaces[fi];
-      const ids = [face.v1, face.v2, face.v3];
-      const mapped = [];
-      for (const vid of ids) {
-        if (!vertMap.has(vid)) {
-          vertMap.set(vid, newIdx);
-          const i3 = vid * 3;
-          localVerts.push(allVerts[i3], allVerts[i3 + 1], allVerts[i3 + 2]);
-          newIdx++;
-        }
-        mapped.push(vertMap.get(vid));
-      }
-      localTris.push(mapped);
-    }
-
-    const vLines = [];
-    for (let i = 0; i < localVerts.length; i += 3) {
-      vLines.push(`     <vertex x="${localVerts[i].toFixed(6)}" y="${localVerts[i+1].toFixed(6)}" z="${localVerts[i+2].toFixed(6)}"/>`);
-    }
-    const tLines = localTris.map(t =>
-      `     <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}"/>`
-    ).join('\n');
-
-    const objectModelXml = `<?xml version="1.0" encoding="UTF-8"?>
+  const objectModelXml = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US"
  xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
  xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
  requiredextensions="p">
  <metadata name="BambuStudio:3mfVersion">2</metadata>
  <resources>
-  <object id="1" p:UUID="${objectUuid}" type="model">
+  <object id="${objectId}" p:UUID="${objectUuid}" type="model">
    <mesh>
     <vertices>
 ${vLines.join('\n')}
@@ -779,33 +753,7 @@ ${tLines}
  </resources>
  <build/>
 </model>`;
-
-    zip.file(objectFile, objectModelXml);
-    componentRefs.push(`    <component p:path="${objectPath}" objectid="1" p:UUID="${_u()}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>`);
-
-    // model_settings.config: map this part to an extruder
-    partSettings.push(`    <part id="${objId}" subtype="normal_part">
-      <metadata key="name" value="${_escXml(color.name)}"/>
-      <metadata key="extruder" value="${extruderNum}"/>
-      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
-      <metadata key="source_file" value="${_escXml(color.name)}.glb"/>
-      <metadata key="source_object_id" value="0"/>
-      <metadata key="source_volume_id" value="${objId - 1}"/>
-      <metadata key="source_offset_x" value="0"/>
-      <metadata key="source_offset_y" value="0"/>
-      <metadata key="source_offset_z" value="0"/>
-      <mesh_stat face_count="${localTris.length}" edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reversed="0" backwards_edges="0"/>
-    </part>`);
-
-    filamentColors.push(_normalizeBambuColor(color.hex));
-
-    objId++;
-    extruderNum++;
-  }
-
-  // ---- Parent object with components ----
-  const parentId = objId;
-  const parentUuid = _u();
+  zip.file('3D/Objects/object_1.model', objectModelXml);
 
   // ---- 3D/3dmodel.model ----
   const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -819,7 +767,7 @@ ${tLines}
   <resources>
     <object id="${parentId}" type="model" p:UUID="${parentUuid}">
       <components>
-${componentRefs.join('\n')}
+        <component p:path="/3D/Objects/object_1.model" objectid="${objectId}" p:UUID="${_u()}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>
       </components>
     </object>
   </resources>
@@ -835,7 +783,17 @@ ${componentRefs.join('\n')}
     <metadata key="name" value="${_escXml(_modelTitle || 'model')}"/>
     <metadata key="extruder" value="1"/>
     <metadata face_count="${allFaces.length}"/>
-${partSettings.join('\n')}
+    <part id="${objectId}" subtype="normal_part">
+      <metadata key="name" value="${_escXml(_modelTitle || 'model')}"/>
+      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+      <metadata key="source_file" value="${_escXml(_safeFileBase(_modelTitle || 'model'))}.glb"/>
+      <metadata key="source_object_id" value="0"/>
+      <metadata key="source_volume_id" value="0"/>
+      <metadata key="source_offset_x" value="0"/>
+      <metadata key="source_offset_y" value="0"/>
+      <metadata key="source_offset_z" value="0"/>
+      <mesh_stat face_count="${allFaces.length}" edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reversed="0" backwards_edges="0"/>
+    </part>
   </object>
   <plate>
     <metadata key="plater_id" value="1"/>
@@ -851,12 +809,14 @@ ${partSettings.join('\n')}
   </assemble>
 </config>`;
 
-  // ---- Metadata/project_settings.config (minimal, needed for Bambu recognition) ----
-  const projectSettings = `<?xml version="1.0" encoding="UTF-8"?>
-<config>
-  <metadata key="filament_colour" value="${filamentColors.join(';')}"/>
-  <metadata key="filament_type" value="${filamentColors.map(() => 'PLA').join(';')}"/>
-</config>`;
+  // Bambu/Orca store project settings as JSON, even though the file extension
+  // is .config. These filament arrays are the authoritative slot colors.
+  const projectSettings = JSON.stringify({
+    filament_colour: filamentColors,
+    filament_type: filamentColors.map(() => 'PLA'),
+    filament_diameter: filamentColors.map(() => '1.75'),
+    filament_density: filamentColors.map(() => '1.24'),
+  }, null, 2);
 
   // ---- Standard 3MF boilerplate ----
   const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
@@ -873,9 +833,7 @@ ${partSettings.join('\n')}
 
   const modelRels = `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-${Array.from({ length: sortedSlots.length }, (_, i) =>
-  `  <Relationship Target="/3D/Objects/object_${i + 1}.model" Id="rel-${i + 1}" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>`
-).join('\n')}
+  <Relationship Target="/3D/Objects/object_1.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
 </Relationships>`;
 
   // ---- Pack ZIP ----
@@ -938,6 +896,30 @@ function _normalizeBambuColor(hex) {
   const raw = String(hex || '#C8C8C8').trim().replace(/^#/, '');
   const rgb = /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : 'C8C8C8';
   return `#${rgb}`;
+}
+
+function _bambuPaintCode(slotNumber) {
+  // Bambu/Orca encode painted filament slots as string codes, not raw slot
+  // numbers. slotNumber is 1-based; slot 1 is the unpainted base filament.
+  const codes = {
+    1: '',
+    2: '8',
+    3: '0C',
+    4: '1C',
+    5: '2C',
+    6: '3C',
+    7: '4C',
+    8: '5C',
+    9: '8C',
+    10: '9C',
+    11: 'AC',
+    12: 'BC',
+    13: 'CC',
+    14: 'DC',
+    15: 'EC',
+    16: 'FC',
+  };
+  return codes[slotNumber] || '';
 }
 
 function _safeFileBase(name) {
