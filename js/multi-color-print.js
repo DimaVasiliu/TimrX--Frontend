@@ -425,12 +425,13 @@ function _preparePaintData() {
   _paintMeshes = [];
   _model.traverse((child) => {
     if (child.isMesh && child.geometry) {
-      // Ensure non-indexed geometry for per-face vertex colors
-      let geo = child.geometry;
+      // Work on a private non-indexed copy. Mutating loader-owned geometry can
+      // corrupt later exports because clones share BufferGeometry by reference.
+      let geo = child.geometry.clone();
       if (geo.index) {
         geo = geo.toNonIndexed();
-        child.geometry = geo;
       }
+      child.geometry = geo;
       // Add vertex color attribute (default white)
       const count = geo.attributes.position.count;
       const colors = new Float32Array(count * 3);
@@ -853,18 +854,7 @@ async function _exportColoredGLB() {
   _applyColorsToMeshes();
   const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
   const T = window.THREE;
-  const exportRoot = _model.clone(true);
-  exportRoot.traverse((child) => {
-    if (!child.isMesh || !child.geometry) return;
-    // Export the paint itself, not the original generated texture multiplied
-    // by paint. This makes the downloaded GLB visibly match the manual colors.
-    child.material = new T.MeshStandardMaterial({
-      color: 0xffffff,
-      vertexColors: true,
-      roughness: 0.65,
-      metalness: 0,
-    });
-  });
+  const exportRoot = _buildMaterialColoredGLBRoot(T);
   const exporter = new GLTFExporter();
   const result = await new Promise((resolve, reject) => {
     exporter.parse(exportRoot, resolve, reject, {
@@ -875,6 +865,73 @@ async function _exportColoredGLB() {
   });
   const blob = new Blob([result], { type: 'model/gltf-binary' });
   _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-painted.glb`);
+}
+
+function _buildMaterialColoredGLBRoot(T) {
+  const root = new T.Group();
+  root.name = _safeFileBase(_modelTitle || 'painted_model');
+
+  const materials = [
+    new T.MeshStandardMaterial({ name: 'base_unpainted', color: 0xffffff, roughness: 0.65, metalness: 0 }),
+    ..._filaments.map((f, i) => new T.MeshStandardMaterial({
+      name: `filament_${i + 1}_${_normalizeBambuColor(f.hex).slice(1)}`,
+      color: f.hex,
+      roughness: 0.65,
+      metalness: 0,
+    })),
+  ];
+
+  for (let mi = 0; mi < _paintMeshes.length; mi++) {
+    const source = _paintMeshes[mi];
+    const posAttr = source.geometry.attributes.position;
+    const normalAttr = source.geometry.attributes.normal;
+    const uvAttr = source.geometry.attributes.uv;
+    const faceCount = posAttr.count / 3;
+    const faceOffset = _faceOffsets[mi];
+
+    const positions = [];
+    const normals = normalAttr ? [] : null;
+    const uvs = uvAttr ? [] : null;
+    const groups = new Map();
+
+    for (let fi = 0; fi < faceCount; fi++) {
+      const slot = _faceColors[faceOffset + fi];
+      const materialIndex = slot >= 0 && slot < _filaments.length ? slot + 1 : 0;
+      if (!groups.has(materialIndex)) groups.set(materialIndex, []);
+      groups.get(materialIndex).push(fi);
+    }
+
+    const sortedGroups = [...groups.entries()].sort((a, b) => a[0] - b[0]);
+    const geometry = new T.BufferGeometry();
+    let vertexCursor = 0;
+
+    for (const [materialIndex, faces] of sortedGroups) {
+      const start = vertexCursor;
+      for (const fi of faces) {
+        for (let corner = 0; corner < 3; corner++) {
+          const idx = fi * 3 + corner;
+          positions.push(posAttr.getX(idx), posAttr.getY(idx), posAttr.getZ(idx));
+          if (normalAttr) normals.push(normalAttr.getX(idx), normalAttr.getY(idx), normalAttr.getZ(idx));
+          if (uvAttr) uvs.push(uvAttr.getX(idx), uvAttr.getY(idx));
+          vertexCursor++;
+        }
+      }
+      geometry.addGroup(start, vertexCursor - start, materialIndex);
+    }
+
+    geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+    if (normals) geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+    if (uvs) geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+    geometry.computeBoundingSphere();
+
+    const mesh = new T.Mesh(geometry, materials);
+    mesh.name = source.name || `painted_mesh_${mi + 1}`;
+    mesh.matrix.copy(source.matrixWorld);
+    mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+    root.add(mesh);
+  }
+
+  return root;
 }
 
 function _downloadBlob(blob, filename) {
