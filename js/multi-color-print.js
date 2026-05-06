@@ -718,12 +718,17 @@ async function _export3MF() {
   const componentRefs = [];
   const partSettings = [];    // for model_settings.config
   const filamentEntries = []; // for slice_info.config
+  const materialEntries = [];
+  const baseMaterialId = 1000;
   let objId = 1;
   let extruderNum = 1;
 
   for (const slot of sortedSlots) {
     const faceIdxs = groups.get(slot);
     const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#C8C8C8', name: 'Default' };
+    const materialIndex = materialEntries.length;
+    const displayColor = _normalize3mfColor(color.hex);
+    materialEntries.push(`      <base name="${_escXml(color.name)}" displaycolor="${displayColor}" />`);
 
     // Remap vertices: only include vertices used by this group
     const vertMap = new Map();
@@ -752,7 +757,7 @@ async function _export3MF() {
       vLines.push(`          <vertex x="${localVerts[i].toFixed(6)}" y="${localVerts[i+1].toFixed(6)}" z="${localVerts[i+2].toFixed(6)}" />`);
     }
     const tLines = localTris.map(t =>
-      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" />`
+      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" pid="${baseMaterialId}" p1="${materialIndex}" p2="${materialIndex}" p3="${materialIndex}" />`
     ).join('\n');
 
     const uuid = _u();
@@ -801,6 +806,9 @@ ${componentRefs.join('\n')}
   <metadata name="BambuStudio:3mfVersion">1</metadata>
   <metadata name="Application">BambuStudio-01.10.02.83</metadata>
   <resources>
+    <basematerials id="${baseMaterialId}">
+${materialEntries.join('\n')}
+    </basematerials>
 ${objectXmls.join('\n')}
   </resources>
   <build p:UUID="${_u()}">
@@ -856,10 +864,30 @@ ${filamentEntries.join('\n')}
   zip.file('Metadata/project_settings.config', projectSettings);
 
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
+  _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-multicolor.3mf`);
+}
+
+async function _exportColoredGLB() {
+  if (!_model) return;
+  _applyColorsToMeshes();
+  const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+  const exporter = new GLTFExporter();
+  const result = await new Promise((resolve, reject) => {
+    exporter.parse(_model, resolve, reject, {
+      binary: true,
+      onlyVisible: true,
+      includeCustomExtensions: false,
+    });
+  });
+  const blob = new Blob([result], { type: 'model/gltf-binary' });
+  _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-painted.glb`);
+}
+
+function _downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${_modelTitle || 'model'}-multicolor.3mf`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -868,6 +896,16 @@ ${filamentEntries.join('\n')}
 
 function _escXml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _normalize3mfColor(hex) {
+  const raw = String(hex || '#C8C8C8').trim().replace(/^#/, '');
+  const rgb = /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : 'C8C8C8';
+  return `#${rgb}FF`;
+}
+
+function _safeFileBase(name) {
+  return String(name || 'model').replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'model';
 }
 
 // ============================================================================
@@ -958,6 +996,9 @@ function _renderSidebar() {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download 3MF
       </button>
+      <button class="mcp-btn mcp-btn-secondary" id="mcp-export-glb-btn">
+        Download Colored GLB
+      </button>
       <button class="mcp-btn mcp-btn-danger" id="mcp-clear-btn">Clear All Paint</button>
       <button class="mcp-btn mcp-btn-secondary" id="mcp-cancel-btn">Close</button>
     </div>
@@ -967,6 +1008,7 @@ function _renderSidebar() {
   sb.querySelector('#mcp-close-btn')?.addEventListener('click', closeMultiColorModal);
   sb.querySelector('#mcp-cancel-btn')?.addEventListener('click', closeMultiColorModal);
   sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
+  sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);
   sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
 
   // Filament selection
