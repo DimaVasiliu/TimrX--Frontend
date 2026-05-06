@@ -1,1309 +1,2600 @@
 /**
- * Multi-Color Paint & Export
- *
- * Client-side model painting + 3MF export. No external API needed.
- * 1. Load GLB model into Three.js viewer
- * 2. User picks filament colors from real Bambu Lab palettes
- * 3. User clicks on model to paint regions (raycaster + flood fill)
- * 4. Export colored model as 3MF (JSZip) — instant, free, offline
+ * main.js
+ * The entry point. Imports all modules, runs initialization logic,
+ * and sets up the primary event listeners.
  */
 
-import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
+import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
+import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
+import * as Viewer from './viewer.js?v=20260408b';
+import * as UI from './ui-utils.js';
+import {
+  renderHistory,
+  shortTitle,
+  closeActiveHistoryMenu,
+  closeActiveHistorySubmenu,
+  openHistoryMenu,
+  openHistorySubmenu,
+  updateActiveHistoryMenuPosition,
+  getActiveHistoryMenu,
+  getActiveHistorySubmenu,
+  getGroupedCardItems,
+  resetGalleryInfiniteScroll
+} from './history.js?v=20260408a';
+import * as API from './api.js?v=20260407e';
+import * as Converter from './converter.js';
+import * as Credits from './workspace-credits.js';
+import * as Notifications from './notifications.js';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260408k';
 
 // ============================================================================
-// Constants
+// MODULE STATE
 // ============================================================================
 
-const PLA_BASIC = [
-  { hex: '#FFFFFF', name: 'White' },
-  { hex: '#F5F5F0', name: 'Cool White' },
-  { hex: '#D1DBCF', name: 'Jade White' },
-  { hex: '#F4EE2A', name: 'Yellow' },
-  { hex: '#FDE047', name: 'Lemon Yellow' },
-  { hex: '#E8B455', name: 'Savanna Yellow' },
-  { hex: '#FAA256', name: 'Mandarin Orange' },
-  { hex: '#F97316', name: 'Orange' },
-  { hex: '#E63A2E', name: 'Red' },
-  { hex: '#C62828', name: 'Scarlet Red' },
-  { hex: '#EC4899', name: 'Pink' },
-  { hex: '#D946EF', name: 'Magenta' },
-  { hex: '#8B5CF6', name: 'Purple' },
-  { hex: '#2563EB', name: 'Blue' },
-  { hex: '#38BDF8', name: 'Sky Blue' },
-  { hex: '#06B6D4', name: 'Cyan' },
-  { hex: '#14B8A6', name: 'Teal' },
-  { hex: '#047857', name: 'Bambu Green' },
-  { hex: '#22C55E', name: 'Green' },
-  { hex: '#84CC16', name: 'Lime' },
-  { hex: '#D4A017', name: 'Gold' },
-  { hex: '#C0C0C0', name: 'Silver' },
-  { hex: '#1A1A1A', name: 'Black' },
-];
-const PLA_MATTE = [
-  { hex: '#404040', name: 'Charcoal' },
-  { hex: '#FFFFF0', name: 'Ivory White' },
-  { hex: '#FFB7C5', name: 'Sakura Pink' },
-  { hex: '#C8A2C8', name: 'Lilac Purple' },
-  { hex: '#FF8C00', name: 'Mandarin Orange' },
-  { hex: '#006400', name: 'Dark Green' },
-  { hex: '#6A5ACD', name: 'Slate Blue' },
-  { hex: '#DC143C', name: 'Crimson' },
-  { hex: '#C2B280', name: 'Sand' },
-  { hex: '#8B4513', name: 'Chocolate' },
-  { hex: '#2F4F4F', name: 'Dark Slate' },
-  { hex: '#B22222', name: 'Firebrick' },
-  { hex: '#556B2F', name: 'Olive' },
-  { hex: '#483D8B', name: 'Dark Indigo' },
-  { hex: '#D2691E', name: 'Copper' },
-  { hex: '#808080', name: 'Grey' },
-];
+// DOM references
+let imageDrop, imageInput, imagePreview, imageModelName;
+let genHint;
 
-const DEFAULT_FILAMENTS = [
-  { hex: '#E63A2E', name: 'Red' },
-  { hex: '#2563EB', name: 'Blue' },
-  { hex: '#22C55E', name: 'Green' },
-  { hex: '#F4EE2A', name: 'Yellow' },
-];
-
-// Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
-const FLOOD_FILL_ANGLE = 0.52;
-
-// ============================================================================
-// State
-// ============================================================================
-
-let _scene = null, _renderer = null, _camera = null, _controls = null;
-let _model = null;          // loaded gltf.scene
-let _paintMeshes = [];      // flat list of THREE.Mesh with BufferGeometry
-let _faceColors = null;     // Int32Array, one slot index per face (-1 = unpainted)
-let _faceToMeshIdx = null;  // which mesh each global face belongs to
-let _faceOffsets = null;     // cumulative face offsets per mesh
-let _totalFaces = 0;
-
-let _filaments = [];        // [{hex, name}]
-let _activeSlot = 0;        // which filament is selected for painting
-let _brushMode = 'brush';   // 'brush' | 'region' | 'face' | 'eraser'
-let _brushRadius = 0.05;    // world-space radius for brush mode (0.01 - 0.5)
-let _paintEnabled = true;
-let _isPainting = false;    // true while mouse held in brush/face/eraser mode
-
-let _raycaster = null;
-let _mouse = new (window.THREE?.Vector2 || function(){})();
-
-// Precomputed face centers for brush radius check (per mesh)
-let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
-
-let _taskId = null;
-let _modelTitle = '';
-let _autoPollTimer = null;
-let _autoJobId = null;
-
-// ============================================================================
-// Modal DOM
-// ============================================================================
-
-function _injectStyles() {
-  if (document.getElementById('mcp-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'mcp-styles';
-  s.textContent = `
-    #multi-color-modal,
-    #meshy-mcp-modal {
-      position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
-      align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);
-    }
-    .mcp-container {
-      width:min(1200px,92vw);height:min(720px,88vh);background:#0f0f11;
-      border:1px solid rgba(255,255,255,.07);border-radius:12px;
-      display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8);
-    }
-    .mcp-viewer {
-      flex:1 1 60%;min-width:0;background:#121214;position:relative;
-      border-right:1px solid rgba(255,255,255,.07);cursor:crosshair;
-    }
-    .mcp-viewer.orbiting { cursor:grab; }
-    .mcp-sidebar {
-      flex:0 0 340px;overflow-y:auto;padding:14px;display:flex;
-      flex-direction:column;gap:10px;scrollbar-width:thin;
-      scrollbar-color:rgba(255,255,255,.12) transparent;
-    }
-    .mcp-sidebar::-webkit-scrollbar{width:5px;}
-    .mcp-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px;}
-    .mcp-header{display:flex;align-items:center;justify-content:space-between;}
-    .mcp-header h2{margin:0;font-size:14px;font-weight:700;color:rgba(255,255,255,.95);}
-    .mcp-close{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;
-      color:rgba(255,255,255,.5);cursor:pointer;transition:.15s;}
-    .mcp-close:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);}
-    .mcp-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.5);
-      text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
-    .mcp-filaments{display:flex;flex-direction:column;gap:3px;}
-    .mcp-filament{display:flex;align-items:center;gap:8px;padding:5px 8px;
-      border:1px solid rgba(255,255,255,.06);border-radius:6px;cursor:pointer;
-      transition:.15s;user-select:none;}
-    .mcp-filament:hover{background:rgba(255,255,255,.03);}
-    .mcp-filament.active{border-color:rgba(14,165,233,.5);background:rgba(14,165,233,.06);}
-    .mcp-filament-swatch{width:22px;height:22px;border-radius:4px;
-      border:1px solid rgba(0,0,0,.3);flex-shrink:0;}
-    .mcp-filament-info{flex:1;min-width:0;}
-    .mcp-filament-name{font-size:11px;color:rgba(255,255,255,.8);font-weight:500;}
-    .mcp-filament-hex{font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;}
-    .mcp-filament-rm{width:18px;height:18px;display:flex;align-items:center;
-      justify-content:center;border-radius:4px;color:rgba(255,255,255,.25);
-      cursor:pointer;transition:.15s;font-size:12px;flex-shrink:0;}
-    .mcp-filament-rm:hover{color:#ef4444;background:rgba(239,68,68,.1);}
-    .mcp-add-row{display:flex;gap:6px;align-items:center;}
-    .mcp-add-btn{flex:1;padding:5px 0;border:1px dashed rgba(255,255,255,.1);
-      border-radius:6px;background:none;color:rgba(255,255,255,.4);font-size:10px;
-      cursor:pointer;transition:.15s;text-align:center;}
-    .mcp-add-btn:hover{border-color:rgba(14,165,233,.3);color:rgba(14,165,233,.7);}
-    .mcp-palette{display:flex;flex-direction:column;gap:4px;}
-    .mcp-palette-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;}
-    .mcp-palette-sw{aspect-ratio:1;border-radius:3px;border:1px solid rgba(0,0,0,.25);
-      cursor:pointer;transition:.12s;}
-    .mcp-palette-sw:hover{transform:scale(1.12);box-shadow:0 2px 6px rgba(0,0,0,.4);}
-    .mcp-palette-sw.selected{outline:2px solid #0ea5e9;outline-offset:1px;}
-    .mcp-section{padding:8px;background:rgba(255,255,255,.02);
-      border:1px solid rgba(255,255,255,.04);border-radius:8px;}
-    .mcp-brush-row{display:flex;gap:4px;}
-    .mcp-brush-btn{flex:1;padding:4px 0;border:1px solid rgba(255,255,255,.08);
-      border-radius:5px;background:none;color:rgba(255,255,255,.5);font-size:10px;
-      cursor:pointer;transition:.15s;text-align:center;}
-    .mcp-brush-btn.active{border-color:rgba(14,165,233,.4);color:#0ea5e9;
-      background:rgba(14,165,233,.08);}
-    #mcp-brush-size::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-      border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
-    #mcp-brush-size::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
-      background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
-    .mcp-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;
-      padding-top:10px;border-top:1px solid rgba(255,255,255,.05);}
-    .mcp-btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;
-      border:none;cursor:pointer;transition:.2s;display:flex;align-items:center;
-      justify-content:center;gap:6px;white-space:nowrap;}
-    .mcp-btn-primary{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;
-      box-shadow:0 4px 12px rgba(14,165,233,.35);}
-    .mcp-btn-primary:hover{box-shadow:0 6px 16px rgba(14,165,233,.45);transform:translateY(-1px);}
-    .mcp-btn-secondary{background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
-    .mcp-btn-secondary:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
-    .mcp-btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
-      color:rgba(239,68,68,.8);}
-    .mcp-btn-danger:hover{background:rgba(239,68,68,.15);}
-    .mcp-info{display:flex;gap:6px;padding:8px;background:rgba(14,165,233,.04);
-      border:1px solid rgba(14,165,233,.08);border-radius:6px;font-size:10px;
-      line-height:1.5;color:rgba(255,255,255,.45);}
-    .mcp-info svg{color:rgba(14,165,233,.4);flex-shrink:0;margin-top:1px;}
-    .mcp-stats{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
-    .mcp-viewer-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
-      font-size:10px;color:rgba(255,255,255,.25);pointer-events:none;
-      background:rgba(0,0,0,.5);padding:3px 10px;border-radius:4px;}
-    @media(max-width:768px){
-      .mcp-container{flex-direction:column;}
-      .mcp-viewer{flex:0 0 50%;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
-      .mcp-sidebar{flex:1;padding:10px;}
-    }
-  `;
-  document.head.appendChild(s);
+function isMobileWorkspaceLayout() {
+  return window.matchMedia('(max-width: 768px)').matches;
 }
 
-function _createModal() {
-  _injectStyles();
-  const overlay = document.createElement('div');
-  overlay.id = 'multi-color-modal';
+function setMobileWorkspaceTab(target = 'controls') {
+  if (!isMobileWorkspaceLayout()) return;
 
-  overlay.innerHTML = `
-    <div class="mcp-container">
-      <div class="mcp-viewer" id="mcp-viewer"></div>
-      <div class="mcp-sidebar" id="mcp-sidebar"></div>
-    </div>`;
+  const wsLeft = document.getElementById('ws-left-panel');
+  const wsRight = document.getElementById('ws-right-panel');
+  const tabs = document.querySelectorAll('.ws-mobile-tab');
+  if (!wsLeft || !wsRight || tabs.length === 0) return;
 
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-function _createAutoModal() {
-  _injectStyles();
-  const overlay = document.createElement('div');
-  overlay.id = 'meshy-mcp-modal';
-  overlay.innerHTML = `
-    <div class="mcp-container" style="width:min(520px,92vw);height:auto;max-height:88vh;">
-      <div class="mcp-sidebar" style="flex:1 1 auto;">
-        <div class="mcp-header">
-          <h2>Meshy Auto 3MF</h2>
-          <div class="mcp-close" id="meshy-mcp-close">&times;</div>
-        </div>
-        <div class="mcp-section">
-          <div class="mcp-label">Color Count</div>
-          <input id="meshy-mcp-colors" type="range" min="1" max="16" value="4"
-            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;" />
-          <div id="meshy-mcp-colors-label" style="font-size:11px;color:rgba(255,255,255,.65);margin-top:6px;">4 colors</div>
-        </div>
-        <div class="mcp-section">
-          <div class="mcp-label">Color Detail</div>
-          <input id="meshy-mcp-depth" type="range" min="3" max="6" value="4"
-            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;" />
-          <div id="meshy-mcp-depth-label" style="font-size:11px;color:rgba(255,255,255,.65);margin-top:6px;">Level 4</div>
-        </div>
-        <div class="mcp-section" id="meshy-mcp-status" style="font-size:11px;line-height:1.5;color:rgba(255,255,255,.58);">
-          Ready to send to Meshy.
-        </div>
-        <div class="mcp-section" id="meshy-mcp-progress-wrap" style="display:none;">
-          <div style="height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;">
-            <div id="meshy-mcp-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#0ea5e9,#8b5cf6);transition:width .25s;"></div>
-          </div>
-        </div>
-        <div class="mcp-actions">
-          <button class="mcp-btn mcp-btn-primary" id="meshy-mcp-start">Start Meshy 3MF</button>
-          <button class="mcp-btn mcp-btn-secondary" id="meshy-mcp-download" style="display:none;">Download 3MF</button>
-          <button class="mcp-btn mcp-btn-secondary" id="meshy-mcp-cancel">Close</button>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-// ============================================================================
-// 3D Viewer
-// ============================================================================
-
-function _setupViewer(glbUrl) {
-  const container = document.getElementById('mcp-viewer');
-  if (!container) return;
-
-  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:12px;">Loading model...</div>';
-  if (!glbUrl) { container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.2);font-size:11px;">No model URL</div>'; return; }
-
-  container.innerHTML = '';
-  const T = window.THREE;
-  const w = container.clientWidth, h = container.clientHeight;
-
-  _scene = new T.Scene();
-  _scene.background = new T.Color(0x121214);
-  _camera = new T.PerspectiveCamera(50, w / h, 0.01, 500);
-  _camera.position.set(0, 0, 3);
-
-  _renderer = new T.WebGLRenderer({ antialias: true });
-  _renderer.setSize(w, h);
-  _renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  _renderer.toneMapping = T.ACESFilmicToneMapping;
-  _renderer.toneMappingExposure = 1.0;
-  container.appendChild(_renderer.domElement);
-
-  // Lighting
-  try {
-    if (T.RoomEnvironment && T.PMREMGenerator) {
-      const pmrem = new T.PMREMGenerator(_renderer);
-      _scene.environment = pmrem.fromScene(new T.RoomEnvironment()).texture;
-      pmrem.dispose();
-    }
-  } catch (_) {}
-  _scene.add(new T.AmbientLight(0xffffff, 0.5));
-  const dl = new T.DirectionalLight(0xffffff, 0.8);
-  dl.position.set(5, 10, 7);
-  _scene.add(dl);
-
-  _controls = new T.OrbitControls(_camera, _renderer.domElement);
-  _controls.enableDamping = true;
-  _controls.dampingFactor = 0.08;
-
-  _raycaster = new T.Raycaster();
-
-  // Load model
-  const loader = new T.GLTFLoader();
-  const loadUrl = getLoadableModelUrl(glbUrl);
-  if (!isTimrxS3Url(loadUrl)) { loader.setCrossOrigin('use-credentials'); loader.setWithCredentials(true); }
-  else { loader.setCrossOrigin('anonymous'); }
-
-  loader.load(loadUrl, (gltf) => {
-    _model = gltf.scene;
-    _scene.add(_model);
-
-    // Fit camera
-    const box = new T.Box3().setFromObject(_model);
-    const center = box.getCenter(new T.Vector3());
-    const size = box.getSize(new T.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    _camera.position.copy(center);
-    _camera.position.z += maxDim * 1.8;
-    _controls.target.copy(center);
-    _controls.update();
-
-    // Prepare paint data
-    _preparePaintData();
-    _renderSidebar();
-
-    // Add click hint
-    const hint = document.createElement('div');
-    hint.className = 'mcp-viewer-hint';
-    hint.textContent = 'Click on the model to paint regions';
-    container.appendChild(hint);
-    setTimeout(() => hint.style.opacity = '0', 4000);
-  }, undefined, (err) => {
-    console.error('[MCP] Model load error:', err);
-    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:11px;">Failed to load model</div>';
+  tabs.forEach((tab) => {
+    const isActive = tab.dataset.tab === target;
+    tab.classList.toggle('is-active', isActive);
+    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
 
-  // Paint handlers — pointerdown/move/up for drag painting
-  const canvas = _renderer.domElement;
-  canvas.addEventListener('pointerdown', _onPointerDown);
-  canvas.addEventListener('pointermove', _onPointerMove);
-  canvas.addEventListener('pointerup', _onPointerUp);
-  canvas.addEventListener('pointerleave', _onPointerUp);
-
-  // Resize
-  const onResize = () => {
-    const nw = container.clientWidth, nh = container.clientHeight;
-    if (nw && nh && _camera && _renderer) {
-      _camera.aspect = nw / nh;
-      _camera.updateProjectionMatrix();
-      _renderer.setSize(nw, nh);
-    }
-  };
-  window.addEventListener('resize', onResize);
-  container._resizeHandler = onResize;
-
-  // Render loop
-  const animate = () => {
-    container._animId = requestAnimationFrame(animate);
-    if (_controls) _controls.update();
-    if (_renderer && _scene && _camera) _renderer.render(_scene, _camera);
-  };
-  animate();
+  const showHistory = target === 'history';
+  wsLeft.classList.toggle('mob-hidden', showHistory);
+  wsRight.classList.toggle('mob-active', showHistory);
 }
 
-let _pDownX = 0, _pDownY = 0;
-let _didPaintThisStroke = false;
+function getItemDownloadType(item = {}) {
+  if (item.type === 'video' || item.video_url) return 'video';
+  if (item.type === 'image' || (!item.glb_url && item.image_url)) return 'image';
+  return 'model';
+}
 
-function _onPointerDown(e) {
-  _pDownX = e.clientX; _pDownY = e.clientY;
-  _didPaintThisStroke = false;
-  if (!_paintEnabled || !_paintMeshes.length) return;
+function buildItemDownloadFilename(item = {}, options = {}) {
+  const sourceUrl = options.sourceUrl || item.glb_url || item.image_url || item.video_url || '';
+  return buildDownloadFilename({
+    type: options.type || getItemDownloadType(item),
+    title: item.title,
+    prompt: item.prompt,
+    name: item.name,
+    modelName: item.model,
+    jobLabel: item.stage,
+    filename: item.filename,
+    assetId: item.id || item.image_id || item.video_id || item.model_id,
+    createdAt: normalizeEpochMs(item.created_at || item.createdAt || Date.now()),
+    sourceUrl,
+    extension: options.extension,
+  });
+}
 
-  // In brush/face/eraser mode, start drag-painting immediately
-  if (_brushMode === 'brush' || _brushMode === 'face' || _brushMode === 'eraser') {
-    _isPainting = true;
-    // Disable orbit while painting
-    if (_controls) _controls.enabled = false;
-    _paintAtEvent(e);
-    _didPaintThisStroke = true;
+function startWorkspaceDownload(sourceUrl, filename) {
+  if (!sourceUrl) return false;
+  const proxiedUrl = buildProxyDownloadUrl(BACKEND, sourceUrl, filename);
+  triggerBrowserDownload(proxiedUrl, filename);
+  return true;
+}
+
+// ============================================================================
+// HISTORY FILTER SWITCHING
+// ============================================================================
+
+let _suppressHistoryFilterReset = false;
+
+function switchHistoryFilter(filter = 'all') {
+  if (_suppressHistoryFilterReset) return;
+  // Only reset page if filter actually changed
+  if (State.historyState.filter !== filter) {
+    // Collapse expanded gallery when switching away from 'all'
+    if (filter !== 'all' && State.historyState.galleryExpanded) {
+      State.historyState.galleryExpanded = false;
+    }
+    State.historyState.filter = filter;
+    State.historyState.page = 1;
+    // Render immediately with whatever is cached (may be fallback-filtered)
+    renderHistory();
+    // If this tab hasn't been loaded from DB yet, fetch its first page.
+    // loadHistoryTab returns cached items instantly if already loaded.
+    if (filter !== 'all') {
+      State.loadHistoryTab(filter).then(() => renderHistory());
+    }
   }
 }
 
-function _onPointerMove(e) {
-  if (!_isPainting || !_paintEnabled) return;
-  // Continuous painting while dragging
-  _paintAtEvent(e);
-  _didPaintThisStroke = true;
-}
+// ============================================================================
+// MODAL MANAGEMENT
+// ============================================================================
 
-function _onPointerUp(e) {
-  if (_isPainting) {
-    _isPainting = false;
-    if (_controls) _controls.enabled = true;
-    if (_didPaintThisStroke) { _applyColorsToMeshes(); _updateStats(); }
+// Track last focused element before modal opens
+// Upload modal removed — handled entirely by 3dprint-app.js
+
+function showErrorToast(message) {
+  if (!document.body) {
+    alert(message);
     return;
   }
-  // For region mode, only paint on click (not drag)
-  if (_brushMode === 'region') {
-    const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
-    if (Math.sqrt(dx * dx + dy * dy) > 5) return;
-    if (!_paintEnabled || !_paintMeshes.length) return;
-    _paintAtEvent(e);
-    _applyColorsToMeshes();
-    _updateStats();
-  }
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.setAttribute('role', 'status');
+  toast.style.cssText = [
+    'position:fixed',
+    'right:24px',
+    'bottom:24px',
+    'z-index:9999',
+    'background:#2b1414',
+    'color:#fff',
+    'padding:12px 16px',
+    'border:1px solid rgba(255,255,255,0.1)',
+    'border-radius:12px',
+    'box-shadow:0 10px 24px rgba(0,0,0,0.35)',
+    'font-size:14px',
+    'max-width:320px',
+    'opacity:0',
+    'transition:opacity 180ms ease'
+  ].join(';');
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 220);
+  }, 2600);
 }
 
-// ============================================================================
-// Paint Data Preparation
-// ============================================================================
+/**
+ * Show a nice popup for Gemini quota exceeded errors
+ * Gemini API quota resets at midnight Pacific Time
+ */
+function showQuotaExceededPopup() {
+  // Remove any existing quota popup
+  const existing = document.getElementById('quotaExceededPopup');
+  if (existing) existing.remove();
 
-function _preparePaintData() {
-  const T = window.THREE;
-  _paintMeshes = [];
-  _model.traverse((child) => {
-    if (child.isMesh && child.geometry) {
-      // Ensure non-indexed geometry for per-face vertex colors
-      let geo = child.geometry;
-      if (geo.index) {
-        geo = geo.toNonIndexed();
-        child.geometry = geo;
-      }
-      // Add vertex color attribute (default white)
-      const count = geo.attributes.position.count;
-      const colors = new Float32Array(count * 3);
-      colors.fill(1.0); // white
-      geo.setAttribute('color', new T.BufferAttribute(colors, 3));
+  // Calculate time until midnight PT (Pacific Time) - Gemini quota resets at midnight PT
+  const now = new Date();
 
-      // Enable vertex colors on material
-      if (Array.isArray(child.material)) {
-        child.material = child.material[0]?.clone() || new T.MeshStandardMaterial();
-      } else {
-        child.material = child.material.clone();
-      }
-      child.material.vertexColors = true;
-      child.material.needsUpdate = true;
+  // Calculate midnight PT
+  const midnightPT = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  midnightPT.setHours(24, 0, 0, 0);
+  const nowPT = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const msUntilReset = midnightPT - nowPT;
+  const hoursUntilReset = Math.floor(msUntilReset / (1000 * 60 * 60));
+  const minutesUntilReset = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
 
-      _paintMeshes.push(child);
+  // Format reset time in user's local timezone
+  const resetTimeLocal = new Date(now.getTime() + msUntilReset);
+  const localFormatter = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+  const resetTimeStr = localFormatter.format(resetTimeLocal);
+
+  const popup = document.createElement('div');
+  popup.id = 'quotaExceededPopup';
+  popup.setAttribute('role', 'alertdialog');
+  popup.setAttribute('aria-labelledby', 'quotaTitle');
+  popup.setAttribute('aria-describedby', 'quotaDesc');
+  popup.innerHTML = `
+    <div class="quota-popup-backdrop"></div>
+    <div class="quota-popup-content">
+      <button type="button" class="quota-popup-x" aria-label="Close">×</button>
+      <div class="quota-popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+      <h3 id="quotaTitle">Daily Limit Reached</h3>
+      <p id="quotaDesc">
+        Google Veo's daily video quota has been exceeded. This is a platform-wide limit.
+      </p>
+      <div class="quota-popup-timer">
+        <span class="quota-popup-timer-label">Resets in approximately</span>
+        <span class="quota-popup-timer-value">${hoursUntilReset}h ${minutesUntilReset}m</span>
+        <span class="quota-popup-timer-hint">~${resetTimeStr} local time</span>
+      </div>
+      <p class="quota-popup-tip">
+        Try generating 3D models or images while you wait.
+      </p>
+      <button type="button" class="quota-popup-close" aria-label="Close">Got it</button>
+    </div>
+  `;
+
+  // Styles matching blogs.css aesthetic
+  const style = document.createElement('style');
+  style.textContent = `
+    #quotaExceededPopup {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: quotaFadeIn 0.3s ease;
+    }
+    @keyframes quotaFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .quota-popup-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .quota-popup-content {
+      position: relative;
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      animation: quotaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes quotaSlideUp {
+      to { transform: translateY(0); }
+    }
+    .quota-popup-x {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 20px;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .quota-popup-x:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    .quota-popup-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quota-popup-icon svg {
+      width: 26px;
+      height: 26px;
+      color: #888;
+    }
+    .quota-popup-content h3 {
+      margin: 0 0 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .quota-popup-content p {
+      margin: 0 0 20px;
+      font-size: 0.9rem;
+      color: #777;
+      line-height: 1.6;
+    }
+    .quota-popup-timer {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(139, 92, 246, 0.08));
+      border: 1px solid rgba(14, 165, 233, 0.15);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .quota-popup-timer-label {
+      display: block;
+      font-size: 10px;
+      color: #777;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .quota-popup-timer-value {
+      display: block;
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .quota-popup-timer-hint {
+      display: block;
+      font-size: 11px;
+      color: #555;
+      margin-top: 4px;
+    }
+    .quota-popup-tip {
+      font-size: 0.8rem !important;
+      color: #555 !important;
+      font-style: italic;
+      margin-bottom: 20px !important;
+    }
+    .quota-popup-close {
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
+      border: 1px solid rgba(14, 165, 233, 0.25);
+      border-radius: 999px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.02em;
+    }
+    .quota-popup-close:hover {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(139, 92, 246, 0.25));
+      border-color: rgba(14, 165, 233, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+    }
+    .quota-popup-close:active {
+      transform: translateY(0);
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(popup);
+
+  // Close handlers
+  const closeBtn = popup.querySelector('.quota-popup-close');
+  const closeX = popup.querySelector('.quota-popup-x');
+  const backdrop = popup.querySelector('.quota-popup-backdrop');
+  const closePopup = () => {
+    popup.style.opacity = '0';
+    popup.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => {
+      popup.remove();
+      style.remove();
+    }, 250);
+  };
+  closeBtn.addEventListener('click', closePopup);
+  closeX.addEventListener('click', closePopup);
+  backdrop.addEventListener('click', closePopup);
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') {
+      closePopup();
+      document.removeEventListener('keydown', escHandler);
     }
   });
 
-  // Build global face index
-  _totalFaces = 0;
-  _faceOffsets = [];
-  for (const mesh of _paintMeshes) {
-    _faceOffsets.push(_totalFaces);
-    _totalFaces += mesh.geometry.attributes.position.count / 3;
-  }
-  _faceColors = new Int32Array(_totalFaces).fill(-1); // -1 = unpainted
+  // Focus the close button for accessibility
+  closeBtn.focus();
+}
 
-  // Precompute face centers in world space for brush radius checks
-  _faceCenters = new Float32Array(_totalFaces * 3);
-  const va = new T.Vector3(), vb = new T.Vector3(), vc = new T.Vector3();
+/**
+ * Show a popup when video generation is blocked by provider content filtering.
+ * Explains why the content was rejected and how to fix it.
+ */
+function showContentFilteredPopup(userMessage) {
+  const existing = document.getElementById('contentFilteredPopup');
+  if (existing) existing.remove();
 
-  for (let mi = 0; mi < _paintMeshes.length; mi++) {
-    const mesh = _paintMeshes[mi];
-    mesh.updateWorldMatrix(true, false);
-    const posAttr = mesh.geometry.attributes.position;
-    const faceCount = posAttr.count / 3;
-    const offset = _faceOffsets[mi];
+  const message = userMessage ||
+    'Blocked by provider safety rules (third-party content). Try removing logos/faces/copyrighted characters.';
 
-    for (let fi = 0; fi < faceCount; fi++) {
-      const i3 = fi * 3;
-      va.fromBufferAttribute(posAttr, i3).applyMatrix4(mesh.matrixWorld);
-      vb.fromBufferAttribute(posAttr, i3 + 1).applyMatrix4(mesh.matrixWorld);
-      vc.fromBufferAttribute(posAttr, i3 + 2).applyMatrix4(mesh.matrixWorld);
-      const gIdx = (offset + fi) * 3;
-      _faceCenters[gIdx]     = (va.x + vb.x + vc.x) / 3;
-      _faceCenters[gIdx + 1] = (va.y + vb.y + vc.y) / 3;
-      _faceCenters[gIdx + 2] = (va.z + vb.z + vc.z) / 3;
+  const popup = document.createElement('div');
+  popup.id = 'contentFilteredPopup';
+  popup.setAttribute('role', 'alertdialog');
+  popup.setAttribute('aria-labelledby', 'filterTitle');
+  popup.setAttribute('aria-describedby', 'filterDesc');
+  popup.innerHTML = `
+    <div class="filter-popup-backdrop"></div>
+    <div class="filter-popup-content">
+      <button type="button" class="filter-popup-x" aria-label="Close">\u00d7</button>
+      <div class="filter-popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 9v4m0 4h.01M3.27 17.44l7.46-12.88a1.5 1.5 0 0 1 2.54 0l7.46 12.88A1.5 1.5 0 0 1 19.46 20H4.54a1.5 1.5 0 0 1-1.27-2.56Z"/>
+        </svg>
+      </div>
+      <h3 id="filterTitle">Content Blocked</h3>
+      <p id="filterDesc">${message}</p>
+      <div class="filter-popup-tips">
+        <span class="filter-popup-tips-label">Common triggers</span>
+        <ul>
+          <li>Brand logos or trademarks</li>
+          <li>Recognisable faces or celebrities</li>
+          <li>Copyrighted characters or artwork</li>
+        </ul>
+      </div>
+      <button type="button" class="filter-popup-close" aria-label="Close">Got it</button>
+    </div>
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #contentFilteredPopup {
+      position: fixed; inset: 0; z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: filterFadeIn 0.3s ease;
     }
-  }
+    @keyframes filterFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .filter-popup-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    .filter-popup-content {
+      position: relative; background: #111;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+      padding: 32px 28px; max-width: 400px; width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+      transform: translateY(20px);
+      animation: filterSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes filterSlideUp { to { transform: translateY(0); } }
+    .filter-popup-x {
+      position: absolute; top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05); border-radius: 8px;
+      font-size: 20px; color: #666; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; line-height: 1;
+    }
+    .filter-popup-x:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2); color: #fff;
+    }
+    .filter-popup-icon {
+      width: 56px; height: 56px; margin: 0 auto 16px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.18); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .filter-popup-icon svg { width: 26px; height: 26px; color: #f59e0b; }
+    .filter-popup-content h3 {
+      margin: 0 0 10px; font-size: 1.5rem; font-weight: 700;
+      color: #fff; letter-spacing: -0.01em;
+    }
+    .filter-popup-content p {
+      margin: 0 0 20px; font-size: 0.9rem; color: #777; line-height: 1.6;
+    }
+    .filter-popup-tips {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.12);
+      border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+      text-align: left;
+    }
+    .filter-popup-tips-label {
+      display: block; font-size: 10px; color: #888;
+      text-transform: uppercase; letter-spacing: 0.15em;
+      font-weight: 600; margin-bottom: 8px;
+    }
+    .filter-popup-tips ul {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .filter-popup-tips li {
+      font-size: 0.85rem; color: #999; line-height: 1.8;
+      padding-left: 16px; position: relative;
+    }
+    .filter-popup-tips li::before {
+      content: "\\2022"; position: absolute; left: 0; color: #f59e0b;
+    }
+    .filter-popup-close {
+      width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 600;
+      font-family: inherit;
+      background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(234,88,12,0.15));
+      border: 1px solid rgba(245,158,11,0.25); border-radius: 999px;
+      color: #fff; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1); letter-spacing: 0.02em;
+    }
+    .filter-popup-close:hover {
+      background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(234,88,12,0.25));
+      border-color: rgba(245,158,11,0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.2);
+    }
+    .filter-popup-close:active { transform: translateY(0); }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(popup);
 
-  console.log(`[MCP Paint] Ready: ${_paintMeshes.length} meshes, ${_totalFaces} faces`);
+  const closeBtn = popup.querySelector('.filter-popup-close');
+  const closeX = popup.querySelector('.filter-popup-x');
+  const backdrop = popup.querySelector('.filter-popup-backdrop');
+  const closePopup = () => {
+    popup.style.opacity = '0';
+    popup.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => { popup.remove(); style.remove(); }, 250);
+  };
+  closeBtn.addEventListener('click', closePopup);
+  closeX.addEventListener('click', closePopup);
+  backdrop.addEventListener('click', closePopup);
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', escHandler); }
+  });
+  closeBtn.focus();
+}
+
+// Expose globally for api.js
+window.showContentFilteredPopup = showContentFilteredPopup;
+
+// Expose viewer for 3dprint-app.js (IIFE can't import ES modules)
+window.TimrXViewer = {
+  loadModelWithFallback: Viewer.loadModelWithFallback,
+  loadGlbFromUrl: Viewer.loadGlbFromUrl,
+  clearModel: Viewer.clearModel,
+  checkViewerAvailable: Viewer.checkViewerAvailable,
+};
+
+// ============================================================================
+// FILE HANDLERS
+// ============================================================================
+
+function handleImageFile(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image (.png, .jpg, .webp)');
+    return;
+  }
+  UI.state.imageFile = file;
+  const url = URL.createObjectURL(file);
+  if (imagePreview) {
+    imagePreview.src = url;
+    imagePreview.classList.remove('hidden');
+  }
+  UI.updateGenerateHint();
+}
+
+function handleModelFile(file) {
+  const ok = /\.(glb|gltf)$/i.test(file.name);
+  if (!ok) {
+    alert('For instant preview, upload a .glb or .gltf file.');
+    return;
+  }
+  UI.state.modelFile = file;
+  if (modelFileHint) modelFileHint.textContent = `Selected: ${file.name}`;
 }
 
 // ============================================================================
-// Painting Logic
+// HISTORY MIGRATION
 // ============================================================================
 
-function _paintAtEvent(e) {
-  const container = document.getElementById('mcp-viewer');
-  if (!container || !_renderer) return;
-  const rect = _renderer.domElement.getBoundingClientRect();
-  _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-  _raycaster.setFromCamera(_mouse, _camera);
-  const intersects = _raycaster.intersectObjects(_paintMeshes, false);
-  if (!intersects.length) return;
-
-  const hit = intersects[0];
-  const meshIdx = _paintMeshes.indexOf(hit.object);
-  if (meshIdx < 0) return;
-
-  const localFaceIdx = hit.faceIndex;
-  const globalFace = _faceOffsets[meshIdx] + localFaceIdx;
-  const hitPoint = hit.point; // world-space hit position
-
-  const colorVal = _brushMode === 'eraser' ? -1 : _activeSlot;
-
-  if (_brushMode === 'face') {
-    _paintFace(globalFace, colorVal);
-  } else if (_brushMode === 'brush' || _brushMode === 'eraser') {
-    _paintBrush(hitPoint, colorVal);
-  } else if (_brushMode === 'region') {
-    _floodFillRegion(globalFace, colorVal, meshIdx);
-  }
-
-  // For drag modes, apply every frame; for region, apply once in _onPointerUp
-  if (_isPainting) {
-    _applyColorsToMeshes();
-    _updateStats();
-  }
-}
-
-function _paintFace(globalIdx, slotIdx) {
-  _faceColors[globalIdx] = slotIdx;
-}
-
-function _paintBrush(hitPoint, slotIdx) {
-  // Paint all faces whose center is within _brushRadius of hitPoint (world space)
-  const r2 = _brushRadius * _brushRadius;
-  const hx = hitPoint.x, hy = hitPoint.y, hz = hitPoint.z;
-
-  for (let i = 0; i < _totalFaces; i++) {
-    const i3 = i * 3;
-    const dx = _faceCenters[i3] - hx;
-    const dy = _faceCenters[i3 + 1] - hy;
-    const dz = _faceCenters[i3 + 2] - hz;
-    if (dx * dx + dy * dy + dz * dz <= r2) {
-      _faceColors[i] = slotIdx;
+function migrateHistoryDates() {
+  const arr = State.getHistory();
+  let dirty = false;
+  const fixed = arr.map(it => {
+    const ms = normalizeEpochMs(it?.created_at);
+    const y = new Date(ms).getFullYear();
+    if (!it || (y < 2000 || y > 2099) || ms !== it.created_at) {
+      dirty = true;
+      return { ...it, created_at: ms };
     }
-  }
+    return it;
+  });
+  if (dirty) State.saveHistory(fixed);
 }
 
-function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
-  const mesh = _paintMeshes[meshIdx];
-  const posAttr = mesh.geometry.attributes.position;
-  const faceCount = posAttr.count / 3;
-  const offset = _faceOffsets[meshIdx];
-  const T = window.THREE;
+function migrateHistoryTitles() {
+  try {
+    const arr = State.getHistory();
+    let dirty = false;
+    const fixed = arr.map(it => {
+      if (!it) return it;
+      const title = shortTitle(it);
+      if (it.title !== title) {
+        dirty = true;
+        return { ...it, title };
+      }
+      return it;
+    });
+    if (dirty) State.saveHistory(fixed);
+  } catch { /* ignore */ }
+}
 
-  // Compute face normals
-  const normals = [];
-  const vA = new T.Vector3(), vB = new T.Vector3(), vC = new T.Vector3();
-  const edge1 = new T.Vector3(), edge2 = new T.Vector3(), normal = new T.Vector3();
+// ============================================================================
+// GENERATE BUTTON LISTENERS (Event Delegation)
+// ============================================================================
 
-  for (let i = 0; i < faceCount; i++) {
-    const i3 = i * 3;
-    vA.fromBufferAttribute(posAttr, i3);
-    vB.fromBufferAttribute(posAttr, i3 + 1);
-    vC.fromBufferAttribute(posAttr, i3 + 2);
-    edge1.subVectors(vB, vA);
-    edge2.subVectors(vC, vA);
-    normal.crossVectors(edge1, edge2).normalize();
-    normals.push(normal.clone());
+function setupGenerateButtonListeners() {
+  const leftStack = document.getElementById('leftStack');
+  if (!leftStack) {
+    log('leftStack not found for generate button listeners');
+    return;
   }
 
-  // Build adjacency by shared vertices (using a spatial hash)
-  const vertKey = (x, y, z) => `${(x * 1000)|0},${(y * 1000)|0},${(z * 1000)|0}`;
-  const vertToFaces = new Map();
+  leftStack.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
 
-  for (let i = 0; i < faceCount; i++) {
-    for (let v = 0; v < 3; v++) {
-      const idx = i * 3 + v;
-      const key = vertKey(
-        posAttr.getX(idx),
-        posAttr.getY(idx),
-        posAttr.getZ(idx)
-      );
-      if (!vertToFaces.has(key)) vertToFaces.set(key, []);
-      vertToFaces.get(key).push(i);
+    const btnId = btn.id;
+    log('Generate button clicked:', btnId);
+
+    if (btnId === 'applyRemeshBtn') {
+      API.startRemeshFromPanel();
+      return;
     }
+    if (btnId === 'generateTextureBtn') {
+      API.startTextureFromPanel();
+      return;
+    }
+    if (btnId === 'startRigBtn') {
+      API.startRigFromPanel();
+      return;
+    }
+    if (btnId === 'applyAnimationBtn2') {
+      const animState = window._timrxAnimState || {};
+      const riggingTaskId = animState.rig_task_id || window._lastRigTaskId || '';
+      const stateActionId = animState.selected_action_id;
+      const domActionIdRaw = document.getElementById('animActionId2')?.value;
+      const actionId = stateActionId != null ? parseInt(stateActionId, 10)
+        : (domActionIdRaw ? parseInt(domActionIdRaw, 10) : null);
+      console.log('[Anim] Apply clicked: rigTaskId=' + riggingTaskId + ' actionId=' + actionId + ' state=' + JSON.stringify({selected: stateActionId, dom: domActionIdRaw, is_rigged: animState.is_rigged}));
+
+      // Pre-validate and give helpful feedback instead of silent failure
+      if (!riggingTaskId) {
+        alert('No rigged model loaded. Please rig a model first, or load one from history.');
+        return;
+      }
+      if (actionId == null || isNaN(actionId)) {
+        alert('Please select an animation from the library or quick picks before clicking Apply.');
+        return;
+      }
+      let postProcess = null;
+      try {
+        postProcess = API.getAnimationPostProcessValues();
+      } catch (err) {
+        alert(err?.message || 'Invalid animation output settings.');
+        return;
+      }
+      API.startAnimationFromPanel(riggingTaskId, actionId, postProcess);
+      return;
+    }
+    if (!btnId || !btnId.includes('generate')) return;
+
+    if (btnId === 'generateModelBtn') {
+      API.onGenerateClick();
+    } else if (btnId === 'generateImageBtn') {
+      API.startImageGenerationByProvider();
+    } else if (btnId === 'generateVideoBtn') {
+      API.startVideoGeneration();
+    }
+  });
+
+  log('Generate button listeners set up via event delegation');
+}
+
+// ============================================================================
+// VIEWER TOOLBAR
+// ============================================================================
+
+let _printToastTimer = null;
+
+function closeViewerPopovers() {
+  document.getElementById('viewerSharePopover')?.classList.remove('is-visible');
+  document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
+  document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
+  if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
+}
+
+function initViewerToolbar() {
+  const toolbar = document.getElementById('viewerToolbar');
+  if (!toolbar) return;
+
+  const sharePopover = document.getElementById('viewerSharePopover');
+  const printPanel = document.getElementById('viewerPrintPanel');
+  const printBackdrop = document.getElementById('viewerPrintBackdrop');
+  const printCloseBtn = document.getElementById('printPanelCloseBtn');
+
+  function togglePrintPanel(show) {
+    printPanel?.classList.toggle('is-visible', !!show);
+    printBackdrop?.classList.toggle('is-visible', !!show);
+    document.body.classList.toggle('print-panel-open', !!show);
   }
 
-  // Flood fill from start face
-  const localStart = startGlobal - offset;
-  const visited = new Uint8Array(faceCount);
-  const queue = [localStart];
-  visited[localStart] = 1;
-  const startNormal = normals[localStart];
+  // ── Print Readiness Check ──
+  let _printCheckInFlight = false;
 
-  while (queue.length > 0) {
-    const fi = queue.pop();
-    _faceColors[offset + fi] = slotIdx;
+  function showPrintPanelState(state) {
+    const loading = document.getElementById('printPanelLoading');
+    const error   = document.getElementById('printPanelError');
+    const results = document.getElementById('printPanelResults');
+    if (loading) loading.style.display = state === 'loading' ? '' : 'none';
+    if (error)   error.style.display   = state === 'error'   ? '' : 'none';
+    if (results) results.style.display = state === 'results' ? '' : 'none';
+  }
 
-    // Find neighbors via shared vertices
-    for (let v = 0; v < 3; v++) {
-      const idx = fi * 3 + v;
-      const key = vertKey(
-        posAttr.getX(idx),
-        posAttr.getY(idx),
-        posAttr.getZ(idx)
-      );
-      const neighbors = vertToFaces.get(key);
-      if (!neighbors) continue;
-      for (const ni of neighbors) {
-        if (visited[ni]) continue;
-        // Check normal similarity
-        const angle = normals[ni].angleTo(startNormal);
-        if (angle < FLOOD_FILL_ANGLE) {
-          visited[ni] = 1;
-          queue.push(ni);
+  function renderPrintResults(data) {
+    const printerTypeValue = document.getElementById('printPrinterType')?.value || 'fdm';
+    const isResin = printerTypeValue === 'resin';
+    const printerLabel = isResin ? 'Resin' : 'FDM';
+
+    // Score badge
+    const badge = document.getElementById('printScoreBadge');
+    const verdict = document.getElementById('printVerdict');
+    const summary = document.querySelector('.print-panel-summary');
+    if (badge) {
+      badge.textContent = data.score;
+      badge.className = 'print-panel-score-badge';
+      if (data.score >= 90)      badge.classList.add('score-good');
+      else if (data.score >= 60) badge.classList.add('score-warn');
+      else                       badge.classList.add('score-bad');
+    }
+    if (verdict) {
+      const label = data.score >= 90 ? 'Excellent'
+        : data.score >= 70 ? 'Print-Ready'
+        : data.score >= 60 ? 'Printable with caveats'
+        : 'Needs repair';
+      verdict.textContent = label;
+      verdict.className = 'print-panel-verdict';
+      verdict.classList.add(data.score >= 70 ? 'is-good' : 'is-bad');
+    }
+    if (summary) {
+      const isWatertight = data.checks?.is_manifold;
+      const wasRemeshed = data.is_remeshed === true || (data.model_stage === 'remeshed');
+      if (data.score >= 90) {
+        summary.textContent = `Excellent mesh quality. Adjust the target size if needed and export a print-ready STL.`;
+      } else if (data.score >= 70) {
+        summary.textContent = `The model clears the main ${printerLabel} checks. ${!isWatertight ? (wasRemeshed ? 'The mesh still has open edges after remesh — most slicers can auto-repair this. ' : 'Remesh to close open edges for a higher score. ') : ''}Review below, adjust size, and export.`;
+      } else if (data.score >= 60) {
+        summary.textContent = wasRemeshed && !isWatertight
+          ? `The model was remeshed but still has open edges — a known limitation with some AI geometry. Export the STL and let your slicer's auto-repair handle it, or fix manually in Blender/Meshmixer.`
+          : `The model can be printed but has geometry issues. ${!isWatertight ? 'Use Remesh to repair open edges — this will unlock wall thickness analysis and improve the score.' : 'Review the issues below.'}`;
+      } else {
+        summary.textContent = wasRemeshed
+          ? `The remeshed model still has significant geometry issues. This AI-generated mesh may need manual repair in Blender or Meshmixer. Export the STL and use their auto-repair tools before printing.`
+          : `The model has critical geometry issues for ${printerLabel} printing. Remesh the model to repair it before exporting.`;
+      }
+    }
+
+    // ── Model-state banner ─────────────────────────────────────────
+    const stateBadge = document.getElementById('printModelStateBadge');
+    const stateTitle = document.getElementById('printModelStateTitle');
+    const stateAdvice = document.getElementById('printModelStateAdvice');
+    const stateBanner = document.getElementById('printModelStateBanner');
+    if (stateBanner) {
+      const stage = data.model_stage || 'unknown';
+      const isRemeshed = data.is_remeshed === true;
+      const isRefined = data.is_refined === true;
+
+      const stageLabels = {
+        preview:     { label: 'Preview',     color: '#f59e0b', bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.25)' },
+        refined:     { label: 'Refined',     color: '#3b82f6', bg: 'rgba(59,130,246,.12)', border: 'rgba(59,130,246,.25)' },
+        retextured:  { label: 'Retextured',  color: '#8b5cf6', bg: 'rgba(139,92,246,.12)', border: 'rgba(139,92,246,.25)' },
+        remeshed:    { label: 'Remeshed',    color: '#22c55e', bg: 'rgba(34,197,94,.12)',  border: 'rgba(34,197,94,.25)' },
+        image3d:     { label: 'Image-to-3D', color: '#06b6d4', bg: 'rgba(6,182,212,.12)',  border: 'rgba(6,182,212,.25)' },
+        unknown:     { label: 'Unknown',     color: '#888',    bg: 'rgba(255,255,255,.04)', border: 'rgba(255,255,255,.08)' },
+      };
+      const info = stageLabels[stage] || stageLabels.unknown;
+
+      if (stateBadge) {
+        stateBadge.textContent = info.label;
+        stateBadge.style.background = info.bg;
+        stateBadge.style.borderColor = info.border;
+        stateBadge.style.color = info.color;
+        stateBadge.style.border = `1px solid ${info.border}`;
+      }
+
+      let advice = '';
+      const isWatertight = data.checks?.is_manifold === true;
+      if (isRemeshed && isWatertight) {
+        advice = 'This model has been remeshed and has clean, watertight topology. Verify dimensions, export STL, and do a final check in your slicer.';
+      } else if (isRemeshed && !isWatertight) {
+        advice = 'This model has been remeshed but still has open edges. This is a known limitation with some AI-generated geometry. Export the STL and use your slicer\'s auto-repair, or fix in Blender/Meshmixer before printing.';
+      } else if (stage === 'preview') {
+        advice = 'This is a preview-grade mesh with rough geometry. For best print results: Refine first (improves geometry + adds textures), then Remesh with the Print Ready preset before exporting.';
+      } else if (isRefined) {
+        advice = 'This model is refined with high-quality textures. For printing, textures do not matter — only geometry does. Remesh with the Print Ready preset to produce clean, watertight topology before exporting STL.';
+      } else if (stage === 'retextured') {
+        advice = 'This model has been retextured. Retexturing changes surface appearance but may have altered mesh topology. Remesh with Print Ready preset to ensure clean geometry for printing.';
+      } else if (stage === 'image3d') {
+        advice = 'This model was generated from an image. Image-to-3D models typically need remeshing before printing. Use the Remesh panel with the Print Ready preset, then re-run this check.';
+      } else {
+        advice = 'Model source unknown. Run a Remesh with Print Ready preset to ensure the mesh is watertight and suitable for slicing before exporting.';
+      }
+
+      if (stateAdvice) stateAdvice.textContent = advice;
+      if (stateTitle) {
+        if (isRemeshed && isWatertight) {
+          stateTitle.textContent = 'Ready for print prep';
+        } else if (isRemeshed && !isWatertight) {
+          stateTitle.textContent = 'Remeshed — needs slicer repair';
+        } else {
+          stateTitle.textContent = 'Recommended: Remesh before export';
         }
       }
     }
-  }
-}
 
-function _applyColorsToMeshes() {
-  const T = window.THREE;
-  const tmpColor = new T.Color();
-
-  for (let mi = 0; mi < _paintMeshes.length; mi++) {
-    const mesh = _paintMeshes[mi];
-    const colorAttr = mesh.geometry.attributes.color;
-    const faceCount = colorAttr.count / 3;
-    const offset = _faceOffsets[mi];
-
-    for (let fi = 0; fi < faceCount; fi++) {
-      const slotIdx = _faceColors[offset + fi];
-      if (slotIdx >= 0 && slotIdx < _filaments.length) {
-        tmpColor.set(_filaments[slotIdx].hex);
-      } else {
-        tmpColor.set(0xffffff);
-      }
-      const base = fi * 3;
-      colorAttr.setXYZ(base, tmpColor.r, tmpColor.g, tmpColor.b);
-      colorAttr.setXYZ(base + 1, tmpColor.r, tmpColor.g, tmpColor.b);
-      colorAttr.setXYZ(base + 2, tmpColor.r, tmpColor.g, tmpColor.b);
+    // Checks grid
+    const grid = document.getElementById('printChecksGrid');
+    if (grid) {
+      const c = data.checks || {};
+      const overhangValue = isResin ? c.overhang_resin_pct : c.overhang_fdm_pct;
+      const rows = [
+        { label: 'Watertight', ok: c.is_manifold, detail: c.is_manifold ? 'Closed manifold mesh' : 'Open edges detected' },
+        { label: 'Face count', ok: c.face_count_ok, detail: c.face_count ? `${c.face_count.toLocaleString()} faces` : 'Unknown' },
+        { label: 'Clean faces', ok: !c.has_degenerate_faces, detail: c.degenerate_face_count ? `${c.degenerate_face_count} degenerate faces` : 'No invalid faces found' },
+        { label: 'Volume', ok: c.is_volume_positive, detail: c.estimated_volume_cm3 ? `${c.estimated_volume_cm3} cm³ volume` : 'Unavailable for non-watertight mesh' },
+        { label: 'Dimensions', ok: true, detail: c.bounding_box_mm ? c.bounding_box_mm.map(v => v.toFixed(1)).join(' × ') + ' mm' : 'Unknown size' },
+        { label: 'Wall thickness', ok: c.wall_thickness_ok, detail: c.min_wall_thickness_mm != null ? `Min ${c.min_wall_thickness_mm} mm` : 'Unavailable' },
+        { label: `Overhangs (${printerLabel})`, ok: overhangValue != null ? overhangValue < (isResin ? 12 : 20) : null,
+          detail: overhangValue != null ? `${overhangValue}% of faces need support review` : 'Unavailable' },
+      ];
+      grid.innerHTML = rows.map(r => `
+        <div class="print-check-row ${r.ok === true ? 'is-good' : r.ok === false ? 'is-bad' : 'is-neutral'}">
+          <span class="print-check-icon">${r.ok === true ? '✓' : r.ok === false ? '!' : '—'}</span>
+          <span class="print-check-label">${r.label}</span>
+          <span class="print-check-detail">${r.detail}</span>
+        </div>
+      `).join('');
     }
-    colorAttr.needsUpdate = true;
+
+    // Issues
+    const issuesList = document.getElementById('printIssuesList');
+    if (issuesList) {
+      issuesList.style.display = '';
+      issuesList.innerHTML = '<p class="print-section-title">Issues</p>' +
+        (data.issues?.length
+          ? data.issues.map(i => `<p class="print-issue-item">• ${i}</p>`).join('')
+          : '<p class="print-issue-item print-issue-item--empty">No critical issues found in this analysis.</p>');
+    }
+
+    // Suggestions
+    const suggestionsList = document.getElementById('printSuggestionsList');
+    if (suggestionsList) {
+      suggestionsList.style.display = '';
+      suggestionsList.innerHTML = '<p class="print-section-title">Suggestions</p>' +
+        (data.suggestions?.length
+          ? data.suggestions.map(s => `<p class="print-suggestion-item">→ ${s}</p>`).join('')
+          : '<p class="print-suggestion-item print-suggestion-item--empty">No extra changes recommended before export.</p>');
+    }
+
+    // Show print prep section with dimensions from analysis
+    const printPrepSection = document.getElementById('printPrepSection');
+    if (printPrepSection && data.checks) {
+      printPrepSection.style.display = '';
+      const c = data.checks;
+
+      // Display dimensions with unit detection info
+      const dimDisplay = document.getElementById('printDimensionsDisplay');
+      if (dimDisplay && c.bounding_box_mm) {
+        const dims = c.bounding_box_mm;
+        const unit = c.detected_unit || 'mm';
+        dimDisplay.innerHTML = `
+          <div class="print-prep-dimensions">
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Width</span>
+              <span class="print-prep-dim-value">${dims[0].toFixed(1)} mm</span>
+            </div>
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Height</span>
+              <span class="print-prep-dim-value">${dims[1].toFixed(1)} mm</span>
+            </div>
+            <div class="print-prep-dim-row">
+              <span class="print-prep-dim-label">Depth</span>
+              <span class="print-prep-dim-value">${dims[2].toFixed(1)} mm</span>
+            </div>
+            ${unit === 'meters' ? '<div class="print-prep-dim-note">Auto-converted from meters to mm</div>' : ''}
+          </div>
+        `;
+      }
+
+      // Wire up target height → live dimension preview
+      const targetInput = document.getElementById('printTargetHeight');
+      const scaledDims = document.getElementById('printScaledDimensions');
+      if (targetInput && scaledDims && c.bounding_box_mm) {
+        targetInput.oninput = () => {
+          const target = parseFloat(targetInput.value);
+          if (target > 0 && c.bounding_box_mm[1] > 0) {
+            const ratio = target / c.bounding_box_mm[1];
+            scaledDims.style.display = '';
+            scaledDims.innerHTML = `
+              <div class="print-prep-dim-note">
+                Scaled: ${(c.bounding_box_mm[0] * ratio).toFixed(1)} ×
+                ${target.toFixed(1)} ×
+                ${(c.bounding_box_mm[2] * ratio).toFixed(1)} mm
+                (${(ratio * 100).toFixed(0)}% of original)
+              </div>
+            `;
+          } else {
+            scaledDims.style.display = 'none';
+          }
+        };
+      }
+    }
+
+    // Wire up STL export button
+    const stlBtn = document.getElementById('printExportSTLBtn');
+    if (stlBtn) {
+      stlBtn.onclick = async () => {
+        const item = API.getActiveHistoryItem();
+        if (!item) {
+          alert('No model selected. Open a model from history first.');
+          return;
+        }
+
+        // 1. Check if Meshy provided an STL URL directly
+        const stlUrl = item.stl_url || item.model_urls?.stl || item.textured_model_urls?.stl;
+        if (stlUrl) {
+          const filename = buildItemDownloadFilename(item, {
+            type: 'model',
+            sourceUrl: stlUrl,
+            extension: 'stl',
+          });
+          startWorkspaceDownload(stlUrl, filename);
+          return;
+        }
+
+        // 2. Client-side STL export from viewer model
+        const model = window._timrxCurrentModel || window.inspireCurrentModel || null;
+        if (model && window.THREE?.STLExporter) {
+          try {
+            const { detectModelUnits, exportPrintReadySTL } = await import('./print-prep.js');
+            const unitInfo = detectModelUnits(model);
+            const displayScale = model.userData?.displayScale || 1;
+            const targetHeight = parseFloat(document.getElementById('printTargetHeight')?.value) || 0;
+            const filename = buildItemDownloadFilename(item, {
+              type: 'model',
+              sourceUrl: item.glb_url || item.glb_proxy || '',
+              extension: 'stl',
+            });
+            exportPrintReadySTL(model, displayScale, unitInfo, targetHeight, filename);
+            return;
+          } catch (err) {
+            console.error('[PrintExport] Client-side STL export failed:', err);
+          }
+        }
+
+        // 3. Fallback — download the GLB file directly
+        const glbUrl = item.glb_url || item.glb_proxy;
+        if (glbUrl) {
+          const filename = buildItemDownloadFilename(item, {
+            type: 'model',
+            sourceUrl: glbUrl,
+            extension: inferExtensionFromUrl(glbUrl) || 'glb',
+          });
+          startWorkspaceDownload(glbUrl, filename);
+          return;
+        }
+
+        alert('No exportable model found. Load the model in the viewer first.');
+      };
+    }
+
+    // Wire up 3MF export button
+    const threeMfBtn = document.getElementById('printExport3MFBtn');
+    if (threeMfBtn) {
+      threeMfBtn.onclick = async () => {
+        const item = API.getActiveHistoryItem();
+        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+
+        // Check for existing 3MF URL from Meshy
+        const threeMfUrl = item.model_urls?.['3mf'] || item.textured_model_urls?.['3mf'];
+        if (threeMfUrl) {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: threeMfUrl, extension: '3mf' });
+          startWorkspaceDownload(threeMfUrl, filename);
+          return;
+        }
+
+        // Fallback: download GLB (user can convert in slicer — most slicers accept GLB)
+        const glbUrl = item.glb_url || item.glb_proxy;
+        if (glbUrl) {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: glbUrl, extension: inferExtensionFromUrl(glbUrl) || 'glb' });
+          startWorkspaceDownload(glbUrl, filename);
+          if (window.showToast) window.showToast('3MF not available for this model. Downloaded GLB instead — import it into your slicer to convert.', 'info');
+          return;
+        }
+        alert('No exportable model found. Load the model in the viewer first.');
+      };
+    }
+
+    // Wire up slicer launch buttons
+    document.querySelectorAll('.print-slicer-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const slicer = btn.dataset.slicer;
+        const item = API.getActiveHistoryItem();
+        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+
+        // Get the best URL for the model
+        const modelUrl = item.glb_url || item.glb_proxy;
+        if (!modelUrl) { alert('No model URL available.'); return; }
+
+        // Slicer URL schemes for local app launch
+        const slicerSchemes = {
+          bambustudio: 'bambustudioopen',
+          orcaslicer: 'orcaslicer',
+          cura: 'cura',
+          prusaslicer: 'prusaslicer',
+        };
+        const scheme = slicerSchemes[slicer];
+        if (!scheme) return;
+
+        // Try to open via URL scheme (works if slicer is installed)
+        // Most slicers register custom URL schemes that accept file URLs
+        try {
+          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: modelUrl, extension: inferExtensionFromUrl(modelUrl) || 'glb' });
+
+          // Download file first so user has it, then attempt slicer launch
+          startWorkspaceDownload(modelUrl, filename);
+          if (window.showToast) {
+            window.showToast(`File downloaded. Open it in ${btn.querySelector('.print-service-name').textContent} to slice and print.`, 'info');
+          }
+        } catch (err) {
+          console.warn('[Slicer] Launch failed:', err);
+          alert(`Could not open ${slicer}. Make sure it is installed on your computer.`);
+        }
+      });
+    });
+
+    showPrintPanelState('results');
   }
-}
 
-function _clearAllPaint() {
-  if (_faceColors) _faceColors.fill(-1);
-  _applyColorsToMeshes();
-  _updateStats();
-}
+  async function runPrintCheck(item) {
+    if (_printCheckInFlight) return;
+    _printCheckInFlight = true;
 
-// ============================================================================
-// 3MF Export (client-side with JSZip)
-// ============================================================================
+    const printBtn = toolbar.querySelector('[data-action="print"]');
+    if (printBtn) printBtn.classList.add('is-loading');
 
-async function _export3MF() {
-  // Dynamically load JSZip if not present
-  if (!window.JSZip) {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-    document.head.appendChild(script);
-    await new Promise((resolve, reject) => {
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load JSZip'));
+    // Show panel with loading state
+    showPrintPanelState('loading');
+    togglePrintPanel(true);
+
+    try {
+      const jobId = item.id || item.model_id;
+      const printerType = document.getElementById('printPrinterType')?.value || 'fdm';
+      const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(jobId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ printer_type: printerType }),
+      });
+      if (!res.ok) {
+        throw new Error(res.error || `Server error (${res.status})`);
+      }
+      renderPrintResults(res.data);
+    } catch (err) {
+      showPrintPanelState('error');
+      const errMsg = document.getElementById('printPanelErrorMsg');
+      if (errMsg) errMsg.textContent = err.message || 'Analysis failed. Please try again.';
+    } finally {
+      _printCheckInFlight = false;
+      if (printBtn) printBtn.classList.remove('is-loading');
+    }
+  }
+
+  // Retry button inside error state
+  document.getElementById('printPanelRetryBtn')?.addEventListener('click', () => {
+    const item = API.getActiveHistoryItem();
+    if (item) runPrintCheck(item);
+  });
+
+  printCloseBtn?.addEventListener('click', () => {
+    togglePrintPanel(false);
+  });
+
+  printBackdrop?.addEventListener('click', () => {
+    togglePrintPanel(false);
+  });
+
+  document.getElementById('printPrinterType')?.addEventListener('change', () => {
+    const item = API.getActiveHistoryItem();
+    if (item && printPanel?.classList.contains('is-visible')) {
+      runPrintCheck(item);
+    }
+  });
+
+  // Share popover button clicks
+  if (sharePopover) {
+    sharePopover.addEventListener('click', async (e) => {
+      const shareBtn = e.target.closest('[data-share-action]');
+      if (!shareBtn) return;
+      e.stopPropagation();
+      const act = shareBtn.dataset.shareAction;
+      const item = API.getActiveHistoryItem();
+
+      if (act === 'copy-link') {
+        const link = item?.glb_proxy || item?.glb_url;
+        if (!link) { alert('No downloadable link available yet.'); return; }
+        try {
+          await navigator.clipboard.writeText(link);
+          alert('Link copied to clipboard.');
+        } catch { prompt('Copy link manually:', link); }
+      }
+      if (act === 'share-twitter') {
+        const text = item?.prompt ? `Check out my creation: "${item.prompt.slice(0, 120)}"` : 'Check out my AI creation on TimrX!';
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-facebook') {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-linkedin') {
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://timrx.live/3dprint')}`, '_blank');
+      }
+      if (act === 'share-discord' && item) {
+        const thumbUrl = item.thumbnail_url || item.image_url || '';
+        const promptText = item.prompt || '';
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/community/discord-share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: assetType, prompt: promptText, thumbnail_url: thumbUrl }),
+        }).then(() => alert('Shared to Discord!')).catch(() => alert('Failed to share to Discord.'));
+        window.open('https://discord.gg/VpqT2UywDG', '_blank');
+      }
+      if (act === 'share-inspire' && item) {
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/inspire/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, type: assetType, share: true }),
+        }).then(res => {
+          if (res.ok && window.showToast) window.showToast('Shared to Inspire!', 'success');
+          else if (window.showToast) window.showToast(res.data?.error || 'Failed to share', 'error');
+        }).catch(() => { if (window.showToast) window.showToast('Failed to share to Inspire', 'error'); });
+      }
+      closeViewerPopovers();
     });
   }
 
-  const zip = new window.JSZip();
-  const T = window.THREE;
-  const _u = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  // Close popovers on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#viewerSharePopover') && !e.target.closest('[data-action="share"]')) {
+      sharePopover?.classList.remove('is-visible');
+    }
+    if (!e.target.closest('#viewerPrintPanel') && !e.target.closest('[data-action="print"]')) {
+      togglePrintPanel(false);
+    }
   });
 
-  // ---- Collect all vertices + face data in world space ----
-  // No scale — export raw coordinates. User scales in slicer.
-  const allVerts = [];   // flat [x,y,z, ...]
-  const allFaces = [];   // {v1,v2,v3, colorSlot}
-  let vOff = 0;
-
-  for (let mi = 0; mi < _paintMeshes.length; mi++) {
-    const mesh = _paintMeshes[mi];
-    const posAttr = mesh.geometry.attributes.position;
-    const faceCount = posAttr.count / 3;
-    const offset = _faceOffsets[mi];
-    mesh.updateWorldMatrix(true, false);
-    const mat = mesh.matrixWorld;
-    const v = new T.Vector3();
-
-    for (let i = 0; i < posAttr.count; i++) {
-      v.fromBufferAttribute(posAttr, i).applyMatrix4(mat);
-      allVerts.push(v.x, v.y, v.z);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      togglePrintPanel(false);
+      sharePopover?.classList.remove('is-visible');
     }
-    for (let fi = 0; fi < faceCount; fi++) {
-      allFaces.push({
-        v1: vOff + fi * 3,
-        v2: vOff + fi * 3 + 1,
-        v3: vOff + fi * 3 + 2,
-        colorSlot: _faceColors[offset + fi]
+  });
+
+  toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.viewer-toolbar__btn');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const activeItem = API.getActiveHistoryItem();
+
+    if (action === 'download' && activeItem?.glb_url) {
+      if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+        Credits.showDownloadAccessRequiredMessage('model');
+        return;
+      }
+      const filename = buildItemDownloadFilename(activeItem, {
+        type: 'model',
+        sourceUrl: activeItem.glb_url,
+        extension: inferExtensionFromUrl(activeItem.glb_url) || 'glb',
+      });
+      startWorkspaceDownload(activeItem.glb_url, filename);
+    }
+
+    if (action === 'texture' && activeItem) {
+      API.startTextureFromHistory(activeItem, 'viewer');
+    }
+
+    if (action === 'refine' && activeItem) {
+      API.startRefineFromHistory(activeItem, 'viewer');
+    }
+
+    if (action === 'remesh' && activeItem) {
+      API.startRemeshFromHistory(activeItem);
+    }
+
+    if (action === 'share') {
+      togglePrintPanel(false);
+      sharePopover?.classList.toggle('is-visible');
+    }
+
+    if (action === 'print') {
+      sharePopover?.classList.remove('is-visible');
+      if (printPanel?.classList.contains('is-visible')) {
+        togglePrintPanel(false);
+      } else if (activeItem) {
+        runPrintCheck(activeItem);
+      }
+    }
+
+    // AR Quick Look handler
+    if (action === 'ar') {
+      const item = API.getActiveHistoryItem();
+      if (!item) return;
+      const glbUrl = item.glb_proxy || item.glb_url || item.model_url || '';
+      const usdzUrl = item.processed_usdz_url || item.model_urls?.usdz || item.textured_model_urls?.usdz || '';
+      const modelUrl = usdzUrl || glbUrl;
+      if (!modelUrl) {
+        if (window.showToast) window.showToast('No model available for AR preview.', 'info');
+        return;
+      }
+      // Create a temporary model-viewer element for AR
+      let arViewer = document.getElementById('timrx-ar-viewer');
+      if (!arViewer) {
+        arViewer = document.createElement('model-viewer');
+        arViewer.id = 'timrx-ar-viewer';
+        arViewer.setAttribute('ar', '');
+        arViewer.setAttribute('camera-controls', '');
+        arViewer.setAttribute('shadow-intensity', '0.5');
+        arViewer.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(0,0,0,0.9);';
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕ Close AR';
+        closeBtn.style.cssText = 'position:fixed;top:70px;right:20px;z-index:100000;padding:10px 20px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);';
+        closeBtn.onclick = function() { arViewer.remove(); closeBtn.remove(); };
+        document.body.appendChild(arViewer);
+        document.body.appendChild(closeBtn);
+        // Load model-viewer if not already loaded
+        if (!customElements.get('model-viewer')) {
+          import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+        }
+      }
+      arViewer.setAttribute('ar-modes', usdzUrl ? 'webxr scene-viewer quick-look' : 'webxr scene-viewer');
+      arViewer.setAttribute('src', glbUrl || modelUrl);
+      if (usdzUrl) {
+        arViewer.setAttribute('ios-src', usdzUrl);
+      } else {
+        arViewer.removeAttribute('ios-src');
+      }
+      arViewer.setAttribute('alt', item.title || item.prompt || '3D Model AR Preview');
+      // Auto-activate AR if supported
+      arViewer.addEventListener('load', function() {
+        if (arViewer.canActivateAR) {
+          arViewer.activateAR();
+        }
+      }, { once: true });
+      return;
+    }
+
+    if (action === 'retry' && activeItem) {
+      closeViewerPopovers();
+      const prompt = activeItem.prompt || activeItem.root_prompt || '';
+      if (!prompt) { alert('No prompt available to retry.'); return; }
+      const isImage = activeItem.stage === 'image-to-3d' || activeItem.stage === 'image_to_3d';
+      if (isImage) {
+        const railBtn = document.querySelector('[data-panel="image3d"]');
+        if (railBtn) railBtn.click();
+      } else {
+        const railBtn = document.querySelector('[data-panel="text3d"]');
+        if (railBtn) railBtn.click();
+        const promptInput = byId('modelPrompt');
+        if (promptInput) {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+    }
+
+    if (action === 'evolve' && activeItem) {
+      closeViewerPopovers();
+      API.evolveFromHistory(activeItem, 2);
+    }
+
+  });
+}
+
+// ============================================================================
+// VIEWER ACTION BAR (Accept / Revert)
+// ============================================================================
+
+function initViewerActionBar() {
+  const actionBar = byId('viewerActionBar');
+  if (!actionBar) return;
+
+  actionBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-vab]');
+    if (!btn) return;
+    const act = btn.dataset.vab;
+
+    if (act === 'accept') {
+      actionBar.classList.add('hidden');
+    }
+
+    if (act === 'revert') {
+      const popped = State.popModelVersion();
+      if (popped && popped.glb_url) {
+        Viewer.loadGlbFromUrl(popped.glb_url);
+        State.setHistoryActiveModelId(popped.id);
+      }
+      if (!State.canRevertModel()) {
+        actionBar.classList.add('hidden');
+      }
+    }
+  });
+
+  // Listen for model:edited events to show the bar
+  window.addEventListener('model:edited', () => {
+    if (State.canRevertModel()) {
+      actionBar.classList.remove('hidden');
+    }
+  });
+
+  // Update toolbar disabled states based on active model
+  function updateToolbarState() {
+    const toolbar = byId('viewerToolbar');
+    if (!toolbar) return;
+    const activeItem = API.getActiveHistoryItem();
+    const hasModel = !!activeItem;
+    const stage = String(activeItem?.stage || activeItem?.payload?.stage || '').toLowerCase();
+    const canRefine = !!(activeItem && (activeItem.preview_task_id || stage === 'preview'));
+    const actionBtns = toolbar.querySelectorAll('.viewer-toolbar__btn[data-action]');
+    actionBtns.forEach(btn => {
+      const act = btn.dataset.action;
+      // download, share, print, remesh, texture, evolve, retry all need a model
+      if (['download', 'remesh', 'texture', 'evolve', 'retry', 'print'].includes(act)) {
+        btn.disabled = !hasModel;
+      } else if (act === 'refine') {
+        btn.disabled = !canRefine;
+      }
+    });
+  }
+
+  // Run on init and whenever history re-renders
+  updateToolbarState();
+  window.addEventListener('history:rendered', updateToolbarState);
+}
+
+// ============================================================================
+// MAIN UI INITIALIZATION
+// ============================================================================
+
+function initUi() {
+  // Initialize tab references
+  UI.initTabRefs();
+
+  // DOM lookups
+  imageDrop = byId('imageDrop');
+  imageInput = byId('imageUpload');
+  imagePreview = byId('imagePreview');
+  imageModelName = byId('imageModelName');
+
+  genHint = byId('genHint');
+
+  // Set initial tab
+  UI.setActiveTab('text3d');
+
+  // Image drop zone
+  safe(imageDrop, () => {
+    const hl = (on) => imageDrop.classList.toggle('dragover', !!on);
+    ['dragenter', 'dragover'].forEach(evt =>
+      imageDrop.addEventListener(evt, e => { e.preventDefault(); hl(true); })
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+      imageDrop.addEventListener(evt, e => { e.preventDefault(); hl(false); })
+    );
+    imageDrop.addEventListener('drop', (e) => {
+      const f = e.dataTransfer.files?.[0];
+      if (f) handleImageFile(f);
+    });
+    imageDrop.addEventListener('click', () => imageInput?.click());
+    imageDrop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') imageInput?.click();
+    });
+  });
+
+  safe(imageInput, () => {
+    imageInput.addEventListener('change', () => {
+      const f = imageInput.files?.[0];
+      if (f) handleImageFile(f);
+    });
+  });
+
+  // Upload modal + model drop zone — handled entirely by 3dprint-app.js
+
+  // Enter key triggers Generate from prompt textareas
+  const promptTextareas = ['modelPrompt', 'imagePrompt', 'texturePrompt', 'videoMotion'];
+  promptTextareas.forEach(id => {
+    const textarea = byId(id);
+    if (textarea) {
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.repeat) {
+          e.preventDefault();
+          const genBtn = document.querySelector('button[id*="generate"]:not([disabled])');
+          if (genBtn) API.onGenerateClick();
+        }
       });
     }
-    vOff += posAttr.count;
-  }
+  });
 
-  // ---- Group faces by color slot → separate volume per color ----
-  const groups = new Map();
-  for (let i = 0; i < allFaces.length; i++) {
-    const s = allFaces[i].colorSlot;
-    if (!groups.has(s)) groups.set(s, []);
-    groups.get(s).push(i);
-  }
-  const sortedSlots = [...groups.keys()].sort((a, b) => a - b); // -1 first
-
-  // ---- Build sub-object per color group ----
-  const objectXmls = [];
-  const componentRefs = [];
-  const partSettings = [];    // for model_settings.config
-  const filamentEntries = []; // for slice_info.config
-  const materialEntries = [];
-  const baseMaterialId = 1000;
-  let objId = 1;
-  let extruderNum = 1;
-
-  for (const slot of sortedSlots) {
-    const faceIdxs = groups.get(slot);
-    const color = slot >= 0 ? (_filaments[slot] || { hex: '#FFFFFF', name: 'Color' }) : { hex: '#C8C8C8', name: 'Default' };
-    const materialIndex = materialEntries.length;
-    const displayColor = _normalize3mfColor(color.hex);
-    materialEntries.push(`      <base name="${_escXml(color.name)}" displaycolor="${displayColor}" />`);
-
-    // Remap vertices: only include vertices used by this group
-    const vertMap = new Map();
-    let newIdx = 0;
-    const localVerts = [];
-    const localTris = [];
-
-    for (const fi of faceIdxs) {
-      const face = allFaces[fi];
-      const ids = [face.v1, face.v2, face.v3];
-      const mapped = [];
-      for (const vid of ids) {
-        if (!vertMap.has(vid)) {
-          vertMap.set(vid, newIdx);
-          const i3 = vid * 3;
-          localVerts.push(allVerts[i3], allVerts[i3 + 1], allVerts[i3 + 2]);
-          newIdx++;
-        }
-        mapped.push(vertMap.get(vid));
+  // Global Enter key handler for focused buttons
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.repeat) return;
+    const focused = document.activeElement;
+    if (focused && focused.tagName === 'BUTTON' && !focused.disabled) {
+      const inTextarea = document.activeElement?.tagName === 'TEXTAREA';
+      if (!inTextarea) {
+        e.preventDefault();
+        focused.click();
+        log('Enter key triggered button:', focused.id || focused.textContent?.trim().substring(0, 20));
       }
-      localTris.push(mapped);
     }
-
-    const vLines = [];
-    for (let i = 0; i < localVerts.length; i += 3) {
-      vLines.push(`          <vertex x="${localVerts[i].toFixed(6)}" y="${localVerts[i+1].toFixed(6)}" z="${localVerts[i+2].toFixed(6)}" />`);
-    }
-    const tLines = localTris.map(t =>
-      `          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" pid="${baseMaterialId}" p1="${materialIndex}" p2="${materialIndex}" p3="${materialIndex}" />`
-    ).join('\n');
-
-    const uuid = _u();
-    objectXmls.push(`    <object id="${objId}" type="model" p:UUID="${uuid}">
-      <mesh>
-        <vertices>
-${vLines.join('\n')}
-        </vertices>
-        <triangles>
-${tLines}
-        </triangles>
-      </mesh>
-    </object>`);
-
-    componentRefs.push(`        <component objectid="${objId}" p:UUID="${_u()}" transform="1 0 0 0 1 0 0 0 1 0 0 0" />`);
-
-    // model_settings.config: map this part to an extruder
-    partSettings.push(`    <part id="${objId}" subtype="normal_part">
-      <metadata key="name" value="${_escXml(color.name)}"/>
-      <metadata key="extruder" value="${extruderNum}"/>
-    </part>`);
-
-    // slice_info.config: filament color
-    const hexNoHash = color.hex.replace('#', '');
-    filamentEntries.push(`    <filament id="${extruderNum}" type="PLA" color="${hexNoHash}FF" used="1"/>`);
-
-    objId++;
-    extruderNum++;
-  }
-
-  // ---- Parent object with components ----
-  const parentId = objId;
-  const parentUuid = _u();
-
-  objectXmls.push(`    <object id="${parentId}" type="model" p:UUID="${parentUuid}">
-      <components>
-${componentRefs.join('\n')}
-      </components>
-    </object>`);
-
-  // ---- 3D/3dmodel.model ----
-  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
-<model unit="millimeter"
-  xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
-  xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06">
-  <metadata name="BambuStudio:3mfVersion">1</metadata>
-  <metadata name="Application">BambuStudio-01.10.02.83</metadata>
-  <resources>
-    <basematerials id="${baseMaterialId}">
-${materialEntries.join('\n')}
-    </basematerials>
-${objectXmls.join('\n')}
-  </resources>
-  <build p:UUID="${_u()}">
-    <item objectid="${parentId}" p:UUID="${_u()}" printable="1" />
-  </build>
-</model>`;
-
-  // ---- Metadata/model_settings.config ----
-  const modelSettings = `<?xml version="1.0" encoding="UTF-8"?>
-<config>
-  <object id="${parentId}">
-    <metadata key="name" value="${_escXml(_modelTitle || 'model')}"/>
-    <metadata key="extruder" value="1"/>
-${partSettings.join('\n')}
-  </object>
-</config>`;
-
-  // ---- Metadata/slice_info.config ----
-  const sliceInfo = `<?xml version="1.0" encoding="UTF-8"?>
-<config>
-  <plate>
-    <metadata key="plater_id" value="1"/>
-    <metadata key="locked" value="false"/>
-    <instance object_id="${parentId}" instance_id="0" identify_id="0"/>
-${filamentEntries.join('\n')}
-  </plate>
-</config>`;
-
-  // ---- Metadata/project_settings.config (minimal, needed for Bambu recognition) ----
-  const projectSettings = `<?xml version="1.0" encoding="UTF-8"?>
-<config>
-</config>`;
-
-  // ---- Standard 3MF boilerplate ----
-  const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
-  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />
-  <Default Extension="config" ContentType="text/xml" />
-</Types>`;
-
-  const rels = `<?xml version="1.0" encoding="UTF-8"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" />
-</Relationships>`;
-
-  // ---- Pack ZIP ----
-  zip.file('[Content_Types].xml', contentTypes);
-  zip.file('_rels/.rels', rels);
-  zip.file('3D/3dmodel.model', modelXml);
-  zip.file('Metadata/model_settings.config', modelSettings);
-  zip.file('Metadata/slice_info.config', sliceInfo);
-  zip.file('Metadata/project_settings.config', projectSettings);
-
-  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
-  _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-multicolor.3mf`);
-}
-
-async function _exportColoredGLB() {
-  if (!_model) return;
-  _applyColorsToMeshes();
-  const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
-  const exporter = new GLTFExporter();
-  const result = await new Promise((resolve, reject) => {
-    exporter.parse(_model, resolve, reject, {
-      binary: true,
-      onlyVisible: true,
-      includeCustomExtensions: false,
-    });
-  });
-  const blob = new Blob([result], { type: 'model/gltf-binary' });
-  _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-painted.glb`);
-}
-
-function _downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function _escXml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function _normalize3mfColor(hex) {
-  const raw = String(hex || '#C8C8C8').trim().replace(/^#/, '');
-  const rgb = /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : 'C8C8C8';
-  return `#${rgb}FF`;
-}
-
-function _safeFileBase(name) {
-  return String(name || 'model').replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'model';
-}
-
-// ============================================================================
-// Sidebar UI
-// ============================================================================
-
-function _renderSidebar() {
-  const sb = document.getElementById('mcp-sidebar');
-  if (!sb) return;
-
-  const filamentRows = _filaments.map((f, i) => `
-    <div class="mcp-filament ${i === _activeSlot ? 'active' : ''}" data-slot="${i}">
-      <div class="mcp-filament-swatch" style="background:${f.hex}"></div>
-      <div class="mcp-filament-info">
-        <div class="mcp-filament-name">${f.name}</div>
-        <div class="mcp-filament-hex">${f.hex}</div>
-      </div>
-      ${_filaments.length > 1 ? `<div class="mcp-filament-rm" data-rm="${i}" title="Remove">&times;</div>` : ''}
-    </div>
-  `).join('');
-
-  const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
-  const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
-
-  sb.innerHTML = `
-    <div class="mcp-header">
-      <h2>Paint Model</h2>
-      <div class="mcp-close" id="mcp-close-btn">&times;</div>
-    </div>
-
-    <div class="mcp-section">
-      <div class="mcp-label">Brush Mode</div>
-      <div class="mcp-brush-row">
-        <button class="mcp-brush-btn ${_brushMode === 'brush' ? 'active' : ''}" data-brush="brush">Brush</button>
-        <button class="mcp-brush-btn ${_brushMode === 'region' ? 'active' : ''}" data-brush="region">Region</button>
-        <button class="mcp-brush-btn ${_brushMode === 'face' ? 'active' : ''}" data-brush="face">Face</button>
-        <button class="mcp-brush-btn ${_brushMode === 'eraser' ? 'active' : ''}" data-brush="eraser" style="${_brushMode === 'eraser' ? 'border-color:rgba(239,68,68,.4);color:#ef4444;background:rgba(239,68,68,.08);' : ''}">Eraser</button>
-      </div>
-      ${_brushMode === 'brush' || _brushMode === 'eraser' ? `
-      <div style="margin-top:6px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-          <span style="font-size:9px;color:rgba(255,255,255,.4);">Brush Size</span>
-          <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_brushRadius.toFixed(2)}</span>
-        </div>
-        <input type="range" min="1" max="100" value="${Math.round(_brushRadius * 200)}"
-          style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
-          id="mcp-brush-size" />
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);margin-top:2px;">
-          <span>Fine</span><span>Wide</span>
-        </div>
-      </div>` : ''}
-    </div>
-
-    <div class="mcp-section">
-      <div class="mcp-label">Filament Colors (${_filaments.length})</div>
-      <div class="mcp-filaments" id="mcp-filament-list">
-        ${filamentRows}
-      </div>
-      <div class="mcp-add-row" style="margin-top:6px;">
-        <button class="mcp-add-btn" id="mcp-add-filament">+ Add Filament</button>
-      </div>
-    </div>
-
-    <div class="mcp-section mcp-palette" id="mcp-palette-section" style="display:none;">
-      <div class="mcp-label">Pick Color</div>
-      <div class="mcp-label" style="margin-top:4px;">PLA Basic</div>
-      <div class="mcp-palette-grid">
-        ${PLA_BASIC.map(c => `<div class="mcp-palette-sw" style="background:${c.hex}" data-hex="${c.hex}" data-name="${c.name}" title="${c.name}"></div>`).join('')}
-      </div>
-      <div class="mcp-label" style="margin-top:6px;">PLA Matte</div>
-      <div class="mcp-palette-grid">
-        ${PLA_MATTE.map(c => `<div class="mcp-palette-sw" style="background:${c.hex}" data-hex="${c.hex}" data-name="${c.name}" title="${c.name}"></div>`).join('')}
-      </div>
-    </div>
-
-    <div class="mcp-stats" id="mcp-stats">${pct}% painted (${paintedCount}/${_totalFaces} faces)</div>
-
-    <div class="mcp-info">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
-        <line x1="12" y1="8" x2="12.01" y2="8"/>
-      </svg>
-      <span>Brush: click &amp; drag to paint. Region: click to flood-fill. Face: single triangle. Eraser: remove paint. Hold drag for continuous painting.</span>
-    </div>
-
-    <div class="mcp-actions">
-      <button class="mcp-btn mcp-btn-primary" id="mcp-export-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download 3MF
-      </button>
-      <button class="mcp-btn mcp-btn-secondary" id="mcp-export-glb-btn">
-        Download Colored GLB
-      </button>
-      <button class="mcp-btn mcp-btn-danger" id="mcp-clear-btn">Clear All Paint</button>
-      <button class="mcp-btn mcp-btn-secondary" id="mcp-cancel-btn">Close</button>
-    </div>
-  `;
-
-  // Event listeners
-  sb.querySelector('#mcp-close-btn')?.addEventListener('click', closeMultiColorModal);
-  sb.querySelector('#mcp-cancel-btn')?.addEventListener('click', closeMultiColorModal);
-  sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
-  sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);
-  sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
-
-  // Filament selection
-  sb.querySelectorAll('.mcp-filament').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.mcp-filament-rm')) return;
-      _activeSlot = parseInt(el.dataset.slot);
-      _renderSidebar();
-    });
   });
 
-  // Remove filament
-  sb.querySelectorAll('.mcp-filament-rm').forEach(el => {
-    el.addEventListener('click', () => {
-      const idx = parseInt(el.dataset.rm);
-      _filaments.splice(idx, 1);
-      if (_activeSlot >= _filaments.length) _activeSlot = _filaments.length - 1;
-      // Remap face colors
-      for (let i = 0; i < _totalFaces; i++) {
-        if (_faceColors[i] === idx) _faceColors[i] = -1;
-        else if (_faceColors[i] > idx) _faceColors[i]--;
-      }
-      _applyColorsToMeshes();
-      _renderSidebar();
-    });
-  });
+  // ESC to close modal — handled by 3dprint-app.js
 
-  // Add filament — show palette
-  let _paletteMode = 'add'; // 'add' or index for replace
-  sb.querySelector('#mcp-add-filament')?.addEventListener('click', () => {
-    _paletteMode = 'add';
-    const palSec = sb.querySelector('#mcp-palette-section');
-    if (palSec) palSec.style.display = palSec.style.display === 'none' ? 'flex' : 'none';
-  });
-
-  // Palette swatch click
-  sb.querySelectorAll('.mcp-palette-sw').forEach(el => {
-    el.addEventListener('click', () => {
-      const hex = el.dataset.hex;
-      const name = el.dataset.name;
-      _filaments.push({ hex, name });
-      _activeSlot = _filaments.length - 1;
-      _renderSidebar();
-    });
-  });
-
-  // Brush mode
-  sb.querySelectorAll('.mcp-brush-btn').forEach(el => {
-    el.addEventListener('click', () => {
-      _brushMode = el.dataset.brush;
-      _renderSidebar();
-    });
-  });
-
-  // Brush size slider
-  const brushSlider = sb.querySelector('#mcp-brush-size');
-  if (brushSlider) {
-    brushSlider.addEventListener('input', (e) => {
-      _brushRadius = parseInt(e.target.value) / 200; // 0.005 - 0.5
-      const valEl = sb.querySelector('#mcp-brush-val');
-      if (valEl) valEl.textContent = _brushRadius.toFixed(2);
-    });
-  }
-}
-
-function _updateStats() {
-  const el = document.getElementById('mcp-stats');
-  if (!el) return;
-  const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
-  const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
-  el.textContent = `${pct}% painted (${paintedCount}/${_totalFaces} faces)`;
-}
-
-// ============================================================================
-// Cleanup
-// ============================================================================
-
-function _dispose() {
-  const container = document.getElementById('mcp-viewer');
-  if (container) {
-    if (container._resizeHandler) window.removeEventListener('resize', container._resizeHandler);
-    if (container._animId) cancelAnimationFrame(container._animId);
-  }
-  if (_renderer?.domElement) {
-    _renderer.domElement.removeEventListener('pointerdown', _onPointerDown);
-    _renderer.domElement.removeEventListener('pointermove', _onPointerMove);
-    _renderer.domElement.removeEventListener('pointerup', _onPointerUp);
-    _renderer.domElement.removeEventListener('pointerleave', _onPointerUp);
-  }
-  _isPainting = false;
-  if (_controls) { _controls.dispose(); _controls = null; }
-  if (_renderer) { _renderer.dispose(); _renderer = null; }
-  if (_scene) { _scene.clear(); _scene = null; }
-  _model = null; _camera = null; _raycaster = null;
-  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _totalFaces = 0;
-}
-
-// ============================================================================
-// Public API
-// ============================================================================
-
-export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
-  _taskId = taskId;
-  _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
-  _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
-  _activeSlot = 0;
-  _brushMode = 'region';
-  _paintEnabled = true;
-
-  const overlay = _createModal();
-  _setupViewer(glbUrl);
-  _renderSidebar();
-
-  // Close on overlay click
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeMultiColorModal(); });
-  const onEsc = (e) => { if (e.key === 'Escape') closeMultiColorModal(); };
-  document.addEventListener('keydown', onEsc);
-  overlay._escHandler = onEsc;
-
-  window.multiColorPrint = { closeMultiColorModal };
-}
-
-function _setAutoStatus(message, pct = null) {
-  const status = document.getElementById('meshy-mcp-status');
-  if (status) status.textContent = message;
-  const wrap = document.getElementById('meshy-mcp-progress-wrap');
-  const bar = document.getElementById('meshy-mcp-progress');
-  if (pct == null) {
-    if (wrap) wrap.style.display = 'none';
-    return;
-  }
-  if (wrap) wrap.style.display = 'block';
-  if (bar) bar.style.width = `${Math.max(0, Math.min(100, Math.round(pct)))}%`;
-}
-
-function _downloadAuto3mf(url, title) {
-  if (!url) return;
-  const safeTitle = (title || 'model').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
-  const params = new URLSearchParams({ u: url, download: '1', filename: `${safeTitle}-meshy-auto.3mf` });
-  const a = document.createElement('a');
-  a.href = `${BACKEND}/api/_mod/proxy-glb?${params.toString()}`;
-  a.download = `${safeTitle}-meshy-auto.3mf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
-async function _refreshAfterAutoMcp() {
+  // Migrate history data (one-time, skips if already done)
   try {
-    if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
-    if (window.loadHistoryFromDB) await window.loadHistoryFromDB();
-    if (window.renderHistory) window.renderHistory();
-  } catch (err) {
-    console.warn('[Meshy MCP] Refresh after completion failed:', err);
-  }
-}
-
-function _pollMeshyAutoJob(jobId, title) {
-  if (_autoPollTimer) clearTimeout(_autoPollTimer);
-  const poll = async () => {
-    try {
-      const res = await apiFetch(`/api/_mod/print/multi-color/${encodeURIComponent(jobId)}`);
-      if (!res.ok) throw new Error(res.error || 'Status check failed');
-      const st = res.data || {};
-      const pct = typeof st.pct === 'number' ? st.pct : (st.status === 'done' ? 100 : 15);
-      _setAutoStatus(st.message || (st.status === 'done' ? '3MF ready.' : 'Meshy is preparing the 3MF...'), pct);
-
-      if (st.status === 'done') {
-        State.removeActiveJob(jobId);
-        const threeMfUrl = st.three_mf_url || st.model_urls?.['3mf'];
-        const dl = document.getElementById('meshy-mcp-download');
-        if (dl && threeMfUrl) {
-          dl.style.display = 'flex';
-          dl.onclick = () => _downloadAuto3mf(threeMfUrl, title);
-        }
-        await _refreshAfterAutoMcp();
-        if (window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
-        _autoPollTimer = null;
-        return;
-      }
-
-      if (st.status === 'failed') {
-        State.removeActiveJob(jobId);
-        _setAutoStatus(st.message || st.error || 'Meshy 3MF failed.', 100);
-        if (window.showToast) window.showToast(st.message || 'Meshy 3MF failed.', 'error');
-        _autoPollTimer = null;
-        return;
-      }
-
-      _autoPollTimer = setTimeout(poll, 4000);
-    } catch (err) {
-      _setAutoStatus(err?.message || 'Status check failed.', null);
-      _autoPollTimer = setTimeout(poll, 8000);
+    if (!localStorage.getItem('timrx_history_titles_migrated')) {
+      migrateHistoryTitles();
+      localStorage.setItem('timrx_history_titles_migrated', '1');
     }
-  };
-  poll();
+    if (!localStorage.getItem('timrx_history_dates_migrated')) {
+      migrateHistoryDates();
+      localStorage.setItem('timrx_history_dates_migrated', '1');
+    }
+  } catch (_) { /* Safari: localStorage may be blocked */ }
+
+  // Initialize custom selects
+  UI.initNiceSelects();
+
+  UI.updateGenerateHint();
 }
 
-export function openMeshyMultiColorModal({ taskId, title, thumbnailUrl, glbUrl }) {
-  _autoJobId = null;
-  const overlay = _createAutoModal();
-  const colors = overlay.querySelector('#meshy-mcp-colors');
-  const depth = overlay.querySelector('#meshy-mcp-depth');
-  const colorsLabel = overlay.querySelector('#meshy-mcp-colors-label');
-  const depthLabel = overlay.querySelector('#meshy-mcp-depth-label');
-  const start = overlay.querySelector('#meshy-mcp-start');
+// ============================================================================
+// HISTORY GALLERY WIRING
+// ============================================================================
 
-  const syncLabels = () => {
-    if (colorsLabel) colorsLabel.textContent = `${colors?.value || 4} colors`;
-    if (depthLabel) depthLabel.textContent = `Level ${depth?.value || 4}`;
-  };
-  colors?.addEventListener('input', syncLabels);
-  depth?.addEventListener('input', syncLabels);
-  syncLabels();
+function wireGallery() {
+  const grid = document.getElementById('historyGrid');
+  const q = document.getElementById('historySearch');
+  const size = document.getElementById('historyPageSize');
+  const prev = document.getElementById('historyPrev');
+  const next = document.getElementById('historyNext');
+  const first = document.getElementById('historyFirst');
+  const last = document.getElementById('historyLast');
 
-  start?.addEventListener('click', async () => {
-    start.disabled = true;
-    _setAutoStatus('Submitting to Meshy...', 2);
-    try {
-      const payload = {
-        input_task_id: taskId || '',
-        model_url: glbUrl || '',
-        prompt: title || '',
-        max_colors: parseInt(colors?.value || '4', 10),
-        max_depth: parseInt(depth?.value || '4', 10),
-      };
-      const res = await apiFetch('/api/_mod/print/multi-color', { method: 'POST', body: payload });
-      if (!res.ok) throw new Error(res.error || res.data?.message || 'Could not start Meshy 3MF');
-      _autoJobId = res.data?.job_id;
-      if (!_autoJobId) throw new Error('Meshy did not return a job ID');
-      const jobMeta = {
-        stage: 'multi_color_print',
-        resume_strategy: 'meshy_multi_color_print',
-        type: 'model',
-        prompt: title || '',
-        root_prompt: title || '',
-        title: title || 'Meshy Auto 3MF',
-        source_task_id: taskId || '',
-        source_model_url: glbUrl || '',
-        glb_url: glbUrl || '',
-        thumbnail_url: thumbnailUrl || '',
-        max_colors: payload.max_colors,
-        max_depth: payload.max_depth,
-      };
-      State.addActiveJob(_autoJobId);
-      State.savePendingMeta(_autoJobId, jobMeta);
-      if (!State.historyHasJobId(_autoJobId)) {
-        State.addHistoryItem({
-          id: _autoJobId,
-          ...jobMeta,
-          status: 'generating',
-          status_label: 'Preparing Meshy 3MF...',
-          progress_pct: 5,
-          created_at: Date.now(),
-        });
-        window.renderHistory?.();
+  // Search input
+  if (q) {
+    q.addEventListener('input', e => {
+      State.historyState.query = e.target.value.trim().toLowerCase();
+      State.historyState.page = 1;
+      renderHistory();
+    });
+  }
+
+  // Page size select
+  if (size) {
+    size.addEventListener('change', (e) => {
+      const nextSize = Math.max(1, parseInt(e.target.value, 10) || 9);
+      State.historyState.pageSize = nextSize;
+      State.historyState.page = 1;
+      renderHistory();
+    });
+  }
+
+  // Filter buttons
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeActiveHistoryMenu();
+      const filterType = btn.getAttribute('data-filter');
+      if (filterType === 'all') {
+        State.historyState.galleryExpanded = State.historyState.filter === 'all'
+          ? !State.historyState.galleryExpanded
+          : true;
+        State.historyState.filter = 'all';
+      } else {
+        State.historyState.galleryExpanded = false;
+        State.historyState.filter = filterType;
       }
-      _setAutoStatus('Meshy job started...', 5);
-      if (window.showToast) window.showToast('Meshy 3MF job started.', 'info');
-      _pollMeshyAutoJob(_autoJobId, title);
-    } catch (err) {
-      start.disabled = false;
-      _setAutoStatus(err?.message || 'Could not start Meshy 3MF.', null);
-      if (window.showToast) window.showToast(err?.message || 'Could not start Meshy 3MF.', 'error');
+      State.historyState.page = 1;
+      renderHistory();
+      // If a media tab hasn't fetched its own data yet, load it from DB
+      // then re-render to replace the skeleton with actual content.
+      if (filterType !== 'all' && !State.historyTabLoaded()) {
+        State.loadHistoryTab(filterType).then(() => renderHistory());
+      }
+    });
+  });
+
+  // Sort toggle
+  const sortToggle = document.getElementById('historySortToggle');
+  if (sortToggle) {
+    sortToggle.addEventListener('click', () => {
+      State.historyState.sort = State.historyState.sort === 'desc' ? 'asc' : 'desc';
+      renderHistory();
+    });
+  }
+
+  // Collapse button
+  const collapseBtn = document.getElementById('historyCollapseView');
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', () => {
+      closeActiveHistoryMenu();
+      State.historyState.galleryExpanded = false;
+      State.historyState.page = 1;
+      renderHistory();
+    });
+  }
+
+  // Refresh/Restore from DB button
+  const refreshBtn = document.getElementById('historyRefreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      if (refreshBtn.classList.contains('is-loading')) return;
+      refreshBtn.classList.add('is-loading');
+      try {
+        await State.forceRestoreFromDB();
+        State.historyState.page = 1;
+        renderHistory();
+        // Show success state briefly
+        refreshBtn.classList.remove('is-loading');
+        refreshBtn.classList.add('is-success');
+        setTimeout(() => refreshBtn.classList.remove('is-success'), 1500);
+      } catch (err) {
+        console.error('Failed to restore history:', err);
+        alert('Failed to restore history from database. Please try again.');
+        refreshBtn.classList.remove('is-loading');
+      }
+    });
+  }
+
+  // Pagination — scroll history grid to top after page change
+  function scrollHistoryToTop() {
+    const panel = document.getElementById('ws-right-panel');
+    if (panel) panel.scrollTop = 0;
+    const gridEl = document.getElementById('historyGrid');
+    if (gridEl) gridEl.scrollTop = 0;
+  }
+
+  if (first) first.addEventListener('click', () => {
+    if (State.historyState.page > 1) {
+      State.historyState.page = 1;
+      renderHistory();
+      scrollHistoryToTop();
+    }
+  });
+  if (prev) prev.addEventListener('click', () => {
+    if (State.historyState.page > 1) {
+      State.historyState.page--;
+      renderHistory();
+      scrollHistoryToTop();
+    }
+  });
+  if (next) next.addEventListener('click', async () => {
+    const filter = State.historyState.filter;
+    // Use the page count from the last render — this accounts for lineage
+    // grouping (all/model tabs) vs flat item count (image/video tabs).
+    const totalPages = State.historyState._renderedTotalPages || 1;
+    const hasMore = State.historyHasMore();
+    const tabLoaded = State.historyTabLoaded();
+
+    log(`[Pagination] NEXT: filter=${filter} page=${State.historyState.page}/${totalPages}${hasMore ? '+' : ''} tabLoaded=${tabLoaded}`);
+
+    if (State.historyState.page < totalPages) {
+      // More cached pages available — navigate locally
+      State.historyState.page++;
+      renderHistory();
+      scrollHistoryToTop();
+    } else if (hasMore || !tabLoaded) {
+      // On last cached page — try to fetch more from DB.
+      next.setAttribute('disabled', '');
+      next.classList.add('loading');
+
+      let lastAddedCount = 0;
+      let newTotalPages = totalPages;
+      const maxFetchPasses = (filter === 'model' || filter === 'all') ? 4 : 2;
+
+      for (let pass = 0; pass < maxFetchPasses; pass++) {
+        let added = [];
+        if (State.historyTabLoaded()) {
+          added = await State.loadMoreHistory();
+        } else {
+          const tabItems = await State.loadHistoryTab(filter);
+          added = tabItems || [];
+        }
+        lastAddedCount = added.length;
+
+        // Re-render after each fetch so lineage grouping can recalculate the
+        // true visible page count before deciding whether we can advance.
+        renderHistory();
+        newTotalPages = State.historyState._renderedTotalPages || 1;
+
+        if (State.historyState.page < newTotalPages) {
+          State.historyState.page++;
+          renderHistory();
+          break;
+        }
+
+        if (!State.historyHasMore() || added.length === 0) {
+          break;
+        }
+      }
+
+      next.classList.remove('loading');
+      next.removeAttribute('disabled');
+
+      log(`[Pagination] After load: filter=${filter} page=${State.historyState.page}/${newTotalPages}${State.historyHasMore() ? '+' : ''} added=${lastAddedCount}`);
+      scrollHistoryToTop();
+    }
+    // else: no more data, button should already be disabled by renderHistory
+  });
+  if (last) last.addEventListener('click', () => {
+    const totalPages = State.historyState._renderedTotalPages || 1;
+    if (State.historyState.page < totalPages) {
+      State.historyState.page = totalPages;
+      renderHistory();
+      scrollHistoryToTop();
     }
   });
 
-  overlay.querySelector('#meshy-mcp-close')?.addEventListener('click', closeMeshyMultiColorModal);
-  overlay.querySelector('#meshy-mcp-cancel')?.addEventListener('click', closeMeshyMultiColorModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeMeshyMultiColorModal(); });
-  const onEsc = (e) => { if (e.key === 'Escape') closeMeshyMultiColorModal(); };
-  document.addEventListener('keydown', onEsc);
-  overlay._escHandler = onEsc;
+  // Grid event delegation
+  if (grid) {
+    grid.addEventListener('click', async (e) => {
+      // Toggle collection expansion
+      const toggleBtn = e.target.closest('[data-action="toggle-collection"]');
+      if (toggleBtn) {
+        const collection = toggleBtn.closest('.history-collection');
+        if (collection) {
+          const isExpanded = collection.classList.toggle('is-expanded');
+          toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          // Lazy-render: inflate hidden thumbs from <template> on first expand
+          if (isExpanded) {
+            const tmpl = collection.querySelector('template.history-collection__thumbs-lazy');
+            if (tmpl) {
+              const extra = document.createElement('div');
+              extra.className = 'history-collection__thumbs-extra';
+              extra.innerHTML = tmpl.innerHTML;
+              tmpl.replaceWith(extra);
+            }
+          }
+        }
+        e.stopPropagation();
+        return;
+      }
+
+      // Gallery expanded view filter — uses infinite scroll batching
+      const galleryFilterBtn = e.target.closest('[data-gallery-filter]');
+      if (galleryFilterBtn) {
+        const filterType = galleryFilterBtn.getAttribute('data-gallery-filter');
+        const bar = galleryFilterBtn.closest('.expanded-filter-bar');
+        if (bar) bar.querySelectorAll('.expanded-filter-btn').forEach(b => b.classList.toggle('active', b === galleryFilterBtn));
+        // Reset infinite scroll with the selected filter
+        resetGalleryInfiniteScroll(filterType);
+        // Scroll to top of grid smoothly
+        const section = grid.querySelector('.expanded-section');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      // Menu toggle
+      const menuBtn = e.target.closest('[data-history-menu]');
+      if (menuBtn) {
+        const menu = menuBtn.nextElementSibling?.classList?.contains('card-menu')
+          ? menuBtn.nextElementSibling
+          : menuBtn.parentElement?.querySelector('.card-menu');
+        if (!menu) return;
+        const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          closeActiveHistoryMenu();
+        } else {
+          openHistoryMenu(menuBtn, menu);
+        }
+        e.stopPropagation();
+        return;
+      }
+
+      // Submenu toggle
+      const submenuBtn = e.target.closest('[data-submenu-open]');
+      if (submenuBtn) {
+        const targetId = submenuBtn.getAttribute('data-submenu-open');
+        if (!targetId) return;
+        const panel = document.querySelector(`[data-submenu-panel="${targetId}"]`);
+        if (!panel) return;
+        const isOpen = submenuBtn.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          closeActiveHistorySubmenu();
+        } else {
+          openHistorySubmenu(submenuBtn, panel);
+        }
+        e.stopPropagation();
+        return;
+      }
+
+      // Expanded gallery: clicking ANYWHERE on a card opens it in the viewer
+      // Delegate to the first data-act button inside the card.
+      if (State.historyState.galleryExpanded) {
+        const expandedCard = e.target.closest('.expanded-thumb');
+        if (expandedCard && !e.target.closest('[data-act]') && !e.target.closest('[data-history-menu]')) {
+          const innerBtn = expandedCard.querySelector('[data-act="open"], [data-act="open-video"]');
+          if (innerBtn && !innerBtn.disabled) {
+            innerBtn.click();
+            return;
+          }
+        }
+      }
+
+      // Action buttons
+      const btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      if (btn.disabled) {
+        console.warn(`[CardAction] Button is DISABLED: act=${btn.getAttribute('data-act')} id=${btn.getAttribute('data-id')}`);
+        return;
+      }
+      closeActiveHistoryMenu();
+
+      const id = btn.getAttribute('data-id');
+      const act = btn.getAttribute('data-act');
+      console.log(`[CardAction] act=${act} id=${id}`);
+
+      // ── Grouped card actions: handled before item lookup since they use
+      //    data-group-id / data-group-ids instead of data-id ──
+      if (act === 'open-group') {
+        const groupId = btn.getAttribute('data-group-id');
+        if (groupId && typeof window.openGroupedViewer === 'function') {
+          closeActiveHistoryMenu();
+          if (State.historyState.galleryExpanded) {
+            State.historyState.galleryExpanded = false;
+            renderHistory();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          const model3dViewer = document.getElementById('model3dViewer');
+          if (model3dViewer) model3dViewer.classList.remove('hidden');
+          const imageViewer = document.getElementById('imageViewer');
+          const videoViewer = document.getElementById('videoViewer');
+          if (imageViewer) imageViewer.classList.add('hidden');
+          if (videoViewer) videoViewer.classList.add('hidden');
+          const modelRailBtn = document.querySelector('[data-panel="model"]');
+          if (modelRailBtn) modelRailBtn.click();
+          if (window.timrx3D?.resize) window.timrx3D.resize();
+          requestAnimationFrame(() => {
+            let groupItems = getGroupedCardItems(groupId);
+            if (!groupItems || !groupItems.length) {
+              const allHistory = State.getHistory();
+              groupItems = allHistory.filter(i =>
+                i.batch_group_id === groupId ||
+                i.lineage_origin_id === groupId ||
+                i.lineage_root_id === groupId
+              );
+            }
+            if (groupItems && groupItems.length > 0) {
+              window.openGroupedViewer(groupId, groupItems);
+            }
+          });
+        }
+        return;
+      }
+
+      if (act === 'delete-group') {
+        const groupIdsStr = btn.getAttribute('data-group-ids') || '';
+        const groupIds = groupIdsStr.split(',').filter(Boolean);
+        if (!groupIds.length) return;
+        closeActiveHistoryMenu();
+        if (!confirm(`This will permanently delete all ${groupIds.length} variants in this batch. This action cannot be undone.`)) return;
+        let deleted = 0;
+        for (const itemId of groupIds) {
+          try {
+            const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+            if (result.ok || result.status === 404) {
+              State.deleteHistoryItem(itemId, { skipRemote: true });
+              deleted++;
+            }
+          } catch (err) {
+            console.warn(`[History] Delete group item failed: ${itemId}`, err?.message);
+            State.deleteHistoryItem(itemId, { skipRemote: true });
+            deleted++;
+          }
+        }
+        if (window.showToast) window.showToast(`Deleted ${deleted} variants.`, 'info');
+        renderHistory();
+        return;
+      }
+
+      // Multi-color print — handled before item lookup since it only
+      // needs data-attributes from the button, not the full item object.
+      if (act === 'manual-multi-color-print') {
+        closeActiveHistoryMenu();
+        openMultiColorModal({
+          taskId: id,
+          title: btn.getAttribute('data-title') || 'Untitled',
+          thumbnailUrl: btn.getAttribute('data-thumb') || '',
+          glbUrl: btn.getAttribute('data-glb') || '',
+        });
+        return;
+      }
+
+      if (act === 'meshy-multi-color-print') {
+        closeActiveHistoryMenu();
+        openMeshyMultiColorModal({
+          taskId: id,
+          title: btn.getAttribute('data-title') || 'Untitled',
+          thumbnailUrl: btn.getAttribute('data-thumb') || '',
+          glbUrl: btn.getAttribute('data-glb') || '',
+        });
+        return;
+      }
+
+      const item = State.findHistoryItem(id);
+      if (!item) {
+        console.warn(`[CardAction] Item not found in cache: id=${id} act=${act}`);
+        return;
+      }
+
+      const glbUrl = item.glb_proxy || item.glb_url;
+
+      // Handle actions
+      if (act === 'open') {
+        const wasGallery = !!State.historyState.galleryExpanded;
+
+        // Close expanded gallery FIRST — remove body class + re-render immediately
+        // so the viewer panel becomes visible before we load content into it.
+        if (wasGallery) {
+          State.historyState.galleryExpanded = false;
+          renderHistory();                        // toggles body.history-expanded off
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Handle video type
+        if (item.type === 'video' || item.video_url) {
+          const videoUrl = item.video_url;
+          if (videoUrl) {
+            State.setHistoryActiveModelId(id);
+            _suppressHistoryFilterReset = true;
+            const videoRailBtn = document.querySelector('[data-panel="video"]');
+            if (videoRailBtn) videoRailBtn.click();
+            _suppressHistoryFilterReset = false;
+            Viewer.showVideoInViewer(videoUrl, {
+              title: shortTitle(item) || 'Video Preview',
+              hint: item.prompt || 'Generated video',
+              autoplay: true
+            });
+          }
+          return;
+        }
+
+        // Handle image type
+        if (!glbUrl && (item.type === 'image' || item.image_url)) {
+          State.setHistoryActiveModelId(id);
+          const imgSrc = item.image_url || item.thumbnail_url || '';
+          if (imgSrc) {
+            _suppressHistoryFilterReset = true;
+            const imageRailBtn = document.querySelector('[data-panel="image"]');
+            if (imageRailBtn) imageRailBtn.click();
+            _suppressHistoryFilterReset = false;
+            Viewer.showImageInViewer(imgSrc);
+          }
+          if (!wasGallery) renderHistory();
+          return;
+        }
+
+        if (!glbUrl) return;
+
+        _suppressHistoryFilterReset = true;
+        const modelRailBtn = document.querySelector('[data-panel="model"]');
+        if (modelRailBtn) modelRailBtn.click();
+        _suppressHistoryFilterReset = false;
+
+        const genHintEl = byId('genHint');
+        if (genHintEl) genHintEl.textContent = 'Loading model...';
+        State.setHistoryActiveModelId(id);
+
+        // Reset version stack for this model and hide action bar
+        const loadUrl = item.glb_proxy || getLoadableModelUrl(item.glb_url);
+        State.resetModelVersionStack({
+          id,
+          glb_url: loadUrl,
+          thumbnail_url: item.thumbnail_url || '',
+          stage: item.stage || 'preview',
+          prompt: item.prompt || ''
+        });
+        const actionBar = byId('viewerActionBar');
+        if (actionBar) actionBar.classList.add('hidden');
+
+        const primary = loadUrl;
+        const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
+        try {
+          await Viewer.loadModelWithFallback(primary, fallback);
+          if (genHintEl) genHintEl.textContent = 'Loaded from history.';
+        } catch (err) {
+          console.warn('[History] Failed to load model into viewer:', err);
+          if (genHintEl) genHintEl.textContent = 'Failed to load model.';
+          if (window.showToast) {
+            window.showToast('Model failed to load. Please try again.', 'error');
+          }
+        }
+        return;
+      }
+
+      if (act === 'download' || act === 'print') {
+        const explicitDownloadUrl = btn.getAttribute('data-download-url') || '';
+        const downloadUrl = explicitDownloadUrl || item.glb_url || item.glb_proxy;
+        if (!downloadUrl) return;
+        const filename = buildItemDownloadFilename(item, {
+          type: 'model',
+          sourceUrl: downloadUrl,
+          extension: inferExtensionFromUrl(downloadUrl) || 'glb',
+        });
+        startWorkspaceDownload(downloadUrl, filename);
+        return;
+      }
+
+      if (act === 'download-image') {
+        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+          Credits.showDownloadAccessRequiredMessage('image');
+          return;
+        }
+        const imageUrl = btn.getAttribute('data-image-url') || item.image_url || item.thumbnail_url;
+        if (!imageUrl) {
+          alert('No image available to download.');
+          return;
+        }
+        const artifactFormat = String(item.artifact_format || item.meta?.artifact_format || item.format || '').toLowerCase();
+        const downloadExt = artifactFormat === 'svg'
+          ? 'svg'
+          : artifactFormat === 'jpg' || artifactFormat === 'jpeg'
+            ? 'jpg'
+            : artifactFormat === 'webp'
+              ? 'webp'
+              : inferExtensionFromUrl(imageUrl) || 'png';
+        const filename = buildItemDownloadFilename(item, {
+          type: 'image',
+          sourceUrl: imageUrl,
+          extension: downloadExt,
+        });
+        startWorkspaceDownload(imageUrl, filename);
+        return;
+      }
+
+      // Video actions
+      if (act === 'download-video') {
+        if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
+          Credits.showDownloadAccessRequiredMessage('video');
+          return;
+        }
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (!videoUrl) {
+          alert('No video available to download.');
+          return;
+        }
+        const filename = buildItemDownloadFilename(item, {
+          type: 'video',
+          sourceUrl: videoUrl,
+          extension: inferExtensionFromUrl(videoUrl) || 'mp4',
+        });
+        startWorkspaceDownload(videoUrl, filename);
+        return;
+      }
+
+      if (act === 'open-video') {
+        // Collapse expanded gallery first (viewer is hidden in expanded mode)
+        const wasGalleryV = !!State.historyState.galleryExpanded;
+        if (wasGalleryV) {
+          State.historyState.galleryExpanded = false;
+          renderHistory();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (videoUrl) {
+          _suppressHistoryFilterReset = true;
+          const videoRailBtn = document.querySelector('[data-panel="video"]');
+          if (videoRailBtn) videoRailBtn.click();
+          _suppressHistoryFilterReset = false;
+          Viewer.showVideoInViewer(videoUrl, {
+            title: shortTitle(item) || 'Video Preview',
+            hint: item.prompt || 'Generated video',
+            autoplay: true
+          });
+          State.setHistoryActiveModelId(item.id);
+          if (!wasGalleryV) renderHistory();
+        }
+        return;
+      }
+
+      if (act === 'copy-video-link') {
+        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        if (!videoUrl) {
+          alert('No video link available.');
+          return;
+        }
+        if (navigator.clipboard?.writeText) {
+          try {
+            await navigator.clipboard.writeText(videoUrl);
+            alert('Video link copied to clipboard.');
+          } catch {
+            prompt('Copy video link manually:', videoUrl);
+          }
+        } else {
+          prompt('Copy video link manually:', videoUrl);
+        }
+        return;
+      }
+
+      if (act === 'copy-link') {
+        const link = item.glb_proxy || item.glb_url || item.image_url;
+        if (!link) {
+          alert('No downloadable link available yet.');
+          return;
+        }
+        if (navigator.clipboard?.writeText) {
+          try {
+            await navigator.clipboard.writeText(link);
+            alert('Link copied to clipboard.');
+          } catch {
+            prompt('Copy link manually:', link);
+          }
+        } else {
+          prompt('Copy link manually:', link);
+        }
+        return;
+      }
+
+      if (act === 'share-twitter') {
+        const text = item.prompt ? `Check out my creation: "${item.prompt.slice(0, 120)}"` : 'Check out my AI creation on TimrX!';
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-facebook') {
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-linkedin') {
+        const url = 'https://timrx.live/3dprint';
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+        return;
+      }
+
+      if (act === 'share-discord') {
+        const thumbUrl = item.thumbnail_url || item.image_url || '';
+        const prompt = item.prompt || '';
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        apiFetch('/api/_mod/community/discord-share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: assetType, prompt, thumbnail_url: thumbUrl }),
+        }).then(() => {
+          alert('Shared to Discord!');
+        }).catch(() => {
+          alert('Failed to share to Discord.');
+        });
+        window.open('https://discord.gg/VpqT2UywDG', '_blank');
+        return;
+      }
+
+      if (act === 'share-community') {
+        if (window.CommunityGallery && window.CommunityGallery.openShareModal) {
+          window.CommunityGallery.openShareModal(item);
+        }
+        return;
+      }
+
+      if (act === 'share-inspire') {
+        const assetType = item.video_url ? 'video' : (item.image_url && !item.glb_url ? 'image' : 'model');
+        try {
+          const res = await apiFetch('/api/_mod/inspire/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: item.id, type: assetType, share: true }),
+          });
+          if (res.ok) {
+            if (window.showToast) window.showToast('Shared to Inspire!', 'success');
+          } else {
+            if (window.showToast) window.showToast(res.data?.error || 'Failed to share', 'error');
+          }
+        } catch (err) {
+          console.error('[Inspire] share failed:', err);
+          if (window.showToast) window.showToast('Failed to share to Inspire', 'error');
+        }
+        return;
+      }
+
+      if (act === 'texture') {
+        await API.startTextureFromHistory(item, 'history');
+        return;
+      }
+
+      if (act === 'remesh') {
+        await API.startRemeshFromHistory(item);
+        return;
+      }
+
+      if (act === 'refine') {
+        console.log('[Refine] Dispatching refine for item:', item.id, 'stage:', item.stage, 'preview_task_id:', item.preview_task_id);
+        // Close print panel if open so the refine modal isn't hidden behind it
+        document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
+        document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
+        // Remove any stale refine settings overlay from a prior cancelled flow
+        document.getElementById('refineSettingsOverlay')?.remove();
+        await API.onPostProcessFromHistory(item, 'refine');
+        return;
+      }
+
+      if (act === 'image-to-3d') {
+        await API.startImageTo3DFromHistory(item);
+        return;
+      }
+
+      if (act === 'image-to-video') {
+        const imageUrl = btn.getAttribute('data-image-url') || item.image_url;
+        if (!imageUrl) {
+          showErrorToast('No image URL found');
+          return;
+        }
+
+        // Switch to video panel
+        const videoStudioTab = document.querySelector('[data-panel="video"]');
+        if (videoStudioTab) videoStudioTab.click();
+
+        // Set mode to image2video
+        const videoModeValue = byId('videoModeValue');
+        if (videoModeValue) videoModeValue.value = 'image2video';
+
+        // Update mode switcher buttons (both primary and alt)
+        document.querySelectorAll('.video-mode-btn').forEach(b => {
+          b.classList.toggle('is-active', b.getAttribute('data-mode') === 'image2video');
+        });
+
+        // Toggle content cards
+        const text2videoContent = byId('text2videoContent');
+        const image2videoContent = byId('image2videoContent');
+        if (text2videoContent) text2videoContent.classList.add('hidden');
+        if (image2videoContent) image2videoContent.classList.remove('hidden');
+
+        // Set duration to 4s (default), quality to standard
+        const videoDuration = byId('videoDuration');
+        const videoQuality = byId('videoQuality');
+        if (videoDuration) {
+          videoDuration.value = '4';
+          videoDuration.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (videoQuality) {
+          videoQuality.value = '720p';
+          videoQuality.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // Load image into the preview
+        const videoImagePreview = byId('videoImagePreview');
+        if (videoImagePreview) {
+          videoImagePreview.src = imageUrl;
+          videoImagePreview.style.display = 'block';
+        }
+
+        // Use original prompt as motion hint if available
+        const videoMotion = byId('videoMotion');
+        if (videoMotion && item.prompt) {
+          videoMotion.value = '';
+          videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
+        }
+
+        // Update credits display — Veo image-to-video 4s 720p (equalized with text-to-video)
+        const videoCreditsDisplay = byId('videoCreditsDisplay');
+        if (videoCreditsDisplay) {
+          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 48';
+        }
+        const generateVideoBtn = byId('generateVideoBtn');
+        if (generateVideoBtn) {
+          generateVideoBtn.title = '48 credits';
+          generateVideoBtn.dataset.baseCredits = '48';
+          // Enable button since we have a valid image loaded
+          generateVideoBtn.disabled = false;
+          generateVideoBtn.removeAttribute('data-disabled-reason');
+        }
+        // Trigger workspace credits update
+        if (window.WorkspaceCredits?.updateButtonCosts) {
+          window.WorkspaceCredits.updateButtonCosts();
+        }
+
+        return;
+      }
+
+      if (act === 'retry-job') {
+        // Retry a failed Meshy job via the backend retry endpoint
+        // This creates a new job with the same parameters and charges credits
+        const retryBtn = btn;
+        const originalText = retryBtn.textContent;
+        retryBtn.textContent = 'Retrying...';
+        retryBtn.disabled = true;
+
+        try {
+          const res = await apiFetch(`/api/jobs/${encodeURIComponent(id)}/retry`, {
+            method: 'POST',
+          });
+
+          if (res.ok && res.data?.ok) {
+            const newJobId = res.data.new_job_id;
+            if (window.showToast) {
+              window.showToast(`Retrying generation (${res.data.cost_credits || '?'} credits)...`, 'info');
+            }
+
+            // Add the new job as active and start watching it
+            State.addActiveJob(newJobId);
+            State.addHistoryItem({
+              id: newJobId,
+              type: item?.type || 'model',
+              status: 'generating',
+              prompt: item?.prompt || '',
+              thumbnail_url: item?.thumbnail_url || '',
+              created_at: Date.now(),
+              stage: item?.stage || 'preview',
+            });
+
+            // Start polling the new job
+            if (window.API?.watchJob) {
+              window.API.watchJob(newJobId);
+            }
+
+            // Refresh history UI
+            if (window.renderHistory) window.renderHistory();
+          } else {
+            const errMsg = res.data?.error?.message || res.error || 'Retry failed';
+            if (window.showToast) window.showToast(errMsg, 'error');
+            else alert(errMsg);
+          }
+        } catch (err) {
+          console.error('[Retry] Failed:', err);
+          if (window.showToast) window.showToast('Retry failed. Please try again.', 'error');
+        } finally {
+          retryBtn.textContent = originalText;
+          retryBtn.disabled = false;
+        }
+        return;
+      }
+
+      if (act === 'retry-video') {
+        // Pre-fill video prompt with the original prompt and switch to video tab
+        const originalPrompt = btn.getAttribute('data-prompt') || item.prompt || '';
+        const videoPromptEl = byId('videoTextPrompt');
+        if (videoPromptEl) {
+          videoPromptEl.value = originalPrompt;
+          // Trigger input event for any listeners
+          videoPromptEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        // Switch to video studio tab
+        const videoStudioTab = document.querySelector('[data-panel="video"]');
+        if (videoStudioTab) {
+          videoStudioTab.click();
+        }
+        // Focus the prompt input
+        videoPromptEl?.focus();
+        return;
+      }
+
+      if (act === 'delete') {
+        // Check if this is a local-only placeholder (generating/processing) —
+        // these are keyed by job_id and have no persisted history_items row
+        const item = State.findHistoryItem(id);
+        const isLocalOnly = item && ['generating', 'refining', 'remeshing',
+          'texturing', 'rigging', 'animating'].includes(item.status);
+
+        if (isLocalOnly) {
+          // Local placeholder — just remove from state and cancel watcher
+          State.removeActiveJob(id);
+          State.deleteHistoryItem(id, { skipRemote: true });
+          renderHistory();
+          return;
+        }
+
+        if (!confirm('This will permanently delete this item and all associated files. This action cannot be undone.')) return;
+        try {
+          const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
+            method: 'DELETE'
+          });
+          if (!result.ok && result.status !== 404) {
+            throw new Error(result.error || `HTTP ${result.status}`);
+          }
+          // Remove from local state even on 404 (item already gone from DB)
+          State.deleteHistoryItem(id, { skipRemote: true });
+          renderHistory();
+        } catch (err) {
+          console.warn('[History] Delete failed:', err?.message || err);
+          // Still remove locally if server says not found
+          if (err?.message?.includes('404')) {
+            State.deleteHistoryItem(id, { skipRemote: true });
+            renderHistory();
+          } else {
+            showErrorToast('Delete failed. Please try again.');
+          }
+        }
+        return;
+      }
+    });
+
+    // Keyboard navigation in grid
+    grid.addEventListener('keydown', (evt) => {
+      const thumbBtn = evt.target.closest('.history-thumb__image, .history-thumb__preview');
+      if (!thumbBtn) return;
+
+      const moveFocus = (direction) => {
+        const row = thumbBtn.closest('.history-collection');
+        if (!row) return;
+        const focusables = Array.from(row.querySelectorAll('.history-thumb__image, .history-thumb__preview'));
+        if (!focusables.length) return;
+        const currentIdx = focusables.indexOf(thumbBtn);
+        if (currentIdx === -1) return;
+        let nextIdx = currentIdx + direction;
+        if (nextIdx < 0) nextIdx = focusables.length - 1;
+        if (nextIdx >= focusables.length) nextIdx = 0;
+        focusables[nextIdx]?.focus();
+      };
+
+      if (evt.key === 'ArrowRight') {
+        evt.preventDefault();
+        moveFocus(1);
+        return;
+      }
+      if (evt.key === 'ArrowLeft') {
+        evt.preventDefault();
+        moveFocus(-1);
+        return;
+      }
+      if (evt.key === 'Enter' || evt.key === ' ') {
+        evt.preventDefault();
+        thumbBtn.click();
+      }
+    });
+  }
+
+  // Close menus on outside click
+  document.addEventListener('click', (evt) => {
+    const { submenu: activeSubmenu } = getActiveHistorySubmenu();
+    const { menu: activeMenu } = getActiveHistoryMenu();
+
+    if (activeSubmenu) {
+      const insideSubmenu = evt.target.closest('.card-submenu');
+      const onSubToggle = evt.target.closest('[data-submenu-open]');
+      if (!insideSubmenu && !onSubToggle) closeActiveHistorySubmenu();
+    }
+    if (!activeMenu) return;
+    const insideMenu = evt.target.closest('.card-menu');
+    const onToggle = evt.target.closest('[data-history-menu]');
+    if (insideMenu || onToggle) return;
+    closeActiveHistoryMenu();
+  });
+
+  // ESC to close menus/gallery
+  document.addEventListener('keydown', (evt) => {
+    if (evt.key === 'Escape') {
+      const { submenu: activeSubmenu } = getActiveHistorySubmenu();
+      const { menu: activeMenu } = getActiveHistoryMenu();
+
+      if (activeSubmenu) {
+        closeActiveHistorySubmenu();
+        return;
+      }
+      if (activeMenu) {
+        closeActiveHistoryMenu();
+        return;
+      }
+      if (State.historyState.galleryExpanded) {
+        State.historyState.galleryExpanded = false;
+        State.historyState.page = 1;
+        renderHistory();
+      }
+    }
+  });
+
+  // Initial render
+  renderHistory();
 }
 
-export function closeMeshyMultiColorModal() {
-  if (_autoPollTimer) {
-    clearTimeout(_autoPollTimer);
-    _autoPollTimer = null;
-  }
-  if (_autoJobId && State.getActiveJobs().includes(_autoJobId) && !State.watchers.has(_autoJobId)) {
-    window.watchMultiColorPrintJob?.(_autoJobId, { isRecovery: true });
-  }
-  const modal = document.getElementById('meshy-mcp-modal');
-  if (modal) {
-    if (modal._escHandler) document.removeEventListener('keydown', modal._escHandler);
-    modal.remove();
-  }
-}
+// ============================================================================
+// BOOTSTRAP
+// ============================================================================
 
-export function closeMultiColorModal() {
-  _dispose();
-  const modal = document.getElementById('multi-color-modal');
-  if (modal) {
-    if (modal._escHandler) document.removeEventListener('keydown', modal._escHandler);
-    modal.remove();
+window.addEventListener('DOMContentLoaded', () => {
+  log('Initializing TimrX 3D Print Hub...');
+
+  // =========================================================================
+  // AUTH-LOSS HANDLER (AUTH-5) — listen for expired session, show banner + reload
+  // =========================================================================
+  window.addEventListener('timrx:auth-lost', () => {
+    log('[Auth] Session lost — showing reload banner');
+
+    // Don't stack multiple banners
+    if (document.getElementById('timrx-auth-lost-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'timrx-auth-lost-banner';
+    Object.assign(banner.style, {
+      position: 'fixed',
+      top: '56px',
+      left: '0',
+      right: '0',
+      zIndex: '100001',
+      background: '#1a1a2e',
+      color: '#e0e0e0',
+      padding: '10px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '13px',
+      borderBottom: '2px solid #e94560',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+    });
+
+    const msg = document.createElement('span');
+    msg.textContent = 'Your session has expired. Please refresh to continue.';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Refresh';
+    Object.assign(btn.style, {
+      background: '#e94560',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '6px',
+      padding: '6px 18px',
+      cursor: 'pointer',
+      fontWeight: '600',
+      fontSize: '13px',
+    });
+    btn.addEventListener('click', () => window.location.reload());
+
+    banner.appendChild(msg);
+    banner.appendChild(btn);
+    document.body.appendChild(banner);
+  });
+
+  // =========================================================================
+  // CREDITS: Initialize IMMEDIATELY - must not depend on Three.js
+  // =========================================================================
+  // Phase 1: /api/me bootstraps identity + wallet (single request).
+  // Phase 2: action-costs + history load after /api/me settles, so the
+  //          critical auth bootstrap gets a clear pool lane.
+  const creditsPromise = Credits.initCredits().catch(e => {
+    console.error('Credits init failed:', e);
+  });
+
+  // Initialize notification center — attach bell listener immediately,
+  // don't wait for credits (bell must work even if credits fail/hang)
+  try {
+    Notifications.initNotifications();
+  } catch (e) {
+    console.error('Notifications init failed:', e);
   }
-}
+
+  // Initialize converter tool
+  try {
+    Converter.init();
+  } catch (e) {
+    console.error('Converter init failed:', e);
+  }
+
+  // Wait for Three.js to be ready (credits already initializing above)
+  onThreeReady(async () => {
+    log('Three.js ready, initializing modules...');
+
+    // Initialize viewer
+    try {
+      Viewer.initViewer();
+      Viewer.initImageFitToggle();
+    } catch (e) {
+      console.error('Viewer init failed:', e);
+    }
+
+    // Initialize UI
+    try {
+      initUi();
+    } catch (e) {
+      console.error('UI init failed:', e);
+    }
+
+    // Wire up history gallery
+    try {
+      wireGallery();
+    } catch (e) {
+      console.error('Gallery wire failed:', e);
+    }
+
+    // ── Phase 2: wait for /api/me to complete, then load history ──
+    // Rendering cached history is instant (no network), so do it first
+    // for perceived performance while we wait for the bootstrap request.
+    renderHistory();
+
+    // Wait for credits/identity bootstrap before hitting more endpoints.
+    // This prevents history + action-costs from racing /api/me for pool
+    // connections during the critical first 500ms.
+    await creditsPromise;
+
+    // Load history from database (session now confirmed)
+    try {
+      await State.loadHistoryFromDB();
+      renderHistory();
+    } catch (e) {
+      console.error('History load failed:', e);
+      renderHistory(); // Still render with cache
+    }
+
+    // Sync history filter with rail buttons
+    const imageRail = document.querySelector('[data-panel="image"]');
+    const modelRail = document.querySelector('[data-panel="model"]');
+    const videoRail = document.querySelector('[data-panel="video"]');
+    if (imageRail) imageRail.addEventListener('click', () => switchHistoryFilter('image'));
+    if (modelRail) modelRail.addEventListener('click', () => switchHistoryFilter('model'));
+    if (videoRail) videoRail.addEventListener('click', () => switchHistoryFilter('video'));
+
+    // MY ASSETS nav link → open expanded history gallery
+    document.querySelectorAll('[data-open-assets]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        setMobileWorkspaceTab('history');
+        State.historyState.galleryExpanded = true;
+        State.historyState.filter = 'all';
+        State.historyState.page = 1;
+        renderHistory();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // Set up generate button listeners
+    setupGenerateButtonListeners();
+
+    // Wire live character counter on model prompt textarea
+    API.wirePromptCharCounter();
+
+    // Initialize viewer toolbar
+    initViewerToolbar();
+    initViewerActionBar();
+
+    // Hide progress initially
+    UI.showOutputEmpty();
+
+    // ── Phase 3: Resume any pending jobs (credits + history ready) ──
+    await API.resumePendingJobs({ skipEmptyUI: true });
+
+    // Signal that critical startup is complete. Secondary modules (inspire,
+    // community, subscription summary) listen for this to avoid competing
+    // with auth/history/wallet for pool connections.
+    window.dispatchEvent(new Event('timrx:startup-complete'));
+
+    // After login/restore/identity swap, re-run job recovery for the new identity.
+    // Use a timestamp guard: skip identity_changed events within 15s of startup
+    // (the initial null→realId bootstrap transition), and also prevent rapid-fire
+    // recovery if multiple identity events arrive close together.
+    const _recoveryStartedAt = Date.now();
+    let _lastRecoveryAt = _recoveryStartedAt; // resumePendingJobs just ran
+    window.addEventListener('timrx:identity_changed', () => {
+      const now = Date.now();
+      // Skip during startup window (bootstrap null→realId fires here)
+      if (now - _recoveryStartedAt < 15000) return;
+      // Throttle: don't re-run if recovery ran less than 10s ago
+      if (now - _lastRecoveryAt < 10000) return;
+      _lastRecoveryAt = now;
+      log('[Recovery] Identity changed — re-running job recovery');
+      API.resumePendingJobs({ skipEmptyUI: true });
+    });
+
+    log('TimrX 3D Print Hub initialized successfully.');
+  });
+});
+
+// ============================================================================
+// EXPOSE GLOBALS (for backward compatibility)
+// ============================================================================
+window.renderHistory = renderHistory;
+window.switchHistoryFilter = switchHistoryFilter;
+window.showQuotaExceededPopup = showQuotaExceededPopup;
