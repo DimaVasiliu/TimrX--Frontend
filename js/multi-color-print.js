@@ -96,6 +96,7 @@ let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
 
 let _taskId = null;
 let _modelTitle = '';
+let _modelUrl = '';
 let _autoPollTimer = null;
 let _autoJobId = null;
 let _manualRepairHandler = null;
@@ -463,14 +464,16 @@ function _preparePaintData() {
       colors.fill(1.0); // white
       geo.setAttribute('color', new T.BufferAttribute(colors, 3));
 
-      // Enable vertex colors on material
-      if (Array.isArray(child.material)) {
-        child.material = child.material[0]?.clone() || new T.MeshStandardMaterial();
-      } else {
-        child.material = child.material.clone();
-      }
-      child.material.vertexColors = true;
-      child.material.needsUpdate = true;
+      // Use a neutral paint material. Some remesh outputs carry black/dark
+      // source materials, which multiply vertex colors and make the mesh
+      // appear invisible on the dark modal background.
+      child.material = new T.MeshStandardMaterial({
+        color: 0xffffff,
+        vertexColors: true,
+        roughness: 0.65,
+        metalness: 0,
+        side: T.DoubleSide,
+      });
 
       _paintMeshes.push(child);
     }
@@ -1117,7 +1120,7 @@ async function _runManualPrintCheck() {
   try {
     const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(_taskId)}`, {
       method: 'POST',
-      body: { printer_type: 'fdm' },
+      body: { printer_type: 'fdm', model_url: _modelUrl || undefined },
       timeout: 45000,
     });
     if (!res.ok) throw new Error(res.error || `Print check failed (${res.status})`);
@@ -1383,6 +1386,7 @@ function _dispose() {
   if (_scene) { _scene.clear(); _scene = null; }
   _model = null; _camera = null; _raycaster = null;
   _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _totalFaces = 0;
+  _modelUrl = '';
   _manualRepairHandler = null;
 }
 
@@ -1392,6 +1396,7 @@ function _dispose() {
 
 export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, onRepair } = {}) {
   _taskId = taskId;
+  _modelUrl = glbUrl || '';
   _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
   _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
   _activeSlot = 0;
