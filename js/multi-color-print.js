@@ -326,6 +326,7 @@ function _setupViewer(glbUrl) {
     }
   } catch (_) {}
   _scene.add(new T.AmbientLight(0xffffff, 0.5));
+  _scene.add(new T.HemisphereLight(0xffffff, 0x1f2937, 0.9));
   const dl = new T.DirectionalLight(0xffffff, 0.8);
   dl.position.set(5, 10, 7);
   _scene.add(dl);
@@ -346,24 +347,17 @@ function _setupViewer(glbUrl) {
     _model = gltf.scene;
     _scene.add(_model);
 
-    // Fit camera
-    const box = new T.Box3().setFromObject(_model);
-    const center = box.getCenter(new T.Vector3());
-    const size = box.getSize(new T.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    _camera.position.copy(center);
-    _camera.position.z += maxDim * 1.8;
-    _controls.target.copy(center);
-    _controls.update();
-
     // Prepare paint data
     _preparePaintData();
+    _framePaintModel(T);
     _renderSidebar();
 
     // Add click hint
     const hint = document.createElement('div');
     hint.className = 'mcp-viewer-hint';
-    hint.textContent = 'Click on the model to paint regions';
+    hint.textContent = _totalFaces > 0
+      ? `Loaded ${_totalFaces.toLocaleString()} faces. Click on the model to paint.`
+      : 'Model loaded, but no paintable faces were found.';
     container.appendChild(hint);
     setTimeout(() => hint.style.opacity = '0', 4000);
   }, undefined, (err) => {
@@ -512,6 +506,59 @@ function _preparePaintData() {
   }
 
   console.log(`[MCP Paint] Ready: ${_paintMeshes.length} meshes, ${_totalFaces} faces`);
+}
+
+function _framePaintModel(T) {
+  if (!_camera || !_controls || !_paintMeshes.length) return;
+
+  const box = new T.Box3();
+  const meshBox = new T.Box3();
+  let hasBounds = false;
+
+  for (const mesh of _paintMeshes) {
+    if (!mesh.geometry?.attributes?.position) continue;
+    mesh.geometry.computeBoundingBox();
+    if (!mesh.geometry.boundingBox || mesh.geometry.boundingBox.isEmpty()) continue;
+    mesh.updateWorldMatrix(true, false);
+    meshBox.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
+    if (!Number.isFinite(meshBox.min.x) || !Number.isFinite(meshBox.max.x)) continue;
+    if (!hasBounds) {
+      box.copy(meshBox);
+      hasBounds = true;
+    } else {
+      box.union(meshBox);
+    }
+  }
+
+  if (!hasBounds || box.isEmpty()) {
+    console.warn('[MCP Paint] Unable to frame model: invalid bounds');
+    return;
+  }
+
+  const center = box.getCenter(new T.Vector3());
+  const size = box.getSize(new T.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+  const fov = (_camera.fov || 50) * Math.PI / 180;
+  const distance = Math.max(maxDim * 1.8, (maxDim / (2 * Math.tan(fov / 2))) * 1.35);
+
+  _camera.near = Math.max(distance / 10000, 0.001);
+  _camera.far = Math.max(distance + maxDim * 12, 1000);
+  _camera.position.set(center.x, center.y, center.z + distance);
+  _camera.lookAt(center);
+  _camera.updateProjectionMatrix();
+
+  _controls.target.copy(center);
+  _controls.minDistance = Math.max(maxDim * 0.01, 0.001);
+  _controls.maxDistance = Math.max(distance * 8, maxDim * 8);
+  _controls.update();
+
+  console.debug('[MCP Paint] Framed model', {
+    center: center.toArray(),
+    size: size.toArray(),
+    distance,
+    near: _camera.near,
+    far: _camera.far,
+  });
 }
 
 // ============================================================================
