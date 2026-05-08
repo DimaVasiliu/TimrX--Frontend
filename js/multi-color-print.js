@@ -458,15 +458,14 @@ function _preparePaintData() {
       colors.fill(1.0); // white
       geo.setAttribute('color', new T.BufferAttribute(colors, 3));
 
-      // Use a neutral paint material. Some remesh outputs carry black/dark
-      // source materials, which multiply vertex colors and make the mesh
-      // appear invisible on the dark modal background.
-      child.material = new T.MeshStandardMaterial({
+      // Use an unlit neutral paint material. Preview meshes can have broken or
+      // inverted normals, so lit materials may render as a black silhouette
+      // even when brush colors are being applied correctly.
+      child.material = new T.MeshBasicMaterial({
         color: 0xffffff,
         vertexColors: true,
-        roughness: 0.65,
-        metalness: 0,
         side: T.DoubleSide,
+        toneMapped: false,
       });
 
       _paintMeshes.push(child);

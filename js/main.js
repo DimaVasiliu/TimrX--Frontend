@@ -21,12 +21,12 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260408a';
+} from './history.js?v=20260508a';
 import * as API from './api.js?v=20260507b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260508a';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260508b';
 
 // ============================================================================
 // MODULE STATE

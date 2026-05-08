@@ -896,6 +896,9 @@ export function shouldProxyUrl(url) {
  */
 export function getLoadableModelUrl(url) {
   if (!url) return '';
+  if (typeof url === 'string' && url.startsWith('/api/')) {
+    return `${BACKEND}${url}`;
+  }
   if (shouldProxyUrl(url)) {
     return `${BACKEND}/api/_mod/proxy-glb?u=${encodeURIComponent(url)}`;
   }
