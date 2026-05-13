@@ -68,6 +68,10 @@ const DEFAULT_FILAMENTS = [
 
 // Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
 const FLOOD_FILL_ANGLE = 0.52;
+const BRUSH_MIN_MODEL_RATIO = 0.004;
+const BRUSH_MAX_MODEL_RATIO = 0.16;
+const BRUSH_DEFAULT_MODEL_RATIO = 0.035;
+const BASE_PREVIEW_COLOR = 0.72;
 
 // ============================================================================
 // State
@@ -85,6 +89,7 @@ let _filaments = [];        // [{hex, name}]
 let _activeSlot = 0;        // which filament is selected for painting
 let _brushMode = 'brush';   // 'brush' | 'region' | 'face' | 'eraser'
 let _brushRadius = 0.05;    // world-space radius for brush mode (0.01 - 0.5)
+let _modelMaxDim = 1;
 let _paintEnabled = true;
 let _isPainting = false;    // true while mouse held in brush/face/eraser mode
 
@@ -93,6 +98,7 @@ let _mouse = new (window.THREE?.Vector2 || function(){})();
 
 // Precomputed face centers for brush radius check (per mesh)
 let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
+let _meshTopology = []; // [{ normals, vertToFaces }] cached per paint mesh
 
 let _taskId = null;
 let _modelTitle = '';
@@ -294,6 +300,65 @@ function _createAutoModal() {
 // 3D Viewer
 // ============================================================================
 
+function _createPaintPreviewMaterial(T) {
+  return new T.ShaderMaterial({
+    vertexColors: true,
+    side: T.DoubleSide,
+    uniforms: {
+      lightDir: { value: new T.Vector3(0.35, 0.75, 0.55).normalize() },
+      fillDir: { value: new T.Vector3(-0.65, 0.25, 0.7).normalize() },
+    },
+    vertexShader: `
+      varying vec3 vColor;
+      varying vec3 vNormalW;
+      void main() {
+        vColor = color;
+        vNormalW = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 lightDir;
+      uniform vec3 fillDir;
+      varying vec3 vColor;
+      varying vec3 vNormalW;
+      void main() {
+        vec3 n = normalize(vNormalW);
+        float key = abs(dot(n, lightDir));
+        float fill = abs(dot(n, fillDir));
+        float shade = 0.46 + key * 0.38 + fill * 0.14;
+        vec3 color = clamp(vColor * shade, 0.0, 1.0);
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `,
+  });
+}
+
+function _getFacePreviewColor(slotIdx, T, target = new T.Color()) {
+  if (slotIdx >= 0 && slotIdx < _filaments.length) {
+    return target.set(_filaments[slotIdx].hex);
+  }
+  return target.setRGB(BASE_PREVIEW_COLOR, BASE_PREVIEW_COLOR, BASE_PREVIEW_COLOR);
+}
+
+function _brushRadiusFromSlider(value) {
+  const pct = Math.min(100, Math.max(1, Number(value) || 1)) / 100;
+  const ratio = BRUSH_MIN_MODEL_RATIO + (BRUSH_MAX_MODEL_RATIO - BRUSH_MIN_MODEL_RATIO) * pct;
+  return Math.max(0.0001, _modelMaxDim * ratio);
+}
+
+function _brushSliderValue() {
+  const denom = Math.max(0.0001, _modelMaxDim);
+  const ratio = _brushRadius / denom;
+  const pct = (ratio - BRUSH_MIN_MODEL_RATIO) / (BRUSH_MAX_MODEL_RATIO - BRUSH_MIN_MODEL_RATIO);
+  return Math.round(Math.min(1, Math.max(0, pct)) * 100);
+}
+
+function _formatBrushRadius(radius) {
+  if (radius >= 1) return `${radius.toFixed(1)} mm`;
+  return `${radius.toFixed(3)}`;
+}
+
 function _setupViewer(glbUrl) {
   const container = document.getElementById('mcp-viewer');
   if (!container) return;
@@ -350,6 +415,7 @@ function _setupViewer(glbUrl) {
     // Prepare paint data
     _preparePaintData();
     _framePaintModel(T);
+    _brushRadius = _brushRadiusFromSlider(20);
     _renderSidebar();
 
     // Add click hint
@@ -443,30 +509,25 @@ function _onPointerUp(e) {
 function _preparePaintData() {
   const T = window.THREE;
   _paintMeshes = [];
+  _meshTopology = [];
   _model.traverse((child) => {
     if (child.isMesh && child.geometry) {
       // Work on a private non-indexed copy. Mutating loader-owned geometry can
       // corrupt later exports because clones share BufferGeometry by reference.
       let geo = child.geometry.clone();
       if (geo.index) {
+        geo.computeVertexNormals();
         geo = geo.toNonIndexed();
       }
+      if (!geo.attributes.normal) geo.computeVertexNormals();
       child.geometry = geo;
       // Add vertex color attribute (default white)
       const count = geo.attributes.position.count;
       const colors = new Float32Array(count * 3);
-      colors.fill(1.0); // white
+      colors.fill(BASE_PREVIEW_COLOR);
       geo.setAttribute('color', new T.BufferAttribute(colors, 3));
 
-      // Use an unlit neutral paint material. Preview meshes can have broken or
-      // inverted normals, so lit materials may render as a black silhouette
-      // even when brush colors are being applied correctly.
-      child.material = new T.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: true,
-        side: T.DoubleSide,
-        toneMapped: false,
-      });
+      child.material = _createPaintPreviewMaterial(T);
 
       _paintMeshes.push(child);
     }
@@ -491,6 +552,8 @@ function _preparePaintData() {
     const posAttr = mesh.geometry.attributes.position;
     const faceCount = posAttr.count / 3;
     const offset = _faceOffsets[mi];
+    const topology = _buildMeshTopology(mesh, faceCount, T);
+    _meshTopology[mi] = topology;
 
     for (let fi = 0; fi < faceCount; fi++) {
       const i3 = fi * 3;
@@ -505,6 +568,39 @@ function _preparePaintData() {
   }
 
   console.log(`[MCP Paint] Ready: ${_paintMeshes.length} meshes, ${_totalFaces} faces`);
+}
+
+function _buildMeshTopology(mesh, faceCount, T) {
+  const posAttr = mesh.geometry.attributes.position;
+  const normals = new Array(faceCount);
+  const vertToFaces = new Map();
+  const vA = new T.Vector3(), vB = new T.Vector3(), vC = new T.Vector3();
+  const edge1 = new T.Vector3(), edge2 = new T.Vector3(), normal = new T.Vector3();
+  const keyScale = 10000;
+  const vertKey = (x, y, z) => `${Math.round(x * keyScale)},${Math.round(y * keyScale)},${Math.round(z * keyScale)}`;
+
+  for (let fi = 0; fi < faceCount; fi++) {
+    const i3 = fi * 3;
+    vA.fromBufferAttribute(posAttr, i3);
+    vB.fromBufferAttribute(posAttr, i3 + 1);
+    vC.fromBufferAttribute(posAttr, i3 + 2);
+    edge1.subVectors(vB, vA);
+    edge2.subVectors(vC, vA);
+    normals[fi] = normal.crossVectors(edge1, edge2).normalize().clone();
+
+    for (let corner = 0; corner < 3; corner++) {
+      const idx = i3 + corner;
+      const key = vertKey(posAttr.getX(idx), posAttr.getY(idx), posAttr.getZ(idx));
+      let faces = vertToFaces.get(key);
+      if (!faces) {
+        faces = [];
+        vertToFaces.set(key, faces);
+      }
+      faces.push(fi);
+    }
+  }
+
+  return { normals, vertToFaces, vertKey };
 }
 
 function _framePaintModel(T) {
@@ -537,6 +633,7 @@ function _framePaintModel(T) {
   const center = box.getCenter(new T.Vector3());
   const size = box.getSize(new T.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+  _modelMaxDim = maxDim;
   const fov = (_camera.fov || 50) * Math.PI / 180;
   const distance = Math.max(maxDim * 1.8, (maxDim / (2 * Math.tan(fov / 2))) * 1.35);
 
@@ -625,43 +722,13 @@ function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
   const posAttr = mesh.geometry.attributes.position;
   const faceCount = posAttr.count / 3;
   const offset = _faceOffsets[meshIdx];
-  const T = window.THREE;
-
-  // Compute face normals
-  const normals = [];
-  const vA = new T.Vector3(), vB = new T.Vector3(), vC = new T.Vector3();
-  const edge1 = new T.Vector3(), edge2 = new T.Vector3(), normal = new T.Vector3();
-
-  for (let i = 0; i < faceCount; i++) {
-    const i3 = i * 3;
-    vA.fromBufferAttribute(posAttr, i3);
-    vB.fromBufferAttribute(posAttr, i3 + 1);
-    vC.fromBufferAttribute(posAttr, i3 + 2);
-    edge1.subVectors(vB, vA);
-    edge2.subVectors(vC, vA);
-    normal.crossVectors(edge1, edge2).normalize();
-    normals.push(normal.clone());
-  }
-
-  // Build adjacency by shared vertices (using a spatial hash)
-  const vertKey = (x, y, z) => `${(x * 1000)|0},${(y * 1000)|0},${(z * 1000)|0}`;
-  const vertToFaces = new Map();
-
-  for (let i = 0; i < faceCount; i++) {
-    for (let v = 0; v < 3; v++) {
-      const idx = i * 3 + v;
-      const key = vertKey(
-        posAttr.getX(idx),
-        posAttr.getY(idx),
-        posAttr.getZ(idx)
-      );
-      if (!vertToFaces.has(key)) vertToFaces.set(key, []);
-      vertToFaces.get(key).push(i);
-    }
-  }
+  const topology = _meshTopology[meshIdx];
+  if (!topology) return;
+  const { normals, vertToFaces, vertKey } = topology;
 
   // Flood fill from start face
   const localStart = startGlobal - offset;
+  if (localStart < 0 || localStart >= faceCount) return;
   const visited = new Uint8Array(faceCount);
   const queue = [localStart];
   visited[localStart] = 1;
@@ -706,11 +773,7 @@ function _applyColorsToMeshes() {
 
     for (let fi = 0; fi < faceCount; fi++) {
       const slotIdx = _faceColors[offset + fi];
-      if (slotIdx >= 0 && slotIdx < _filaments.length) {
-        tmpColor.set(_filaments[slotIdx].hex);
-      } else {
-        tmpColor.set(0xffffff);
-      }
+      _getFacePreviewColor(slotIdx, T, tmpColor);
       const base = fi * 3;
       colorAttr.setXYZ(base, tmpColor.r, tmpColor.g, tmpColor.b);
       colorAttr.setXYZ(base + 1, tmpColor.r, tmpColor.g, tmpColor.b);
@@ -1235,9 +1298,9 @@ function _renderSidebar() {
       <div style="margin-top:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
           <span style="font-size:9px;color:rgba(255,255,255,.4);">Brush Size</span>
-          <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_brushRadius.toFixed(2)}</span>
+          <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_formatBrushRadius(_brushRadius)}</span>
         </div>
-        <input type="range" min="1" max="100" value="${Math.round(_brushRadius * 200)}"
+        <input type="range" min="1" max="100" value="${_brushSliderValue()}"
           style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
           id="mcp-brush-size" />
         <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);margin-top:2px;">
@@ -1395,9 +1458,9 @@ function _renderSidebar() {
   const brushSlider = sb.querySelector('#mcp-brush-size');
   if (brushSlider) {
     brushSlider.addEventListener('input', (e) => {
-      _brushRadius = parseInt(e.target.value) / 200; // 0.005 - 0.5
+      _brushRadius = _brushRadiusFromSlider(e.target.value);
       const valEl = sb.querySelector('#mcp-brush-val');
-      if (valEl) valEl.textContent = _brushRadius.toFixed(2);
+      if (valEl) valEl.textContent = _formatBrushRadius(_brushRadius);
     });
   }
 }
@@ -1431,7 +1494,8 @@ function _dispose() {
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
   _model = null; _camera = null; _raycaster = null;
-  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _totalFaces = 0;
+  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _meshTopology = []; _totalFaces = 0;
+  _modelMaxDim = 1;
   _modelUrl = '';
   _manualRepairHandler = null;
 }
@@ -1447,6 +1511,8 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, onRep
   _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
   _activeSlot = 0;
   _brushMode = 'region';
+  _brushRadius = 0.05;
+  _modelMaxDim = 1;
   _paintEnabled = true;
   _manualRepairHandler = typeof onRepair === 'function' ? onRepair : null;
   _manualPrintCheck = { loading: false, result: null, error: '' };
