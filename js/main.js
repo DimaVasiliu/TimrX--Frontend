@@ -7,7 +7,7 @@
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js?v=20260408b';
+import * as Viewer from './viewer.js?v=20260513a';
 import * as UI from './ui-utils.js';
 import {
   renderHistory,
@@ -552,6 +552,7 @@ window.showContentFilteredPopup = showContentFilteredPopup;
 window.TimrXViewer = {
   loadModelWithFallback: Viewer.loadModelWithFallback,
   loadGlbFromUrl: Viewer.loadGlbFromUrl,
+  loadStlFromUrl: Viewer.loadStlFromUrl,
   clearModel: Viewer.clearModel,
   checkViewerAvailable: Viewer.checkViewerAvailable,
 };
@@ -1400,6 +1401,17 @@ function initTimrxOrderModal() {
   const estTime     = document.getElementById('timrxEstTime');
   const estTotal    = document.getElementById('timrxEstTotal');
 
+  // Country-to-currency map mirrors backend pick_currency.
+  const USD_COUNTRIES = new Set(['US', 'CA', 'AU']);
+  function currencyFor(country) {
+    return USD_COUNTRIES.has(String(country || '').toUpperCase()) ? 'USD' : 'EUR';
+  }
+  function currencySymbol(cur) {
+    return cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
+  }
+  // Naive FX (matches backend FX_FROM_USD). Frontend display only.
+  function fxFromUsd(cur) { return cur === 'EUR' ? 0.92 : 1.0; }
+
   // ── Material catalog (per process) ─────────────────────────────────
   const MATERIALS = {
     fdm: [
@@ -1450,6 +1462,8 @@ function initTimrxOrderModal() {
     bboxMm: null, // [w, h, d]
     sourceHeight: null,
     step: 1,
+    provider: 'mollie',
+    providersAvailable: ['mollie'],
   };
 
   // ── Helpers ────────────────────────────────────────────────────────
@@ -1571,8 +1585,16 @@ function initTimrxOrderModal() {
     };
   }
 
+  // Convert a USD amount to the order currency for display only.
+  // (Backend will recompute & charge the authoritative price.)
+  function displayPrice(usdAmount) {
+    const cur = currencyFor(countrySel.value);
+    const fx = fxFromUsd(cur);
+    return `${currencySymbol(cur)}${(usdAmount * fx).toFixed(2)}`;
+  }
+
   function formatPrice(n) {
-    return `$${n.toFixed(2)}`;
+    return displayPrice(n);
   }
 
   function formatTime(min) {
@@ -1765,12 +1787,8 @@ function initTimrxOrderModal() {
     document.body.classList.remove('timrx-order-open');
   }
 
-  async function submitOrder() {
-    const e = computeEstimate();
-    const dims = getScaledDims();
-    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
-    const orderId = 'TX-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-    const ship = {
+  function buildShippingPayload() {
+    return {
       first_name: document.getElementById('timrxShipFirst').value.trim(),
       last_name:  document.getElementById('timrxShipLast').value.trim(),
       email:      document.getElementById('timrxShipEmail').value.trim(),
@@ -1781,70 +1799,171 @@ function initTimrxOrderModal() {
       speed:      speedSel.value,
       notes:      document.getElementById('timrxOrderNotes').value.trim(),
     };
+  }
+
+  function buildSpecPayload() {
+    const dims = getScaledDims();
+    return {
+      process: state.process,
+      material: state.materialId,
+      color: state.colorId,
+      quality: qualitySel.value,
+      finish: finishSel.value,
+      infill_pct: state.process === 'resin' ? 100 : parseInt(infillEl.value, 10),
+      quantity: Math.max(1, Math.min(100, parseInt(qtyEl.value, 10) || 1)),
+      target_height_mm: parseFloat(heightEl.value) || null,
+      scaled_dimensions_mm: dims || null,
+    };
+  }
+
+  function buildModelPayload() {
+    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    return {
+      id:        item?.id || item?.model_id || null,
+      name:      item?.title || item?.prompt || null,
+      glb_url:   item?.glb_url || item?.glb_proxy || null,
+      thumb_url: item?.thumbnail_url || item?.image_url || null,
+    };
+  }
+
+  async function refreshProvidersAvailable() {
+    if (typeof apiFetch !== 'function') return;
+    try {
+      const res = await apiFetch('/api/print-orders/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spec: buildSpecPayload(),
+          shipping: { country: countrySel.value, speed: speedSel.value },
+        }),
+      });
+      if (res?.ok && res.data?.providers_available) {
+        state.providersAvailable = res.data.providers_available;
+        const paypalBtn = document.getElementById('timrxPayPayPal');
+        if (paypalBtn) {
+          paypalBtn.hidden = !state.providersAvailable.includes('paypal');
+        }
+        // If selected provider is no longer available, fall back to first available.
+        if (!state.providersAvailable.includes(state.provider)) {
+          state.provider = state.providersAvailable[0] || 'mollie';
+          syncProviderUi();
+        }
+      }
+    } catch (_) { /* ignore — picker stays default */ }
+  }
+
+  function syncProviderUi() {
+    panel.querySelectorAll('.timrx-order__pay-btn').forEach(btn => {
+      const active = btn.dataset.provider === state.provider;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+  }
+
+  async function submitOrder() {
     const payload = {
-      order_id: orderId,
-      model: {
-        id: item?.id || item?.model_id || null,
-        name: item?.title || item?.prompt || null,
-        glb_url: item?.glb_url || item?.glb_proxy || null,
-      },
-      spec: {
-        process: state.process,
-        material: state.materialId,
-        material_label: e.materialLabel,
-        color: state.colorId,
-        color_label: getColor().label,
-        quality: qualitySel.value,
-        finish: finishSel.value,
-        infill_pct: state.process === 'resin' ? 100 : parseInt(infillEl.value, 10),
-        quantity: e.qty,
-        target_height_mm: parseFloat(heightEl.value) || null,
-        scaled_dimensions_mm: dims || null,
-      },
-      shipping: ship,
-      estimate: {
-        weight_g: Math.round(e.weightG),
-        time_min: Math.round(e.timeMin),
-        subtotal: +e.subtotal.toFixed(2),
-        shipping: +e.shipFee.toFixed(2),
-        total:    +e.total.toFixed(2),
-        currency: 'USD',
-      },
-      created_at: new Date().toISOString(),
+      provider: state.provider,
+      spec:     buildSpecPayload(),
+      shipping: buildShippingPayload(),
+      model:    buildModelPayload(),
     };
 
-    // Stash locally so the user has a record even if the API isn't ready
-    try {
-      const key = 'timrx_print_orders';
-      const list = JSON.parse(localStorage.getItem(key) || '[]');
-      list.unshift(payload);
-      localStorage.setItem(key, JSON.stringify(list.slice(0, 50)));
-    } catch (_) { /* ignore */ }
+    if (typeof apiFetch !== 'function') {
+      if (window.showToast) window.showToast('Network is not ready — please try again.', 'error');
+      throw new Error('apiFetch not available');
+    }
 
-    // Best-effort POST to backend; success page shows regardless so user has confirmation.
-    try {
-      if (typeof apiFetch === 'function') {
-        apiFetch('/api/_mod/print-orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }).catch(() => { /* offline fallback ok */ });
+    const res = await apiFetch('/api/print-orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const code = res.data?.error?.code;
+      if (res.status === 401 || code === 'UNAUTHORIZED') {
+        if (window.showToast) window.showToast('Please sign in to place an order.', 'error');
+        // Open auth modal if exposed by the app shell
+        try { window.dispatchEvent(new CustomEvent('auth:open')); } catch (_) {}
+        return;
       }
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        if (window.showToast) window.showToast('Verify your email first, then try again.', 'error');
+        return;
+      }
+      const msg = res.data?.error?.message || res.error || 'Could not create order';
+      if (window.showToast) window.showToast(msg, 'error');
+      return;
+    }
+
+    // Remember the pending order so we can show success on redirect back.
+    try {
+      localStorage.setItem('timrx_pending_print_order', JSON.stringify({
+        order_number: res.data.order_number,
+        total: res.data.total,
+        currency: res.data.currency,
+        provider: res.data.provider,
+        shipping_email: payload.shipping.email,
+        created_at: new Date().toISOString(),
+      }));
     } catch (_) { /* ignore */ }
 
-    // Show success state
-    panel.querySelectorAll('.timrx-order__step-pane').forEach(p => p.classList.remove('is-active'));
-    const successPane = panel.querySelector('.timrx-order__step-pane[data-pane="success"]');
-    if (successPane) successPane.classList.add('is-active');
-    document.getElementById('timrxOrderSuccessId').textContent = orderId;
-    document.getElementById('timrxOrderSuccessEmail').textContent = ship.email || 'your email';
-    const shipDate = new Date();
-    const days = ship.speed === 'priority' ? 2 : ship.speed === 'express' ? 4 : 7;
-    shipDate.setDate(shipDate.getDate() + days);
-    document.getElementById('timrxOrderSuccessShip').textContent =
-      shipDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    if (footer) footer.style.display = 'none';
-    if (window.showToast) window.showToast(`Order ${orderId} placed`, 'success');
+    // Hop the user off to the provider checkout. The webhook completes the order
+    // server-side; the redirect just brings them back to /3dprint?print_order=...
+    window.location.href = res.data.checkout_url;
+  }
+
+  // ── Redirect-back handler ────────────────────────────────────────
+  function handlePrintOrderReturn() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const orderNum = params.get('print_order');
+      const cancelled = params.get('cancelled') === '1';
+      if (!orderNum) return;
+
+      // Clean the URL so a refresh doesn't re-trigger
+      params.delete('print_order');
+      params.delete('cancelled');
+      const newQs = params.toString();
+      window.history.replaceState({}, '',
+        window.location.pathname + (newQs ? '?' + newQs : '') + window.location.hash);
+
+      if (cancelled) {
+        if (window.showToast) window.showToast('Order payment was cancelled. You can try again any time.', 'info');
+        return;
+      }
+
+      // Poll briefly for paid status (webhook may take a couple seconds)
+      const startedAt = Date.now();
+      const maxMs = 10000;
+      const tick = async () => {
+        if (typeof apiFetch !== 'function') return;
+        try {
+          const res = await apiFetch('/api/print-orders/' + encodeURIComponent(orderNum));
+          if (res.ok && res.data?.order) {
+            const order = res.data.order;
+            if (order.status === 'paid') {
+              if (window.showToast) {
+                window.showToast(`Order ${order.order_number} confirmed — check your email for the receipt.`, 'success');
+              }
+              try { localStorage.removeItem('timrx_pending_print_order'); } catch (_) {}
+              return;
+            }
+            if (order.status === 'failed' || order.status === 'cancelled') {
+              if (window.showToast) window.showToast('Payment was not completed.', 'error');
+              return;
+            }
+          }
+        } catch (_) { /* keep polling */ }
+        if (Date.now() - startedAt < maxMs) setTimeout(tick, 1500);
+        else if (window.showToast) {
+          window.showToast(`Order ${orderNum} received — confirmation will arrive shortly by email.`, 'info');
+        }
+      };
+      tick();
+    } catch (e) {
+      console.warn('[Print order] return-handler error:', e);
+    }
   }
 
   // ── Wire events ───────────────────────────────────────────────────
@@ -1942,6 +2061,7 @@ function initTimrxOrderModal() {
     } else if (state.step === 2) {
       if (!validateShipping()) return;
       setStep(3);
+      refreshProvidersAvailable();
     } else if (state.step === 3) {
       if (!consentEl.checked) return;
       nextBtn.disabled = true;
@@ -1960,11 +2080,23 @@ function initTimrxOrderModal() {
 
   doneBtn?.addEventListener('click', closeModal);
 
+  // Payment-method picker
+  panel.querySelectorAll('.timrx-order__pay-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.provider = btn.dataset.provider || 'mollie';
+      syncProviderUi();
+    });
+  });
+
   // Initial render
   renderMaterials();
   renderSwatches();
   setRangeFill();
   refreshEstimate();
+  syncProviderUi();
+
+  // Handle return from payment-provider checkout (mollie/paypal redirect)
+  handlePrintOrderReturn();
 }
 
 // ============================================================================

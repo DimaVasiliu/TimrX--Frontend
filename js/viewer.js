@@ -313,6 +313,75 @@ export async function loadGlbFromUrl(url) {
     });
 }
 
+export async function loadStlFromUrl(url) {
+    if (!(window.THREE && THREE.STLLoader)) throw new Error('STLLoader missing');
+
+    if (!isViewerReady()) {
+        showViewerUnavailableMessage('load STL model');
+        throw new Error('3D viewer not available (WebGL disabled)');
+    }
+
+    const loader = new THREE.STLLoader();
+    if (!isTimrxS3Url(url)) {
+        loader.setCrossOrigin('use-credentials');
+        loader.setWithCredentials?.(true);
+    } else {
+        loader.setCrossOrigin('anonymous');
+    }
+
+    clearModel();
+
+    return new Promise((resolve, reject) => {
+        loader.load(url, (geometry) => {
+            if (!scene) {
+                reject(new Error('Scene became unavailable'));
+                return;
+            }
+
+            geometry.computeVertexNormals();
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xb8b8b8,
+                roughness: 0.78,
+                metalness: 0,
+                side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.name = 'uploaded_stl_model';
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            currentModel = new THREE.Group();
+            currentModel.name = 'uploaded_stl';
+            currentModel.add(mesh);
+            window._timrxCurrentModel = currentModel;
+            window._timrxMixer = null;
+
+            scene.add(currentModel);
+
+            const box = getVisualBounds(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            currentModel.position.set(0, 0, 0);
+            currentModel.position.x = -center.x;
+            currentModel.position.z = -center.z;
+            currentModel.position.y = -box.min.y - 0.5;
+
+            if (demoCube) demoCube.visible = false;
+            fitCameraToObject(currentModel);
+            currentModel.updateMatrixWorld(true);
+            controls?.update?.();
+            renderer?.render?.(scene, camera);
+            byId('viewerToolbar')?.classList.add('visible');
+            updatePlaceholder();
+            log('[Viewer] STL loaded successfully');
+            resolve();
+        }, undefined, (err) => {
+            console.error('[Viewer] STL load failed:', err);
+            clearModel();
+            reject(err);
+        });
+    });
+}
+
 /**
  * Load a 3MF file (multi-color print format) using Three.js ThreeMFLoader.
  * 3MF files contain colored meshes — this renders them with vertex colors.

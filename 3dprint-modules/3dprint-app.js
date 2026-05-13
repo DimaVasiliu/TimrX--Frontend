@@ -2296,8 +2296,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     }
   
     /**
-     * Loads a GLB/GLTF model into the viewer, re-centers it, and fits the camera.
-     * @param {File} file - The uploaded GLB/GLTF file.
+     * Loads a GLB/GLTF/STL model into the viewer, re-centers it, and fits the camera.
+     * @param {File} file - The uploaded model file.
      * @param {string} modelName - Friendly name shown in logs.
      */
     function load3DModel(file, modelName) {
@@ -2315,7 +2315,10 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       // tracking — all of which the old inline GLTFLoader.parse path skipped.
       const blobUrl = URL.createObjectURL(file);
 
-      const loadViaViewer = window.TimrXViewer?.loadGlbFromUrl || window.loadGlbFromUrl;
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      const loadViaViewer = ext === '.stl'
+        ? window.TimrXViewer?.loadStlFromUrl
+        : (window.TimrXViewer?.loadGlbFromUrl || window.loadGlbFromUrl);
       if (!loadViaViewer) {
         console.error('[Viewer] No viewer load function available');
         URL.revokeObjectURL(blobUrl);
@@ -6512,17 +6515,17 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
   
     /**
      * Validates the chosen file and updates helper copy.
-     * @param {File} file - Uploaded GLB/GLTF file.
+     * @param {File} file - Uploaded GLB/GLTF/STL file.
      */
     function handleFileSelect(file) {
       const maxSize = 50 * 1024 * 1024;
-      const valid   = ['.glb', '.gltf'];
-      const validMime = ['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', ''];
+      const valid   = ['.glb', '.gltf', '.stl'];
+      const validMime = ['model/gltf-binary', 'model/gltf+json', 'model/stl', 'application/sla', 'application/vnd.ms-pki.stl', 'application/octet-stream', ''];
       const ext     = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
       if (!valid.includes(ext) || (file.type && !validMime.includes(file.type.toLowerCase()))) {
         if (modelFileHint) {
-          modelFileHint.textContent = 'Invalid file format. Please upload a GLB or GLTF file.';
+          modelFileHint.textContent = 'Invalid file format. Please upload a GLB, GLTF, or STL file.';
           modelFileHint.style.color = '#ff6b6b';
         }
         return;

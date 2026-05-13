@@ -130,7 +130,7 @@
   <link rel="stylesheet" href="3dprint-modules/main.css?v=20260408f">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260407b"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260513a"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
   <script defer src="3dprint-modules/community-gallery.js"></script>
 
@@ -1125,6 +1125,20 @@
                 <!-- Populated by JS -->
               </div>
 
+              <div class="timrx-order__pay" id="timrxOrderPayMethods">
+                <p class="timrx-order__review-title" style="margin-bottom:8px">Payment method</p>
+                <div class="timrx-order__pay-grid" role="radiogroup" aria-label="Payment method">
+                  <button type="button" class="timrx-order__pay-btn is-active" data-provider="mollie" role="radio" aria-checked="true">
+                    <span class="timrx-order__pay-name">Card / iDEAL / Bancontact</span>
+                    <span class="timrx-order__pay-desc">Cards, Apple Pay, Google Pay, SEPA &amp; more (via Mollie)</span>
+                  </button>
+                  <button type="button" class="timrx-order__pay-btn" data-provider="paypal" role="radio" aria-checked="false" id="timrxPayPayPal" hidden>
+                    <span class="timrx-order__pay-name">PayPal</span>
+                    <span class="timrx-order__pay-desc">Pay with your PayPal balance or linked card</span>
+                  </button>
+                </div>
+              </div>
+
               <label class="timrx-order__consent">
                 <input type="checkbox" id="timrxOrderConsent">
                 <span>I have the rights to print this model and accept the <a href="terms.html" target="_blank" rel="noopener">terms</a> &amp; <a href="privacy.html" target="_blank" rel="noopener">privacy policy</a>.</span>
@@ -1421,12 +1435,14 @@
     // Import Three.js core and addons via importmap specifiers to ensure single instance
     import * as THREE_NS from 'three';
     import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+    import { STLLoader }     from 'three/addons/loaders/STLLoader.js';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     import { STLExporter }   from 'three/addons/exporters/STLExporter.js';
     import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
     const THREE_MUT = Object.assign({}, THREE_NS);
     THREE_MUT.GLTFLoader      = GLTFLoader;
+    THREE_MUT.STLLoader       = STLLoader;
     THREE_MUT.ThreeMFLoader   = ThreeMFLoader;
     THREE_MUT.OrbitControls   = OrbitControls;
     THREE_MUT.RoomEnvironment = RoomEnvironment;
@@ -1755,7 +1771,7 @@
 
       <div class="modal-body">
         <div class="modal-instructions" style="margin-bottom:16px;padding:12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.15);border-radius:8px">
-          <p style="margin:0 0 8px;color:#e0e0e0;font-size:14px;line-height:1.5">Upload your 3D model to preview it in the workspace. Supported file formats are GLB and GLTF.</p>
+          <p style="margin:0 0 8px;color:#e0e0e0;font-size:14px;line-height:1.5">Upload your 3D model to preview it in the workspace. Supported file formats are GLB, GLTF, and STL.</p>
           <ul style="margin:0;padding-left:20px;color:#b0b0b0;font-size:13px;line-height:1.6">
             <li style="margin-bottom:4px">Maximum file size: 50MB</li>
             <li style="margin-bottom:4px">Model will be automatically centered and scaled</li>
@@ -1775,8 +1791,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             <p style="margin:0 0 4px;font-size:14px;color:#ccc;font-weight:600">Drag & Drop or Click to Upload</p>
-            <span style="font-size:12px;color:#666">Supported formats: .glb, .gltf</span>
-            <input type="file" id="customModelUpload" accept=".glb,.gltf" hidden />
+            <span style="font-size:12px;color:#666">Supported formats: .glb, .gltf, .stl</span>
+            <input type="file" id="customModelUpload" accept=".glb,.gltf,.stl" hidden />
           </div>
           <small id="modelFileHint" class="hint-text" style="display:block;margin-top:8px;font-size:12px"></small>
         </div>
@@ -3212,7 +3228,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260408g"></script>
+  <script type="module" src="./js/main.js?v=20260513a"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
 

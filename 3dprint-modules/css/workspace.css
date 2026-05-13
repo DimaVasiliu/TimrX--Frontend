@@ -4036,6 +4036,59 @@ button.print-slicer-btn:hover {
   text-align: right;
 }
 
+/* Payment method picker (step 3) */
+.timrx-order__pay {
+  margin: 0 auto 12px;
+  max-width: 640px;
+}
+
+.timrx-order__pay-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .timrx-order__pay-grid { grid-template-columns: 1fr; }
+}
+
+.timrx-order__pay-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  color: #f5fbff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.timrx-order__pay-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timrx-order__pay-btn.is-active {
+  border-color: rgba(14, 165, 233, 0.55);
+  background: rgba(14, 165, 233, 0.08);
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.25) inset;
+}
+
+.timrx-order__pay-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f5fbff;
+}
+
+.timrx-order__pay-desc {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .timrx-order__consent {
   display: flex;
   align-items: flex-start;
