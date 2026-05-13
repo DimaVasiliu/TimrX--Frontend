@@ -44,11 +44,6 @@
 /admin/edit     /admin/admin-edit.html  200
 
 # ----------------------------
-# Explicit clean URL rewrites
-# ----------------------------
-/tutorials      /tutorials.html         200
-
-# ----------------------------
 # Trailing-slash normalization (no trailing slashes)
 # ----------------------------
 /archive/     /archive    301
