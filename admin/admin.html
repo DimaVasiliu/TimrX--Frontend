@@ -4220,6 +4220,74 @@
       return payload;
     }
 
+    // Transient failure modes worth retrying: network blip, Cloudflare/origin
+    // returning an HTML error page (524/522/502), backend overload (503/504).
+    // We retry the *same* JSON-required request a few times with backoff so
+    // the user doesn't see "expected JSON response" for a momentary blip.
+    const TRANSIENT_STATUS_CODES = new Set([0, 408, 425, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524]);
+
+    function isTransientFetchError(err) {
+      if (!err) return false;
+      // Network/abort errors have no status — always retry.
+      if (err.status == null) return true;
+      if (TRANSIENT_STATUS_CODES.has(err.status)) return true;
+      // Non-JSON 5xx error pages (Cloudflare/Nginx HTML) come through as
+      // "expected JSON response" — retry those too.
+      const msg = String(err.message || '');
+      if (/expected JSON response|invalid JSON response|network error/i.test(msg)) {
+        return true;
+      }
+      return false;
+    }
+
+    async function fetchJsonWithRetry(url, options, contextLabel, retryOpts = {}) {
+      const { attempts = 4, baseDelayMs = 500, onAttempt = null } = retryOpts;
+      let lastErr;
+      for (let i = 0; i < attempts; i++) {
+        if (typeof onAttempt === 'function') {
+          try { onAttempt(i + 1, attempts); } catch (_) {}
+        }
+        try {
+          return await fetchJson(url, options, contextLabel);
+        } catch (err) {
+          lastErr = err;
+          if (i === attempts - 1 || !isTransientFetchError(err)) throw err;
+          // Exponential backoff with jitter: 0.5s, 1s, 2s + up to 250ms jitter.
+          const delay = baseDelayMs * Math.pow(2, i) + Math.floor(Math.random() * 250);
+          await new Promise((r) => setTimeout(r, delay));
+        }
+      }
+      throw lastErr;
+    }
+
+    // content_blocks comes back as a parsed object from JSONB (PostgreSQL)
+    // but as a JSON-encoded string from SQLite (local dev) and sometimes from
+    // older rows. Normalize both shapes to { blocks: [...] }-style so callers
+    // never silently overwrite the draft with an empty array.
+    function parseContentBlocksField(raw) {
+      if (raw == null) return { time: Date.now(), blocks: [], version: '2.29.1' };
+      if (typeof raw === 'string') {
+        try {
+          const parsed = JSON.parse(raw);
+          return parseContentBlocksField(parsed);
+        } catch (_) {
+          return { time: Date.now(), blocks: [], version: '2.29.1' };
+        }
+      }
+      if (Array.isArray(raw)) {
+        return { time: Date.now(), blocks: raw, version: '2.29.1' };
+      }
+      if (typeof raw === 'object') {
+        const blocks = Array.isArray(raw.blocks) ? raw.blocks : [];
+        return {
+          time: typeof raw.time === 'number' ? raw.time : Date.now(),
+          blocks,
+          version: typeof raw.version === 'string' ? raw.version : '2.29.1'
+        };
+      }
+      return { time: Date.now(), blocks: [], version: '2.29.1' };
+    }
+
     function makeCoverSelectionKey(option, index = 0) {
       if (!option) return `stock_option_${index}`;
       const idPart = option.id || option.photo_id || '';
@@ -4718,12 +4786,16 @@
       }
     };
 
-    // Auto-save blog as draft
+    // Auto-save blog as draft. Retries transient gateway/network errors so a
+    // single Cloudflare 502/524 blip doesn't strand the user with a half-saved
+    // generation. On terminal failure, exposes an inline retry button.
     async function autoSaveDraft(blogData) {
       const statusEl = $('#blogDraftStatus');
-
-      statusEl.className = 'blog-draft-status saving';
-      statusEl.innerHTML = '<span class="status-icon">⏳</span><span>Saving draft...</span>';
+      const renderSaving = (label) => {
+        statusEl.className = 'blog-draft-status saving';
+        statusEl.innerHTML = '<span class="status-icon">⏳</span><span>' + escapeHtmlText(label) + '</span>';
+      };
+      renderSaving('Saving draft...');
 
       try {
         // Capture affiliate fields from the generation form
@@ -4733,7 +4805,7 @@
         const affPlacement = affUrl ? $('#ai_affiliate_placement').value : '';
         const coverImage = blogDraftImagesState.coverImage;
 
-        const j = await fetchJson(API + '/post', {
+        const j = await fetchJsonWithRetry(API + '/post', {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({
@@ -4753,25 +4825,45 @@
             affiliate_placement: affPlacement || undefined,
             generation_params: buildDraftGenerationParams(blogData),
           })
-        }, 'Auto-save draft');
+        }, 'Auto-save draft', {
+          attempts: 4,
+          onAttempt: (n, total) => {
+            if (n > 1) renderSaving(`Retrying save (${n}/${total})...`);
+          }
+        });
 
         if (j.ok || j.slug) {
           savedDraftSlug = j.slug;
           statusEl.className = 'blog-draft-status';
-          statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + j.slug + '</span>';
+          statusEl.innerHTML = '<span class="status-icon">&#10003;</span><span>Auto-saved as draft</span><span class="draft-slug">' + escapeHtmlText(j.slug) + '</span>';
           if (pendingCoverForDraft?.url) {
             CoverManager.updateDraftWithCover(pendingCoverForDraft);
           }
           saveGenerationSession();
           load();  // Refresh posts list
         } else {
-          statusEl.className = 'blog-draft-status error';
-          statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Failed to save: ' + (j.error || 'Unknown error') + '</span>';
+          renderAutoSaveError(statusEl, blogData, j.error || 'Unknown error');
         }
       } catch (err) {
         logApiError(err, 'Auto-save draft', false);
-        statusEl.className = 'blog-draft-status error';
-        statusEl.innerHTML = '<span class="status-icon">&#10007;</span><span>Error: ' + err.message + '</span>';
+        renderAutoSaveError(statusEl, blogData, err.message || 'Network error');
+      }
+    }
+
+    // Render a recoverable failure with a "Retry now" button. We avoid burying
+    // the user under a permanent "Failed" state — retrying must be one click.
+    function renderAutoSaveError(statusEl, blogData, message) {
+      statusEl.className = 'blog-draft-status error';
+      statusEl.innerHTML =
+        '<span class="status-icon">&#10007;</span>' +
+        '<span>Save failed: ' + escapeHtmlText(message) + '</span> ' +
+        '<button type="button" class="btn small" id="retryAutoSaveBtn" style="margin-left:8px;">Retry now</button>';
+      const btn = statusEl.querySelector('#retryAutoSaveBtn');
+      if (btn) {
+        btn.onclick = () => {
+          btn.disabled = true;
+          autoSaveDraft(blogData);
+        };
       }
     }
 
@@ -4780,7 +4872,7 @@
       if (!savedDraftSlug) return false;
 
       try {
-        const j = await fetchJson(API + '/post/' + encodeURIComponent(savedDraftSlug), {
+        const j = await fetchJsonWithRetry(API + '/post/' + encodeURIComponent(savedDraftSlug), {
           method: 'PATCH',
           headers: headers(),
           body: JSON.stringify({
@@ -4788,7 +4880,7 @@
             cover_attribution: coverImage?.attribution || '',
             generation_params: buildDraftGenerationParams(generatedBlog)
           })
-        }, 'Update draft cover');
+        }, 'Update draft cover', { attempts: 3 });
         if (j.ok) saveGenerationSession();
         return j.ok;
       } catch (err) {
@@ -6358,12 +6450,24 @@
       if (!savedDraftSlug) return false;
 
       try {
-        // Get current draft content
-        const getRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
-        const draft = await getRes.json();
+        // Get current draft content (retry on transient gateway errors so a
+        // single Cloudflare hiccup doesn't wipe the existing blocks).
+        const draft = await fetchJsonWithRetry(
+          `${API}/post/${encodeURIComponent(savedDraftSlug)}`,
+          { headers: headers() },
+          'Load draft for reference',
+          { attempts: 3 }
+        );
 
-        // Parse existing blocks
-        let blocks = draft.content_blocks?.blocks || [];
+        // content_blocks may be an object (Postgres JSONB) or a JSON string
+        // (SQLite/legacy rows). Refuse to proceed if we can't recover blocks,
+        // otherwise we'd PATCH the draft with an empty array.
+        const parsed = parseContentBlocksField(draft.content_blocks);
+        if (!Array.isArray(parsed.blocks) || parsed.blocks.length === 0) {
+          console.warn('[addValidationToDraft] refusing to patch: parsed blocks empty', draft);
+          return false;
+        }
+        let blocks = parsed.blocks.slice();
 
         // Create validation reference block
         const refBlock = {
@@ -6394,18 +6498,22 @@
           blocks.push(refBlock);
         }
 
-        // Update the draft
-        const updateRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
-          method: 'PATCH',
-          headers: headers(),
-          body: JSON.stringify({
-            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
-          })
-        });
-
-        return updateRes.ok;
+        // Update the draft with retry on transient failures.
+        const updateJson = await fetchJsonWithRetry(
+          `${API}/post/${encodeURIComponent(savedDraftSlug)}`,
+          {
+            method: 'PATCH',
+            headers: headers(),
+            body: JSON.stringify({
+              content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+            })
+          },
+          'Add reference to draft',
+          { attempts: 3 }
+        );
+        return !!(updateJson && updateJson.ok);
       } catch (err) {
-        console.error('Failed to add validation to draft:', err);
+        logApiError(err, 'Add reference to draft', false);
         return false;
       }
     }
@@ -6733,19 +6841,68 @@
       addAllBtn.classList.remove('hidden');
     }
 
-    // Add all validation results to draft
+    // Add all validation results to draft.
+    // Handles:
+    //   1. Missing slug — re-runs auto-save first so the user can click once
+    //      to recover from a failed initial save instead of clicking a
+    //      dead button.
+    //   2. Transient gateway/network failures — uses fetchJsonWithRetry.
+    //   3. content_blocks string vs object — parseContentBlocksField. Never
+    //      PATCHes with an empty blocks array (which would silently wipe the
+    //      draft and lose all generated content).
     async function addAllValidationsToDraft() {
-      if (!savedDraftSlug || validationResultsData.length === 0) return;
+      if (validationResultsData.length === 0) return;
 
       const btn = $('#addAllRefsBtn');
       btn.disabled = true;
+      const originalLabel = btn.textContent;
       btn.textContent = 'Adding...';
 
+      // If the initial auto-save failed, the slug is null — recover by
+      // saving the current generated blog first.
+      if (!savedDraftSlug) {
+        if (!generatedBlog) {
+          Toast.warning('No blog to attach references to');
+          btn.textContent = originalLabel;
+          btn.disabled = false;
+          return;
+        }
+        btn.textContent = 'Saving draft...';
+        await autoSaveDraft(generatedBlog);
+        if (!savedDraftSlug) {
+          Toast.error('Draft save failed — click "Retry now" next to the draft status, then try again');
+          btn.textContent = 'Retry';
+          btn.disabled = false;
+          return;
+        }
+      }
+
       try {
-        // Get current draft
-        const getRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, { headers: headers() });
-        const draft = await getRes.json();
-        let blocks = draft.content_blocks?.blocks || [];
+        // Get current draft (retry on transient gateway errors).
+        const draft = await fetchJsonWithRetry(
+          `${API}/post/${encodeURIComponent(savedDraftSlug)}`,
+          { headers: headers() },
+          'Load draft for references',
+          { attempts: 4 }
+        );
+
+        // content_blocks may be an object (Postgres JSONB) or a JSON string
+        // (SQLite/legacy rows). Normalize before mutating so we never
+        // overwrite the draft with an empty blocks array.
+        const parsed = parseContentBlocksField(draft.content_blocks);
+        let blocks = parsed.blocks.slice();
+
+        if (blocks.length === 0) {
+          // Fall back to the in-memory generation if the server somehow
+          // returned an empty draft — losing all content here would be
+          // catastrophic. Better to refuse than to wipe.
+          if (generatedBlog?.blocks?.length) {
+            console.warn('[addAllValidationsToDraft] server draft empty, falling back to in-memory blocks');
+            blocks = generatedBlog.blocks.slice();
+          } else {
+            throw new Error('Draft has no content blocks to attach references to');
+          }
+        }
 
         // Remove any previous validation artifacts before adding the fresh result set.
         blocks = blocks.filter((block) => {
@@ -6789,24 +6946,30 @@
           }
         });
 
-        // Update draft
-        const updateRes = await adminFetch(`${API}/post/${encodeURIComponent(savedDraftSlug)}`, {
-          method: 'PATCH',
-          headers: headers(),
-          body: JSON.stringify({
-            content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
-          })
-        });
+        // Update draft with retry.
+        const updateJson = await fetchJsonWithRetry(
+          `${API}/post/${encodeURIComponent(savedDraftSlug)}`,
+          {
+            method: 'PATCH',
+            headers: headers(),
+            body: JSON.stringify({
+              content_blocks: { time: Date.now(), blocks, version: '2.29.1' }
+            })
+          },
+          'Add references to draft',
+          { attempts: 4 }
+        );
 
-        if (updateRes.ok) {
+        if (updateJson && updateJson.ok) {
           btn.textContent = 'Added!';
           btn.classList.add('primary');
         } else {
-          throw new Error('Update failed');
+          throw new Error(updateJson?.error || 'Update failed');
         }
       } catch (err) {
-        console.error('Failed to add validations:', err);
-        btn.textContent = 'Failed';
+        logApiError(err, 'Add references to draft', false);
+        Toast.error('Failed to add references: ' + (err.message || 'Unknown error'));
+        btn.textContent = 'Retry';
         btn.disabled = false;
       }
     }
