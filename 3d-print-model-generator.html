@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3D Print Model Generator — AI Powered Print-Ready Models | TimrX</title>
-  <meta name="description" content="Generate 3D-printable models with AI. TimrX creates watertight meshes from text or images, optimized for FDM and resin printers. Export as GLB, STL, or full-color 3MF for multi-color printing." />
+  <title>3D Print Model Generator — Create &amp; Order Prints with TimrX</title>
+  <meta name="description" content="Generate 3D-printable models with AI and order them straight from TimrX — we print, ship and deliver. Watertight meshes for FDM and resin, full-color 3MF for multi-color AMS/MMU prints. First small print free on your first order." />
   <link rel="canonical" href="https://timrx.live/3d-print-model-generator" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
@@ -14,8 +14,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/3d-print-model-generator" />
-  <meta property="og:title" content="3D Print Model Generator — AI Powered Print-Ready Models | TimrX" />
-  <meta property="og:description" content="Generate 3D-printable models with AI. Create watertight meshes from text or images. Export as GLB, STL, or full-color 3MF for multi-color printing." />
+  <meta property="og:title" content="3D Print Model Generator — Create &amp; Order Prints with TimrX" />
+  <meta property="og:description" content="Generate AI 3D models ready to print and order them on TimrX. We print, ship and deliver — FDM, resin, and multi-color AMS prints. First small print free on your first order." />
   <meta property="og:image" content="https://timrx.live/img/og-3d-print.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -24,8 +24,8 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/3d-print-model-generator" />
-  <meta name="twitter:title" content="3D Print Model Generator — AI Powered Print-Ready Models | TimrX" />
-  <meta name="twitter:description" content="Generate 3D-printable models with AI. Create watertight meshes optimized for FDM and resin printers. Full-color 3MF export for multi-material printing." />
+  <meta name="twitter:title" content="3D Print Model Generator — Create &amp; Order Prints with TimrX" />
+  <meta name="twitter:description" content="Generate AI 3D models and order the print on TimrX — we print, ship and deliver. FDM, resin, and multi-color AMS supported." />
   <meta name="twitter:image" content="https://timrx.live/img/og-3d-print.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -73,7 +73,26 @@
     "step": [
       { "@type": "HowToStep", "position": 1, "name": "Describe Your Model", "text": "Enter a text prompt describing the 3D printable object. Specify details like size, detail level, and style." },
       { "@type": "HowToStep", "position": 2, "name": "Generate & Check", "text": "The AI generates a 3D model. TimrX's print-check tool validates it for printability — wall thickness, overhangs, and manifold geometry." },
-      { "@type": "HowToStep", "position": 3, "name": "Export for Printing", "text": "Export as STL for single-color prints, or generate a full-color 3MF file for multi-material printers (Bambu Lab, Prusa MMU). GLB also available for further editing." }
+      { "@type": "HowToStep", "position": 3, "name": "Export for Printing", "text": "Export as STL for single-color prints, or generate a full-color 3MF file for multi-material printers (Bambu Lab, Prusa MMU). GLB also available for further editing." },
+      { "@type": "HowToStep", "position": 4, "name": "Order the Print on TimrX", "text": "Skip the printer setup entirely — order your generated model as a physical print directly from TimrX. We print on FDM and resin, support multi-color AMS, ship and deliver worldwide. First small print free on your first order, you only pay shipping." }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: Service (Print on Demand) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "TimrX 3D Printing Service",
+    "serviceType": "3D Printing on Demand",
+    "provider": { "@type": "Organization", "name": "TimrX", "url": "https://timrx.live" },
+    "areaServed": "Worldwide",
+    "description": "Print your AI-generated 3D models on TimrX. FDM and resin printers, multi-color AMS / MMU support, worldwide shipping. Create the model on TimrX and we handle production, quality check and delivery.",
+    "url": "https://timrx.live/print-on-demand",
+    "offers": [
+      { "@type": "Offer", "name": "First Small Print Free", "description": "Your first order: one small print (up to 50 mm tall) is free — you only pay shipping. Limit one per customer.", "price": "0", "priceCurrency": "GBP" },
+      { "@type": "Offer", "name": "Free Worldwide Shipping over £40", "description": "Print orders with a subtotal of £40 or more ship free worldwide.", "price": "0", "priceCurrency": "GBP" },
+      { "@type": "Offer", "name": "Refer-a-Friend £5 Print Credit", "description": "Both you and your friend receive £5 in print credit when they place their first paid print order.", "price": "5", "priceCurrency": "GBP" }
     ]
   }
   </script>
@@ -83,6 +102,21 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Can I order a TimrX-generated model as a physical print?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every model you create on TimrX can be ordered as a physical print without leaving the workspace. Choose FDM filament or resin, single-color or multi-color (AMS / MMU up to 16 filaments), pick a size and material, and we print, QC and ship worldwide. Your first small print (up to 50 mm tall) is free on your first order — you only cover shipping." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does TimrX printing pricing work — and is it the cheapest?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Pricing is calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service — we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping kicks in over £40, and a refer-a-friend program gives both sides £5 print credit. See the pricing page for the full breakdown." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does TimrX print multi-color (MCP) models?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The full-color 3MF generator converts a textured AI model into 1–16 color regions ready for an AMS or MMU printer. If you order the print through TimrX we run it on our multi-color FDM hardware (Bambu Lab AMS), so the colors come out as designed without you touching a slicer. Costs 10 credits to generate the 3MF; ordering the print is priced per-model on the order screen." }
+      },
       {
         "@type": "Question",
         "name": "Is TimrX 3D print model generator free?",
@@ -204,10 +238,25 @@
         </div>
         <div class="tool-step">
           <span class="tool-step-num">03</span>
-          <h3>Export for Printing</h3>
-          <p>Download as STL for single-color prints or generate a full-color 3MF for multi-material printers. Load directly into Bambu Studio, OrcaSlicer, Cura, or your slicer of choice.</p>
+          <h3>Export or Order</h3>
+          <p>Download as STL for single-color prints, generate a full-color 3MF for multi-material printers — or skip the printer entirely and order the physical print straight from TimrX. We print, ship and deliver worldwide.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Create &amp; Order section: skip the printer, TimrX prints &amp; ships -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 12px;">Create models ready to print and order them on TimrX</h2>
+      <p>Don&rsquo;t own a printer? Don&rsquo;t want to learn slicing? Generate your model on TimrX and order the physical print without leaving the workspace. We print on calibrated FDM and resin machines, support multi-color AMS / MMU output, do the QC, then ship and deliver to your door &mdash; anywhere in the world.</p>
+      <p><strong>TimrX prints, ships &amp; delivers.</strong> Premium FDM and resin output, fair pricing, no hidden fees. The print check that runs after every generation is the same one we use before printing your order, so you know in advance whether the model is production-ready.</p>
+      <ul style="margin:14px 0 0;padding-left:20px;line-height:1.7;">
+        <li><strong>First small print free.</strong> First order only: one print up to 50 mm tall is free &mdash; you cover shipping.</li>
+        <li><strong>Free worldwide shipping over &pound;40.</strong> No code, applied automatically at checkout.</li>
+        <li><strong>Refer a friend, both get &pound;5 print credit.</strong> Credit lands when they place their first paid order.</li>
+      </ul>
+      <p style="margin-top:14px;"><a href="/pricing" style="color:#7dd3fc;">See print-service pricing &rarr;</a> &nbsp;&middot;&nbsp; <a href="/multi-color-3d-printing" style="color:#7dd3fc;">Multi-color (MCP) printing &rarr;</a></p>
     </div>
   </section>
 
@@ -368,6 +417,18 @@
       <h2 class="tool-faq-title">Frequently Asked Questions</h2>
       <div class="tool-faq-list">
         <details class="tool-faq-item">
+          <summary>Can I order a TimrX-generated model as a physical print?</summary>
+          <p>Yes. Every model you create on TimrX can be ordered as a physical print without leaving the workspace. Choose FDM filament or resin, single-color or multi-color (AMS / MMU up to 16 filaments), pick a size and material, and we print, QC and ship worldwide. Your first small print (up to 50 mm tall) is free on your first order &mdash; you only cover shipping.</p>
+        </details>
+        <details class="tool-faq-item">
+          <summary>How does TimrX printing pricing work &mdash; and is it the cheapest?</summary>
+          <p>Pricing is calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service &mdash; we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping kicks in over &pound;40, and a refer-a-friend program gives both sides &pound;5 print credit. See the <a href="/pricing">pricing page</a> for the full breakdown.</p>
+        </details>
+        <details class="tool-faq-item">
+          <summary>Does TimrX print multi-color (MCP) models?</summary>
+          <p>Yes. The full-color 3MF generator converts a textured AI model into 1&ndash;16 color regions ready for an AMS or MMU printer. If you order the print through TimrX we run it on our multi-color FDM hardware (Bambu Lab AMS), so the colors come out as designed without you touching a slicer. Costs 10 credits to generate the 3MF; ordering the print is priced per-model on the order screen.</p>
+        </details>
+        <details class="tool-faq-item">
           <summary>Is TimrX 3D print model generator free?</summary>
           <p>Yes. TimrX offers a free tier that lets you generate 3D printable models from text or image prompts at no cost. The free plan includes standard-resolution mesh generation with GLB export. Premium tiers unlock higher polygon counts, batch generation, and priority queue access for faster turnaround on complex models.</p>
         </details>
@@ -406,10 +467,10 @@
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
-      <h2 class="tool-cta-title">Generate Print-Ready Models</h2>
+      <h2 class="tool-cta-title">Generate Print-Ready Models &mdash; or Have Us Print &amp; Ship It</h2>
       <div class="tool-cta-buttons">
         <a href="/3dprint" class="nav-cta">Open 3D Print Hub</a>
-        <a href="/hub" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Open AI Hub</a>
+        <a href="/print-on-demand" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Order a Print</a>
       </div>
     </div>
   </section>

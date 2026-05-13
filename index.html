@@ -8,8 +8,8 @@
 <!-- Primary Meta Tags -->
 <title>TimrX — AI Creative Platform for 3D, Video & Image Generation</title>
 <meta name="title" content="TimrX — AI Creative Platform for 3D, Video & Image Generation" />
-<meta name="description" content="Generate 3D-printable models, AI images, and videos in one browser-based workspace. TimrX turns text and images into 3D, video, and creative assets with no Blender required." />
-<meta name="keywords" content="TimrX, timrx, AI 3D generator, text to video AI, image to video AI, AI image generator, image to 3D, AI platform, Dima Vasiliu, text to 3D, AI creative platform, AI video generation, 3D model generator" />
+<meta name="description" content="Generate 3D-printable models with AI and order the print straight from TimrX — we print, ship and deliver. Browser-based workspace for 3D, images, and video with no Blender required." />
+<meta name="keywords" content="TimrX, timrx, AI 3D generator, AI 3D printing service, print on demand 3D, multi-color 3D printing, order 3D print online, text to video AI, image to video AI, AI image generator, image to 3D, AI platform, Dima Vasiliu, text to 3D, AI creative platform, AI video generation, 3D model generator" />
 <meta name="author" content="Dima Vasiliu" />
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 <meta name="googlebot" content="index, follow" />
@@ -31,8 +31,8 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://timrx.live/" />
-<meta property="og:title" content="TimrX — AI Creative Platform" />
-<meta property="og:description" content="Generate 3D-printable models, AI images, and videos in one browser-based workspace with no Blender required." />
+<meta property="og:title" content="TimrX — AI Creative Platform · Create &amp; Order 3D Prints" />
+<meta property="og:description" content="Create AI 3D models ready to print and order them straight on TimrX — we print, ship and deliver. Plus AI image and video generation in one browser workspace." />
 <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -43,8 +43,8 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:url" content="https://timrx.live/" />
-<meta name="twitter:title" content="TimrX — AI Creative Platform" />
-<meta name="twitter:description" content="Generate 3D-printable models, AI images, and videos in one browser-based workspace with no Blender required." />
+<meta name="twitter:title" content="TimrX — AI Creative Platform · Create &amp; Order 3D Prints" />
+<meta name="twitter:description" content="Create AI 3D models ready to print and order them straight on TimrX — we print, ship and deliver. Plus AI image and video generation." />
 <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
 <meta name="twitter:creator" content="@timrx_live" />
 
@@ -180,7 +180,81 @@
     "email": "admin@timrx.live"
   },
   "areaServed": "Worldwide",
-  "serviceType": ["AI 3D Generation", "Text to 3D", "Image to 3D", "Text to Video", "Image to Video", "AI Image Generation", "AI Video Generation"]
+  "serviceType": ["AI 3D Generation", "Text to 3D", "Image to 3D", "Text to Video", "Image to Video", "AI Image Generation", "AI Video Generation", "3D Printing Service", "Multi-Color 3D Printing", "Print on Demand"]
+}
+</script>
+
+<!-- Structured Data - Service (3D Printing Fulfillment) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "https://timrx.live/#printing-service",
+  "name": "TimrX 3D Printing & Delivery Service",
+  "serviceType": "3D Printing on Demand",
+  "provider": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live"
+  },
+  "areaServed": "Worldwide",
+  "description": "Create AI-generated 3D models on TimrX and order them as physical prints. We print on FDM and resin printers, support multi-color AMS/MMU prints, then ship and deliver direct to your door.",
+  "url": "https://timrx.live/print-on-demand",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "First Small Print Free",
+      "description": "First order: one small print (up to 50 mm tall) is free — you only pay shipping. Limit one per customer.",
+      "price": "0",
+      "priceCurrency": "GBP",
+      "eligibleQuantity": { "@type": "QuantitativeValue", "value": 1, "unitText": "print" },
+      "availability": "https://schema.org/InStock"
+    },
+    {
+      "@type": "Offer",
+      "name": "Free Worldwide Shipping over £40",
+      "description": "Orders with a print subtotal of £40 or more ship free worldwide. No code required.",
+      "priceSpecification": {
+        "@type": "PriceSpecification",
+        "price": "0",
+        "priceCurrency": "GBP",
+        "minPrice": "40",
+        "description": "Free shipping threshold"
+      },
+      "availability": "https://schema.org/InStock"
+    },
+    {
+      "@type": "Offer",
+      "name": "Refer-a-Friend Print Credit",
+      "description": "Refer a friend and you both receive £5 in print credit when they place their first paid order.",
+      "price": "5",
+      "priceCurrency": "GBP",
+      "availability": "https://schema.org/InStock"
+    }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "TimrX Print Services",
+    "itemListElement": [
+      {
+        "@type": "OfferCatalog",
+        "name": "FDM Printing",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "PLA single-color FDM print" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "PETG functional FDM print" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Multi-color AMS / MMU print (up to 16 filaments)" } }
+        ]
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Resin Printing",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Standard resin print (miniatures, detail work)" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tough resin functional print" } }
+        ]
+      }
+    ]
+  }
 }
 </script>
 
@@ -220,6 +294,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "No. TimrX is a complete browser-based solution. Generate, preview, remesh, texture, and export 3D models without any external software."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can TimrX print and ship my model for me?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. After generating a model on TimrX you can order it as a physical print directly from the workspace — choose FDM or resin, single-color or multi-color, then we print, quality-check and ship worldwide. Your first small print (up to 50 mm tall) is free on your first order, you only pay shipping."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does TimrX support multi-color 3D printing?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. TimrX exports full-color 3MF files compatible with Bambu Lab AMS, Prusa MMU and other multi-material printers, with 1 to 16 filament colors. If you order through TimrX we print multi-color directly on our AMS printers — no slicer work required on your side."
       }
     }
   ]

@@ -1964,7 +1964,7 @@ async function openRefineSettingsModal(item = {}) {
                 <label for="refineStyleImageUrl">Or paste image URL</label>
                 <input type="text" id="refineStyleImageUrl" placeholder="https://example.com/refine-style.jpg">
               </div>
-              <p class="field-hint texture-setting-note">If both text and image are set, the image acts as the stronger style guide.</p>
+              <p class="field-hint texture-setting-note">If both text and image are set, Meshy uses the text style prompt.</p>
             </div>
           </div>
 
@@ -1993,6 +1993,14 @@ async function openRefineSettingsModal(item = {}) {
               </label>
             </div>
             <p class="field-hint texture-setting-note" id="refineRemoveLightingNote">Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
+            <div class="field-row">
+              <span class="field-label-inline">HD Texture</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="refineHdTexture">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="field-hint texture-setting-note" id="refineHdTextureNote">Generate a 4K base color texture. Only available on Meshy 6 / latest.</p>
           </div>
         </div>
 
@@ -2041,6 +2049,8 @@ async function openRefineSettingsModal(item = {}) {
     const aiModel = overlay.querySelector('#refineAiModel');
     const removeLighting = overlay.querySelector('#refineRemoveLighting');
     const removeLightingNote = overlay.querySelector('#refineRemoveLightingNote');
+    const hdTexture = overlay.querySelector('#refineHdTexture');
+    const hdTextureNote = overlay.querySelector('#refineHdTextureNote');
 
     const closeModal = () => {
       cleanup(null);
@@ -2086,6 +2096,15 @@ async function openRefineSettingsModal(item = {}) {
           ? 'Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.'
           : 'Remove Lighting is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
       }
+      if (hdTexture) {
+        hdTexture.disabled = !supported;
+        if (!supported) hdTexture.checked = false;
+      }
+      if (hdTextureNote) {
+        hdTextureNote.textContent = supported
+          ? 'Generate a 4K base color texture. Only available on Meshy 6 / latest.'
+          : 'HD Texture is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
+      }
     };
 
     closeBtn?.addEventListener('click', closeModal);
@@ -2125,6 +2144,7 @@ async function openRefineSettingsModal(item = {}) {
           texture_image_url,
           enable_pbr: !!overlay.querySelector('#refineEnablePbr')?.checked,
           remove_lighting: !!removeLighting?.checked,
+          hd_texture: !!hdTexture?.checked,
           ai_model: (aiModel?.value || 'latest').trim() || 'latest'
         });
       } catch (err) {
@@ -5841,10 +5861,12 @@ export async function startRefineFromHistory(item, origin = 'history') {
       preview_task_id: previewTaskId,
       enable_pbr: refineValues.enable_pbr,
       ai_model: refineValues.ai_model || 'latest',
-      remove_lighting: refineValues.remove_lighting
+      remove_lighting: refineValues.remove_lighting,
+      hd_texture: refineValues.hd_texture,
+      target_formats: ['glb']
     };
     if (refineValues.texture_prompt) body.texture_prompt = refineValues.texture_prompt;
-    if (refineValues.texture_image_url) body.texture_image_url = refineValues.texture_image_url;
+    else if (refineValues.texture_image_url) body.texture_image_url = refineValues.texture_image_url;
 
     const result = await apiFetch('/api/_mod/text-to-3d/refine', {
       method: 'POST',

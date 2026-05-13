@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-Color 3D Printing (MCP) — AMS, MMU, Full-Color 3MF | TimrX</title>
+  <meta name="description" content="Multi-color 3D printing on demand. Generate full-color 3MF files for Bambu Lab AMS, Prusa MMU and other multi-material printers — or have TimrX print, ship and deliver the multi-color model for you. Up to 16 filament colors per print." />
+  <link rel="canonical" href="https://timrx.live/multi-color-3d-printing" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/multi-color-3d-printing" />
+  <meta property="og:title" content="Multi-Color 3D Printing (MCP) — AMS, MMU, Full-Color 3MF | TimrX" />
+  <meta property="og:description" content="Generate full-color 3MF for AMS / MMU printers — or let TimrX print and ship the multi-color model for you. Up to 16 filament colors per print." />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/multi-color-3d-printing" />
+  <meta name="twitter:title" content="Multi-Color 3D Printing (MCP) — AMS, MMU, Full-Color 3MF | TimrX" />
+  <meta name="twitter:description" content="Multi-color 3D printing on demand. Full-color 3MF for AMS / MMU, or TimrX prints &amp; ships." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: Service -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "TimrX Multi-Color 3D Printing",
+    "serviceType": "Multi-color 3D Printing on Demand",
+    "provider": { "@type": "Organization", "name": "TimrX", "url": "https://timrx.live" },
+    "areaServed": "Worldwide",
+    "description": "Multi-color 3D printing for AI-generated models. Generate full-color 3MF files for AMS / MMU printers (Bambu Lab, Prusa) or have TimrX print and ship the multi-color model. Up to 16 filament colors per print.",
+    "url": "https://timrx.live/multi-color-3d-printing"
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
+      { "@type": "ListItem", "position": 2, "name": "Multi-Color 3D Printing", "item": "https://timrx.live/multi-color-3d-printing" }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to make a multi-color 3D print with TimrX",
+    "description": "Turn an AI 3D model into a multi-color print using full-color 3MF export or TimrX's print-on-demand service.",
+    "step": [
+      { "@type": "HowToStep", "position": 1, "name": "Generate a textured model", "text": "Create your model in the TimrX workspace with AI textures. Quality of the source textures drives quality of the final color mapping." },
+      { "@type": "HowToStep", "position": 2, "name": "Open Full-Color 3MF", "text": "Open the multi-color tool in the workspace. Pick how many filament colors (1 to 16) and the color detail level. Preview the color regions live." },
+      { "@type": "HowToStep", "position": 3, "name": "Export or Order", "text": "Export the 3MF and load it into Bambu Studio, OrcaSlicer or PrusaSlicer — or order the multi-color print directly from TimrX and we'll run it on our AMS hardware." }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is multi-color 3D printing (MCP) on TimrX?", "acceptedAnswer": { "@type": "Answer", "text": "MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1–16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You can export the 3MF yourself or have TimrX print the multi-color model for you." } },
+      { "@type": "Question", "name": "Which printers does the full-color 3MF work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any multi-material printer that imports 3MF. Tested with Bambu Lab X1 Carbon, X1E, P1S and P1P with AMS or AMS Lite; Prusa XL with the 5-tool head; Prusa MK4 / MK4S with MMU3. The exported 3MF includes color regions, recommended print settings and the source model." } },
+      { "@type": "Question", "name": "How many colors can one print have?", "acceptedAnswer": { "@type": "Answer", "text": "Up to 16 filament colors per print. The AI quantizes the model's surface textures into the number of colors you pick. More colors look richer but extend print time and use more purge material — for most prints 4–8 colors is the sweet spot." } },
+      { "@type": "Question", "name": "How much does multi-color cost?", "acceptedAnswer": { "@type": "Answer", "text": "Generating the 3MF is 10 credits per conversion. If you order the print from TimrX, multi-color FDM starts at £12 per small print — final price depends on volume, number of colors and shipping. We aren't the cheapest option; we focus on color accuracy and print quality." } },
+      { "@type": "Question", "name": "Will the colors match the AI textures exactly?", "acceptedAnswer": { "@type": "Answer", "text": "Close, but not pixel-perfect. Filaments have a limited gamut compared to a digital texture, and the model is split into solid color regions rather than continuous gradients. The 3MF preview shows the exact regions before you commit. We can ship a filament-color sample card with first orders so you can pick exact colors for next time." } }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/print-on-demand">Print on Demand</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/blogs">Blogs</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>Multi-Color 3D Printing — Full-Color 3MF for AMS &amp; MMU</h1>
+      <p class="tool-subtitle">Turn AI-textured models into multi-color prints. Export full-color 3MF for Bambu Lab AMS, Prusa MMU and other multi-material printers — or have TimrX print and ship the multi-color model for you. Up to 16 filaments per print.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>Multi-color print (MCP) on TimrX bridges the gap between AI-generated textures and physical multi-material printing. The AI textures your model with colors and patterns; the MCP tool quantizes those textures into 1&ndash;16 solid filament regions; the slicer-ready 3MF goes straight into Bambu Studio, OrcaSlicer or PrusaSlicer.</p>
+      <p><strong>Don&rsquo;t own an AMS or MMU?</strong> Order the multi-color print directly from TimrX &mdash; we run it on our Bambu Lab AMS hardware, QC every color region against the source model, then ship worldwide. No slicer work, no filament loading, no purge mess.</p>
+    </div>
+  </section>
+
+  <!-- How -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How Multi-Color Works on TimrX</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Generate &amp; Texture</h3>
+          <p>Create your model with AI textures &mdash; text-to-3D, image-to-3D or retexture an existing mesh.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Open Full-Color 3MF</h3>
+          <p>Pick how many filament colors (1&ndash;16) and the color detail level. Preview the color regions live before committing.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Export or Order</h3>
+          <p>Export the 3MF for your own AMS / MMU printer, or order the multi-color print from TimrX. We print, ship and deliver.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compatibility -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2>AMS / MMU Compatibility</h2>
+      <p>The full-color 3MF includes color regions, recommended print settings and the source mesh. Imports cleanly into every major multi-material slicer.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Printer / System</th>
+              <th>Tool Count</th>
+              <th>Slicer</th>
+              <th>Tested</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Bambu Lab X1 Carbon / X1E + AMS</td><td>4 (chainable to 16)</td><td>Bambu Studio, OrcaSlicer</td><td>Yes</td></tr>
+            <tr><td>Bambu Lab P1S / P1P + AMS</td><td>4 (chainable to 16)</td><td>Bambu Studio, OrcaSlicer</td><td>Yes</td></tr>
+            <tr><td>Bambu Lab A1 / A1 mini + AMS Lite</td><td>4</td><td>Bambu Studio, OrcaSlicer</td><td>Yes</td></tr>
+            <tr><td>Prusa XL (multi-tool)</td><td>5</td><td>PrusaSlicer</td><td>Yes</td></tr>
+            <tr><td>Prusa MK4 / MK4S + MMU3</td><td>5</td><td>PrusaSlicer</td><td>Yes</td></tr>
+            <tr><td>Anycubic Kobra 3 + ACE Pro</td><td>4</td><td>Anycubic Slicer</td><td>Partial</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TimrX MCP print service -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 8px;">TimrX prints multi-color &amp; ships it</h2>
+      <p>No AMS at home? No problem. Order a multi-color print from the TimrX workspace and we run it on our Bambu Lab AMS hardware. We pick filament colors that match your design (or you pick from our filament library), print, QC against the source model, then ship worldwide.</p>
+      <ul style="margin:14px 0 0;padding-left:20px;line-height:1.7;">
+        <li><strong>First small multi-color print free.</strong> On your first order &mdash; you cover shipping.</li>
+        <li><strong>Free worldwide shipping over &pound;40.</strong> Bundle a few and ship for free.</li>
+        <li><strong>Refer-a-friend &middot; &pound;5 print credit each.</strong> Both sides get credit on their first paid order.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details class="tool-faq-item"><summary>What is multi-color 3D printing (MCP) on TimrX?</summary>
+          <p>MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1&ndash;16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You can export the 3MF yourself or have TimrX print the multi-color model for you.</p>
+        </details>
+        <details class="tool-faq-item"><summary>Which printers does the full-color 3MF work with?</summary>
+          <p>Any multi-material printer that imports 3MF. Tested with Bambu Lab X1 Carbon, X1E, P1S and P1P with AMS or AMS Lite; Prusa XL with the 5-tool head; Prusa MK4 / MK4S with MMU3.</p>
+        </details>
+        <details class="tool-faq-item"><summary>How many colors can one print have?</summary>
+          <p>Up to 16 filament colors per print. The AI quantizes the model&rsquo;s surface textures into the number of colors you pick. More colors look richer but extend print time and use more purge material &mdash; for most prints 4&ndash;8 colors is the sweet spot.</p>
+        </details>
+        <details class="tool-faq-item"><summary>How much does multi-color cost?</summary>
+          <p>Generating the 3MF is 10 credits per conversion. If you order the print from TimrX, multi-color FDM starts at &pound;12 per small print &mdash; final price depends on volume, number of colors and shipping. We aren&rsquo;t the cheapest option; we focus on color accuracy and print quality.</p>
+        </details>
+        <details class="tool-faq-item"><summary>Will the colors match the AI textures exactly?</summary>
+          <p>Close, but not pixel-perfect. Filaments have a limited gamut compared to a digital texture, and the model is split into solid color regions rather than continuous gradients. The 3MF preview shows the exact regions before you commit.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Make Something Multi-Color</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint" class="nav-cta">Open 3D Workspace</a>
+        <a href="/print-on-demand" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Order a Print</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related</h2>
+      <div class="tool-related-grid">
+        <a href="/3d-print-model-generator" class="tool-link-card"><h4>3D Print Model Generator</h4><p>AI text-to-3D &amp; image-to-3D, optimized for print.</p></a>
+        <a href="/print-on-demand" class="tool-link-card"><h4>Print on Demand</h4><p>TimrX prints, ships and delivers worldwide.</p></a>
+        <a href="/ai-texture-generator" class="tool-link-card"><h4>AI Texture Generator</h4><p>Generate PBR textures &mdash; needed for multi-color quality.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">AI Creative Platform</span>
+          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, video workflows and 3D print fulfillment.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Print Service</h3>
+            <ul class="ft-links">
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color (MCP)</a></li>
+              <li><a href="/pricing">Pricing</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">AI Tools</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/ai-texture-generator">AI Texture Generator</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Legal</h3>
+            <ul class="ft-links">
+              <li><a href="/terms">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/cookies">Cookies</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; AI creative tools &amp; print fulfillment</span>
+      </div>
+    </div>
+  </footer>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

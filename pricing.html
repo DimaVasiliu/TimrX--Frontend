@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TimrX Pricing — AI Image, Video & 3D Generation Credits</title>
-  <meta name="description" content="TimrX uses a credit-based pricing system. See how many credits each AI tool costs — image generation, video creation, 3D modeling, texturing, and more." />
+  <title>TimrX Pricing — AI Credits + 3D Print, Ship &amp; Deliver Service</title>
+  <meta name="description" content="TimrX pricing — credit-based AI tools and a full 3D printing service. We print, ship and deliver your AI-generated models worldwide. First small print free, free shipping over £40, refer-a-friend £5 credit." />
   <link rel="canonical" href="https://timrx.live/pricing" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
@@ -14,8 +14,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/pricing" />
-  <meta property="og:title" content="TimrX Pricing — AI Image, Video & 3D Generation Credits" />
-  <meta property="og:description" content="TimrX uses a credit-based pricing system. See how many credits each AI tool costs — image generation, video creation, 3D modeling, texturing, and more." />
+  <meta property="og:title" content="TimrX Pricing — AI Credits + 3D Print, Ship &amp; Deliver" />
+  <meta property="og:description" content="Credit pricing for AI tools plus a full print-on-demand service. We print, ship and deliver your AI-generated models. First small print free, free shipping over £40." />
   <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -24,8 +24,8 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/pricing" />
-  <meta name="twitter:title" content="TimrX Pricing — AI Image, Video & 3D Generation Credits" />
-  <meta name="twitter:description" content="TimrX uses a credit-based pricing system. See how many credits each AI tool costs — image generation, video creation, 3D modeling, texturing, and more." />
+  <meta name="twitter:title" content="TimrX Pricing — AI Credits + 3D Print, Ship &amp; Deliver" />
+  <meta name="twitter:description" content="Credit pricing for AI tools plus a print-on-demand service. We print, ship and deliver your AI models. First small print free." />
   <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -112,7 +112,41 @@
           "@type": "Answer",
           "text": "Refund eligibility depends on how and when the credits were purchased. Generally, unused credits from one-time purchases may be eligible for a refund within a specified window. Subscription credits that have already been allocated are typically non-refundable. Please refer to the TimrX terms of service for full refund policy details."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "How is the TimrX print-and-ship service priced?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA/PETG/resin), infill, finish and shipping destination — full breakdown shown on the order screen before you pay. We aren't trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Free worldwide shipping kicks in over £40."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I claim the first-print-free offer?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The first-small-print-free offer applies automatically to your first paid print order at checkout, for any model up to 50 mm tall. You only pay shipping. Limit one per customer. No code required."
+        }
       }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: Service (3D Print + Ship + Deliver) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "TimrX 3D Print, Ship &amp; Deliver Service",
+    "serviceType": "3D Printing on Demand",
+    "provider": { "@type": "Organization", "name": "TimrX", "url": "https://timrx.live" },
+    "areaServed": "Worldwide",
+    "description": "Order your AI-generated TimrX models as physical prints. FDM, resin and multi-color AMS / MMU output, with worldwide shipping. Premium quality, fair pricing, no hidden fees.",
+    "url": "https://timrx.live/pricing",
+    "offers": [
+      { "@type": "Offer", "name": "First Small Print Free", "description": "First order only: one print up to 50 mm tall is free — you pay only shipping. Limit one per customer.", "price": "0", "priceCurrency": "GBP", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Free Worldwide Shipping over £40", "description": "Orders with a print subtotal of £40 or more ship free worldwide. No code required.", "price": "0", "priceCurrency": "GBP", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Refer-a-Friend £5 Print Credit", "description": "You and your friend each receive £5 in print credit when they place their first paid order.", "price": "5", "priceCurrency": "GBP", "availability": "https://schema.org/InStock" }
     ]
   }
   </script>
@@ -301,6 +335,74 @@
     </div>
   </section>
 
+  <!-- TimrX prints, ships &amp; delivers -->
+  <section class="tool-comparison">
+    <div class="container">
+      <h2>TimrX prints, ships &amp; delivers</h2>
+      <p>The credit prices above cover generating models on TimrX. If you want the physical object too, order the print straight from the workspace &mdash; we run it on calibrated FDM and resin printers, support multi-color AMS / MMU output, then ship and deliver worldwide. Premium output, fair pricing, no hidden fees.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Print Service</th>
+              <th>Typical Range</th>
+              <th>What&rsquo;s Included</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>FDM single-color (PLA / PETG)</td>
+              <td>From &pound;6 / small print</td>
+              <td>Per-volume pricing, infill of your choice, basic finishing pass.</td>
+            </tr>
+            <tr>
+              <td>FDM multi-color (Bambu AMS / Prusa MMU)</td>
+              <td>From &pound;12 / small print</td>
+              <td>Up to 16 filament colors from your generated 3MF, color QC against the source model.</td>
+            </tr>
+            <tr>
+              <td>Resin (standard / tough)</td>
+              <td>From &pound;14 / small print</td>
+              <td>High-detail SLA output, supports removed, cleaned and cured before despatch.</td>
+            </tr>
+            <tr>
+              <td>Shipping</td>
+              <td>From &pound;4 worldwide</td>
+              <td>Tracked delivery. Free over &pound;40 subtotal. Bulky / heavy prints quoted at checkout.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:#999;margin-top:8px;">Final price is calculated from model volume, material, infill, finish and shipping destination at the order screen &mdash; no surprises after you pay.</p>
+    </div>
+  </section>
+
+  <!-- Print service offers / marketing tricks -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Print Service Offers</h2>
+      <p style="color:#ccc;max-width:760px;margin:0 auto 2rem;text-align:center;">Three running offers stack with normal print pricing. All applied automatically &mdash; no codes needed.</p>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>First Small Print Free &middot; Gift on Us</h4>
+          <p>Your first order: one print up to 50 mm tall is free. You only cover shipping. Limit one per customer, applied automatically at checkout.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Free Worldwide Shipping over &pound;40</h4>
+          <p>Bundle a few prints together and shipping is on us. Threshold is on the print subtotal &mdash; no code required.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Refer a Friend &middot; &pound;5 Print Credit Each</h4>
+          <p>Send a friend your referral link. When they place their first paid print order, you both get &pound;5 in print credit, usable on any future order.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Tester Pack &middot; Free Sample Filament Card</h4>
+          <p>Every first paid order ships with a free filament-color sample card so you can pick exact colors for future multi-color prints.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Free Tier -->
   <section class="tool-usecases">
     <div class="container">
@@ -356,6 +458,16 @@
       <details>
         <summary>Can I get a refund for unused credits?</summary>
         <p>Refund eligibility depends on the type of purchase and how recently it was made. Unused credits from one-time credit pack purchases may be eligible for a refund within a specified window after purchase. Monthly subscription fees for the current billing period are generally non-refundable once the credits have been allocated to your account. For detailed refund terms and to submit a request, please review the TimrX <a href="/terms">terms of service</a> or contact support at <a href="mailto:admin@timrx.live">admin@timrx.live</a>.</p>
+      </details>
+
+      <details>
+        <summary>How is the TimrX print-and-ship service priced?</summary>
+        <p>Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA / PETG / resin), infill, finish and shipping destination &mdash; full breakdown shown on the order screen before you pay. We aren&rsquo;t trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Free worldwide shipping kicks in over &pound;40.</p>
+      </details>
+
+      <details>
+        <summary>How do I claim the first-print-free offer?</summary>
+        <p>The first-small-print-free offer applies automatically to your first paid print order at checkout, for any model up to 50 mm tall. You only pay shipping. Limit one per customer. No code required.</p>
       </details>
     </div>
   </section>
