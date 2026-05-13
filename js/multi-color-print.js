@@ -790,38 +790,11 @@ function _clearAllPaint() {
 }
 
 // ============================================================================
-// 3MF Export (client-side with JSZip)
+// Print Export Helpers
 // ============================================================================
 
-async function _export3MF() {
-  const score = _manualPrintCheck.result?.score;
-  if (Number.isFinite(Number(score)) && Number(score) < 60) {
-    const proceed = confirm('Print Check says this mesh needs repair before slicing. Export anyway?');
-    if (!proceed) return;
-  }
-
-  // Dynamically load JSZip if not present
-  if (!window.JSZip) {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-    document.head.appendChild(script);
-    await new Promise((resolve, reject) => {
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load JSZip'));
-    });
-  }
-
-  const zip = new window.JSZip();
+function _buildPrintableMeshData() {
   const T = window.THREE;
-  const _u = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-
-  // ---- Collect welded vertices + face data in world space ----
-  // Paint uses non-indexed geometry in the viewer, but slicers need shared
-  // vertices. Otherwise every triangle is an isolated shell and Bambu reports
-  // millions of non-manifold edges.
   const allVerts = [];   // flat [x,y,z, ...]
   const allFaces = [];   // {v1,v2,v3, colorSlot}
   const vertexMap = new Map();
@@ -904,6 +877,58 @@ async function _export3MF() {
       allVerts[i + 2] -= minZ;
     }
   }
+
+  return { allVerts, allFaces };
+}
+
+function _validatePrintExportIntent() {
+  const score = _manualPrintCheck.result?.score;
+  if (Number.isFinite(Number(score)) && Number(score) < 60) {
+    return confirm('Print Check says this mesh needs repair before slicing. Export anyway?');
+  }
+  return true;
+}
+
+function _triangleNormal(a, b, c) {
+  const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+  const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+  let nx = uy * vz - uz * vy;
+  let ny = uz * vx - ux * vz;
+  let nz = ux * vy - uy * vx;
+  const len = Math.hypot(nx, ny, nz) || 1;
+  nx /= len; ny /= len; nz /= len;
+  return [nx, ny, nz];
+}
+
+function _vertexAt(allVerts, idx) {
+  const i = idx * 3;
+  return [allVerts[i], allVerts[i + 1], allVerts[i + 2]];
+}
+
+// ============================================================================
+// 3MF Export (client-side with JSZip)
+// ============================================================================
+
+async function _export3MF() {
+  if (!_validatePrintExportIntent()) return;
+
+  // Dynamically load JSZip if not present
+  if (!window.JSZip) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    document.head.appendChild(script);
+    await new Promise((resolve, reject) => {
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Failed to load JSZip'));
+    });
+  }
+
+  const zip = new window.JSZip();
+  const _u = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+  const { allVerts, allFaces } = _buildPrintableMeshData();
 
   const usedSlots = [...new Set(allFaces.map(f => f.colorSlot).filter(s => s >= 0))].sort((a, b) => a - b);
   const maxPaintSlot = Math.max(-1, ...usedSlots);
@@ -1047,6 +1072,34 @@ ${tLines}
 
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
   _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-multicolor.3mf`);
+}
+
+function _exportRepairSTL() {
+  const { allVerts, allFaces } = _buildPrintableMeshData();
+  const faceCount = allFaces.length;
+  const buffer = new ArrayBuffer(84 + faceCount * 50);
+  const view = new DataView(buffer);
+  const header = `TimrX repair STL - ${_safeFileBase(_modelTitle || 'model')}`.slice(0, 80);
+  for (let i = 0; i < header.length; i++) view.setUint8(i, header.charCodeAt(i));
+  view.setUint32(80, faceCount, true);
+
+  let offset = 84;
+  for (const face of allFaces) {
+    const a = _vertexAt(allVerts, face.v1);
+    const b = _vertexAt(allVerts, face.v2);
+    const c = _vertexAt(allVerts, face.v3);
+    const n = _triangleNormal(a, b, c);
+    for (const value of n) { view.setFloat32(offset, value, true); offset += 4; }
+    for (const v of [a, b, c]) {
+      view.setFloat32(offset, v[0], true); offset += 4;
+      view.setFloat32(offset, v[1], true); offset += 4;
+      view.setFloat32(offset, v[2], true); offset += 4;
+    }
+    view.setUint16(offset, 0, true); offset += 2;
+  }
+
+  const blob = new Blob([buffer], { type: 'model/stl' });
+  _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-repair.stl`);
 }
 
 async function _exportColoredGLB() {
@@ -1377,6 +1430,9 @@ function _renderSidebar() {
       <button class="mcp-btn mcp-btn-secondary" id="mcp-export-glb-btn">
         Download Colored GLB
       </button>
+      <button class="mcp-btn mcp-btn-secondary" id="mcp-export-stl-btn">
+        Download Repair STL
+      </button>
       <button class="mcp-btn mcp-btn-danger" id="mcp-clear-btn">Clear All Paint</button>
       <button class="mcp-btn mcp-btn-secondary" id="mcp-cancel-btn">Close</button>
     </div>
@@ -1387,6 +1443,7 @@ function _renderSidebar() {
   sb.querySelector('#mcp-cancel-btn')?.addEventListener('click', closeMultiColorModal);
   sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
   sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);
+  sb.querySelector('#mcp-export-stl-btn')?.addEventListener('click', _exportRepairSTL);
   sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
   sb.querySelector('#mcp-print-check-btn')?.addEventListener('click', _runManualPrintCheck);
   sb.querySelector('#mcp-repair-btn')?.addEventListener('click', _startPrintRepair);
