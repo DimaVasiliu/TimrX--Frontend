@@ -1424,6 +1424,54 @@ function initTimrxOrderModal() {
   const openBtn = document.getElementById('openTimrxOrderBtn');
   if (!panel || !backdrop || !openBtn) return;
 
+  // Robust active-model resolver for print ordering.
+  //
+  // `API.getActiveHistoryItem()` keys off `State.historyActiveModelId`.
+  // That ID can lag the viewer in several ways:
+  //   - newly generated/loaded model whose history-item update hasn't
+  //     finished propagating to the in-memory cache yet,
+  //   - history-active-id pointing at a parent that has since been
+  //     superseded by a remesh/texture variant on top of the version stack,
+  //   - active id set but the matching history row has no glb_url cached.
+  //
+  // The viewer's `State.modelVersionStack` is the authoritative source of
+  // what is currently rendered — its top entry has `{id, glb_url, ...}`.
+  // We try that as a fallback, and finally fall back to the first history
+  // entry that actually has a GLB. Only if all three turn up nothing do we
+  // block ordering.
+  function resolveActivePrintItem() {
+    const activeFromHistory = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    if (activeFromHistory && (activeFromHistory.glb_url || activeFromHistory.glb_proxy) && (activeFromHistory.id || activeFromHistory.model_id)) {
+      return activeFromHistory;
+    }
+
+    // Fall back to the top of the model version stack — that's the model
+    // currently rendered in the viewer.
+    const stack = State.getModelVersionStack ? State.getModelVersionStack() : [];
+    const top = stack && stack.length ? stack[stack.length - 1] : null;
+    if (top && top.id && top.glb_url) {
+      // Prefer the fully-hydrated history item for the same id (title,
+      // thumbnail_url, etc.), but synthesize a minimal item if it isn't
+      // cached yet.
+      const fromHistory = State.findHistoryItem ? State.findHistoryItem(top.id) : null;
+      if (fromHistory && (fromHistory.glb_url || fromHistory.glb_proxy)) {
+        return fromHistory;
+      }
+      return {
+        id: top.id,
+        glb_url: top.glb_url,
+        thumbnail_url: top.thumbnail_url || '',
+        prompt: top.prompt || '',
+        stage: top.stage || ''
+      };
+    }
+
+    // Last resort: most recent history item that has a printable GLB.
+    const history = (State.getHistory ? State.getHistory() : []) || [];
+    const firstPrintable = history.find((x) => x && (x.id || x.model_id) && (x.glb_url || x.glb_proxy));
+    return firstPrintable || null;
+  }
+
   const closeBtn   = document.getElementById('timrxOrderCloseBtn');
   const nextBtn    = document.getElementById('timrxOrderNextBtn');
   const backBtn    = document.getElementById('timrxOrderBackBtn');
@@ -1712,7 +1760,8 @@ function initTimrxOrderModal() {
     const finishLabel  = finishSel.options[finishSel.selectedIndex]?.text || finishSel.value;
     const speedLabel   = speedSel.options[speedSel.selectedIndex]?.text || speedSel.value;
     const countryLabel = countrySel.options[countrySel.selectedIndex]?.text || countrySel.value;
-    const modelName    = (API.getActiveHistoryItem()?.title || API.getActiveHistoryItem()?.prompt || 'Untitled model').toString().slice(0, 80);
+    const reviewItem   = resolveActivePrintItem();
+    const modelName    = (reviewItem?.title || reviewItem?.prompt || 'Untitled model').toString().slice(0, 80);
     const infillStr    = state.process === 'resin' ? '100% (resin)' : `${infillEl.value}%`;
     const shipTo       = [
       escapeHtml(document.getElementById('timrxShipFirst').value || ''),
@@ -1789,7 +1838,7 @@ function initTimrxOrderModal() {
     document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
     document.body.classList.remove('print-panel-open');
 
-    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    const item = resolveActivePrintItem();
 
     // Try to grab dimensions from the print analysis if a check has been run
     const dimsText = document.querySelectorAll('#printDimensionsDisplay .print-prep-dim-value');
@@ -1875,7 +1924,7 @@ function initTimrxOrderModal() {
   }
 
   function buildModelPayload() {
-    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    const item = resolveActivePrintItem();
     return {
       id:        item?.id || item?.model_id || null,
       name:      item?.title || item?.prompt || null,
@@ -2029,10 +2078,11 @@ function initTimrxOrderModal() {
     e.preventDefault();
     e.stopPropagation();
 
-    // Block ordering when there's no resolvable model.  The backend looks
-    // up GLB / title / thumbnail in history_items by model.id, so we need
-    // at minimum an id + a glb URL to fulfill the order.
-    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    // Block ordering only when no model is recoverable from any source —
+    // active history id, model version stack (the viewer's source of
+    // truth), or the first printable item in history. See
+    // `resolveActivePrintItem` above for the full chain.
+    const item = resolveActivePrintItem();
     const hasId  = !!(item && (item.id || item.model_id));
     const hasGlb = !!(item && (item.glb_url || item.glb_proxy));
     if (!hasId || !hasGlb) {
