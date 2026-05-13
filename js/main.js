@@ -1365,6 +1365,609 @@ function initViewerActionBar() {
 }
 
 // ============================================================================
+// TIMRX PRINT ORDER MODAL
+// ============================================================================
+
+function initTimrxOrderModal() {
+  const panel = document.getElementById('timrxOrderPanel');
+  const backdrop = document.getElementById('timrxOrderBackdrop');
+  const openBtn = document.getElementById('openTimrxOrderBtn');
+  if (!panel || !backdrop || !openBtn) return;
+
+  const closeBtn   = document.getElementById('timrxOrderCloseBtn');
+  const nextBtn    = document.getElementById('timrxOrderNextBtn');
+  const backBtn    = document.getElementById('timrxOrderBackBtn');
+  const doneBtn    = document.getElementById('timrxOrderDoneBtn');
+  const matSelect  = document.getElementById('timrxOrderMaterial');
+  const matHint    = document.getElementById('timrxOrderMaterialHint');
+  const swatchBox  = document.getElementById('timrxOrderSwatches');
+  const qualitySel = document.getElementById('timrxOrderQuality');
+  const infillEl   = document.getElementById('timrxOrderInfill');
+  const infillVal  = document.getElementById('timrxOrderInfillVal');
+  const infillField= document.getElementById('timrxOrderInfillField');
+  const heightEl   = document.getElementById('timrxOrderHeight');
+  const finishSel  = document.getElementById('timrxOrderFinish');
+  const qtyEl      = document.getElementById('timrxOrderQty');
+  const countrySel = document.getElementById('timrxShipCountry');
+  const speedSel   = document.getElementById('timrxShipSpeed');
+  const consentEl  = document.getElementById('timrxOrderConsent');
+  const reviewBox  = document.getElementById('timrxOrderReview');
+  const scaledHint = document.getElementById('timrxOrderScaledHint');
+  const footer     = document.getElementById('timrxOrderFooter');
+  const stepsBox   = document.getElementById('timrxOrderSteps');
+
+  const estMaterial = document.getElementById('timrxEstMaterial');
+  const estTime     = document.getElementById('timrxEstTime');
+  const estTotal    = document.getElementById('timrxEstTotal');
+
+  // ── Material catalog (per process) ─────────────────────────────────
+  const MATERIALS = {
+    fdm: [
+      { id: 'pla',   label: 'PLA',          density: 1.24, ratePerKg: 38,  hint: 'Easy to print, vivid colors, biodegradable. Great for display pieces.' },
+      { id: 'plaplus', label: 'PLA+ (tough)', density: 1.24, ratePerKg: 52, hint: 'Stronger and tougher than standard PLA. Recommended for functional parts.' },
+      { id: 'petg',  label: 'PETG',         density: 1.27, ratePerKg: 58,  hint: 'Tough, slightly flexible, food-safe. Good for outdoor and mechanical parts.' },
+      { id: 'abs',   label: 'ABS',          density: 1.04, ratePerKg: 62,  hint: 'High temp resistance, impact strong. Best for mechanical and automotive parts.' },
+      { id: 'tpu',   label: 'TPU (flex)',   density: 1.21, ratePerKg: 78,  hint: 'Flexible rubber-like filament. Great for grips, gaskets and wearables.' },
+      { id: 'silk',  label: 'PLA Silk',     density: 1.24, ratePerKg: 62,  hint: 'High-gloss premium PLA. Beautiful for figurines and decorative prints.' },
+    ],
+    resin: [
+      { id: 'std',   label: 'Standard Resin', density: 1.10, ratePerKg: 95,  hint: 'Crisp detail, great for figurines, miniatures and presentation models.' },
+      { id: 'tough', label: 'Tough Resin',    density: 1.13, ratePerKg: 120, hint: 'Impact-resistant resin. Suitable for functional prototypes.' },
+      { id: 'clear', label: 'Clear Resin',    density: 1.10, ratePerKg: 130, hint: 'Translucent finish, ideal for light pieces, lenses, decorative items.' },
+      { id: 'flex',  label: 'Flexible Resin', density: 1.10, ratePerKg: 160, hint: 'Soft & bendable. For grips, gaskets, wearables.' },
+    ],
+  };
+
+  // ── Color catalog ──────────────────────────────────────────────────
+  const COLORS = [
+    { id: 'black',  label: 'Black',  hex: '#111111' },
+    { id: 'white',  label: 'White',  hex: '#f3f3f3' },
+    { id: 'gray',   label: 'Gray',   hex: '#9aa0a6' },
+    { id: 'red',    label: 'Red',    hex: '#d83a3a' },
+    { id: 'orange', label: 'Orange', hex: '#ff7a1a' },
+    { id: 'yellow', label: 'Yellow', hex: '#f4c534' },
+    { id: 'green',  label: 'Green',  hex: '#1ea561' },
+    { id: 'teal',   label: 'Teal',   hex: '#14b8a6' },
+    { id: 'blue',   label: 'Blue',   hex: '#1e6fdb' },
+    { id: 'navy',   label: 'Navy',   hex: '#172a55' },
+    { id: 'purple', label: 'Purple', hex: '#7b3ff2' },
+    { id: 'pink',   label: 'Pink',   hex: '#ee5a9b' },
+    { id: 'gold',   label: 'Gold',   hex: '#c9a44b' },
+    { id: 'silver', label: 'Silver', hex: '#c2c8cf' },
+  ];
+
+  // Multipliers
+  const QUALITY_MULT = { draft: 0.85, standard: 1.0, fine: 1.35, ultra: 1.8 };
+  const FINISH_MULT  = { raw: 1.0, sanded: 1.15, primed: 1.3, painted: 1.8 };
+  const SPEED_FEE    = { standard: 0, express: 18, priority: 42 };
+  const SHIP_BASE    = { US: 9, CA: 14, GB: 14, EU: 16, AU: 22, JP: 22, OTHER: 28 };
+  const BASE_FEE     = 6.50;  // Setup + cleaning fee per order
+
+  let state = {
+    process: 'fdm',
+    materialId: 'pla',
+    colorId: 'black',
+    bboxMm: null, // [w, h, d]
+    sourceHeight: null,
+    step: 1,
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function getMaterial() {
+    const list = MATERIALS[state.process] || MATERIALS.fdm;
+    return list.find(m => m.id === state.materialId) || list[0];
+  }
+
+  function getColor() {
+    return COLORS.find(c => c.id === state.colorId) || COLORS[0];
+  }
+
+  function renderMaterials() {
+    const list = MATERIALS[state.process] || MATERIALS.fdm;
+    matSelect.innerHTML = list.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+    // Reset to first item if current selection isn't in new list
+    if (!list.find(m => m.id === state.materialId)) {
+      state.materialId = list[0].id;
+    }
+    matSelect.value = state.materialId;
+    matHint.textContent = getMaterial().hint;
+
+    // Resin doesn't use infill — hide field
+    if (infillField) infillField.style.display = state.process === 'resin' ? 'none' : '';
+  }
+
+  function renderSwatches() {
+    swatchBox.innerHTML = COLORS.map(c => `
+      <button type="button" class="timrx-order__swatch${c.id === state.colorId ? ' is-active' : ''}"
+              data-color="${c.id}" style="--swatch-color:${c.hex};"
+              role="radio" aria-checked="${c.id === state.colorId}" aria-label="${c.label}">
+        <span class="timrx-order__swatch-label">${c.label}</span>
+      </button>
+    `).join('');
+  }
+
+  function setRangeFill() {
+    const min = parseFloat(infillEl.min) || 0;
+    const max = parseFloat(infillEl.max) || 100;
+    const val = parseFloat(infillEl.value) || 0;
+    const pct = ((val - min) / (max - min)) * 100;
+    infillEl.style.setProperty('--range-pct', pct.toFixed(1) + '%');
+    infillVal.textContent = `${val}%`;
+  }
+
+  function getScaledDims() {
+    if (!state.bboxMm) return null;
+    const targetH = parseFloat(heightEl.value);
+    const sourceH = state.bboxMm[1];
+    if (!(targetH > 0) || !(sourceH > 0)) return state.bboxMm.slice();
+    const ratio = targetH / sourceH;
+    return [state.bboxMm[0] * ratio, targetH, state.bboxMm[2] * ratio];
+  }
+
+  function updateScaledHint() {
+    if (!state.bboxMm) {
+      scaledHint.textContent = 'Open a model with a completed print check to auto-fill original dimensions.';
+      return;
+    }
+    const dims = getScaledDims();
+    if (!dims) return;
+    scaledHint.textContent =
+      `Scaled to ${dims[0].toFixed(0)} × ${dims[1].toFixed(0)} × ${dims[2].toFixed(0)} mm` +
+      ` (original ${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm).`;
+  }
+
+  // Crude but defensible price model: volume × infill × density × $/kg × multipliers.
+  function computeEstimate() {
+    const dims = getScaledDims();
+    let weightG = 0;
+    let timeMin = 0;
+    if (dims) {
+      // Bounding box volume in cm³
+      const volCm3 = (dims[0] * dims[1] * dims[2]) / 1000;
+      // Rough "object fraction" — printed object is usually 25-40% of its bbox.
+      const objectFraction = 0.32;
+      const mat = getMaterial();
+      const infillPct = state.process === 'resin' ? 100 : (parseFloat(infillEl.value) || 20);
+      // For FDM: walls ~3 perimeters ≈ 30% solid, rest is infill of inner volume.
+      const effectiveSolidFraction =
+        state.process === 'resin'
+          ? 1.0
+          : 0.30 + (1 - 0.30) * (infillPct / 100);
+      const solidVolCm3 = volCm3 * objectFraction * effectiveSolidFraction;
+      weightG = solidVolCm3 * mat.density; // density g/cm³
+      // Print time heuristic: ~1.6 minutes/g FDM standard; resin ~0.8 min/g for std
+      const baseMinPerG = state.process === 'resin' ? 0.85 : 1.6;
+      timeMin = weightG * baseMinPerG * (QUALITY_MULT[qualitySel.value] || 1);
+    }
+
+    const mat = getMaterial();
+    const materialCost = (weightG / 1000) * mat.ratePerKg;
+    const qualityMult = QUALITY_MULT[qualitySel.value] || 1;
+    const finishMult  = FINISH_MULT[finishSel.value] || 1;
+    const qty = Math.max(1, Math.min(100, parseInt(qtyEl.value) || 1));
+
+    // Per-unit subtotal: base + material × quality × finish
+    const perUnit = BASE_FEE + (materialCost * qualityMult * finishMult);
+    // Quantity discount: -3% per extra unit, capped at 25%
+    const qtyDiscount = Math.min(0.25, Math.max(0, (qty - 1) * 0.03));
+    const subtotal = perUnit * qty * (1 - qtyDiscount);
+
+    // Shipping
+    const shipBase = SHIP_BASE[countrySel.value] ?? SHIP_BASE.OTHER;
+    const shipFee  = shipBase + (SPEED_FEE[speedSel.value] || 0);
+
+    const total = subtotal + shipFee;
+
+    return {
+      weightG: weightG * qty,
+      timeMin: timeMin * qty,
+      perUnit,
+      subtotal,
+      shipFee,
+      qty,
+      total,
+      materialLabel: mat.label,
+      qtyDiscount,
+    };
+  }
+
+  function formatPrice(n) {
+    return `$${n.toFixed(2)}`;
+  }
+
+  function formatTime(min) {
+    if (!(min > 0)) return '—';
+    const h = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    if (h <= 0) return `${m} min`;
+    if (m === 0) return `${h} h`;
+    return `${h} h ${m} min`;
+  }
+
+  function refreshEstimate() {
+    const e = computeEstimate();
+    estMaterial.textContent = e.weightG > 0 ? `${e.weightG.toFixed(0)} g` : '— g';
+    estTime.textContent     = formatTime(e.timeMin);
+    estTotal.textContent    = formatPrice(e.total);
+  }
+
+  // ── Step navigation ────────────────────────────────────────────────
+  function setStep(n) {
+    state.step = n;
+    panel.querySelectorAll('.timrx-order__step-pane').forEach(pane => {
+      pane.classList.toggle('is-active', pane.dataset.pane === String(n));
+    });
+    if (stepsBox) {
+      stepsBox.querySelectorAll('.timrx-order__step').forEach(el => {
+        const stepNum = parseInt(el.dataset.step, 10);
+        el.classList.toggle('is-active', stepNum === n);
+        el.classList.toggle('is-done', stepNum < n);
+      });
+    }
+
+    if (n === 1) {
+      backBtn.disabled = true;
+      nextBtn.textContent = 'Continue to shipping';
+      nextBtn.disabled = false;
+    } else if (n === 2) {
+      backBtn.disabled = false;
+      nextBtn.textContent = 'Review order';
+      nextBtn.disabled = false;
+    } else if (n === 3) {
+      backBtn.disabled = false;
+      nextBtn.textContent = 'Place order';
+      nextBtn.disabled = !consentEl.checked;
+      renderReview();
+    }
+  }
+
+  function renderReview() {
+    const e = computeEstimate();
+    const dims = getScaledDims();
+    const sizeStr = dims
+      ? `${dims[0].toFixed(0)} × ${dims[1].toFixed(0)} × ${dims[2].toFixed(0)} mm`
+      : `${heightEl.value} mm height (uniform scale)`;
+    const color = getColor();
+    const qualityLabel = qualitySel.options[qualitySel.selectedIndex]?.text || qualitySel.value;
+    const finishLabel  = finishSel.options[finishSel.selectedIndex]?.text || finishSel.value;
+    const speedLabel   = speedSel.options[speedSel.selectedIndex]?.text || speedSel.value;
+    const countryLabel = countrySel.options[countrySel.selectedIndex]?.text || countrySel.value;
+    const modelName    = (API.getActiveHistoryItem()?.title || API.getActiveHistoryItem()?.prompt || 'Untitled model').toString().slice(0, 80);
+    const infillStr    = state.process === 'resin' ? '100% (resin)' : `${infillEl.value}%`;
+    const shipTo       = [
+      escapeHtml(document.getElementById('timrxShipFirst').value || ''),
+      escapeHtml(document.getElementById('timrxShipLast').value || ''),
+    ].filter(Boolean).join(' ');
+    const addr = escapeHtml(document.getElementById('timrxShipAddress').value || '');
+    const city = escapeHtml(document.getElementById('timrxShipCity').value || '');
+    const postal = escapeHtml(document.getElementById('timrxShipPostal').value || '');
+    const email = escapeHtml(document.getElementById('timrxShipEmail').value || '—');
+
+    reviewBox.innerHTML = `
+      <div class="timrx-order__review-section">
+        <p class="timrx-order__review-title">Model</p>
+        <div class="timrx-order__review-row"><dt>Source</dt><dd>${escapeHtml(modelName)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Size</dt><dd>${sizeStr}</dd></div>
+      </div>
+      <div class="timrx-order__review-section">
+        <p class="timrx-order__review-title">Print specification</p>
+        <div class="timrx-order__review-row"><dt>Process</dt><dd>${state.process === 'fdm' ? 'FDM (filament)' : 'Resin (SLA)'}</dd></div>
+        <div class="timrx-order__review-row"><dt>Material</dt><dd>${escapeHtml(e.materialLabel)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Color</dt><dd>${escapeHtml(color.label)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Quality</dt><dd>${escapeHtml(qualityLabel)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Infill</dt><dd>${infillStr}</dd></div>
+        <div class="timrx-order__review-row"><dt>Finish</dt><dd>${escapeHtml(finishLabel)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Quantity</dt><dd>${e.qty}${e.qtyDiscount > 0 ? ` (−${(e.qtyDiscount * 100).toFixed(0)}% bulk)` : ''}</dd></div>
+      </div>
+      <div class="timrx-order__review-section">
+        <p class="timrx-order__review-title">Shipping</p>
+        <div class="timrx-order__review-row"><dt>Recipient</dt><dd>${shipTo || '—'}</dd></div>
+        <div class="timrx-order__review-row"><dt>Address</dt><dd>${[addr, city, postal].filter(Boolean).join(', ') || '—'}</dd></div>
+        <div class="timrx-order__review-row"><dt>Country</dt><dd>${escapeHtml(countryLabel)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Speed</dt><dd>${escapeHtml(speedLabel)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Email</dt><dd>${email}</dd></div>
+      </div>
+      <div class="timrx-order__review-section">
+        <p class="timrx-order__review-title">Estimate</p>
+        <div class="timrx-order__review-row"><dt>Print subtotal</dt><dd>${formatPrice(e.subtotal)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Shipping</dt><dd>${formatPrice(e.shipFee)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Estimated total</dt><dd>${formatPrice(e.total)}</dd></div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',
+    }[c]));
+  }
+
+  function validateShipping() {
+    const required = ['timrxShipFirst','timrxShipLast','timrxShipEmail','timrxShipAddress','timrxShipCity','timrxShipPostal'];
+    for (const id of required) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const v = (el.value || '').trim();
+      if (!v) {
+        el.focus();
+        if (window.showToast) window.showToast('Please complete all required shipping fields.', 'error');
+        return false;
+      }
+      if (id === 'timrxShipEmail' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        el.focus();
+        if (window.showToast) window.showToast('Please enter a valid email address.', 'error');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ── Open / close ───────────────────────────────────────────────────
+  function openModal() {
+    // Close the underlying print panel so the two don't stack visually
+    document.getElementById('viewerPrintPanel')?.classList.remove('is-visible');
+    document.getElementById('viewerPrintBackdrop')?.classList.remove('is-visible');
+    document.body.classList.remove('print-panel-open');
+
+    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+
+    // Try to grab dimensions from the print analysis if a check has been run
+    const dimsText = document.querySelectorAll('#printDimensionsDisplay .print-prep-dim-value');
+    if (dimsText && dimsText.length === 3) {
+      const parsed = [...dimsText].map(el => parseFloat(el.textContent));
+      if (parsed.every(n => Number.isFinite(n) && n > 0)) {
+        state.bboxMm = parsed;
+        state.sourceHeight = parsed[1];
+        // Pre-fill target height with source height if smaller than 200mm, else 150mm.
+        heightEl.value = parsed[1] < 200 ? Math.round(parsed[1]) : 150;
+      }
+    }
+
+    // Model thumb + name
+    const thumb = document.getElementById('timrxOrderThumb');
+    const nameEl = document.getElementById('timrxOrderModelName');
+    const dimsEl = document.getElementById('timrxOrderModelDims');
+    const thumbUrl = item?.thumbnail_url || item?.image_url || '';
+    if (thumb) {
+      thumb.innerHTML = thumbUrl
+        ? `<img src="${escapeHtml(thumbUrl)}" alt="Model preview" loading="lazy">`
+        : `<div class="timrx-order__thumb-placeholder">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+             <span>3D model</span>
+           </div>`;
+    }
+    if (nameEl) {
+      const title = (item?.title || item?.prompt || 'Untitled model').toString();
+      nameEl.textContent = title.length > 60 ? title.slice(0, 60) + '…' : title;
+    }
+    if (dimsEl) {
+      dimsEl.textContent = state.bboxMm
+        ? `${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm original`
+        : 'Dimensions pending — run a Print Check first for accurate sizing.';
+    }
+
+    // Reset step to 1 + success/footer
+    panel.querySelector('.timrx-order__step-pane[data-pane="success"]')?.classList.remove('is-active');
+    if (footer) footer.style.display = '';
+    setStep(1);
+    panel.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('is-visible');
+    panel.classList.add('is-visible');
+    document.body.classList.add('timrx-order-open');
+    updateScaledHint();
+    refreshEstimate();
+  }
+
+  function closeModal() {
+    panel.classList.remove('is-visible');
+    backdrop.classList.remove('is-visible');
+    panel.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('timrx-order-open');
+  }
+
+  async function submitOrder() {
+    const e = computeEstimate();
+    const dims = getScaledDims();
+    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    const orderId = 'TX-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const ship = {
+      first_name: document.getElementById('timrxShipFirst').value.trim(),
+      last_name:  document.getElementById('timrxShipLast').value.trim(),
+      email:      document.getElementById('timrxShipEmail').value.trim(),
+      address:    document.getElementById('timrxShipAddress').value.trim(),
+      city:       document.getElementById('timrxShipCity').value.trim(),
+      postal:     document.getElementById('timrxShipPostal').value.trim(),
+      country:    countrySel.value,
+      speed:      speedSel.value,
+      notes:      document.getElementById('timrxOrderNotes').value.trim(),
+    };
+    const payload = {
+      order_id: orderId,
+      model: {
+        id: item?.id || item?.model_id || null,
+        name: item?.title || item?.prompt || null,
+        glb_url: item?.glb_url || item?.glb_proxy || null,
+      },
+      spec: {
+        process: state.process,
+        material: state.materialId,
+        material_label: e.materialLabel,
+        color: state.colorId,
+        color_label: getColor().label,
+        quality: qualitySel.value,
+        finish: finishSel.value,
+        infill_pct: state.process === 'resin' ? 100 : parseInt(infillEl.value, 10),
+        quantity: e.qty,
+        target_height_mm: parseFloat(heightEl.value) || null,
+        scaled_dimensions_mm: dims || null,
+      },
+      shipping: ship,
+      estimate: {
+        weight_g: Math.round(e.weightG),
+        time_min: Math.round(e.timeMin),
+        subtotal: +e.subtotal.toFixed(2),
+        shipping: +e.shipFee.toFixed(2),
+        total:    +e.total.toFixed(2),
+        currency: 'USD',
+      },
+      created_at: new Date().toISOString(),
+    };
+
+    // Stash locally so the user has a record even if the API isn't ready
+    try {
+      const key = 'timrx_print_orders';
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      list.unshift(payload);
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 50)));
+    } catch (_) { /* ignore */ }
+
+    // Best-effort POST to backend; success page shows regardless so user has confirmation.
+    try {
+      if (typeof apiFetch === 'function') {
+        apiFetch('/api/_mod/print-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => { /* offline fallback ok */ });
+      }
+    } catch (_) { /* ignore */ }
+
+    // Show success state
+    panel.querySelectorAll('.timrx-order__step-pane').forEach(p => p.classList.remove('is-active'));
+    const successPane = panel.querySelector('.timrx-order__step-pane[data-pane="success"]');
+    if (successPane) successPane.classList.add('is-active');
+    document.getElementById('timrxOrderSuccessId').textContent = orderId;
+    document.getElementById('timrxOrderSuccessEmail').textContent = ship.email || 'your email';
+    const shipDate = new Date();
+    const days = ship.speed === 'priority' ? 2 : ship.speed === 'express' ? 4 : 7;
+    shipDate.setDate(shipDate.getDate() + days);
+    document.getElementById('timrxOrderSuccessShip').textContent =
+      shipDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    if (footer) footer.style.display = 'none';
+    if (window.showToast) window.showToast(`Order ${orderId} placed`, 'success');
+  }
+
+  // ── Wire events ───────────────────────────────────────────────────
+  openBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openModal();
+  });
+
+  closeBtn?.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('is-visible')) closeModal();
+  });
+
+  // Process toggle
+  panel.querySelectorAll('.timrx-order__toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.process;
+      if (p === state.process) return;
+      state.process = p;
+      panel.querySelectorAll('.timrx-order__toggle-btn').forEach(b => {
+        const active = b.dataset.process === p;
+        b.classList.toggle('is-active', active);
+        b.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      renderMaterials();
+      refreshEstimate();
+    });
+  });
+
+  matSelect.addEventListener('change', () => {
+    state.materialId = matSelect.value;
+    matHint.textContent = getMaterial().hint;
+    refreshEstimate();
+  });
+
+  swatchBox.addEventListener('click', (e) => {
+    const btn = e.target.closest('.timrx-order__swatch');
+    if (!btn) return;
+    state.colorId = btn.dataset.color;
+    swatchBox.querySelectorAll('.timrx-order__swatch').forEach(s => {
+      const active = s.dataset.color === state.colorId;
+      s.classList.toggle('is-active', active);
+      s.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+  });
+
+  infillEl.addEventListener('input', () => {
+    setRangeFill();
+    refreshEstimate();
+  });
+
+  qualitySel.addEventListener('change', refreshEstimate);
+  finishSel.addEventListener('change', refreshEstimate);
+
+  heightEl.addEventListener('input', () => {
+    panel.querySelectorAll('.timrx-order__preset').forEach(p => {
+      p.classList.toggle('is-active', p.dataset.size === heightEl.value);
+    });
+    updateScaledHint();
+    refreshEstimate();
+  });
+
+  panel.querySelectorAll('.timrx-order__preset').forEach(p => {
+    p.addEventListener('click', () => {
+      heightEl.value = p.dataset.size;
+      heightEl.dispatchEvent(new Event('input'));
+    });
+  });
+
+  // Quantity stepper
+  panel.querySelectorAll('.timrx-order__qty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.qty, 10);
+      const cur = parseInt(qtyEl.value, 10) || 1;
+      qtyEl.value = Math.max(1, Math.min(100, cur + delta));
+      refreshEstimate();
+    });
+  });
+  qtyEl.addEventListener('input', refreshEstimate);
+
+  countrySel.addEventListener('change', refreshEstimate);
+  speedSel.addEventListener('change', refreshEstimate);
+
+  consentEl?.addEventListener('change', () => {
+    if (state.step === 3) nextBtn.disabled = !consentEl.checked;
+  });
+
+  // Navigation
+  nextBtn.addEventListener('click', async () => {
+    if (state.step === 1) {
+      setStep(2);
+    } else if (state.step === 2) {
+      if (!validateShipping()) return;
+      setStep(3);
+    } else if (state.step === 3) {
+      if (!consentEl.checked) return;
+      nextBtn.disabled = true;
+      nextBtn.textContent = 'Placing order…';
+      try {
+        await submitOrder();
+      } finally {
+        nextBtn.disabled = false;
+      }
+    }
+  });
+
+  backBtn.addEventListener('click', () => {
+    if (state.step > 1) setStep(state.step - 1);
+  });
+
+  doneBtn?.addEventListener('click', closeModal);
+
+  // Initial render
+  renderMaterials();
+  renderSwatches();
+  setRangeFill();
+  refreshEstimate();
+}
+
+// ============================================================================
 // MAIN UI INITIALIZATION
 // ============================================================================
 
@@ -2561,6 +3164,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Initialize viewer toolbar
     initViewerToolbar();
     initViewerActionBar();
+    initTimrxOrderModal();
 
     // Hide progress initially
     UI.showOutputEmpty();
