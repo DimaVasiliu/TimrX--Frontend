@@ -84,7 +84,7 @@
       { "@type": "Question", "name": "What is multi-color 3D printing (MCP) on TimrX?", "acceptedAnswer": { "@type": "Answer", "text": "MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1–16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You can export the 3MF yourself or have TimrX print the multi-color model for you." } },
       { "@type": "Question", "name": "Which printers does the full-color 3MF work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any multi-material printer that imports 3MF. Tested with Bambu Lab X1 Carbon, X1E, P1S and P1P with AMS or AMS Lite; Prusa XL with the 5-tool head; Prusa MK4 / MK4S with MMU3. The exported 3MF includes color regions, recommended print settings and the source model." } },
       { "@type": "Question", "name": "How many colors can one print have?", "acceptedAnswer": { "@type": "Answer", "text": "Up to 16 filament colors per print. The AI quantizes the model's surface textures into the number of colors you pick. More colors look richer but extend print time and use more purge material — for most prints 4–8 colors is the sweet spot." } },
-      { "@type": "Question", "name": "How much does multi-color cost?", "acceptedAnswer": { "@type": "Answer", "text": "Generating the 3MF is 10 credits per conversion. If you order the print from TimrX, multi-color FDM starts at £12 per small print — final price depends on volume, number of colors and shipping. We aren't the cheapest option; we focus on color accuracy and print quality." } },
+      { "@type": "Question", "name": "How much does multi-color cost?", "acceptedAnswer": { "@type": "Answer", "text": "Generating the 3MF is 10 credits per conversion — that's live today. The print-on-demand side (TimrX prints and ships you the multi-color model) launches summer 2026. Planned starting price for multi-color FDM is £12 per small print; final price depends on volume, number of colors and shipping. We aren't the cheapest option; we focus on color accuracy and print quality." } },
       { "@type": "Question", "name": "Will the colors match the AI textures exactly?", "acceptedAnswer": { "@type": "Answer", "text": "Close, but not pixel-perfect. Filaments have a limited gamut compared to a digital texture, and the model is split into solid color regions rather than continuous gradients. The 3MF preview shows the exact regions before you commit. We can ship a filament-color sample card with first orders so you can pick exact colors for next time." } }
     ]
   }
@@ -181,9 +181,11 @@
   <!-- TimrX MCP print service -->
   <section class="tool-intro">
     <div class="container">
-      <h2 style="margin:0 0 8px;">TimrX prints multi-color &amp; ships it</h2>
-      <p>No AMS at home? No problem. Order a multi-color print from the TimrX workspace and we run it on our Bambu Lab AMS hardware. We pick filament colors that match your design (or you pick from our filament library), print, QC against the source model, then ship worldwide.</p>
-      <ul style="margin:14px 0 0;padding-left:20px;line-height:1.7;">
+      <div style="display:inline-block;padding:5px 12px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.08);border-radius:999px;color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:14px;">Print service launching summer 2026 &middot; <a href="mailto:admin@timrx.live?subject=TimrX%20print%20waitlist" style="color:#fbbf24;text-decoration:underline;">join the waitlist</a></div>
+      <h2 style="margin:0 0 8px;">TimrX will print multi-color &amp; ship it</h2>
+      <p>No AMS at home? No problem. Once the print service is live (summer 2026), you&rsquo;ll be able to order a multi-color print from the TimrX workspace and we&rsquo;ll run it on our Bambu Lab AMS hardware. We&rsquo;ll pick filament colors that match your design (or you pick from our filament library), print, QC against the source model, then ship worldwide. The full-color 3MF generator itself is live now &mdash; you can export 3MF files today and slice them on your own AMS / MMU.</p>
+      <p style="margin:14px 0 6px;color:#fbbf24;font-size:12px;font-weight:600;">Launch offers (live at summer 2026 launch):</p>
+      <ul style="margin:0;padding-left:20px;line-height:1.7;">
         <li><strong>First small multi-color print free.</strong> On your first order &mdash; you cover shipping.</li>
         <li><strong>Free worldwide shipping over &pound;40.</strong> Bundle a few and ship for free.</li>
         <li><strong>Refer-a-friend &middot; &pound;5 print credit each.</strong> Both sides get credit on their first paid order.</li>
@@ -206,7 +208,7 @@
           <p>Up to 16 filament colors per print. The AI quantizes the model&rsquo;s surface textures into the number of colors you pick. More colors look richer but extend print time and use more purge material &mdash; for most prints 4&ndash;8 colors is the sweet spot.</p>
         </details>
         <details class="tool-faq-item"><summary>How much does multi-color cost?</summary>
-          <p>Generating the 3MF is 10 credits per conversion. If you order the print from TimrX, multi-color FDM starts at &pound;12 per small print &mdash; final price depends on volume, number of colors and shipping. We aren&rsquo;t the cheapest option; we focus on color accuracy and print quality.</p>
+          <p>Generating the 3MF is <strong>10 credits per conversion &mdash; live today</strong>. The print-on-demand side (TimrX prints and ships you the multi-color model) <strong>launches summer 2026</strong>. Planned starting price for multi-color FDM is &pound;12 per small print; final price depends on volume, number of colors and shipping. We aren&rsquo;t the cheapest option; we focus on color accuracy and print quality.</p>
         </details>
         <details class="tool-faq-item"><summary>Will the colors match the AI textures exactly?</summary>
           <p>Close, but not pixel-perfect. Filaments have a limited gamut compared to a digital texture, and the model is split into solid color regions rather than continuous gradients. The 3MF preview shows the exact regions before you commit.</p>

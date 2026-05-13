@@ -4,14 +4,14 @@
 User-agent: *
 Allow: /
 
-# Block admin & private areas
+# Block admin & private areas (workspace + admin only).
+# Public landing pages /converter and /prompts are intentionally allowed —
+# they carry FAQ schema and target useful queries.
 Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 Disallow: /3dprint
-Disallow: /converter
-Disallow: /prompts
 
 # Sitemap index
 Sitemap: https://timrx.live/sitemap.xml

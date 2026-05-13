@@ -90,9 +90,9 @@
     "description": "Print your AI-generated 3D models on TimrX. FDM and resin printers, multi-color AMS / MMU support, worldwide shipping. Create the model on TimrX and we handle production, quality check and delivery.",
     "url": "https://timrx.live/print-on-demand",
     "offers": [
-      { "@type": "Offer", "name": "First Small Print Free", "description": "Your first order: one small print (up to 50 mm tall) is free — you only pay shipping. Limit one per customer.", "price": "0", "priceCurrency": "GBP" },
-      { "@type": "Offer", "name": "Free Worldwide Shipping over £40", "description": "Print orders with a subtotal of £40 or more ship free worldwide.", "price": "0", "priceCurrency": "GBP" },
-      { "@type": "Offer", "name": "Refer-a-Friend £5 Print Credit", "description": "Both you and your friend receive £5 in print credit when they place their first paid print order.", "price": "5", "priceCurrency": "GBP" }
+      { "@type": "Offer", "name": "First Small Print Free", "description": "Your first order: one small print (up to 50 mm tall) is free — you only pay shipping. Limit one per customer. Launching with the print service in summer 2026.", "price": "0", "priceCurrency": "GBP", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" },
+      { "@type": "Offer", "name": "Free Worldwide Shipping over £40", "description": "Print orders with a subtotal of £40 or more ship free worldwide. Launching with the print service in summer 2026.", "price": "0", "priceCurrency": "GBP", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" },
+      { "@type": "Offer", "name": "Refer-a-Friend £5 Print Credit", "description": "Both you and your friend receive £5 in print credit when they place their first paid print order. Launching with the print service in summer 2026.", "price": "5", "priceCurrency": "GBP", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" }
     ]
   }
   </script>
@@ -105,17 +105,17 @@
       {
         "@type": "Question",
         "name": "Can I order a TimrX-generated model as a physical print?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every model you create on TimrX can be ordered as a physical print without leaving the workspace. Choose FDM filament or resin, single-color or multi-color (AMS / MMU up to 16 filaments), pick a size and material, and we print, QC and ship worldwide. Your first small print (up to 50 mm tall) is free on your first order — you only cover shipping." }
+        "acceptedAnswer": { "@type": "Answer", "text": "The print-on-demand service launches summer 2026. Once live, every model you create on TimrX will be orderable as a physical print without leaving the workspace — FDM or resin, single-color or multi-color (AMS / MMU up to 16 filaments), shipped worldwide. Email admin@timrx.live to join the print waitlist." }
       },
       {
         "@type": "Question",
-        "name": "How does TimrX printing pricing work — and is it the cheapest?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Pricing is calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service — we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping kicks in over £40, and a refer-a-friend program gives both sides £5 print credit. See the pricing page for the full breakdown." }
+        "name": "How will TimrX printing pricing work — and is it the cheapest?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Pricing will be calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service — we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping over £40 and a refer-a-friend program (£5 credit each side) are the launch offers. Service goes live summer 2026." }
       },
       {
         "@type": "Question",
         "name": "Does TimrX print multi-color (MCP) models?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The full-color 3MF generator converts a textured AI model into 1–16 color regions ready for an AMS or MMU printer. If you order the print through TimrX we run it on our multi-color FDM hardware (Bambu Lab AMS), so the colors come out as designed without you touching a slicer. Costs 10 credits to generate the 3MF; ordering the print is priced per-model on the order screen." }
+        "acceptedAnswer": { "@type": "Answer", "text": "The full-color 3MF generator is live now — it converts a textured AI model into 1–16 color regions ready for an AMS or MMU printer (10 credits per conversion). The print-on-demand side of multi-color (we print it on our AMS hardware and ship it to you) launches with the rest of the print service in summer 2026." }
       },
       {
         "@type": "Question",
@@ -248,15 +248,17 @@
   <!-- Create &amp; Order section: skip the printer, TimrX prints &amp; ships -->
   <section class="tool-intro">
     <div class="container">
+      <div style="display:inline-block;padding:5px 12px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.08);border-radius:999px;color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:14px;">Print service launching summer 2026 &middot; <a href="mailto:admin@timrx.live?subject=TimrX%20print%20waitlist" style="color:#fbbf24;text-decoration:underline;">join the waitlist</a></div>
       <h2 style="margin:0 0 12px;">Create models ready to print and order them on TimrX</h2>
-      <p>Don&rsquo;t own a printer? Don&rsquo;t want to learn slicing? Generate your model on TimrX and order the physical print without leaving the workspace. We print on calibrated FDM and resin machines, support multi-color AMS / MMU output, do the QC, then ship and deliver to your door &mdash; anywhere in the world.</p>
-      <p><strong>TimrX prints, ships &amp; delivers.</strong> Premium FDM and resin output, fair pricing, no hidden fees. The print check that runs after every generation is the same one we use before printing your order, so you know in advance whether the model is production-ready.</p>
-      <ul style="margin:14px 0 0;padding-left:20px;line-height:1.7;">
+      <p>Don&rsquo;t own a printer? Don&rsquo;t want to learn slicing? Once the print service is live (summer 2026), you&rsquo;ll be able to generate a model on TimrX and order the physical print without leaving the workspace. We print on calibrated FDM and resin machines, support multi-color AMS / MMU output, do the QC, then ship and deliver to your door &mdash; anywhere in the world.</p>
+      <p><strong>TimrX will print, ship &amp; deliver.</strong> Premium FDM and resin output, fair pricing, no hidden fees. The print check that runs after every generation is the same one we&rsquo;ll use before printing your order, so you know in advance whether the model is production-ready.</p>
+      <p style="margin:14px 0 6px;color:#fbbf24;font-size:12px;font-weight:600;">Launch offers (live at summer 2026 launch):</p>
+      <ul style="margin:0;padding-left:20px;line-height:1.7;">
         <li><strong>First small print free.</strong> First order only: one print up to 50 mm tall is free &mdash; you cover shipping.</li>
         <li><strong>Free worldwide shipping over &pound;40.</strong> No code, applied automatically at checkout.</li>
         <li><strong>Refer a friend, both get &pound;5 print credit.</strong> Credit lands when they place their first paid order.</li>
       </ul>
-      <p style="margin-top:14px;"><a href="/pricing" style="color:#7dd3fc;">See print-service pricing &rarr;</a> &nbsp;&middot;&nbsp; <a href="/multi-color-3d-printing" style="color:#7dd3fc;">Multi-color (MCP) printing &rarr;</a></p>
+      <p style="margin-top:14px;"><a href="/pricing" style="color:#7dd3fc;">See planned print-service pricing &rarr;</a> &nbsp;&middot;&nbsp; <a href="/multi-color-3d-printing" style="color:#7dd3fc;">Multi-color (MCP) printing &rarr;</a></p>
     </div>
   </section>
 
@@ -418,15 +420,15 @@
       <div class="tool-faq-list">
         <details class="tool-faq-item">
           <summary>Can I order a TimrX-generated model as a physical print?</summary>
-          <p>Yes. Every model you create on TimrX can be ordered as a physical print without leaving the workspace. Choose FDM filament or resin, single-color or multi-color (AMS / MMU up to 16 filaments), pick a size and material, and we print, QC and ship worldwide. Your first small print (up to 50 mm tall) is free on your first order &mdash; you only cover shipping.</p>
+          <p>The print-on-demand service <strong>launches summer 2026</strong>. Once live, every model you create on TimrX will be orderable as a physical print without leaving the workspace &mdash; FDM or resin, single-color or multi-color (AMS / MMU up to 16 filaments), shipped worldwide. <a href="mailto:admin@timrx.live?subject=TimrX%20print%20waitlist">Email us to join the print waitlist</a>.</p>
         </details>
         <details class="tool-faq-item">
-          <summary>How does TimrX printing pricing work &mdash; and is it the cheapest?</summary>
-          <p>Pricing is calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service &mdash; we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping kicks in over &pound;40, and a refer-a-friend program gives both sides &pound;5 print credit. See the <a href="/pricing">pricing page</a> for the full breakdown.</p>
+          <summary>How will TimrX printing pricing work &mdash; and is it the cheapest?</summary>
+          <p>Pricing will be calculated from model volume, material, infill, finish and shipping destination, with no hidden fees. TimrX is not aiming to be the cheapest print service &mdash; we focus on premium FDM and resin output, fair sustainable pricing, and reliable delivery. Free shipping over &pound;40 and a refer-a-friend program (&pound;5 credit each side) are the launch offers. Service goes live summer 2026 &mdash; see the <a href="/pricing">pricing page</a> for the full planned breakdown.</p>
         </details>
         <details class="tool-faq-item">
           <summary>Does TimrX print multi-color (MCP) models?</summary>
-          <p>Yes. The full-color 3MF generator converts a textured AI model into 1&ndash;16 color regions ready for an AMS or MMU printer. If you order the print through TimrX we run it on our multi-color FDM hardware (Bambu Lab AMS), so the colors come out as designed without you touching a slicer. Costs 10 credits to generate the 3MF; ordering the print is priced per-model on the order screen.</p>
+          <p>The full-color 3MF generator is <strong>live now</strong> &mdash; it converts a textured AI model into 1&ndash;16 color regions ready for an AMS or MMU printer (10 credits per conversion). The print-on-demand side of multi-color (we print it on our AMS hardware and ship it to you) launches with the rest of the print service in summer 2026.</p>
         </details>
         <details class="tool-faq-item">
           <summary>Is TimrX 3D print model generator free?</summary>
