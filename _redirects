@@ -1,5 +1,5 @@
 # ----------------------------
-# NO 200 rewrites — V2 Pretty URLs auto-serves /hub from hub.html
+# Prefer host Pretty URLs, with targeted 200 rewrites for paths that need them
 # ----------------------------
 
 # ----------------------------
@@ -43,6 +43,11 @@
 # ----------------------------
 /admin          /admin/admin.html       200
 /admin/edit     /admin/admin-edit.html  200
+
+# ----------------------------
+# Explicit clean URL rewrites
+# ----------------------------
+/tutorials      /tutorials.html         200
 
 # ----------------------------
 # Trailing-slash normalization (no trailing slashes)
