@@ -3215,7 +3215,11 @@ button.print-slicer-btn:hover {
    ============================================================ */
 .timrx-order-backdrop {
   position: fixed;
-  inset: 0;
+  /* Start under the site nav so the navbar stays visible & interactive. */
+  top: var(--site-shell-nav-height, 64px);
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: rgba(3, 5, 8, 0.62);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -3223,7 +3227,8 @@ button.print-slicer-btn:hover {
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.22s ease, visibility 0.22s ease;
-  z-index: 1300;
+  /* Just below the navbar (1000) and the modal panel (980+). */
+  z-index: 970;
 }
 
 .timrx-order-backdrop.is-visible {
@@ -3234,14 +3239,15 @@ button.print-slicer-btn:hover {
 
 .timrx-order-panel {
   position: fixed;
-  top: 50%;
+  /* Sit below the site nav (64px) with a 24px breathing gap. */
+  top: calc(var(--site-shell-nav-height, 64px) + 24px);
   left: 50%;
   width: min(920px, calc(100vw - 32px));
-  max-height: calc(100vh - 56px);
+  max-height: calc(100vh - var(--site-shell-nav-height, 64px) - 48px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform: translate(-50%, -50%) scale(0.97);
+  transform: translate(-50%, 0) scale(0.97);
   background:
     linear-gradient(160deg, rgba(15, 17, 20, 0.98) 0%, rgba(18, 20, 24, 0.98) 60%, rgba(14, 18, 24, 0.98) 100%);
   -webkit-backdrop-filter: blur(16px);
@@ -3256,7 +3262,8 @@ button.print-slicer-btn:hover {
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease;
-  z-index: 1320;
+  /* Above viewer toolbar/popovers but below the site nav (which stays clickable). */
+  z-index: 980;
   color: #f0f2f5;
 }
 
@@ -3264,7 +3271,19 @@ button.print-slicer-btn:hover {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* Hide history thumb overlays + viewer toolbar when the order modal is open
+   so they don't bleed through underneath. Mirrors the print-panel-open rule. */
+body.timrx-order-open .history-thumb__status-bar,
+body.timrx-order-open .history-thumb__stage,
+body.timrx-order-open .history-thumb__menu-wrap,
+body.timrx-order-open .history-thumb__name,
+body.timrx-order-open .history-thumb__date {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Header */
