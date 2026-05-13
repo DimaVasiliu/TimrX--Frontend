@@ -2028,6 +2028,25 @@ function initTimrxOrderModal() {
   openBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Block ordering when there's no resolvable model.  The backend looks
+    // up GLB / title / thumbnail in history_items by model.id, so we need
+    // at minimum an id + a glb URL to fulfill the order.
+    const item = (window.API && API.getActiveHistoryItem) ? API.getActiveHistoryItem() : null;
+    const hasId  = !!(item && (item.id || item.model_id));
+    const hasGlb = !!(item && (item.glb_url || item.glb_proxy));
+    if (!hasId || !hasGlb) {
+      if (window.showToast) {
+        window.showToast(
+          'Open a completed model from your History first — TimrX needs a finished GLB to print.',
+          'info'
+        );
+      } else {
+        alert('Open a completed model from your History first — TimrX needs a finished GLB to print.');
+      }
+      return;
+    }
+
     openModal();
   });
 
