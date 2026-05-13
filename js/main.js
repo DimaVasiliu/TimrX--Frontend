@@ -7,7 +7,7 @@
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js?v=20260513a';
+import * as Viewer from './viewer.js?v=20260513b';
 import * as UI from './ui-utils.js';
 import {
   renderHistory,
@@ -26,7 +26,7 @@ import * as API from './api.js?v=20260507b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
-import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260513a';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260513b';
 
 // ============================================================================
 // MODULE STATE
@@ -1206,6 +1206,55 @@ function initViewerToolbar() {
       API.startTextureFromHistory(activeItem, 'viewer');
     }
 
+    if (action === 'paint') {
+      closeViewerPopovers();
+      const uploadSource = window._timrxViewerUploadSource;
+      const currentModel = window._timrxCurrentModel;
+      if (uploadSource && currentModel?.clone) {
+        currentModel.updateMatrixWorld?.(true);
+        openMultiColorModal({
+          taskId: null,
+          title: uploadSource.title || uploadSource.fileName || 'Uploaded model',
+          thumbnailUrl: '',
+          glbUrl: '',
+          sourceObject: currentModel.clone(true),
+        });
+        return;
+      }
+
+      if (activeItem) {
+        const glbUrl = activeItem.glb_proxy || activeItem.glb_url || activeItem.model_url || '';
+        if (!glbUrl) {
+          if (window.showToast) window.showToast('No paintable model URL found for this item.', 'error');
+          else alert('No paintable model URL found for this item.');
+          return;
+        }
+        openMultiColorModal({
+          taskId: activeItem.id || activeItem.model_id || '',
+          title: activeItem.title || activeItem.prompt || 'Untitled',
+          thumbnailUrl: activeItem.thumbnail_url || activeItem.image_url || '',
+          glbUrl,
+          onRepair: (options) => API.startPrintReadyRemeshFromItem(activeItem, options),
+        });
+        return;
+      }
+
+      if (currentModel?.clone) {
+        currentModel.updateMatrixWorld?.(true);
+        openMultiColorModal({
+          taskId: null,
+          title: 'Viewer model',
+          thumbnailUrl: '',
+          glbUrl: '',
+          sourceObject: currentModel.clone(true),
+        });
+        return;
+      }
+
+      if (window.showToast) window.showToast('Load a model in the viewer first.', 'info');
+      else alert('Load a model in the viewer first.');
+    }
+
     if (action === 'refine' && activeItem) {
       API.startRefineFromHistory(activeItem, 'viewer');
     }
@@ -1403,14 +1452,23 @@ function initTimrxOrderModal() {
 
   // Country-to-currency map mirrors backend pick_currency.
   const USD_COUNTRIES = new Set(['US', 'CA', 'AU']);
+  const GBP_COUNTRIES = new Set(['GB']);
   function currencyFor(country) {
-    return USD_COUNTRIES.has(String(country || '').toUpperCase()) ? 'USD' : 'EUR';
+    const c = String(country || '').toUpperCase();
+    if (USD_COUNTRIES.has(c)) return 'USD';
+    if (GBP_COUNTRIES.has(c)) return 'GBP';
+    return 'EUR';
   }
   function currencySymbol(cur) {
     return cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
   }
-  // Naive FX (matches backend FX_FROM_USD). Frontend display only.
-  function fxFromUsd(cur) { return cur === 'EUR' ? 0.92 : 1.0; }
+  // Naive FX (matches backend FX_FROM_USD). Frontend display only —
+  // the backend recomputes the authoritative price before charging.
+  function fxFromUsd(cur) {
+    if (cur === 'EUR') return 0.92;
+    if (cur === 'GBP') return 0.79;
+    return 1.0;
+  }
 
   // ── Material catalog (per process) ─────────────────────────────────
   const MATERIALS = {

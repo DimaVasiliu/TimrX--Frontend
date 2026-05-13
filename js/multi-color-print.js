@@ -359,12 +359,12 @@ function _formatBrushRadius(radius) {
   return `${radius.toFixed(3)}`;
 }
 
-function _setupViewer(glbUrl) {
+function _setupViewer(glbUrl, sourceObject = null) {
   const container = document.getElementById('mcp-viewer');
   if (!container) return;
 
   container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:12px;">Loading model...</div>';
-  if (!glbUrl) { container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.2);font-size:11px;">No model URL</div>'; return; }
+  if (!glbUrl && !sourceObject) { container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.2);font-size:11px;">No model loaded</div>'; return; }
 
   container.innerHTML = '';
   const T = window.THREE;
@@ -402,14 +402,8 @@ function _setupViewer(glbUrl) {
 
   _raycaster = new T.Raycaster();
 
-  // Load model
-  const loader = new T.GLTFLoader();
-  const loadUrl = getLoadableModelUrl(glbUrl);
-  if (!isTimrxS3Url(loadUrl)) { loader.setCrossOrigin('use-credentials'); loader.setWithCredentials(true); }
-  else { loader.setCrossOrigin('anonymous'); }
-
-  loader.load(loadUrl, (gltf) => {
-    _model = gltf.scene;
+  const handleLoadedModel = (model) => {
+    _model = model;
     _scene.add(_model);
 
     // Prepare paint data
@@ -426,10 +420,47 @@ function _setupViewer(glbUrl) {
       : 'Model loaded, but no paintable faces were found.';
     container.appendChild(hint);
     setTimeout(() => hint.style.opacity = '0', 4000);
-  }, undefined, (err) => {
+  };
+
+  const handleLoadError = (err) => {
     console.error('[MCP] Model load error:', err);
     container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);font-size:11px;">Failed to load model</div>';
-  });
+  };
+
+  if (sourceObject) {
+    try {
+      handleLoadedModel(sourceObject);
+    } catch (err) {
+      handleLoadError(err);
+    }
+  } else {
+    const loadUrl = getLoadableModelUrl(glbUrl);
+    const ext = (String(loadUrl).split('?')[0].split('#')[0].match(/\.([a-z0-9]+)$/i)?.[1] || '').toLowerCase();
+
+    if (ext === 'stl') {
+      if (!T.STLLoader) {
+        handleLoadError(new Error('STLLoader missing'));
+      } else {
+        const loader = new T.STLLoader();
+        if (!isTimrxS3Url(loadUrl)) { loader.setCrossOrigin('use-credentials'); loader.setWithCredentials?.(true); }
+        else { loader.setCrossOrigin('anonymous'); }
+        loader.load(loadUrl, (geometry) => {
+          geometry.computeVertexNormals();
+          const material = new T.MeshStandardMaterial({ color: 0xb8b8b8, roughness: 0.75, metalness: 0, side: T.DoubleSide });
+          const mesh = new T.Mesh(geometry, material);
+          const group = new T.Group();
+          group.name = _safeFileBase(_modelTitle || 'uploaded_stl');
+          group.add(mesh);
+          handleLoadedModel(group);
+        }, undefined, handleLoadError);
+      }
+    } else {
+      const loader = new T.GLTFLoader();
+      if (!isTimrxS3Url(loadUrl)) { loader.setCrossOrigin('use-credentials'); loader.setWithCredentials(true); }
+      else { loader.setCrossOrigin('anonymous'); }
+      loader.load(loadUrl, (gltf) => handleLoadedModel(gltf.scene), undefined, handleLoadError);
+    }
+  }
 
   // Paint handlers — pointerdown/move/up for drag painting
   const canvas = _renderer.domElement;
@@ -1561,7 +1592,7 @@ function _dispose() {
 // Public API
 // ============================================================================
 
-export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, onRepair } = {}) {
+export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, sourceObject, onRepair } = {}) {
   _taskId = taskId;
   _modelUrl = glbUrl || '';
   _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
@@ -1578,7 +1609,7 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, onRep
   _exportCenterOnPlate = true;
 
   const overlay = _createModal();
-  _setupViewer(glbUrl);
+  _setupViewer(glbUrl, sourceObject || null);
   _renderSidebar();
 
   // Close on overlay click

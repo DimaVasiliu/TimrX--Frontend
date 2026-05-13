@@ -120,6 +120,8 @@ function updatePlaceholder() {
 }
 
 export function clearModel() {
+    window._timrxViewerUploadSource = null;
+
     // If grouped viewer is active, dispose it and restore single-model UI
     // before loading the new model. This prevents the new model from rendering
     // into a leftover split-viewport from the grouped view.
@@ -166,6 +168,7 @@ export function clearModel() {
         });
         currentModel = null;
         window._timrxCurrentModel = null;
+        window._timrxViewerUploadSource = null;
     }
 
     // Also clear any Inspire-loaded model to prevent stacking

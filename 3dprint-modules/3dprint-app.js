@@ -2329,6 +2329,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       loadViaViewer(blobUrl)
         .then(() => {
+          window._timrxViewerUploadSource = {
+            kind: 'upload',
+            title: modelName || file.name,
+            fileName: file.name,
+            format: ext.replace('.', ''),
+          };
           if (genHint) genHint.textContent = `Loaded: ${modelName || file.name}`;
           console.log('[Viewer] Local model loaded:', modelName || file.name);
         })
