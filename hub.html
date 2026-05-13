@@ -2064,18 +2064,32 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
 
-    <!-- Lazy-load model-viewer only when the 3D section scrolls into view -->
+    <!-- Lazy-load model-viewer when any 3D preview scrolls into view -->
     <script>
       (function() {
-        var mv = document.querySelector('model-viewer');
-        if (!mv) return;
+        var viewers = Array.prototype.slice.call(document.querySelectorAll('model-viewer'));
+        if (!viewers.length) return;
+
+        var loaded = false;
+        function loadModelViewer() {
+          if (loaded) return;
+          loaded = true;
+          import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+        }
+
+        if (!('IntersectionObserver' in window)) {
+          loadModelViewer();
+          return;
+        }
+
         var obs = new IntersectionObserver(function(entries) {
-          if (entries[0].isIntersecting) {
-            import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+          if (entries.some(function(entry) { return entry.isIntersecting; })) {
+            loadModelViewer();
             obs.disconnect();
           }
-        }, { rootMargin: '200px' });
-        obs.observe(mv);
+        }, { rootMargin: '300px' });
+
+        viewers.forEach(function(viewer) { obs.observe(viewer); });
       })();
     </script>
 
