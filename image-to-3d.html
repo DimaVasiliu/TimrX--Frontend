@@ -82,12 +82,19 @@
       transform:scale(.985);
       --poster-color:transparent;
     }
-    .i23d-stage.is-model-active .i23d-source{
+    .i23d-mode-input{
+      position:absolute;
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+    }
+    .i23d-mode-model:checked ~ .i23d-source{
       opacity:0;
       visibility:hidden;
       transform:scale(1.02);
     }
-    .i23d-stage.is-model-active .i23d-model{
+    .i23d-mode-model:checked ~ .i23d-model{
       opacity:1;
       visibility:visible;
       transform:scale(1);
@@ -106,6 +113,9 @@
       backdrop-filter:blur(14px);
     }
     .i23d-toggle{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       appearance:none;
       border:0;
       border-radius:999px;
@@ -116,12 +126,14 @@
       cursor:pointer;
       transition:background .2s ease,color .2s ease,box-shadow .2s ease;
     }
-    .i23d-toggle.is-active{
+    .i23d-mode-image:checked ~ .i23d-switch .i23d-toggle-image,
+    .i23d-mode-model:checked ~ .i23d-switch .i23d-toggle-model{
       color:#061014;
       background:#7dd3fc;
       box-shadow:0 0 22px rgba(56,189,248,.3);
     }
-    .i23d-toggle:focus-visible{
+    .i23d-toggle:focus-visible,
+    .i23d-mode-input:focus-visible ~ .i23d-switch .i23d-toggle{
       outline:2px solid #7dd3fc;
       outline-offset:2px;
     }
@@ -142,7 +154,7 @@
       transform:translateY(6px);
       transition:opacity .22s ease,transform .22s ease,visibility .22s ease;
     }
-    .i23d-stage.is-model-active .i23d-source-thumb{
+    .i23d-mode-model:checked ~ .i23d-source-thumb{
       opacity:1;
       visibility:visible;
       transform:translateY(0);
@@ -377,13 +389,15 @@
       <p class="tool-examples-intro">From casual phone snapshots to polished product photography, TimrX image-to-3D handles a wide range of input styles. Below are six examples showing what was uploaded and what the AI produced. Each model was generated in under a minute with no manual editing.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-running-shoe-image" name="i23d-running-shoe" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-running-shoe-model" name="i23d-running-shoe">
             <div class="i23d-switch" role="group" aria-label="Running Shoe preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-running-shoe-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-running-shoe-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/running-shoe.png" alt="Running shoe source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/running-shoe.glb" alt="Generated 3D running shoe model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/running-shoe.glb" alt="Generated 3D running shoe model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/running-shoe.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -392,13 +406,15 @@
           </div>
         </article>
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-ceramic-mug-image" name="i23d-ceramic-mug" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-ceramic-mug-model" name="i23d-ceramic-mug">
             <div class="i23d-switch" role="group" aria-label="Ceramic Mug preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-ceramic-mug-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-ceramic-mug-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/ceramic-mug.png" alt="Ceramic mug source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/ceramic-mug.glb" alt="Generated 3D ceramic mug model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/ceramic-mug.glb" alt="Generated 3D ceramic mug model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/ceramic-mug.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -407,13 +423,15 @@
           </div>
         </article>
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-fantasy-character-image" name="i23d-fantasy-character" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-fantasy-character-model" name="i23d-fantasy-character">
             <div class="i23d-switch" role="group" aria-label="Fantasy Character preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-fantasy-character-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-fantasy-character-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/fantasy-character.png" alt="Fantasy character source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/fantasy-character.glb" alt="Generated 3D fantasy character model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/fantasy-character.glb" alt="Generated 3D fantasy character model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/fantasy-character.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -422,13 +440,15 @@
           </div>
         </article>
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-bonsai-tree-image" name="i23d-bonsai-tree" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-bonsai-tree-model" name="i23d-bonsai-tree">
             <div class="i23d-switch" role="group" aria-label="Bonsai Tree preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-bonsai-tree-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-bonsai-tree-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/bonsai-tree.png" alt="Bonsai tree source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/bonsai-tree.glb" alt="Generated 3D bonsai tree model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="20deg" shadow-intensity="0.75" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/bonsai-tree.glb" alt="Generated 3D bonsai tree model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="20deg" shadow-intensity="0.75" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/bonsai-tree.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -437,13 +457,15 @@
           </div>
         </article>
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-vintage-camera-image" name="i23d-vintage-camera" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-vintage-camera-model" name="i23d-vintage-camera">
             <div class="i23d-switch" role="group" aria-label="Vintage Camera preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-vintage-camera-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-vintage-camera-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/vintage-camera.png" alt="Vintage camera source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/vintage-camera.glb" alt="Generated 3D vintage camera model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="22deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/vintage-camera.glb" alt="Generated 3D vintage camera model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="22deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/vintage-camera.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -452,13 +474,15 @@
           </div>
         </article>
         <article class="tool-example-card image-to-3d-card">
-          <div class="i23d-stage" data-i23d-viewer>
+          <div class="i23d-stage">
+            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-toy-robot-image" name="i23d-toy-robot" checked>
+            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-toy-robot-model" name="i23d-toy-robot">
             <div class="i23d-switch" role="group" aria-label="Toy Robot preview mode">
-              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
-              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+              <label class="i23d-toggle i23d-toggle-image" for="i23d-toy-robot-image">Image</label>
+              <label class="i23d-toggle i23d-toggle-model" for="i23d-toy-robot-model">3D</label>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/toy-robot.png" alt="Toy robot source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/toy-robot.glb" alt="Generated 3D toy robot model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <model-viewer class="i23d-model" src="/vid/image-to-3d/toy-robot.glb" alt="Generated 3D toy robot model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
             <img class="i23d-source-thumb" src="/vid/image-to-3d/toy-robot.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
@@ -741,32 +765,6 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
-  <script>
-  (function(){
-    function loadModel(stage){
-      var model=stage.querySelector('.i23d-model');
-      if(model&&model.dataset.src&&!model.getAttribute('src')){
-        model.setAttribute('src',model.dataset.src);
-      }
-    }
-    document.querySelectorAll('[data-i23d-viewer]').forEach(function(stage){
-      var toggles=stage.querySelectorAll('[data-i23d-mode]');
-      toggles.forEach(function(toggle){
-        toggle.addEventListener('click',function(){
-          var mode=toggle.getAttribute('data-i23d-mode');
-          var showModel=mode==='model';
-          stage.classList.toggle('is-model-active',showModel);
-          if(showModel)loadModel(stage);
-          toggles.forEach(function(item){
-            var active=item===toggle;
-            item.classList.toggle('is-active',active);
-            item.setAttribute('aria-pressed',active?'true':'false');
-          });
-        });
-      });
-    });
-  })();
-  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
