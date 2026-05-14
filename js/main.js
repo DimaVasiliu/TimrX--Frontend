@@ -1815,6 +1815,42 @@ function initTimrxOrderModal() {
     return `${currencySymbol(cur)}${Number(amountInCurrency || 0).toFixed(2)}`;
   }
 
+  function shippingCopyForCountry(country) {
+    const c = String(country || '').toUpperCase();
+    if (c === 'GB') {
+      return {
+        standard: 'Standard — 2–4 business days',
+        express: 'Express — 1–2 business days',
+        priority: 'Priority — next business day',
+      };
+    }
+    if (c === 'EU' || c === 'JP' || c === 'OTHER') {
+      return {
+        standard: 'Standard — 5–8 business days',
+        express: 'Express — 2–4 business days',
+        priority: 'Priority — 1–2 business days',
+      };
+    }
+    return {
+      standard: 'Standard — 7–14 business days',
+      express: 'Express — 3–5 business days',
+      priority: 'Priority — 1–3 business days',
+    };
+  }
+
+  function refreshSpeedLabels() {
+    if (!speedSel) return;
+    const P = pricingTable();
+    const labels = shippingCopyForCountry(countrySel.value);
+    const baseTier = P.shipping?.small || {};
+    const standard = baseTier.standard || 0;
+    Array.from(speedSel.options).forEach((option) => {
+      const value = option.value || 'standard';
+      const extra = Math.max(0, (baseTier[value] || standard) - standard);
+      option.textContent = labels[value] + (extra > 0 ? ` (+${formatPrice(extra)})` : '');
+    });
+  }
+
   function formatTime(min) {
     if (!(min > 0)) return '—';
     const h = Math.floor(min / 60);
@@ -2357,6 +2393,7 @@ function initTimrxOrderModal() {
   }
 
   countrySel.addEventListener('change', () => {
+    refreshSpeedLabels();
     refreshPackagingPriceLabel();
     refreshEstimate();
   });
@@ -2418,6 +2455,7 @@ function initTimrxOrderModal() {
   renderMaterials();
   renderSwatches();
   setRangeFill();
+  refreshSpeedLabels();
   refreshPackagingPriceLabel();
   refreshEstimate();
   syncProviderUi();
