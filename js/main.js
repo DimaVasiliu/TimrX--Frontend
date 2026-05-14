@@ -1497,6 +1497,7 @@ function initTimrxOrderModal() {
   const estMaterial = document.getElementById('timrxEstMaterial');
   const estTime     = document.getElementById('timrxEstTime');
   const estTotal    = document.getElementById('timrxEstTotal');
+  const BUILD_VOLUME_MM = { x: 256, y: 256, z: 256 };
 
   // Country-to-currency map mirrors backend pick_currency.
   const USD_COUNTRIES = new Set(['US', 'CA', 'AU']);
@@ -1686,6 +1687,30 @@ function initTimrxOrderModal() {
     return [state.bboxMm[0] * ratio, targetH, state.bboxMm[2] * ratio];
   }
 
+  function getBuildVolumeFit(dims) {
+    if (!dims) return { fits: false, over: [] };
+    const axes = [
+      { name: 'width', value: dims[0], max: BUILD_VOLUME_MM.x },
+      { name: 'height', value: dims[1], max: BUILD_VOLUME_MM.y },
+      { name: 'depth', value: dims[2], max: BUILD_VOLUME_MM.z },
+    ];
+    const over = axes.filter(axis => axis.value > axis.max + 0.01);
+    return { fits: over.length === 0, over };
+  }
+
+  function maxPrintableHeightForSource() {
+    if (!state.bboxMm) return BUILD_VOLUME_MM.y;
+    const sourceH = state.bboxMm[1];
+    if (!(sourceH > 0)) return BUILD_VOLUME_MM.y;
+    const limits = [
+      BUILD_VOLUME_MM.x / state.bboxMm[0],
+      BUILD_VOLUME_MM.y / state.bboxMm[1],
+      BUILD_VOLUME_MM.z / state.bboxMm[2],
+    ].filter(n => Number.isFinite(n) && n > 0);
+    const maxScale = Math.min(...limits);
+    return Math.max(10, Math.floor(sourceH * maxScale));
+  }
+
   function getSizeClass(dims) {
     const maxDim = Math.max(dims?.[0] || 0, dims?.[1] || 0, dims?.[2] || 0);
     if (maxDim < 75) return 'mini';
@@ -1711,17 +1736,21 @@ function initTimrxOrderModal() {
     }
     const dims = getScaledDims();
     if (!dims) return;
+    const fit = getBuildVolumeFit(dims);
+    const maxHeight = maxPrintableHeightForSource();
     const targetH = parseFloat(heightEl.value) || 0;
-    const suggestion =
-      targetH < 100
-        ? ' 60mm is economical; choose 100-150mm if surface detail matters.'
+    const suggestion = !fit.fits
+      ? ` Exceeds the current 256 × 256 × 256mm printer volume. Max safe height for this model is ${maxHeight}mm unless the print is split into parts.`
+      : targetH < 100
+        ? ` 60mm is economical; choose 100-150mm if surface detail matters. Current printer volume: 256 × 256 × 256mm.`
         : targetH >= 200
-          ? ' Larger prints may move into parcel or oversized delivery.'
-          : ' This is a balanced collectible size for detail and cost.';
+          ? ` Large single-piece print inside the 256mm printer volume; delivery may move into a larger parcel tier.`
+          : ` Balanced collectible size for detail and cost. Current printer volume: 256 × 256 × 256mm.`;
     scaledHint.textContent =
       `Scaled to ${dims[0].toFixed(0)} × ${dims[1].toFixed(0)} × ${dims[2].toFixed(0)} mm` +
       ` (original ${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm).` +
       suggestion;
+    scaledHint.classList.toggle('is-warning', !fit.fits);
   }
 
   // Authoritative price model — native per-currency. Backend re-validates
@@ -2057,9 +2086,11 @@ function initTimrxOrderModal() {
     }
     // Default every order to a 60mm mini collectible. Source dimensions are
     // still shown so users can choose a larger, more accurate production size.
-    heightEl.value = 60;
+    const safeMaxHeight = maxPrintableHeightForSource();
+    heightEl.value = Math.min(60, safeMaxHeight);
+    heightEl.max = String(safeMaxHeight);
     panel.querySelectorAll('.timrx-order__preset').forEach(p => {
-      p.classList.toggle('is-active', p.dataset.size === '60');
+      p.classList.toggle('is-active', p.dataset.size === String(heightEl.value));
     });
 
     // Model thumb + name
@@ -2081,7 +2112,7 @@ function initTimrxOrderModal() {
     }
     if (dimsEl) {
       dimsEl.textContent = state.bboxMm
-        ? `${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm original`
+        ? `${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm original · printer volume 256 × 256 × 256mm`
         : 'Dimensions pending — run a Print Check first for accurate sizing.';
     }
 
@@ -2369,7 +2400,8 @@ function initTimrxOrderModal() {
 
   panel.querySelectorAll('.timrx-order__preset').forEach(p => {
     p.addEventListener('click', () => {
-      heightEl.value = p.dataset.size;
+      const requested = parseFloat(p.dataset.size) || 60;
+      heightEl.value = Math.min(requested, maxPrintableHeightForSource());
       heightEl.dispatchEvent(new Event('input'));
     });
   });
@@ -2418,6 +2450,16 @@ function initTimrxOrderModal() {
         if (window.showToast) {
           window.showToast('Run Print Check first so TimrX can price the exact model dimensions.', 'info');
         }
+        return;
+      }
+      const dims = getScaledDims();
+      const fit = getBuildVolumeFit(dims);
+      if (!fit.fits) {
+        const maxHeight = maxPrintableHeightForSource();
+        if (window.showToast) {
+          window.showToast(`This size exceeds your 256mm printer volume. Use ${maxHeight}mm or split the model into parts.`, 'error');
+        }
+        heightEl.focus();
         return;
       }
       setStep(2);

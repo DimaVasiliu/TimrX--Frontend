@@ -1026,12 +1026,13 @@
                   <div class="timrx-order__field">
                     <label class="timrx-order__label" for="timrxOrderHeight">Target print height (mm)</label>
                     <div class="timrx-order__size-row">
-                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="500" step="1" value="60">
+                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="256" step="1" value="60">
                       <div class="timrx-order__size-preset" role="group" aria-label="Size presets">
                         <button type="button" class="timrx-order__preset is-active" data-size="60">60mm</button>
                         <button type="button" class="timrx-order__preset" data-size="100">100mm</button>
                         <button type="button" class="timrx-order__preset" data-size="150">150mm</button>
                         <button type="button" class="timrx-order__preset" data-size="200">200mm</button>
+                        <button type="button" class="timrx-order__preset" data-size="256">Max 256mm</button>
                       </div>
                     </div>
                     <p class="timrx-order__hint" id="timrxOrderScaledHint">Scaled dimensions appear here once your model is analyzed.</p>

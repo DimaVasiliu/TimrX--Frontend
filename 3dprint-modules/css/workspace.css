@@ -3590,6 +3590,10 @@ body.timrx-order-open .history-thumb__date {
   color: rgba(255, 255, 255, 0.42);
 }
 
+.timrx-order__hint.is-warning {
+  color: #fbbf24;
+}
+
 .timrx-order__input,
 .timrx-order__select,
 .timrx-order__textarea {
