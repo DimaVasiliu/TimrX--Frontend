@@ -1592,20 +1592,23 @@ function initTimrxOrderModal() {
 
   // ── Color catalog ──────────────────────────────────────────────────
   const COLORS = [
-    { id: 'black',  label: 'Black',  hex: '#111111' },
-    { id: 'white',  label: 'White',  hex: '#f3f3f3' },
-    { id: 'gray',   label: 'Gray',   hex: '#9aa0a6' },
-    { id: 'red',    label: 'Red',    hex: '#d83a3a' },
-    { id: 'orange', label: 'Orange', hex: '#ff7a1a' },
-    { id: 'yellow', label: 'Yellow', hex: '#f4c534' },
-    { id: 'green',  label: 'Green',  hex: '#1ea561' },
-    { id: 'teal',   label: 'Teal',   hex: '#14b8a6' },
-    { id: 'blue',   label: 'Blue',   hex: '#1e6fdb' },
-    { id: 'navy',   label: 'Navy',   hex: '#172a55' },
-    { id: 'purple', label: 'Purple', hex: '#7b3ff2' },
-    { id: 'pink',   label: 'Pink',   hex: '#ee5a9b' },
-    { id: 'gold',   label: 'Gold',   hex: '#c9a44b' },
-    { id: 'silver', label: 'Silver', hex: '#c2c8cf' },
+    { id: 'black',       label: 'Black',       hex: '#000000', family: 'Core' },
+    { id: 'jade_white',  label: 'Jade White',  hex: '#FFFFFF', family: 'Core' },
+    { id: 'gray',        label: 'Gray',        hex: '#ADB1B2', family: 'Core' },
+    { id: 'dark_gray',   label: 'Dark Gray',   hex: '#515151', family: 'Core' },
+    { id: 'red',         label: 'Red',         hex: '#EB3A3A', family: 'Core' },
+    { id: 'orange',      label: 'Orange',      hex: '#F75403', family: 'Core' },
+    { id: 'yellow',      label: 'Yellow',      hex: '#FFD00B', family: 'Core' },
+    { id: 'bambu_green', label: 'Bambu Green', hex: '#00AE42', family: 'Core' },
+    { id: 'blue',        label: 'Blue',        hex: '#002E96', family: 'Core' },
+    { id: 'lake_blue',   label: 'Lake Blue',   hex: '#1F79E5', family: 'Accent' },
+    { id: 'cyan',        label: 'Cyan',        hex: '#0086D6', family: 'Accent' },
+    { id: 'magenta',     label: 'Magenta',     hex: '#EC008C', family: 'Accent' },
+    { id: 'lime_green',  label: 'Lime Green',  hex: '#6EE53C', family: 'Accent' },
+    { id: 'forest_green',label: 'Forest Green',hex: '#39541A', family: 'Accent' },
+    { id: 'cream',       label: 'Cream',       hex: '#F9DFB9', family: 'Neutral' },
+    { id: 'silver',      label: 'Silver',      hex: '#A6A9AA', family: 'Neutral' },
+    { id: 'peanut_brown',label: 'Peanut Brown',hex: '#875718', family: 'Neutral' },
   ];
 
   // Multipliers — must mirror the backend.
@@ -1664,7 +1667,12 @@ function initTimrxOrderModal() {
       <button type="button" class="timrx-order__swatch${c.id === state.colorId ? ' is-active' : ''}"
               data-color="${c.id}" style="--swatch-color:${c.hex};"
               role="radio" aria-checked="${c.id === state.colorId}" aria-label="${c.label}">
+        <span class="timrx-order__swatch-top">
+          <span class="timrx-order__swatch-dot" aria-hidden="true"></span>
+          <span class="timrx-order__swatch-family">${c.family}</span>
+        </span>
         <span class="timrx-order__swatch-label">${c.label}</span>
+        <span class="timrx-order__swatch-code">${c.hex}</span>
       </button>
     `).join('');
   }
@@ -2353,6 +2361,10 @@ function initTimrxOrderModal() {
   panel.querySelectorAll('.timrx-order__toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const p = btn.dataset.process;
+      if (btn.disabled || btn.getAttribute('aria-disabled') === 'true') {
+        if (window.showToast) window.showToast('Your Bambu Lab P1S prints filament, not resin. Resin ordering is disabled for now.', 'info');
+        return;
+      }
       if (p === state.process) return;
       state.process = p;
       panel.querySelectorAll('.timrx-order__toggle-btn').forEach(b => {
