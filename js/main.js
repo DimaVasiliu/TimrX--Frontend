@@ -1626,6 +1626,13 @@ function initTimrxOrderModal() {
     oversized: 1.95,
   };
 
+  function infillFloorMultiplier(process, infillPct) {
+    if (process === 'resin') return 1;
+    const infill = Math.max(10, Math.min(100, parseInt(infillPct, 10) || 20));
+    if (infill <= 20) return 1;
+    return 1 + Math.min(0.35, (infill - 20) * 0.007);
+  }
+
   let state = {
     process: 'fdm',
     materialId: 'pla',
@@ -1804,7 +1811,8 @@ function initTimrxOrderModal() {
     const sizeMult = SIZE_CLASS_MULT[sizeClass] || 1;
     const materialFloorPremium = (MATERIAL_FLOOR_PREMIUMS[state.process] || {})[state.materialId] || 0;
     const perUnitRaw = (P.production_fee + materialCost + printTimeCost) * sizeMult;
-    const perUnit = Math.max(perUnitRaw, (P.min_order + materialFloorPremium) * sizeMult);
+    const infillFloorMult = infillFloorMultiplier(state.process, parseFloat(infillEl.value) || 20);
+    const perUnit = Math.max(perUnitRaw, (P.min_order + materialFloorPremium) * sizeMult * infillFloorMult);
 
     // Quantity discount tightened: -2.5% per extra unit, cap 15%.
     const qtyDiscount = Math.min(0.15, Math.max(0, (qty - 1) * 0.025));
