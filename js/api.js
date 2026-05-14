@@ -4952,7 +4952,7 @@ export async function startVideoGeneration() {
 
   try {
     prog.label(_isSeedanceProvider(settings.provider)
-      ? `Sending to ${_providerDisplayName(settings.provider)}${settings.seedanceTier === 'preview' ? ' Preview' : ''}...`
+      ? `Sending to ${_providerDisplayName(settings.provider)}${(settings.seedanceTier === 'quality' || settings.seedanceTier === 'preview') ? ' Quality' : ''}...`
       : 'Sending to Veo...');
 
     // Build payload for Veo
@@ -4998,12 +4998,13 @@ export async function startVideoGeneration() {
           resolution: settings.resolution,
           loop: settings.loop,
           seedance_variant: settings.seedanceVariant || undefined,
+          seedance_tier: settings.seedanceTier || undefined,
         };
 
         console.log('[VIDEO] Image Transition mode - start:', Math.round(startSrc.length / 1024), 'KB, end:', Math.round(endSrc.length / 1024), 'KB');
 
       } else if (imgSubMode === 'experimental_morph') {
-        // ── Experimental Morph (Beta): two images + morph prompt via Seedance ──
+        // Legacy morph DOM path — fold into native image_transition (Seedance 2 GA first_last_frames).
         const mStartSrc = byId('morphStartImagePreview')?.src || '';
         const mEndSrc = byId('morphEndImagePreview')?.src || '';
         const mHasStart = mStartSrc.startsWith('data:') || mStartSrc.startsWith('http');
@@ -5012,7 +5013,7 @@ export async function startVideoGeneration() {
         if (!mHasStart || !mHasEnd) {
           releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please upload both images for morph', 'error');
+          UI.toast('Please upload both images for the transition', 'error');
           return;
         }
 
@@ -5020,13 +5021,13 @@ export async function startVideoGeneration() {
         if (!morphPrompt) {
           releaseSubmitLock();
           releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Describe how the two images should morph together', 'error');
+          UI.toast('Describe how the two images should transition into each other', 'error');
           return;
         }
 
         payload = {
           provider: settings.provider,
-          mode: 'experimental_morph',
+          mode: 'image_transition',
           start_image: mStartSrc,
           end_image: mEndSrc,
           prompt: _composeSeedancePrompt(morphPrompt, stylePreset, null, settings),
@@ -5036,9 +5037,10 @@ export async function startVideoGeneration() {
           resolution: settings.resolution,
           loop: settings.loop,
           seedance_variant: settings.seedanceVariant || undefined,
+          seedance_tier: settings.seedanceTier || undefined,
         };
 
-        console.log('[VIDEO] Experimental Morph (Beta) - img1:', Math.round(mStartSrc.length / 1024), 'KB, img2:', Math.round(mEndSrc.length / 1024), 'KB');
+        console.log('[VIDEO] Image Transition (legacy morph DOM) - img1:', Math.round(mStartSrc.length / 1024), 'KB, img2:', Math.round(mEndSrc.length / 1024), 'KB');
 
       } else {
         // ── Animate Image: single image + animation prompt ──
@@ -5077,6 +5079,7 @@ export async function startVideoGeneration() {
           resolution: settings.resolution,
           loop: settings.loop,
           seedance_variant: settings.seedanceVariant || undefined,
+          seedance_tier: settings.seedanceTier || undefined,
         };
 
         const isDataUrl = imageData.startsWith('data:');
@@ -5096,12 +5099,18 @@ export async function startVideoGeneration() {
         motion: motion,
         loop: settings.loop,
         seedance_variant: settings.seedanceVariant || undefined,
+        seedance_tier: settings.seedanceTier || undefined,
       };
     }
 
-    // Log action code for debugging (lowercase canonical format)
-    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(settings.mode, settings.durationSec, settings.resolution, settings.provider) ||
-                 `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`;
+    // Log action code for debugging (lowercase canonical format).
+    // Seedance now carries the tier suffix (fast/quality) and resolution.
+    const actionCode = window.WorkspaceCredits?.getVideoActionCode?.(
+      settings.mode, settings.durationSec, settings.resolution, settings.provider, settings.seedanceTier
+    ) ||
+      (settings.provider === 'seedance'
+        ? `seedance_${(settings.seedanceTier === 'preview' ? 'quality' : (settings.seedanceTier || 'fast'))}_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${(settings.resolution || '480p').toLowerCase()}`
+        : `video_${settings.mode === 'text2video' ? 'text_generate' : 'image_animate'}_${settings.durationSec}s_${settings.resolution.toLowerCase()}`);
     console.log('[VIDEO] Action code:', actionCode, '| Provider:', settings.provider, '| Expected cost:', totalCredits);
     console.log('[GEN] provider=' + settings.provider + ' mode=' + settings.mode + ' endpoint=' + endpoint +
                 ' cost=' + totalCredits + ' available=' + creditCheck.available);

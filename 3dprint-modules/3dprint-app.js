@@ -2648,14 +2648,27 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         '1080p': { 8: 120 },
         '4k':    { 8: 156 }
       };
-      // Seedance credit costs — explicit lookup tables (DB is authoritative)
-      // Fast = STANDARD tier (10 c/s), Preview = PREMIUM tier (16 c/s)
+      // Seedance 2 GA credit costs — explicit lookup (DB is authoritative).
+      // Fast = drafts / social (480p, 720p). Quality = cinematic (adds 1080p premium).
+      // Must mirror backend pricing_service.SEEDANCE_CREDIT_COSTS and migration 068.
       const SEEDANCE_COSTS = {
-        fast:    { 5: 50, 10: 100, 15: 150 },
-        preview: { 5: 80, 10: 160, 15: 240 }
+        fast: {
+          '480p': { 5: 80,  10: 160, 15: 240 },
+          '720p': { 5: 120, 10: 240, 15: 360 },
+        },
+        quality: {
+          '480p': { 5: 100, 10: 200, 15: 300 },
+          '720p': { 5: 160, 10: 320, 15: 480 },
+          '1080p': { 5: 250, 10: 500, 15: 750 },
+        },
       };
-      // Approximate CPS for fallback only (DB values are authoritative)
-      const SEEDANCE_CPS = { fast: 10, preview: 16 };
+      // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
+      const SEEDANCE_CPS = { fast: 16, quality: 20 };
+      // Per-tier allowed resolutions (UI must not present invalid combos like Fast 1080p).
+      const SEEDANCE_RESOLUTIONS = {
+        fast:    ['480p', '720p'],
+        quality: ['480p', '720p', '1080p'],
+      };
       // fal Seedance 1.5 Pro — BUDGET tier (8–9 c/s)
       const FAL_SEEDANCE_COSTS = { 5: 45, 10: 80, 12: 95 };
       const FAL_SEEDANCE_CPS = 8;
@@ -2755,17 +2768,22 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         },
         seedance: {
           label: 'Seedance 2.0',
-          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: false, experimentalMorph: true, animationPrompt: true },
+          // Seedance 2 GA via PiAPI: native first_last_frames replaces the legacy "experimental morph" hack.
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
             { value: '15', text: '15 sec' },
           ],
+          // Seedance 2 GA aspects: 21:9, 16:9, 4:3, 1:1, 3:4, 9:16, auto.
           aspects: [
             { value: '16:9', text: '16:9 Landscape', selected: true },
-            { value: '9:16', text: '9:16 Portrait' },
+            { value: '9:16', text: '9:16 Portrait (TikTok / Reels)' },
+            { value: '21:9', text: '21:9 Ultrawide / Cinematic' },
             { value: '4:3', text: '4:3 Standard' },
             { value: '3:4', text: '3:4 Tall' },
+            { value: '1:1', text: '1:1 Square' },
+            { value: 'auto', text: 'Auto \u2014 match input' },
           ],
           styles: [
             { value: 'auto', text: 'Auto', selected: true },
@@ -2778,12 +2796,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           ],
           showStyle: true,  // style appended to prompt client-side for all modes
           styleLabel: 'Style Hint',
-          showQuality: false,
+          showQuality: false,         // handled by dedicated seedance resolution selector
           showMotion: false,
-          showTier: true,
+          showTier: true,             // Fast / Quality
+          showSeedanceResolution: true,
           showLoop: false,
-          hint: 'Queue times vary with demand. Preview tier may take longer.',
-          timeEstimate: (s) => s.seedanceTier === 'preview' ? '~2\u201310 min' : '~1\u20133 min',
+          hint: 'Fast for drafts/social. Quality unlocks 1080p cinematic generation. Queue times vary with demand.',
+          timeEstimate: (s) => s.seedanceTier === 'quality' ? '~2\u201310 min' : '~1\u20133 min',
         },
       };
 
@@ -2793,26 +2812,46 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
        */
       function getVideoSettingsFromUI() {
         const provider = videoAIProvider?.value || 'vertex';
-        const isSeedanceFamily = (provider === 'seedance' || provider === 'fal_seedance');
+        const isSeedance = provider === 'seedance';
+        const isSeedanceFamily = isSeedance || provider === 'fal_seedance';
         const durationRaw = videoDuration?.value || (isSeedanceFamily ? '5' : '4');
         const resolutionRaw = videoQuality?.value || '720p';
         const aspectRaw = videoAspectRatio?.value || 'landscape';
 
         const seedanceTierInput = leftStack.querySelector('#seedanceTier');
-        const seedanceTier = (provider === 'seedance') ? (seedanceTierInput?.value || 'fast') : null;
+        let seedanceTier = isSeedance ? (seedanceTierInput?.value || 'fast') : null;
+        // Snap legacy `preview` to canonical `quality`.
+        if (seedanceTier === 'preview') seedanceTier = 'quality';
+
+        // Seedance owns its own resolution selector (480p/720p/1080p, tier-aware).
+        // Snap to a valid resolution for the current tier (Fast caps at 720p).
+        let seedanceResolution = '480p';
+        if (isSeedance) {
+          const resSel = leftStack.querySelector('#seedanceResolutionSelect');
+          const raw = (resSel?.value || '480p').toLowerCase();
+          const allowed = SEEDANCE_RESOLUTIONS[seedanceTier] || ['480p'];
+          seedanceResolution = allowed.includes(raw) ? raw : '480p';
+        }
 
         const settings = {
           provider: provider,
           durationSec: parseInt(durationRaw, 10) || (isSeedanceFamily ? 5 : 4),
-          resolution: isSeedanceFamily ? '720p' : resolutionRaw,
+          resolution: isSeedance
+            ? seedanceResolution
+            : (provider === 'fal_seedance' ? '720p' : resolutionRaw),
           quality: resolutionRaw,
           aspect: aspectRaw,
-          aspectRatio: VIDEO_ASPECT_MAP[aspectRaw] || aspectRaw || '16:9',
+          // Seedance aspects come in already canonical (16:9, 9:16, 21:9, 1:1, 4:3, 3:4, auto).
+          // Vertex still uses the legacy landscape/portrait alias map.
+          aspectRatio: isSeedance
+            ? (aspectRaw || '16:9')
+            : (VIDEO_ASPECT_MAP[aspectRaw] || aspectRaw || '16:9'),
           fps: 24,
           loop: videoLoop?.checked ?? true,
           mode: videoModeValue?.value || 'text2video',
           seedanceTier: seedanceTier,
-          seedanceVariant: seedanceTier === 'preview' ? 'seedance-2-preview' : (seedanceTier === 'fast' ? 'seedance-2-fast-preview' : null),
+          // GA task type strings — legacy *-preview names still accepted upstream.
+          seedanceVariant: seedanceTier === 'quality' ? 'seedance-2' : (seedanceTier === 'fast' ? 'seedance-2-fast' : null),
         };
 
         console.log('[VIDEO DEBUG] getVideoSettingsFromUI:', {
@@ -2852,14 +2891,36 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           source = 'fal_seedance';
         }
 
-        // Seedance (PiAPI): prefer explicit lookup, then CPS fallback
+        // Seedance (PiAPI): tier + resolution lookup. Fast lacks 1080p — snap to 720p.
         if (provider === 'seedance') {
-          const tier = settings.seedanceTier || 'fast';
+          let tier = (settings.seedanceTier || 'fast');
+          if (tier === 'preview') tier = 'quality';
+          const seedanceRes = (resolution || '480p').toLowerCase();
           const tierCosts = SEEDANCE_COSTS[tier] || {};
-          cost = (tierCosts[duration] !== undefined)
-            ? tierCosts[duration]
-            : (SEEDANCE_CPS[tier] || 16) * duration;
-          source = `seedance-${tier}`;
+          let resCosts = tierCosts[seedanceRes];
+          if (!resCosts && tier === 'fast' && seedanceRes === '1080p') {
+            resCosts = tierCosts['720p'];
+          }
+          if (resCosts && resCosts[duration] !== undefined) {
+            cost = resCosts[duration];
+            source = `seedance-${tier}-${seedanceRes}`;
+          } else {
+            // Try backend-fetched cost table via canonical action code
+            if (window.WorkspaceCredits?.getVideoActionCode) {
+              const ac = window.WorkspaceCredits.getVideoActionCode(
+                mode, duration, seedanceRes, 'seedance', tier
+              );
+              const lookup = window.WorkspaceCredits.resolveCost?.(ac);
+              if (typeof lookup === 'number' && lookup > 0) {
+                cost = lookup;
+                source = `seedance-${tier}-${seedanceRes}-backend`;
+              }
+            }
+            if (cost === null || cost === undefined) {
+              cost = (SEEDANCE_CPS[tier] || 16) * duration;
+              source = `seedance-${tier}-cps`;
+            }
+          }
         }
 
         // Vertex: Try to get cost from backend via WorkspaceCredits
@@ -2907,6 +2968,32 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       function isValidDuration(resolution, duration) {
         const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
         return validDurations.includes(duration);
+      }
+
+      /**
+       * Rebuild the Seedance resolution <select> options based on the active tier.
+       * Fast tier exposes 480p/720p, Quality tier adds 1080p. Snaps the current
+       * selection to a valid resolution if the tier change made it invalid.
+       */
+      function updateSeedanceResolutionOptions() {
+        const wrap = leftStack.querySelector('#seedanceResolutionWrap');
+        if (!wrap || wrap.classList.contains('hidden')) return;
+        const sel = wrap.querySelector('#seedanceResolutionSelect');
+        if (!sel) return;
+
+        const tierInput = leftStack.querySelector('#seedanceTier');
+        let tier = (tierInput && tierInput.value) || 'fast';
+        if (tier === 'preview') tier = 'quality';
+
+        const allowed = SEEDANCE_RESOLUTIONS[tier] || ['480p'];
+        const labels = {
+          '480p': '480p — Draft',
+          '720p': '720p — Standard',
+          '1080p': '1080p — Cinematic (Premium)',
+        };
+        const previous = (sel.value || '480p').toLowerCase();
+        const next = allowed.includes(previous) ? previous : '480p';
+        sel.innerHTML = allowed.map(r => `<option value="${r}"${r === next ? ' selected' : ''}>${labels[r] || r}</option>`).join('');
       }
 
       /**
@@ -3185,7 +3272,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model Tier</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — optimised for speed (~1\u20133 min)</option><option value="preview">Preview — higher quality, longer queue (~2\u20136 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model Tier</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
@@ -3197,40 +3284,72 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
             tierSelect.addEventListener('change', () => {
               const seedanceTierInput = leftStack.querySelector('#seedanceTier');
               if (seedanceTierInput) seedanceTierInput.value = tierSelect.value;
+              // Tier change can invalidate the resolution (Fast has no 1080p) — re-render.
+              updateSeedanceResolutionOptions();
               updateVideoFooter();
             });
           }
-          // Reset tier
+          // Reset tier — canonicalise legacy `preview` to `quality`.
           const seedanceTierInput = leftStack.querySelector('#seedanceTier');
-          if (seedanceTierInput) seedanceTierInput.value = 'fast';
-          if (tierSelect) tierSelect.value = 'fast';
+          if (seedanceTierInput) {
+            if (seedanceTierInput.value === 'preview') seedanceTierInput.value = 'quality';
+            if (!seedanceTierInput.value) seedanceTierInput.value = 'fast';
+          }
+          if (tierSelect) tierSelect.value = (seedanceTierInput && seedanceTierInput.value) || 'fast';
         } else if (tierWrap) {
           tierWrap.classList.add('hidden');
+        }
+
+        // Resolution selector (Seedance only) — tier-aware. Fast: 480p/720p, Quality: + 1080p.
+        let seedanceResWrap = leftStack.querySelector('#seedanceResolutionWrap');
+        if (cfg.showSeedanceResolution) {
+          if (!seedanceResWrap) {
+            seedanceResWrap = document.createElement('div');
+            seedanceResWrap.id = 'seedanceResolutionWrap';
+            seedanceResWrap.className = 'vs-setting';
+            seedanceResWrap.innerHTML = '<label for="seedanceResolutionSelect">Resolution</label><select id="seedanceResolutionSelect"></select>';
+            const tierSetting = leftStack.querySelector('#seedanceTierWrap');
+            if (tierSetting) tierSetting.after(seedanceResWrap);
+            else {
+              const durationSetting = videoDuration && videoDuration.closest('.vs-setting');
+              if (durationSetting) durationSetting.after(seedanceResWrap);
+            }
+            const _seedanceResSelect = seedanceResWrap.querySelector('#seedanceResolutionSelect');
+            if (_seedanceResSelect && !_seedanceResSelect._seedanceResWired) {
+              _seedanceResSelect._seedanceResWired = true;
+              _seedanceResSelect.addEventListener('change', () => updateVideoFooter());
+            }
+          }
+          seedanceResWrap.classList.remove('hidden');
+          updateSeedanceResolutionOptions();
+        } else if (seedanceResWrap) {
+          seedanceResWrap.classList.add('hidden');
         }
 
         // Loop/Playback toggle (Veo only — Seedance doesn't support loop)
         const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
         if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
-        // Capability-gated image features: sub-mode switcher, animation prompt, transition panel, morph panel
+        // Capability-gated image features: sub-mode switcher (animate / transition), animation prompt.
+        // Note: the legacy "experimental morph" path has been folded into native imageTransition
+        // (Seedance 2 GA uses mode=first_last_frames for both single-image animate and 2-image transition).
         const caps = cfg.capabilities || {};
         const hasTransition = !!caps.imageTransition;
-        const hasMorph = !!caps.experimentalMorph;
         const hasAnimPrompt = !!caps.animationPrompt;
         const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
         const animPromptSection = leftStack.querySelector('#animateImageContent .vs-animation-prompt-section');
         const animatePanel = leftStack.querySelector('#animateImageContent');
         const transitionPanel = leftStack.querySelector('#imageTransitionContent');
-        const morphPanel = leftStack.querySelector('#experimentalMorphContent');
+        const morphPanel = leftStack.querySelector('#experimentalMorphContent'); // legacy DOM — kept hidden
         const imgModeValue = leftStack.querySelector('#videoImgModeValue');
-        const morphBtn = leftStack.querySelector('#experimentalMorphBtn');
+        const morphBtn = leftStack.querySelector('#experimentalMorphBtn');       // legacy DOM — kept hidden
         const transitionBtn = imgModeSwitcher?.querySelector('[data-img-mode="image_transition"]');
 
-        // Show sub-mode switcher when provider supports transition OR morph
-        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition && !hasMorph);
-        // Show/hide individual mode buttons based on capability
+        // Show sub-mode switcher when provider supports native transition.
+        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition);
         if (transitionBtn) transitionBtn.style.display = hasTransition ? '' : 'none';
-        if (morphBtn) morphBtn.style.display = hasMorph ? '' : 'none';
+        // Always hide the legacy "Morph (Beta)" button — Seedance now uses native transition.
+        if (morphBtn) morphBtn.style.display = 'none';
         // Animation prompt available for providers that support it (Seedance variants)
         if (animPromptSection) animPromptSection.classList.toggle('hidden', !hasAnimPrompt);
 

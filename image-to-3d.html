@@ -37,6 +37,136 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    .image-to-3d-card{
+      position:relative;
+      background:#0b0d0e;
+      border-color:rgba(255,255,255,.08);
+      box-shadow:0 18px 50px rgba(0,0,0,.24);
+    }
+    .image-to-3d-card:hover{
+      border-color:rgba(56,189,248,.38);
+      box-shadow:0 24px 70px rgba(8,47,73,.22);
+    }
+    .i23d-stage{
+      position:relative;
+      width:100%;
+      aspect-ratio:4/3;
+      min-height:260px;
+      overflow:hidden;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
+        linear-gradient(180deg,rgba(255,255,255,.035) 1px,transparent 1px),
+        #060707;
+      background-size:34px 34px;
+      isolation:isolate;
+    }
+    .i23d-source,
+    .i23d-model{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      transition:opacity .28s ease,transform .28s ease,visibility .28s ease;
+    }
+    .image-to-3d-card .i23d-source{
+      display:block;
+      object-fit:contain;
+      padding:22px;
+      background:#070808;
+    }
+    .i23d-model{
+      opacity:0;
+      visibility:hidden;
+      transform:scale(.985);
+      --poster-color:transparent;
+    }
+    .i23d-stage.is-model-active .i23d-source{
+      opacity:0;
+      visibility:hidden;
+      transform:scale(1.02);
+    }
+    .i23d-stage.is-model-active .i23d-model{
+      opacity:1;
+      visibility:visible;
+      transform:scale(1);
+    }
+    .i23d-switch{
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:3;
+      display:flex;
+      gap:4px;
+      padding:4px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      background:rgba(5,7,8,.72);
+      backdrop-filter:blur(14px);
+    }
+    .i23d-toggle{
+      appearance:none;
+      border:0;
+      border-radius:999px;
+      background:transparent;
+      color:rgba(255,255,255,.62);
+      font:700 11px/1 Inter,system-ui,sans-serif;
+      padding:8px 10px;
+      cursor:pointer;
+      transition:background .2s ease,color .2s ease,box-shadow .2s ease;
+    }
+    .i23d-toggle.is-active{
+      color:#061014;
+      background:#7dd3fc;
+      box-shadow:0 0 22px rgba(56,189,248,.3);
+    }
+    .i23d-toggle:focus-visible{
+      outline:2px solid #7dd3fc;
+      outline-offset:2px;
+    }
+    .i23d-source-thumb{
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      z-index:3;
+      width:74px;
+      height:74px;
+      object-fit:cover;
+      border-radius:10px;
+      border:1px solid rgba(125,211,252,.42);
+      background:#050606;
+      box-shadow:0 16px 36px rgba(0,0,0,.35);
+      opacity:0;
+      visibility:hidden;
+      transform:translateY(6px);
+      transition:opacity .22s ease,transform .22s ease,visibility .22s ease;
+    }
+    .i23d-stage.is-model-active .i23d-source-thumb{
+      opacity:1;
+      visibility:visible;
+      transform:translateY(0);
+    }
+    .i23d-meta{
+      padding:clamp(14px,2vw,20px);
+    }
+    .image-to-3d-card h3{
+      margin:0 0 8px;
+    }
+    .image-to-3d-card p{
+      margin-left:0;
+      margin-right:0;
+    }
+    .image-to-3d-card p:last-child{
+      margin-bottom:0;
+    }
+    @media(max-width:520px){
+      .i23d-stage{min-height:230px}
+      .image-to-3d-card .i23d-source{padding:16px}
+      .i23d-switch{top:10px;right:10px}
+      .i23d-source-thumb{width:62px;height:62px}
+    }
+  </style>
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
@@ -246,35 +376,95 @@
       <h2 class="tool-examples-title">What You Can Create</h2>
       <p class="tool-examples-intro">From casual phone snapshots to polished product photography, TimrX image-to-3D handles a wide range of input styles. Below are six examples showing what was uploaded and what the AI produced. Each model was generated in under a minute with no manual editing.</p>
       <div class="tool-examples-grid">
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-1.webp" alt="Running shoe photo converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Running Shoe</h3>
-          <p>A side-profile photo of a running shoe was uploaded from a phone camera. The AI reconstructed the sole tread, lace eyelets, and upper mesh fabric into a textured 3D model suitable for e-commerce product previews and augmented reality try-on experiences.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Running Shoe preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/running-shoe.png" alt="Running shoe source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/running-shoe.glb" alt="Generated 3D running shoe model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/running-shoe.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Running Shoe</h3>
+            <p>A product photo becomes a textured footwear model with visible sole shape, upper panels, and streetwear-ready proportions.</p>
+          </div>
         </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-2.webp" alt="Ceramic mug photo converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Ceramic Mug</h3>
-          <p>A studio-lit photograph of a handmade ceramic mug with a glazed finish. The resulting 3D mesh captured the handle curvature, rim thickness, and surface glaze reflections. The STL export was 3D printed at 0.12mm layer height with excellent fidelity.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Ceramic Mug preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/ceramic-mug.png" alt="Ceramic mug source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/ceramic-mug.glb" alt="Generated 3D ceramic mug model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/ceramic-mug.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Ceramic Mug</h3>
+            <p>A simple object photo turns into a clean mesh with rounded handle geometry, rim thickness, and glazed surface detail.</p>
+          </div>
         </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-3.webp" alt="Fantasy character illustration converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Fantasy Character</h3>
-          <p>A digital illustration of a fantasy knight was used as input. Despite being a flat 2D drawing, the AI inferred armor plating depth, cape draping, and weapon geometry. The GLB output was imported directly into Unity for a game prototype.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Fantasy Character preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/fantasy-character.png" alt="Fantasy character source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/fantasy-character.glb" alt="Generated 3D fantasy character model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/fantasy-character.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Fantasy Character</h3>
+            <p>Concept art is reconstructed into a stylized character asset with readable silhouette, costume massing, and game-ready presence.</p>
+          </div>
         </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-4.webp" alt="Bonsai tree photo converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Bonsai Tree</h3>
-          <p>An overhead photograph of a bonsai tree in a ceramic pot. The AI separated the trunk, branches, and foliage clusters into distinct geometry, preserving the organic branching structure. The textured model works well as a decorative asset in architectural renders.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Bonsai Tree preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/bonsai-tree.png" alt="Bonsai tree source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/bonsai-tree.glb" alt="Generated 3D bonsai tree model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="20deg" shadow-intensity="0.75" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/bonsai-tree.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Bonsai Tree</h3>
+            <p>Organic reference imagery becomes a decorative 3D asset with sculptural trunk forms, foliage volume, and a display-ready pot.</p>
+          </div>
         </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-5.webp" alt="Vintage camera photo converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Vintage Camera</h3>
-          <p>A front-facing photo of a vintage film camera with visible dials, lens rings, and textured leather grip. The 3D reconstruction retained the mechanical detail of each control surface. Ideal for product visualization or museum digitization workflows.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Vintage Camera preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/vintage-camera.png" alt="Vintage camera source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/vintage-camera.glb" alt="Generated 3D vintage camera model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="22deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/vintage-camera.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Vintage Camera</h3>
+            <p>Mechanical product imagery converts into a detailed prop model with lens rings, body structure, and retro material cues.</p>
+          </div>
         </article>
-        <article class="tool-example-card">
-          <img src="/img/examples/img-3d-6.webp" alt="Toy robot illustration converted to 3D model" width="400" height="300" loading="lazy">
-          <h3>Toy Robot</h3>
-          <p>A children's book illustration of a toy robot with rounded limbs and antenna. The AI translated the flat cartoon style into smooth, printable geometry with clean quad topology. After remeshing in TimrX, the model was 3D printed as a desk figurine.</p>
+        <article class="tool-example-card image-to-3d-card">
+          <div class="i23d-stage" data-i23d-viewer>
+            <div class="i23d-switch" role="group" aria-label="Toy Robot preview mode">
+              <button class="i23d-toggle is-active" type="button" data-i23d-mode="image" aria-pressed="true">Image</button>
+              <button class="i23d-toggle" type="button" data-i23d-mode="model" aria-pressed="false">3D</button>
+            </div>
+            <img class="i23d-source" src="/vid/image-to-3d/toy-robot.png" alt="Toy robot source image used for image-to-3D generation" width="900" height="900" loading="lazy">
+            <model-viewer class="i23d-model" data-src="/vid/image-to-3d/toy-robot.glb" alt="Generated 3D toy robot model" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
+            <img class="i23d-source-thumb" src="/vid/image-to-3d/toy-robot.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
+          </div>
+          <div class="i23d-meta">
+            <h3>Toy Robot</h3>
+            <p>A playful illustration becomes a printable toy-style model with simple forms, soft edges, and clear character proportions.</p>
+          </div>
         </article>
       </div>
     </div>
@@ -551,6 +741,32 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    function loadModel(stage){
+      var model=stage.querySelector('.i23d-model');
+      if(model&&model.dataset.src&&!model.getAttribute('src')){
+        model.setAttribute('src',model.dataset.src);
+      }
+    }
+    document.querySelectorAll('[data-i23d-viewer]').forEach(function(stage){
+      var toggles=stage.querySelectorAll('[data-i23d-mode]');
+      toggles.forEach(function(toggle){
+        toggle.addEventListener('click',function(){
+          var mode=toggle.getAttribute('data-i23d-mode');
+          var showModel=mode==='model';
+          stage.classList.toggle('is-model-active',showModel);
+          if(showModel)loadModel(stage);
+          toggles.forEach(function(item){
+            var active=item===toggle;
+            item.classList.toggle('is-active',active);
+            item.setAttribute('aria-pressed',active?'true':'false');
+          });
+        });
+      });
+    });
+  })();
+  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;

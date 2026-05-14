@@ -772,25 +772,46 @@ export function isVideoAction(action) {
 }
 
 /**
- * Build video action code from task, duration, and resolution.
- * Format: VIDEO_TEXT_GENERATE_4S_720P or VIDEO_IMAGE_ANIMATE_8S_4K
- * @param {string} task - "text2video" or "image2video"
- * @param {number} durationSeconds - 4, 6, or 8
- * @param {string} resolution - "720p", "1080p", or "4k"
+ * Build a canonical lowercase video action code.
+ *
+ * Patterns by provider:
+ *   Vertex/Veo:    video_{task}_{dur}s_{res}                              (e.g. video_text_generate_4s_720p)
+ *   fal Seedance:  fal_seedance_{task}_{dur}s                             (e.g. fal_seedance_image_animate_10s)
+ *   PiAPI Seedance (GA, resolution-aware):
+ *                  seedance_{fast|quality}_{task}_{dur}s_{res}            (e.g. seedance_quality_text_generate_15s_1080p)
+ *
+ * Legacy preview-era seedance codes (no resolution suffix) still exist in the
+ * action_costs table for in-flight jobs, but new code always emits the GA form.
+ *
+ * @param {string} task         "text2video" | "image2video" | "image_transition"
+ * @param {number} durationSeconds
+ * @param {string} resolution   "480p" | "720p" | "1080p" | "4k"
+ * @param {string} [provider]   "vertex" | "seedance" | "fal_seedance"
+ * @param {string} [seedanceTier] "fast" | "quality"  (legacy "preview" mapped to "quality")
  * @returns {string} Action code
  */
-export function getVideoActionCode(task, durationSeconds, resolution, provider) {
-  // Use lowercase snake_case as canonical format
-  const taskPart = task === 'text2video' ? 'text_generate' : 'image_animate';
+export function getVideoActionCode(task, durationSeconds, resolution, provider, seedanceTier) {
+  // Lowercase snake_case canonical form.
+  let taskPart;
+  if (task === 'text2video') taskPart = 'text_generate';
+  else if (task === 'image_transition') taskPart = 'image_transition';
+  else taskPart = 'image_animate';
+
   const durationPart = `${durationSeconds}s`;
 
-  // fal Seedance: fal_seedance_{task}_{duration}s
   if (provider === 'fal_seedance') {
     return `fal_seedance_${taskPart}_${durationPart}`;
   }
 
-  // PiAPI Seedance: handled by caller with tier prefix (seedance_{tier}_{task}_{dur}s)
-  // Vertex/Veo: video_{task}_{dur}s_{res}
+  if (provider === 'seedance') {
+    let tier = (seedanceTier || 'fast').toLowerCase();
+    if (tier === 'preview') tier = 'quality';  // legacy alias
+    if (tier !== 'fast' && tier !== 'quality') tier = 'fast';
+    const resPart = (resolution || '480p').toLowerCase();
+    return `seedance_${tier}_${taskPart}_${durationPart}_${resPart}`;
+  }
+
+  // Vertex/Veo
   const resPart = resolution.toLowerCase();
   return `video_${taskPart}_${durationPart}_${resPart}`;
 }
