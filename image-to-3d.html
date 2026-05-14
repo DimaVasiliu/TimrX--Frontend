@@ -62,8 +62,7 @@
       background-size:34px 34px;
       isolation:isolate;
     }
-    .i23d-source,
-    .i23d-model{
+    .i23d-source{
       position:absolute;
       inset:0;
       width:100%;
@@ -75,29 +74,6 @@
       object-fit:contain;
       padding:22px;
       background:#070808;
-    }
-    .i23d-model{
-      opacity:0;
-      visibility:hidden;
-      transform:scale(.985);
-      --poster-color:transparent;
-    }
-    .i23d-mode-input{
-      position:absolute;
-      width:1px;
-      height:1px;
-      opacity:0;
-      pointer-events:none;
-    }
-    .i23d-mode-model:checked ~ .i23d-source{
-      opacity:0;
-      visibility:hidden;
-      transform:scale(1.02);
-    }
-    .i23d-mode-model:checked ~ .i23d-model{
-      opacity:1;
-      visibility:visible;
-      transform:scale(1);
     }
     .i23d-switch{
       position:absolute;
@@ -125,39 +101,20 @@
       padding:8px 10px;
       cursor:pointer;
       transition:background .2s ease,color .2s ease,box-shadow .2s ease;
+      text-decoration:none;
     }
-    .i23d-mode-image:checked ~ .i23d-switch .i23d-toggle-image,
-    .i23d-mode-model:checked ~ .i23d-switch .i23d-toggle-model{
+    .i23d-toggle-image{
       color:#061014;
       background:#7dd3fc;
       box-shadow:0 0 22px rgba(56,189,248,.3);
     }
-    .i23d-toggle:focus-visible,
-    .i23d-mode-input:focus-visible ~ .i23d-switch .i23d-toggle{
+    .i23d-toggle-model:hover{
+      color:#e0f2fe;
+      background:rgba(125,211,252,.12);
+    }
+    .i23d-toggle:focus-visible{
       outline:2px solid #7dd3fc;
       outline-offset:2px;
-    }
-    .i23d-source-thumb{
-      position:absolute;
-      left:12px;
-      bottom:12px;
-      z-index:3;
-      width:74px;
-      height:74px;
-      object-fit:cover;
-      border-radius:10px;
-      border:1px solid rgba(125,211,252,.42);
-      background:#050606;
-      box-shadow:0 16px 36px rgba(0,0,0,.35);
-      opacity:0;
-      visibility:hidden;
-      transform:translateY(6px);
-      transition:opacity .22s ease,transform .22s ease,visibility .22s ease;
-    }
-    .i23d-mode-model:checked ~ .i23d-source-thumb{
-      opacity:1;
-      visibility:visible;
-      transform:translateY(0);
     }
     .i23d-meta{
       padding:clamp(14px,2vw,20px);
@@ -172,11 +129,91 @@
     .image-to-3d-card p:last-child{
       margin-bottom:0;
     }
+    .i23d-modal{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+      display:grid;
+      place-items:center;
+      padding:clamp(16px,3vw,34px);
+      background:rgba(0,0,0,.82);
+      backdrop-filter:blur(18px);
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:opacity .22s ease,visibility .22s ease;
+    }
+    .i23d-modal.is-open{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+    }
+    .i23d-modal-shell{
+      position:relative;
+      width:min(1120px,100%);
+      height:min(760px,86vh);
+      border:1px solid rgba(125,211,252,.28);
+      border-radius:18px;
+      overflow:hidden;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px),
+        linear-gradient(180deg,rgba(255,255,255,.04) 1px,transparent 1px),
+        #050607;
+      background-size:42px 42px;
+      box-shadow:0 28px 120px rgba(0,0,0,.6),0 0 80px rgba(56,189,248,.12);
+    }
+    .i23d-modal-head{
+      position:absolute;
+      top:14px;
+      left:14px;
+      right:14px;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      pointer-events:none;
+    }
+    .i23d-modal-title{
+      margin:0;
+      color:#f8fafc;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.02em;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:999px;
+      background:rgba(5,7,8,.66);
+      backdrop-filter:blur(14px);
+    }
+    .i23d-modal-close{
+      pointer-events:auto;
+      appearance:none;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      width:40px;
+      height:40px;
+      color:#f8fafc;
+      background:rgba(5,7,8,.72);
+      cursor:pointer;
+      font-size:24px;
+      line-height:1;
+      transition:border-color .2s ease,background .2s ease;
+    }
+    .i23d-modal-close:hover{
+      border-color:rgba(125,211,252,.45);
+      background:rgba(14,165,233,.16);
+    }
+    .i23d-modal-viewer{
+      width:100%;
+      height:100%;
+      --poster-color:transparent;
+    }
     @media(max-width:520px){
       .i23d-stage{min-height:230px}
       .image-to-3d-card .i23d-source{padding:16px}
       .i23d-switch{top:10px;right:10px}
-      .i23d-source-thumb{width:62px;height:62px}
+      .i23d-modal-shell{height:78vh;border-radius:14px}
     }
   </style>
 
@@ -390,15 +427,11 @@
       <div class="tool-examples-grid">
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-running-shoe-image" name="i23d-running-shoe" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-running-shoe-model" name="i23d-running-shoe">
             <div class="i23d-switch" role="group" aria-label="Running Shoe preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-running-shoe-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-running-shoe-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/running-shoe.glb" data-i23d-open data-model-title="Running Shoe">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/running-shoe.png" alt="Running shoe source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/running-shoe.glb" alt="Generated 3D running shoe model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/running-shoe.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Running Shoe</h3>
@@ -407,15 +440,11 @@
         </article>
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-ceramic-mug-image" name="i23d-ceramic-mug" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-ceramic-mug-model" name="i23d-ceramic-mug">
             <div class="i23d-switch" role="group" aria-label="Ceramic Mug preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-ceramic-mug-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-ceramic-mug-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/ceramic-mug.glb" data-i23d-open data-model-title="Ceramic Mug">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/ceramic-mug.png" alt="Ceramic mug source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/ceramic-mug.glb" alt="Generated 3D ceramic mug model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/ceramic-mug.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Ceramic Mug</h3>
@@ -424,15 +453,11 @@
         </article>
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-fantasy-character-image" name="i23d-fantasy-character" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-fantasy-character-model" name="i23d-fantasy-character">
             <div class="i23d-switch" role="group" aria-label="Fantasy Character preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-fantasy-character-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-fantasy-character-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/fantasy-character.glb" data-i23d-open data-model-title="Fantasy Character">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/fantasy-character.png" alt="Fantasy character source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/fantasy-character.glb" alt="Generated 3D fantasy character model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/fantasy-character.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Fantasy Character</h3>
@@ -441,15 +466,11 @@
         </article>
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-bonsai-tree-image" name="i23d-bonsai-tree" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-bonsai-tree-model" name="i23d-bonsai-tree">
             <div class="i23d-switch" role="group" aria-label="Bonsai Tree preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-bonsai-tree-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-bonsai-tree-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/bonsai-tree.glb" data-i23d-open data-model-title="Bonsai Tree">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/bonsai-tree.png" alt="Bonsai tree source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/bonsai-tree.glb" alt="Generated 3D bonsai tree model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="20deg" shadow-intensity="0.75" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/bonsai-tree.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Bonsai Tree</h3>
@@ -458,15 +479,11 @@
         </article>
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-vintage-camera-image" name="i23d-vintage-camera" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-vintage-camera-model" name="i23d-vintage-camera">
             <div class="i23d-switch" role="group" aria-label="Vintage Camera preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-vintage-camera-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-vintage-camera-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/vintage-camera.glb" data-i23d-open data-model-title="Vintage Camera">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/vintage-camera.png" alt="Vintage camera source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/vintage-camera.glb" alt="Generated 3D vintage camera model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="22deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/vintage-camera.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Vintage Camera</h3>
@@ -475,15 +492,11 @@
         </article>
         <article class="tool-example-card image-to-3d-card">
           <div class="i23d-stage">
-            <input class="i23d-mode-input i23d-mode-image" type="radio" id="i23d-toy-robot-image" name="i23d-toy-robot" checked>
-            <input class="i23d-mode-input i23d-mode-model" type="radio" id="i23d-toy-robot-model" name="i23d-toy-robot">
             <div class="i23d-switch" role="group" aria-label="Toy Robot preview mode">
-              <label class="i23d-toggle i23d-toggle-image" for="i23d-toy-robot-image">Image</label>
-              <label class="i23d-toggle i23d-toggle-model" for="i23d-toy-robot-model">3D</label>
+              <span class="i23d-toggle i23d-toggle-image">Image</span>
+              <a class="i23d-toggle i23d-toggle-model" href="/vid/image-to-3d/toy-robot.glb" data-i23d-open data-model-title="Toy Robot">3D</a>
             </div>
             <img class="i23d-source" src="/vid/image-to-3d/toy-robot.png" alt="Toy robot source image used for image-to-3D generation" width="900" height="900" loading="lazy">
-            <model-viewer class="i23d-model" src="/vid/image-to-3d/toy-robot.glb" alt="Generated 3D toy robot model" loading="lazy" camera-controls auto-rotate auto-rotate-delay="600" rotation-per-second="24deg" shadow-intensity="0.7" exposure="1.05"></model-viewer>
-            <img class="i23d-source-thumb" src="/vid/image-to-3d/toy-robot.png" alt="" width="160" height="160" loading="lazy" aria-hidden="true">
           </div>
           <div class="i23d-meta">
             <h3>Toy Robot</h3>
@@ -493,6 +506,16 @@
       </div>
     </div>
   </section>
+
+  <div class="i23d-modal" id="i23dModal" aria-hidden="true">
+    <div class="i23d-modal-shell" role="dialog" aria-modal="true" aria-labelledby="i23dModalTitle">
+      <div class="i23d-modal-head">
+        <h3 class="i23d-modal-title" id="i23dModalTitle">3D Model</h3>
+        <button class="i23d-modal-close" type="button" aria-label="Close 3D model">&times;</button>
+      </div>
+      <model-viewer class="i23d-modal-viewer" id="i23dModalViewer" camera-controls auto-rotate auto-rotate-delay="400" rotation-per-second="22deg" shadow-intensity="0.85" exposure="1.08"></model-viewer>
+    </div>
+  </div>
 
   <!-- Comparison Table -->
   <section class="tool-comparison">
@@ -765,6 +788,46 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var modal=document.getElementById('i23dModal');
+    var viewer=document.getElementById('i23dModalViewer');
+    var title=document.getElementById('i23dModalTitle');
+    var closeButton=modal&&modal.querySelector('.i23d-modal-close');
+    var lastTrigger=null;
+    function openModel(link){
+      if(!modal||!viewer)return;
+      lastTrigger=link;
+      title.textContent=link.getAttribute('data-model-title')||'3D Model';
+      viewer.setAttribute('src',link.getAttribute('href'));
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+      if(closeButton)closeButton.focus();
+    }
+    function closeModel(){
+      if(!modal||!viewer)return;
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden','true');
+      viewer.removeAttribute('src');
+      document.body.style.overflow='';
+      if(lastTrigger)lastTrigger.focus();
+    }
+    document.addEventListener('click',function(event){
+      var link=event.target.closest('[data-i23d-open]');
+      if(link){
+        event.preventDefault();
+        openModel(link);
+        return;
+      }
+      if(event.target===modal)closeModel();
+    });
+    if(closeButton)closeButton.addEventListener('click',closeModel);
+    document.addEventListener('keydown',function(event){
+      if(event.key==='Escape'&&modal&&modal.classList.contains('is-open'))closeModel();
+    });
+  })();
+  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
