@@ -1036,9 +1036,10 @@
                   <div class="timrx-order__field">
                     <label class="timrx-order__label" for="timrxOrderHeight">Target print height (mm)</label>
                     <div class="timrx-order__size-row">
-                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="256" step="1" value="60">
+                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="256" step="1" value="50">
                       <div class="timrx-order__size-preset" role="group" aria-label="Size presets">
-                        <button type="button" class="timrx-order__preset is-active" data-size="60">60mm</button>
+                        <button type="button" class="timrx-order__preset is-active" data-size="50">50mm free</button>
+                        <button type="button" class="timrx-order__preset" data-size="60">60mm</button>
                         <button type="button" class="timrx-order__preset" data-size="100">100mm</button>
                         <button type="button" class="timrx-order__preset" data-size="150">150mm</button>
                         <button type="button" class="timrx-order__preset" data-size="200">200mm</button>
@@ -1214,6 +1215,14 @@
                 <span class="timrx-order__estimate-label">Premium packaging</span>
                 <span class="timrx-order__estimate-value" id="timrxEstPackaging">—</span>
               </div>
+              <div class="timrx-order__estimate-row timrx-order__estimate-row--positive" id="timrxEstLaunchOfferRow" style="display:none">
+                <span class="timrx-order__estimate-label">Launch offer</span>
+                <span class="timrx-order__estimate-value" id="timrxEstLaunchOffer">—</span>
+              </div>
+              <div class="timrx-order__estimate-row timrx-order__estimate-row--positive" id="timrxEstCreditRow" style="display:none">
+                <span class="timrx-order__estimate-label">Print credit</span>
+                <span class="timrx-order__estimate-value" id="timrxEstCredit">—</span>
+              </div>
               <div class="timrx-order__estimate-row">
                 <span class="timrx-order__estimate-label">Secure packaging &amp; delivery</span>
                 <span class="timrx-order__estimate-value" id="timrxEstShipping">—</span>
@@ -1251,6 +1260,11 @@
               </details>
 
               <p class="timrx-order__estimate-fineprint">Live estimate — your final total is locked in at the secure checkout step.</p>
+              <div class="timrx-order__referral" id="timrxReferralCard" hidden>
+                <span class="timrx-order__referral-kicker">Refer a friend</span>
+                <strong>Both get print credit after their first paid order.</strong>
+                <button type="button" class="timrx-order__copy-link" id="timrxReferralCopyBtn">Copy link</button>
+              </div>
             </div>
 
             <div class="timrx-order__actions">

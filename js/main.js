@@ -1520,7 +1520,7 @@ function initTimrxOrderModal() {
       print_time_per_hour: 1.10,
       min_order: 14.95,
       packaging_premium: 3.99,
-      free_shipping_threshold: 49.00,
+      free_shipping_threshold: 40.00,
       shipping: {
         small: { standard: 4.95, express: 7.95, priority: 12.95 },
         parcel: { standard: 5.95, express: 8.95, priority: 14.95 },
@@ -1643,7 +1643,11 @@ function initTimrxOrderModal() {
     provider: 'mollie',
     providersAvailable: ['mollie'],
     premiumPackaging: false,
+    serverQuote: null,
+    referral: null,
   };
+
+  let quoteTimer = null;
 
   // ── Helpers ────────────────────────────────────────────────────────
   function getMaterial() {
@@ -1860,6 +1864,30 @@ function initTimrxOrderModal() {
     return `${currencySymbol(cur)}${Number(amountInCurrency || 0).toFixed(2)}`;
   }
 
+  function formatQuoteMoney(amount, currency) {
+    const cur = currency || currencyFor(countrySel.value);
+    return `${currencySymbol(cur)}${Number(amount || 0).toFixed(2)}`;
+  }
+
+  function activeEstimate() {
+    const local = computeEstimate();
+    const q = state.serverQuote;
+    if (!q) return local;
+    return {
+      ...local,
+      currency: q.currency || local.currency,
+      subtotal: Number(q.subtotal ?? local.subtotal),
+      packaging: Number(q.packaging ?? local.packaging),
+      shipFee: Number(q.shipping ?? local.shipFee),
+      total: Number(q.total ?? local.total),
+      freeUnlocked: !!q.free_shipping_unlocked,
+      discount: Number(q.discount || 0),
+      printCredit: Number(q.print_credit || 0),
+      adjustments: Array.isArray(q.adjustments) ? q.adjustments : [],
+      launchOffer: q.launch_offer || null,
+    };
+  }
+
   function shippingCopyForCountry(country) {
     const c = String(country || '').toUpperCase();
     if (c === 'GB') {
@@ -1905,11 +1933,12 @@ function initTimrxOrderModal() {
     return `${h} h ${m} min`;
   }
 
-  function refreshEstimate() {
-    const e = computeEstimate();
+  function refreshEstimate(skipServerQuote = false) {
+    if (!skipServerQuote) state.serverQuote = null;
+    const e = activeEstimate();
     if (estMaterial) estMaterial.textContent = e.weightG > 0 ? `${e.weightG.toFixed(0)} g` : '— g';
     if (estTime)     estTime.textContent     = formatTime(e.timeMin);
-    if (estTotal)    estTotal.textContent    = formatPrice(e.total);
+    if (estTotal)    estTotal.textContent    = formatQuoteMoney(e.total, e.currency);
     const parcelClass = document.getElementById('timrxEstParcelClass');
     if (parcelClass) {
       parcelClass.textContent = e.shippingTier
@@ -1919,7 +1948,7 @@ function initTimrxOrderModal() {
 
     // Subtotal "Production" row
     const subEl = document.getElementById('timrxEstSubtotal');
-    if (subEl) subEl.textContent = formatPrice(e.subtotal);
+    if (subEl) subEl.textContent = formatQuoteMoney(e.subtotal, e.currency);
 
     // Packaging row (only when selected)
     const pkgRow = document.getElementById('timrxEstPackagingRow');
@@ -1927,7 +1956,7 @@ function initTimrxOrderModal() {
     if (pkgRow && pkgVal) {
       if (e.packaging > 0) {
         pkgRow.style.display = '';
-        pkgVal.textContent = formatPrice(e.packaging);
+        pkgVal.textContent = formatQuoteMoney(e.packaging, e.currency);
       } else {
         pkgRow.style.display = 'none';
       }
@@ -1937,9 +1966,31 @@ function initTimrxOrderModal() {
     const shipVal = document.getElementById('timrxEstShipping');
     if (shipVal) {
       if (e.freeUnlocked) {
-        shipVal.innerHTML = `<span style="color:#22c55e">${formatPrice(0)}</span>`;
+        shipVal.innerHTML = `<span style="color:#22c55e">${formatQuoteMoney(0, e.currency)}</span>`;
       } else {
-        shipVal.textContent = formatPrice(e.shipFee);
+        shipVal.textContent = formatQuoteMoney(e.shipFee, e.currency);
+      }
+    }
+
+    const launchRow = document.getElementById('timrxEstLaunchOfferRow');
+    const launchVal = document.getElementById('timrxEstLaunchOffer');
+    if (launchRow && launchVal) {
+      if (e.discount > 0) {
+        launchRow.style.display = '';
+        launchVal.textContent = `-${formatQuoteMoney(e.discount, e.currency)}`;
+      } else {
+        launchRow.style.display = 'none';
+      }
+    }
+
+    const creditRow = document.getElementById('timrxEstCreditRow');
+    const creditVal = document.getElementById('timrxEstCredit');
+    if (creditRow && creditVal) {
+      if (e.printCredit > 0) {
+        creditRow.style.display = '';
+        creditVal.textContent = `-${formatQuoteMoney(e.printCredit, e.currency)}`;
+      } else {
+        creditRow.style.display = 'none';
       }
     }
 
@@ -1965,6 +2016,8 @@ function initTimrxOrderModal() {
       const speed = (speedSel?.value || 'standard');
       nudge.style.display = (speed === 'standard') ? '' : 'none';
     }
+
+    if (!skipServerQuote) scheduleServerQuoteRefresh();
   }
 
   // ── Step navigation ────────────────────────────────────────────────
@@ -1998,7 +2051,7 @@ function initTimrxOrderModal() {
   }
 
   function renderReview() {
-    const e = computeEstimate();
+    const e = activeEstimate();
     const dims = getScaledDims();
     const sizeStr = dims
       ? `${dims[0].toFixed(0)} × ${dims[1].toFixed(0)} × ${dims[2].toFixed(0)} mm`
@@ -2046,12 +2099,18 @@ function initTimrxOrderModal() {
       </div>
       <div class="timrx-order__review-section">
         <p class="timrx-order__review-title">Order summary</p>
-        <div class="timrx-order__review-row"><dt>Production</dt><dd>${formatPrice(e.subtotal)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Production</dt><dd>${formatQuoteMoney(e.subtotal, e.currency)}</dd></div>
         ${e.packaging > 0
-          ? `<div class="timrx-order__review-row"><dt>Premium packaging</dt><dd>${formatPrice(e.packaging)}</dd></div>`
+          ? `<div class="timrx-order__review-row"><dt>Premium packaging</dt><dd>${formatQuoteMoney(e.packaging, e.currency)}</dd></div>`
           : ''}
-        <div class="timrx-order__review-row"><dt>Secure packaging & delivery</dt><dd>${e.freeUnlocked ? `<span style="color:#22c55e">Included</span>` : formatPrice(e.shipFee)}</dd></div>
-        <div class="timrx-order__review-row"><dt><strong>Order total</strong></dt><dd><strong>${formatPrice(e.total)}</strong></dd></div>
+        ${e.discount > 0
+          ? `<div class="timrx-order__review-row"><dt>Launch offer</dt><dd><span style="color:#22c55e">-${formatQuoteMoney(e.discount, e.currency)}</span></dd></div>`
+          : ''}
+        ${e.printCredit > 0
+          ? `<div class="timrx-order__review-row"><dt>Print credit</dt><dd><span style="color:#22c55e">-${formatQuoteMoney(e.printCredit, e.currency)}</span></dd></div>`
+          : ''}
+        <div class="timrx-order__review-row"><dt>Secure packaging & delivery</dt><dd>${e.freeUnlocked ? `<span style="color:#22c55e">Included</span>` : formatQuoteMoney(e.shipFee, e.currency)}</dd></div>
+        <div class="timrx-order__review-row"><dt><strong>Order total</strong></dt><dd><strong>${formatQuoteMoney(e.total, e.currency)}</strong></dd></div>
       </div>
     `;
   }
@@ -2100,10 +2159,10 @@ function initTimrxOrderModal() {
         state.sourceHeight = parsed[1];
       }
     }
-    // Default every order to a 60mm mini collectible. Source dimensions are
-    // still shown so users can choose a larger, more accurate production size.
+    // Default to the launch-offer size; users can still choose a larger,
+    // more accurate production size when they need extra detail.
     const safeMaxHeight = maxPrintableHeightForSource();
-    heightEl.value = Math.min(60, safeMaxHeight);
+    heightEl.value = Math.min(50, safeMaxHeight);
     heightEl.max = String(safeMaxHeight);
     panel.querySelectorAll('.timrx-order__preset').forEach(p => {
       p.classList.toggle('is-active', p.dataset.size === String(heightEl.value));
@@ -2142,6 +2201,7 @@ function initTimrxOrderModal() {
     document.body.classList.add('timrx-order-open');
     updateScaledHint();
     refreshEstimate();
+    loadReferralSummary();
   }
 
   function closeModal() {
@@ -2191,6 +2251,52 @@ function initTimrxOrderModal() {
     };
   }
 
+  function captureReferralToken() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('ref') || params.get('r');
+      if (token) localStorage.setItem('timrx_print_referral_token', token);
+    } catch (_) { /* ignore */ }
+  }
+
+  async function claimStoredReferralToken() {
+    if (typeof apiFetch !== 'function') return;
+    let token = '';
+    try { token = localStorage.getItem('timrx_print_referral_token') || ''; } catch (_) {}
+    if (!token) return;
+    try {
+      const res = await apiFetch('/api/print-orders/referrals/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      if (res?.ok) localStorage.removeItem('timrx_print_referral_token');
+    } catch (_) { /* keep token for next signed-in visit */ }
+  }
+
+  async function loadReferralSummary() {
+    if (typeof apiFetch !== 'function') return;
+    try {
+      await claimStoredReferralToken();
+      const res = await apiFetch('/api/print-orders/referrals/me');
+      if (res?.ok && res.data?.referral) {
+        state.referral = res.data.referral;
+        const card = document.getElementById('timrxReferralCard');
+        const btn = document.getElementById('timrxReferralCopyBtn');
+        if (card) card.hidden = false;
+        if (btn) btn.dataset.referralUrl = state.referral.url || '';
+      }
+    } catch (_) { /* referral card is optional */ }
+  }
+
+  function scheduleServerQuoteRefresh() {
+    if (!panel.classList.contains('is-visible')) return;
+    if (quoteTimer) window.clearTimeout(quoteTimer);
+    quoteTimer = window.setTimeout(() => {
+      refreshProvidersAvailable();
+    }, 250);
+  }
+
   async function refreshProvidersAvailable() {
     if (typeof apiFetch !== 'function') return;
     try {
@@ -2202,6 +2308,11 @@ function initTimrxOrderModal() {
           shipping: { country: countrySel.value, speed: speedSel.value },
         }),
       });
+      if (res?.ok && res.data?.quote) {
+        state.serverQuote = res.data.quote;
+        refreshEstimate(true);
+        if (state.step === 3) renderReview();
+      }
       if (res?.ok && res.data?.providers_available) {
         state.providersAvailable = res.data.providers_available;
         const paypalBtn = document.getElementById('timrxPayPayPal');
@@ -2400,6 +2511,7 @@ function initTimrxOrderModal() {
       s.classList.toggle('is-active', active);
       s.setAttribute('aria-checked', active ? 'true' : 'false');
     });
+    refreshEstimate();
   });
 
   infillEl.addEventListener('input', () => {
@@ -2513,7 +2625,19 @@ function initTimrxOrderModal() {
     });
   });
 
+  document.getElementById('timrxReferralCopyBtn')?.addEventListener('click', async (e) => {
+    const url = e.currentTarget.dataset.referralUrl || state.referral?.url || '';
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      if (window.showToast) window.showToast('Referral link copied.', 'success');
+    } catch (_) {
+      if (window.showToast) window.showToast(url, 'info');
+    }
+  });
+
   // Initial render
+  captureReferralToken();
   renderMaterials();
   renderSwatches();
   setRangeFill();

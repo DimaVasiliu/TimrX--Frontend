@@ -3977,12 +3977,59 @@ body.timrx-order-open .history-thumb__date {
   letter-spacing: -0.01em;
 }
 
+.timrx-order__estimate-row--positive .timrx-order__estimate-value {
+  color: #86efac;
+}
+
 .timrx-order__estimate-fineprint {
   grid-column: 1 / -1;
   margin: 4px 0 0;
   font-size: 10.5px;
   color: rgba(255, 255, 255, 0.35);
   line-height: 1.4;
+}
+
+.timrx-order__referral {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.timrx-order__referral[hidden] {
+  display: none;
+}
+
+.timrx-order__referral-kicker {
+  grid-column: 1 / -1;
+  color: #7dd3fc;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.timrx-order__referral strong {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.timrx-order__copy-link {
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.1);
+  color: #dff7ff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 7px 10px;
+  cursor: pointer;
 }
 
 /* Free-shipping progress nudge ---------------------------------------- */
