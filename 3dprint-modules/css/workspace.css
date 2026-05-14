@@ -3242,11 +3242,12 @@ button.print-slicer-btn:hover {
   /* Sit below the site nav (64px) with a 24px breathing gap. */
   top: calc(var(--site-shell-nav-height, 64px) + 24px);
   left: 50%;
-  width: min(920px, calc(100vw - 32px));
+  width: min(1120px, calc(100vw - 32px));
   max-height: calc(100vh - var(--site-shell-nav-height, 64px) - 48px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: block;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   transform: translate(-50%, 0) scale(0.97);
   background:
     linear-gradient(160deg, rgba(15, 17, 20, 0.98) 0%, rgba(18, 20, 24, 0.98) 60%, rgba(14, 18, 24, 0.98) 100%);
@@ -3265,6 +3266,12 @@ button.print-slicer-btn:hover {
   /* Above viewer toolbar/popovers but below the site nav (which stays clickable). */
   z-index: 980;
   color: #f0f2f5;
+}
+
+.timrx-order-panel::-webkit-scrollbar { width: 8px; }
+.timrx-order-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
 }
 
 .timrx-order-panel.is-visible {
@@ -3292,9 +3299,8 @@ body.timrx-order-open .history-thumb__date {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 22px 14px;
+  padding: 16px 24px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
 }
 
 .timrx-order__titles {
@@ -3355,10 +3361,9 @@ body.timrx-order-open .history-thumb__date {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 22px;
+  padding: 10px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
 }
 
 .timrx-order__step {
@@ -3412,17 +3417,8 @@ body.timrx-order-open .history-thumb__date {
 
 /* Body & panes */
 .timrx-order__body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 18px 22px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
-}
-
-.timrx-order__body::-webkit-scrollbar { width: 8px; }
-.timrx-order__body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  padding: 18px 24px 8px;
+  overflow: visible;
 }
 
 .timrx-order__step-pane { display: none; }
@@ -3431,8 +3427,8 @@ body.timrx-order-open .history-thumb__date {
 /* Step 1 layout: model summary + form */
 .timrx-order__grid {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 18px;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 22px;
 }
 
 @media (max-width: 720px) {
@@ -3447,6 +3443,7 @@ body.timrx-order-open .history-thumb__date {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  align-self: start;
 }
 
 .timrx-order__thumb {
@@ -3692,18 +3689,18 @@ body.timrx-order-open .history-thumb__date {
 /* Color swatches */
 .timrx-order__swatches {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 8px;
   margin-top: 8px;
 }
 
 .timrx-order__swatch {
   position: relative;
-  display: grid;
-  grid-template-rows: auto auto auto;
-  gap: 7px;
-  min-height: 92px;
-  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 9px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.025);
@@ -3715,47 +3712,44 @@ body.timrx-order-open .history-thumb__date {
 }
 
 .timrx-order__swatch-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  display: contents;
 }
 
 .timrx-order__swatch-dot {
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), transparent 28%),
     var(--swatch-color, #888);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.22);
   flex-shrink: 0;
 }
 
 .timrx-order__swatch-family {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
+  display: none;
 }
 
 .timrx-order__swatch-label {
   display: block;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 11px;
   line-height: 1.15;
   font-weight: 800;
   color: #f5fbff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .timrx-order__swatch-code {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.42);
-  font-variant-numeric: tabular-nums;
+  display: none;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
 }
 
 .timrx-order__swatch:hover {
@@ -3773,16 +3767,16 @@ body.timrx-order-open .history-thumb__date {
 .timrx-order__swatch.is-active::after {
   content: "✓";
   position: absolute;
-  top: 8px;
-  right: 9px;
+  top: 5px;
+  right: 5px;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #0EA5E9;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: #071016;
 }
@@ -3925,18 +3919,18 @@ body.timrx-order-open .history-thumb__date {
 /* Footer */
 .timrx-order__footer {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
-  align-items: end;
-  padding: 14px 22px 16px;
+  grid-template-columns: minmax(320px, 520px) 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 24px 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.25);
-  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.16);
 }
 
-@media (max-width: 560px) {
+@media (max-width: 900px) {
   .timrx-order__footer {
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }
 
@@ -3946,7 +3940,7 @@ body.timrx-order-open .history-thumb__date {
   column-gap: 18px;
   row-gap: 4px;
   font-size: 12px;
-  max-width: 460px;
+  max-width: none;
 }
 
 .timrx-order__estimate-row {
