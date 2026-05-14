@@ -1515,36 +1515,51 @@ function initTimrxOrderModal() {
   //    backend/services/print_order_pricing.py::PRICING exactly.
   const PRICING = {
     GBP: {
-      production_fee: 8.50,
-      print_time_per_hour: 0.80,
-      min_order: 14.00,
+      production_fee: 9.75,
+      print_time_per_hour: 1.10,
+      min_order: 14.95,
       packaging_premium: 3.99,
-      free_shipping_threshold: 45.00,
-      shipping: { standard: 4.49, express: 7.99, priority: 12.99 },
+      free_shipping_threshold: 49.00,
+      shipping: {
+        small: { standard: 4.95, express: 7.95, priority: 12.95 },
+        parcel: { standard: 5.95, express: 8.95, priority: 14.95 },
+        medium: { standard: 7.95, express: 10.95, priority: 18.95 },
+        oversized: { standard: 14.95, express: 19.95, priority: 29.95 },
+      },
       materials: {
         fdm:   { pla: 78, plaplus: 95, petg: 105, abs: 115, tpu: 145, silk: 110 },
         resin: { std: 145, tough: 175, clear: 190, flex: 220 },
       },
     },
     EUR: {
-      production_fee: 9.99,
-      print_time_per_hour: 0.95,
-      min_order: 16.00,
+      production_fee: 11.50,
+      print_time_per_hour: 1.25,
+      min_order: 17.95,
       packaging_premium: 4.99,
-      free_shipping_threshold: 55.00,
-      shipping: { standard: 7.49, express: 13.99, priority: 22.99 },
+      free_shipping_threshold: 65.00,
+      shipping: {
+        small: { standard: 8.95, express: 15.95, priority: 24.95 },
+        parcel: { standard: 11.95, express: 18.95, priority: 28.95 },
+        medium: { standard: 16.95, express: 24.95, priority: 36.95 },
+        oversized: { standard: 29.95, express: 42.95, priority: 64.95 },
+      },
       materials: {
         fdm:   { pla: 92, plaplus: 112, petg: 122, abs: 135, tpu: 170, silk: 130 },
         resin: { std: 170, tough: 205, clear: 220, flex: 255 },
       },
     },
     USD: {
-      production_fee: 11.99,
-      print_time_per_hour: 1.10,
-      min_order: 18.00,
+      production_fee: 13.50,
+      print_time_per_hour: 1.45,
+      min_order: 19.95,
       packaging_premium: 5.99,
-      free_shipping_threshold: 65.00,
-      shipping: { standard: 11.99, express: 24.99, priority: 42.99 },
+      free_shipping_threshold: 79.00,
+      shipping: {
+        small: { standard: 13.95, express: 26.95, priority: 44.95 },
+        parcel: { standard: 18.95, express: 32.95, priority: 54.95 },
+        medium: { standard: 28.95, express: 44.95, priority: 74.95 },
+        oversized: { standard: 49.95, express: 74.95, priority: 119.95 },
+      },
       materials: {
         fdm:   { pla: 100, plaplus: 122, petg: 135, abs: 148, tpu: 185, silk: 142 },
         resin: { std: 185, tough: 225, clear: 245, flex: 285 },
@@ -1595,6 +1610,17 @@ function initTimrxOrderModal() {
   // Multipliers — must mirror the backend.
   const QUALITY_MULT = { draft: 0.85, standard: 1.0, fine: 1.4, ultra: 2.0 };
   const FINISH_MULT  = { raw: 1.0, sanded: 1.15, primed: 1.35, painted: 2.2 };
+  const MATERIAL_FLOOR_PREMIUMS = {
+    fdm: { pla: 0, plaplus: 1.20, petg: 2.00, abs: 2.40, tpu: 3.80, silk: 2.50 },
+    resin: { std: 4.00, tough: 6.00, clear: 7.00, flex: 9.00 },
+  };
+  const SIZE_CLASS_MULT = {
+    mini: 1.00,
+    collectible: 1.12,
+    display: 1.32,
+    showpiece: 1.58,
+    oversized: 1.95,
+  };
 
   let state = {
     process: 'fdm',
@@ -1660,16 +1686,42 @@ function initTimrxOrderModal() {
     return [state.bboxMm[0] * ratio, targetH, state.bboxMm[2] * ratio];
   }
 
+  function getSizeClass(dims) {
+    const maxDim = Math.max(dims?.[0] || 0, dims?.[1] || 0, dims?.[2] || 0);
+    if (maxDim < 75) return 'mini';
+    if (maxDim < 125) return 'collectible';
+    if (maxDim < 175) return 'display';
+    if (maxDim < 225) return 'showpiece';
+    return 'oversized';
+  }
+
+  function getShippingTier(dims, totalWeightG, qty) {
+    const maxDim = Math.max(dims?.[0] || 0, dims?.[1] || 0, dims?.[2] || 0);
+    const packedWeightG = totalWeightG + 140 + Math.max(0, qty - 1) * 35;
+    if (maxDim <= 160 && packedWeightG <= 500) return 'small';
+    if (maxDim <= 350 && packedWeightG <= 2000) return 'parcel';
+    if (maxDim <= 450 && packedWeightG <= 5000) return 'medium';
+    return 'oversized';
+  }
+
   function updateScaledHint() {
     if (!state.bboxMm) {
-      scaledHint.textContent = 'Open a model with a completed print check to auto-fill original dimensions.';
+      scaledHint.textContent = 'Run Print Check before ordering for accurate dimensions, weight and delivery class.';
       return;
     }
     const dims = getScaledDims();
     if (!dims) return;
+    const targetH = parseFloat(heightEl.value) || 0;
+    const suggestion =
+      targetH < 100
+        ? ' 60mm is economical; choose 100-150mm if surface detail matters.'
+        : targetH >= 200
+          ? ' Larger prints may move into parcel or oversized delivery.'
+          : ' This is a balanced collectible size for detail and cost.';
     scaledHint.textContent =
       `Scaled to ${dims[0].toFixed(0)} × ${dims[1].toFixed(0)} × ${dims[2].toFixed(0)} mm` +
-      ` (original ${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm).`;
+      ` (original ${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm).` +
+      suggestion;
   }
 
   // Authoritative price model — native per-currency. Backend re-validates
@@ -1709,9 +1761,13 @@ function initTimrxOrderModal() {
     const qty = Math.max(1, Math.min(100, parseInt(qtyEl.value) || 1));
 
     // Per-unit production cost: production_fee + material + print-time,
-    // floored to the per-currency minimum.
-    const perUnitRaw = P.production_fee + materialCost + printTimeCost;
-    const perUnit = Math.max(perUnitRaw, P.min_order);
+    // floored to a material-aware minimum so small premium materials visibly
+    // change the quote instead of being hidden by the base floor.
+    const sizeClass = dims ? getSizeClass(dims) : 'mini';
+    const sizeMult = SIZE_CLASS_MULT[sizeClass] || 1;
+    const materialFloorPremium = (MATERIAL_FLOOR_PREMIUMS[state.process] || {})[state.materialId] || 0;
+    const perUnitRaw = (P.production_fee + materialCost + printTimeCost) * sizeMult;
+    const perUnit = Math.max(perUnitRaw, (P.min_order + materialFloorPremium) * sizeMult);
 
     // Quantity discount tightened: -2.5% per extra unit, cap 15%.
     const qtyDiscount = Math.min(0.15, Math.max(0, (qty - 1) * 0.025));
@@ -1722,7 +1778,9 @@ function initTimrxOrderModal() {
 
     // Shipping — native rate, free over threshold for STANDARD only.
     const speed = (speedSel.value || 'standard');
-    const shipFull = P.shipping[speed] ?? P.shipping.standard;
+    const shippingTier = getShippingTier(dims || [60, 60, 60], weightG * qty, qty);
+    const tierTable = P.shipping[shippingTier] || P.shipping.small;
+    const shipFull = tierTable[speed] ?? tierTable.standard;
     const preShippingTotal = subtotal + packagingFee;
     const freeUnlocked = (speed === 'standard') && (preShippingTotal >= P.free_shipping_threshold);
     const shipFee = freeUnlocked ? 0 : shipFull;
@@ -1746,6 +1804,8 @@ function initTimrxOrderModal() {
       total,
       materialLabel: mat.label,
       qtyDiscount,
+      shippingTier,
+      sizeClass,
     };
   }
 
@@ -1769,6 +1829,12 @@ function initTimrxOrderModal() {
     if (estMaterial) estMaterial.textContent = e.weightG > 0 ? `${e.weightG.toFixed(0)} g` : '— g';
     if (estTime)     estTime.textContent     = formatTime(e.timeMin);
     if (estTotal)    estTotal.textContent    = formatPrice(e.total);
+    const parcelClass = document.getElementById('timrxEstParcelClass');
+    if (parcelClass) {
+      parcelClass.textContent = e.shippingTier
+        ? e.shippingTier.charAt(0).toUpperCase() + e.shippingTier.slice(1)
+        : '—';
+    }
 
     // Subtotal "Production" row
     const subEl = document.getElementById('timrxEstSubtotal');
@@ -1803,14 +1869,14 @@ function initTimrxOrderModal() {
     if (nudge && nudgeBar && nudgeText) {
       if (e.freeUnlocked) {
         nudge.classList.add('is-unlocked');
-        nudgeText.textContent = 'Free Tracked delivery unlocked';
+        nudgeText.textContent = 'Complimentary tracked delivery unlocked';
         nudgeBar.style.setProperty('--free-pct', '100%');
       } else if (e.freeShippingRemaining > 0 && (speedSel?.value || 'standard') === 'standard') {
         nudge.classList.remove('is-unlocked');
         const denom = e.freeShippingThreshold || 1;
         const pct = Math.max(4, Math.min(100, ((denom - e.freeShippingRemaining) / denom) * 100));
         nudgeText.innerHTML =
-          `Add <strong>${formatPrice(e.freeShippingRemaining)}</strong> more for free Tracked delivery`;
+          `Add <strong>${formatPrice(e.freeShippingRemaining)}</strong> more for complimentary tracked delivery`;
         nudgeBar.style.setProperty('--free-pct', pct.toFixed(0) + '%');
         nudge.style.display = '';
       }
@@ -1903,7 +1969,7 @@ function initTimrxOrderModal() {
         ${e.packaging > 0
           ? `<div class="timrx-order__review-row"><dt>Premium packaging</dt><dd>${formatPrice(e.packaging)}</dd></div>`
           : ''}
-        <div class="timrx-order__review-row"><dt>${e.freeUnlocked ? 'Tracked delivery' : 'Tracked delivery'}</dt><dd>${e.freeUnlocked ? `<span style="color:#22c55e">FREE</span>` : formatPrice(e.shipFee)}</dd></div>
+        <div class="timrx-order__review-row"><dt>Secure packaging & delivery</dt><dd>${e.freeUnlocked ? `<span style="color:#22c55e">Included</span>` : formatPrice(e.shipFee)}</dd></div>
         <div class="timrx-order__review-row"><dt><strong>Order total</strong></dt><dd><strong>${formatPrice(e.total)}</strong></dd></div>
       </div>
     `;
@@ -1951,10 +2017,14 @@ function initTimrxOrderModal() {
       if (parsed.every(n => Number.isFinite(n) && n > 0)) {
         state.bboxMm = parsed;
         state.sourceHeight = parsed[1];
-        // Pre-fill target height with source height if smaller than 200mm, else 150mm.
-        heightEl.value = parsed[1] < 200 ? Math.round(parsed[1]) : 150;
       }
     }
+    // Default every order to a 60mm mini collectible. Source dimensions are
+    // still shown so users can choose a larger, more accurate production size.
+    heightEl.value = 60;
+    panel.querySelectorAll('.timrx-order__preset').forEach(p => {
+      p.classList.toggle('is-active', p.dataset.size === '60');
+    });
 
     // Model thumb + name
     const thumb = document.getElementById('timrxOrderThumb');
@@ -2307,6 +2377,12 @@ function initTimrxOrderModal() {
   // Navigation
   nextBtn.addEventListener('click', async () => {
     if (state.step === 1) {
+      if (!state.bboxMm) {
+        if (window.showToast) {
+          window.showToast('Run Print Check first so TimrX can price the exact model dimensions.', 'info');
+        }
+        return;
+      }
       setStep(2);
     } else if (state.step === 2) {
       if (!validateShipping()) return;

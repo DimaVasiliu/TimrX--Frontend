@@ -1026,10 +1026,10 @@
                   <div class="timrx-order__field">
                     <label class="timrx-order__label" for="timrxOrderHeight">Target print height (mm)</label>
                     <div class="timrx-order__size-row">
-                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="500" step="1" value="100">
+                      <input id="timrxOrderHeight" type="number" class="timrx-order__input" min="10" max="500" step="1" value="60">
                       <div class="timrx-order__size-preset" role="group" aria-label="Size presets">
-                        <button type="button" class="timrx-order__preset" data-size="60">60mm</button>
-                        <button type="button" class="timrx-order__preset is-active" data-size="100">100mm</button>
+                        <button type="button" class="timrx-order__preset is-active" data-size="60">60mm</button>
+                        <button type="button" class="timrx-order__preset" data-size="100">100mm</button>
                         <button type="button" class="timrx-order__preset" data-size="150">150mm</button>
                         <button type="button" class="timrx-order__preset" data-size="200">200mm</button>
                       </div>
@@ -1189,7 +1189,7 @@
 
               <!-- Free-shipping progress nudge -->
               <div class="timrx-order__freeship" id="timrxFreeShipNudge">
-                <p class="timrx-order__freeship-text" id="timrxFreeShipText">Add more to unlock free Tracked delivery</p>
+                <p class="timrx-order__freeship-text" id="timrxFreeShipText">Add more to unlock complimentary tracked delivery</p>
                 <div class="timrx-order__freeship-track">
                   <div class="timrx-order__freeship-bar" id="timrxFreeShipBar"></div>
                 </div>
@@ -1204,7 +1204,7 @@
                 <span class="timrx-order__estimate-value" id="timrxEstPackaging">—</span>
               </div>
               <div class="timrx-order__estimate-row">
-                <span class="timrx-order__estimate-label">Tracked delivery</span>
+                <span class="timrx-order__estimate-label">Secure packaging &amp; delivery</span>
                 <span class="timrx-order__estimate-value" id="timrxEstShipping">—</span>
               </div>
               <div class="timrx-order__estimate-row timrx-order__estimate-row--total">
@@ -1216,7 +1216,7 @@
               <ul class="timrx-order__trust">
                 <li>✓ Produced on demand</li>
                 <li>✓ Tracked delivery</li>
-                <li>✓ QC-checked</li>
+                <li>✓ Quality checked</li>
                 <li>✓ Securely packaged</li>
               </ul>
 
@@ -1231,6 +1231,10 @@
                   <div class="timrx-order__details-row">
                     <span>Estimated print time</span>
                     <span id="timrxEstTime">—</span>
+                  </div>
+                  <div class="timrx-order__details-row">
+                    <span>Parcel class</span>
+                    <span id="timrxEstParcelClass">—</span>
                   </div>
                 </div>
               </details>
