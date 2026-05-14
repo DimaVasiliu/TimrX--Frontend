@@ -2659,7 +2659,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         quality: {
           '480p': { 5: 100, 10: 200, 15: 300 },
           '720p': { 5: 160, 10: 320, 15: 480 },
-          '1080p': { 5: 250, 10: 500, 15: 750 },
+          // 1080p bumped 20% (migration 069) to protect net margin vs PiAPI's $0.50/s cost.
+          '1080p': { 5: 300, 10: 600, 15: 900 },
         },
       };
       // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
