@@ -1510,29 +1510,67 @@ function initTimrxOrderModal() {
   function currencySymbol(cur) {
     return cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
   }
-  // Naive FX (matches backend FX_FROM_USD). Frontend display only —
-  // the backend recomputes the authoritative price before charging.
-  function fxFromUsd(cur) {
-    if (cur === 'EUR') return 0.92;
-    if (cur === 'GBP') return 0.79;
-    return 1.0;
+
+  // ── Native per-currency pricing tables — MUST mirror
+  //    backend/services/print_order_pricing.py::PRICING exactly.
+  const PRICING = {
+    GBP: {
+      production_fee: 8.50,
+      print_time_per_hour: 0.80,
+      min_order: 14.00,
+      packaging_premium: 3.99,
+      free_shipping_threshold: 45.00,
+      shipping: { standard: 4.49, express: 7.99, priority: 12.99 },
+      materials: {
+        fdm:   { pla: 78, plaplus: 95, petg: 105, abs: 115, tpu: 145, silk: 110 },
+        resin: { std: 145, tough: 175, clear: 190, flex: 220 },
+      },
+    },
+    EUR: {
+      production_fee: 9.99,
+      print_time_per_hour: 0.95,
+      min_order: 16.00,
+      packaging_premium: 4.99,
+      free_shipping_threshold: 55.00,
+      shipping: { standard: 7.49, express: 13.99, priority: 22.99 },
+      materials: {
+        fdm:   { pla: 92, plaplus: 112, petg: 122, abs: 135, tpu: 170, silk: 130 },
+        resin: { std: 170, tough: 205, clear: 220, flex: 255 },
+      },
+    },
+    USD: {
+      production_fee: 11.99,
+      print_time_per_hour: 1.10,
+      min_order: 18.00,
+      packaging_premium: 5.99,
+      free_shipping_threshold: 65.00,
+      shipping: { standard: 11.99, express: 24.99, priority: 42.99 },
+      materials: {
+        fdm:   { pla: 100, plaplus: 122, petg: 135, abs: 148, tpu: 185, silk: 142 },
+        resin: { std: 185, tough: 225, clear: 245, flex: 285 },
+      },
+    },
+  };
+
+  function pricingTable() {
+    return PRICING[currencyFor(countrySel.value)] || PRICING.EUR;
   }
 
-  // ── Material catalog (per process) ─────────────────────────────────
+  // ── Material catalog (display + density only; rates live in PRICING) ──
   const MATERIALS = {
     fdm: [
-      { id: 'pla',   label: 'PLA',          density: 1.24, ratePerKg: 38,  hint: 'Easy to print, vivid colors, biodegradable. Great for display pieces.' },
-      { id: 'plaplus', label: 'PLA+ (tough)', density: 1.24, ratePerKg: 52, hint: 'Stronger and tougher than standard PLA. Recommended for functional parts.' },
-      { id: 'petg',  label: 'PETG',         density: 1.27, ratePerKg: 58,  hint: 'Tough, slightly flexible, food-safe. Good for outdoor and mechanical parts.' },
-      { id: 'abs',   label: 'ABS',          density: 1.04, ratePerKg: 62,  hint: 'High temp resistance, impact strong. Best for mechanical and automotive parts.' },
-      { id: 'tpu',   label: 'TPU (flex)',   density: 1.21, ratePerKg: 78,  hint: 'Flexible rubber-like filament. Great for grips, gaskets and wearables.' },
-      { id: 'silk',  label: 'PLA Silk',     density: 1.24, ratePerKg: 62,  hint: 'High-gloss premium PLA. Beautiful for figurines and decorative prints.' },
+      { id: 'pla',     label: 'PLA',          density: 1.24, hint: 'Easy to print, vivid colors, biodegradable. Great for display pieces.' },
+      { id: 'plaplus', label: 'PLA+ (tough)', density: 1.24, hint: 'Stronger and tougher than standard PLA. Recommended for functional parts.' },
+      { id: 'petg',    label: 'PETG',         density: 1.27, hint: 'Tough, slightly flexible, food-safe. Good for outdoor and mechanical parts.' },
+      { id: 'abs',     label: 'ABS',          density: 1.04, hint: 'High temp resistance, impact strong. Best for mechanical and automotive parts.' },
+      { id: 'tpu',     label: 'TPU (flex)',   density: 1.21, hint: 'Flexible rubber-like filament. Great for grips, gaskets and wearables.' },
+      { id: 'silk',    label: 'PLA Silk',     density: 1.24, hint: 'High-gloss premium PLA. Beautiful for figurines and decorative prints.' },
     ],
     resin: [
-      { id: 'std',   label: 'Standard Resin', density: 1.10, ratePerKg: 95,  hint: 'Crisp detail, great for figurines, miniatures and presentation models.' },
-      { id: 'tough', label: 'Tough Resin',    density: 1.13, ratePerKg: 120, hint: 'Impact-resistant resin. Suitable for functional prototypes.' },
-      { id: 'clear', label: 'Clear Resin',    density: 1.10, ratePerKg: 130, hint: 'Translucent finish, ideal for light pieces, lenses, decorative items.' },
-      { id: 'flex',  label: 'Flexible Resin', density: 1.10, ratePerKg: 160, hint: 'Soft & bendable. For grips, gaskets, wearables.' },
+      { id: 'std',   label: 'Standard Resin', density: 1.10, hint: 'Crisp detail, great for figurines, miniatures and presentation models.' },
+      { id: 'tough', label: 'Tough Resin',    density: 1.13, hint: 'Impact-resistant resin. Suitable for functional prototypes.' },
+      { id: 'clear', label: 'Clear Resin',    density: 1.10, hint: 'Translucent finish, ideal for light pieces, lenses, decorative items.' },
+      { id: 'flex',  label: 'Flexible Resin', density: 1.10, hint: 'Soft & bendable. For grips, gaskets, wearables.' },
     ],
   };
 
@@ -1554,12 +1592,9 @@ function initTimrxOrderModal() {
     { id: 'silver', label: 'Silver', hex: '#c2c8cf' },
   ];
 
-  // Multipliers
-  const QUALITY_MULT = { draft: 0.85, standard: 1.0, fine: 1.35, ultra: 1.8 };
-  const FINISH_MULT  = { raw: 1.0, sanded: 1.15, primed: 1.3, painted: 1.8 };
-  const SPEED_FEE    = { standard: 0, express: 18, priority: 42 };
-  const SHIP_BASE    = { US: 9, CA: 14, GB: 14, EU: 16, AU: 22, JP: 22, OTHER: 28 };
-  const BASE_FEE     = 6.50;  // Setup + cleaning fee per order
+  // Multipliers — must mirror the backend.
+  const QUALITY_MULT = { draft: 0.85, standard: 1.0, fine: 1.4, ultra: 2.0 };
+  const FINISH_MULT  = { raw: 1.0, sanded: 1.15, primed: 1.35, painted: 2.2 };
 
   let state = {
     process: 'fdm',
@@ -1570,6 +1605,7 @@ function initTimrxOrderModal() {
     step: 1,
     provider: 'mollie',
     providersAvailable: ['mollie'],
+    premiumPackaging: false,
   };
 
   // ── Helpers ────────────────────────────────────────────────────────
@@ -1636,54 +1672,76 @@ function initTimrxOrderModal() {
       ` (original ${state.bboxMm[0].toFixed(0)} × ${state.bboxMm[1].toFixed(0)} × ${state.bboxMm[2].toFixed(0)} mm).`;
   }
 
-  // Crude but defensible price model: volume × infill × density × $/kg × multipliers.
+  // Authoritative price model — native per-currency. Backend re-validates
+  // the exact same numbers before charging, so what the customer sees here
+  // is what they'll be billed (modulo currency rounding).
   function computeEstimate() {
+    const P  = pricingTable();
+    const cur = currencyFor(countrySel.value);
     const dims = getScaledDims();
+
     let weightG = 0;
     let timeMin = 0;
+    const mat = getMaterial();
+
+    const qualityMult = QUALITY_MULT[qualitySel.value] || 1;
+    const finishMult  = FINISH_MULT[finishSel.value]  || 1;
+
     if (dims) {
-      // Bounding box volume in cm³
       const volCm3 = (dims[0] * dims[1] * dims[2]) / 1000;
-      // Rough "object fraction" — printed object is usually 25-40% of its bbox.
-      const objectFraction = 0.32;
-      const mat = getMaterial();
+      // Calibrated object-fraction (bbox-based prints overshoot in raw form).
+      const objectFraction = state.process === 'resin' ? 0.12 : 0.18;
       const infillPct = state.process === 'resin' ? 100 : (parseFloat(infillEl.value) || 20);
-      // For FDM: walls ~3 perimeters ≈ 30% solid, rest is infill of inner volume.
       const effectiveSolidFraction =
         state.process === 'resin'
-          ? 1.0
-          : 0.30 + (1 - 0.30) * (infillPct / 100);
-      const solidVolCm3 = volCm3 * objectFraction * effectiveSolidFraction;
-      weightG = solidVolCm3 * mat.density; // density g/cm³
-      // Print time heuristic: ~1.6 minutes/g FDM standard; resin ~0.8 min/g for std
+          ? objectFraction
+          : objectFraction * (0.30 + 0.70 * (Math.max(10, Math.min(100, infillPct)) / 100));
+      const solidVolCm3 = volCm3 * effectiveSolidFraction;
+      weightG = solidVolCm3 * mat.density;
       const baseMinPerG = state.process === 'resin' ? 0.85 : 1.6;
-      timeMin = weightG * baseMinPerG * (QUALITY_MULT[qualitySel.value] || 1);
+      timeMin = weightG * baseMinPerG * qualityMult;
     }
 
-    const mat = getMaterial();
-    const materialCost = (weightG / 1000) * mat.ratePerKg;
-    const qualityMult = QUALITY_MULT[qualitySel.value] || 1;
-    const finishMult  = FINISH_MULT[finishSel.value] || 1;
+    const materialRate = (P.materials[state.process] || {})[state.materialId] || 0;
+    const materialCost = (weightG / 1000) * materialRate * qualityMult * finishMult;
+    const printTimeCost = (timeMin / 60) * P.print_time_per_hour;
+
     const qty = Math.max(1, Math.min(100, parseInt(qtyEl.value) || 1));
 
-    // Per-unit subtotal: base + material × quality × finish
-    const perUnit = BASE_FEE + (materialCost * qualityMult * finishMult);
-    // Quantity discount: -3% per extra unit, capped at 25%
-    const qtyDiscount = Math.min(0.25, Math.max(0, (qty - 1) * 0.03));
+    // Per-unit production cost: production_fee + material + print-time,
+    // floored to the per-currency minimum.
+    const perUnitRaw = P.production_fee + materialCost + printTimeCost;
+    const perUnit = Math.max(perUnitRaw, P.min_order);
+
+    // Quantity discount tightened: -2.5% per extra unit, cap 15%.
+    const qtyDiscount = Math.min(0.15, Math.max(0, (qty - 1) * 0.025));
     const subtotal = perUnit * qty * (1 - qtyDiscount);
 
-    // Shipping
-    const shipBase = SHIP_BASE[countrySel.value] ?? SHIP_BASE.OTHER;
-    const shipFee  = shipBase + (SPEED_FEE[speedSel.value] || 0);
+    // Packaging (one fee per order)
+    const packagingFee = state.premiumPackaging ? P.packaging_premium : 0;
 
-    const total = subtotal + shipFee;
+    // Shipping — native rate, free over threshold for STANDARD only.
+    const speed = (speedSel.value || 'standard');
+    const shipFull = P.shipping[speed] ?? P.shipping.standard;
+    const preShippingTotal = subtotal + packagingFee;
+    const freeUnlocked = (speed === 'standard') && (preShippingTotal >= P.free_shipping_threshold);
+    const shipFee = freeUnlocked ? 0 : shipFull;
+    const freeShippingRemaining = Math.max(0, P.free_shipping_threshold - preShippingTotal);
+
+    const total = subtotal + packagingFee + shipFee;
 
     return {
+      currency: cur,
       weightG: weightG * qty,
       timeMin: timeMin * qty,
       perUnit,
       subtotal,
+      packaging: packagingFee,
+      shipFull,
       shipFee,
+      freeUnlocked,
+      freeShippingRemaining,
+      freeShippingThreshold: P.free_shipping_threshold,
       qty,
       total,
       materialLabel: mat.label,
@@ -1691,16 +1749,10 @@ function initTimrxOrderModal() {
     };
   }
 
-  // Convert a USD amount to the order currency for display only.
-  // (Backend will recompute & charge the authoritative price.)
-  function displayPrice(usdAmount) {
+  // Render a money amount in the active order currency.
+  function formatPrice(amountInCurrency) {
     const cur = currencyFor(countrySel.value);
-    const fx = fxFromUsd(cur);
-    return `${currencySymbol(cur)}${(usdAmount * fx).toFixed(2)}`;
-  }
-
-  function formatPrice(n) {
-    return displayPrice(n);
+    return `${currencySymbol(cur)}${Number(amountInCurrency || 0).toFixed(2)}`;
   }
 
   function formatTime(min) {
@@ -1714,9 +1766,58 @@ function initTimrxOrderModal() {
 
   function refreshEstimate() {
     const e = computeEstimate();
-    estMaterial.textContent = e.weightG > 0 ? `${e.weightG.toFixed(0)} g` : '— g';
-    estTime.textContent     = formatTime(e.timeMin);
-    estTotal.textContent    = formatPrice(e.total);
+    if (estMaterial) estMaterial.textContent = e.weightG > 0 ? `${e.weightG.toFixed(0)} g` : '— g';
+    if (estTime)     estTime.textContent     = formatTime(e.timeMin);
+    if (estTotal)    estTotal.textContent    = formatPrice(e.total);
+
+    // Subtotal "Production" row
+    const subEl = document.getElementById('timrxEstSubtotal');
+    if (subEl) subEl.textContent = formatPrice(e.subtotal);
+
+    // Packaging row (only when selected)
+    const pkgRow = document.getElementById('timrxEstPackagingRow');
+    const pkgVal = document.getElementById('timrxEstPackaging');
+    if (pkgRow && pkgVal) {
+      if (e.packaging > 0) {
+        pkgRow.style.display = '';
+        pkgVal.textContent = formatPrice(e.packaging);
+      } else {
+        pkgRow.style.display = 'none';
+      }
+    }
+
+    // Shipping row
+    const shipVal = document.getElementById('timrxEstShipping');
+    if (shipVal) {
+      if (e.freeUnlocked) {
+        shipVal.innerHTML = `<span style="color:#22c55e">${formatPrice(0)}</span>`;
+      } else {
+        shipVal.textContent = formatPrice(e.shipFee);
+      }
+    }
+
+    // Free-shipping nudge
+    const nudge = document.getElementById('timrxFreeShipNudge');
+    const nudgeBar = document.getElementById('timrxFreeShipBar');
+    const nudgeText = document.getElementById('timrxFreeShipText');
+    if (nudge && nudgeBar && nudgeText) {
+      if (e.freeUnlocked) {
+        nudge.classList.add('is-unlocked');
+        nudgeText.textContent = 'Free Tracked delivery unlocked';
+        nudgeBar.style.setProperty('--free-pct', '100%');
+      } else if (e.freeShippingRemaining > 0 && (speedSel?.value || 'standard') === 'standard') {
+        nudge.classList.remove('is-unlocked');
+        const denom = e.freeShippingThreshold || 1;
+        const pct = Math.max(4, Math.min(100, ((denom - e.freeShippingRemaining) / denom) * 100));
+        nudgeText.innerHTML =
+          `Add <strong>${formatPrice(e.freeShippingRemaining)}</strong> more for free Tracked delivery`;
+        nudgeBar.style.setProperty('--free-pct', pct.toFixed(0) + '%');
+        nudge.style.display = '';
+      }
+      // Hide entirely on non-standard speeds (no free option for them).
+      const speed = (speedSel?.value || 'standard');
+      nudge.style.display = (speed === 'standard') ? '' : 'none';
+    }
   }
 
   // ── Step navigation ────────────────────────────────────────────────
@@ -1797,10 +1898,13 @@ function initTimrxOrderModal() {
         <div class="timrx-order__review-row"><dt>Email</dt><dd>${email}</dd></div>
       </div>
       <div class="timrx-order__review-section">
-        <p class="timrx-order__review-title">Estimate</p>
-        <div class="timrx-order__review-row"><dt>Print subtotal</dt><dd>${formatPrice(e.subtotal)}</dd></div>
-        <div class="timrx-order__review-row"><dt>Shipping</dt><dd>${formatPrice(e.shipFee)}</dd></div>
-        <div class="timrx-order__review-row"><dt>Estimated total</dt><dd>${formatPrice(e.total)}</dd></div>
+        <p class="timrx-order__review-title">Order summary</p>
+        <div class="timrx-order__review-row"><dt>Production</dt><dd>${formatPrice(e.subtotal)}</dd></div>
+        ${e.packaging > 0
+          ? `<div class="timrx-order__review-row"><dt>Premium packaging</dt><dd>${formatPrice(e.packaging)}</dd></div>`
+          : ''}
+        <div class="timrx-order__review-row"><dt>${e.freeUnlocked ? 'Tracked delivery' : 'Tracked delivery'}</dt><dd>${e.freeUnlocked ? `<span style="color:#22c55e">FREE</span>` : formatPrice(e.shipFee)}</dd></div>
+        <div class="timrx-order__review-row"><dt><strong>Order total</strong></dt><dd><strong>${formatPrice(e.total)}</strong></dd></div>
       </div>
     `;
   }
@@ -1920,6 +2024,7 @@ function initTimrxOrderModal() {
       quantity: Math.max(1, Math.min(100, parseInt(qtyEl.value, 10) || 1)),
       target_height_mm: parseFloat(heightEl.value) || null,
       scaled_dimensions_mm: dims || null,
+      premium_packaging: !!state.premiumPackaging,
     };
   }
 
@@ -2174,8 +2279,26 @@ function initTimrxOrderModal() {
   });
   qtyEl.addEventListener('input', refreshEstimate);
 
-  countrySel.addEventListener('change', refreshEstimate);
+  function refreshPackagingPriceLabel() {
+    const lbl = document.getElementById('timrxOrderPackagingPrice');
+    if (!lbl) return;
+    const P = pricingTable();
+    lbl.textContent = `+ ${formatPrice(P.packaging_premium)}`;
+  }
+
+  countrySel.addEventListener('change', () => {
+    refreshPackagingPriceLabel();
+    refreshEstimate();
+  });
   speedSel.addEventListener('change', refreshEstimate);
+
+  const packagingCheckbox = document.getElementById('timrxOrderPackaging');
+  if (packagingCheckbox) {
+    packagingCheckbox.addEventListener('change', () => {
+      state.premiumPackaging = !!packagingCheckbox.checked;
+      refreshEstimate();
+    });
+  }
 
   consentEl?.addEventListener('change', () => {
     if (state.step === 3) nextBtn.disabled = !consentEl.checked;
@@ -2219,6 +2342,7 @@ function initTimrxOrderModal() {
   renderMaterials();
   renderSwatches();
   setRangeFill();
+  refreshPackagingPriceLabel();
   refreshEstimate();
   syncProviderUi();
 

@@ -3947,6 +3947,191 @@ body.timrx-order-open .history-thumb__date {
   line-height: 1.4;
 }
 
+/* Free-shipping progress nudge ---------------------------------------- */
+.timrx-order__freeship {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(125, 211, 252, 0.06);
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  margin-bottom: 6px;
+}
+
+.timrx-order__freeship.is-unlocked {
+  background: rgba(34, 197, 94, 0.10);
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.timrx-order__freeship-text {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.01em;
+}
+
+.timrx-order__freeship-text strong {
+  color: #7dd3fc;
+  font-weight: 800;
+}
+
+.timrx-order__freeship.is-unlocked .timrx-order__freeship-text {
+  color: #86efac;
+}
+
+.timrx-order__freeship-track {
+  height: 4px;
+  width: 100%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.timrx-order__freeship-bar {
+  height: 100%;
+  width: var(--free-pct, 0%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0EA5E9, #7dd3fc);
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.timrx-order__freeship.is-unlocked .timrx-order__freeship-bar {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+}
+
+/* Trust chips strip --------------------------------------------------- */
+.timrx-order__trust {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  list-style: none;
+  padding: 8px 0 0;
+  margin: 6px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.timrx-order__trust li {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Collapsible Production details ------------------------------------- */
+.timrx-order__details {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.timrx-order__details > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.timrx-order__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.timrx-order__details > summary::after {
+  content: " ▾";
+  opacity: 0.6;
+}
+
+.timrx-order__details[open] > summary::after {
+  content: " ▴";
+}
+
+.timrx-order__details-body {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0 0;
+}
+
+.timrx-order__details-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.timrx-order__details-row span:last-child {
+  color: rgba(255, 255, 255, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Premium packaging upsell ------------------------------------------- */
+.timrx-order__addon {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.timrx-order__addon:hover {
+  border-color: rgba(125, 211, 252, 0.35);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+}
+
+.timrx-order__addon-check {
+  margin: 3px 0 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #0EA5E9;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.timrx-order__addon-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.timrx-order__addon-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f5fbff;
+  flex-wrap: wrap;
+}
+
+.timrx-order__addon-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.14);
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.timrx-order__addon-desc {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .timrx-order__actions {
   display: flex;
   gap: 8px;

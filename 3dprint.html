@@ -915,8 +915,8 @@
           <div class="timrx-order__header">
             <div class="timrx-order__titles">
               <p class="timrx-order__eyebrow">Print with TimrX</p>
-              <h3 class="timrx-order__title" id="timrxOrderTitle">Order a printed model</h3>
-              <p class="timrx-order__lede">Configure material, color, size and quantity. We print, finish and ship to your door.</p>
+              <h3 class="timrx-order__title" id="timrxOrderTitle">Order a custom collectible</h3>
+              <p class="timrx-order__lede">Your AI model, produced on demand and delivered tracked — material, colour, size and quantity are yours to choose.</p>
             </div>
             <button type="button" class="timrx-order__close" id="timrxOrderCloseBtn" aria-label="Close order panel">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1044,8 +1044,8 @@
                       <select id="timrxOrderFinish" class="timrx-order__select">
                         <option value="raw" selected>Standard — as printed</option>
                         <option value="sanded">Sanded — smoother surface (+15%)</option>
-                        <option value="primed">Primed &amp; sanded (+30%)</option>
-                        <option value="painted">Hand-painted (+80%)</option>
+                        <option value="primed">Primed &amp; sanded (+35%)</option>
+                        <option value="painted">Hand-painted (+120%)</option>
                       </select>
                     </div>
                     <div class="timrx-order__field">
@@ -1057,6 +1057,18 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Premium packaging upsell -->
+                  <label class="timrx-order__addon" for="timrxOrderPackaging">
+                    <input type="checkbox" id="timrxOrderPackaging" class="timrx-order__addon-check">
+                    <span class="timrx-order__addon-body">
+                      <span class="timrx-order__addon-title">
+                        Premium gift packaging
+                        <span class="timrx-order__addon-price" id="timrxOrderPackagingPrice">+ £3.99</span>
+                      </span>
+                      <span class="timrx-order__addon-desc">Recyclable gift box, branded crinkle paper and a certificate of authenticity — beautiful out of the box.</span>
+                    </span>
+                  </label>
 
                 </div>
               </div>
@@ -1174,19 +1186,56 @@
           <!-- Footer with running total + actions -->
           <div class="timrx-order__footer" id="timrxOrderFooter">
             <div class="timrx-order__estimate">
+
+              <!-- Free-shipping progress nudge -->
+              <div class="timrx-order__freeship" id="timrxFreeShipNudge">
+                <p class="timrx-order__freeship-text" id="timrxFreeShipText">Add more to unlock free Tracked delivery</p>
+                <div class="timrx-order__freeship-track">
+                  <div class="timrx-order__freeship-bar" id="timrxFreeShipBar"></div>
+                </div>
+              </div>
+
               <div class="timrx-order__estimate-row">
-                <span class="timrx-order__estimate-label">Estimated material</span>
-                <span class="timrx-order__estimate-value" id="timrxEstMaterial">— g</span>
+                <span class="timrx-order__estimate-label">Production</span>
+                <span class="timrx-order__estimate-value" id="timrxEstSubtotal">—</span>
+              </div>
+              <div class="timrx-order__estimate-row" id="timrxEstPackagingRow" style="display:none">
+                <span class="timrx-order__estimate-label">Premium packaging</span>
+                <span class="timrx-order__estimate-value" id="timrxEstPackaging">—</span>
               </div>
               <div class="timrx-order__estimate-row">
-                <span class="timrx-order__estimate-label">Estimated print time</span>
-                <span class="timrx-order__estimate-value" id="timrxEstTime">—</span>
+                <span class="timrx-order__estimate-label">Tracked delivery</span>
+                <span class="timrx-order__estimate-value" id="timrxEstShipping">—</span>
               </div>
               <div class="timrx-order__estimate-row timrx-order__estimate-row--total">
-                <span class="timrx-order__estimate-label">Total (USD)</span>
-                <span class="timrx-order__estimate-value timrx-order__estimate-total" id="timrxEstTotal">$0.00</span>
+                <span class="timrx-order__estimate-label">Order total</span>
+                <span class="timrx-order__estimate-value timrx-order__estimate-total" id="timrxEstTotal">—</span>
               </div>
-              <p class="timrx-order__estimate-fineprint">Estimate only. Final price confirmed before charging — never any surprises.</p>
+
+              <!-- Trust chips -->
+              <ul class="timrx-order__trust">
+                <li>✓ Produced on demand</li>
+                <li>✓ Tracked delivery</li>
+                <li>✓ QC-checked</li>
+                <li>✓ Securely packaged</li>
+              </ul>
+
+              <!-- Production details (collapsible) -->
+              <details class="timrx-order__details">
+                <summary>Production details</summary>
+                <div class="timrx-order__details-body">
+                  <div class="timrx-order__details-row">
+                    <span>Estimated material</span>
+                    <span id="timrxEstMaterial">— g</span>
+                  </div>
+                  <div class="timrx-order__details-row">
+                    <span>Estimated print time</span>
+                    <span id="timrxEstTime">—</span>
+                  </div>
+                </div>
+              </details>
+
+              <p class="timrx-order__estimate-fineprint">Live estimate — your final total is locked in at the secure checkout step.</p>
             </div>
 
             <div class="timrx-order__actions">
