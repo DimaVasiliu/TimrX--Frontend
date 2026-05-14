@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI 3D Generator — Create 3D Models from Text or Images | TimrX</title>
-  <meta name="description" content="Generate 3D models from text prompts or images using AI. TimrX's 3D generator creates meshes, applies textures, and exports print-ready GLB files." />
-  <link rel="canonical" href="https://timrx.live/ai-3d-generator" />
+  <title>AI Video Generator — Text to Video and Image to Video | TimrX</title>
+  <meta name="description" content="Create AI-generated videos from text prompts or images. TimrX's video generator produces short clips, animations, and motion content in seconds." />
+  <link rel="canonical" href="https://timrx.live/ai-video-generator" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
   <meta name="theme-color" content="#0b0b0b" />
@@ -13,20 +13,20 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://timrx.live/ai-3d-generator" />
-  <meta property="og:title" content="AI 3D Generator — Create 3D Models from Text or Images | TimrX" />
-  <meta property="og:description" content="Generate 3D models from text or images using AI. Create meshes, apply textures, and export print-ready GLB files." />
-  <meta property="og:image" content="https://timrx.live/img/og-3d-generator.png" />
+  <meta property="og:url" content="https://timrx.live/ai-video-generator" />
+  <meta property="og:title" content="AI Video Generator — Text to Video and Image to Video | TimrX" />
+  <meta property="og:description" content="Create AI-generated videos from text prompts or images. Produce short clips, animations, and motion content in seconds." />
+  <meta property="og:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="TimrX" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://timrx.live/ai-3d-generator" />
-  <meta name="twitter:title" content="AI 3D Generator — Create 3D Models from Text or Images | TimrX" />
-  <meta name="twitter:description" content="Generate 3D models from text or images using AI. Create meshes, textures, and export GLB files." />
-  <meta name="twitter:image" content="https://timrx.live/img/og-3d-generator.png" />
+  <meta name="twitter:url" content="https://timrx.live/ai-video-generator" />
+  <meta name="twitter:title" content="AI Video Generator — Text to Video and Image to Video | TimrX" />
+  <meta name="twitter:description" content="Create AI-generated videos from text prompts or images. Produce short clips and animations in seconds." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
   <!-- Fonts -->
@@ -37,19 +37,20 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
   <style>
-    .tool-example-card model-viewer{
-      display:block !important;
-      width:100% !important;
-      height:auto !important;
-      aspect-ratio:3/4 !important;
-      min-height:0;
-      background:#0a0a0a;
-      --poster-color:transparent;
+    .tool-example-card video{
+      display:block;
+      width:100%;
+      height:auto;
+      aspect-ratio:16/9;
+      object-fit:cover;
+      background:#090909;
     }
-    .tool-example-card model-viewer::part(default-progress-bar){display:none}
-    .tool-example-card model-viewer::part(default-ar-button){display:none}
+
+    .tool-example-card video[poster]{
+      background-size:cover;
+      background-position:center;
+    }
   </style>
 
   <!-- JSON-LD: SoftwareApplication -->
@@ -57,11 +58,11 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "TimrX AI 3D Generator",
+    "name": "TimrX AI Video Generator",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web",
-    "url": "https://timrx.live/ai-3d-generator",
-    "description": "Generate 3D models from text prompts or images. Create meshes, apply textures, remesh geometry, and export print-ready GLB files.",
+    "url": "https://timrx.live/ai-video-generator",
+    "description": "Generate AI videos from text prompts or images. Create short clips, animations, and motion content for creative projects.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
   }
   </script>
@@ -73,21 +74,7 @@
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
       { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": "https://timrx.live/ai-tools" },
-      { "@type": "ListItem", "position": 3, "name": "AI 3D Generator", "item": "https://timrx.live/ai-3d-generator" }
-    ]
-  }
-  </script>
-  <!-- JSON-LD: HowTo -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    "name": "How to Generate 3D Models with AI",
-    "description": "Create 3D models from text descriptions or reference images using TimrX's AI generator.",
-    "step": [
-      { "@type": "HowToStep", "position": 1, "name": "Describe or Upload", "text": "Type a text description of the 3D model you want, or upload a reference image for the AI to convert." },
-      { "@type": "HowToStep", "position": 2, "name": "Generate & Refine", "text": "The AI creates a textured 3D mesh. Use TimrX's built-in remeshing and texture tools to refine the output." },
-      { "@type": "HowToStep", "position": 3, "name": "Export", "text": "Export as GLB, GLTF, STL, or USDZ for use in Blender, Unity, Unreal Engine, or 3D printing slicers." }
+      { "@type": "ListItem", "position": 3, "name": "AI Video Generator", "item": "https://timrx.live/ai-video-generator" }
     ]
   }
   </script>
@@ -99,68 +86,82 @@
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Is TimrX AI 3D generator free?",
+        "name": "Is TimrX AI video generator free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. No software installation or account is required to start creating."
+          "text": "Yes, TimrX offers a free tier that lets you generate AI videos directly in your browser without signing up for a paid plan. The free tier includes a limited number of generations per day and standard resolution output. If you need higher resolution, longer clips, or faster processing, premium plans are available with expanded limits and additional features."
         }
       },
       {
         "@type": "Question",
-        "name": "What 3D formats can I export?",
+        "name": "What video formats can I export?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX supports exporting to GLB, OBJ, FBX, STL, USDZ, and 3MF. These formats are compatible with Blender, Unity, Unreal Engine, 3D printing slicers, and Apple AR Quick Look. The 3MF format is specifically designed for multi-color 3D printing with Bambu Lab, Prusa, and other multi-material printers."
+          "text": "TimrX supports exporting generated videos in MP4 and WebM formats. MP4 is ideal for social media platforms, presentations, and general-purpose sharing because of its universal compatibility. WebM offers efficient compression for web embedding and is well suited for use on websites and in HTML5 video players."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I use generated 3D models in Unity or Unreal?",
+        "name": "Can I create videos from still images?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Absolutely. Export your model as GLB or GLTF and import it directly into Unity or Unreal Engine. The exported files include geometry, textures, and materials."
+          "text": "Absolutely. TimrX supports image-to-video generation, which lets you upload a still photograph or AI-generated image and animate it with realistic motion. The AI interprets the content of the image and adds camera movement, parallax effects, and natural object motion. This is particularly useful for product photography, concept art, and social media content where you want to bring a static visual to life."
         }
       },
       {
         "@type": "Question",
-        "name": "How detailed are the generated 3D models?",
+        "name": "How long can generated videos be?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Detail depends on the prompt specificity and generation settings. TimrX produces textured meshes suitable for game assets, prototypes, and 3D printing. Use the built-in remeshing tools to refine polygon count and topology."
+          "text": "Currently, TimrX generates video clips between 3 and 10 seconds in length depending on the model and settings you choose. While this may seem short, these clips are designed for social media, motion graphics, and creative prototyping where short-form content performs best. You can chain multiple clips together in an external editor for longer sequences."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I 3D print the generated models?",
+        "name": "How is TimrX different from Runway?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Generated models can be remeshed for watertight geometry and exported as STL or GLB files compatible with popular 3D printing slicers like Cura, PrusaSlicer, and Bambu Studio."
+          "text": "TimrX differentiates itself by integrating video generation into a broader creative pipeline that includes AI image generation, 3D model creation, and 3D printing workflows. While Runway focuses primarily on video editing and generation, TimrX lets you move seamlessly from a text prompt to a video to a 3D asset. TimrX also runs entirely in the browser with a free tier, making it more accessible for hobbyists and independent creators."
         }
       },
       {
         "@type": "Question",
-        "name": "How is TimrX different from Meshy?",
+        "name": "Can I use generated videos commercially?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TimrX runs entirely in the browser with no installation required. It combines text-to-3D, image-to-3D, remeshing, texture editing, and multi-format export in a single free pipeline. Meshy requires an account and has more limited free-tier options."
+          "text": "Yes, videos generated with TimrX can be used for commercial purposes including marketing materials, social media campaigns, product demonstrations, and client work. You retain the rights to the content you create with the tool. We recommend reviewing the terms of service for any specific usage restrictions, but standard commercial use is fully permitted under all plans."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I generate 3D models from photos?",
+        "name": "What resolution are the generated videos?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Upload a reference photo and TimrX's image-to-3D pipeline will generate a textured 3D mesh based on the visual content of your image."
+          "text": "The free tier generates videos at 720p resolution, which is suitable for most social media platforms and web use. Premium plans unlock 1080p and higher resolutions for professional-quality output. All videos maintain consistent frame rates and visual clarity regardless of the chosen resolution tier."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I rig and animate the generated models?",
+        "name": "Can I convert AI videos into 3D animations?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Generated models export as standard GLB/GLTF files that you can import into Blender, Mixamo, or any 3D software for rigging and animation. The clean mesh topology from TimrX's remeshing tools helps ensure smooth deformation during animation."
+          "text": "Yes, one of TimrX's unique strengths is its integrated 3D pipeline. You can take individual frames from a generated video and feed them into TimrX's image-to-3D or text-to-3D tools to create 3D models. From there, you can animate those models, prepare them for 3D printing, or export them for use in game engines and 3D applications. This end-to-end workflow is something no other AI video platform currently offers."
         }
       }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Generate AI Videos with TimrX",
+    "description": "Create AI-generated videos from text prompts or images in three simple steps.",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Describe or Upload", "text": "Enter a text prompt describing your video, or upload a still image you want to animate. Add details about motion, camera angle, and style."},
+      {"@type": "HowToStep", "position": 2, "name": "Generate", "text": "The AI produces a short video clip. Preview it, adjust parameters, or try different prompts for variations."},
+      {"@type": "HowToStep", "position": 3, "name": "Download or Extend", "text": "Download your video or feed it into TimrX's 3D pipeline to create animated 3D content."}
     ]
   }
   </script>
@@ -206,17 +207,17 @@
   <!-- Hero -->
   <section class="tool-hero">
     <div class="container">
-      <h1>AI 3D Generator — Create 3D Models from Text or Images</h1>
-      <p class="tool-subtitle">Generate 3D meshes from text descriptions or reference images. TimrX handles geometry creation, texturing, remeshing, and export in GLB, STL, 3MF, and more — all in one pipeline.</p>
+      <h1>AI Video Generator — Text to Video and Image to Video</h1>
+      <p class="tool-subtitle">Transform text descriptions or still images into short video clips. TimrX's AI video tools handle motion, transitions, and visual effects automatically.</p>
     </div>
   </section>
 
   <!-- Intro -->
   <section class="tool-intro">
     <div class="container">
-      <p>AI 3D generation eliminates the need for manual modeling in many creative workflows. Describe an object or upload a reference image, and the AI produces a textured 3D mesh ready for rendering, animation, or 3D printing.</p>
-      <p>TimrX combines text-to-3D and image-to-3D capabilities with built-in remeshing, texture painting, and format conversion. The result is a complete 3D asset pipeline accessible through your browser.</p>
-      <p>Generated models export as GLB files compatible with Blender, Unity, Unreal Engine, and most 3D printing slicers. From concept to printable model in minutes.</p>
+      <p>AI video generation is changing how creators produce motion content. What once required hours of editing and rendering can now be achieved with a single text prompt or reference image.</p>
+      <p>TimrX supports both text-to-video and image-to-video workflows. Describe a scene and watch it come to life, or upload an image and let the AI animate it with natural motion and camera movement.</p>
+      <p>Generated clips integrate seamlessly with TimrX's image and 3D tools, enabling end-to-end creative production from concept to final output.</p>
     </div>
   </section>
 
@@ -227,18 +228,18 @@
       <div class="tool-steps-grid">
         <div class="tool-step">
           <span class="tool-step-num">01</span>
-          <h3>Input Text or Image</h3>
-          <p>Type a description of the 3D object you want, or upload a reference image. The AI interprets both to generate geometry.</p>
+          <h3>Write a Prompt or Upload an Image</h3>
+          <p>Describe the video scene you want, or provide a reference image as the starting frame for animation.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">02</span>
-          <h3>Generate &amp; Refine</h3>
-          <p>The AI creates a textured 3D mesh. Use remeshing tools to optimize geometry and adjust textures to your needs.</p>
+          <h3>Generate the Video</h3>
+          <p>The AI creates a short video clip with motion, camera movement, and visual effects based on your input.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">03</span>
-          <h3>Export GLB</h3>
-          <p>Download your model as a GLB file. Use it in 3D software, game engines, web viewers, or send it to a 3D printer.</p>
+          <h3>Download &amp; Use</h3>
+          <p>Export your video clip for social media, presentations, or as part of a larger creative project.</p>
         </div>
       </div>
     </div>
@@ -250,20 +251,20 @@
       <h2 class="tool-usecases-title">Use Cases</h2>
       <div class="tool-usecases-grid">
         <div class="tool-usecase">
-          <h4>Rapid Prototyping</h4>
-          <p>Generate 3D prototypes from descriptions to test ideas before investing in detailed modeling.</p>
+          <h4>Social Media Clips</h4>
+          <p>Generate short-form video content for Instagram, TikTok, and YouTube without filming or editing.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Game Assets</h4>
-          <p>Create props, characters, and environment pieces for game development without manual sculpting.</p>
+          <h4>Product Demos</h4>
+          <p>Animate product images into dynamic video showcases for e-commerce and marketing.</p>
         </div>
         <div class="tool-usecase">
-          <h4>3D Printing</h4>
-          <p>Produce print-ready models from text or images. Remesh for watertight geometry and export GLB.</p>
+          <h4>Motion Graphics</h4>
+          <p>Create animated visual effects, transitions, and background videos for presentations.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Product Visualization</h4>
-          <p>Turn product concepts into 3D renders for presentations, catalogs, and web experiences.</p>
+          <h4>Storyboarding</h4>
+          <p>Bring storyboard frames to life with motion to test pacing and visual flow before production.</p>
         </div>
       </div>
     </div>
@@ -273,62 +274,122 @@
   <section class="tool-examples">
     <div class="container">
       <h2 class="tool-examples-title">What You Can Create</h2>
-      <p class="tool-examples-intro">From fantastical creatures to everyday objects, TimrX's AI 3D generator turns plain-language prompts into fully textured 3D models. Below are six examples showing the range of assets you can produce in minutes without any 3D modeling experience.</p>
+      <p class="tool-examples-intro">From cinematic landscapes to animated product shots, the AI video generator handles a wide range of creative styles. Here are examples of what users have produced with TimrX.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod1.glb" alt="AI-generated dragon knight 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Dragon Knight</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A fierce dragon knight warrior in battle stance with spread wings and a long spiked tail, dark crimson armor with gold trim, holding a sword, fantasy figurine"</p>
-          <p class="tool-example-desc">Fantasy characters and creatures are one of the strongest use cases for AI 3D generation. Ready for game engines, tabletop miniature printing, or concept art pipelines.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid1.mp4"
+            data-video-poster="/img/video-posters/vid1.jpg"
+            aria-label="AI-generated cinematic ocean sunset video">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Cinematic Ocean Sunset</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A slow drone shot flying over a calm ocean at golden hour, waves gently rolling, cinematic color grading"</p>
+          <p class="tool-example-desc">Perfect for travel content creators and filmmakers who need b-roll footage without the cost of drone shoots. The AI captures realistic water motion and warm lighting gradients that feel authentic.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod2.glb" alt="AI-generated rustic cottage 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Rustic Village Cottage</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cozy rustic village cottage with a peaked shingled roof, wooden shuttered windows, arched front door, and a stone chimney, warm earthy brown tones, miniature diorama"</p>
-          <p class="tool-example-desc">Architectural and environment assets ideal for game level design, tabletop terrain, and diorama scenes.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid2.mp4"
+            data-video-poster="/img/video-posters/vid2.jpg"
+            aria-label="AI-generated product rotation video of sneakers">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Product Rotation — Sneaker Showcase</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "White sneakers rotating on a black pedestal, studio lighting, smooth 360-degree spin, clean background"</p>
+          <p class="tool-example-desc">E-commerce brands use this to create professional product videos from a single product photo. Upload your product image and the AI generates a polished rotation clip ready for your online store.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod3.glb" alt="AI-generated ornate revolver 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Ornate Revolver</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "An ornate antique revolver with intricate scrollwork engravings on dark gunmetal, polished wooden grip with brass inlays, Victorian steampunk collectible"</p>
-          <p class="tool-example-desc">Weapon and prop models for games, film pre-visualization, and collectible design with detailed surface textures.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid3.mp4"
+            data-video-poster="/img/video-posters/vid3.jpg"
+            aria-label="AI-generated abstract particle flow animation">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Abstract Particle Flow</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "Glowing blue and purple particles flowing through a dark void, organic motion, abstract digital art"</p>
+          <p class="tool-example-desc">Ideal for motion backgrounds in presentations, music videos, and website hero sections. Abstract generative content like this is one of the strongest use cases for AI video tools.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod4.glb" alt="AI-generated cartoon raccoon 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Cartoon Raccoon</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A chubby cartoon raccoon character wearing a black and white striped suit with an orange bow tie, standing with arms at sides, stylized 3D collectible figurine"</p>
-          <p class="tool-example-desc">Stylized characters for animation, indie games, and vinyl toy design with exaggerated proportions and bold color blocking.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid4.mp4"
+            data-video-poster="/img/video-posters/vid4.jpg"
+            aria-label="AI-generated futuristic city flythrough">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Futuristic City Flythrough</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "Flying through a futuristic neon-lit city at night, rain reflecting on streets, cyberpunk aesthetic, smooth camera"</p>
+          <p class="tool-example-desc">Game developers and concept artists use scenes like this to visualize environments before committing to full 3D production. Generate multiple variations quickly to explore different creative directions.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod5.glb" alt="AI-generated cyberpunk character 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Cyberpunk Character</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cyberpunk male character in a long dark teal trench coat with glowing neon green circuit accents, heavy combat boots, standing confidently, sci-fi RPG character"</p>
-          <p class="tool-example-desc">Full character models for RPGs and sci-fi projects. Handles both hard and soft surface materials on a single character asset.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid5.mp4"
+            data-video-poster="/img/video-posters/vid5.jpg"
+            aria-label="AI-generated nature timelapse of flowers blooming">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Nature Timelapse — Blooming Flowers</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "Cinematic drone glide through a bioluminescent forest at blue hour, glowing plants pulsing with turquoise light, mist drifting between ancient trees, fireflies swirling in the air, ultra-detailed fantasy realism"</p>
+          <p class="tool-example-desc">Educational content, wellness apps, and meditation channels benefit from nature-style AI videos. The AI simulates organic growth and natural movement that would take hours to capture in real life.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/models/mod6.glb" alt="AI-generated chibi mushroom warrior 3D model" auto-rotate rotation-per-second="22deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Chibi Mushroom Warrior</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A chibi mushroom warrior figurine on a square display pedestal, large red and white spotted cap as a helmet, holding a round shield, collectible miniature style"</p>
-          <p class="tool-example-desc">3D printing collectibles and board-game miniatures. Remeshing produces watertight geometry for clean slicing.</p>
+          <video
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            data-video-src="/vid/vid6.mp4"
+            data-video-poster="/img/video-posters/vid6.jpg"
+            aria-label="AI-generated animated logo reveal">
+            <source type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <h3>Animated Logo Reveal</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "Minimalist logo appearing with smooth metallic reveal animation, dark background, subtle light reflections"</p>
+          <p class="tool-example-desc">Freelancers and small studios use AI video generation to produce logo animations for clients without needing After Effects expertise. Upload your logo as an image and let the AI handle the animation.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- Comparison Table -->
+  <!-- Comparison -->
   <section class="tool-comparison">
     <div class="container">
-      <h2 class="tool-comparison-title">How TimrX Compares to Other AI 3D Generators</h2>
-      <p class="tool-comparison-intro">Choosing the right AI 3D generation tool depends on your workflow, budget, and output requirements. The table below compares TimrX with three popular alternatives across the features that matter most to creators, developers, and makers.</p>
-      <div class="tool-comparison-wrap">
+      <h2 class="tool-comparison-title">How TimrX Compares</h2>
+      <p class="tool-comparison-intro">There are several AI video generation platforms available today. Here is how TimrX stacks up against the most popular alternatives across key features that matter to creators.</p>
+      <div class="tool-comparison-table-wrap">
         <table class="tool-comparison-table">
           <thead>
             <tr>
               <th scope="col">Feature</th>
               <th scope="col">TimrX</th>
-              <th scope="col">Meshy</th>
-              <th scope="col">Shap-E</th>
-              <th scope="col">Point-E</th>
+              <th scope="col">Runway</th>
+              <th scope="col">Pika</th>
+              <th scope="col">Sora</th>
             </tr>
           </thead>
           <tbody>
@@ -336,62 +397,55 @@
               <td>Browser-based</td>
               <td>Yes</td>
               <td>Yes</td>
-              <td>No (Python)</td>
-              <td>No (Python)</td>
+              <td>Yes</td>
+              <td>Yes</td>
             </tr>
             <tr>
               <td>Free tier</td>
               <td>Yes</td>
-              <td>Limited</td>
-              <td>Yes (open-source)</td>
-              <td>Yes (open-source)</td>
-            </tr>
-            <tr>
-              <td>Text-to-3D</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Image-to-3D</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>No</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Remeshing</td>
-              <td>Yes</td>
-              <td>No</td>
-              <td>No</td>
+              <td>Limited trial</td>
+              <td>Limited trial</td>
               <td>No</td>
             </tr>
             <tr>
-              <td>Texturing</td>
+              <td>Text-to-video</td>
               <td>Yes</td>
               <td>Yes</td>
-              <td>Limited</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Image-to-video</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>3D pipeline integration</td>
+              <td>Yes</td>
               <td>No</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Max duration</td>
+              <td>Up to 15s</td>
+              <td>Up to 16s</td>
+              <td>Up to 4s</td>
+              <td>Up to 60s</td>
             </tr>
             <tr>
               <td>Export formats</td>
-              <td>GLB, OBJ, FBX, STL, USDZ, 3MF</td>
-              <td>GLB, FBX, OBJ</td>
-              <td>PLY, OBJ</td>
-              <td>PLY</td>
-            </tr>
-            <tr>
-              <td>Game engine ready</td>
-              <td>Yes</td>
-              <td>Yes</td>
-              <td>Requires conversion</td>
-              <td>Requires conversion</td>
+              <td>MP4</td>
+              <td>MP4</td>
+              <td>MP4</td>
+              <td>MP4</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="tool-comparison-note">TimrX is the only option that combines browser-based access, a free tier, built-in remeshing, and multi-format export including USDZ for Apple AR Quick Look. If you need a single tool that covers the full pipeline from generation to print-ready output, TimrX is designed for that workflow.</p>
+      <p class="tool-comparison-note">TimrX is the only platform that connects AI video generation directly to 3D model creation and 3D printing workflows. If your creative process extends beyond video into 3D content, TimrX provides an integrated pipeline that eliminates the need to switch between multiple tools. For creators focused purely on long-form video output, platforms like Sora may offer longer clip durations, but TimrX excels in versatility and accessibility with its free browser-based tier.</p>
     </div>
   </section>
 
@@ -400,57 +454,49 @@
     <div class="container">
       <h2 class="tool-faq-title">Frequently Asked Questions</h2>
       <div class="tool-faq-list">
-        <details>
-          <summary>Is TimrX AI 3D generator free?</summary>
-          <p>Yes. TimrX offers a free tier that lets you generate 3D models from text or images directly in your browser. There is no software to install, no plugin to configure, and no account required to start creating. The free tier covers text-to-3D generation, image-to-3D conversion, basic remeshing, and GLB export. Full-color 3MF print conversion is available for 10 credits.</p>
+        <details class="tool-faq-item">
+          <summary>Is TimrX AI video generator free?</summary>
+          <p>Yes, TimrX offers a free tier that lets you generate AI videos directly in your browser without signing up for a paid plan. The free tier includes a limited number of generations per day and standard resolution output. If you need higher resolution, longer clips, or faster processing, premium plans are available with expanded limits and additional features. There is no credit card required to get started.</p>
         </details>
-        <details>
-          <summary>What 3D formats can I export?</summary>
-          <p>TimrX supports GLB, OBJ, FBX, STL, USDZ, and 3MF export. GLB is ideal for web viewers and game engines. STL is the standard for single-color 3D printing. 3MF is the modern format for multi-color printers (Bambu Lab AMS, Prusa MMU) — it maps textures into slicer-ready color regions with 1-16 filament colors. USDZ enables AR Quick Look on Apple devices.</p>
+        <details class="tool-faq-item">
+          <summary>What video formats can I export?</summary>
+          <p>TimrX supports exporting generated videos in MP4 and WebM formats. MP4 is the most widely compatible format and works natively on social media platforms, mobile devices, and video editors. WebM offers efficient compression and smaller file sizes, making it a strong choice for embedding video on websites. Both formats maintain high visual quality and consistent frame rates across all output resolutions.</p>
         </details>
-        <details>
-          <summary>Can I use generated 3D models in Unity or Unreal?</summary>
-          <p>Absolutely. Export your model as a GLB or GLTF file and drag it into your Unity or Unreal Engine project. The file includes mesh geometry, UV maps, and PBR-compatible textures. Materials transfer automatically in most cases, reducing manual setup time when populating game scenes with AI-generated assets.</p>
+        <details class="tool-faq-item">
+          <summary>Can I create videos from still images?</summary>
+          <p>Absolutely. TimrX supports a full image-to-video workflow that lets you upload a still photograph, digital illustration, or AI-generated image and transform it into an animated video clip. The AI analyzes the composition of the image and applies realistic motion, including camera pans, zoom effects, and parallax movement. This is especially useful for e-commerce product shots, concept art presentations, and social media content where you want to turn a static image into something dynamic.</p>
         </details>
-        <details>
-          <summary>How detailed are the generated 3D models?</summary>
-          <p>Model detail depends on prompt specificity and the complexity of the subject. Simple objects like cups or tools produce clean, game-ready meshes with minimal cleanup. Complex subjects like characters or vehicles benefit from the built-in remeshing tools, which let you adjust polygon density, smooth surfaces, and optimize topology before export.</p>
+        <details class="tool-faq-item">
+          <summary>How long can generated videos be?</summary>
+          <p>Currently, TimrX generates video clips ranging from 3 to 10 seconds depending on the generation mode and parameters you select. Short-form clips in this range are optimized for social media, motion graphics, and rapid creative prototyping. If you need longer content, you can generate multiple clips and stitch them together using any standard video editing tool. We are actively working on extending maximum clip duration in future updates.</p>
         </details>
-        <details>
-          <summary>Can I 3D print the generated models?</summary>
-          <p>Yes. Use TimrX's remeshing pipeline to ensure the mesh is manifold (watertight) before exporting as STL or GLB. Import the file into your preferred slicer, set your layer height and infill, and print. Many users have successfully printed figurines, mechanical parts, and architectural models generated entirely by the AI.</p>
+        <details class="tool-faq-item">
+          <summary>How is TimrX different from Runway?</summary>
+          <p>While both TimrX and Runway offer AI-powered video generation, TimrX stands apart through its integrated creative pipeline. Runway focuses primarily on video editing and generation features, whereas TimrX connects video generation to AI image creation, text-to-3D modeling, image-to-3D conversion, and even 3D print preparation. This means you can go from a text prompt to a video to a physical 3D-printed object entirely within one platform. TimrX also provides a genuinely free tier with no credit card required, making it more accessible for independent creators, students, and hobbyists who want to experiment without financial commitment.</p>
         </details>
-        <details>
-          <summary>How is TimrX different from Meshy?</summary>
-          <p>Both platforms offer text-to-3D and image-to-3D capabilities, but TimrX differentiates itself with built-in remeshing, texture editing, and multi-format export including USDZ. TimrX runs entirely in the browser with no account walls on the free tier. Meshy requires registration and has more restrictive limits on free generations. TimrX also supports STL export natively, making it a better fit for 3D printing workflows.</p>
+        <details class="tool-faq-item">
+          <summary>Can I use generated videos commercially?</summary>
+          <p>Yes, all videos you generate using TimrX are yours to use for commercial purposes. This includes marketing campaigns, social media advertising, product videos, client deliverables, and any other business use. You retain full rights to the output content you create. We encourage reviewing our terms of service for detailed information, but standard commercial usage is permitted across all account tiers including the free plan.</p>
         </details>
-        <details>
-          <summary>Can I generate 3D models from photos?</summary>
-          <p>Yes. Upload a reference photo and TimrX's image-to-3D pipeline interprets the visual content to generate a textured 3D mesh. This works best with clear, well-lit images of single objects against a neutral background. The AI extracts shape, color, and surface detail to produce a model you can further refine with the built-in editing tools.</p>
+        <details class="tool-faq-item">
+          <summary>What resolution are the generated videos?</summary>
+          <p>Free tier users can generate videos at 720p resolution, which provides clear and sharp output suitable for most social media platforms and web applications. Premium plan users unlock access to 1080p and higher resolution outputs for professional-grade deliverables. All generated videos maintain smooth frame rates and visual consistency, ensuring that the quality meets the expectations of modern content platforms regardless of which resolution tier you use.</p>
         </details>
-        <details>
-          <summary>Can I rig and animate the generated models?</summary>
-          <p>Generated models export as standard GLB/GLTF files fully compatible with rigging and animation workflows. Import into Blender for manual rigging, or upload to Mixamo for automatic skeleton fitting and animation. TimrX's remeshing tools help produce clean quad-dominant topology that deforms smoothly during skeletal animation, reducing artifacts in joints and limbs.</p>
+        <details class="tool-faq-item">
+          <summary>Can I convert AI videos into 3D animations?</summary>
+          <p>Yes, and this is one of TimrX's most distinctive capabilities. You can extract individual frames from any generated video and use them as input for TimrX's image-to-3D or text-to-3D tools. The resulting 3D models can then be animated, textured, and exported for use in game engines, 3D visualization software, or prepared for 3D printing. This end-to-end pipeline from video to 3D asset is unique to TimrX and opens up creative workflows that are not possible on other AI video generation platforms.</p>
         </details>
       </div>
-    </div>
-  </section>
-
-  <!-- Print, ship &amp; deliver callout -->
-  <section class="tool-intro">
-    <div class="container">
-      <h2 style="margin:0 0 8px;">TimrX prints, ships &amp; delivers</h2>
-      <p>Once your 3D model is ready, order the physical print straight from TimrX &mdash; we print on FDM and resin printers, support multi-color AMS / MMU output, and ship worldwide. First small print free on your first order, free shipping over &pound;40. <a href="/print-on-demand" style="color:#7dd3fc;">Learn about the print service &rarr;</a></p>
     </div>
   </section>
 
   <!-- CTA -->
   <section class="tool-cta">
     <div class="container">
-      <h2 class="tool-cta-title">Start Generating 3D Models</h2>
+      <h2 class="tool-cta-title">Start Generating Videos</h2>
       <div class="tool-cta-buttons">
-        <a href="/3dprint" class="nav-cta">Open 3D Print Hub</a>
-        <a href="/print-on-demand" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Order a Print</a>
+        <a href="/hub" class="nav-cta">Open AI Hub</a>
+        <a href="/ai-tools" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse All Tools</a>
       </div>
     </div>
   </section>
@@ -460,17 +506,17 @@
     <div class="container">
       <h2 class="tool-related-title">Related Tools</h2>
       <div class="tool-related-grid">
+        <a href="/ai-image-generator" class="tool-link-card">
+          <h4>AI Image Generator</h4>
+          <p>Create images from text prompts for use as video input.</p>
+        </a>
+        <a href="/ai-3d-generator" class="tool-link-card">
+          <h4>AI 3D Generator</h4>
+          <p>Generate 3D models from text or images.</p>
+        </a>
         <a href="/text-to-3d" class="tool-link-card">
           <h4>Text to 3D</h4>
-          <p>Generate 3D models from text descriptions alone.</p>
-        </a>
-        <a href="/image-to-3d" class="tool-link-card">
-          <h4>Image to 3D</h4>
-          <p>Convert reference images into textured 3D meshes.</p>
-        </a>
-        <a href="/3d-print-model-generator" class="tool-link-card">
-          <h4>3D Print Model Generator</h4>
-          <p>Create optimized models ready for 3D printing.</p>
+          <p>Turn text descriptions into 3D models.</p>
         </a>
       </div>
     </div>
@@ -572,18 +618,19 @@
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
   <script>
   (function(){
-    var obs = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if(e.isIntersecting){
-          var mv = e.target;
-          if(mv.dataset.src && !mv.getAttribute('src')){
-            mv.setAttribute('src', mv.dataset.src);
-          }
-          obs.unobserve(mv);
-        }
-      });
-    }, {rootMargin:'200px 0px'});
-    document.querySelectorAll('model-viewer[data-src]').forEach(function(mv){ obs.observe(mv); });
+    var path = window.location.pathname || '';
+    var match = path.match(/^(.*\/TimrX---3D-Print-Hub-Edits\/TimrX\/Frontend)(?:\/|$)/);
+    var assetRoot = match ? match[1] : '';
+    document.querySelectorAll('video[data-video-src]').forEach(function(video){
+      var src = video.getAttribute('data-video-src');
+      var poster = video.getAttribute('data-video-poster');
+      var source = video.querySelector('source');
+      if (poster) video.setAttribute('poster', assetRoot + poster);
+      if (source && src) {
+        source.setAttribute('src', assetRoot + src);
+        video.load();
+      }
+    });
   })();
   </script>
   <script>
