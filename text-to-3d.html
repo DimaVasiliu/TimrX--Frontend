@@ -37,6 +37,21 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
+  <style>
+    .tool-example-card model-viewer {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      min-height: 280px;
+      background: #0a0a0a;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      --poster-color: transparent;
+    }
+    .tool-example-card model-viewer::part(default-ar-button) {
+      display: none;
+    }
+  </style>
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
@@ -150,6 +165,15 @@
     ]
   }
   </script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18162436469"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'AW-18162436469');
+  </script>
 </head>
 <body>
   <!-- NAV -->
@@ -262,37 +286,37 @@
       <p class="tool-examples-intro">From quick concept models to print-ready figurines, text-to-3D handles a wide range of creative tasks. Below are six examples generated entirely from text prompts, each demonstrating a different use case and style. Every model was exported as a GLB and required no manual modeling.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-1.webp" alt="Low-poly medieval castle generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/low-poly-castle.glb" alt="Low-poly medieval castle generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Low-Poly Medieval Castle</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A low-poly medieval stone castle with four towers, a drawbridge, and a blue flag on the tallest tower."</p>
           <p class="tool-example-desc">Ideal for game environments and tabletop terrain. The low-poly style keeps the file lightweight while retaining recognisable architectural details. Exported as GLB for Unity integration.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-2.webp" alt="Steampunk robot figurine generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/steampunk-robot.glb" alt="Steampunk robot figurine generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Steampunk Robot Figurine</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A steampunk robot with brass gears, copper pipes, a top hat, and glowing green eyes. Display pose."</p>
           <p class="tool-example-desc">A collectible-style figurine with rich surface detail. After remeshing, this model was 3D printed on a resin printer at 50-micron layer height with excellent results.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-3.webp" alt="Realistic succulent plant generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/terracotta-succulent.glb" alt="Realistic succulent plant generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Realistic Succulent Plant</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A realistic potted succulent in a terracotta pot. Soft green leaves with slightly pink tips. Studio lighting."</p>
           <p class="tool-example-desc">Perfect for architectural visualisation and product rendering. The PBR textures capture the waxy leaf surface and matte terracotta accurately, making it ready for interior scenes.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-4.webp" alt="Sci-fi blaster weapon generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/sci-fi-blaster.glb" alt="Sci-fi blaster weapon generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Sci-Fi Blaster Prop</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A futuristic sci-fi blaster pistol with neon blue energy cells, matte black grip, and chrome barrel."</p>
           <p class="tool-example-desc">Game-ready weapon prop with clean topology. The model was imported into Blender for minor UV adjustments before being used as an in-game asset for a first-person shooter prototype.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-5.webp" alt="Cartoon fox character generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/cartoon-fox-figurine.glb" alt="Cartoon fox character generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Cartoon Fox Character</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A cute cartoon fox sitting upright with a fluffy tail, big round eyes, and an orange-and-white colour scheme."</p>
           <p class="tool-example-desc">Stylised character suitable for animation or 3D printing as a desk toy. The exaggerated proportions and smooth surfaces translated well to both FDM and resin printing workflows.</p>
         </article>
         <article class="tool-example-card">
-          <img src="/img/examples/text-3d-6.webp" alt="Miniature cityscape generated from a text prompt" width="400" height="300" loading="lazy" />
+          <model-viewer data-src="/vid/text-to-3d/mini-city-diorama.glb" alt="Miniature cityscape generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
           <h3>Miniature Cityscape</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A miniature modern cityscape with skyscrapers, a park, roads, and tiny cars. Isometric diorama style."</p>
           <p class="tool-example-desc">An isometric diorama that works as both a digital render piece and a physical 3D print. The compact composition makes it a great desk ornament when printed at 150 percent scale.</p>
@@ -556,6 +580,27 @@
   </footer>
 
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var viewers = document.querySelectorAll('model-viewer[data-src]');
+    if(!viewers.length) return;
+    if(!('IntersectionObserver' in window)){
+      viewers.forEach(function(mv){ mv.setAttribute('src', mv.dataset.src); });
+      return;
+    }
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting) return;
+        var mv = entry.target;
+        if(mv.dataset.src && !mv.getAttribute('src')){
+          mv.setAttribute('src', mv.dataset.src);
+        }
+        observer.unobserve(mv);
+      });
+    }, { rootMargin: '220px 0px' });
+    viewers.forEach(function(mv){ observer.observe(mv); });
+  })();
+  </script>
   <script>
   (function(){
     var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
