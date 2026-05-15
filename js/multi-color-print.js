@@ -68,9 +68,12 @@ const DEFAULT_FILAMENTS = [
 
 // Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
 const FLOOD_FILL_ANGLE = 0.52;
-const BRUSH_MIN_MODEL_RATIO = 0.004;
-const BRUSH_MAX_MODEL_RATIO = 0.16;
-const BRUSH_DEFAULT_MODEL_RATIO = 0.035;
+const BRUSH_MIN_MODEL_RATIO = 0.00045;
+const BRUSH_MAX_MODEL_RATIO = 0.12;
+const BRUSH_DEFAULT_MODEL_RATIO = 0.009;
+const BRUSH_SLIDER_STEPS = 1000;
+const BRUSH_SURFACE_NORMAL_DOT_MIN = 0.12;
+const BRUSH_SURFACE_DEPTH_FACTOR = 0.7;
 const BASE_PREVIEW_COLOR = 0.72;
 
 // ============================================================================
@@ -98,6 +101,8 @@ let _mouse = new (window.THREE?.Vector2 || function(){})();
 
 // Precomputed face centers for brush radius check (per mesh)
 let _faceCenters = null; // Float32Array [x,y,z, x,y,z, ...] in world space
+let _faceNormalsWorld = null; // Float32Array [x,y,z, ...] in world space
+let _faceVerticesWorld = null; // Float32Array [ax,ay,az,bx,by,bz,cx,cy,cz, ...] in world space
 let _meshTopology = []; // [{ normals, vertToFaces }] cached per paint mesh
 
 let _taskId = null;
@@ -184,10 +189,19 @@ function _injectStyles() {
       cursor:pointer;transition:.15s;text-align:center;}
     .mcp-brush-btn.active{border-color:rgba(14,165,233,.4);color:#0ea5e9;
       background:rgba(14,165,233,.08);}
+    .mcp-size-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px;}
+    .mcp-size-preset{padding:4px 0;border:1px solid rgba(255,255,255,.07);border-radius:5px;
+      background:rgba(255,255,255,.025);color:rgba(255,255,255,.42);font-size:9px;
+      cursor:pointer;transition:.15s;text-align:center;}
+    .mcp-size-preset:hover{border-color:rgba(14,165,233,.35);color:rgba(14,165,233,.82);}
     #mcp-brush-size::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
       border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
     #mcp-brush-size::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
       background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+    .mcp-brush-cursor{position:absolute;left:0;top:0;border:1px solid rgba(125,211,252,.95);
+      border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(14,165,233,.22);
+      pointer-events:none;z-index:4;display:none;transform:translate(-50%,-50%);}
+    .mcp-brush-cursor.eraser{border-color:rgba(248,113,113,.95);box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(248,113,113,.18);}
     .mcp-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;
       padding-top:10px;border-top:1px solid rgba(255,255,255,.05);}
     .mcp-btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;
@@ -342,21 +356,27 @@ function _getFacePreviewColor(slotIdx, T, target = new T.Color()) {
 }
 
 function _brushRadiusFromSlider(value) {
-  const pct = Math.min(100, Math.max(1, Number(value) || 1)) / 100;
-  const ratio = BRUSH_MIN_MODEL_RATIO + (BRUSH_MAX_MODEL_RATIO - BRUSH_MIN_MODEL_RATIO) * pct;
+  const pct = Math.min(BRUSH_SLIDER_STEPS, Math.max(0, Number(value) || 0)) / BRUSH_SLIDER_STEPS;
+  const ratio = BRUSH_MIN_MODEL_RATIO * Math.pow(BRUSH_MAX_MODEL_RATIO / BRUSH_MIN_MODEL_RATIO, pct);
   return Math.max(0.0001, _modelMaxDim * ratio);
 }
 
 function _brushSliderValue() {
   const denom = Math.max(0.0001, _modelMaxDim);
   const ratio = _brushRadius / denom;
-  const pct = (ratio - BRUSH_MIN_MODEL_RATIO) / (BRUSH_MAX_MODEL_RATIO - BRUSH_MIN_MODEL_RATIO);
-  return Math.round(Math.min(1, Math.max(0, pct)) * 100);
+  const pct = Math.log(Math.max(BRUSH_MIN_MODEL_RATIO, ratio) / BRUSH_MIN_MODEL_RATIO) /
+    Math.log(BRUSH_MAX_MODEL_RATIO / BRUSH_MIN_MODEL_RATIO);
+  return Math.round(Math.min(1, Math.max(0, pct)) * BRUSH_SLIDER_STEPS);
 }
 
 function _formatBrushRadius(radius) {
   if (radius >= 1) return `${radius.toFixed(1)} mm`;
+  if (radius < 0.01) return `${radius.toFixed(4)}`;
   return `${radius.toFixed(3)}`;
+}
+
+function _setBrushRadiusRatio(ratio) {
+  _brushRadius = Math.max(0.0001, _modelMaxDim * Math.min(BRUSH_MAX_MODEL_RATIO, Math.max(BRUSH_MIN_MODEL_RATIO, ratio)));
 }
 
 function _setupViewer(glbUrl, sourceObject = null) {
@@ -381,6 +401,10 @@ function _setupViewer(glbUrl, sourceObject = null) {
   _renderer.toneMapping = T.ACESFilmicToneMapping;
   _renderer.toneMappingExposure = 1.0;
   container.appendChild(_renderer.domElement);
+  const brushCursor = document.createElement('div');
+  brushCursor.id = 'mcp-brush-cursor';
+  brushCursor.className = 'mcp-brush-cursor';
+  container.appendChild(brushCursor);
 
   // Lighting
   try {
@@ -409,7 +433,7 @@ function _setupViewer(glbUrl, sourceObject = null) {
     // Prepare paint data
     _preparePaintData();
     _framePaintModel(T);
-    _brushRadius = _brushRadiusFromSlider(20);
+    _setBrushRadiusRatio(BRUSH_DEFAULT_MODEL_RATIO);
     _renderSidebar();
 
     // Add click hint
@@ -468,6 +492,8 @@ function _setupViewer(glbUrl, sourceObject = null) {
   canvas.addEventListener('pointermove', _onPointerMove);
   canvas.addEventListener('pointerup', _onPointerUp);
   canvas.addEventListener('pointerleave', _onPointerUp);
+  canvas.addEventListener('pointerleave', _hideBrushCursor);
+  canvas.addEventListener('pointercancel', _onPointerUp);
 
   // Resize
   const onResize = () => {
@@ -493,6 +519,68 @@ function _setupViewer(glbUrl, sourceObject = null) {
 let _pDownX = 0, _pDownY = 0;
 let _didPaintThisStroke = false;
 
+function _getPaintHit(e) {
+  if (!_renderer || !_camera || !_raycaster) return null;
+  const rect = _renderer.domElement.getBoundingClientRect();
+  _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  _raycaster.setFromCamera(_mouse, _camera);
+  const intersects = _raycaster.intersectObjects(_paintMeshes, false);
+  if (!intersects.length) return null;
+
+  const hit = intersects[0];
+  const meshIdx = _paintMeshes.indexOf(hit.object);
+  if (meshIdx < 0 || hit.faceIndex == null) return null;
+  const globalFace = _faceOffsets[meshIdx] + hit.faceIndex;
+  return { hit, meshIdx, globalFace, rect };
+}
+
+function _projectToCanvasPx(point, rect) {
+  const p = point.clone().project(_camera);
+  return {
+    x: (p.x * 0.5 + 0.5) * rect.width,
+    y: (-p.y * 0.5 + 0.5) * rect.height,
+  };
+}
+
+function _brushPixelRadius(hitPoint, rect) {
+  const T = window.THREE;
+  if (!T || !_camera) return 8;
+  const cameraRight = new T.Vector3().setFromMatrixColumn(_camera.matrixWorld, 0).normalize();
+  const p0 = _projectToCanvasPx(hitPoint, rect);
+  const p1 = _projectToCanvasPx(hitPoint.clone().addScaledVector(cameraRight, _brushRadius), rect);
+  return Math.max(4, Math.min(Math.hypot(p1.x - p0.x, p1.y - p0.y), rect.width * 0.45));
+}
+
+function _hideBrushCursor() {
+  const cursor = document.getElementById('mcp-brush-cursor');
+  if (cursor) cursor.style.display = 'none';
+}
+
+function _updateBrushCursor(e) {
+  const cursor = document.getElementById('mcp-brush-cursor');
+  if (!cursor || (_brushMode !== 'brush' && _brushMode !== 'eraser')) {
+    _hideBrushCursor();
+    return null;
+  }
+  const paintHit = _getPaintHit(e);
+  if (!paintHit) {
+    _hideBrushCursor();
+    return null;
+  }
+
+  const px = _projectToCanvasPx(paintHit.hit.point, paintHit.rect);
+  const radiusPx = _brushPixelRadius(paintHit.hit.point, paintHit.rect);
+  cursor.style.display = 'block';
+  cursor.style.left = `${px.x}px`;
+  cursor.style.top = `${px.y}px`;
+  cursor.style.width = `${radiusPx * 2}px`;
+  cursor.style.height = `${radiusPx * 2}px`;
+  cursor.classList.toggle('eraser', _brushMode === 'eraser');
+  return paintHit;
+}
+
 function _onPointerDown(e) {
   _pDownX = e.clientX; _pDownY = e.clientY;
   _didPaintThisStroke = false;
@@ -509,9 +597,10 @@ function _onPointerDown(e) {
 }
 
 function _onPointerMove(e) {
+  const paintHit = _updateBrushCursor(e);
   if (!_isPainting || !_paintEnabled) return;
   // Continuous painting while dragging
-  _paintAtEvent(e);
+  _paintAtEvent(e, paintHit);
   _didPaintThisStroke = true;
 }
 
@@ -573,9 +662,13 @@ function _preparePaintData() {
   }
   _faceColors = new Int32Array(_totalFaces).fill(-1); // -1 = unpainted
 
-  // Precompute face centers in world space for brush radius checks
+  // Precompute face centers, normals and triangle vertices in world space for
+  // precision brush checks.
   _faceCenters = new Float32Array(_totalFaces * 3);
+  _faceNormalsWorld = new Float32Array(_totalFaces * 3);
+  _faceVerticesWorld = new Float32Array(_totalFaces * 9);
   const va = new T.Vector3(), vb = new T.Vector3(), vc = new T.Vector3();
+  const edge1 = new T.Vector3(), edge2 = new T.Vector3(), normal = new T.Vector3();
 
   for (let mi = 0; mi < _paintMeshes.length; mi++) {
     const mesh = _paintMeshes[mi];
@@ -591,10 +684,29 @@ function _preparePaintData() {
       va.fromBufferAttribute(posAttr, i3).applyMatrix4(mesh.matrixWorld);
       vb.fromBufferAttribute(posAttr, i3 + 1).applyMatrix4(mesh.matrixWorld);
       vc.fromBufferAttribute(posAttr, i3 + 2).applyMatrix4(mesh.matrixWorld);
-      const gIdx = (offset + fi) * 3;
-      _faceCenters[gIdx]     = (va.x + vb.x + vc.x) / 3;
-      _faceCenters[gIdx + 1] = (va.y + vb.y + vc.y) / 3;
-      _faceCenters[gIdx + 2] = (va.z + vb.z + vc.z) / 3;
+      const faceGlobal = offset + fi;
+      const cIdx = faceGlobal * 3;
+      const vIdx = faceGlobal * 9;
+      _faceCenters[cIdx]     = (va.x + vb.x + vc.x) / 3;
+      _faceCenters[cIdx + 1] = (va.y + vb.y + vc.y) / 3;
+      _faceCenters[cIdx + 2] = (va.z + vb.z + vc.z) / 3;
+
+      _faceVerticesWorld[vIdx] = va.x;
+      _faceVerticesWorld[vIdx + 1] = va.y;
+      _faceVerticesWorld[vIdx + 2] = va.z;
+      _faceVerticesWorld[vIdx + 3] = vb.x;
+      _faceVerticesWorld[vIdx + 4] = vb.y;
+      _faceVerticesWorld[vIdx + 5] = vb.z;
+      _faceVerticesWorld[vIdx + 6] = vc.x;
+      _faceVerticesWorld[vIdx + 7] = vc.y;
+      _faceVerticesWorld[vIdx + 8] = vc.z;
+
+      edge1.subVectors(vb, va);
+      edge2.subVectors(vc, va);
+      normal.crossVectors(edge1, edge2).normalize();
+      _faceNormalsWorld[cIdx] = normal.x;
+      _faceNormalsWorld[cIdx + 1] = normal.y;
+      _faceNormalsWorld[cIdx + 2] = normal.z;
     }
   }
 
@@ -692,23 +804,11 @@ function _framePaintModel(T) {
 // Painting Logic
 // ============================================================================
 
-function _paintAtEvent(e) {
-  const container = document.getElementById('mcp-viewer');
-  if (!container || !_renderer) return;
-  const rect = _renderer.domElement.getBoundingClientRect();
-  _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+function _paintAtEvent(e, knownHit = null) {
+  const paintHit = knownHit || _getPaintHit(e);
+  if (!paintHit) return;
 
-  _raycaster.setFromCamera(_mouse, _camera);
-  const intersects = _raycaster.intersectObjects(_paintMeshes, false);
-  if (!intersects.length) return;
-
-  const hit = intersects[0];
-  const meshIdx = _paintMeshes.indexOf(hit.object);
-  if (meshIdx < 0) return;
-
-  const localFaceIdx = hit.faceIndex;
-  const globalFace = _faceOffsets[meshIdx] + localFaceIdx;
+  const { hit, meshIdx, globalFace } = paintHit;
   const hitPoint = hit.point; // world-space hit position
 
   const colorVal = _brushMode === 'eraser' ? -1 : _activeSlot;
@@ -716,7 +816,7 @@ function _paintAtEvent(e) {
   if (_brushMode === 'face') {
     _paintFace(globalFace, colorVal);
   } else if (_brushMode === 'brush' || _brushMode === 'eraser') {
-    _paintBrush(hitPoint, colorVal);
+    _paintBrush(hitPoint, colorVal, globalFace);
   } else if (_brushMode === 'region') {
     _floodFillRegion(globalFace, colorVal, meshIdx);
   }
@@ -732,17 +832,95 @@ function _paintFace(globalIdx, slotIdx) {
   _faceColors[globalIdx] = slotIdx;
 }
 
-function _paintBrush(hitPoint, slotIdx) {
-  // Paint all faces whose center is within _brushRadius of hitPoint (world space)
+function _pointTriangleDistanceSq(px, py, pz, ax, ay, az, bx, by, bz, cx, cy, cz) {
+  const abx = bx - ax, aby = by - ay, abz = bz - az;
+  const acx = cx - ax, acy = cy - ay, acz = cz - az;
+  const apx = px - ax, apy = py - ay, apz = pz - az;
+  const d1 = abx * apx + aby * apy + abz * apz;
+  const d2 = acx * apx + acy * apy + acz * apz;
+  if (d1 <= 0 && d2 <= 0) return apx * apx + apy * apy + apz * apz;
+
+  const bpx = px - bx, bpy = py - by, bpz = pz - bz;
+  const d3 = abx * bpx + aby * bpy + abz * bpz;
+  const d4 = acx * bpx + acy * bpy + acz * bpz;
+  if (d3 >= 0 && d4 <= d3) return bpx * bpx + bpy * bpy + bpz * bpz;
+
+  const vc = d1 * d4 - d3 * d2;
+  if (vc <= 0 && d1 >= 0 && d3 <= 0) {
+    const v = d1 / (d1 - d3);
+    const qx = ax + v * abx, qy = ay + v * aby, qz = az + v * abz;
+    const dx = px - qx, dy = py - qy, dz = pz - qz;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  const cpx = px - cx, cpy = py - cy, cpz = pz - cz;
+  const d5 = abx * cpx + aby * cpy + abz * cpz;
+  const d6 = acx * cpx + acy * cpy + acz * cpz;
+  if (d6 >= 0 && d5 <= d6) return cpx * cpx + cpy * cpy + cpz * cpz;
+
+  const vb = d5 * d2 - d1 * d6;
+  if (vb <= 0 && d2 >= 0 && d6 <= 0) {
+    const w = d2 / (d2 - d6);
+    const qx = ax + w * acx, qy = ay + w * acy, qz = az + w * acz;
+    const dx = px - qx, dy = py - qy, dz = pz - qz;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  const va = d3 * d6 - d5 * d4;
+  if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
+    const bcx = cx - bx, bcy = cy - by, bcz = cz - bz;
+    const w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+    const qx = bx + w * bcx, qy = by + w * bcy, qz = bz + w * bcz;
+    const dx = px - qx, dy = py - qy, dz = pz - qz;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  const denom = 1 / (va + vb + vc);
+  const v = vb * denom;
+  const w = vc * denom;
+  const qx = ax + abx * v + acx * w;
+  const qy = ay + aby * v + acy * w;
+  const qz = az + abz * v + acz * w;
+  const dx = px - qx, dy = py - qy, dz = pz - qz;
+  return dx * dx + dy * dy + dz * dz;
+}
+
+function _paintBrush(hitPoint, slotIdx, hitGlobalFace) {
+  if (!_faceVerticesWorld || !_faceNormalsWorld) return;
+
+  // Always paint the clicked triangle. The exported 3MF stores color per
+  // triangle, so this is the smallest physically representable unit.
+  if (hitGlobalFace >= 0 && hitGlobalFace < _totalFaces) {
+    _faceColors[hitGlobalFace] = slotIdx;
+  }
+
   const r2 = _brushRadius * _brushRadius;
+  const hitNIdx = hitGlobalFace * 3;
+  const hnx = _faceNormalsWorld[hitNIdx] || 0;
+  const hny = _faceNormalsWorld[hitNIdx + 1] || 0;
+  const hnz = _faceNormalsWorld[hitNIdx + 2] || 1;
+  const depthLimit = Math.max(_brushRadius * BRUSH_SURFACE_DEPTH_FACTOR, _modelMaxDim * 0.00025);
   const hx = hitPoint.x, hy = hitPoint.y, hz = hitPoint.z;
 
   for (let i = 0; i < _totalFaces; i++) {
-    const i3 = i * 3;
-    const dx = _faceCenters[i3] - hx;
-    const dy = _faceCenters[i3 + 1] - hy;
-    const dz = _faceCenters[i3 + 2] - hz;
-    if (dx * dx + dy * dy + dz * dz <= r2) {
+    const nIdx = i * 3;
+    const normalDot = _faceNormalsWorld[nIdx] * hnx + _faceNormalsWorld[nIdx + 1] * hny + _faceNormalsWorld[nIdx + 2] * hnz;
+    if (normalDot < BRUSH_SURFACE_NORMAL_DOT_MIN) continue;
+
+    const dx = _faceCenters[nIdx] - hx;
+    const dy = _faceCenters[nIdx + 1] - hy;
+    const dz = _faceCenters[nIdx + 2] - hz;
+    const planeDepth = Math.abs(dx * hnx + dy * hny + dz * hnz);
+    if (planeDepth > depthLimit) continue;
+
+    const vIdx = i * 9;
+    const d2 = _pointTriangleDistanceSq(
+      hx, hy, hz,
+      _faceVerticesWorld[vIdx], _faceVerticesWorld[vIdx + 1], _faceVerticesWorld[vIdx + 2],
+      _faceVerticesWorld[vIdx + 3], _faceVerticesWorld[vIdx + 4], _faceVerticesWorld[vIdx + 5],
+      _faceVerticesWorld[vIdx + 6], _faceVerticesWorld[vIdx + 7], _faceVerticesWorld[vIdx + 8],
+    );
+    if (d2 <= r2) {
       _faceColors[i] = slotIdx;
     }
   }
@@ -1384,11 +1562,17 @@ function _renderSidebar() {
           <span style="font-size:9px;color:rgba(255,255,255,.4);">Brush Size</span>
           <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_formatBrushRadius(_brushRadius)}</span>
         </div>
-        <input type="range" min="1" max="100" value="${_brushSliderValue()}"
+        <input type="range" min="0" max="${BRUSH_SLIDER_STEPS}" step="1" value="${_brushSliderValue()}"
           style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
           id="mcp-brush-size" />
         <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);margin-top:2px;">
-          <span>Fine</span><span>Wide</span>
+          <span>Micro</span><span>Wide</span>
+        </div>
+        <div class="mcp-size-presets">
+          <button class="mcp-size-preset" data-brush-ratio="0.0007">Eye</button>
+          <button class="mcp-size-preset" data-brush-ratio="0.0018">Detail</button>
+          <button class="mcp-size-preset" data-brush-ratio="0.006">Trim</button>
+          <button class="mcp-size-preset" data-brush-ratio="0.02">Area</button>
         </div>
       </div>` : ''}
     </div>
@@ -1450,7 +1634,7 @@ function _renderSidebar() {
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
         <line x1="12" y1="8" x2="12.01" y2="8"/>
       </svg>
-      <span>Brush: click &amp; drag to paint. Region: click to flood-fill. Face: single triangle. Eraser: remove paint. Hold drag for continuous painting.</span>
+      <span>Brush: click &amp; drag to paint. Eye/Detail sizes are best for small features. Face is the smallest exact color unit in the exported 3MF.</span>
     </div>
 
     <div class="mcp-actions">
@@ -1535,10 +1719,20 @@ function _renderSidebar() {
   });
 
   // Brush mode
-  sb.querySelectorAll('.mcp-brush-btn').forEach(el => {
+  sb.querySelectorAll('.mcp-brush-btn[data-brush]').forEach(el => {
     el.addEventListener('click', () => {
       _brushMode = el.dataset.brush;
       _renderSidebar();
+    });
+  });
+
+  sb.querySelectorAll('.mcp-size-preset').forEach(el => {
+    el.addEventListener('click', () => {
+      _setBrushRadiusRatio(Number(el.dataset.brushRatio) || BRUSH_DEFAULT_MODEL_RATIO);
+      const slider = sb.querySelector('#mcp-brush-size');
+      const valEl = sb.querySelector('#mcp-brush-val');
+      if (slider) slider.value = _brushSliderValue();
+      if (valEl) valEl.textContent = _formatBrushRadius(_brushRadius);
     });
   });
 
@@ -1576,13 +1770,16 @@ function _dispose() {
     _renderer.domElement.removeEventListener('pointermove', _onPointerMove);
     _renderer.domElement.removeEventListener('pointerup', _onPointerUp);
     _renderer.domElement.removeEventListener('pointerleave', _onPointerUp);
+    _renderer.domElement.removeEventListener('pointerleave', _hideBrushCursor);
+    _renderer.domElement.removeEventListener('pointercancel', _onPointerUp);
   }
   _isPainting = false;
   if (_controls) { _controls.dispose(); _controls = null; }
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
   _model = null; _camera = null; _raycaster = null;
-  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null; _meshTopology = []; _totalFaces = 0;
+  _paintMeshes = []; _faceColors = null; _faceOffsets = null; _faceCenters = null;
+  _faceNormalsWorld = null; _faceVerticesWorld = null; _meshTopology = []; _totalFaces = 0;
   _modelMaxDim = 1;
   _modelUrl = '';
   _manualRepairHandler = null;
@@ -1598,7 +1795,7 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, sourc
   _modelTitle = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
   _filaments = DEFAULT_FILAMENTS.map(f => ({ ...f }));
   _activeSlot = 0;
-  _brushMode = 'region';
+  _brushMode = 'brush';
   _brushRadius = 0.05;
   _modelMaxDim = 1;
   _paintEnabled = true;
