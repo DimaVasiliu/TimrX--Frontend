@@ -38,6 +38,36 @@
     } catch (_) { /* never block UI */ }
   }
 
+  let adsPurchaseConversionReported = false;
+  function reportAdsPurchaseConversion({
+    transactionId = '',
+    planCode = '',
+    value,
+    currency = 'GBP',
+    newCustomer,
+  } = {}) {
+    if (adsPurchaseConversionReported) return;
+
+    const plan =
+      PLANS[planCode] ||
+      VIDEO_PLANS[planCode] ||
+      Object.values(SUB_PLANS.monthly).concat(Object.values(SUB_PLANS.yearly))
+        .find(p => p.plan_code === planCode);
+    const conversionValue = Number.isFinite(Number(value))
+      ? Number(value)
+      : Number(plan?.price || 1.0);
+
+    if (typeof window.gtag_report_conversion !== 'function') return;
+
+    adsPurchaseConversionReported = true;
+    window.gtag_report_conversion(undefined, {
+      value: conversionValue,
+      currency,
+      transaction_id: transactionId || '',
+      new_customer: typeof newCustomer === 'boolean' ? newCustomer : undefined,
+    });
+  }
+
   // Endpoint-specific timeouts (ms) - Render cold starts can take 10-30s
   // These are generous to handle worst-case cold start scenarios
   const ENDPOINT_TIMEOUTS = {
@@ -2170,7 +2200,7 @@
     });
   }
 
-  async function handleSubscriptionCheckoutReturn(planCode) {
+  async function handleSubscriptionCheckoutReturn(planCode, paymentId = '') {
     const subPlanInfo = Object.values(SUB_PLANS.monthly).concat(Object.values(SUB_PLANS.yearly))
       .filter(Boolean)
       .find(p => p.plan_code === planCode);
@@ -2205,6 +2235,12 @@
           microcopy: 'Recurring billing is enabled for future refills.',
           primaryText: 'Start Creating',
           primaryHref: 'https://timrx.live/3dprint?refresh=1',
+        });
+        reportAdsPurchaseConversion({
+          transactionId: paymentId,
+          planCode,
+          value: subPlanInfo?.price,
+          currency: 'GBP',
         });
         await Promise.allSettled([
           refreshCredits({ force: true, maxRetries: 5 }),
@@ -3451,13 +3487,17 @@
   const checkoutStatus = urlParams.get('checkout');
 
   // Check if this was a subscription return
-  let pendingSubPlan; try { pendingSubPlan = sessionStorage.getItem('timrx_pending_sub_plan'); } catch (_) {}
+  let pendingSubPlan, pendingSubPaymentId;
+  try {
+    pendingSubPlan = sessionStorage.getItem('timrx_pending_sub_plan');
+    pendingSubPaymentId = sessionStorage.getItem('timrx_pending_payment_id') || '';
+  } catch (_) {}
 
   if (checkoutStatus === 'success' && pendingSubPlan) {
     // ── Subscription return flow ──
     window.history.replaceState({}, '', window.location.pathname);
     try { sessionStorage.removeItem('timrx_pending_sub_plan'); sessionStorage.removeItem('timrx_pre_checkout_balance'); sessionStorage.removeItem('timrx_pending_payment_id'); } catch (_) {}
-    void handleSubscriptionCheckoutReturn(pendingSubPlan);
+    void handleSubscriptionCheckoutReturn(pendingSubPlan, pendingSubPaymentId);
 
   } else if (checkoutStatus === 'success') {
     // ── One-time purchase return flow (existing) ──
@@ -3620,11 +3660,21 @@
                   });
                 }
                 // Modal will auto-update via wallet event listener
+                reportAdsPurchaseConversion({
+                  transactionId: pendingPaymentId || confirmData.payment_id || '',
+                  planCode: pendingPlanCode,
+                  currency: 'GBP',
+                });
                 return;
               }
 
               // Fallback: refresh wallet if confirm didn't include balance
               console.log('[Credits] Credits confirmed but no balance in response, refreshing wallet...');
+              reportAdsPurchaseConversion({
+                transactionId: pendingPaymentId || confirmData.payment_id || '',
+                planCode: pendingPlanCode,
+                currency: 'GBP',
+              });
               await refreshCredits({ force: true, maxRetries: 3 });
               // Modal will auto-update via wallet event listener
               return;
@@ -3665,9 +3715,14 @@
           console.log(`[Credits] Reconcile ${attempts}/${maxAttempts}: server=${serverBalance} (${isVideoPlan ? 'video' : 'general'}), expected=${initialBalance + planCredits}`);
 
           // If server balance is what we expected (or higher), we're done
-          if (serverBalance >= initialBalance + planCredits) {
+          if ((planCredits > 0 || pendingPaymentId) && serverBalance >= initialBalance + planCredits) {
             console.log('[Credits] Server balance confirmed:', serverBalance);
             // WalletStore.update already happened in fetchWallet, which triggers modal update
+            reportAdsPurchaseConversion({
+              transactionId: pendingPaymentId || '',
+              planCode: pendingPlanCode,
+              currency: 'GBP',
+            });
             return;
           }
 

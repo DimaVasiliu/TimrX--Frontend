@@ -7,7 +7,7 @@
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js?v=20260513b';
+import * as Viewer from './viewer.js?v=20260515b';
 import * as UI from './ui-utils.js';
 import {
   renderHistory,
@@ -22,7 +22,7 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js?v=20260508a';
-import * as API from './api.js?v=20260507b';
+import * as API from './api.js?v=20260515b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -2336,6 +2336,16 @@ function initTimrxOrderModal() {
     });
   }
 
+  function reportPrintOrderConversion(order) {
+    if (!order || typeof window.gtag_report_conversion !== 'function') return;
+    const value = Number(order.total);
+    window.gtag_report_conversion(undefined, {
+      value: Number.isFinite(value) ? value : 1.0,
+      currency: order.currency || 'GBP',
+      transaction_id: order.id || order.order_number || '',
+    });
+  }
+
   async function submitOrder() {
     const payload = {
       provider: state.provider,
@@ -2422,6 +2432,7 @@ function initTimrxOrderModal() {
               if (window.showToast) {
                 window.showToast(`Order ${order.order_number} confirmed — check your email for the receipt.`, 'success');
               }
+              reportPrintOrderConversion(order);
               try { localStorage.removeItem('timrx_pending_print_order'); } catch (_) {}
               return;
             }

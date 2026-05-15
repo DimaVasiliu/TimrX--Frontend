@@ -7821,12 +7821,15 @@ async function _doResumePendingJobs(options = {}) {
   renderHistory();
 
   // Start the correct watcher for each category.
-  // If there is exactly one text-to-3d job (preview/refine), let it auto-load
-  // into the viewer when it finishes — the user started it and wants to see it.
-  // Multiple jobs or derivative ops (mesh/rig/animate) stay recovery-only.
+  // If there is exactly one model-producing job, let it auto-load into the
+  // viewer when it finishes. Multiple jobs and non-model jobs stay recovery-only.
   const soloPreview = buckets.text.length === 1 && allToResume.length === 1;
+  const soloMeshJobId = buckets.mesh.length === 1 && allToResume.length === 1 ? buckets.mesh[0] : null;
+  const soloMeshStage = soloMeshJobId ? (pendingMeta[soloMeshJobId]?.stage || 'remesh') : '';
+  const soloMeshAutoLoad = soloMeshJobId && ['texture', 'image3d'].includes(soloMeshStage);
   for (const id of buckets.mesh) {
-    watchMeshyTask(id, pendingMeta[id]?.stage || 'remesh', { isRecovery: true });
+    const stage = pendingMeta[id]?.stage || 'remesh';
+    watchMeshyTask(id, stage, { isRecovery: !(soloMeshAutoLoad && id === soloMeshJobId) });
   }
   for (const id of buckets.text) {
     watchJob(id, { isRecovery: !soloPreview });

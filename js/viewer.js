@@ -119,27 +119,60 @@ function updatePlaceholder() {
     viewerPlaceholder.style.display = currentModel ? 'none' : 'block';
 }
 
+function restoreSingleModelChrome() {
+    const ph = byId('viewerPlaceholder');
+    if (ph) ph.style.display = currentModel ? 'none' : '';
+
+    const uploadBtn = byId('openUploadModalTop');
+    const gearBtn = byId('viewerGear');
+    const overlayHead = document.querySelector('.viewer-overlay-head');
+    if (uploadBtn) uploadBtn.style.display = '';
+    if (gearBtn) gearBtn.style.display = '';
+    if (overlayHead) overlayHead.style.display = '';
+
+    const container = byId('viewerCanvas')?.parentElement;
+    if (container) {
+        const banner = container.querySelector('.viewer-grouped-banner');
+        const backBtn = container.querySelector('.viewer-back-to-group');
+        if (banner) banner.style.display = 'none';
+        if (backBtn) backBtn.style.display = 'none';
+    }
+}
+
+function disposeGroupedViewerIfActive() {
+    if (!window.GroupedViewer?.isActive?.()) return;
+    try {
+        window.GroupedViewer.dispose();
+    } catch (err) {
+        console.warn('[Viewer] Failed to dispose grouped viewer:', err);
+    }
+    restoreSingleModelChrome();
+}
+
+function activateModelViewer() {
+    disposeGroupedViewerIfActive();
+    restoreSingleModelChrome();
+
+    const modelV = byId('model3dViewer');
+    const imageV = byId('imageViewer');
+    const videoV = byId('videoViewer');
+    const genVideo = byId('generatedVideo');
+    const fitToggle = byId('imageFitToggle');
+
+    if (modelV) modelV.classList.remove('hidden');
+    if (imageV) imageV.classList.add('hidden');
+    if (videoV) videoV.classList.add('hidden');
+    if (genVideo && !genVideo.paused) genVideo.pause();
+    if (fitToggle) {
+        fitToggle.classList.add('hidden');
+        fitToggle.classList.remove('is-fill');
+    }
+}
+
 export function clearModel() {
     window._timrxViewerUploadSource = null;
 
-    // If grouped viewer is active, dispose it and restore single-model UI
-    // before loading the new model. This prevents the new model from rendering
-    // into a leftover split-viewport from the grouped view.
-    if (window.GroupedViewer?.isActive?.()) {
-        window.GroupedViewer.dispose();
-        // Restore header, upload button, gear — the grouped viewer hid them
-        const overlayHead = document.querySelector(".viewer-overlay-head");
-        if (overlayHead) overlayHead.style.display = "";
-        const uploadBtn = document.getElementById("openUploadModalTop");
-        const gearBtn = document.getElementById("viewerGear");
-        if (uploadBtn) uploadBtn.style.display = "";
-        if (gearBtn) gearBtn.style.display = "";
-        const container = document.getElementById("viewerCanvas")?.parentElement;
-        if (container) {
-            const banner = container.querySelector(".viewer-grouped-banner");
-            if (banner) banner.style.display = "none";
-        }
-    }
+    disposeGroupedViewerIfActive();
 
     // Guard: Check if scene is available
     if (!scene) {
@@ -257,6 +290,7 @@ export async function loadGlbFromUrl(url) {
         loader.setCrossOrigin('anonymous');
     }
 
+    activateModelViewer();
     clearModel();
 
     return new Promise((resolve, reject) => {
@@ -332,6 +366,7 @@ export async function loadStlFromUrl(url) {
         loader.setCrossOrigin('anonymous');
     }
 
+    activateModelViewer();
     clearModel();
 
     return new Promise((resolve, reject) => {
@@ -401,6 +436,7 @@ async function _load3mfFromUrl(url) {
         loader.setCrossOrigin('anonymous');
     }
 
+    activateModelViewer();
     clearModel();
 
     return new Promise((resolve, reject) => {
