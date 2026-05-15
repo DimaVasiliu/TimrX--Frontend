@@ -21,6 +21,12 @@
     '/privacy': { preview: 'privacy.html', live: '/privacy' },
     '/cookies': { preview: 'cookies.html', live: '/cookies' },
     '/blogs': { preview: 'blogs.html', live: '/blogs' },
+    '/ai-image-generator': { preview: 'ai-image-generator.html', live: '/ai-image-generator' },
+    '/ai-video-generator': { preview: 'ai-video-generator.html', live: '/ai-video-generator' },
+    '/ai-3d-generator': { preview: 'ai-3d-generator.html', live: '/ai-3d-generator' },
+    '/text-to-3d': { preview: 'text-to-3d.html', live: '/text-to-3d' },
+    '/image-to-3d': { preview: 'image-to-3d.html', live: '/image-to-3d' },
+    '/3d-print-model-generator': { preview: '3d-print-model-generator.html', live: '/3d-print-model-generator' },
     '/3dprint-demo-video': { preview: '3dprint-demo-video.html', live: '/3dprint-demo-video' },
     '/pricing': { preview: 'hub.html', live: '/hub', hash: '#pricing' }
   };
@@ -73,20 +79,21 @@
     {
       heading: 'Explore',
       links: [
-        { href: '/hub', label: 'Hub' },
-        { href: '/tutorials', label: 'Tutorials' },
-        { href: '/community', label: 'Community' },
-        { href: '/prompts', label: 'Prompts' },
-        { href: '/docs', label: 'Docs' }
+        { href: '/blogs', label: 'Blog' },
+        { href: '/#works', label: 'Works' },
+        { href: '/#services', label: 'Services' },
+        { href: '/#contact', label: 'Contact' }
       ]
     },
     {
-      heading: 'Product',
+      heading: 'AI Tools',
       links: [
-        { href: '/3dprint', label: 'Open Workspace' },
-        { href: '/converter', label: 'Converter' },
-        { href: '/company', label: 'Company' },
-        { href: '/about', label: 'Founder' }
+        { href: '/ai-image-generator', label: 'AI Image Generator' },
+        { href: '/ai-video-generator', label: 'AI Video Generator' },
+        { href: '/ai-3d-generator', label: 'AI 3D Generator' },
+        { href: '/text-to-3d', label: 'Text to 3D' },
+        { href: '/image-to-3d', label: 'Image to 3D' },
+        { href: '/3d-print-model-generator', label: '3D Print Models' }
       ]
     },
     {
@@ -100,9 +107,10 @@
     {
       heading: 'Connect',
       links: [
-        { href: 'mailto:support@timrx.live', label: 'Support' },
-        { href: 'https://discord.gg/VpqT2UywDG', label: 'Discord', external: true },
-        { href: 'https://www.linkedin.com/in/dumitru-vasiliu', label: 'LinkedIn', external: true }
+        { href: '/rss.xml', label: 'RSS' },
+        { href: 'mailto:admin@timrx.live', label: 'Email' },
+        { href: 'https://www.linkedin.com/in/dumitru-vasiliu', label: 'LinkedIn', external: true },
+        { href: 'https://github.com/DimaVasiliu', label: 'GitHub', external: true }
       ]
     }
   ];
@@ -243,14 +251,14 @@
                 <img src="${resolveAssetHref('img/logo.png')}" alt="TimrX" width="32" height="32">
                 <span class="site-shell-footer-name">TimrX</span>
               </a>
-              <span class="site-shell-footer-tag">TimrX</span>
-              <p class="site-shell-footer-desc">A unified TimrX content system for tutorials, prompts, docs, showcase workflows, and the AI-powered 3D workspace.</p>
+              <span class="site-shell-footer-tag">AI Creative Platform</span>
+              <p class="site-shell-footer-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
             </div>
             <div class="site-shell-footer-cols">${footerCols}</div>
           </div>
           <div class="site-shell-footer-bottom">
             <span>&copy; <span data-site-shell-year></span> TimrX / Dima Vasiliu</span>
-            <span>One shared shell across landing, learning, and workspace surfaces</span>
+            <span>Built in London &middot; AI creative tools</span>
           </div>
         </div>
       </footer>

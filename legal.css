@@ -256,9 +256,9 @@
 }
 
 /* Footer — legal pages override */
-.legal-content ~ footer,
-.legal-hero ~ main + footer,
-footer:last-of-type {
+.legal-content ~ footer:not(.site-footer),
+.legal-hero ~ main + footer:not(.site-footer),
+footer:last-of-type:not(.site-footer) {
   border-top: none;
   padding: 0;
   margin-top: 0;
