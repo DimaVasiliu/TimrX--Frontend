@@ -832,20 +832,13 @@ body.site-menu-open {
 }
 
 @media (max-width: 1024px) {
-  .site-shell-nav-inner {
-    gap: 12px;
-  }
-
-  .site-shell-footer-cols {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-  }
-}
-
-@media (max-width: 960px) {
-  /* ---- Swap to burger mode ---- */
+  /* ---- Swap to burger mode (covers iPad Pro portrait @ 1024px) ----
+     Previously kicked in at 960px which left "OPEN WORKSPACE" + utility
+     chrome overflowing on iPad-class viewports. Burger-and-mobile-menu
+     UI/UX is identical to the existing small-screen experience. */
   .site-shell-nav-inner {
     grid-template-columns: 1fr auto;
+    gap: 12px;
   }
 
   .site-shell-nav-links {
@@ -878,6 +871,11 @@ body.site-menu-open {
 
   .site-shell-credits-pill {
     font-size: 11px;
+  }
+
+  .site-shell-footer-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
   }
 }
 

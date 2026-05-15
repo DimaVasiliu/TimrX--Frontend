@@ -318,7 +318,8 @@
     });
 
     window.addEventListener('resize', () => {
-      if (window.innerWidth > 960 && menu.classList.contains('is-open')) {
+      // Keep in sync with the burger-swap media query in site-shell.css (1024px).
+      if (window.innerWidth > 1024 && menu.classList.contains('is-open')) {
         closeMenu();
       }
     });

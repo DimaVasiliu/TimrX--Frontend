@@ -181,7 +181,7 @@ const ENDPOINT_TIMEOUTS = {
   '/api/_mod/history': 20000,          // 20s - history fetch
   '/api/history': 20000,               // 20s - legacy path
   // Print check - mesh analysis runs in subprocess, can take 15-20s for complex models
-  '/api/_mod/print-check/': 30000,          // 30s - trimesh analysis in subprocess
+  '/api/_mod/print-check/': 45000,          // 45s - bounded trimesh analysis can include model download
   // Generation endpoints - long timeout while async refactor is in progress
   '/api/_mod/text-to-3d/start': 120000,     // 120s - generation can take time
   '/api/_mod/image-to-3d/start': 120000,    // 120s - generation can take time
