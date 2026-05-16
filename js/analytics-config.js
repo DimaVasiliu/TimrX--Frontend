@@ -12,7 +12,7 @@
 
 // Public container/measurement IDs. None of these are secrets; they ship to the browser.
 export const GTM_ID            = 'GTM-TH8DB6S5';        // TimrX production GTM container
-export const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';      // documented only; GA4 is configured *inside* GTM
+export const GA4_MEASUREMENT_ID = 'G-K66VRX4FNS';      // documented only; GA4 is configured *inside* GTM
 export const GOOGLE_ADS_ID     = 'AW-18162436469';     // documented only; Google Ads is configured *inside* GTM
 
 // Real Google Ads conversion label for the "purchase" conversion action.
