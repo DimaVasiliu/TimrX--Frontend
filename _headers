@@ -2,8 +2,11 @@
 # This prevents SPA fallback from serving HTML for static files
 
 /*
-  X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://ajax.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' blob: https://3d.timrx.live https://blog.timrx.live https://*.timrx.live https://assets.meshy.ai https://*.meshy.ai https://*.amazonaws.com https://ajax.googleapis.com https://www.gstatic.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+  # X-Frame-Options removed deliberately: it cannot whitelist a single
+  # cross-origin (Tag Assistant lives at https://tagassistant.google.com) so
+  # we rely on CSP frame-ancestors below, which IS per-origin granular and
+  # the modern equivalent. All current browsers prefer frame-ancestors.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://ajax.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.googleadservices.com https://www.google-analytics.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://www.googletagmanager.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' blob: https://3d.timrx.live https://blog.timrx.live https://*.timrx.live https://assets.meshy.ai https://*.meshy.ai https://*.amazonaws.com https://ajax.googleapis.com https://www.gstatic.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googleadservices.com https://*.g.doubleclick.net; frame-src https://td.doubleclick.net https://www.googletagmanager.com; frame-ancestors 'self' https://tagassistant.google.com; object-src 'none'; base-uri 'self'; form-action 'self'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
