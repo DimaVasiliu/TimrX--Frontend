@@ -3073,6 +3073,45 @@ textarea {
   line-height: 1.6;
 }
 
+.timrx-3dprint .negative-prompt-field {
+  margin-top: 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.timrx-3dprint .negative-prompt-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.timrx-3dprint .field-optional {
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.timrx-3dprint .negative-prompt-input {
+  min-height: 70px;
+  resize: vertical;
+  font-size: 12px;
+  line-height: 1.5;
+  border-color: rgba(244, 114, 182, 0.16);
+  background: rgba(244, 114, 182, 0.035);
+}
+
+.timrx-3dprint .negative-prompt-input:focus {
+  border-color: rgba(244, 114, 182, 0.38);
+  box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.16);
+}
+
+.timrx-3dprint .negative-prompt-input--compact {
+  min-height: 58px;
+}
+
 /* Remesh/Rig textareas */
 .timrx-3dprint .card textarea[id*="remesh"],
 .timrx-3dprint .card textarea[id*="rig"] {

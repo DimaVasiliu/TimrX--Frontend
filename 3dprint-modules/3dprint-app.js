@@ -758,6 +758,11 @@
               </button>
             </div>
             <div class="enhance-feedback hidden" data-enhance-feedback="model"></div>
+            <div class="negative-prompt-field">
+              <label for="modelNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
+              <textarea id="modelNegativePrompt" class="negative-prompt-input" maxlength="240" placeholder="blurry forms, extra limbs, warped hands, text, logos, thin fragile parts"></textarea>
+              <span class="field-hint">Meshy 5/6 do not use a native negative-prompt field, so TimrX folds this into the prompt as “Avoid”.</span>
+            </div>
           </div>
 
           <div class="tab-content hidden" id="image3d">
@@ -784,6 +789,11 @@
                   </svg>
                 </div>
               </div>
+            </div>
+            <div class="negative-prompt-field">
+              <label for="image3dNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
+              <textarea id="image3dNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="240" placeholder="unwanted text, logos, noisy surfaces, extra parts"></textarea>
+              <span class="field-hint">Used as an avoid instruction when the provider accepts text guidance.</span>
             </div>
           </div>
 
@@ -830,6 +840,10 @@
             <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
             <span class="field-hint" style="color:#b08a3e;font-size:10px;margin-top:2px">Images are sent as data URLs — keep each file under 5 MB for reliable uploads</span>
             <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
+            <div class="negative-prompt-field">
+              <label for="multiImageNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
+              <textarea id="multiImageNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="240" placeholder="background clutter, duplicated parts, text, logos"></textarea>
+            </div>
           </div>
 
           <div class="card-divider"></div>
@@ -1171,6 +1185,11 @@
             </button>
           </div>
           <div class="enhance-feedback hidden" data-enhance-feedback="texture"></div>
+          <div class="negative-prompt-field">
+            <label for="textureNegativePrompt">Avoid in texture <span class="field-optional">(optional)</span></label>
+            <textarea id="textureNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="240" placeholder="plastic shine, dirt, scratches, logos, text, seams"></textarea>
+            <span class="field-hint">Works best with a text texture prompt. Image-only texture references remain image-guided.</span>
+          </div>
 
           <div class="texture-style-block">
             <div class="image-upload-control">

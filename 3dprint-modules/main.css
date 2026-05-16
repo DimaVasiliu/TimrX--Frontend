@@ -30,7 +30,7 @@
 @import url('media/layout-media.css');
 
 /* 3. Buttons, Forms, Tabs, Chips */
-@import url('css/components.css');
+@import url('css/components.css?v=20260516a');
 @import url('media/components-media.css');
 
 /* 4. Workspace Grid & Cards */
@@ -66,4 +66,4 @@
 @import url('media/notifications-media.css');
 
 /* 12. Multi-Color 3D Print Modal */
-@import url('css/multi-color-print.css?v=20260408d');
+@import url('css/multi-color-print.css?v=20260408f');

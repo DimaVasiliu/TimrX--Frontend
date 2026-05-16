@@ -266,6 +266,15 @@ export async function fetchWallet() {
         creditsState.email = data.email || null;
         creditsState.emailVerified = data.email_verified || false;
 
+        // Signal analytics.js (and any other listener) that the identity is now
+        // server-confirmed. analytics.js uses this to poll the pending-conversion
+        // queue — kept here so the trigger lands exactly once per /api/me success.
+        try {
+          window.dispatchEvent(new CustomEvent('timrx:identity:confirmed', {
+            detail: { identity_id: serverIdentityId },
+          }));
+        } catch (_) { /* old browsers — no-op */ }
+
         // Server's available already accounts for backend reservations.
         // Clear client-side reservations to avoid double-counting.
         creditsState.reservations.clear();

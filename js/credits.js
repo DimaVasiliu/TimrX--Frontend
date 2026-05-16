@@ -35,6 +35,27 @@
       const payload = { event: eventName, ts: Date.now(), ...metadata };
       console.log('[Funnel]', eventName, payload);
       window.dispatchEvent(new CustomEvent('timrx:checkout_funnel', { detail: payload }));
+
+      // Forward the "Pay now → Mollie redirect" moment to GTM as `begin_checkout`
+      // so GA4 + Google Ads remarketing can pick it up. Conversion proper still
+      // only fires post-webhook via the server-issued analytics queue.
+      if (eventName === 'redirect_started' && window.TimrXAnalytics?.trackCheckoutStarted) {
+        const planCode = metadata.plan;
+        const planObj =
+          PLANS[planCode] ||
+          VIDEO_PLANS[planCode] ||
+          Object.values(SUB_PLANS.monthly || {})
+            .concat(Object.values(SUB_PLANS.yearly || {}))
+            .find(p => p.plan_code === planCode);
+        const value = Number(planObj?.price);
+        const isVideoFlow = metadata.flow === 'video' || String(planCode || '').startsWith('video_');
+        window.TimrXAnalytics.trackCheckoutStarted({
+          plan_code: planCode,
+          value: Number.isFinite(value) ? value : undefined,
+          currency: 'GBP',
+          credit_type: isVideoFlow ? 'video' : 'general',
+        });
+      }
     } catch (_) { /* never block UI */ }
   }
 

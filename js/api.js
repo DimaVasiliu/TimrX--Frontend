@@ -29,8 +29,31 @@ let postProcessLock = false;
 // ============================================================================
 // MESHY PROMPT LIMITS
 // ============================================================================
-const MESHY_PROMPT_HARD_LIMIT = 800;   // API rejects above this
-const MESHY_PROMPT_WARN_LIMIT = 600;   // Show warning colour above this
+const MESHY_PROMPT_HARD_LIMIT = 600;   // Meshy Text-to-3D accepts max 600 chars
+const MESHY_PROMPT_WARN_LIMIT = 480;   // Show warning colour above this
+const MESHY_NEGATIVE_PROMPT_LIMIT = 240;
+
+function getNegativePromptValue(id) {
+  const value = (byId(id)?.value || '').trim().replace(/\s+/g, ' ');
+  return value.slice(0, MESHY_NEGATIVE_PROMPT_LIMIT).replace(/^[\s:,-]+|[\s:,-]+$/g, '');
+}
+
+function meshyProviderPromptLength(prompt, negativePrompt) {
+  const cleanPrompt = (prompt || '').trim();
+  const cleanNegative = (negativePrompt || '').trim();
+  if (!cleanPrompt || !cleanNegative) return cleanPrompt.length;
+  return `${cleanPrompt} Avoid: ${cleanNegative}.`.length;
+}
+
+function validateMeshyPromptLength(prompt, textareaRef, negativePrompt = '') {
+  const effectiveLen = meshyProviderPromptLength(prompt, negativePrompt);
+  if (effectiveLen <= MESHY_PROMPT_HARD_LIMIT) return true;
+  showPromptLimitModal(prompt, textareaRef, {
+    extraText: negativePrompt,
+    effectiveLen,
+  });
+  return false;
+}
 
 /**
  * Acquire the submit lock — prevents duplicate generation requests.
@@ -648,12 +671,16 @@ function _showStyledGeneralCreditsModal(required, available, needed) {
  * Show a modal warning the user their prompt exceeds Meshy's character limit.
  * Includes a live character counter and lets the user trim the prompt inline.
  */
-function showPromptLimitModal(prompt, textareaRef) {
+function showPromptLimitModal(prompt, textareaRef, options = {}) {
   const existing = document.getElementById('promptLimitOverlay');
   if (existing) existing.remove();
 
   const len = prompt.length;
-  const over = len - MESHY_PROMPT_HARD_LIMIT;
+  const effectiveLen = Number(options.effectiveLen || len);
+  const over = effectiveLen - MESHY_PROMPT_HARD_LIMIT;
+  const extraNote = options.extraText
+    ? ' This includes the Avoid field because TimrX folds it into the Meshy prompt.'
+    : '';
 
   const overlay = document.createElement('div');
   overlay.id = 'promptLimitOverlay';
@@ -664,7 +691,7 @@ function showPromptLimitModal(prompt, textareaRef) {
         <div>
           <p class="workspace-modal__eyebrow">Prompt too long</p>
           <h3 class="workspace-modal__title">Shorten your prompt to continue</h3>
-          <p class="workspace-modal__subtitle">Meshy's API accepts a maximum of ${MESHY_PROMPT_HARD_LIMIT} characters. Your prompt is <strong>${over}</strong> characters over the limit.</p>
+          <p class="workspace-modal__subtitle">Meshy's API accepts a maximum of ${MESHY_PROMPT_HARD_LIMIT} characters. Your provider prompt is <strong>${over}</strong> characters over the limit.${extraNote}</p>
         </div>
         <button type="button" class="workspace-modal__close" id="promptLimitClose">&times;</button>
       </div>
@@ -672,19 +699,19 @@ function showPromptLimitModal(prompt, textareaRef) {
         <div class="card">
           <div class="prompt-limit__counter-row">
             <span class="prompt-limit__label">Characters</span>
-            <span class="prompt-limit__counter ${len > MESHY_PROMPT_HARD_LIMIT ? 'is-over' : len > MESHY_PROMPT_WARN_LIMIT ? 'is-warn' : ''}" id="promptLimitCount">${len} / ${MESHY_PROMPT_HARD_LIMIT}</span>
+            <span class="prompt-limit__counter ${effectiveLen > MESHY_PROMPT_HARD_LIMIT ? 'is-over' : effectiveLen > MESHY_PROMPT_WARN_LIMIT ? 'is-warn' : ''}" id="promptLimitCount">${effectiveLen} / ${MESHY_PROMPT_HARD_LIMIT}</span>
           </div>
-          <textarea id="promptLimitTextarea" class="prompt-limit__textarea" spellcheck="false">${prompt.replace(/</g, '&lt;')}</textarea>
+          <textarea id="promptLimitTextarea" class="prompt-limit__textarea" spellcheck="false">${prompt.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
           <p class="field-hint">Edit your prompt above. The counter updates as you type.</p>
         </div>
       </div>
       <div class="workspace-modal__footer">
         <div class="prompt-limit__bar">
-          <div class="prompt-limit__bar-fill" id="promptLimitBar" style="width:${Math.min(100, (len / MESHY_PROMPT_HARD_LIMIT) * 100)}%"></div>
+          <div class="prompt-limit__bar-fill" id="promptLimitBar" style="width:${Math.min(100, (effectiveLen / MESHY_PROMPT_HARD_LIMIT) * 100)}%"></div>
         </div>
         <div class="workspace-modal__actions">
           <button type="button" class="gen-btn gen-btn--rail workspace-modal__ghost" id="promptLimitCancel">Cancel</button>
-          <button type="button" class="gen-btn" id="promptLimitApply" ${len > MESHY_PROMPT_HARD_LIMIT ? 'disabled' : ''}>Use this prompt</button>
+          <button type="button" class="gen-btn" id="promptLimitApply" ${effectiveLen > MESHY_PROMPT_HARD_LIMIT ? 'disabled' : ''}>Use this prompt</button>
         </div>
       </div>
     </div>
@@ -706,13 +733,14 @@ function showPromptLimitModal(prompt, textareaRef) {
 
   const updateCounter = () => {
     const l = textarea.value.length;
-    counter.textContent = `${l} / ${MESHY_PROMPT_HARD_LIMIT}`;
-    counter.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
-    counter.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
-    bar.style.width = `${Math.min(100, (l / MESHY_PROMPT_HARD_LIMIT) * 100)}%`;
-    bar.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
-    bar.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
-    applyBtn.disabled = l > MESHY_PROMPT_HARD_LIMIT || l === 0;
+    const total = meshyProviderPromptLength(textarea.value, options.extraText || '');
+    counter.textContent = `${total} / ${MESHY_PROMPT_HARD_LIMIT}`;
+    counter.classList.toggle('is-over', total > MESHY_PROMPT_HARD_LIMIT);
+    counter.classList.toggle('is-warn', total > MESHY_PROMPT_WARN_LIMIT && total <= MESHY_PROMPT_HARD_LIMIT);
+    bar.style.width = `${Math.min(100, (total / MESHY_PROMPT_HARD_LIMIT) * 100)}%`;
+    bar.classList.toggle('is-over', total > MESHY_PROMPT_HARD_LIMIT);
+    bar.classList.toggle('is-warn', total > MESHY_PROMPT_WARN_LIMIT && total <= MESHY_PROMPT_HARD_LIMIT);
+    applyBtn.disabled = total > MESHY_PROMPT_HARD_LIMIT || l === 0;
   };
 
   textarea.addEventListener('input', updateCounter);
@@ -737,6 +765,7 @@ function showPromptLimitModal(prompt, textareaRef) {
 export function wirePromptCharCounter() {
   const textarea = byId('modelPrompt');
   if (!textarea) return;
+  const negativeTextarea = byId('modelNegativePrompt');
 
   // Create counter element
   const counter = document.createElement('span');
@@ -745,13 +774,14 @@ export function wirePromptCharCounter() {
   textarea.parentElement?.appendChild(counter);
 
   const update = () => {
-    const l = textarea.value.length;
-    counter.textContent = `${l}/${MESHY_PROMPT_HARD_LIMIT}`;
-    counter.classList.toggle('is-warn', l > MESHY_PROMPT_WARN_LIMIT && l <= MESHY_PROMPT_HARD_LIMIT);
-    counter.classList.toggle('is-over', l > MESHY_PROMPT_HARD_LIMIT);
+    const total = meshyProviderPromptLength(textarea.value, getNegativePromptValue('modelNegativePrompt'));
+    counter.textContent = `${total}/${MESHY_PROMPT_HARD_LIMIT}`;
+    counter.classList.toggle('is-warn', total > MESHY_PROMPT_WARN_LIMIT && total <= MESHY_PROMPT_HARD_LIMIT);
+    counter.classList.toggle('is-over', total > MESHY_PROMPT_HARD_LIMIT);
   };
 
   textarea.addEventListener('input', update);
+  negativeTextarea?.addEventListener('input', update);
   update();
 }
 
@@ -1875,6 +1905,7 @@ function getPreviewFormValues() {
  */
 async function getTextureFormValues() {
   const prompt = (byId('texturePrompt')?.value || '').trim();
+  const negativePrompt = getNegativePromptValue('textureNegativePrompt');
   const textureType = (byId('textureType')?.value || 'pbr-all').toLowerCase();
   const aiModel = (byId('textureAiModel')?.value || 'latest').trim() || 'latest';
   const seamlessInput = byId('seamless');
@@ -1910,6 +1941,7 @@ async function getTextureFormValues() {
 
   const values = {
     text_style_prompt: prompt,
+    negative_prompt: negativePrompt,
     image_style_url,
     enable_pbr,
     enable_original_uv,
@@ -1947,6 +1979,11 @@ async function openRefineSettingsModal(item = {}) {
             <h3>Style Direction</h3>
             <textarea id="refineTexturePrompt" placeholder="Optional material or surface notes, e.g. polished obsidian with engraved gold details...">${item.texture_prompt || ''}</textarea>
             <p class="field-hint texture-setting-note">Leave this empty if you want a pure geometry/detail refine. Add text only when you want the refine pass to steer surface character too.</p>
+            <div class="negative-prompt-field">
+              <label for="refineNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
+              <textarea id="refineNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="${MESHY_NEGATIVE_PROMPT_LIMIT}" placeholder="plastic shine, noisy texture, text, logos, extra artifacts">${item.negative_prompt || item.texture_negative_prompt || ''}</textarea>
+              <p class="field-hint texture-setting-note">TimrX stores this separately and folds it into the Meshy refine prompt as an avoid instruction.</p>
+            </div>
 
             <div class="texture-style-block">
               <div class="image-upload-control">
@@ -2141,6 +2178,8 @@ async function openRefineSettingsModal(item = {}) {
         document.removeEventListener('keydown', onKeyDown);
         cleanup({
           texture_prompt: (overlay.querySelector('#refineTexturePrompt')?.value || '').trim(),
+          negative_prompt: getNegativePromptValue('refineNegativePrompt'),
+          texture_negative_prompt: getNegativePromptValue('refineNegativePrompt'),
           texture_image_url,
           enable_pbr: !!overlay.querySelector('#refineEnablePbr')?.checked,
           remove_lighting: !!removeLighting?.checked,
@@ -3029,16 +3068,16 @@ export async function onGenerateClick() {
   try {
     let promptTextarea = byId('modelPrompt') || byId('imagePrompt') || byId('texturePrompt') || byId('videoMotion');
     const prompt = (promptTextarea?.value || '').trim();
+    const negativePrompt = getNegativePromptValue('modelNegativePrompt');
     if (!prompt) {
       prog.clear();
       alert('Please type a prompt describing what you want to generate.');
       return;
     }
 
-    // Meshy enforces an 800-character hard limit on prompts
-    if (prompt.length > MESHY_PROMPT_HARD_LIMIT) {
+    // Meshy enforces a 600-character hard limit on provider-facing prompts.
+    if (!validateMeshyPromptLength(prompt, promptTextarea, negativePrompt)) {
       prog.clear();
-      showPromptLimitModal(prompt, promptTextarea);
       releaseSubmitLock();
       allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
       return;
@@ -3057,6 +3096,7 @@ export async function onGenerateClick() {
         batch_slot: index + 1,
         prompt,
         root_prompt: prompt,
+        negative_prompt: negativePrompt,
         model,
         license,
         pose_mode: poseMode,
@@ -3094,6 +3134,7 @@ export async function onGenerateClick() {
         prompt,
         model,
         root_prompt: prompt,
+        negative_prompt: negativePrompt,
         license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
@@ -3117,6 +3158,7 @@ export async function onGenerateClick() {
 
       const payload = {
         prompt,
+        negative_prompt: negativePrompt,
         model,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
@@ -3180,6 +3222,7 @@ export async function onGenerateClick() {
         prompt,
         model,
         root_prompt: prompt,
+        negative_prompt: negativePrompt,
         license,
         symmetry_mode: symmetry,
         pose_mode: poseMode,
@@ -5562,11 +5605,13 @@ async function startImageTo3DFromUpload() {
 
   const nameInput = byId('imageModelName');
   const prompt = (nameInput?.value || '').trim() || 'Image to 3D';
+  const negativePrompt = getNegativePromptValue('image3dNegativePrompt');
   const model = byId('modelAIModel')?.value || 'latest';
 
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
+    negative_prompt: negativePrompt,
     model,
     stage: 'image3d',
     thumbnail_url: imageData.startsWith('http') ? imageData : ''
@@ -5595,7 +5640,7 @@ async function startImageTo3DFromUpload() {
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: imageData, prompt, model },
+      body: { image_url: imageData, prompt, negative_prompt: negativePrompt, model },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
@@ -5676,9 +5721,11 @@ export async function startImageTo3DFromHistory(item) {
   }
 
   const prompt = item.prompt || item.title || 'Image to 3D';
+  const negativePrompt = getNegativePromptValue('image3dNegativePrompt');
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
+    negative_prompt: negativePrompt,
     model: 'latest',
     stage: 'image3d',
     thumbnail_url: item.thumbnail_url || item.image_url || '',
@@ -5707,7 +5754,7 @@ export async function startImageTo3DFromHistory(item) {
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: item.image_url, prompt, source_image_history_id: item.id },
+      body: { image_url: item.image_url, prompt, negative_prompt: negativePrompt, source_image_history_id: item.id },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
@@ -5850,6 +5897,8 @@ export async function startRefineFromHistory(item, origin = 'history') {
       enable_pbr: refineValues.enable_pbr,
       remove_lighting: refineValues.remove_lighting,
       ai_model: refineValues.ai_model || 'latest',
+      negative_prompt: refineValues.negative_prompt || '',
+      texture_negative_prompt: refineValues.texture_negative_prompt || '',
       texture_style_mode: styleMode,
       uses_image_style: styleMode === 'image',
       source_origin: origin
@@ -5874,6 +5923,8 @@ export async function startRefineFromHistory(item, origin = 'history') {
       hd_texture: refineValues.hd_texture,
       target_formats: ['glb']
     };
+    if (refineValues.negative_prompt) body.negative_prompt = refineValues.negative_prompt;
+    if (refineValues.texture_negative_prompt) body.texture_negative_prompt = refineValues.texture_negative_prompt;
     if (refineValues.texture_prompt) body.texture_prompt = refineValues.texture_prompt;
     else if (refineValues.texture_image_url) body.texture_image_url = refineValues.texture_image_url;
 
@@ -6055,6 +6106,7 @@ export async function startTextureFromPanel() {
     remove_lighting: texValues.remove_lighting,
     target_formats: texValues.target_formats || [],
     ai_model: texValues.ai_model || 'latest',
+    negative_prompt: texValues.negative_prompt || '',
     texture_style_mode: textureStyleMode,
     uses_image_style: textureStyleMode === 'image'
   };
@@ -6106,11 +6158,13 @@ async function startMultiImageTo3D() {
 
   const nameInput = byId('multiImageModelName');
   const prompt = (nameInput?.value || '').trim() || 'Multi-Image to 3D';
+  const negativePrompt = getNegativePromptValue('multiImageNegativePrompt');
   const model = byId('modelAIModel')?.value || 'latest';
 
   const meta = {
     prompt: `(multi-image) ${prompt}`,
     root_prompt: prompt,
+    negative_prompt: negativePrompt,
     model,
     stage: 'image3d',
     thumbnail_url: ''
@@ -6136,7 +6190,7 @@ async function startMultiImageTo3D() {
   try {
     const result = await apiFetch('/api/_mod/multi-image-to-3d/start', {
       method: 'POST',
-      body: { image_urls: imageUrls, prompt, model },
+      body: { image_urls: imageUrls, prompt, negative_prompt: negativePrompt, model },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 

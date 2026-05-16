@@ -22,10 +22,13 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js?v=20260508a';
-import * as API from './api.js?v=20260515b';
+import * as API from './api.js?v=20260516a';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
+// Analytics: wraps dataLayer.push for GTM (GA4 + Google Ads). Side-effect import —
+// the module self-primes on load and listens for `timrx:identity:confirmed`.
+import './analytics.js';
 import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260515c';
 
 // ============================================================================

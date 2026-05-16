@@ -127,10 +127,10 @@
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260408f">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260516a">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260513b"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260516a"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
   <script defer src="3dprint-modules/community-gallery.js"></script>
 
@@ -188,18 +188,22 @@
       .ticker-header-track { animation: none; }
     }
   </style>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18162436469"></script>
+  <!-- Google Tag Manager -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'AW-18162436469');
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
   </script>
+  <!-- End Google Tag Manager -->
   <script src="js/google-ads-conversions.js?v=20260515a"></script>
 </head>
 <body class="print3d-page">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <!-- Minimal Workspace Header -->
   <header class="ws-header" aria-label="Workspace header">
@@ -3316,7 +3320,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260515c"></script>
+  <script type="module" src="./js/main.js?v=20260516a"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
 
