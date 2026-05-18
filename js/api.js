@@ -75,6 +75,87 @@ function releaseSubmitLock() {
   window.GenerationState?.setSubmitLock?.(false);
 }
 
+function stableOperationValue(value) {
+  if (Array.isArray(value)) return value.map(stableOperationValue);
+  if (value && typeof value === 'object') {
+    return Object.keys(value).sort().reduce((acc, key) => {
+      const next = stableOperationValue(value[key]);
+      if (next !== undefined && next !== null && next !== '') acc[key] = next;
+      return acc;
+    }, {});
+  }
+  return value;
+}
+
+function buildDerivedOperationKey(stage, parts = {}) {
+  const normalized = stableOperationValue(parts);
+  return `${stage}:${JSON.stringify(normalized)}`;
+}
+
+function hashOperationKey(value = '') {
+  let hash = 2166136261;
+  const input = String(value);
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function operationIdempotencyKey(stage, operationKey, forceNew = false) {
+  const salt = forceNew ? `:${Date.now()}:${Math.random().toString(36).slice(2)}` : '';
+  return `${stage}:${hashOperationKey(`${operationKey}${salt}`)}`;
+}
+
+function activeDerivedOperationJob(operationKey) {
+  if (!operationKey) return null;
+  const activeJobs = new Set(State.getActiveJobs?.() || []);
+  const pendingMeta = State.getPendingMeta?.() || {};
+  for (const [jobId, meta] of Object.entries(pendingMeta)) {
+    if (meta?.operation_key === operationKey) return jobId;
+  }
+  for (const jobId of activeJobs) {
+    const item = State.findHistoryItem?.(jobId);
+    if ((item?.operation_key || item?.payload?.operation_key) === operationKey) return jobId;
+  }
+  return null;
+}
+
+function finishedDerivedOperation(operationKey) {
+  if (!operationKey) return null;
+  return (State.getHistory?.() || []).find((item) => (
+    item
+    && (item.status === 'finished' || item.status === 'done' || !item.status)
+    && (item.operation_key || item.payload?.operation_key) === operationKey
+  )) || null;
+}
+
+async function shouldStartDerivedOperation(label, operationKey) {
+  const activeJob = activeDerivedOperationJob(operationKey);
+  if (activeJob) {
+    alert(`${label} is already running for this model and settings.`);
+    return { start: false, forceNew: false };
+  }
+
+  const existing = finishedDerivedOperation(operationKey);
+  if (!existing) return { start: true, forceNew: false };
+
+  const runAgain = window.confirm?.(`${label} already exists for this model and settings. Run it again anyway?`) ?? true;
+  if (runAgain) return { start: true, forceNew: true };
+
+  State.setHistoryActiveModelId(existing.id);
+  const existingUrl = existing.glb_url || existing.glb_proxy || existing.model_urls?.glb || existing.payload?.glb_url || '';
+  if (existingUrl) {
+    try {
+      await Viewer.loadModelWithFallback(getLoadableModelUrl(existingUrl) || existingUrl, existingUrl);
+    } catch (err) {
+      console.warn(`[${label}] Failed to load existing derived asset:`, err);
+    }
+  }
+  renderHistory();
+  return { start: false, forceNew: false };
+}
+
 // Track jobs that have already had credits refreshed on completion/failure
 // Prevents multiple refresh calls for the same job
 const creditsRefreshedJobs = new Set();
@@ -843,8 +924,8 @@ function refreshCreditsInBackground() {
     // Fire and forget - don't await
     window.WorkspaceCredits.refreshCredits().catch(err => {
       log('[Credits] Background refresh failed:', err);
-    });
-  }
+  });
+}
 }
 
 /**
@@ -2739,6 +2820,9 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           glb_url: glbDirect,
           glb_proxy: glbProxy,
           preview_task_id: meta.preview_task_id || null,
+          source_model_id: meta.source_model_id || meta.source_history_id || null,
+          source_history_id: meta.source_history_id || meta.source_model_id || null,
+          operation_key: meta.operation_key || '',
           lineage_origin_id: lineageRootId,
           lineage_root_id: lineageRootId,
           texture_urls: st.texture_urls || [],
@@ -2946,8 +3030,8 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return; // Insufficient credits modal shown
   }
 
-  // Generate idempotency key for this operation
-  const idempotencyKey = State.generateIdempotencyKey();
+  // Prefer a stable operation key for derived tasks; random fallback for generic texture jobs.
+  const idempotencyKey = meta.idempotency_key || State.generateIdempotencyKey();
   const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `temp-${kind}-${Date.now()}`);
   const tempMeta = { ...meta, stage: kind, idempotency_key: idempotencyKey };
   const startingLabel = `Starting ${statusLabel.replace(/\.+$/, '').toLowerCase()}...`;
@@ -2961,7 +3045,7 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     // Include idempotency key in header for duplicate prevention
     result = await apiFetch(endpoint, {
       method: 'POST',
-      body: payload,
+      body: { ...payload, idempotency_key: idempotencyKey },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
   } catch (err) {
@@ -3004,7 +3088,7 @@ async function beginMeshyTask(kind, payload, meta = {}) {
   confirmCreditsReservation(reservation.reservationId, job_id);
 
   State.addActiveJob(job_id);
-  State.savePendingMeta(job_id, { ...meta, stage: kind, source_model_id: meta.source_model_id || meta.id });
+  State.savePendingMeta(job_id, { ...meta, stage: kind, idempotency_key: idempotencyKey, source_model_id: meta.source_model_id || meta.id });
   addGeneratingPlaceholder(job_id, { ...meta, status_label: statusLabel, stage: kind });
   watchMeshyTask(job_id, kind);
 }
@@ -6461,6 +6545,21 @@ export async function startRigFromPanel() {
     if (textureImageUrl) payload.texture_image_url = textureImageUrl;
   }
 
+  const lineageRootId = baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null;
+  const sourceOperationId = baseItem?.id || payload.input_task_id || payload.model_url || '';
+  const operationKey = buildDerivedOperationKey('rig', {
+    source_id: sourceOperationId,
+    lineage_id: lineageRootId,
+    height_meters,
+    uses_texture_image: !!payload.texture_image_url,
+  });
+  const rigDecision = await shouldStartDerivedOperation('Rigging', operationKey);
+  if (!rigDecision.start) {
+    startLock = false;
+    return;
+  }
+
+  const idempotencyKey = operationIdempotencyKey('rig', operationKey, rigDecision.forceNew);
   const prog = UI.makeProgressDriver();
   const sourceThumbnail = baseItem?.thumbnail_url || '';
 
@@ -6475,8 +6574,13 @@ export async function startRigFromPanel() {
     source_thumbnail_url: sourceThumbnail,
     thumbnail_url: sourceThumbnail,
     uses_texture_image: !!payload.texture_image_url,
-    lineage_origin_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
-    lineage_root_id: baseItem?.lineage_root_id || baseItem?.lineage_origin_id || baseItem?.id || null,
+    height_meters,
+    source_model_id: baseItem?.id || null,
+    source_history_id: baseItem?.id || null,
+    operation_key: operationKey,
+    idempotency_key: idempotencyKey,
+    lineage_origin_id: lineageRootId,
+    lineage_root_id: lineageRootId,
   };
   addGeneratingPlaceholder(tempId, rigMeta);
   State.savePendingMeta(tempId, rigMeta);
@@ -6493,12 +6597,14 @@ export async function startRigFromPanel() {
 
   prog.label('Starting rigging...');
   if (labelPrompt) payload.prompt = labelPrompt;
+  payload.idempotency_key = idempotencyKey;
 
   let result;
   try {
     result = await apiFetch('/api/_mod/rig/start', {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
@@ -6674,6 +6780,10 @@ async function _handleRigComplete(job_id, st, prog) {
     glb_proxy: glbProxy || '',
     thumbnail_url: thumbnail,
     model: 'latest',
+    height_meters: pendingMeta.height_meters || null,
+    source_model_id: pendingMeta.source_model_id || pendingMeta.source_history_id || null,
+    source_history_id: pendingMeta.source_history_id || pendingMeta.source_model_id || null,
+    operation_key: pendingMeta.operation_key || '',
     lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,
     lineage_root_id: pendingMeta.lineage_root_id || pendingMeta.lineage_origin_id || null,
   };
@@ -6950,6 +7060,17 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   }
   console.log(`[Anim] Title resolved: source="${sourceTitle}" action="${animName}" final="${animLabel}"`);
 
+  const operationKey = buildDerivedOperationKey('animate', {
+    rig_task_id: riggingTaskId,
+    action_id: parseInt(actionId, 10),
+    post_process: postProcess || null,
+  });
+  const animDecision = await shouldStartDerivedOperation('Animation', operationKey);
+  if (!animDecision.start) {
+    startLock = false;
+    return;
+  }
+  const idempotencyKey = operationIdempotencyKey('animate', operationKey, animDecision.forceNew);
   const prog = UI.makeProgressDriver();
 
   // Show placeholder card in history IMMEDIATELY
@@ -6964,6 +7085,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     rig_task_id: riggingTaskId,
     action_id: parseInt(actionId, 10),
     post_process: postProcess || null,
+    operation_key: operationKey,
+    idempotency_key: idempotencyKey,
     lineage_origin_id: animState.lineage_origin_id || animState.lineage_root_id || animState.model_id || null,
     lineage_root_id: animState.lineage_root_id || animState.lineage_origin_id || animState.model_id || null,
   };
@@ -6986,6 +7109,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     rig_task_id: riggingTaskId,
     action_id: parseInt(actionId, 10),
     prompt: animLabel,
+    idempotency_key: idempotencyKey,
   };
   if (postProcess) payload.post_process = postProcess;
   // Pass rig history item ID for reliable lineage linking
@@ -6997,7 +7121,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   try {
     result = await apiFetch('/api/_mod/rig/animate', {
       method: 'POST',
-      body: payload
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
     });
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
@@ -7119,6 +7244,7 @@ async function _handleAnimComplete(job_id, st, prog) {
     rig_task_id: pendingMeta.rig_task_id || '',
     action_id: pendingMeta.action_id || null,
     post_process: pendingMeta.post_process || null,
+    operation_key: pendingMeta.operation_key || '',
     thumbnail_url: thumbnail,
     model: 'latest',
     lineage_origin_id: pendingMeta.lineage_origin_id || pendingMeta.lineage_root_id || null,
@@ -7239,10 +7365,8 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
 
       return 'continue';
     },
-  });
-
-  poll();
-}
+    });
+  }
 
 // ============================================================================
 // HISTORY-BASED OPERATIONS (Remesh, Texture)
@@ -7261,13 +7385,31 @@ export async function startRemeshFromHistory(item) {
   }
   const remeshValues = getRemeshFormValues();
   const remeshActionLabel = remeshValues.convert_format_only ? 'Convert' : 'Remesh';
+  const lineageRootId = item.lineage_root_id || item.lineage_origin_id || item.id;
+  const operationKey = buildDerivedOperationKey('remesh', {
+    source_id: item.id,
+    lineage_id: lineageRootId,
+    topology: remeshValues.topology || '',
+    target_polycount: remeshValues.target_polycount || null,
+    target_formats: remeshValues.target_formats || [],
+    resize_height: remeshValues.resize_height || null,
+    origin_at: remeshValues.origin_at || '',
+    convert_format_only: !!remeshValues.convert_format_only,
+    print_height_mm: remeshValues.print_height_mm || null,
+  });
+  const remeshDecision = await shouldStartDerivedOperation(remeshActionLabel, operationKey);
+  if (!remeshDecision.start) return;
   const meta = {
     prompt: `${remeshActionLabel} ${shortTitle(item)}`,
     root_prompt: item.root_prompt || item.prompt || '',
     model: item.model || 'latest',
     license: item.license || 'private',
-    lineage_origin_id: item.lineage_root_id || item.id,
+    lineage_origin_id: lineageRootId,
+    lineage_root_id: lineageRootId,
     source_model_id: item.id,
+    source_history_id: item.id,
+    operation_key: operationKey,
+    idempotency_key: operationIdempotencyKey('remesh', operationKey, remeshDecision.forceNew),
     thumbnail_url: item.thumbnail_url || '',
     topology: remeshValues.topology,
     target_polycount: remeshValues.target_polycount,

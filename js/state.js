@@ -318,6 +318,11 @@ function saveHistoryCache(arr) {
       glb_url: item.glb_url,
       glb_proxy: item.glb_proxy,
       stage: item.stage,
+      operation_key: item.operation_key,
+      source_model_id: item.source_model_id,
+      source_history_id: item.source_history_id,
+      rig_task_id: item.rig_task_id,
+      action_id: item.action_id,
       created_at: item.created_at,
       pose_mode: item.pose_mode,
       model: item.model,
@@ -829,6 +834,13 @@ export function addHistoryItem(item) {
 
   // Update in-memory cache
   if (historyCache === null) historyCache = getHistoryCache();
+  const existingIndex = historyCache.findIndex(x => x?.id === sanitized?.id);
+  if (existingIndex !== -1) {
+    historyCache[existingIndex] = { ...historyCache[existingIndex], ...sanitized };
+    saveHistoryCache(historyCache);
+    _syncLoadedTabCaches(null, historyCache[existingIndex]);
+    return true;
+  }
   historyCache.unshift(sanitized);
   // Cap in-memory cache at 500 to prevent unbounded growth.
   // This is a soft cap — the user's full history is always reachable via load-more.

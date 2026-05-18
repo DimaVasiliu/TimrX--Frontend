@@ -653,6 +653,78 @@ function getLineageKey(item = {}) {
   return String(item.id || '');
 }
 
+function normalizeHistoryStage(stage = '') {
+  const value = String(stage || '').toLowerCase();
+  if (value === 'remeshed') return 'remesh';
+  if (value === 'rigged') return 'rig';
+  if (value === 'animated' || value === 'animation') return 'animate';
+  if (value === 'textured') return 'texture';
+  if (value === 'refined') return 'refine';
+  return value || 'preview';
+}
+
+function historyPrimaryAssetUrl(item = {}) {
+  const payload = item.payload || {};
+  return item.glb_url
+    || item.model_urls?.glb
+    || payload.glb_url
+    || payload.model_urls?.glb
+    || payload.rigged_character_glb_url
+    || payload.animation_glb_url
+    || item.image_url
+    || payload.image_url
+    || item.video_url
+    || payload.video_url
+    || '';
+}
+
+function canonicalHistoryAssetUrl(rawUrl = '') {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  try {
+    const url = new URL(rawUrl, window.location.origin);
+    const proxied = url.searchParams.get('u');
+    if (proxied) return canonicalHistoryAssetUrl(decodeURIComponent(proxied));
+    url.hash = '';
+    url.search = '';
+    return url.toString();
+  } catch (_) {
+    return rawUrl.split('#')[0].split('?')[0];
+  }
+}
+
+function preferHistoryDuplicateCandidate(current, next) {
+  const currentFinished = current?.status === 'finished' || current?.status === 'done' || !current?.status;
+  const nextFinished = next?.status === 'finished' || next?.status === 'done' || !next?.status;
+  if (currentFinished !== nextFinished) return nextFinished ? next : current;
+  return getCreatedAt(next) >= getCreatedAt(current) ? next : current;
+}
+
+function dedupeLineageModels(models = []) {
+  const output = [];
+  const exactAssetKeys = new Map();
+
+  models.forEach((item) => {
+    if (!item) return;
+    const url = canonicalHistoryAssetUrl(historyPrimaryAssetUrl(item));
+    const key = url ? `${normalizeHistoryStage(item.stage)}|${url}` : '';
+    if (!key) {
+      output.push(item);
+      return;
+    }
+
+    const existingIndex = exactAssetKeys.get(key);
+    if (existingIndex === undefined) {
+      exactAssetKeys.set(key, output.length);
+      output.push(item);
+      return;
+    }
+
+    output[existingIndex] = preferHistoryDuplicateCandidate(output[existingIndex], item);
+  });
+
+  return output;
+}
+
 function groupByLineage(items = []) {
   const lineages = new Map();
   const fingerprintCounts = new Map();
@@ -748,6 +820,11 @@ function groupByLineage(items = []) {
   if (fallbackCount > 0) {
     console.log(`[HISTORY_GROUP] ${fallbackCount} items used fallback grouping (no lineage_origin_id)`);
   }
+
+  lineages.forEach((lineage) => {
+    lineage.rawModelCount = lineage.models.length;
+    lineage.models = dedupeLineageModels(lineage.models);
+  });
 
   return Array.from(lineages.values());
 }
