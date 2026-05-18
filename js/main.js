@@ -92,6 +92,23 @@ function startWorkspaceDownload(sourceUrl, filename) {
   return true;
 }
 
+function getThreeMfUrl(item = {}) {
+  const payload = item.payload || item.meta || {};
+  return item.three_mf_url
+    || item.threemf_url
+    || item.model_urls?.['3mf']
+    || item.model_urls?.threemf
+    || item.textured_model_urls?.['3mf']
+    || item.textured_model_urls?.threemf
+    || payload.three_mf_url
+    || payload.threemf_url
+    || payload.model_urls?.['3mf']
+    || payload.model_urls?.threemf
+    || payload.textured_model_urls?.['3mf']
+    || payload.textured_model_urls?.threemf
+    || '';
+}
+
 // ============================================================================
 // HISTORY FILTER SWITCHING
 // ============================================================================
@@ -1000,28 +1017,18 @@ function initViewerToolbar() {
         const item = API.getActiveHistoryItem();
         if (!item) { alert('No model selected. Open a model from history first.'); return; }
 
-        // Check for existing 3MF URL from Meshy
-        const threeMfUrl = item.three_mf_url
-          || item.model_urls?.['3mf']
-          || item.textured_model_urls?.['3mf']
-          || item.payload?.three_mf_url
-          || item.payload?.model_urls?.['3mf']
-          || item.payload?.textured_model_urls?.['3mf'];
+        // Only download a real 3MF. Do not silently fall back to GLB from a
+        // button labelled "3MF"; that makes Bambu/Orca workflows look broken.
+        const threeMfUrl = getThreeMfUrl(item);
         if (threeMfUrl) {
           const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: threeMfUrl, extension: '3mf' });
           startWorkspaceDownload(threeMfUrl, filename);
           return;
         }
 
-        // Fallback: download GLB (user can convert in slicer — most slicers accept GLB)
-        const glbUrl = item.glb_url || item.glb_proxy;
-        if (glbUrl) {
-          const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: glbUrl, extension: inferExtensionFromUrl(glbUrl) || 'glb' });
-          startWorkspaceDownload(glbUrl, filename);
-          if (window.showToast) window.showToast('3MF not available for this model. Downloaded GLB instead — import it into your slicer to convert.', 'info');
-          return;
-        }
-        alert('No exportable model found. Load the model in the viewer first.');
+        const msg = 'No 3MF file is available for this model. Generate/export 3MF first, or use Manual Paint Download 3MF.';
+        if (window.showToast) window.showToast(msg, 'error');
+        else alert(msg);
       };
     }
 
