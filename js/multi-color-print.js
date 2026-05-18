@@ -568,6 +568,94 @@ function _labelFrameFromHit(hit, T) {
   return { normal, quaternion };
 }
 
+function _moveLabelToHit(mesh, paintHit) {
+  if (!mesh || !paintHit) return;
+  const T = window.THREE;
+  const data = mesh.userData?.mcpLabel || {};
+  const depth = Math.max(0.0002, _modelMaxDim * Math.min(
+    LABEL_DEPTH_MAX_RATIO,
+    Math.max(LABEL_DEPTH_MIN_RATIO, Number(data.depthRatio) || _labelDepthRatio)
+  ));
+  const { normal, quaternion } = _labelFrameFromHit(paintHit.hit, T);
+  mesh.position.copy(paintHit.hit.point).addScaledVector(normal, -depth * LABEL_EMBED_RATIO);
+  mesh.quaternion.copy(quaternion);
+  data.normal = { x: normal.x, y: normal.y, z: normal.z };
+  mesh.userData.mcpLabel = data;
+}
+
+function _setSelectedLabel(mesh) {
+  if (_selectedLabel && _selectedLabel.material?.emissive) {
+    _selectedLabel.material.emissive.set(0x000000);
+    _selectedLabel.material.emissiveIntensity = 0;
+  }
+  _selectedLabel = mesh || null;
+  if (_selectedLabel?.material?.emissive) {
+    _selectedLabel.material.emissive.set(0x38bdf8);
+    _selectedLabel.material.emissiveIntensity = 0.22;
+  }
+
+  const data = _selectedLabel?.userData?.mcpLabel;
+  if (data) {
+    _labelText = data.text || _labelText;
+    _labelSizeRatio = Number(data.sizeRatio) || _labelSizeRatio;
+    _labelDepthRatio = Number(data.depthRatio) || _labelDepthRatio;
+    if (Number.isInteger(data.slot) && data.slot >= 0 && data.slot < _filaments.length) {
+      _activeSlot = data.slot;
+    }
+  }
+  _renderSidebar();
+}
+
+function _getLabelHit(e) {
+  if (!_renderer || !_camera || !_raycaster || !_labels.length) return null;
+  const rect = _renderer.domElement.getBoundingClientRect();
+  _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  _raycaster.setFromCamera(_mouse, _camera);
+  const hits = _raycaster.intersectObjects(_labels, false);
+  return hits.length ? hits[0] : null;
+}
+
+function _rebuildSelectedLabelGeometry() {
+  if (!_selectedLabel) return;
+  const data = _selectedLabel.userData?.mcpLabel;
+  if (!data) return;
+  const T = window.THREE;
+  const text = _sanitizeLabelText(_labelText);
+  if (!text) return;
+  const oldDepth = Math.max(0.0002, _modelMaxDim * Math.min(
+    LABEL_DEPTH_MAX_RATIO,
+    Math.max(LABEL_DEPTH_MIN_RATIO, Number(data.depthRatio) || _labelDepthRatio)
+  ));
+  const newDepth = _labelDepthWorld();
+  const geometry = _buildBlockLabelGeometry(T, text, _labelSizeWorld(), _labelDepthWorld());
+  _selectedLabel.geometry?.dispose?.();
+  _selectedLabel.geometry = geometry;
+  if (data.normal && Number.isFinite(data.normal.x) && Number.isFinite(data.normal.y) && Number.isFinite(data.normal.z)) {
+    const normal = new T.Vector3(data.normal.x, data.normal.y, data.normal.z).normalize();
+    _selectedLabel.position.addScaledVector(normal, -(newDepth - oldDepth) * LABEL_EMBED_RATIO);
+  }
+  data.text = text;
+  data.sizeRatio = _labelSizeRatio;
+  data.depthRatio = _labelDepthRatio;
+  _selectedLabel.name = `label_${_safeFileBase(text).slice(0, 32) || 'text'}`;
+}
+
+function _applyActiveFilamentToSelectedLabel() {
+  if (!_selectedLabel) return;
+  const data = _selectedLabel.userData?.mcpLabel;
+  if (!data) return;
+  const T = window.THREE;
+  const slot = Math.min(Math.max(0, _activeSlot), Math.max(0, _filaments.length - 1));
+  const color = _filaments[slot]?.hex || '#FFFFFF';
+  data.slot = slot;
+  data.color = color;
+  _selectedLabel.material?.color?.set?.(new T.Color(color));
+  if (_selectedLabel.material) {
+    _selectedLabel.material.name = `label_${slot + 1}_${_normalizeBambuColor(color).slice(1)}`;
+  }
+}
+
 function _placeLabelAtEvent(e) {
   if (!_paintEnabled || !_paintMeshes.length || !_scene) return;
   const paintHit = _getPaintHit(e);
@@ -603,11 +691,12 @@ function _placeLabelAtEvent(e) {
     color,
     sizeRatio: _labelSizeRatio,
     depthRatio: _labelDepthRatio,
+    normal: { x: normal.x, y: normal.y, z: normal.z },
   };
   _scene.add(mesh);
   _labels.push(mesh);
+  _setSelectedLabel(mesh);
   _updateStats();
-  _renderSidebar();
 }
 
 function _disposeLabelMesh(mesh) {
@@ -623,6 +712,17 @@ function _disposeLabelMesh(mesh) {
 
 function _removeLastLabel() {
   const mesh = _labels.pop();
+  if (mesh === _selectedLabel) _setSelectedLabel(null);
+  _disposeLabelMesh(mesh);
+  _updateStats();
+  _renderSidebar();
+}
+
+function _removeSelectedLabel() {
+  if (!_selectedLabel) return;
+  const mesh = _selectedLabel;
+  _labels = _labels.filter(label => label !== mesh);
+  _setSelectedLabel(null);
   _disposeLabelMesh(mesh);
   _updateStats();
   _renderSidebar();
@@ -631,6 +731,8 @@ function _removeLastLabel() {
 function _clearLabels() {
   for (const mesh of _labels) _disposeLabelMesh(mesh);
   _labels = [];
+  _selectedLabel = null;
+  _isDraggingLabel = false;
   _updateStats();
   _renderSidebar();
 }
@@ -861,6 +963,13 @@ function _onPointerDown(e) {
   if (!_paintEnabled || !_paintMeshes.length) return;
   if (_brushMode === 'label') {
     _hideBrushCursor();
+    const labelHit = _getLabelHit(e);
+    if (labelHit?.object) {
+      e.preventDefault();
+      _setSelectedLabel(labelHit.object);
+      _isDraggingLabel = true;
+      if (_controls) _controls.enabled = false;
+    }
     return;
   }
 
@@ -875,6 +984,14 @@ function _onPointerDown(e) {
 }
 
 function _onPointerMove(e) {
+  if (_isDraggingLabel && _selectedLabel) {
+    const paintHit = _getPaintHit(e);
+    if (paintHit) {
+      _moveLabelToHit(_selectedLabel, paintHit);
+      _didPaintThisStroke = true;
+    }
+    return;
+  }
   const paintHit = _updateBrushCursor(e);
   if (!_isPainting || !_paintEnabled) return;
   // Continuous painting while dragging
@@ -883,6 +1000,15 @@ function _onPointerMove(e) {
 }
 
 function _onPointerUp(e) {
+  if (_isDraggingLabel) {
+    _isDraggingLabel = false;
+    if (_controls) _controls.enabled = true;
+    const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) {
+      _updateStats();
+    }
+    return;
+  }
   if (_isPainting) {
     _isPainting = false;
     if (_controls) _controls.enabled = true;
@@ -900,6 +1026,7 @@ function _onPointerUp(e) {
   } else if (_brushMode === 'label') {
     const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
     if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+    if (_getLabelHit(e)?.object) return;
     _placeLabelAtEvent(e);
   }
 }
@@ -1422,24 +1549,132 @@ function _vertexAt(allVerts, idx) {
 }
 
 // ============================================================================
-// 3MF Export (client-side with JSZip)
+// 3MF Export (client-side ZIP, no external script so CSP cannot block export)
 // ============================================================================
+
+let _zipCrcTable = null;
+
+function _getZipCrcTable() {
+  if (_zipCrcTable) return _zipCrcTable;
+  _zipCrcTable = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    _zipCrcTable[i] = c >>> 0;
+  }
+  return _zipCrcTable;
+}
+
+function _zipCrc32(bytes) {
+  const table = _getZipCrcTable();
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) {
+    crc = table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function _dosDateTime(date = new Date()) {
+  const year = Math.max(1980, date.getFullYear());
+  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+  const dosDate = ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  return { dosTime, dosDate };
+}
+
+function _concatUint8(chunks, totalLength) {
+  const out = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return out;
+}
+
+function _buildStoredZipBlob(files, mimeType) {
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const centralChunks = [];
+  const records = [];
+  let offset = 0;
+  const { dosTime, dosDate } = _dosDateTime();
+
+  for (const file of files) {
+    const nameBytes = encoder.encode(file.name);
+    const dataBytes = file.bytes instanceof Uint8Array ? file.bytes : encoder.encode(String(file.content || ''));
+    const crc = _zipCrc32(dataBytes);
+
+    const local = new ArrayBuffer(30 + nameBytes.length);
+    const view = new DataView(local);
+    view.setUint32(0, 0x04034b50, true);
+    view.setUint16(4, 20, true);
+    view.setUint16(6, 0x0800, true);
+    view.setUint16(8, 0, true);
+    view.setUint16(10, dosTime, true);
+    view.setUint16(12, dosDate, true);
+    view.setUint32(14, crc, true);
+    view.setUint32(18, dataBytes.length, true);
+    view.setUint32(22, dataBytes.length, true);
+    view.setUint16(26, nameBytes.length, true);
+    view.setUint16(28, 0, true);
+    const localBytes = new Uint8Array(local);
+    localBytes.set(nameBytes, 30);
+
+    chunks.push(localBytes, dataBytes);
+    records.push({ nameBytes, dataBytes, crc, offset });
+    offset += localBytes.length + dataBytes.length;
+  }
+
+  let centralSize = 0;
+  for (const rec of records) {
+    const central = new ArrayBuffer(46 + rec.nameBytes.length);
+    const view = new DataView(central);
+    view.setUint32(0, 0x02014b50, true);
+    view.setUint16(4, 20, true);
+    view.setUint16(6, 20, true);
+    view.setUint16(8, 0x0800, true);
+    view.setUint16(10, 0, true);
+    view.setUint16(12, dosTime, true);
+    view.setUint16(14, dosDate, true);
+    view.setUint32(16, rec.crc, true);
+    view.setUint32(20, rec.dataBytes.length, true);
+    view.setUint32(24, rec.dataBytes.length, true);
+    view.setUint16(28, rec.nameBytes.length, true);
+    view.setUint16(30, 0, true);
+    view.setUint16(32, 0, true);
+    view.setUint16(34, 0, true);
+    view.setUint16(36, 0, true);
+    view.setUint32(38, 0, true);
+    view.setUint32(42, rec.offset, true);
+    const centralBytes = new Uint8Array(central);
+    centralBytes.set(rec.nameBytes, 46);
+    centralChunks.push(centralBytes);
+    centralSize += centralBytes.length;
+  }
+
+  const centralOffset = offset;
+  chunks.push(...centralChunks);
+  offset += centralSize;
+
+  const end = new ArrayBuffer(22);
+  const endView = new DataView(end);
+  endView.setUint32(0, 0x06054b50, true);
+  endView.setUint16(4, 0, true);
+  endView.setUint16(6, 0, true);
+  endView.setUint16(8, records.length, true);
+  endView.setUint16(10, records.length, true);
+  endView.setUint32(12, centralSize, true);
+  endView.setUint32(16, centralOffset, true);
+  endView.setUint16(20, 0, true);
+  chunks.push(new Uint8Array(end));
+
+  return new Blob([_concatUint8(chunks, offset + 22)], { type: mimeType });
+}
 
 async function _export3MF() {
   if (!_validatePrintExportIntent()) return;
-
-  // Dynamically load JSZip if not present
-  if (!window.JSZip) {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
-    document.head.appendChild(script);
-    await new Promise((resolve, reject) => {
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load JSZip'));
-    });
-  }
-
-  const zip = new window.JSZip();
   const _u = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
@@ -1578,15 +1813,15 @@ ${tLines}
   <Relationship Target="/3D/Objects/object_1.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
 </Relationships>`;
 
-  // ---- Pack ZIP ----
-  zip.file('[Content_Types].xml', contentTypes);
-  zip.file('_rels/.rels', rels);
-  zip.file('3D/_rels/3dmodel.model.rels', modelRels);
-  zip.file('3D/3dmodel.model', modelXml);
-  zip.file('Metadata/model_settings.config', modelSettings);
-  zip.file('Metadata/project_settings.config', projectSettings);
-
-  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
+  const blob = _buildStoredZipBlob([
+    { name: '[Content_Types].xml', content: contentTypes },
+    { name: '_rels/.rels', content: rels },
+    { name: '3D/_rels/3dmodel.model.rels', content: modelRels },
+    { name: '3D/Objects/object_1.model', content: objectModelXml },
+    { name: '3D/3dmodel.model', content: modelXml },
+    { name: 'Metadata/model_settings.config', content: modelSettings },
+    { name: 'Metadata/project_settings.config', content: projectSettings },
+  ], 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml');
   _downloadBlob(blob, `${_safeFileBase(_modelTitle || 'model')}-multicolor.3mf`);
 }
 
@@ -1866,6 +2101,7 @@ function _renderSidebar() {
   const labelSuffix = _labels.length ? ` + ${_labels.length} label${_labels.length === 1 ? '' : 's'}` : '';
   const labelSizeSlider = _labelSliderValue(_labelSizeRatio, LABEL_SIZE_MIN_RATIO, LABEL_SIZE_MAX_RATIO);
   const labelDepthSlider = _labelSliderValue(_labelDepthRatio, LABEL_DEPTH_MIN_RATIO, LABEL_DEPTH_MAX_RATIO);
+  const selectedLabelData = _selectedLabel?.userData?.mcpLabel || null;
 
   sb.innerHTML = `
     <div class="mcp-header">
@@ -1918,9 +2154,11 @@ function _renderSidebar() {
         </div>
         <div class="mcp-label-actions">
           <button class="mcp-brush-btn" id="mcp-label-undo" ${_labels.length ? '' : 'disabled'}>Undo Label</button>
+          <button class="mcp-brush-btn" id="mcp-label-delete" ${_selectedLabel ? '' : 'disabled'}>Delete Selected</button>
+          <button class="mcp-brush-btn" id="mcp-label-color" ${_selectedLabel ? '' : 'disabled'}>Use Color</button>
           <button class="mcp-brush-btn" id="mcp-label-clear" ${_labels.length ? '' : 'disabled'}>Clear Labels</button>
         </div>
-        <div class="mcp-check-text">Select a filament, then click the model surface. Labels export as raised printable geometry.</div>
+        <div class="mcp-check-text">${selectedLabelData ? `Selected: ${_escXml(selectedLabelData.text || 'label')}. Drag it on the surface to move it.` : 'Select a filament, then click the model surface. Click an existing label to select and drag it.'}</div>
       </div>` : ''}
     </div>
 
@@ -2089,6 +2327,7 @@ function _renderSidebar() {
     labelTextInput.addEventListener('input', (e) => {
       _labelText = _sanitizeLabelText(e.target.value);
       if (e.target.value !== _labelText) e.target.value = _labelText;
+      _rebuildSelectedLabelGeometry();
     });
   }
 
@@ -2098,6 +2337,7 @@ function _renderSidebar() {
       _labelSizeRatio = _labelRatioFromSlider(e.target.value, LABEL_SIZE_MIN_RATIO, LABEL_SIZE_MAX_RATIO);
       const valEl = sb.querySelector('#mcp-label-size-val');
       if (valEl) valEl.textContent = _formatLabelMeasure(_labelSizeWorld());
+      _rebuildSelectedLabelGeometry();
     });
   }
 
@@ -2107,10 +2347,16 @@ function _renderSidebar() {
       _labelDepthRatio = _labelRatioFromSlider(e.target.value, LABEL_DEPTH_MIN_RATIO, LABEL_DEPTH_MAX_RATIO);
       const valEl = sb.querySelector('#mcp-label-depth-val');
       if (valEl) valEl.textContent = _formatLabelMeasure(_labelDepthWorld());
+      _rebuildSelectedLabelGeometry();
     });
   }
 
   sb.querySelector('#mcp-label-undo')?.addEventListener('click', _removeLastLabel);
+  sb.querySelector('#mcp-label-delete')?.addEventListener('click', _removeSelectedLabel);
+  sb.querySelector('#mcp-label-color')?.addEventListener('click', () => {
+    _applyActiveFilamentToSelectedLabel();
+    _renderSidebar();
+  });
   sb.querySelector('#mcp-label-clear')?.addEventListener('click', _clearLabels);
 
   sb.querySelectorAll('.mcp-size-preset').forEach(el => {
@@ -2162,8 +2408,10 @@ function _dispose() {
     _renderer.domElement.removeEventListener('pointercancel', _onPointerUp);
   }
   _isPainting = false;
+  _isDraggingLabel = false;
   for (const mesh of _labels) _disposeLabelMesh(mesh);
   _labels = [];
+  _selectedLabel = null;
   if (_controls) { _controls.dispose(); _controls = null; }
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
@@ -2190,6 +2438,8 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, sourc
   _modelMaxDim = 1;
   _paintEnabled = true;
   _labels = [];
+  _selectedLabel = null;
+  _isDraggingLabel = false;
   _labelText = LABEL_TEXT_DEFAULT;
   _labelSizeRatio = LABEL_SIZE_DEFAULT_RATIO;
   _labelDepthRatio = LABEL_DEPTH_DEFAULT_RATIO;
