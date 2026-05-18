@@ -1001,7 +1001,12 @@ function initViewerToolbar() {
         if (!item) { alert('No model selected. Open a model from history first.'); return; }
 
         // Check for existing 3MF URL from Meshy
-        const threeMfUrl = item.model_urls?.['3mf'] || item.textured_model_urls?.['3mf'];
+        const threeMfUrl = item.three_mf_url
+          || item.model_urls?.['3mf']
+          || item.textured_model_urls?.['3mf']
+          || item.payload?.three_mf_url
+          || item.payload?.model_urls?.['3mf']
+          || item.payload?.textured_model_urls?.['3mf'];
         if (threeMfUrl) {
           const filename = buildItemDownloadFilename(item, { type: 'model', sourceUrl: threeMfUrl, extension: '3mf' });
           startWorkspaceDownload(threeMfUrl, filename);

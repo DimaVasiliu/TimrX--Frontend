@@ -153,6 +153,8 @@ let _modelMaxDim = 1;
 let _paintEnabled = true;
 let _isPainting = false;    // true while mouse held in brush/face/eraser mode
 let _labels = [];           // raised printable text meshes
+let _selectedLabel = null;   // active raised text mesh for editing/moving
+let _isDraggingLabel = false;
 let _labelText = LABEL_TEXT_DEFAULT;
 let _labelSizeRatio = LABEL_SIZE_DEFAULT_RATIO;
 let _labelDepthRatio = LABEL_DEPTH_DEFAULT_RATIO;
@@ -1429,7 +1431,7 @@ async function _export3MF() {
   // Dynamically load JSZip if not present
   if (!window.JSZip) {
     const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
     document.head.appendChild(script);
     await new Promise((resolve, reject) => {
       script.onload = resolve;
@@ -2001,7 +2003,16 @@ function _renderSidebar() {
   // Event listeners
   sb.querySelector('#mcp-close-btn')?.addEventListener('click', closeMultiColorModal);
   sb.querySelector('#mcp-cancel-btn')?.addEventListener('click', closeMultiColorModal);
-  sb.querySelector('#mcp-export-btn')?.addEventListener('click', _export3MF);
+  sb.querySelector('#mcp-export-btn')?.addEventListener('click', async () => {
+    try {
+      await _export3MF();
+    } catch (err) {
+      console.error('[MCP] 3MF export failed:', err);
+      const msg = err?.message || '3MF export failed.';
+      if (window.showToast) window.showToast(msg, 'error');
+      else alert(msg);
+    }
+  });
   sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);
   sb.querySelector('#mcp-export-stl-btn')?.addEventListener('click', _exportRepairSTL);
   sb.querySelector('#mcp-clear-btn')?.addEventListener('click', () => { _clearAllPaint(); _renderSidebar(); });
