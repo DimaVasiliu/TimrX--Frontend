@@ -10,7 +10,7 @@ import { renderSeoPage } from './seo-template.js';
  * NOTE: /blogs is served STATICALLY by Cloudflare Pages (blogs.html) - NOT proxied here.
  *
  * PROXIED ROUTES:
- * - /blog/<slug>           → Individual blog posts (SSR)
+ * - /blog/<slug>           → 301 to /read?slug=<slug>
  * - /blog/tag/<tag>        → Tag hub pages (SSR)
  * - /blog/category/<cat>   → Category hub pages (SSR)
  * - /tools                 → Tools I Use page (SSR)
@@ -23,7 +23,7 @@ import { renderSeoPage } from './seo-template.js';
  * - /api/*                 → API endpoints (no caching)
  *
  * EDGE REDIRECTS:
- * - /read?slug=<slug>      → 301 to /blog/<slug>
+ * - /read?slug=<slug>      → Public reader page with per-post metadata
  * - /blog or /blog/        → 301 to /blogs
  *
  * WORKER ROUTES (add all of these in Cloudflare dashboard):
@@ -50,17 +50,20 @@ const ROBOTS_TXT = `# TimrX robots.txt
 
 User-agent: *
 Allow: /
+Allow: /3dprint
+Allow: /hub
+Allow: /converter
+Allow: /prompts
+Allow: /read
 
-# Block admin & private areas
+# Block admin & private/write areas only
 Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
-Disallow: /3dprint
-Disallow: /converter
-Disallow: /prompts
 
-# Sitemap index
+# NOTE: /3dprint, /converter, /prompts, /read are PUBLIC pages — do NOT disallow them
+
 Sitemap: https://timrx.live/sitemap.xml
 `;
 
@@ -122,13 +125,13 @@ ${generateSeoSitemap()}
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 1. Handle /read redirect at the edge (SEO: push to /blog/<slug>)
+    // 1. Handle /read at the edge.
+    // /read?slug=... is public and canonical, so serve it from Pages.
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/read' || pathname === '/read/') {
       const slug = url.searchParams.get('slug');
       if (slug) {
-        // 301 Permanent redirect to the canonical SEO URL
-        return Response.redirect(`${PUBLIC_DOMAIN}/blog/${encodeURIComponent(slug)}`, 301);
+        return serveReadPageWithMetadata(request, slug);
       } else {
         // No slug - 302 redirect to blog listing
         return Response.redirect(`${PUBLIC_DOMAIN}/blogs`, 302);
@@ -143,10 +146,16 @@ ${generateSeoSitemap()}
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 3. Proxy /blog/* to backend SSR
-    //    Includes: /blog/<slug>, /blog/tag/<tag>, /blog/category/<cat>
+    // 3. Redirect legacy /blog/<slug> URLs to canonical /read?slug=<slug>.
+    //    Keep tag/category hubs proxied to backend SSR.
     // ─────────────────────────────────────────────────────────────
     if (pathname.startsWith('/blog/')) {
+      if (!pathname.startsWith('/blog/tag/') && !pathname.startsWith('/blog/category/')) {
+        const slug = pathname.slice('/blog/'.length).replace(/\/$/, '');
+        if (slug) {
+          return Response.redirect(`${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`, 301);
+        }
+      }
       const backendUrl = `${BLOG_ORIGIN}${pathname}`;
       return proxyToBackend(request, backendUrl);
     }
@@ -185,7 +194,7 @@ ${generateSeoSitemap()}
         status: 200,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': 'public, max-age=86400',
+          'Cache-Control': 'public, max-age=300, s-maxage=300, must-revalidate',
         },
       });
     }
@@ -249,6 +258,63 @@ ${generateSeoSitemap()}
     return fetch(request);
   }
 };
+
+async function serveReadPageWithMetadata(request, slug) {
+  const pageResponse = await fetch(request);
+  const contentType = pageResponse.headers.get('Content-Type') || '';
+  if (!contentType.includes('text/html')) return pageResponse;
+
+  let html = await pageResponse.text();
+  const canonical = `${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`;
+
+  try {
+    const postResponse = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
+      cf: { cacheTtl: 300, cacheEverything: true },
+    });
+    if (postResponse.ok) {
+      const post = await postResponse.json();
+      const title = escapeHtml(post.title || 'Read');
+      const description = escapeHtml(post.excerpt || post.description || 'Read blog posts on TimrX — web development, 3D, and creative tech.');
+      const image = escapeHtml(post.cover_url || `${PUBLIC_DOMAIN}/img/blogs.png`);
+
+      html = html
+        .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title} — TimrX</title>`)
+        .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}" />`)
+        .replace(/<meta property="og:title" id="ogTitle" content="[^"]*"\s*\/?>/i, `<meta property="og:title" id="ogTitle" content="${title}" />`)
+        .replace(/<meta property="og:description" id="ogDesc" content="[^"]*"\s*\/?>/i, `<meta property="og:description" id="ogDesc" content="${description}" />`)
+        .replace(/<meta property="og:image" id="ogImage" content="[^"]*"\s*\/?>/i, `<meta property="og:image" id="ogImage" content="${image}" />`)
+        .replace(/<meta name="twitter:title" id="twTitle" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" id="twTitle" content="${title}" />`)
+        .replace(/<meta name="twitter:description" id="twDesc" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" id="twDesc" content="${description}" />`)
+        .replace(/<meta name="twitter:image" id="twImage" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" id="twImage" content="${image}" />`);
+    }
+  } catch (error) {
+    console.warn('Read metadata injection failed:', error);
+  }
+
+  html = html
+    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />')
+    .replace(/<link rel="canonical" id="canonicalLink" href="[^"]*"\s*\/?>/i, `<link rel="canonical" id="canonicalLink" href="${canonical}" />`)
+    .replace(/<meta property="og:url" id="ogUrl" content="[^"]*"\s*\/?>/i, `<meta property="og:url" id="ogUrl" content="${canonical}" />`)
+    .replace(/<meta name="twitter:url" id="twUrl" content="[^"]*"\s*\/?>/i, `<meta name="twitter:url" id="twUrl" content="${canonical}" />`);
+
+  const headers = new Headers(pageResponse.headers);
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+  headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
+  headers.delete('X-Robots-Tag');
+  return new Response(html, {
+    status: pageResponse.status,
+    statusText: pageResponse.statusText,
+    headers,
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /**
  * Proxy request to backend origin

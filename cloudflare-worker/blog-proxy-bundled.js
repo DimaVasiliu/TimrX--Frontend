@@ -857,6 +857,11 @@ const ROBOTS_TXT = `# TimrX robots.txt
 
 User-agent: *
 Allow: /
+Allow: /3dprint
+Allow: /hub
+Allow: /converter
+Allow: /prompts
+Allow: /read
 
 # Block admin & private/write areas only
 Disallow: /admin
@@ -996,7 +1001,7 @@ ${generateSeoSitemap()}
         status: 200,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': 'public, max-age=86400',
+          'Cache-Control': 'public, max-age=300, s-maxage=300, must-revalidate',
         },
       });
     }
