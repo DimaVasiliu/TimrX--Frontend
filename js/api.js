@@ -4388,7 +4388,7 @@ export async function startNanoBananaImageGeneration() {
           stage: 'image',
           provider: 'nano_banana',
           provider_used: 'nano_banana',
-          model: 'gemini-2.5-flash-image',
+          model: 'nano-banana-2',
           image_url: '',
         });
       }
@@ -4437,7 +4437,7 @@ export async function startNanoBananaImageGeneration() {
       stage: 'image',
       provider: 'nano_banana',
       provider_used: 'nano_banana',
-      model: 'gemini-2.5-flash-image'
+      model: 'nano-banana-2'
     };
 
     if (imageId && imageId !== tempId) {
