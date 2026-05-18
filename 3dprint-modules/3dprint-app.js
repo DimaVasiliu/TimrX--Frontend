@@ -6556,6 +6556,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       var initialPanel = targetBtn.getAttribute('data-panel');
       updateLeftPanel(initialPanel);
       switchViewer(initialPanel);
+      ensureThreeViewer();
       applyPendingCommunityRemix();
     }
   
