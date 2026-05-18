@@ -1730,7 +1730,6 @@ ${tLines}
  </resources>
  <build/>
 </model>`;
-  zip.file('3D/Objects/object_1.model', objectModelXml);
 
   // ---- 3D/3dmodel.model ----
   const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
