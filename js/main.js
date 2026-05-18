@@ -1309,7 +1309,11 @@ function initViewerToolbar() {
         document.body.appendChild(closeBtn);
         // Load model-viewer if not already loaded
         if (!customElements.get('model-viewer')) {
-          import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+          if (typeof window.loadModelViewer === 'function') {
+            window.loadModelViewer();
+          } else {
+            import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+          }
         }
       }
       arViewer.setAttribute('ar-modes', usdzUrl ? 'webxr scene-viewer quick-look' : 'webxr scene-viewer');

@@ -37,6 +37,9 @@
 /ai-game-assets.html            /ai-game-assets           301
 /ai-texture-generator.html      /ai-texture-generator     301
 
+# Legacy blog URLs crawled by Google; canonical public reader is /read?slug=
+/blog/:slug      /read?slug=:slug      301
+
 # ----------------------------
 # Admin rewrites (non-standard paths, Pretty URLs can't resolve these)
 # ----------------------------

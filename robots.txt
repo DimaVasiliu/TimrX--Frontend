@@ -1,17 +1,13 @@
 # TimrX robots.txt
-# https://timrx.live
-
 User-agent: *
 Allow: /
 
-# Block admin & private areas (workspace + admin only).
-# Public landing pages /converter and /prompts are intentionally allowed —
-# they carry FAQ schema and target useful queries.
+# Block admin & private/write areas only
 Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
-Disallow: /3dprint
 
-# Sitemap index
+# NOTE: /3dprint, /converter, /prompts, /read are PUBLIC pages — do NOT disallow them
+
 Sitemap: https://timrx.live/sitemap.xml

@@ -44,9 +44,15 @@
     </image:image>
   </url>
 
+  <!-- Public 3D Workspace -->
+  <url>
+    <loc>https://timrx.live/3dprint</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- AI Tools Directory (updated: full-color 3MF print) -->
-  <!-- /3dprint workspace removed from sitemap: per-page noindex,nofollow.
-       Workspace is an authenticated app, not a landing page. -->
   <url>
     <loc>https://timrx.live/ai-tools</loc>
     <lastmod>2026-04-08</lastmod>

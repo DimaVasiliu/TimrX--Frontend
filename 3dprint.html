@@ -4,6 +4,10 @@
   <script>(function(){var qs=(location.search||"")+(location.hash||"");var ref=document.referrer||"";var allow=/[?&#]gtm_debug=/.test(qs)||/^https:\/\/tagassistant\.google\.com/.test(ref);if(self!==top&&!allow){top.location=self.location;}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://3d.timrx.live" crossorigin>
+  <link rel="preconnect" href="https://timrx-3d-models.s3.eu-west-2.amazonaws.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://ajax.googleapis.com">
 
   <!-- Primary Meta Tags -->
   <title>TimrX 3D Workspace — AI Images, Video & 3D Models</title>
@@ -11,8 +15,8 @@
   <meta name="description" content="Generate AI images, videos, and 3D models from text or reference inputs. Remesh, texture, rig, animate, preview, share, run print checks, and export GLB, GLTF, STL, OBJ, and USDZ from one browser workspace." />
   <meta name="keywords" content="AI workspace, AI image generator, AI video generator, AI 3D generator, text to 3D, image to 3D, text to image, text to video, image to video, remesh, texture, rigging, animation, print check, GLB, GLTF, STL, OBJ, USDZ, TimrX workspace" />
   <meta name="author" content="Dima Vasiliu" />
-  <meta name="robots" content="noindex, nofollow" />
-  <meta name="googlebot" content="noindex, nofollow" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://timrx.live/3dprint" />
 
   <!-- Hreflang Tags -->
@@ -125,10 +129,20 @@
 
   <!-- Self-hosted fonts -->
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts/fonts.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260516a">
-  <link rel="stylesheet" href="3dprint-modules/css/print-prep.css">
+  <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <style>
+    @font-face{font-family:InterVariable;src:url('/fonts/inter-variable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+    @font-face{font-family:'Bebas Neue';src:url('/fonts/bebas-neue-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    *{box-sizing:border-box}html{background:#070707;color:#f5f5f5}body.print3d-page{margin:0;min-height:100vh;background:#070707;color:#f5f5f5;font-family:InterVariable,Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}.ws-header{position:fixed;top:0;left:0;right:0;z-index:1000;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(7,7,7,.92);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}.ws-header-left{display:flex;align-items:center;gap:12px;min-width:0}.ws-nav-logo{display:block;flex:0 0 auto}.ws-brand{font-family:'Bebas Neue',InterVariable,sans-serif;font-size:32px;line-height:1;color:#fff;letter-spacing:.02em;white-space:nowrap}.timrx-3dprint{min-height:100vh;padding-top:72px;background:#070707}.workspace-shell,.ws-main,.workspace-layout{min-height:calc(100vh - 72px)}.rail,.ws-rail{position:fixed;top:72px;bottom:0;left:0;width:84px;z-index:20;display:flex;flex-direction:column;gap:8px;padding:14px 10px;background:#0d0d0f;border-right:1px solid rgba(255,255,255,.08)}.rail-btn{width:100%;min-height:56px;border:0;border-radius:12px;background:transparent;color:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:center;cursor:pointer}.rail-btn.is-active{background:rgba(255,255,255,.1);color:#fff}.ws-left,.left-panel{position:fixed;top:72px;bottom:0;left:84px;width:min(390px,34vw);overflow:auto;background:#101012;border-right:1px solid rgba(255,255,255,.08);padding:18px}.viewer-wrap,.viewer-shell,.ws-viewer{min-height:calc(100vh - 72px);margin-left:calc(84px + min(390px,34vw));background:#111114;position:relative}.viewer-title{margin:0;color:#fff}.viewer-empty{min-height:48px}.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:900px){.ws-header{height:64px;padding:0 14px}.timrx-3dprint{padding-top:64px}.rail,.ws-rail{top:64px;width:68px}.ws-left,.left-panel{top:64px;left:68px;width:min(340px,52vw)}.viewer-wrap,.viewer-shell,.ws-viewer{margin-left:calc(68px + min(340px,52vw));min-height:calc(100vh - 64px)}.ticker-header{display:none}}
+  </style>
+  <link rel="preload" href="/fonts/fonts.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/fonts/fonts.css"></noscript>
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" crossorigin="anonymous" referrerpolicy="no-referrer" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
+  <link rel="preload" href="3dprint-modules/main.css?v=20260518a" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="3dprint-modules/main.css?v=20260518a"></noscript>
+  <link rel="preload" href="3dprint-modules/css/print-prep.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="3dprint-modules/css/print-prep.css"></noscript>
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260516a"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
@@ -190,14 +204,10 @@
   </style>
   <!-- Google Tag Manager -->
   <script>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+    window.addEventListener('load',function(){setTimeout(function(){(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');},0);});
   </script>
   <!-- End Google Tag Manager -->
-  <script src="js/google-ads-conversions.js?v=20260515a"></script>
+  <script defer src="js/google-ads-conversions.js?v=20260515a"></script>
 </head>
 <body class="print3d-page">
   <!-- Google Tag Manager (noscript) -->
@@ -491,7 +501,7 @@
     <!-- Icon Rail -->
     <nav class="ws-rail" aria-label="Tools">
       <!-- IMAGE (now inactive by default) -->
-      <button type="button" class="rail-btn" data-panel="image" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="image" aria-pressed="false" aria-label="AI Image generation">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
@@ -499,35 +509,35 @@
       </button>
 
       <!-- MODEL (active on load) -->
-      <button type="button" class="rail-btn is-active" data-panel="model" aria-pressed="true">
+      <button type="button" class="rail-btn is-active" data-panel="model" aria-pressed="true" aria-label="3D Model generation">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
         <span>Model</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="remesh" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="remesh" aria-pressed="false" aria-label="Remesh 3D model">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
         </svg>
         <span>Remesh</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="texture" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="texture" aria-pressed="false" aria-label="Texture 3D model">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
         </svg>
         <span>Texture</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="rig" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="rig" aria-pressed="false" aria-label="Rig 3D model">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z" />
         </svg>
         <span>Rig</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="animate" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="animate" aria-pressed="false" aria-label="Animate 3D model">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -535,7 +545,7 @@
         <span>Animate</span>
       </button>
 
-      <button type="button" class="rail-btn" data-panel="video" aria-pressed="false">
+      <button type="button" class="rail-btn" data-panel="video" aria-pressed="false" aria-label="AI Video generation">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
@@ -1338,7 +1348,7 @@
             <p>No image generated yet</p>
             <span>Click Generate to create your first image</span>
           </div>
-          <img id="generatedImage" class="generated-image hidden" alt="Generated artwork"/>
+          <img id="generatedImage" class="generated-image hidden" alt="Generated artwork" width="1024" height="1024" loading="lazy" decoding="async"/>
         </div>
         <!-- Fit/Fill toggle button -->
         <button type="button" class="image-fit-toggle hidden" id="imageFitToggle" aria-label="Toggle image fit mode">
@@ -1360,7 +1370,9 @@
             <p>No video generated yet</p>
             <span>Click Generate to create your first video</span>
           </div>
-          <video id="generatedVideo" class="generated-video hidden" controls></video>
+          <video id="generatedVideo" class="generated-video hidden" controls preload="none">
+            <track kind="captions" src="/captions/empty.vtt" srclang="en" label="English">
+          </video>
         </div>
       </div>
     </main>
@@ -1511,37 +1523,42 @@
   })();
   </script>
 
-  <script src="js/env-config.js"></script>
-
-  <!-- Three.js Setup - Single instance via importmap (prevents "Multiple instances" warning) -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-
-  <script type="module">
-    // Import Three.js core and addons via importmap specifiers to ensure single instance
-    import * as THREE_NS from 'three';
-    import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-    import { STLLoader }     from 'three/addons/loaders/STLLoader.js';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-    import { STLExporter }   from 'three/addons/exporters/STLExporter.js';
-    import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
-    const THREE_MUT = Object.assign({}, THREE_NS);
-    THREE_MUT.GLTFLoader      = GLTFLoader;
-    THREE_MUT.STLLoader       = STLLoader;
-    THREE_MUT.ThreeMFLoader   = ThreeMFLoader;
-    THREE_MUT.OrbitControls   = OrbitControls;
-    THREE_MUT.RoomEnvironment = RoomEnvironment;
-    THREE_MUT.STLExporter     = STLExporter;
-
-    window.THREE = THREE_MUT;
-    window.dispatchEvent(new Event('three-ready'));
+  <script defer src="js/env-config.js"></script>
+  <script>
+    window.loadTimrxThree = window.loadTimrxThree || (function(){
+      var pending;
+      return function(){
+        if (window.THREE) return Promise.resolve(window.THREE);
+        pending = pending || import('/3dprint-modules/viewer-bundle.js').then(function(mod){ return mod.ensureThree(); });
+        return pending;
+      };
+    })();
+    window.loadModelViewer = window.loadModelViewer || (function(){
+      var pending;
+      return function(){
+        if (window.customElements && customElements.get('model-viewer')) return Promise.resolve();
+        pending = pending || import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js');
+        return pending;
+      };
+    })();
+    document.addEventListener('DOMContentLoaded', function(){
+      var loadModelViewerWhenNeeded = function(){ window.loadModelViewer(); };
+      document.querySelectorAll('model-viewer').forEach(function(el){
+        el.addEventListener('pointerenter', loadModelViewerWhenNeeded, { once:true });
+        el.addEventListener('focus', loadModelViewerWhenNeeded, { once:true });
+      });
+      if ('IntersectionObserver' in window) {
+        var mvObserver = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            if (entry.isIntersecting) {
+              window.loadModelViewer();
+              mvObserver.disconnect();
+            }
+          });
+        }, { rootMargin: '300px' });
+        document.querySelectorAll('model-viewer').forEach(function(el){ mvObserver.observe(el); });
+      }
+    });
   </script>
 
 
@@ -2078,7 +2095,7 @@
         <div class="tutorials-split-layout tutorials-split-layout--with-extra">
           <div class="tutorials-split-cards tutorials-split-cards--grid-with-extra">
             <div class="tutorials-reference-img">
-              <img src="3dprint-modules/3dmodels/dogimg.png" alt="Reference Image">
+              <img src="3dprint-modules/3dmodels/dogimg.webp" alt="Reference Image" width="436" height="436" loading="lazy" decoding="async">
               <span class="reference-label">Reference</span>
             </div>
             <article class="tutorials-card">
@@ -3315,13 +3332,16 @@
   <button class="expanded-back-to-top" data-for="docs" aria-label="Back to top">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
-  <!-- model-viewer web component (no Three.js needed for inline 3D previews) -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
-
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260516a"></script>
-  <script src="./js/auth-modal.js?v=20260407a"></script>
+  <script type="module">
+    var loadWorkspaceMain = function(){ import('./js/main.js?v=20260516a'); };
+    window.addEventListener('load', function(){
+      if ('requestIdleCallback' in window) requestIdleCallback(loadWorkspaceMain, { timeout: 1500 });
+      else setTimeout(loadWorkspaceMain, 250);
+    });
+  </script>
+  <script defer src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
 
   <!-- UI helper scripts -->

@@ -2,258 +2,257 @@
    VIEWER-MEDIA.CSS — Responsive Rules extracted from css/history.css
    ========================================================================== */
 
-   @media (min-width: 1281px) and (max-height: 800px) {
-    /* Reduce viewer height a bit to avoid crowding bottom */
-    .timrx-3dprint .ws-viewer {
-      height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 1.5));
-    }
-  
-    /* Smaller gear button + closer to edges */
-    .timrx-3dprint .viewer-gear {
-      --gear-size: 34px;
-      right: 12px;
-      bottom: 12px;
-      font-size: 16px;
-    }
-  
-    /* Autorotate pill hugs gear closer and is more compact */
-    .timrx-3dprint .viewer-autorotate {
-      right: 12px;
-      bottom: calc(12px + var(--gear-size, 34px) + 8px);
-      padding: 6px 10px;
-      gap: 8px;
-    }
-  
-    .timrx-3dprint .viewer-autorotate .label {
-      font-size: 10px;
-      letter-spacing: 0.04em;
-    }
-  
-    .timrx-3dprint .viewer-autorotate .toggle {
-      --w: 34px;
-      --h: 20px;
-      --knob: 14px;
-    }
+@media (min-width: 1281px) and (max-height: 800px) {
+  /* Reduce viewer height a bit to avoid crowding bottom */
+  .timrx-3dprint .ws-viewer {
+    height: calc(100vh - var(--ws-navH) - (var(--ws-gap) * 1.5));
   }
-  
-  @media (max-width: 1280px) {
-    .timrx-3dprint .ws-viewer {
-      height: auto;
-    }
+
+  /* Smaller gear button + closer to edges */
+  .timrx-3dprint .viewer-gear {
+    --gear-size: 34px;
+    right: 12px;
+    bottom: 12px;
+    font-size: 16px;
   }
-  
-  @media (max-width: 1024px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(400px, 50vh, 580px);
-      min-height: 400px;
-      max-height: 580px;
-    }
+
+  /* Autorotate pill hugs gear closer and is more compact */
+  .timrx-3dprint .viewer-autorotate {
+    right: 12px;
+    bottom: calc(12px + var(--gear-size, 34px) + 8px);
+    padding: 6px 10px;
+    gap: 8px;
   }
-  
-  @media (max-width: 912px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(368px, 47vh, 500px);
-      min-height: 368px;
-      max-height: 500px;
-    }
+
+  .timrx-3dprint .viewer-autorotate .label {
+    font-size: 10px;
+    letter-spacing: 0.04em;
   }
-  
-  @media (max-width: 853px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(336px, 45vh, 450px);
-      min-height: 336px;
-      max-height: 450px;
-    }
+
+  .timrx-3dprint .viewer-autorotate .toggle {
+    --w: 34px;
+    --h: 20px;
+    --knob: 14px;
   }
-  
-  @media (max-width: 768px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(312px, 43vh, 408px);
-      min-height: 312px;
-      max-height: 408px;
-    }
+}
+
+@media (max-width: 1280px) {
+  .timrx-3dprint .ws-viewer {
+    height: auto;
   }
-  
-  @media (max-width: 540px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(284px, 41vh, 360px);
-      min-height: 284px;
-      max-height: 360px;
-    }
+}
+
+@media (max-width: 1024px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(400px, 50vh, 580px);
+    min-height: 400px;
+    max-height: 580px;
   }
-  
-  @media (max-width: 900px) {
-    /* On narrow layouts, pull controls slightly inward */
-    .timrx-3dprint .viewer-gear {
-      right: 10px;
-    }
-  
-    .timrx-3dprint .viewer-autorotate {
-      right: 10px;
-    }
+}
+
+@media (max-width: 912px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(368px, 47vh, 500px);
+    min-height: 368px;
+    max-height: 500px;
   }
-  
-  @media (max-width: 1280px) and (max-height: 720px) {
-    .timrx-3dprint .ws-viewer {
-      height: auto;
-    }
-  
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(300px, 48vh, 420px);
-      min-height: 300px;
-      max-height: 420px;
-    }
+}
+
+@media (max-width: 853px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(336px, 45vh, 450px);
+    min-height: 336px;
+    max-height: 450px;
   }
-  
-  @media (max-width: 1280px) and (max-height: 640px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(280px, 45vh, 360px);
-      min-height: 280px;
-      max-height: 360px;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .pane-sub {
-      display: none;
-    }
+}
+
+@media (max-width: 768px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(312px, 43vh, 408px);
+    min-height: 312px;
+    max-height: 408px;
   }
-  
-  @media (min-width: 1024px) and (max-width: 1280px) and (max-height: 640px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(340px, 56vh, 420px);
-      min-height: 340px;
-      max-height: 420px;
-    }
+}
+
+@media (max-width: 540px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(284px, 41vh, 360px);
+    min-height: 284px;
+    max-height: 360px;
   }
-  
-  @media (max-width: 480px) {
-    .timrx-3dprint .ws-viewer {
-      height: auto;
-    }
-  
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(248px, 39vh, 312px);
-      min-height: 248px;
-      max-height: 312px;
-      border-radius: 12px;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head {
-      padding: 10px 12px 20px;
-      gap: 10px;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .pane-head-titles {
-      max-width: calc(100% - 44px);
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .pane-head-titles h2 {
-      font-size: 12px;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .pane-sub {
-      margin-top: 2px;
-      font-size: 9px;
-      line-height: 1.35;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .icon-btn {
-      min-width: 32px;
-      padding: 5px 7px;
-      border-radius: 8px;
-      font-size: 10px;
-    }
-  
-    .timrx-3dprint .viewer-gear {
-      --gear-size: 32px;
-      right: 10px;
-      bottom: 10px;
-      border-radius: 10px;
-      font-size: 15px;
-    }
-  
-    .timrx-3dprint .viewer-autorotate {
-      right: 10px;
-      bottom: calc(10px + var(--gear-size, 32px) + 8px);
-      padding: 5px 8px;
-      gap: 6px;
-      border-radius: 12px;
-    }
-  
-    .timrx-3dprint .viewer-autorotate .label {
-      font-size: 9px;
-    }
-  
-    .timrx-3dprint .viewer-empty {
-      gap: 10px;
-      padding: 18px;
-    }
-  
-    .timrx-3dprint .viewer-empty svg {
-      width: 34px;
-      height: 34px;
-    }
-  
-    .timrx-3dprint .viewer-empty p {
-      font-size: 13px;
-    }
-  
-    .timrx-3dprint .viewer-empty span {
-      font-size: 11px;
-      line-height: 1.45;
-    }
-  
-    .image-fit-toggle {
-      bottom: 10px;
-      right: 10px;
-      gap: 5px;
-      padding: 6px 10px;
-      font-size: 11px;
-      border-radius: 9px;
-    }
-  
-    .image-fit-toggle svg {
-      width: 14px;
-      height: 14px;
-    }
+}
+
+@media (max-width: 900px) {
+  /* On narrow layouts, pull controls slightly inward */
+  .timrx-3dprint .viewer-gear {
+    right: 10px;
   }
-  
-  @media (max-width: 480px) and (max-height: 700px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(224px, 35vh, 272px);
-      min-height: 224px;
-      max-height: 272px;
-    }
+
+  .timrx-3dprint .viewer-autorotate {
+    right: 10px;
   }
-  
-  @media (max-width: 414px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(236px, 37vh, 284px);
-      min-height: 236px;
-      max-height: 284px;
-    }
+}
+
+@media (max-width: 1280px) and (max-height: 720px) {
+  .timrx-3dprint .ws-viewer {
+    height: auto;
   }
-  
-  @media (max-width: 375px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(224px, 35vh, 264px);
-      min-height: 224px;
-      max-height: 264px;
-    }
+
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(300px, 48vh, 420px);
+    min-height: 300px;
+    max-height: 420px;
   }
-  
-  @media (min-width: 376px) and (max-width: 380px) {
-    .timrx-3dprint .viewer-wrap {
-      height: clamp(214px, 34vh, 252px);
-      min-height: 214px;
-      max-height: 252px;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .pane-sub {
-      display: none;
-    }
-  
-    .timrx-3dprint .viewer-overlay-head .icon-btn {
-      padding: 6px;
-    }
+}
+
+@media (max-width: 1280px) and (max-height: 640px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(280px, 45vh, 360px);
+    min-height: 280px;
+    max-height: 360px;
   }
-  
+
+  .timrx-3dprint .viewer-overlay-head .pane-sub {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) and (max-height: 640px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(340px, 56vh, 420px);
+    min-height: 340px;
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timrx-3dprint .ws-viewer {
+    height: auto;
+  }
+
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(248px, 39vh, 312px);
+    min-height: 248px;
+    max-height: 312px;
+    border-radius: 12px;
+  }
+
+  .timrx-3dprint .viewer-overlay-head {
+    padding: 10px 12px 20px;
+    gap: 10px;
+  }
+
+  .timrx-3dprint .viewer-overlay-head .pane-head-titles {
+    max-width: calc(100% - 44px);
+  }
+
+  .timrx-3dprint .viewer-overlay-head .pane-head-titles h2 {
+    font-size: 12px;
+  }
+
+  .timrx-3dprint .viewer-overlay-head .pane-sub {
+    margin-top: 2px;
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .timrx-3dprint .viewer-overlay-head .icon-btn {
+    min-width: 32px;
+    padding: 5px 7px;
+    border-radius: 8px;
+    font-size: 10px;
+  }
+
+  .timrx-3dprint .viewer-gear {
+    --gear-size: 32px;
+    right: 10px;
+    bottom: 10px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .timrx-3dprint .viewer-autorotate {
+    right: 10px;
+    bottom: calc(10px + var(--gear-size, 32px) + 8px);
+    padding: 5px 8px;
+    gap: 6px;
+    border-radius: 12px;
+  }
+
+  .timrx-3dprint .viewer-autorotate .label {
+    font-size: 9px;
+  }
+
+  .timrx-3dprint .viewer-empty {
+    gap: 10px;
+    padding: 18px;
+  }
+
+  .timrx-3dprint .viewer-empty svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .timrx-3dprint .viewer-empty p {
+    font-size: 13px;
+  }
+
+  .timrx-3dprint .viewer-empty span {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .image-fit-toggle {
+    bottom: 10px;
+    right: 10px;
+    gap: 5px;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 9px;
+  }
+
+  .image-fit-toggle svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) and (max-height: 700px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(224px, 35vh, 272px);
+    min-height: 224px;
+    max-height: 272px;
+  }
+}
+
+@media (max-width: 414px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(236px, 37vh, 284px);
+    min-height: 236px;
+    max-height: 284px;
+  }
+}
+
+@media (max-width: 375px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(224px, 35vh, 264px);
+    min-height: 224px;
+    max-height: 264px;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 380px) {
+  .timrx-3dprint .viewer-wrap {
+    height: clamp(214px, 34vh, 252px);
+    min-height: 214px;
+    max-height: 252px;
+  }
+
+  .timrx-3dprint .viewer-overlay-head .pane-sub {
+    display: none;
+  }
+
+  .timrx-3dprint .viewer-overlay-head .icon-btn {
+    padding: 6px;
+  }
+}

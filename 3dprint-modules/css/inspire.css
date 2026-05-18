@@ -162,6 +162,7 @@ body.inspire-open .ws-right {
 
 /* Close Button */
 .inspire-close-btn {
+  position: relative;
   width: 32px;
   height: 32px;
   display: flex;
@@ -170,9 +171,11 @@ body.inspire-open .ws-right {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.82);
   cursor: pointer;
-  transition: all 0.15s ease;
+  outline: 2px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  will-change: transform, opacity;
 }
 
 .inspire-close-btn svg {
@@ -182,7 +185,13 @@ body.inspire-open .ws-right {
 
 .inspire-close-btn:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
+  color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.78);
+}
+
+.inspire-close-btn:focus-visible {
+  outline-color: rgba(255,255,255,0.86);
+  outline-offset: 2px;
 }
 
 /* ===== INSPIRE CONTENT AREA ===== */

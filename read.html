@@ -5,32 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Read — TimrX</title>
   <meta name="description" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
-  <meta name="robots" content="noindex, follow" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
-  <!-- SEO: Set canonical to /blog/<slug> immediately (before Google parses the page) -->
+  <link rel="canonical" id="canonicalLink" href="https://timrx.live/read" />
+  <!-- SEO: Set canonical to /read?slug=<slug> immediately (before Google parses the page) -->
   <script>
   (function(){
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<link rel="canonical" id="canonicalLink" href="' + canonicalUrl + '" />');
+    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var link = document.getElementById('canonicalLink');
+    if (link) link.href = canonicalUrl;
   })();
   </script>
-  <noscript><link rel="canonical" id="canonicalLink" href="https://timrx.live/blogs" /></noscript>
 
   <!-- Open Graph (updated dynamically per post) -->
   <meta property="og:type" content="article" />
+  <meta property="og:url" id="ogUrl" content="https://timrx.live/read" />
   <script>
   (function(){
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<meta property="og:url" id="ogUrl" content="' + canonicalUrl + '" />');
+    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var meta = document.getElementById('ogUrl');
+    if (meta) meta.content = canonicalUrl;
   })();
   </script>
-  <noscript><meta property="og:url" id="ogUrl" content="https://timrx.live/blogs" /></noscript>
   <meta property="og:title" id="ogTitle" content="TimrX Blog" />
   <meta property="og:description" id="ogDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta property="og:image" id="ogImage" content="https://timrx.live/img/OG_Blogs.png" />
@@ -38,16 +40,17 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" id="twUrl" content="https://timrx.live/read" />
   <script>
   (function(){
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/blogs';
-    document.write('<meta name="twitter:url" id="twUrl" content="' + canonicalUrl + '" />');
+    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var meta = document.getElementById('twUrl');
+    if (meta) meta.content = canonicalUrl;
   })();
   </script>
-  <noscript><meta name="twitter:url" id="twUrl" content="https://timrx.live/blogs" /></noscript>
   <meta name="twitter:title" id="twTitle" content="TimrX Blog" />
   <meta name="twitter:description" id="twDesc" content="Read blog posts on TimrX — web development, 3D, and creative tech." />
   <meta name="twitter:image" id="twImage" content="https://timrx.live/img/OG_Blogs.png" />
@@ -734,8 +737,8 @@
       qs('#authorAvatar').src = p.author_avatar;
     }
 
-    // SEO: Update canonical URL to /blog/<slug>
-    const canonicalUrl = `https://timrx.live/blog/${p.slug}`;
+    // SEO: Update canonical URL to /read?slug=<slug>
+    const canonicalUrl = `https://timrx.live/read?slug=${encodeURIComponent(p.slug)}`;
     qs('#canonicalLink').href = canonicalUrl;
 
     // SEO: Update page title and meta description

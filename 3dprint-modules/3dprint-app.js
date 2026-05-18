@@ -7,7 +7,7 @@
    - GLB/GLTF loader + auto center/scale + controls target
    ============================================================================ */
 
-   (function initTimrxWorkspace() {
+   function initTimrxWorkspace() {
     'use strict';
   
     /* -------------------------------------------------------------------------
@@ -780,7 +780,7 @@
                 <input type="file" id="modelImageUpload" accept="image/*" hidden />
               </div>
               <div class="video-preview-wrap">
-                <img id="modelImagePreview" class="video-preview-img" alt="Preview"/>
+                <img id="modelImagePreview" class="video-preview-img" alt="Preview" width="280" height="280" loading="lazy" decoding="async"/>
                 <div class="video-preview-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -810,7 +810,7 @@
                   <span style="font-size:10px;color:#888;margin-top:3px">Image 1</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="1">
                 <div class="video-drop-zone" id="multiImgDrop1" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
@@ -818,7 +818,7 @@
                   <span style="font-size:10px;color:#888;margin-top:3px">Image 2</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="2">
                 <div class="video-drop-zone" id="multiImgDrop2" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
@@ -826,7 +826,7 @@
                   <span style="font-size:10px;color:#888;margin-top:3px">Image 3</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
               <div class="multi-img-slot" data-slot="3">
                 <div class="video-drop-zone" id="multiImgDrop3" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
@@ -834,7 +834,7 @@
                   <span style="font-size:10px;color:#888;margin-top:3px">Image 4</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
-                <img class="multi-img-preview" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
             </div>
             <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
@@ -1445,7 +1445,7 @@
           <h3>Animate Model</h3>
           <div id="animModelInfo" style="display:none">
             <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-              <img id="animModelThumb" src="" alt="" style="width:48px;height:48px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.05);display:none">
+              <img id="animModelThumb" src="" alt="" width="48" height="48" loading="lazy" decoding="async" style="width:48px;height:48px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.05);display:none">
               <div style="flex:1;min-width:0">
                 <div id="animModelTitle" style="font-size:13px;font-weight:600;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rigged Model</div>
                 <div id="animModelBadge" style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(80,200,120,.12);color:#50c878">Rigged model loaded</div>
@@ -1645,7 +1645,7 @@
               <input type="file" id="videoSource" accept="image/*" hidden />
             </div>
             <div class="video-preview-wrap">
-              <img id="videoImagePreview" class="video-preview-img" alt="Preview"/>
+              <img id="videoImagePreview" class="video-preview-img" alt="Preview" width="280" height="280" loading="lazy" decoding="async"/>
               <div class="video-preview-placeholder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1678,7 +1678,7 @@ Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion
                 <input type="file" id="videoStartImageSource" accept="image/*" hidden />
               </div>
               <div class="video-preview-wrap">
-                <img id="videoStartImagePreview" class="video-preview-img" alt="Start"/>
+                <img id="videoStartImagePreview" class="video-preview-img" alt="Start" width="280" height="280" loading="lazy" decoding="async"/>
                 <div class="video-preview-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1705,7 +1705,7 @@ Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion
                 <input type="file" id="videoEndImageSource" accept="image/*" hidden />
               </div>
               <div class="video-preview-wrap">
-                <img id="videoEndImagePreview" class="video-preview-img" alt="End"/>
+                <img id="videoEndImagePreview" class="video-preview-img" alt="End" width="280" height="280" loading="lazy" decoding="async"/>
                 <div class="video-preview-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1742,7 +1742,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
                 <input type="file" id="morphStartImageSource" accept="image/*" hidden />
               </div>
               <div class="video-preview-wrap">
-                <img id="morphStartImagePreview" class="video-preview-img" alt="Image 1"/>
+                <img id="morphStartImagePreview" class="video-preview-img" alt="Image 1" width="280" height="280" loading="lazy" decoding="async"/>
                 <div class="video-preview-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1769,7 +1769,7 @@ Example: The calm expression slowly turns into anger while the camera pushes in.
                 <input type="file" id="morphEndImageSource" accept="image/*" hidden />
               </div>
               <div class="video-preview-wrap">
-                <img id="morphEndImagePreview" class="video-preview-img" alt="Image 2"/>
+                <img id="morphEndImagePreview" class="video-preview-img" alt="Image 2" width="280" height="280" loading="lazy" decoding="async"/>
                 <div class="video-preview-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1918,6 +1918,12 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     /**
      * Ensures the Three.js viewer exists and is properly sized.
      */
+    function requestThreeViewerLoad() {
+      if (window.THREE) return Promise.resolve(window.THREE);
+      if (typeof window.loadTimrxThree === 'function') return window.loadTimrxThree();
+      return Promise.resolve(null);
+    }
+
     function ensureThreeViewer() {
       if (!model3dWrap || !viewerCanvas) return;
 
@@ -1938,8 +1944,15 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         return;
       }
 
-      if (window.THREE) bootThreeViewer();
-      else window.addEventListener('three-ready', bootThreeViewer, { once: true });
+      if (window.THREE) {
+        bootThreeViewer();
+        return;
+      }
+      window.addEventListener('three-ready', bootThreeViewer, { once: true });
+      requestThreeViewerLoad().catch((err) => {
+        console.warn('[Viewer] Failed to lazy-load Three.js:', err);
+        showWebGLFallback();
+      });
     }
   
     /**
@@ -5181,7 +5194,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const objectUrl = URL.createObjectURL(file);
         textureStyleImagePreview.innerHTML = `
           <figure class="image-upload-preview">
-            <img class="image-upload-preview__image" src="${objectUrl}" alt="Texture style reference preview">
+            <img class="image-upload-preview__image" src="${objectUrl}" alt="Texture style reference preview" width="280" height="280" loading="lazy" decoding="async">
             <figcaption class="image-upload-preview__caption">${file.name}</figcaption>
           </figure>
         `;
@@ -5354,7 +5367,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const objectUrl = URL.createObjectURL(file);
         rigTextureImagePreview.innerHTML = `
           <figure class="image-upload-preview">
-            <img class="image-upload-preview__image" src="${objectUrl}" alt="Rig texture preview">
+            <img class="image-upload-preview__image" src="${objectUrl}" alt="Rig texture preview" width="280" height="280" loading="lazy" decoding="async">
             <figcaption class="image-upload-preview__caption">${file.name}</figcaption>
           </figure>
         `;
@@ -6419,7 +6432,22 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
      * Registers click handlers for the rail buttons.
      */
     function attachRailButtonHandlers() {
-      railButtons.forEach((btn) => btn.addEventListener('click', handleRailButtonClick));
+      const railLabels = {
+        image: 'AI Image generation',
+        model: '3D Model generation',
+        remesh: 'Remesh 3D model',
+        texture: 'Texture 3D model',
+        rig: 'Rig 3D model',
+        animate: 'Animate 3D model',
+        video: 'AI Video generation',
+      };
+      railButtons.forEach((btn) => {
+        const panel = btn.getAttribute('data-panel');
+        if (panel && railLabels[panel] && !btn.getAttribute('aria-label')) {
+          btn.setAttribute('aria-label', railLabels[panel]);
+        }
+        btn.addEventListener('click', handleRailButtonClick);
+      });
     }
   
     /**
@@ -6449,6 +6477,9 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       updateLeftPanel(panelType);
       switchViewer(panelType);
+      if (['model', 'remesh', 'texture', 'rig', 'animate'].includes(panelType)) {
+        ensureThreeViewer();
+      }
 
       // Refresh remesh model-state label when switching to that panel
       if (panelType === 'remesh' && window._updateRemeshStateLabel) {
@@ -6525,7 +6556,6 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
       var initialPanel = targetBtn.getAttribute('data-panel');
       updateLeftPanel(initialPanel);
       switchViewer(initialPanel);
-      ensureThreeViewer();
       applyPendingCommunityRemix();
     }
   
@@ -6713,7 +6743,13 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
     initFieldHelpTooltips();
     bootstrapInitialPanel();
 
-})();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTimrxWorkspace, { once: true });
+} else {
+  initTimrxWorkspace();
+}
 
 /* =============================================================================
    WORKSPACE HEADER DROPDOWN (separate from workspace - runs independently)

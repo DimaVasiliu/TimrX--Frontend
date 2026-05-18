@@ -3444,61 +3444,58 @@
     || document.getElementById('generateModelBtn') !== null;
 
   if (!_isWorkspace && creditsValue) {
-    // ── Hub boot: identity + wallet as separate independent requests ──
-    // /api/me → identity only (session bootstrap, email, no wallet data)
-    // /api/credits/wallet → authoritative wallet balances (credits pill)
-    // These are independent — the pill renders from /api/credits/wallet ONLY.
-    // /api/me is fire-and-forget for identity; its response does NOT touch
-    // the pill, preventing race-condition overwrites.
+    // ── Hub boot: identity first, wallet only if authenticated ──
+    // /api/me → identity bootstrap (returns anon session for unauthed visitors)
+    // /api/credits/wallet → only called when /api/me confirms a verified email.
+    // Anonymous visitors (Lighthouse bot, first-time users) skip the wallet
+    // call so they don't trigger a 401 and the auth-lost cache wipe.
     creditsValue.textContent = '...';
-    console.log('[Credits][Hub] Boot: /api/me (identity) + /api/credits/wallet (pill)');
+    console.log('[Credits][Hub] Boot: /api/me (identity gate) → /api/credits/wallet');
 
-    // 1) Identity — fire-and-forget, only for session/email confirmation.
-    //    Do NOT use fetchWallet() here — that reads wallet fields from /api/me
-    //    and would overwrite the real values from /api/credits/wallet.
     apiFetch('/api/me', { timeout: 15000 }).then(result => {
-      if (result.ok && result.data?.ok) {
-        const data = result.data;
+      const data = result.ok && result.data?.ok ? result.data : null;
+      if (data) {
         identityId = data.identity_id || null;
         userEmail = data.email || null;
         emailVerified = data.email_verified || false;
-        // Sync identity fields to WalletStore so _syncBeaconFromStore picks them up
         WalletStore.update({
           identityId: data.identity_id,
           email: data.email,
           emailVerified: data.email_verified,
         });
         console.log('[Credits][Hub] Identity confirmed:', identityId?.slice(0, 8), 'verified:', emailVerified);
-        // Update account icon + button states now that we know auth status
         updateEmailBeaconUI();
       }
-    }).catch(err => {
-      console.warn('[Credits][Hub] /api/me failed (non-fatal):', err.message);
-    });
 
-    // 2) Wallet — authoritative source for pill display
-    apiFetch('/api/credits/wallet', { timeout: 10000 }).then(result => {
-      if (result.ok && result.data?.ok) {
-        const d = result.data;
-        const balance = d.credits_balance ?? 0;
-        const reserved = d.reserved_credits ?? 0;
-        const available = d.available_credits ?? Math.max(0, balance - reserved);
-        const videoBalance = d.video_credits_balance ?? 0;
-        const videoReserved = d.video_reserved_credits ?? 0;
-        const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
-
-        WalletStore.update({
-          balance, reserved, available,
-          videoBalance, videoReserved, videoAvailable: videoAvail,
-        });
-        updateCreditsDisplay(available, balance, reserved);
-        console.log(`[Credits][Hub] Pill updated: general=${available} video=${videoAvail}`);
-      } else {
-        console.warn('[Credits][Hub] /api/credits/wallet failed:', result.status);
-        if (creditsValue.textContent === '...') creditsValue.textContent = '0';
+      const isAuthenticated = !!(data && data.email_verified);
+      if (!isAuthenticated) {
+        creditsValue.textContent = '0';
+        console.log('[Credits][Hub] Anonymous visitor — skipping /api/credits/wallet to avoid 401');
+        return;
       }
+
+      return apiFetch('/api/credits/wallet', { timeout: 10000 }).then(walletResult => {
+        if (walletResult.ok && walletResult.data?.ok) {
+          const d = walletResult.data;
+          const balance = d.credits_balance ?? 0;
+          const reserved = d.reserved_credits ?? 0;
+          const available = d.available_credits ?? Math.max(0, balance - reserved);
+          const videoBalance = d.video_credits_balance ?? 0;
+          const videoReserved = d.video_reserved_credits ?? 0;
+          const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+          WalletStore.update({
+            balance, reserved, available,
+            videoBalance, videoReserved, videoAvailable: videoAvail,
+          });
+          updateCreditsDisplay(available, balance, reserved);
+          console.log(`[Credits][Hub] Pill updated: general=${available} video=${videoAvail}`);
+        } else {
+          console.warn('[Credits][Hub] /api/credits/wallet failed:', walletResult.status);
+          if (creditsValue.textContent === '...') creditsValue.textContent = '0';
+        }
+      });
     }).catch(err => {
-      console.warn('[Credits][Hub] Wallet error:', err.message);
+      console.warn('[Credits][Hub] Boot error (non-fatal):', err.message);
       if (creditsValue.textContent === '...') creditsValue.textContent = '0';
     });
   }

@@ -1878,8 +1878,7 @@ align-items: center;
 position: relative;
 z-index: 2;
 margin-bottom: clamp(8px, 1.2vh, 16px);
-opacity: 0;
-animation: hEyebrowIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s forwards;
+opacity: 1;
 }
 
 .hero-eyebrow-text {
@@ -1934,8 +1933,7 @@ max-width: 92vw;
 position: relative;
 z-index: 2;
 perspective: 600px;
-opacity: 0;
-animation: hH1Reveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+opacity: 1;
 }
 
 .hero-line { display: block; }
@@ -1962,12 +1960,11 @@ z-index: 1;
 pointer-events: none;
 }
 
-/* Per-word stagger */
+/* Per-word stagger — start visible to keep LCP fast; no flyin */
 .hero-headline .hw {
 display: inline-block;
-opacity: 0;
-transform: translateY(40px) rotateX(-15deg);
-animation: hWordIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+opacity: 1;
+transform: none;
 }
 .hero-line--top .hw:nth-child(1) { animation-delay: 0.15s; }
 .hero-line--top .hw:nth-child(2) { animation-delay: 0.25s; }
@@ -2048,8 +2045,7 @@ font-size: 1.05rem;
 font-weight: 500;
 color: #cfcfcf;
 margin: clamp(4px, 1vh, 10px) 0 clamp(4px, 0.8vh, 8px);
-opacity: 0;
-animation: hFadeUp 0.7s ease 0.8s forwards;
+opacity: 1;
 }
 
 @keyframes hFadeUp {
@@ -2068,8 +2064,7 @@ gap: 10px;
 width: 100%;
 position: relative;
 z-index: 2;
-opacity: 0;
-animation: hFadeUp 0.8s ease 1s forwards;
+opacity: 1;
 }
 
 /* Thin gradient line above actions */
@@ -2352,15 +2347,18 @@ margin-bottom: 0;
 .strip-divider .pulse{
   position: absolute; top: 50%; left: 0;
   width: 12px; height: 12px; border-radius: 50%;
-  transform: translate(-50%, -50%);
   background: #fff;
   box-shadow: 0 0 12px rgba(255,255,255,.65), 0 0 30px rgba(255,255,255,.35);
+  will-change: transform, opacity;
   animation: dividerPulse 60s linear infinite;
 }
+/* Composited sweep — translateX along the .strip-divider parent width.
+ Parent is min(1600px, 100vw - 20px); dot is 12px wide.
+ overflow: hidden on the parent clips any overshoot at the edges. */
 @keyframes dividerPulse{
-0%   { left: 0%;   opacity: .75; }
-50%  { left: 100%; opacity: 1;    }
-100% { left: 0%;   opacity: .75; }
+0%   { transform: translate(0, -50%); opacity: .75; }
+50%  { transform: translate(calc(min(1600px, 100vw - 20px) - 12px), -50%); opacity: 1; }
+100% { transform: translate(0, -50%); opacity: .75; }
 }
 
 /* Make sure the big canvas covers ultra-wide strips nicely */
@@ -2390,30 +2388,56 @@ margin-bottom: 0;
   gap: 10px;
 }
 
-/* gradient “electric” text */
+/* gradient "electric" text — composited shine via background-position sweep
+   (replaces a filter: drop-shadow animation that triggered full paint each frame) */
 .strip-title-anim .grad{
+  position: relative;
   background: linear-gradient(90deg, #fff 0%, #b8b8b8 50%, #fff 100%);
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
+}
+.strip-title-anim .grad::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
   animation: shine 3.6s ease-in-out infinite;
 }
 @keyframes shine {
-  0%,100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
-  50%     { filter: drop-shadow(0 6px 16px rgba(255,255,255,.18)); }
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
 }
 
-/* tiny blinking “charge” dot */
+/* tiny blinking "charge" dot — composited pulse via ::before scale+opacity
+   (replaces a previous box-shadow animation that triggered paint each frame) */
 .hint-dot{
   width: 10px; height: 10px; border-radius: 50%;
   display: inline-block; position: relative;
   background: radial-gradient(circle at 30% 30%, #fff, #d9d9d9 55%, #aaa);
-  box-shadow: 0 0 0 0 rgba(255,255,255,.45);
-  animation: ping 1.8s ease-out infinite;
+  will-change: transform;
+  animation: hintDotPulse 1.8s ease-out infinite;
 }
-@keyframes ping {
-  0%   { box-shadow: 0 0 0 0 rgba(255,255,255,.45); transform: scale(1); }
-  70%  { box-shadow: 0 0 0 12px rgba(255,255,255,0); transform: scale(1.1); }
-  100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); transform: scale(1); }
+.hint-dot::before{
+  content: ""; position: absolute; inset: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  transform: scale(1);
+  opacity: .8;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: hintDotRing 1.8s ease-out infinite;
+}
+@keyframes hintDotPulse {
+  0%, 100% { transform: scale(1); }
+  70%      { transform: scale(1.1); }
+}
+@keyframes hintDotRing {
+  0%   { transform: scale(1);   opacity: .45; }
+  70%  { transform: scale(3.4); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
 }
 
 .strip-sub{
@@ -2431,7 +2455,9 @@ margin-bottom: 0;
 /* motion-respect */
 @media (prefers-reduced-motion: reduce){
   .strip-title-anim .grad,
-  .hint-dot { animation: none !important; box-shadow: none !important; }
+  .hint-dot,
+  .hint-dot::before { animation: none !important; }
+  .hint-dot::before { opacity: 0 !important; }
 }
 /* ========================================================================== */
 /* STRIP — animated ECG background + refined chips                            */

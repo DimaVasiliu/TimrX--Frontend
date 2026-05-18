@@ -117,8 +117,8 @@
       padding: 5px 6px;
       margin: 8px auto 10px;
       width: min(100%, 860px);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 14px;
     }
     .ws-mobile-tab {
@@ -132,7 +132,7 @@
       border: 1px solid transparent;
       border-radius: 10px;
       background: transparent;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.82);
       font-family: Inter, system-ui, sans-serif;
       font-size: 11px;
       font-weight: 600;
@@ -150,17 +150,17 @@
       opacity: 0.6;
     }
     .ws-mobile-tab.is-active {
-      background: rgba(14, 165, 233, 0.1);
-      color: #0ea5e9;
-      border-color: rgba(14, 165, 233, 0.18);
+      background: rgba(14, 165, 233, 0.24);
+      color: #ffffff;
+      border-color: rgba(125, 211, 252, 0.62);
       padding: 11px 36px;
     }
     .ws-mobile-tab.is-active svg {
       opacity: 1;
     }
     .ws-mobile-tab:hover:not(.is-active) {
-      color: rgba(255, 255, 255, 0.5);
-      background: rgba(255, 255, 255, 0.03);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
     }
   
     /* --- PANELS — constrain width so controls don't stretch full-screen --- */

@@ -3,308 +3,307 @@
    Breakpoints: 1280, 1100, 1024, 820, 768, 640, 540, 430
    ========================================================================== */
 
-   @media (hover: hover) {
-    .inspire-card:hover .inspire-card__image {
-      animation: none !important;
-      transform: scale(1.05);
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+@media (hover: hover) {
+  .inspire-card:hover .inspire-card__image {
+    animation: none !important;
+    transform: scale(1.05);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
-  /* ---- 1280px — shrink grid cards a bit ---- */
-  @media (max-width: 1280px) {
-    .inspire-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-  
-    .inspire-header {
-      padding: 14px 18px;
-    }
-  
-    .inspire-content {
-      padding: 16px;
-    }
+}
+
+/* ---- 1280px — shrink grid cards a bit ---- */
+@media (max-width: 1280px) {
+  .inspire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
-  
-  /* ---- 1100px — was the old single breakpoint ---- */
-  @media (max-width: 1100px) {
-    .inspire-grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-    }
+
+  .inspire-header {
+    padding: 14px 18px;
   }
-  
-  /* ---- 1024px — overlay fills more of the screen ---- */
-  @media (max-width: 1024px) {
-    .inspire-overlay {
-      left: 8px !important;
-      right: 8px !important;
-      bottom: 8px !important;
-      top: 56px !important;
-    }
-  
-    .inspire-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-  
-    .inspire-header {
-      padding: 12px 16px;
-    }
-  
-    .inspire-header__icon {
-      width: 30px;
-      height: 30px;
-    }
-  
-    .inspire-header__icon svg {
-      width: 14px;
-      height: 14px;
-    }
-  
-    .inspire-header__title h2 {
-      font-size: 14px;
-    }
-  
-    .inspire-header__title p {
-      font-size: 11px;
-    }
-  
-    .inspire-content {
-      padding: 14px;
-    }
-  
-    .inspire-potd {
-      padding: 12px 14px;
-      margin-bottom: 14px;
-    }
-  
-    .inspire-potd__badge {
-      width: 28px;
-      height: 28px;
-    }
-  
-    .inspire-potd__label {
-      font-size: 9px;
-    }
-  
-    .inspire-potd__target {
-      font-size: 9px;
-      padding: 2px 7px;
-    }
-  
-    .inspire-potd__prompt {
-      font-size: 12px;
-    }
-  
-    .inspire-potd__hint {
-      font-size: 10px;
-    }
-  
-    .inspire-filter-btn {
-      font-size: 10px;
-      padding: 5px 10px;
-    }
-  
-    .inspire-card {
-      border-radius: 8px;
-    }
+
+  .inspire-content {
+    padding: 16px;
   }
-  
-  /* ---- 820px — nearly full screen, 3-col grid ---- */
-  @media (max-width: 820px) {
-    .inspire-overlay {
-      top: 54px !important;
-      left: 4px !important;
-      right: 4px !important;
-      bottom: 4px !important;
-      border-radius: 10px;
-    }
-  
-    .inspire-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-  
-    .inspire-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 14px;
-    }
-  
-    .inspire-header__actions {
-      width: 100%;
-      justify-content: space-between;
-    }
-  
-    .inspire-content {
-      padding: 12px;
-    }
-  
-    .inspire-potd {
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px 12px;
-    }
-  
-    .inspire-potd__cta {
-      width: 100%;
-      justify-content: center;
-    }
-  
-    .inspire-shuffle-btn {
-      font-size: 11px;
-      padding: 6px 12px;
-    }
-  
-    .inspire-card__type-badge {
-      padding: 3px 6px;
-      font-size: 8px;
-    }
-  
-    .inspire-card__type-badge svg {
-      width: 8px;
-      height: 8px;
-    }
+}
+
+/* ---- 1100px — was the old single breakpoint ---- */
+@media (max-width: 1100px) {
+  .inspire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
   }
-  
-  /* ---- 768px — full screen overlay, compact 3-col grid ---- */
-  @media (max-width: 768px) {
-    .inspire-overlay {
-      top: var(--ws-navH, 52px) !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      border-radius: 0;
-      border: none;
-    }
-  
-    .inspire-header {
-      padding: 10px 12px;
-      gap: 8px;
-    }
-  
-    .inspire-header__icon {
-      display: none;
-    }
-  
-    .inspire-header__title h2 {
-      font-size: 13px;
-    }
-  
-    .inspire-header__title p {
-      font-size: 10px;
-    }
-  
-    .inspire-potd {
-      display: none !important;
-    }
-  
-    .inspire-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-    }
-  
-    .inspire-card {
-      border-radius: 8px;
-    }
-  
-    .inspire-content {
-      padding: 8px;
-    }
-  
-    .inspire-filters {
-      gap: 4px;
-    }
-  
-    .inspire-filter-btn {
-      font-size: 10px;
-      padding: 5px 10px;
-    }
-  
-    .inspire-close-btn {
-      width: 36px;
-      height: 36px;
-    }
-  
-    .inspire-trigger-btn span {
-      display: none;
-    }
-  
-    .inspire-trigger-btn {
-      padding: 7px 9px;
-    }
-  
-    .inspire-shuffle-btn span {
-      font-size: 10px;
-    }
+}
+
+/* ---- 1024px — overlay fills more of the screen ---- */
+@media (max-width: 1024px) {
+  .inspire-overlay {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    top: 56px !important;
   }
-  
-  /* ---- 640px — keep 3-col, reduce spacing further ---- */
-  @media (max-width: 640px) {
-    .inspire-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 5px;
-    }
-  
-    .inspire-header {
-      padding: 8px 10px;
-    }
-  
-    .inspire-content {
-      padding: 7px;
-    }
-  
-    .inspire-section__title {
-      font-size: 10px;
-    }
-  
-    .inspire-card__type-badge {
-      padding: 2px 5px;
-      font-size: 7px;
-    }
-  
-    .inspire-card__type-badge svg {
-      width: 7px;
-      height: 7px;
-    }
+
+  .inspire-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
-  
-  /* ---- 430px — preserve compact 3-col mobile grid ---- */
-  @media (max-width: 430px) {
-    .inspire-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-    }
-  
-    .inspire-content {
-      padding: 6px;
-    }
-  
-    .inspire-header__title h2 {
-      font-size: 12px;
-    }
-  
-    .inspire-filter-btn {
-      font-size: 9px;
-      padding: 4px 8px;
-    }
-  
-    .inspire-close-btn {
-      width: 32px;
-      height: 32px;
-    }
-  
-    .inspire-shuffle-btn {
-      padding: 5px 10px;
-      font-size: 10px;
-    }
-  
-    .inspire-shuffle-btn svg {
-      width: 12px;
-      height: 12px;
-    }
+
+  .inspire-header {
+    padding: 12px 16px;
   }
-  
+
+  .inspire-header__icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .inspire-header__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .inspire-header__title h2 {
+    font-size: 14px;
+  }
+
+  .inspire-header__title p {
+    font-size: 11px;
+  }
+
+  .inspire-content {
+    padding: 14px;
+  }
+
+  .inspire-potd {
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+
+  .inspire-potd__badge {
+    width: 28px;
+    height: 28px;
+  }
+
+  .inspire-potd__label {
+    font-size: 9px;
+  }
+
+  .inspire-potd__target {
+    font-size: 9px;
+    padding: 2px 7px;
+  }
+
+  .inspire-potd__prompt {
+    font-size: 12px;
+  }
+
+  .inspire-potd__hint {
+    font-size: 10px;
+  }
+
+  .inspire-filter-btn {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+
+  .inspire-card {
+    border-radius: 8px;
+  }
+}
+
+/* ---- 820px — nearly full screen, 3-col grid ---- */
+@media (max-width: 820px) {
+  .inspire-overlay {
+    top: 54px !important;
+    left: 4px !important;
+    right: 4px !important;
+    bottom: 4px !important;
+    border-radius: 10px;
+  }
+
+  .inspire-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .inspire-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .inspire-header__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .inspire-content {
+    padding: 12px;
+  }
+
+  .inspire-potd {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .inspire-potd__cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .inspire-shuffle-btn {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .inspire-card__type-badge {
+    padding: 3px 6px;
+    font-size: 8px;
+  }
+
+  .inspire-card__type-badge svg {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* ---- 768px — full screen overlay, compact 3-col grid ---- */
+@media (max-width: 768px) {
+  .inspire-overlay {
+    top: var(--ws-navH, 52px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    border-radius: 0;
+    border: none;
+  }
+
+  .inspire-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .inspire-header__icon {
+    display: none;
+  }
+
+  .inspire-header__title h2 {
+    font-size: 13px;
+  }
+
+  .inspire-header__title p {
+    font-size: 10px;
+  }
+
+  .inspire-potd {
+    display: none !important;
+  }
+
+  .inspire-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .inspire-card {
+    border-radius: 8px;
+  }
+
+  .inspire-content {
+    padding: 8px;
+  }
+
+  .inspire-filters {
+    gap: 4px;
+  }
+
+  .inspire-filter-btn {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+
+  .inspire-close-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .inspire-trigger-btn span {
+    display: none;
+  }
+
+  .inspire-trigger-btn {
+    padding: 7px 9px;
+  }
+
+  .inspire-shuffle-btn span {
+    font-size: 10px;
+  }
+}
+
+/* ---- 640px — keep 3-col, reduce spacing further ---- */
+@media (max-width: 640px) {
+  .inspire-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .inspire-header {
+    padding: 8px 10px;
+  }
+
+  .inspire-content {
+    padding: 7px;
+  }
+
+  .inspire-section__title {
+    font-size: 10px;
+  }
+
+  .inspire-card__type-badge {
+    padding: 2px 5px;
+    font-size: 7px;
+  }
+
+  .inspire-card__type-badge svg {
+    width: 7px;
+    height: 7px;
+  }
+}
+
+/* ---- 430px — preserve compact 3-col mobile grid ---- */
+@media (max-width: 430px) {
+  .inspire-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .inspire-content {
+    padding: 6px;
+  }
+
+  .inspire-header__title h2 {
+    font-size: 12px;
+  }
+
+  .inspire-filter-btn {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+
+  .inspire-close-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .inspire-shuffle-btn {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .inspire-shuffle-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+}

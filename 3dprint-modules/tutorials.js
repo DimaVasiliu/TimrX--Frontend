@@ -50,7 +50,7 @@
       type: 'model',
       title: 'Image to 3D Conversion',
       description: 'Convert reference images and artwork into 3D models.',
-      thumbnail: '3dprint-modules/3dmodels/dogimg.png',
+      thumbnail: '3dprint-modules/3dmodels/dogimg.webp',
       glb_url: '3dprint-modules/3dmodels/dog3d.glb',
       prompt: 'Friendly cartoon dog, stylized 3D character',
       category: 'generation',
@@ -300,6 +300,8 @@
           <img class="tutorial-card__thumb"
                src="${item.thumbnail}"
                alt="${item.title}"
+               width="280"
+               height="180"
                loading="lazy"
                decoding="async"
                onerror="this.style.display='none'"/>
@@ -354,6 +356,8 @@
           <img class="tutorials-model-card__poster"
                src="${item.thumbnail}"
                alt="${item.title}"
+               width="280"
+               height="280"
                loading="lazy"
                decoding="async"
                onerror="this.style.display='none'"/>

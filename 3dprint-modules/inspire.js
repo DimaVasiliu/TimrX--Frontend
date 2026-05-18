@@ -501,6 +501,17 @@
     return INSPIRE_POOL && INSPIRE_POOL.length > 0 && (Date.now() - INSPIRE_POOL_TS < POOL_TTL);
   }
 
+  function dedupeCards(cards = []) {
+    const seen = new Set();
+    return cards.filter(card => {
+      const key = card.video_url || card.videoUrl || card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || card.id;
+      if (!key) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   /**
    * Fetch a large pool of cards once for instant local shuffling.
    * Returns true if pool is ready.
@@ -525,10 +536,10 @@
         const result = await safeFetch(url);
 
         if (result.ok && result.data?.ok) {
-          const cards = (result.data.cards || []).map(card => ({
+          const cards = dedupeCards((result.data.cards || []).map(card => ({
             ...card,
             thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
-          })).filter(card => card.thumbnail);
+          })).filter(card => card.thumbnail));
 
           if (cards.length > 0) {
             INSPIRE_POOL = cards;
@@ -715,10 +726,10 @@
           const data = result.data;
 
           // Normalize card format (backend uses thumb_url/thumb_preview, we also support thumbnail)
-          const cards = (data.cards || []).map(card => ({
+          const cards = dedupeCards((data.cards || []).map(card => ({
             ...card,
             thumbnail: card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || ''
-          })).filter(card => card.thumbnail); // Only cards with valid thumbnails
+          })).filter(card => card.thumbnail)); // Only cards with valid thumbnails
 
           if (cards.length === 0) {
             console.warn(`[Inspire] Feed from ${apiBase} returned zero cards`);
@@ -945,8 +956,8 @@
     const dims = { landscape: { w: 320, h: 200 }, portrait: { w: 240, h: 320 }, square: { w: 280, h: 280 } };
     const d = dims[aspect] || dims.square;
 
-    // First ~6 cards are above the fold — load eagerly with high priority
-    const isAboveFold = typeof index === 'number' && index < 6;
+    // Only the first card may compete for LCP priority; every other thumbnail is lazy.
+    const isAboveFold = index === 0;
     const loadAttr = isAboveFold ? '' : 'loading="lazy"';
     const priorityAttr = isAboveFold ? 'fetchpriority="high"' : '';
 
@@ -957,12 +968,12 @@
     // Model cards with refined: use data-src (NOT src) so the refined image
     // only loads on first hover, cutting initial bandwidth nearly in half.
     const refinedLayer = (card.type === 'model' && hasRefine && thumbRefined)
-      ? `<img class="inspire-card__image-refined" data-src="${thumbRefined}" alt="" loading="lazy" decoding="async"/>`
+      ? `<img class="inspire-card__image-refined" data-src="${thumbRefined}" alt="" width="${d.w}" height="${d.h}" loading="lazy" decoding="async"/>`
       : '';
 
     // Video cards: inline <video> element for autoplay
     const videoLayer = (card.type === 'video' && videoUrl)
-      ? `<video class="inspire-card__video" src="${videoUrl}" muted loop playsinline preload="none"></video>`
+      ? `<video class="inspire-card__video" src="${videoUrl}" poster="${thumbPreview}" muted loop playsinline preload="none"><track kind="captions" src="/captions/empty.vtt" srclang="en" label="English"></video>`
       : '';
 
     return `
@@ -982,7 +993,7 @@
                ${priorityAttr}
                decoding="async"
                onload="(function(img){var c=img.closest('.inspire-card');if(!c)return;var r=img.naturalWidth/img.naturalHeight;var a=r>1.3?'landscape':r<0.77?'portrait':'square';c.classList.remove('landscape','portrait','square');c.classList.add(a)})(this)"
-               onerror="this.closest('.inspire-card').style.display='none'"/>
+               onerror="(function(img){var c=img.closest('.inspire-card');if(c)c.remove()})(this)"/>
           ${videoLayer}
           ${normalizedType === 'video' ? '<div class="inspire-card__video-badge">&#9658;</div>' : ''}
           ${hasRefine ? '<div class="inspire-card__refine-badge" title="Refined version available">&#10024;</div>' : ''}
@@ -1014,6 +1025,26 @@
     `).join('');
   }
 
+  function preloadLcpImage(url) {
+    if (!url || document.querySelector(`link[rel="preload"][as="image"][href="${url}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = url;
+    link.fetchPriority = 'high';
+    document.head.appendChild(link);
+  }
+
+  function prioritiseLcpImage() {
+    const grid = document.getElementById('inspireGrid');
+    if (!grid) return;
+    const firstImg = grid.querySelector('.inspire-card__image');
+    if (!firstImg) return;
+    firstImg.setAttribute('loading', 'eager');
+    firstImg.setAttribute('fetchpriority', 'high');
+    preloadLcpImage(firstImg.currentSrc || firstImg.src);
+  }
+
   // =========================================================================
   // CARD VIDEO AUTOPLAY (IntersectionObserver-based, lazy)
   // =========================================================================
@@ -1024,29 +1055,44 @@
     // Clean up previous observer
     if (videoObserver) videoObserver.disconnect();
 
-    const videos = container.querySelectorAll('.inspire-card__video');
-    if (videos.length === 0) return;
+    const cards = container.querySelectorAll('.inspire-card');
+    if (cards.length === 0) return;
 
     videoObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        const video = entry.target;
+        const video = entry.target.querySelector('.inspire-card__video');
+        if (!video) return;
         if (entry.isIntersecting) {
-          // Start loading and playing when visible
-          video.preload = 'auto';
-          video.play().then(() => {
-            video.classList.add('is-playing');
-          }).catch(() => {
-            // Autoplay blocked — keep thumbnail visible
-          });
+          video.preload = 'metadata';
         } else {
           // Pause when scrolled out of view to save resources
           video.pause();
           video.classList.remove('is-playing');
         }
       });
-    }, { root: container.closest('.inspire-content'), threshold: 0.3 });
+    }, { root: container.closest('.inspire-content'), rootMargin: '200px', threshold: 0.1 });
 
-    videos.forEach(v => videoObserver.observe(v));
+    const playCardVideo = (card) => {
+      const video = card.querySelector('.inspire-card__video');
+      if (!video) return;
+      if (video.preload === 'none') video.preload = 'metadata';
+      video.load();
+      video.play().then(() => {
+        video.classList.add('is-playing');
+      }).catch(() => {
+        // Autoplay blocked — keep thumbnail visible
+      });
+    };
+
+    cards.forEach(card => {
+      videoObserver.observe(card);
+      const video = card.querySelector('.inspire-card__video');
+      if (video) {
+        video.addEventListener('error', () => card.remove(), { once: true });
+      }
+      card.addEventListener('mouseenter', () => playCardVideo(card), { passive: true });
+      card.addEventListener('click', () => playCardVideo(card), { passive: true });
+    });
   }
 
   function renderGrid() {
@@ -1078,6 +1124,7 @@
     }
 
     grid.innerHTML = filteredCards.map(renderCard).join('');
+    prioritiseLcpImage();
 
     // Store references to card elements for in-place updates
     cardElements = Array.from(grid.querySelectorAll('.inspire-card'));
@@ -1222,8 +1269,16 @@
           videoEl.loop = true;
           videoEl.playsInline = true;
           videoEl.preload = 'none';
+          videoEl.addEventListener('error', () => el.remove(), { once: true });
+          const track = document.createElement('track');
+          track.kind = 'captions';
+          track.src = '/captions/empty.vtt';
+          track.srclang = 'en';
+          track.label = 'English';
+          videoEl.appendChild(track);
           el.querySelector('.inspire-card__media').appendChild(videoEl);
         }
+        videoEl.poster = thumbPreview || '';
         if (videoEl.src !== card.video_url) {
           videoEl.classList.remove('is-playing');
           videoEl.src = card.video_url;
@@ -1273,6 +1328,7 @@
     }
 
     // Re-initialize video autoplay after shuffle
+    prioritiseLcpImage();
     initCardVideos(grid);
   }
 
@@ -2315,11 +2371,17 @@
     console.log('[Inspire] Cache invalidated by external event');
   });
 
-  // Auto-initialize
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  // Auto-initialize after the initial workspace paint. The inspire feed is
+  // non-critical and can otherwise extend the /3dprint request chain.
+  const scheduleInit = () => {
+    const run = () => init();
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 2000 });
+    else setTimeout(run, 500);
+  };
+  if (document.readyState === 'complete') {
+    scheduleInit();
   } else {
-    setTimeout(init, 100);
+    window.addEventListener('load', scheduleInit, { once: true });
   }
 
 })();

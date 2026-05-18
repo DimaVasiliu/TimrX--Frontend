@@ -210,10 +210,18 @@
   }
   </script>
 
+  <!-- Preconnect / DNS prefetch for critical third-party origins -->
+  <link rel="preconnect" href="https://3d.timrx.live">
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://timrx-3d-models.s3.eu-west-2.amazonaws.com" crossorigin>
+
   <!-- Fonts (mono/clean) -->
   <!-- Self-hosted fonts -->
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/fonts.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/fonts/fonts.css"></noscript>
 
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
@@ -221,12 +229,32 @@
 
   <!-- Model Viewer loaded lazily (see bottom of body) -->
 
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="hub.css" />
-  <link rel="stylesheet" href="media/hub.css" />
-  <link rel="stylesheet" href="footer.css" />
-  <link rel="stylesheet" href="trustpilot.css" />
-  <link rel="stylesheet" href="site-shell.css" />
+  <!-- Critical above-the-fold CSS — reserves space for header/hero to prevent CLS -->
+  <style>
+    :root{--bg:#0d0d0d;--text:#f5f5f5;--navH:72px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+    img{max-width:100%;display:block}
+    header.container{min-height:calc(100vh - 0px);min-height:100svh}
+    [data-site-shell="nav"]{display:block;min-height:var(--navH)}
+    .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:calc(var(--navH) + 20px)}
+    .hero-orbit-area{position:relative;width:min(560px,92vw);aspect-ratio:1/1;margin:0 auto}
+    .hero-figure-wrap,.hero-figure{position:absolute;inset:0;width:100%;height:100%}
+    model-viewer.hero-figure{display:block}
+  </style>
+
+  <!-- Stylesheets:
+       - hub.css renders blocking (main page CSS — needed to paint hero/LCP correctly)
+       - site-shell.css renders blocking (nav layout — would shift on late apply)
+       - media/footer/trustpilot are async (below-the-fold or media-query-only) -->
+  <link rel="stylesheet" href="hub.css?v=20260518a">
+  <link rel="stylesheet" href="site-shell.css?v=20260518a">
+  <link rel="preload" href="media/hub.css?v=20260518a" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="media/hub.css?v=20260518a"></noscript>
+  <link rel="preload" href="footer.css?v=20260518a" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="footer.css?v=20260518a"></noscript>
+  <link rel="preload" href="trustpilot.css?v=20260518a" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="trustpilot.css?v=20260518a"></noscript>
 
   <!-- Visually Hidden Utility -->
   <style>
@@ -347,16 +375,28 @@
       color: #666;
     }
   </style>
-  <!-- Google Tag Manager -->
+  <!-- Google Tag Manager — loads on first user interaction OR 3s after DOMContentLoaded,
+       whichever comes first. Keeps GTM out of the LCP/TBT critical path on cold loads. -->
   <script>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+    window.dataLayer = window.dataLayer || [];
+    (function() {
+      var loaded = false;
+      function loadGTM() {
+        if (loaded) return; loaded = true;
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadGTM, 3000); }, { once: true });
+      } else {
+        setTimeout(loadGTM, 3000);
+      }
+      ['click','scroll','keydown','touchstart','mousemove'].forEach(function(evt){
+        window.addEventListener(evt, loadGTM, { once: true, passive: true });
+      });
+    })();
   </script>
   <!-- End Google Tag Manager -->
-  <script src="js/google-ads-conversions.js?v=20260515a"></script>
+  <script defer src="js/google-ads-conversions.js?v=20260518a"></script>
 </head>
 <body class="has-site-shell" data-shell-page="hub">
   <!-- Google Tag Manager (noscript) -->
@@ -1166,22 +1206,22 @@
 
       <div class="logos-grid">
         <a href="https://threejs.org" class="logo" target="_blank" rel="noopener noreferrer" title="Three.js">
-          <img src="https://raw.githubusercontent.com/mrdoob/three.js/dev/files/favicon.ico" alt="Three.js">
+          <img src="img/icons/threejs.svg" alt="Three.js" width="24" height="24" loading="lazy" decoding="async">
         </a>
         <a href="https://flask.palletsprojects.com" class="logo" target="_blank" rel="noopener noreferrer" title="Flask">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/flask.svg" alt="Flask">
+          <img src="img/icons/flask.svg" alt="Flask" width="24" height="24" loading="lazy" decoding="async">
         </a>
         <a href="https://meshy.ai" class="logo" target="_blank" rel="noopener noreferrer" title="Meshy.ai">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/unity.svg" alt="Meshy">
+          <img src="img/icons/unity.svg" alt="Meshy" width="24" height="24" loading="lazy" decoding="async">
         </a>
         <a href="https://openai.com" class="logo" target="_blank" rel="noopener noreferrer" title="OpenAI">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/openai.svg" alt="OpenAI">
+          <img src="img/icons/openai.svg" alt="OpenAI" width="24" height="24" loading="lazy" decoding="async">
         </a>
         <a href="https://vercel.com" class="logo" target="_blank" rel="noopener noreferrer" title="Vercel">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/vercel.svg" alt="Vercel">
+          <img src="img/icons/vercel.svg" alt="Vercel" width="24" height="24" loading="lazy" decoding="async">
         </a>
         <a href="https://github.com" class="logo" target="_blank" rel="noopener noreferrer" title="GitHub">
-          <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub">
+          <img src="img/icons/github.svg" alt="GitHub" width="24" height="24" loading="lazy" decoding="async">
         </a>
       </div>
     </div>
@@ -1950,7 +1990,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
 
     return '<a class="ls-card ' + typeClass + '" href="' + href + '" style="--ls-index:' + index + '">' +
       '<div class="ls-card-media">' +
-        '<img src="' + escapeHtml(thumb) + '" alt="' + title + '" loading="lazy" decoding="async">' +
+        '<img src="' + escapeHtml(thumb) + '" alt="' + title + '" width="270" height="214" loading="lazy" decoding="async" onerror="var c=this.closest(\'.ls-card\');if(c)c.style.display=\'none\';">' +
         '<div class="ls-card-topline">' +
           '<span class="ls-card-badge">' + typeLabel + '</span>' +
           '<span class="ls-card-time">' + ago + '</span>' +
@@ -2070,8 +2110,8 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
 })();
 </script>
 
-    <script src="hub.js"></script>
-    <script src="js/fx.js"></script>
+    <script defer src="hub.js?v=20260518a"></script>
+    <script defer src="js/fx.js?v=20260518a"></script>
     <script src="js/site-shell.js" defer></script>
     <script src="js/auth-modal.js?v=20260407a" defer></script>
     <script src="js/credits.js?v=20260515a" defer></script>

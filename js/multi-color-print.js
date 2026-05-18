@@ -66,6 +66,54 @@ const DEFAULT_FILAMENTS = [
   { hex: '#F4EE2A', name: 'Yellow' },
 ];
 
+const LABEL_GLYPHS = {
+  '0': ['11111','10001','10011','10101','11001','10001','11111'],
+  '1': ['00100','01100','00100','00100','00100','00100','01110'],
+  '2': ['11110','00001','00001','11110','10000','10000','11111'],
+  '3': ['11110','00001','00001','01110','00001','00001','11110'],
+  '4': ['10010','10010','10010','11111','00010','00010','00010'],
+  '5': ['11111','10000','10000','11110','00001','00001','11110'],
+  '6': ['01111','10000','10000','11110','10001','10001','01110'],
+  '7': ['11111','00001','00010','00100','01000','01000','01000'],
+  '8': ['01110','10001','10001','01110','10001','10001','01110'],
+  '9': ['01110','10001','10001','01111','00001','00001','11110'],
+  'A': ['01110','10001','10001','11111','10001','10001','10001'],
+  'B': ['11110','10001','10001','11110','10001','10001','11110'],
+  'C': ['01111','10000','10000','10000','10000','10000','01111'],
+  'D': ['11110','10001','10001','10001','10001','10001','11110'],
+  'E': ['11111','10000','10000','11110','10000','10000','11111'],
+  'F': ['11111','10000','10000','11110','10000','10000','10000'],
+  'G': ['01111','10000','10000','10011','10001','10001','01111'],
+  'H': ['10001','10001','10001','11111','10001','10001','10001'],
+  'I': ['11111','00100','00100','00100','00100','00100','11111'],
+  'J': ['00111','00010','00010','00010','00010','10010','01100'],
+  'K': ['10001','10010','10100','11000','10100','10010','10001'],
+  'L': ['10000','10000','10000','10000','10000','10000','11111'],
+  'M': ['10001','11011','10101','10101','10001','10001','10001'],
+  'N': ['10001','11001','10101','10011','10001','10001','10001'],
+  'O': ['01110','10001','10001','10001','10001','10001','01110'],
+  'P': ['11110','10001','10001','11110','10000','10000','10000'],
+  'Q': ['01110','10001','10001','10001','10101','10010','01101'],
+  'R': ['11110','10001','10001','11110','10100','10010','10001'],
+  'S': ['01111','10000','10000','01110','00001','00001','11110'],
+  'T': ['11111','00100','00100','00100','00100','00100','00100'],
+  'U': ['10001','10001','10001','10001','10001','10001','01110'],
+  'V': ['10001','10001','10001','10001','10001','01010','00100'],
+  'W': ['10001','10001','10001','10101','10101','10101','01010'],
+  'X': ['10001','10001','01010','00100','01010','10001','10001'],
+  'Y': ['10001','10001','01010','00100','00100','00100','00100'],
+  'Z': ['11111','00001','00010','00100','01000','10000','11111'],
+  '-': ['00000','00000','00000','11111','00000','00000','00000'],
+  '_': ['00000','00000','00000','00000','00000','00000','11111'],
+  '.': ['00000','00000','00000','00000','00000','01100','01100'],
+  ':': ['00000','01100','01100','00000','01100','01100','00000'],
+  '!': ['00100','00100','00100','00100','00100','00000','00100'],
+  '?': ['01110','10001','00001','00010','00100','00000','00100'],
+  '+': ['00000','00100','00100','11111','00100','00100','00000'],
+  '/': ['00001','00010','00010','00100','01000','01000','10000'],
+  '&': ['01100','10010','10100','01000','10101','10010','01101'],
+};
+
 // Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
 const FLOOD_FILL_ANGLE = 0.52;
 const BRUSH_MIN_MODEL_RATIO = 0.00045;
@@ -75,6 +123,15 @@ const BRUSH_SLIDER_STEPS = 1000;
 const BRUSH_SURFACE_NORMAL_DOT_MIN = 0.12;
 const BRUSH_SURFACE_DEPTH_FACTOR = 0.7;
 const BASE_PREVIEW_COLOR = 0.72;
+const LABEL_TEXT_DEFAULT = 'TEXT';
+const LABEL_MAX_CHARS = 32;
+const LABEL_SIZE_DEFAULT_RATIO = 0.075;
+const LABEL_SIZE_MIN_RATIO = 0.018;
+const LABEL_SIZE_MAX_RATIO = 0.22;
+const LABEL_DEPTH_DEFAULT_RATIO = 0.012;
+const LABEL_DEPTH_MIN_RATIO = 0.002;
+const LABEL_DEPTH_MAX_RATIO = 0.05;
+const LABEL_EMBED_RATIO = 0.12;
 
 // ============================================================================
 // State
@@ -90,11 +147,15 @@ let _totalFaces = 0;
 
 let _filaments = [];        // [{hex, name}]
 let _activeSlot = 0;        // which filament is selected for painting
-let _brushMode = 'brush';   // 'brush' | 'region' | 'face' | 'eraser'
+let _brushMode = 'brush';   // 'brush' | 'region' | 'face' | 'eraser' | 'label'
 let _brushRadius = 0.05;    // world-space radius for brush mode (0.01 - 0.5)
 let _modelMaxDim = 1;
 let _paintEnabled = true;
 let _isPainting = false;    // true while mouse held in brush/face/eraser mode
+let _labels = [];           // raised printable text meshes
+let _labelText = LABEL_TEXT_DEFAULT;
+let _labelSizeRatio = LABEL_SIZE_DEFAULT_RATIO;
+let _labelDepthRatio = LABEL_DEPTH_DEFAULT_RATIO;
 
 let _raycaster = null;
 let _mouse = new (window.THREE?.Vector2 || function(){})();
@@ -194,9 +255,25 @@ function _injectStyles() {
       background:rgba(255,255,255,.025);color:rgba(255,255,255,.42);font-size:9px;
       cursor:pointer;transition:.15s;text-align:center;}
     .mcp-size-preset:hover{border-color:rgba(14,165,233,.35);color:rgba(14,165,233,.82);}
+    .mcp-label-tools{display:flex;flex-direction:column;gap:7px;margin-top:7px;}
+    .mcp-label-tools input[type="text"]{width:100%;background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.9);
+      border-radius:6px;padding:7px 8px;font-size:11px;outline:none;box-sizing:border-box;
+      text-transform:uppercase;letter-spacing:.04em;}
+    .mcp-label-tools input[type="text"]:focus{border-color:rgba(14,165,233,.45);}
+    .mcp-label-slider-row{display:flex;justify-content:space-between;align-items:center;
+      gap:8px;font-size:9px;color:rgba(255,255,255,.42);}
+    .mcp-label-slider-row strong{font-size:9px;color:rgba(14,165,233,.78);font-weight:700;}
+    .mcp-label-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
     #mcp-brush-size::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
       border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
     #mcp-brush-size::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+      background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+    #mcp-label-size::-webkit-slider-thumb,
+    #mcp-label-depth::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+      border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+    #mcp-label-size::-moz-range-thumb,
+    #mcp-label-depth::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
       background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
     .mcp-brush-cursor{position:absolute;left:0;top:0;border:1px solid rgba(125,211,252,.95);
       border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(14,165,233,.22);
@@ -239,7 +316,7 @@ function _injectStyles() {
       color:rgba(255,255,255,.85);border-radius:6px;padding:6px 7px;font-size:11px;outline:none;}
     .mcp-field input:focus{border-color:rgba(14,165,233,.45);}
     .mcp-check-toggle{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.5);}
-    .mcp-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+    .mcp-btn[disabled],.mcp-brush-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
     .mcp-stats{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
     .mcp-viewer-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
       font-size:10px;color:rgba(255,255,255,.25);pointer-events:none;
@@ -377,6 +454,201 @@ function _formatBrushRadius(radius) {
 
 function _setBrushRadiusRatio(ratio) {
   _brushRadius = Math.max(0.0001, _modelMaxDim * Math.min(BRUSH_MAX_MODEL_RATIO, Math.max(BRUSH_MIN_MODEL_RATIO, ratio)));
+}
+
+function _sanitizeLabelText(text) {
+  return String(text || '')
+    .toUpperCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^A-Z0-9 _.\-:!?+/&]/g, '')
+    .trim()
+    .slice(0, LABEL_MAX_CHARS);
+}
+
+function _labelSizeWorld() {
+  return Math.max(0.001, _modelMaxDim * Math.min(LABEL_SIZE_MAX_RATIO, Math.max(LABEL_SIZE_MIN_RATIO, _labelSizeRatio)));
+}
+
+function _labelDepthWorld() {
+  return Math.max(0.0002, _modelMaxDim * Math.min(LABEL_DEPTH_MAX_RATIO, Math.max(LABEL_DEPTH_MIN_RATIO, _labelDepthRatio)));
+}
+
+function _labelSliderValue(ratio, minRatio, maxRatio) {
+  const pct = (ratio - minRatio) / Math.max(0.0001, maxRatio - minRatio);
+  return Math.round(Math.min(1, Math.max(0, pct)) * 1000);
+}
+
+function _labelRatioFromSlider(value, minRatio, maxRatio) {
+  const pct = Math.min(1000, Math.max(0, Number(value) || 0)) / 1000;
+  return minRatio + (maxRatio - minRatio) * pct;
+}
+
+function _formatLabelMeasure(value) {
+  if (value >= 1) return `${value.toFixed(1)} mm`;
+  if (value >= 0.1) return `${value.toFixed(2)} mm`;
+  return `${value.toFixed(3)} mm`;
+}
+
+function _pushCuboid(positions, x0, y0, z0, x1, y1, z1) {
+  const p = [
+    [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+    [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],
+  ];
+  const tri = (...idx) => {
+    for (const i of idx) positions.push(p[i][0], p[i][1], p[i][2]);
+  };
+  tri(4, 5, 6, 4, 6, 7); // front
+  tri(1, 0, 3, 1, 3, 2); // back
+  tri(0, 4, 7, 0, 7, 3); // left
+  tri(5, 1, 2, 5, 2, 6); // right
+  tri(7, 6, 2, 7, 2, 3); // top
+  tri(0, 1, 5, 0, 5, 4); // bottom
+}
+
+function _labelGlyphWidth(ch) {
+  if (ch === ' ') return 3;
+  const glyph = LABEL_GLYPHS[ch] || LABEL_GLYPHS['?'];
+  return glyph?.[0]?.length || 5;
+}
+
+function _buildBlockLabelGeometry(T, text, size, depth) {
+  const cleanText = _sanitizeLabelText(text) || LABEL_TEXT_DEFAULT;
+  const px = Math.max(0.0001, size / 7);
+  const cell = px * 0.9;
+  let totalCols = 0;
+  for (const ch of cleanText) totalCols += _labelGlyphWidth(ch) + 1;
+  totalCols = Math.max(1, totalCols - 1);
+  const totalWidth = totalCols * px;
+  const totalHeight = 7 * px;
+  const positions = [];
+  let cursor = 0;
+
+  for (const ch of cleanText) {
+    const glyph = ch === ' ' ? null : (LABEL_GLYPHS[ch] || LABEL_GLYPHS['?']);
+    const glyphWidth = _labelGlyphWidth(ch);
+    if (glyph) {
+      for (let row = 0; row < glyph.length; row++) {
+        for (let col = 0; col < glyph[row].length; col++) {
+          if (glyph[row][col] !== '1') continue;
+          const x0 = cursor * px + col * px - totalWidth / 2 + (px - cell) / 2;
+          const y0 = (6 - row) * px - totalHeight / 2 + (px - cell) / 2;
+          _pushCuboid(positions, x0, y0, 0, x0 + cell, y0 + cell, depth);
+        }
+      }
+    }
+    cursor += glyphWidth + 1;
+  }
+
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+function _labelFrameFromHit(hit, T) {
+  const normal = hit.face?.normal
+    ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
+    : new T.Vector3(0, 0, 1);
+  let tangent = new T.Vector3().setFromMatrixColumn(_camera.matrixWorld, 0);
+  tangent.addScaledVector(normal, -tangent.dot(normal));
+  if (tangent.lengthSq() < 1e-8) {
+    tangent.set(1, 0, 0).addScaledVector(normal, -normal.x);
+  }
+  if (tangent.lengthSq() < 1e-8) {
+    tangent.set(0, 1, 0).addScaledVector(normal, -normal.y);
+  }
+  tangent.normalize();
+  const bitangent = new T.Vector3().crossVectors(normal, tangent).normalize();
+  const matrix = new T.Matrix4().makeBasis(tangent, bitangent, normal);
+  const quaternion = new T.Quaternion().setFromRotationMatrix(matrix);
+  return { normal, quaternion };
+}
+
+function _placeLabelAtEvent(e) {
+  if (!_paintEnabled || !_paintMeshes.length || !_scene) return;
+  const paintHit = _getPaintHit(e);
+  if (!paintHit) return;
+  const text = _sanitizeLabelText(_labelText);
+  if (!text) {
+    if (window.showToast) window.showToast('Enter label text first.', 'warning');
+    else alert('Enter label text first.');
+    return;
+  }
+
+  const T = window.THREE;
+  const size = _labelSizeWorld();
+  const depth = _labelDepthWorld();
+  const geometry = _buildBlockLabelGeometry(T, text, size, depth);
+  const slot = Math.min(Math.max(0, _activeSlot), Math.max(0, _filaments.length - 1));
+  const color = _filaments[slot]?.hex || '#FFFFFF';
+  const material = new T.MeshStandardMaterial({
+    name: `label_${slot + 1}_${_normalizeBambuColor(color).slice(1)}`,
+    color,
+    roughness: 0.68,
+    metalness: 0,
+    side: T.DoubleSide,
+  });
+  const mesh = new T.Mesh(geometry, material);
+  const { normal, quaternion } = _labelFrameFromHit(paintHit.hit, T);
+  mesh.name = `label_${_safeFileBase(text).slice(0, 32) || 'text'}`;
+  mesh.position.copy(paintHit.hit.point).addScaledVector(normal, -depth * LABEL_EMBED_RATIO);
+  mesh.quaternion.copy(quaternion);
+  mesh.userData.mcpLabel = {
+    text,
+    slot,
+    color,
+    sizeRatio: _labelSizeRatio,
+    depthRatio: _labelDepthRatio,
+  };
+  _scene.add(mesh);
+  _labels.push(mesh);
+  _updateStats();
+  _renderSidebar();
+}
+
+function _disposeLabelMesh(mesh) {
+  if (!mesh) return;
+  if (_scene) _scene.remove(mesh);
+  mesh.geometry?.dispose?.();
+  if (Array.isArray(mesh.material)) {
+    mesh.material.forEach(m => m?.dispose?.());
+  } else {
+    mesh.material?.dispose?.();
+  }
+}
+
+function _removeLastLabel() {
+  const mesh = _labels.pop();
+  _disposeLabelMesh(mesh);
+  _updateStats();
+  _renderSidebar();
+}
+
+function _clearLabels() {
+  for (const mesh of _labels) _disposeLabelMesh(mesh);
+  _labels = [];
+  _updateStats();
+  _renderSidebar();
+}
+
+function _remapLabelsAfterFilamentRemoval(removedIdx) {
+  const T = window.THREE;
+  for (const mesh of _labels) {
+    const data = mesh.userData?.mcpLabel;
+    if (!data) continue;
+    if (data.slot === removedIdx) {
+      data.slot = -1;
+      data.color = '#C8C8C8';
+      mesh.material?.color?.set?.(0xc8c8c8);
+    } else if (data.slot > removedIdx) {
+      data.slot -= 1;
+      const color = _filaments[data.slot]?.hex || '#C8C8C8';
+      data.color = color;
+      mesh.material?.color?.set?.(new T.Color(color));
+    }
+  }
 }
 
 function _setupViewer(glbUrl, sourceObject = null) {
@@ -585,6 +857,10 @@ function _onPointerDown(e) {
   _pDownX = e.clientX; _pDownY = e.clientY;
   _didPaintThisStroke = false;
   if (!_paintEnabled || !_paintMeshes.length) return;
+  if (_brushMode === 'label') {
+    _hideBrushCursor();
+    return;
+  }
 
   // In brush/face/eraser mode, start drag-painting immediately
   if (_brushMode === 'brush' || _brushMode === 'face' || _brushMode === 'eraser') {
@@ -619,6 +895,10 @@ function _onPointerUp(e) {
     _paintAtEvent(e);
     _applyColorsToMeshes();
     _updateStats();
+  } else if (_brushMode === 'label') {
+    const dx = e.clientX - _pDownX, dy = e.clientY - _pDownY;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+    _placeLabelAtEvent(e);
   }
 }
 
@@ -1047,6 +1327,31 @@ function _buildPrintableMeshData() {
     }
   }
 
+  for (const label of _labels) {
+    const posAttr = label?.geometry?.attributes?.position;
+    if (!posAttr || posAttr.count < 3) continue;
+    label.updateWorldMatrix(true, false);
+    const mat = label.matrixWorld;
+    const v = new T.Vector3();
+    const faceCount = Math.floor(posAttr.count / 3);
+    const labelSlot = Number.isInteger(label.userData?.mcpLabel?.slot)
+      ? label.userData.mcpLabel.slot
+      : -1;
+    const colorSlot = labelSlot >= 0 && labelSlot < _filaments.length ? labelSlot : -1;
+
+    for (let fi = 0; fi < faceCount; fi++) {
+      const base = fi * 3;
+      v.fromBufferAttribute(posAttr, base).applyMatrix4(mat);
+      const v1 = addVertex(v.x, v.y, v.z);
+      v.fromBufferAttribute(posAttr, base + 1).applyMatrix4(mat);
+      const v2 = addVertex(v.x, v.y, v.z);
+      v.fromBufferAttribute(posAttr, base + 2).applyMatrix4(mat);
+      const v3 = addVertex(v.x, v.y, v.z);
+      if (v1 === v2 || v1 === v3 || v2 === v3) continue;
+      allFaces.push({ v1, v2, v3, colorSlot });
+    }
+  }
+
   if (!allFaces.length) {
     throw new Error('No printable triangles found in the painted model.');
   }
@@ -1393,6 +1698,21 @@ function _buildMaterialColoredGLBRoot(T) {
     root.add(mesh);
   }
 
+  for (let i = 0; i < _labels.length; i++) {
+    const source = _labels[i];
+    if (!source?.geometry?.attributes?.position) continue;
+    const labelSlot = Number.isInteger(source.userData?.mcpLabel?.slot)
+      ? source.userData.mcpLabel.slot
+      : -1;
+    const materialIndex = labelSlot >= 0 && labelSlot < _filaments.length ? labelSlot + 1 : 0;
+    source.updateWorldMatrix(true, false);
+    const mesh = new T.Mesh(source.geometry.clone(), materials[materialIndex]);
+    mesh.name = source.name || `raised_label_${i + 1}`;
+    mesh.matrix.copy(source.matrixWorld);
+    mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+    root.add(mesh);
+  }
+
   return root;
 }
 
@@ -1541,6 +1861,9 @@ function _renderSidebar() {
 
   const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
   const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
+  const labelSuffix = _labels.length ? ` + ${_labels.length} label${_labels.length === 1 ? '' : 's'}` : '';
+  const labelSizeSlider = _labelSliderValue(_labelSizeRatio, LABEL_SIZE_MIN_RATIO, LABEL_SIZE_MAX_RATIO);
+  const labelDepthSlider = _labelSliderValue(_labelDepthRatio, LABEL_DEPTH_MIN_RATIO, LABEL_DEPTH_MAX_RATIO);
 
   sb.innerHTML = `
     <div class="mcp-header">
@@ -1554,6 +1877,7 @@ function _renderSidebar() {
         <button class="mcp-brush-btn ${_brushMode === 'brush' ? 'active' : ''}" data-brush="brush">Brush</button>
         <button class="mcp-brush-btn ${_brushMode === 'region' ? 'active' : ''}" data-brush="region">Region</button>
         <button class="mcp-brush-btn ${_brushMode === 'face' ? 'active' : ''}" data-brush="face">Face</button>
+        <button class="mcp-brush-btn ${_brushMode === 'label' ? 'active' : ''}" data-brush="label">Label</button>
         <button class="mcp-brush-btn ${_brushMode === 'eraser' ? 'active' : ''}" data-brush="eraser" style="${_brushMode === 'eraser' ? 'border-color:rgba(239,68,68,.4);color:#ef4444;background:rgba(239,68,68,.08);' : ''}">Eraser</button>
       </div>
       ${_brushMode === 'brush' || _brushMode === 'eraser' ? `
@@ -1574,6 +1898,27 @@ function _renderSidebar() {
           <button class="mcp-size-preset" data-brush-ratio="0.006">Trim</button>
           <button class="mcp-size-preset" data-brush-ratio="0.02">Area</button>
         </div>
+      </div>` : ''}
+      ${_brushMode === 'label' ? `
+      <div class="mcp-label-tools">
+        <input id="mcp-label-text" type="text" maxlength="${LABEL_MAX_CHARS}" value="${_escXml(_labelText)}" placeholder="TEXT OR LABEL">
+        <div>
+          <div class="mcp-label-slider-row"><span>Label size</span><strong id="mcp-label-size-val">${_formatLabelMeasure(_labelSizeWorld())}</strong></div>
+          <input type="range" min="0" max="1000" step="1" value="${labelSizeSlider}"
+            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
+            id="mcp-label-size" />
+        </div>
+        <div>
+          <div class="mcp-label-slider-row"><span>Raised depth</span><strong id="mcp-label-depth-val">${_formatLabelMeasure(_labelDepthWorld())}</strong></div>
+          <input type="range" min="0" max="1000" step="1" value="${labelDepthSlider}"
+            style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"
+            id="mcp-label-depth" />
+        </div>
+        <div class="mcp-label-actions">
+          <button class="mcp-brush-btn" id="mcp-label-undo" ${_labels.length ? '' : 'disabled'}>Undo Label</button>
+          <button class="mcp-brush-btn" id="mcp-label-clear" ${_labels.length ? '' : 'disabled'}>Clear Labels</button>
+        </div>
+        <div class="mcp-check-text">Select a filament, then click the model surface. Labels export as raised printable geometry.</div>
       </div>` : ''}
     </div>
 
@@ -1599,7 +1944,7 @@ function _renderSidebar() {
       </div>
     </div>
 
-    <div class="mcp-stats" id="mcp-stats">${pct}% painted (${paintedCount}/${_totalFaces} faces)</div>
+    <div class="mcp-stats" id="mcp-stats">${pct}% painted (${paintedCount}/${_totalFaces} faces)${labelSuffix}</div>
 
     <div class="mcp-section">
       <div class="mcp-label">Print Preflight</div>
@@ -1634,7 +1979,7 @@ function _renderSidebar() {
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
         <line x1="12" y1="8" x2="12.01" y2="8"/>
       </svg>
-      <span>Brush: click &amp; drag to paint. Eye/Detail sizes are best for small features. Face is the smallest exact color unit in the exported 3MF.</span>
+      <span>Brush: click &amp; drag to paint. Label places raised text on the clicked surface. Face is the smallest exact color unit in the exported 3MF.</span>
     </div>
 
     <div class="mcp-actions">
@@ -1694,6 +2039,7 @@ function _renderSidebar() {
         if (_faceColors[i] === idx) _faceColors[i] = -1;
         else if (_faceColors[i] > idx) _faceColors[i]--;
       }
+      _remapLabelsAfterFilamentRemoval(idx);
       _applyColorsToMeshes();
       _renderSidebar();
     });
@@ -1722,9 +2068,39 @@ function _renderSidebar() {
   sb.querySelectorAll('.mcp-brush-btn[data-brush]').forEach(el => {
     el.addEventListener('click', () => {
       _brushMode = el.dataset.brush;
+      _hideBrushCursor();
       _renderSidebar();
     });
   });
+
+  const labelTextInput = sb.querySelector('#mcp-label-text');
+  if (labelTextInput) {
+    labelTextInput.addEventListener('input', (e) => {
+      _labelText = _sanitizeLabelText(e.target.value);
+      if (e.target.value !== _labelText) e.target.value = _labelText;
+    });
+  }
+
+  const labelSizeSliderEl = sb.querySelector('#mcp-label-size');
+  if (labelSizeSliderEl) {
+    labelSizeSliderEl.addEventListener('input', (e) => {
+      _labelSizeRatio = _labelRatioFromSlider(e.target.value, LABEL_SIZE_MIN_RATIO, LABEL_SIZE_MAX_RATIO);
+      const valEl = sb.querySelector('#mcp-label-size-val');
+      if (valEl) valEl.textContent = _formatLabelMeasure(_labelSizeWorld());
+    });
+  }
+
+  const labelDepthSliderEl = sb.querySelector('#mcp-label-depth');
+  if (labelDepthSliderEl) {
+    labelDepthSliderEl.addEventListener('input', (e) => {
+      _labelDepthRatio = _labelRatioFromSlider(e.target.value, LABEL_DEPTH_MIN_RATIO, LABEL_DEPTH_MAX_RATIO);
+      const valEl = sb.querySelector('#mcp-label-depth-val');
+      if (valEl) valEl.textContent = _formatLabelMeasure(_labelDepthWorld());
+    });
+  }
+
+  sb.querySelector('#mcp-label-undo')?.addEventListener('click', _removeLastLabel);
+  sb.querySelector('#mcp-label-clear')?.addEventListener('click', _clearLabels);
 
   sb.querySelectorAll('.mcp-size-preset').forEach(el => {
     el.addEventListener('click', () => {
@@ -1752,7 +2128,8 @@ function _updateStats() {
   if (!el) return;
   const paintedCount = _faceColors ? Array.from(_faceColors).filter(c => c >= 0).length : 0;
   const pct = _totalFaces > 0 ? Math.round((paintedCount / _totalFaces) * 100) : 0;
-  el.textContent = `${pct}% painted (${paintedCount}/${_totalFaces} faces)`;
+  const labelSuffix = _labels.length ? ` + ${_labels.length} label${_labels.length === 1 ? '' : 's'}` : '';
+  el.textContent = `${pct}% painted (${paintedCount}/${_totalFaces} faces)${labelSuffix}`;
 }
 
 // ============================================================================
@@ -1774,6 +2151,8 @@ function _dispose() {
     _renderer.domElement.removeEventListener('pointercancel', _onPointerUp);
   }
   _isPainting = false;
+  for (const mesh of _labels) _disposeLabelMesh(mesh);
+  _labels = [];
   if (_controls) { _controls.dispose(); _controls = null; }
   if (_renderer) { _renderer.dispose(); _renderer = null; }
   if (_scene) { _scene.clear(); _scene = null; }
@@ -1799,6 +2178,10 @@ export function openMultiColorModal({ taskId, title, thumbnailUrl, glbUrl, sourc
   _brushRadius = 0.05;
   _modelMaxDim = 1;
   _paintEnabled = true;
+  _labels = [];
+  _labelText = LABEL_TEXT_DEFAULT;
+  _labelSizeRatio = LABEL_SIZE_DEFAULT_RATIO;
+  _labelDepthRatio = LABEL_DEPTH_DEFAULT_RATIO;
   _manualRepairHandler = typeof onRepair === 'function' ? onRepair : null;
   _manualPrintCheck = { loading: false, result: null, error: '' };
   _exportTargetHeightMm = '';
