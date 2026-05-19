@@ -12,6 +12,35 @@ import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.j
 import * as State from './state.js?v=20260407e';
 
 // ============================================================================
+// Auth gate — 3MF downloads require a verified-email (active) account.
+// ============================================================================
+
+function _isActiveUser() {
+  try {
+    const auth = (typeof window !== 'undefined') ? window.TimrXAuth : null;
+    return !!(auth && typeof auth.isAuthenticated === 'function' && auth.isAuthenticated());
+  } catch { return false; }
+}
+
+function _requireActiveUserOr3mfBlock(action = 'download') {
+  if (_isActiveUser()) return true;
+  const verb = String(action || 'download').toLowerCase();
+  const msg = `Sign in with a verified email to ${verb} the 3MF.`;
+  try {
+    if (window.TimrXAuth && typeof window.TimrXAuth.openAuthModal === 'function') {
+      window.TimrXAuth.openAuthModal({ reason: '3mf-download' });
+    } else if (window.showToast) {
+      window.showToast(msg, 'info');
+    } else {
+      alert(msg);
+    }
+  } catch (err) {
+    console.warn('[MCP] Auth gate failed:', err);
+  }
+  return false;
+}
+
+// ============================================================================
 // Constants
 // ============================================================================
 
@@ -1674,6 +1703,7 @@ function _buildStoredZipBlob(files, mimeType) {
 }
 
 async function _export3MF() {
+  if (!_requireActiveUserOr3mfBlock('download')) return;
   if (!_validatePrintExportIntent()) return;
   const _u = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
@@ -2476,6 +2506,7 @@ function _setAutoStatus(message, pct = null) {
 
 function _downloadAuto3mf(url, title) {
   if (!url) return;
+  if (!_requireActiveUserOr3mfBlock('download')) return;
   const safeTitle = (title || 'model').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40) || 'model';
   const params = new URLSearchParams({ u: url, download: '1', filename: `${safeTitle}-meshy-auto.3mf` });
   const a = document.createElement('a');
@@ -2512,7 +2543,19 @@ function _pollMeshyAutoJob(jobId, title) {
         const dl = document.getElementById('meshy-mcp-download');
         if (dl && threeMfUrl) {
           dl.style.display = 'flex';
-          dl.onclick = () => _downloadAuto3mf(threeMfUrl, title);
+          if (_isActiveUser()) {
+            dl.textContent = 'Download 3MF';
+            dl.removeAttribute('aria-disabled');
+            dl.style.opacity = '';
+            dl.title = '';
+            dl.onclick = () => _downloadAuto3mf(threeMfUrl, title);
+          } else {
+            dl.textContent = 'Sign in to Download 3MF';
+            dl.setAttribute('aria-disabled', 'true');
+            dl.style.opacity = '0.85';
+            dl.title = 'Sign in with a verified email to download the 3MF.';
+            dl.onclick = () => _requireActiveUserOr3mfBlock('download');
+          }
         }
         await _refreshAfterAutoMcp();
         if (window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
