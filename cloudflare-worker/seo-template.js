@@ -57,6 +57,20 @@ export function renderSeoPage(page) {
   }
   </script>
 
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"VideoObject",
+    "name":"This AI Tool Creates Printable 3D Models",
+    "description":"Official TimrX walkthrough showing how AI generates printable 3D models from prompts — from idea to print-ready output in minutes.",
+    "thumbnailUrl":["https://i.ytimg.com/vi/vnuoZ2xV_Ss/maxresdefault.jpg"],
+    "uploadDate":"2026-05-19",
+    "embedUrl":"https://www.youtube.com/embed/vnuoZ2xV_Ss?start=33",
+    "contentUrl":"https://www.youtube.com/watch?v=vnuoZ2xV_Ss&t=33s",
+    "publisher":{"@type":"Organization","name":"TimrX","url":"https://timrx.live"}
+  }
+  </script>
+
   ${(page.faq && page.faq.length) ? `<script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -142,6 +156,17 @@ export function renderSeoPage(page) {
     .more-prompts li{padding:14px 20px;border:1px solid var(--line);border-radius:10px;font-size:14px;color:#ccc;font-style:italic;background:var(--panel);transition:border-color .2s}
     .more-prompts li:hover{border-color:rgba(14,165,233,.4)}
 
+    /* Demo video */
+    .seo-video{margin:40px 0}
+    .seo-video h2{font-size:24px;font-weight:800;margin-bottom:20px}
+    .seo-video-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+    .seo-video-frame{position:relative;aspect-ratio:16/9;background:#000}
+    .seo-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .seo-video-meta{padding:18px 24px;font-size:14px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)}
+    .seo-video-meta strong{color:var(--ink)}
+    .seo-video-meta a{text-decoration:underline;text-underline-offset:3px}
+    .seo-video-meta a:hover{color:var(--ink)}
+
     /* CTA */
     .seo-cta{text-align:center;padding:60px 0;margin:40px 0;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     .seo-cta h2{font-size:28px;font-weight:900;margin-bottom:8px}
@@ -220,6 +245,18 @@ export function renderSeoPage(page) {
       <div class="info-card">
         <h3>Print-Ready</h3>
         <p>Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container seo-video">
+    <h2>Watch: TimrX AI 3D Model Walkthrough</h2>
+    <div class="seo-video-card">
+      <div class="seo-video-frame">
+        <iframe src="https://www.youtube.com/embed/vnuoZ2xV_Ss?start=33" title="This AI Tool Creates Printable 3D Models — TimrX walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="seo-video-meta">
+        <strong>Watch:</strong> See how AI generates ${page.h1.toLowerCase()} and other printable 3D models in TimrX — from prompt to print-ready file. Channel: <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">@TimrX-Studio</a>.
       </div>
     </div>
   </section>
