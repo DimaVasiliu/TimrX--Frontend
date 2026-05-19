@@ -612,7 +612,7 @@ function renderSeoPage(page) {
 
     /* Nav */
     .nav{position:fixed;inset:0 0 auto 0;height:var(--navH);z-index:1000;background:linear-gradient(180deg,rgba(11,11,11,.96),rgba(11,11,11,.75) 75%,rgba(11,11,11,0));backdrop-filter:saturate(120%) blur(8px);border-bottom:1px solid var(--line)}
-    .nav-inner{height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;max-width:none}
+    .nav-inner{height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 var(--gutter);max-width:var(--maxw);margin:0 auto;width:100%}
     .brand{display:inline-flex;align-items:center;font-weight:900;font-size:clamp(16px,1.25vw,22px);gap:4px}
     .b-tim{color:#f5f5f5}.b-x{background:linear-gradient(90deg,#0ea5e9,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
     .nav-pills{display:flex;gap:6px}
@@ -672,10 +672,14 @@ function renderSeoPage(page) {
     .seo-faq details p{padding:0 20px 16px;font-size:14px;line-height:1.7;color:var(--muted)}
 
     /* More prompts */
-    .more-prompts{margin:40px 0}
-    .more-prompts ul{list-style:none;padding:0;display:grid;gap:10px}
+    .more-prompts{margin:40px 0;text-align:center}
+    .more-prompts h2{font-size:24px;font-weight:800;margin-bottom:20px}
+    .more-prompts ul{list-style:none;padding:0;display:grid;gap:10px;max-width:880px;margin:0 auto;text-align:left}
     .more-prompts li{padding:14px 20px;border:1px solid var(--line);border-radius:10px;font-size:14px;color:#ccc;font-style:italic;background:var(--panel);transition:border-color .2s}
     .more-prompts li:hover{border-color:rgba(14,165,233,.4)}
+
+    /* FAQ centered for readability */
+    .seo-faq{max-width:880px;margin-left:auto;margin-right:auto}
 
     /* Demo video */
     .seo-video{margin:24px 0 64px;text-align:center}
