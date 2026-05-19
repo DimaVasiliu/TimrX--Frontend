@@ -72,11 +72,25 @@ Sitemap: https://timrx.live/sitemap.xml
 // Add entries as: '/old-path': '/new-path'
 // ─────────────────────────────────────────────────────────────
 const PERMANENT_REDIRECTS = {
-  // TODO: Export actual 404 URLs from GSC → Indexing → Pages → "Not found (404)"
-  // and fill in the correct mappings. Examples:
-  // '/old-blog-slug': '/blog/correct-slug',
-  // '/deleted-page': '/blogs',
-  // '/typo-url': '/',
+  // Deleted/legacy paths → live equivalents (or /blogs if no relevant alive post).
+  // For /blog/<slug> the worker already 301s to /read?slug=<slug>, but if the slug
+  // itself was deleted we override here.
+  '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
+    '/read?slug=openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
+  '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk':
+    '/read?slug=eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
+  '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier': '/blogs',
+  '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk': '/blogs',
+  '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era': '/blogs',
+  '/blog/react-performance': '/blogs',
+  '/blog/webgl-performance': '/blogs',
+};
+
+// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → /blogs.
+const SLUG_REDIRECTS = {
+  'openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
+    'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
+  'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
 
 export default {
@@ -90,6 +104,16 @@ export default {
     const permanentRedirect = PERMANENT_REDIRECTS[pathname] || PERMANENT_REDIRECTS[pathname.replace(/\/$/, '')];
     if (permanentRedirect) {
       return Response.redirect(`${PUBLIC_DOMAIN}${permanentRedirect}`, 301);
+    }
+
+    // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
+    if (pathname === '/read') {
+      const slug = url.searchParams.get('slug');
+      if (slug && Object.prototype.hasOwnProperty.call(SLUG_REDIRECTS, slug)) {
+        const target = SLUG_REDIRECTS[slug];
+        const dest = target ? `/read?slug=${encodeURIComponent(target)}` : '/blogs';
+        return Response.redirect(`${PUBLIC_DOMAIN}${dest}`, 301);
+      }
     }
 
     // ─────────────────────────────────────────────────────────────
