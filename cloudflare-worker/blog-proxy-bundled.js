@@ -2,54 +2,18 @@
  * TimrX Blog Proxy Worker — BUNDLED (single-file for Cloudflare Dashboard)
  * Contains: blog-proxy.js + seo-pages.js + seo-template.js
  *
- * This Cloudflare Worker proxies blog-related routes from timrx.live to the backend at blog.timrx.live.
- * It also handles /read redirects at the edge for SEO purposes.
- *
- * NOTE: /blogs is served STATICALLY by Cloudflare Pages (blogs.html) - NOT proxied here.
- *
- * PROXIED ROUTES:
- * - /blog/<slug>           → 301 to /read?slug=<slug>
- * - /blog/tag/<tag>        → Tag hub pages (SSR)
- * - /blog/category/<cat>   → Category hub pages (SSR)
- * - /tools                 → Tools I Use page (SSR)
- * - /rss.xml               → RSS feed
- * - /sitemap-blogs.xml     → Blog sitemap (proxied from /sitemap.xml)
- * - /robots.txt            → Dynamic robots.txt from backend
- * - /sitemap.xml           → Sitemap index from backend
- * - /sitemap-pages.xml     → Pages sitemap from backend
- * - /sitemap-recent.xml    → Recent posts sitemap from backend
- * - /api/*                 → API endpoints (no caching)
- *
- * SEO PAGES (edge-rendered):
- * - /3d-models/:slug       → Programmatic SEO landing pages
- * - /text-to-3d/:slug      → Programmatic SEO landing pages
- * - /sitemap-seo.xml       → Dynamic sitemap for SEO pages
- *
- * EDGE REDIRECTS:
- * - /read?slug=<slug>      → Public reader page with per-post metadata
- * - /blog or /blog/        → 301 to /blogs
- *
- * WORKER ROUTES (add all of these in Cloudflare dashboard):
- *    - timrx.live/blog
- *    - timrx.live/blog/*
- *    - timrx.live/read*
- *    - timrx.live/tools*
- *    - timrx.live/rss.xml
- *    - timrx.live/sitemap-blogs.xml
- *    - timrx.live/sitemap.xml
- *    - timrx.live/sitemap-pages.xml
- *    - timrx.live/sitemap-recent.xml
- *    - timrx.live/robots.txt
- *    - timrx.live/api/*
- *    - timrx.live/3d-models/*
- *    - timrx.live/text-to-3d/*
- *    - timrx.live/sitemap-seo.xml
- *    (DO NOT add timrx.live/blogs* — Pages _worker.js serves it)
+ * Auto-bundled. Edit the three source files in cloudflare-worker/ then re-run the bundler.
  */
 
+
 // ═══════════════════════════════════════════════════════════════════
-// SEO PAGES DATA (from seo-pages.js)
+// SEO PAGES (from seo-pages.js)
 // ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Programmatic SEO page definitions for TimrX.
+ * Each entry generates a unique, Google-indexable landing page.
+ */
 
 const SEO_PAGES = {
   // ─── /3d-models/:slug pages ───
@@ -614,6 +578,20 @@ function renderSeoPage(page) {
   }
   </script>
 
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"VideoObject",
+    "name":"This AI Tool Creates Printable 3D Models",
+    "description":"Official TimrX walkthrough showing how AI generates printable 3D models from prompts — from idea to print-ready output in minutes.",
+    "thumbnailUrl":["https://i.ytimg.com/vi/vnuoZ2xV_Ss/maxresdefault.jpg"],
+    "uploadDate":"2026-05-19",
+    "embedUrl":"https://www.youtube.com/embed/vnuoZ2xV_Ss?start=33",
+    "contentUrl":"https://www.youtube.com/watch?v=vnuoZ2xV_Ss&t=33s",
+    "publisher":{"@type":"Organization","name":"TimrX","url":"https://timrx.live"}
+  }
+  </script>
+
   ${(page.faq && page.faq.length) ? `<script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -699,6 +677,17 @@ function renderSeoPage(page) {
     .more-prompts li{padding:14px 20px;border:1px solid var(--line);border-radius:10px;font-size:14px;color:#ccc;font-style:italic;background:var(--panel);transition:border-color .2s}
     .more-prompts li:hover{border-color:rgba(14,165,233,.4)}
 
+    /* Demo video */
+    .seo-video{margin:40px 0}
+    .seo-video h2{font-size:24px;font-weight:800;margin-bottom:20px}
+    .seo-video-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+    .seo-video-frame{position:relative;aspect-ratio:16/9;background:#000}
+    .seo-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .seo-video-meta{padding:18px 24px;font-size:14px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)}
+    .seo-video-meta strong{color:var(--ink)}
+    .seo-video-meta a{text-decoration:underline;text-underline-offset:3px}
+    .seo-video-meta a:hover{color:var(--ink)}
+
     /* CTA */
     .seo-cta{text-align:center;padding:60px 0;margin:40px 0;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     .seo-cta h2{font-size:28px;font-weight:900;margin-bottom:8px}
@@ -781,6 +770,18 @@ function renderSeoPage(page) {
     </div>
   </section>
 
+  <section class="container seo-video">
+    <h2>Watch: TimrX AI 3D Model Walkthrough</h2>
+    <div class="seo-video-card">
+      <div class="seo-video-frame">
+        <iframe src="https://www.youtube.com/embed/vnuoZ2xV_Ss?start=33" title="This AI Tool Creates Printable 3D Models — TimrX walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="seo-video-meta">
+        <strong>Watch:</strong> See how AI generates ${page.h1.toLowerCase()} and other printable 3D models in TimrX — from prompt to print-ready file. Channel: <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">@TimrX-Studio</a>.
+      </div>
+    </div>
+  </section>
+
   ${(page.tips && page.tips.length) ? `<section class="container">
     <div class="info-grid">
       <h2>Prompt Tips for ${page.h1}</h2>
@@ -843,10 +844,49 @@ function renderSeoPage(page) {
 </html>`;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// BLOG PROXY (from blog-proxy.js)
+// ═══════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════
-// BLOG PROXY WORKER (from blog-proxy.js)
-// ═══════════════════════════════════════════════════════════════════
+/**
+ * TimrX Blog Proxy Worker
+ *
+ * This Cloudflare Worker proxies blog-related routes from timrx.live to the backend at blog.timrx.live.
+ * It also handles /read redirects at the edge for SEO purposes.
+ *
+ * NOTE: /blogs is served STATICALLY by Cloudflare Pages (blogs.html) - NOT proxied here.
+ *
+ * PROXIED ROUTES:
+ * - /blog/<slug>           → 301 to /read?slug=<slug>
+ * - /blog/tag/<tag>        → Tag hub pages (SSR)
+ * - /blog/category/<cat>   → Category hub pages (SSR)
+ * - /tools                 → Tools I Use page (SSR)
+ * - /rss.xml               → RSS feed
+ * - /sitemap-blogs.xml     → Blog sitemap (proxied from /sitemap.xml)
+ * - /robots.txt            → Dynamic robots.txt from backend
+ * - /sitemap.xml           → Sitemap index from backend
+ * - /sitemap-pages.xml     → Pages sitemap from backend
+ * - /sitemap-recent.xml    → Recent posts sitemap from backend
+ * - /api/*                 → API endpoints (no caching)
+ *
+ * EDGE REDIRECTS:
+ * - /read?slug=<slug>      → Public reader page with per-post metadata
+ * - /blog or /blog/        → 301 to /blogs
+ *
+ * WORKER ROUTES (add all of these in Cloudflare dashboard):
+ *    - timrx.live/blog
+ *    - timrx.live/blog/*
+ *    - timrx.live/read*
+ *    - timrx.live/tools*
+ *    - timrx.live/rss.xml
+ *    - timrx.live/sitemap-blogs.xml
+ *    - timrx.live/sitemap.xml
+ *    - timrx.live/sitemap-pages.xml
+ *    - timrx.live/sitemap-recent.xml
+ *    - timrx.live/robots.txt
+ *    - timrx.live/api/*
+ *    (DO NOT add timrx.live/blogs* — Pages _worker.js serves it)
+ */
 
 const BLOG_ORIGIN = 'https://blog.timrx.live';
 const PUBLIC_DOMAIN = 'https://timrx.live';
