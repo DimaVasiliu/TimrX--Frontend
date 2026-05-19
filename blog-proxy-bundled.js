@@ -678,9 +678,10 @@ function renderSeoPage(page) {
     .more-prompts li:hover{border-color:rgba(14,165,233,.4)}
 
     /* Demo video */
-    .seo-video{margin:40px 0}
-    .seo-video h2{font-size:24px;font-weight:800;margin-bottom:20px}
-    .seo-video-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+    .seo-video{margin:24px 0 64px;text-align:center}
+    .seo-video h2{font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+    .seo-video-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
+    .seo-video-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;max-width:960px;margin-left:auto;margin-right:auto;text-align:left;box-shadow:0 8px 32px rgba(0,0,0,.35)}
     .seo-video-frame{position:relative;aspect-ratio:16/9;background:#000}
     .seo-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .seo-video-meta{padding:18px 24px;font-size:14px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)}
@@ -753,31 +754,33 @@ function renderSeoPage(page) {
     </div>
   </section>
 
-  <section class="container">
-    <div class="info-grid">
-      <div class="info-card">
-        <h3>How It Works</h3>
-        <p>Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.</p>
-      </div>
-      <div class="info-card">
-        <h3>Export Formats</h3>
-        <p>Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.</p>
-      </div>
-      <div class="info-card">
-        <h3>Print-Ready</h3>
-        <p>Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.</p>
-      </div>
-    </div>
-  </section>
-
   <section class="container seo-video">
-    <h2>Watch: TimrX AI 3D Model Walkthrough</h2>
+    <h2>See TimrX in Action</h2>
+    <p class="seo-video-sub">Watch the full AI 3D model workflow — prompt to print-ready file.</p>
     <div class="seo-video-card">
       <div class="seo-video-frame">
         <iframe src="https://www.youtube.com/embed/vnuoZ2xV_Ss?start=33" title="This AI Tool Creates Printable 3D Models — TimrX walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
       </div>
       <div class="seo-video-meta">
         <strong>Watch:</strong> See how AI generates ${page.h1.toLowerCase()} and other printable 3D models in TimrX — from prompt to print-ready file. Channel: <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">@TimrX-Studio</a>.
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="info-grid">
+      <h2>How TimrX Works</h2>
+      <div class="info-card">
+        <h3>1. Generate</h3>
+        <p>Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.</p>
+      </div>
+      <div class="info-card">
+        <h3>2. Export</h3>
+        <p>Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.</p>
+      </div>
+      <div class="info-card">
+        <h3>3. Print-Ready</h3>
+        <p>Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.</p>
       </div>
     </div>
   </section>
