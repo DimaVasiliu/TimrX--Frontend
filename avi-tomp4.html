@@ -240,10 +240,48 @@
     const dropTitle = document.getElementById('videoDropTitle');
 
     let selectedFile = null;
+    let cooldownTimer = null;
 
     function setStatus(message, type = '') {
       statusText.textContent = message;
       statusText.className = `video-convert-status${type ? ` is-${type}` : ''}`;
+    }
+
+    // Parse a Retry-After value: seconds or HTTP-date from the header,
+    // or a retry_after / retryAfter field in the JSON body.
+    function parseRetryAfter(response, jsonData) {
+      const header = response.headers.get('Retry-After');
+      if (header) {
+        const asNum = Number(header);
+        if (Number.isFinite(asNum) && asNum > 0) return asNum;
+        const asDate = Date.parse(header);
+        if (!Number.isNaN(asDate)) return Math.max(1, Math.round((asDate - Date.now()) / 1000));
+      }
+      const bodySecs = Number(jsonData?.retry_after ?? jsonData?.retryAfter);
+      if (Number.isFinite(bodySecs) && bodySecs > 0) return bodySecs;
+      return 60; // sensible default when the server gives no hint
+    }
+
+    // After a 429, disable the Convert button and show a live MM:SS countdown.
+    function startCooldown(seconds) {
+      clearInterval(cooldownTimer);
+      let remaining = Math.max(1, Math.ceil(seconds));
+      const tick = () => {
+        if (remaining <= 0) {
+          clearInterval(cooldownTimer);
+          cooldownTimer = null;
+          convertBtn.disabled = !selectedFile;
+          setStatus(selectedFile ? 'Ready to convert.' : '');
+          return;
+        }
+        const m = Math.floor(remaining / 60);
+        const s = String(remaining % 60).padStart(2, '0');
+        setStatus(`Rate limit reached — you can convert again in ${m}:${s}`, 'error');
+        convertBtn.disabled = true;
+        remaining -= 1;
+      };
+      tick();
+      cooldownTimer = setInterval(tick, 1000);
     }
 
     function setFile(file) {
@@ -262,10 +300,10 @@
         setStatus('Choose a file ending in .avi.', 'error');
         return;
       }
-      convertBtn.disabled = false;
+      convertBtn.disabled = !!cooldownTimer; // stay disabled if a cooldown is running
       dropTitle.textContent = name;
       fileMeta.textContent = `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB`;
-      setStatus('Ready to convert.');
+      if (!cooldownTimer) setStatus('Ready to convert.');
     }
 
     input.addEventListener('change', () => setFile(input.files?.[0] || null));
@@ -303,6 +341,18 @@
         });
 
         const contentType = response.headers.get('content-type') || '';
+
+        // Rate limited — start a live countdown instead of a raw error.
+        if (response.status === 429) {
+          let data = null;
+          if (contentType.includes('application/json')) {
+            data = await response.json().catch(() => null);
+          }
+          startCooldown(parseRetryAfter(response, data));
+          clearBtn.disabled = false;
+          return;
+        }
+
         if (!response.ok) {
           let message = `Conversion failed (${response.status}).`;
           if (contentType.includes('application/json')) {
@@ -326,7 +376,8 @@
       } catch (error) {
         setStatus(error?.message || 'Conversion failed.', 'error');
       } finally {
-        convertBtn.disabled = !selectedFile;
+        // Don't re-enable Convert while a rate-limit cooldown is counting down.
+        if (!cooldownTimer) convertBtn.disabled = !selectedFile;
         clearBtn.disabled = false;
       }
     });
