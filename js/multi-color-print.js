@@ -1030,12 +1030,16 @@ function _onPointerDown(e) {
     return;
   }
 
-  // In brush/face/eraser mode, start drag-painting immediately
+  // In brush/face/eraser mode, start drag-painting only when the cursor is on
+  // the model. Clicking on empty background lets OrbitControls handle the
+  // gesture (rotate/zoom) — same UX as Region mode.
   if (_brushMode === 'brush' || _brushMode === 'face' || _brushMode === 'eraser') {
+    const paintHit = _getPaintHit(e);
+    if (!paintHit) return; // miss → orbit controls stay enabled, user can rotate
     _isPainting = true;
     // Disable orbit while painting
     if (_controls) _controls.enabled = false;
-    _paintAtEvent(e);
+    _paintAtEvent(e, paintHit);
     _didPaintThisStroke = true;
   }
 }
