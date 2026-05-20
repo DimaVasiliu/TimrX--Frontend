@@ -5098,7 +5098,15 @@
 
     async function blogAdminFetch(url, options = {}) {
       const nextOptions = { ...options };
-      nextOptions.headers = { ...blogAdminHeaders(), ...(options.headers || {}) };
+      const baseHeaders = blogAdminHeaders();
+      // When sending FormData (file uploads), do NOT include Content-Type — the
+      // browser must set it with the multipart boundary. Setting it ourselves
+      // forces 'application/json' and breaks multipart parsing on the server,
+      // which surfaces as 400 "No images provided" from /admin/ai/upload-images.
+      if (options.body instanceof FormData) {
+        delete baseHeaders['Content-Type'];
+      }
+      nextOptions.headers = { ...baseHeaders, ...(options.headers || {}) };
       const r = await fetch(url, nextOptions);
       if (r.status === 401) {
         setToken('');
