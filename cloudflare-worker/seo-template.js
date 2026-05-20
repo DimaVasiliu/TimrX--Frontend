@@ -5,7 +5,16 @@
 
 export function renderSeoPage(page) {
   const fullUrl = `https://timrx.live${page.basePath}/${page.slug}`;
-  const encodedPrompt = encodeURIComponent(page.prompt);
+  const isConverter = page.kind === 'converter';
+  const isAviConverter = isConverter && page.slug === 'avi-to-mp4';
+  const encodedPrompt = encodeURIComponent(page.prompt || '');
+  const ctaUrl = page.ctaUrl || `/3dprint?panel=model&prompt=${encodedPrompt}`;
+  const ctaLabel = page.ctaLabel || 'Try This Prompt';
+  const secondaryCtaUrl = isConverter ? '/converter' : '/prompts';
+  const secondaryCtaLabel = isConverter ? 'Browse All Converters' : 'Browse All Prompts';
+  const appName = isConverter ? 'TimrX File Converter' : 'TimrX AI 3D Generator';
+  const appCategory = isConverter ? 'UtilitiesApplication' : 'DesignApplication';
+  const appUrl = isConverter ? 'https://timrx.live/converter' : 'https://timrx.live/3dprint';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -50,14 +59,14 @@ export function renderSeoPage(page) {
     },
     "mainEntity":{
       "@type":"SoftwareApplication",
-      "name":"TimrX AI 3D Generator",
-      "applicationCategory":"DesignApplication",
-      "url":"https://timrx.live/3dprint"
+      "name":"${appName}",
+      "applicationCategory":"${appCategory}",
+      "url":"${appUrl}"
     }
   }
   </script>
 
-  <script type="application/ld+json">
+  ${!isConverter ? `<script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"VideoObject",
@@ -69,7 +78,7 @@ export function renderSeoPage(page) {
     "contentUrl":"https://www.youtube.com/watch?v=vnuoZ2xV_Ss&t=33s",
     "publisher":{"@type":"Organization","name":"TimrX","url":"https://timrx.live"}
   }
-  </script>
+  </script>` : ''}
 
   ${(page.faq && page.faq.length) ? `<script type="application/ld+json">
   {
@@ -181,11 +190,25 @@ export function renderSeoPage(page) {
     .seo-footer{padding:40px 0;border-top:1px solid var(--line);margin-top:60px;text-align:center;color:var(--muted);font-size:13px}
     .seo-footer a{text-decoration:underline;text-underline-offset:3px}
     .seo-footer a:hover{color:var(--ink)}
+    .avi-tool{margin:-36px auto 56px}
+    .avi-tool-card{display:grid;gap:18px;padding:20px;border:1px solid #263958;border-radius:16px;background:linear-gradient(135deg,rgba(20,28,42,.96),rgba(20,18,34,.96));box-shadow:0 24px 70px rgba(0,0,0,.35)}
+    .avi-drop{min-height:210px;display:grid;place-items:center;text-align:center;border:1px dashed rgba(139,184,255,.42);border-radius:12px;background:rgba(255,255,255,.035);cursor:pointer;transition:border-color .16s,background .16s}
+    .avi-drop.is-dragging{border-color:#69a7ff;background:rgba(75,141,255,.12)}
+    .avi-drop strong{display:block;margin-bottom:8px;font-size:22px}
+    .avi-drop span,.avi-meta{color:#aeb7c8;font-size:14px}
+    .avi-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .avi-btn{min-height:46px;padding:0 18px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#f4f6fb;color:#07080a;font-weight:900;cursor:pointer}
+    .avi-btn:disabled{opacity:.55;cursor:not-allowed}
+    .avi-btn.secondary{background:rgba(255,255,255,.06);color:#d8dde7}
+    .avi-status{min-height:24px;color:#aeb5c2;font-size:14px}
+    .avi-status.is-error{color:#ff8b8b}.avi-status.is-success{color:#72e39c}
 
     @media(max-width:768px){
       .nav-pills{display:none}
       .info-grid{grid-template-columns:1fr}
       .related-grid{grid-template-columns:1fr 1fr}
+      .avi-actions{align-items:stretch;flex-direction:column}
+      .avi-btn{width:100%}
     }
     @media(max-width:480px){
       .related-grid{grid-template-columns:1fr}
@@ -221,23 +244,25 @@ export function renderSeoPage(page) {
 
   <section class="seo-hero">
     <div class="container">
-      <div class="seo-hero-watermark" aria-hidden="true">3D</div>
-      <div class="seo-pill">${page.category} &middot; AI Generator</div>
+      <div class="seo-hero-watermark" aria-hidden="true">${page.watermark || '3D'}</div>
+      <div class="seo-pill">${page.category} &middot; ${isConverter ? 'Free Tool' : 'AI Generator'}</div>
       <h1>${page.h1}</h1>
       <p>${page.desc}</p>
 
       <div class="prompt-card">
-        <div class="prompt-label">Example Prompt</div>
+        <div class="prompt-label">${isConverter ? 'Tool Workflow' : 'Example Prompt'}</div>
         <div class="prompt-text">&ldquo;${page.prompt}&rdquo;</div>
         <div class="prompt-actions">
-          <a href="/3dprint?panel=model&prompt=${encodedPrompt}" class="btn">Try This Prompt &rarr;</a>
-          <a href="/prompts" class="btn ghost">Browse All Prompts</a>
+          <a href="${ctaUrl}" class="btn">${ctaLabel} &rarr;</a>
+          <a href="${secondaryCtaUrl}" class="btn ghost">${secondaryCtaLabel}</a>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="container seo-video">
+  ${isAviConverter ? renderAviToMp4Tool() : ''}
+
+  ${!isConverter ? `<section class="container seo-video">
     <h2>See TimrX in Action</h2>
     <p class="seo-video-sub">Watch the full AI 3D model workflow — prompt to print-ready file.</p>
     <div class="seo-video-card">
@@ -248,29 +273,29 @@ export function renderSeoPage(page) {
         <strong>Watch:</strong> See how AI generates ${page.h1.toLowerCase()} and other printable 3D models in TimrX — from prompt to print-ready file. Channel: <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">@TimrX-Studio</a>.
       </div>
     </div>
-  </section>
+  </section>` : ''}
 
   <section class="container">
     <div class="info-grid">
-      <h2>How TimrX Works</h2>
+      <h2>${isConverter ? 'How the Converter Works' : 'How TimrX Works'}</h2>
       <div class="info-card">
-        <h3>1. Generate</h3>
-        <p>Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.</p>
+        <h3>1. ${isConverter ? 'Upload' : 'Generate'}</h3>
+        <p>${isConverter ? 'Choose the source file for the converter workflow. 3D file conversion runs in the browser, while AVI to MP4 uses temporary server-side processing.' : 'Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.'}</p>
       </div>
       <div class="info-card">
-        <h3>2. Export</h3>
-        <p>Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.</p>
+        <h3>2. ${isConverter ? 'Convert' : 'Export'}</h3>
+        <p>${isConverter ? 'Pick the target format and let TimrX prepare the output for download.' : 'Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.'}</p>
       </div>
       <div class="info-card">
-        <h3>3. Print-Ready</h3>
-        <p>Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.</p>
+        <h3>3. ${isConverter ? 'Download' : 'Print-Ready'}</h3>
+        <p>${isConverter ? 'Download the converted file immediately. Temporary video conversion files are removed after the response completes.' : 'Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.'}</p>
       </div>
     </div>
   </section>
 
   ${(page.tips && page.tips.length) ? `<section class="container">
     <div class="info-grid">
-      <h2>Prompt Tips for ${page.h1}</h2>
+      <h2>${isConverter ? `Tips for ${page.h1}` : `Prompt Tips for ${page.h1}`}</h2>
       ${page.tips.map(tip => `<div class="info-card"><p>${tip}</p></div>`).join('\n      ')}
     </div>
   </section>` : ''}
@@ -283,7 +308,7 @@ export function renderSeoPage(page) {
   </section>` : ''}
 
   ${(page.relatedPrompts && page.relatedPrompts.length) ? `<section class="container more-prompts">
-    <h2>More Prompts to Try</h2>
+    <h2>${isConverter ? 'Related Converter Searches' : 'More Prompts to Try'}</h2>
     <ul>
       ${page.relatedPrompts.map(p => `<li>${p}</li>`).join('\n      ')}
     </ul>
@@ -296,9 +321,9 @@ export function renderSeoPage(page) {
 
   <section class="container">
     <div class="seo-cta">
-      <h2>Start Creating Now</h2>
-      <p>50 free credits on signup. No software to install. Generate your first 3D model in minutes.</p>
-      <a href="/3dprint?panel=model" class="btn">Open Workspace &rarr;</a>
+      <h2>${isConverter ? 'Open the Free Converter' : 'Start Creating Now'}</h2>
+      <p>${isConverter ? 'Convert files directly in TimrX with a focused browser workflow.' : '50 free credits on signup. No software to install. Generate your first 3D model in minutes.'}</p>
+      <a href="${isConverter ? ctaUrl : '/3dprint?panel=model'}" class="btn">${isConverter ? ctaLabel : 'Open Workspace'} &rarr;</a>
     </div>
   </section>
 
@@ -306,6 +331,14 @@ export function renderSeoPage(page) {
     <div class="related">
       <h2>Explore More</h2>
       <div class="related-grid">
+        ${isConverter ? `
+        <a href="/converters/avi-to-mp4" class="related-link">AVI to MP4 Converter<small>Free video conversion</small></a>
+        <a href="/converters/glb-to-stl" class="related-link">GLB to STL Converter<small>3D print geometry export</small></a>
+        <a href="/converters/glb-to-obj" class="related-link">GLB to OBJ Converter<small>Model editing workflows</small></a>
+        <a href="/converters/obj-to-stl" class="related-link">OBJ to STL Converter<small>Slicer-ready mesh export</small></a>
+        <a href="/converters/fbx-to-glb" class="related-link">FBX to GLB Converter<small>Web-ready 3D assets</small></a>
+        <a href="/converters/gltf-to-glb" class="related-link">GLTF to GLB Converter<small>Single-file 3D delivery</small></a>
+        ` : `
         <a href="/3d-models/dragon" class="related-link">Dragon 3D Models<small>Fantasy creatures and drakes</small></a>
         <a href="/3d-models/robot" class="related-link">Robot 3D Models<small>Mechs, androids, and bots</small></a>
         <a href="/3d-models/character" class="related-link">Character 3D Models<small>Heroes, NPCs, and figurines</small></a>
@@ -313,7 +346,7 @@ export function renderSeoPage(page) {
         <a href="/3d-models/animal" class="related-link">Animal 3D Models<small>Wildlife and mythical beasts</small></a>
         <a href="/3d-models/architecture" class="related-link">Architecture 3D Models<small>Buildings, temples, and ruins</small></a>
         <a href="/text-to-3d/sword" class="related-link">Text to 3D Sword<small>Weapons and props</small></a>
-        <a href="/text-to-3d/castle" class="related-link">Text to 3D Castle<small>Fortresses and citadels</small></a>
+        <a href="/text-to-3d/castle" class="related-link">Text to 3D Castle<small>Fortresses and citadels</small></a>`}
       </div>
     </div>
   </section>
@@ -326,6 +359,118 @@ export function renderSeoPage(page) {
 
   <script src="/js/auth-modal.js" defer></script>
   <script src="/js/credits.js" defer></script>
+  ${isAviConverter ? renderAviToMp4Script() : ''}
 </body>
 </html>`;
+}
+
+function renderAviToMp4Tool() {
+  return `<section class="container avi-tool" id="aviToMp4Tool">
+    <div class="avi-tool-card">
+      <label class="avi-drop" id="aviDrop">
+        <input id="aviInput" type="file" accept=".avi,video/avi,video/x-msvideo" hidden>
+        <span>
+          <strong id="aviDropTitle">Drop an AVI file here</strong>
+          <span>or click to choose a file. The converted MP4 downloads immediately.</span>
+        </span>
+      </label>
+      <div class="avi-actions">
+        <button class="avi-btn" id="aviConvertBtn" type="button" disabled>Convert to MP4</button>
+        <button class="avi-btn secondary" id="aviClearBtn" type="button">Clear</button>
+        <span class="avi-meta" id="aviFileMeta">No file selected</span>
+      </div>
+      <div class="avi-status" id="aviStatusText" role="status" aria-live="polite"></div>
+    </div>
+  </section>`;
+}
+
+function renderAviToMp4Script() {
+  return `<script type="module">
+    import { BACKEND, fetchWithCsrf } from '/js/config.js';
+    const drop = document.getElementById('aviDrop');
+    const input = document.getElementById('aviInput');
+    const convertBtn = document.getElementById('aviConvertBtn');
+    const clearBtn = document.getElementById('aviClearBtn');
+    const fileMeta = document.getElementById('aviFileMeta');
+    const statusText = document.getElementById('aviStatusText');
+    const dropTitle = document.getElementById('aviDropTitle');
+    let selectedFile = null;
+    function setStatus(message, type) {
+      statusText.textContent = message || '';
+      statusText.className = 'avi-status' + (type ? ' is-' + type : '');
+    }
+    function setFile(file) {
+      selectedFile = file || null;
+      if (!selectedFile) {
+        input.value = '';
+        convertBtn.disabled = true;
+        fileMeta.textContent = 'No file selected';
+        dropTitle.textContent = 'Drop an AVI file here';
+        setStatus('');
+        return;
+      }
+      const name = selectedFile.name || '';
+      if (!name.toLowerCase().endsWith('.avi')) {
+        setFile(null);
+        setStatus('Choose a file ending in .avi.', 'error');
+        return;
+      }
+      convertBtn.disabled = false;
+      dropTitle.textContent = name;
+      fileMeta.textContent = (selectedFile.size / 1024 / 1024).toFixed(1) + ' MB';
+      setStatus('Ready to convert.');
+    }
+    input.addEventListener('change', () => setFile(input.files && input.files[0] ? input.files[0] : null));
+    clearBtn.addEventListener('click', () => setFile(null));
+    ['dragenter','dragover'].forEach(type => drop.addEventListener(type, event => {
+      event.preventDefault();
+      drop.classList.add('is-dragging');
+    }));
+    ['dragleave','drop'].forEach(type => drop.addEventListener(type, () => drop.classList.remove('is-dragging')));
+    drop.addEventListener('drop', event => {
+      event.preventDefault();
+      setFile(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0] ? event.dataTransfer.files[0] : null);
+    });
+    convertBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      convertBtn.disabled = true;
+      clearBtn.disabled = true;
+      setStatus('Uploading and converting. Keep this tab open.');
+      const form = new FormData();
+      form.append('file', selectedFile, selectedFile.name);
+      try {
+        const response = await fetchWithCsrf(BACKEND + '/api/_mod/video/convert/avi-to-mp4', {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+          mode: 'cors'
+        });
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          let message = 'Conversion failed (' + response.status + ').';
+          if (contentType.includes('application/json')) {
+            const data = await response.json().catch(() => null);
+            message = (data && (data.message || data.error)) || message;
+          }
+          throw new Error(message);
+        }
+        const blob = await response.blob();
+        const base = selectedFile.name.replace(/\\.[^.]+$/, '') || 'timrx-video';
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = base + '.mp4';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setStatus('MP4 downloaded. Temporary files will be removed by the server.', 'success');
+      } catch (error) {
+        setStatus((error && error.message) || 'Conversion failed.', 'error');
+      } finally {
+        convertBtn.disabled = !selectedFile;
+        clearBtn.disabled = false;
+      }
+    });
+  </script>`;
 }

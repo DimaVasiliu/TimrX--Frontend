@@ -282,7 +282,7 @@ const SEO_PAGES = {
     base: '/converters',
     pages: [
       { slug: 'avi-to-mp4', title: 'Free AVI to MP4 Converter Online', h1: 'Free AVI to MP4 Converter', desc: 'Convert AVI video files to MP4 online with TimrX. Temporary server-side processing, no permanent S3 storage, and a clean MP4 download.', prompt: 'Upload an AVI file, convert it to MP4, then download the converted video.', category: 'Free Converter', keywords: 'free AVI to MP4 converter, AVI converter online, convert AVI to MP4, video converter',
-        kind: 'converter', ctaUrl: '/avi-to-mp4', ctaLabel: 'Open AVI Converter', watermark: 'MP4',
+        kind: 'converter', ctaUrl: '#aviToMp4Tool', ctaLabel: 'Convert AVI to MP4', watermark: 'MP4',
         tips: [
           'Use AVI source files that are already finalized and playable before uploading',
           'For faster conversion, keep the file short and avoid very large uncompressed AVI exports',
@@ -649,6 +649,7 @@ function generateSeoSitemap() {
 }
 
 
+
 // ═══════════════════════════════════════════════════════════════════
 // SEO TEMPLATE (from seo-template.js)
 // ═══════════════════════════════════════════════════════════════════
@@ -661,6 +662,7 @@ function generateSeoSitemap() {
 function renderSeoPage(page) {
   const fullUrl = `https://timrx.live${page.basePath}/${page.slug}`;
   const isConverter = page.kind === 'converter';
+  const isAviConverter = isConverter && page.slug === 'avi-to-mp4';
   const encodedPrompt = encodeURIComponent(page.prompt || '');
   const ctaUrl = page.ctaUrl || `/3dprint?panel=model&prompt=${encodedPrompt}`;
   const ctaLabel = page.ctaLabel || 'Try This Prompt';
@@ -844,11 +846,25 @@ function renderSeoPage(page) {
     .seo-footer{padding:40px 0;border-top:1px solid var(--line);margin-top:60px;text-align:center;color:var(--muted);font-size:13px}
     .seo-footer a{text-decoration:underline;text-underline-offset:3px}
     .seo-footer a:hover{color:var(--ink)}
+    .avi-tool{margin:-36px auto 56px}
+    .avi-tool-card{display:grid;gap:18px;padding:20px;border:1px solid #263958;border-radius:16px;background:linear-gradient(135deg,rgba(20,28,42,.96),rgba(20,18,34,.96));box-shadow:0 24px 70px rgba(0,0,0,.35)}
+    .avi-drop{min-height:210px;display:grid;place-items:center;text-align:center;border:1px dashed rgba(139,184,255,.42);border-radius:12px;background:rgba(255,255,255,.035);cursor:pointer;transition:border-color .16s,background .16s}
+    .avi-drop.is-dragging{border-color:#69a7ff;background:rgba(75,141,255,.12)}
+    .avi-drop strong{display:block;margin-bottom:8px;font-size:22px}
+    .avi-drop span,.avi-meta{color:#aeb7c8;font-size:14px}
+    .avi-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .avi-btn{min-height:46px;padding:0 18px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#f4f6fb;color:#07080a;font-weight:900;cursor:pointer}
+    .avi-btn:disabled{opacity:.55;cursor:not-allowed}
+    .avi-btn.secondary{background:rgba(255,255,255,.06);color:#d8dde7}
+    .avi-status{min-height:24px;color:#aeb5c2;font-size:14px}
+    .avi-status.is-error{color:#ff8b8b}.avi-status.is-success{color:#72e39c}
 
     @media(max-width:768px){
       .nav-pills{display:none}
       .info-grid{grid-template-columns:1fr}
       .related-grid{grid-template-columns:1fr 1fr}
+      .avi-actions{align-items:stretch;flex-direction:column}
+      .avi-btn{width:100%}
     }
     @media(max-width:480px){
       .related-grid{grid-template-columns:1fr}
@@ -899,6 +915,8 @@ function renderSeoPage(page) {
       </div>
     </div>
   </section>
+
+  ${isAviConverter ? renderAviToMp4Tool() : ''}
 
   ${!isConverter ? `<section class="container seo-video">
     <h2>See TimrX in Action</h2>
@@ -997,9 +1015,122 @@ function renderSeoPage(page) {
 
   <script src="/js/auth-modal.js" defer></script>
   <script src="/js/credits.js" defer></script>
+  ${isAviConverter ? renderAviToMp4Script() : ''}
 </body>
 </html>`;
 }
+
+function renderAviToMp4Tool() {
+  return `<section class="container avi-tool" id="aviToMp4Tool">
+    <div class="avi-tool-card">
+      <label class="avi-drop" id="aviDrop">
+        <input id="aviInput" type="file" accept=".avi,video/avi,video/x-msvideo" hidden>
+        <span>
+          <strong id="aviDropTitle">Drop an AVI file here</strong>
+          <span>or click to choose a file. The converted MP4 downloads immediately.</span>
+        </span>
+      </label>
+      <div class="avi-actions">
+        <button class="avi-btn" id="aviConvertBtn" type="button" disabled>Convert to MP4</button>
+        <button class="avi-btn secondary" id="aviClearBtn" type="button">Clear</button>
+        <span class="avi-meta" id="aviFileMeta">No file selected</span>
+      </div>
+      <div class="avi-status" id="aviStatusText" role="status" aria-live="polite"></div>
+    </div>
+  </section>`;
+}
+
+function renderAviToMp4Script() {
+  return `<script type="module">
+    import { BACKEND, fetchWithCsrf } from '/js/config.js';
+    const drop = document.getElementById('aviDrop');
+    const input = document.getElementById('aviInput');
+    const convertBtn = document.getElementById('aviConvertBtn');
+    const clearBtn = document.getElementById('aviClearBtn');
+    const fileMeta = document.getElementById('aviFileMeta');
+    const statusText = document.getElementById('aviStatusText');
+    const dropTitle = document.getElementById('aviDropTitle');
+    let selectedFile = null;
+    function setStatus(message, type) {
+      statusText.textContent = message || '';
+      statusText.className = 'avi-status' + (type ? ' is-' + type : '');
+    }
+    function setFile(file) {
+      selectedFile = file || null;
+      if (!selectedFile) {
+        input.value = '';
+        convertBtn.disabled = true;
+        fileMeta.textContent = 'No file selected';
+        dropTitle.textContent = 'Drop an AVI file here';
+        setStatus('');
+        return;
+      }
+      const name = selectedFile.name || '';
+      if (!name.toLowerCase().endsWith('.avi')) {
+        setFile(null);
+        setStatus('Choose a file ending in .avi.', 'error');
+        return;
+      }
+      convertBtn.disabled = false;
+      dropTitle.textContent = name;
+      fileMeta.textContent = (selectedFile.size / 1024 / 1024).toFixed(1) + ' MB';
+      setStatus('Ready to convert.');
+    }
+    input.addEventListener('change', () => setFile(input.files && input.files[0] ? input.files[0] : null));
+    clearBtn.addEventListener('click', () => setFile(null));
+    ['dragenter','dragover'].forEach(type => drop.addEventListener(type, event => {
+      event.preventDefault();
+      drop.classList.add('is-dragging');
+    }));
+    ['dragleave','drop'].forEach(type => drop.addEventListener(type, () => drop.classList.remove('is-dragging')));
+    drop.addEventListener('drop', event => {
+      event.preventDefault();
+      setFile(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0] ? event.dataTransfer.files[0] : null);
+    });
+    convertBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      convertBtn.disabled = true;
+      clearBtn.disabled = true;
+      setStatus('Uploading and converting. Keep this tab open.');
+      const form = new FormData();
+      form.append('file', selectedFile, selectedFile.name);
+      try {
+        const response = await fetchWithCsrf(BACKEND + '/api/_mod/video/convert/avi-to-mp4', {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+          mode: 'cors'
+        });
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          let message = 'Conversion failed (' + response.status + ').';
+          if (contentType.includes('application/json')) {
+            const data = await response.json().catch(() => null);
+            message = (data && (data.message || data.error)) || message;
+          }
+          throw new Error(message);
+        }
+        const blob = await response.blob();
+        const base = selectedFile.name.replace(/\\.[^.]+$/, '') || 'timrx-video';
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = base + '.mp4';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setStatus('MP4 downloaded. Temporary files will be removed by the server.', 'success');
+      } catch (error) {
+        setStatus((error && error.message) || 'Conversion failed.', 'error');
+      } finally {
+        convertBtn.disabled = !selectedFile;
+        clearBtn.disabled = false;
+      }
+    });
+  </script>`;
+}
+
 
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1114,6 +1245,13 @@ const worker = {
       return Response.redirect(`${PUBLIC_DOMAIN}${permanentRedirect}`, 301);
     }
 
+    // Public tool alias. The static /avi-to-mp4 route can fall through to
+    // the root Pages app depending on Pages routing order, so keep this alias
+    // at the edge and send users to the Worker-owned converter page.
+    if (pathname === '/avi-to-mp4' || pathname === '/avi-to-mp4/') {
+      return Response.redirect(`${PUBLIC_DOMAIN}/converters/avi-to-mp4`, 302);
+    }
+
     // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
     if (pathname === '/read') {
       const slug = url.searchParams.get('slug');
@@ -1134,7 +1272,9 @@ const worker = {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+          'X-TimrX-Worker': 'blog-proxy',
+          'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
         },
       });
     }
@@ -1405,6 +1545,7 @@ async function proxyToBackend(request, backendUrl, options = {}) {
     return new Response('Backend unavailable', { status: 502 });
   }
 }
+
 
 
 export default worker;

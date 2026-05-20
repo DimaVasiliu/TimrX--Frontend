@@ -108,6 +108,13 @@ export default {
       return Response.redirect(`${PUBLIC_DOMAIN}${permanentRedirect}`, 301);
     }
 
+    // Public tool alias. The static /avi-to-mp4 route can fall through to
+    // the root Pages app depending on Pages routing order, so keep this alias
+    // at the edge and send users to the Worker-owned converter page.
+    if (pathname === '/avi-to-mp4' || pathname === '/avi-to-mp4/') {
+      return Response.redirect(`${PUBLIC_DOMAIN}/converters/avi-to-mp4`, 302);
+    }
+
     // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
     if (pathname === '/read') {
       const slug = url.searchParams.get('slug');
@@ -128,7 +135,9 @@ export default {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+          'X-TimrX-Worker': 'blog-proxy',
+          'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
         },
       });
     }

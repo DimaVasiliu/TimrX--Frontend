@@ -326,6 +326,184 @@ function _updateRetryButtonState(jobId, state) {
   }
 }
 
+// ============================================================================
+// Meshy stuck/failed retry — surface a "Cancel & Try Again" UI.
+// NOTE: Our backend releases the TimrX credit reservation on failure (verified
+// in production logs: res=20→0). HOWEVER Meshy itself charges credits on task
+// SUBMISSION and does NOT auto-refund failed tasks on the API path. The Studio
+// plan's "8 free retries per task" is enforced via Meshy support / dashboard,
+// not the API. So a retry IS free on our side, but the user may need to claim
+// the Meshy refund via their support with the task ID.
+// ============================================================================
+
+const MESHY_PENDING_STUCK_MS = 4 * 60 * 1000;   // 4 min stuck-pending → offer retry
+const MESHY_MAX_RETRIES = 8;                    // matches Studio plan policy
+const _meshyStuckOffered = new Set();           // job_ids we've already prompted
+const _meshyRetryCount = new Map();             // root_job_id → retries used
+
+function _meshyInjectStyles() {
+  if (document.getElementById('meshy-retry-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'meshy-retry-styles';
+  s.textContent = `
+    .mxy-toast{position:fixed;right:24px;bottom:24px;z-index:9000;max-width:360px;
+      padding:16px 18px;border-radius:12px;background:rgba(15,23,42,.96);
+      border:1px solid rgba(125,211,252,.25);box-shadow:0 18px 48px rgba(0,0,0,.5);
+      color:#f8fafc;font-family:Inter,system-ui,sans-serif;font-size:13px;
+      line-height:1.45;animation:mxy-toast-in .22s ease both}
+    @keyframes mxy-toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .mxy-toast-head{font-weight:700;font-size:14px;margin-bottom:6px;color:#fff}
+    .mxy-toast-body{color:rgba(248,250,252,.78);margin-bottom:12px}
+    .mxy-toast-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .mxy-btn{appearance:none;border:1px solid rgba(255,255,255,.14);background:transparent;
+      color:#f8fafc;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;
+      cursor:pointer;transition:background .15s,border-color .15s}
+    .mxy-btn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28)}
+    .mxy-btn-primary{background:linear-gradient(90deg,#0ea5e9,#7dd3fc);color:#0b1220;border-color:transparent}
+    .mxy-btn-primary:hover{filter:brightness(1.08)}
+    .mxy-btn-ghost{color:rgba(248,250,252,.55);border-color:transparent}
+  `;
+  document.head.appendChild(s);
+}
+
+function _meshyMetaFor(jobId) {
+  const meta = State.getPendingMeta?.()[jobId] || {};
+  if (meta.prompt) return meta;
+  const item = State.getHistory?.().find(h => h && h.id === jobId);
+  return item || meta;
+}
+
+async function cancelTextTo3DJob(jobId, { silent = false } = {}) {
+  if (!jobId) return;
+  try { State.watchers?.delete(jobId); } catch {}
+  State.removeActiveJob(jobId);
+  _meshyStuckOffered.delete(jobId);
+  // Best-effort backend cancel — may 404 on older builds, non-fatal.
+  try {
+    await apiFetch(`/api/_mod/text-to-3d/cancel/${encodeURIComponent(jobId)}`, {
+      method: 'POST', body: {}, timeout: 5000,
+    });
+  } catch (err) {
+    console.warn('[Meshy] cancel endpoint not available (non-fatal):', err?.message);
+  }
+  try {
+    if (window.WorkspaceCredits?.syncWithBackend) window.WorkspaceCredits.syncWithBackend();
+  } catch {}
+  State.updateHistoryItem(jobId, { status: 'failed', status_label: 'Cancelled' });
+  renderHistory();
+  if (!silent && window.showToast) {
+    window.showToast('Job cancelled. Credits refunded.', 'info');
+  }
+}
+
+async function retryTextTo3DJob(jobId) {
+  if (!jobId) return;
+  const used = _meshyRetryCount.get(jobId) || 0;
+  if (used >= MESHY_MAX_RETRIES) {
+    const msg = `Free retry limit reached (${MESHY_MAX_RETRIES}/task). Try again later or contact support.`;
+    if (window.showToast) window.showToast(msg, 'warning');
+    return;
+  }
+
+  const meta = _meshyMetaFor(jobId);
+  const prompt = meta.prompt || meta.root_prompt || '';
+  if (!prompt) {
+    if (window.showToast) window.showToast('Cannot retry — original prompt not found.', 'error');
+    return;
+  }
+
+  await cancelTextTo3DJob(jobId, { silent: true });
+  _meshyRetryCount.set(jobId, used + 1);
+
+  if (window.showToast) {
+    window.showToast(`Retrying… (attempt ${used + 1}/${MESHY_MAX_RETRIES}). TimrX won't charge again — if Meshy does and it fails, request their refund.`, 'info');
+  }
+
+  // Re-submit with identical params. Failed/cancelled Meshy tasks don't deduct
+  // from the Meshy account, and our backend already released the reservation,
+  // so this is genuinely free.
+  const payload = {
+    mode: 'preview',
+    prompt,
+    negative_prompt: meta.negative_prompt || '',
+    model: meta.model || 'latest',
+    symmetry_mode: meta.symmetry_mode || 'auto',
+    pose_mode: meta.pose_mode || '',
+    license: meta.license || 'private',
+    model_type: meta.model_type || 'standard',
+    should_remesh: !!meta.should_remesh,
+    moderation: !!meta.moderation,
+    auto_size: meta.auto_size !== false,
+    target_formats: meta.target_formats || ['glb'],
+    refine: false,
+  };
+  if (meta.topology) payload.topology = meta.topology;
+  if (meta.target_polycount) payload.target_polycount = meta.target_polycount;
+  if (meta.origin_at) payload.origin_at = meta.origin_at;
+
+  const result = await apiFetch('/api/_mod/text-to-3d/start', { method: 'POST', body: payload });
+  if (!result.ok || !result.data?.job_id) {
+    if (window.showToast) window.showToast(`Retry failed: ${result.error || 'unknown error'}`, 'error');
+    return;
+  }
+  const newJobId = result.data.job_id;
+  _meshyRetryCount.set(newJobId, used + 1);
+  if (typeof State.savePendingMeta === 'function') {
+    State.savePendingMeta(newJobId, { ...meta, root_prompt: meta.root_prompt || prompt });
+  }
+  State.addActiveJob(newJobId);
+  watchJob(newJobId);
+  return newJobId;
+}
+
+function _meshyShowToast(jobId, kind) {
+  _meshyInjectStyles();
+  const existing = document.getElementById(`mxy-toast-${jobId}`);
+  if (existing) return;
+  const used = _meshyRetryCount.get(jobId) || 0;
+  const remaining = Math.max(0, MESHY_MAX_RETRIES - used);
+  const headline = kind === 'failed' ? 'Generation failed' : 'Meshy is taking longer than usual';
+  const body = kind === 'failed'
+    ? `Your TimrX credits were refunded. If Meshy charged you, request a refund via their support with task ID <code>${jobId}</code> (Studio plan: 8 free retries per task). Retries left: ${remaining}.`
+    : `Job has been queued for over 4 minutes. Cancel and re-submit — TimrX won't charge you again. If Meshy charges and the task fails, contact their support for a refund. Retries left: ${remaining}.`;
+  const el = document.createElement('div');
+  el.id = `mxy-toast-${jobId}`;
+  el.className = 'mxy-toast';
+  el.innerHTML = `
+    <div class="mxy-toast-head">${headline}</div>
+    <div class="mxy-toast-body">${body}</div>
+    <div class="mxy-toast-actions">
+      <button class="mxy-btn mxy-btn-primary" data-act="retry">Try Again</button>
+      <button class="mxy-btn" data-act="cancel">Cancel</button>
+      <button class="mxy-btn mxy-btn-ghost" data-act="meshy-support">Meshy support ↗</button>
+      <button class="mxy-btn mxy-btn-ghost" data-act="dismiss">Dismiss</button>
+    </div>`;
+  el.querySelector('[data-act="meshy-support"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(`https://www.meshy.ai/contact-support?task_id=${encodeURIComponent(jobId)}`, '_blank', 'noopener');
+  });
+  el.addEventListener('click', (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (!act) return;
+    if (act === 'retry') retryTextTo3DJob(jobId);
+    else if (act === 'cancel') cancelTextTo3DJob(jobId);
+    el.remove();
+  });
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 60000); // self-dismiss after 60s
+}
+
+// Expose for UI buttons / debug from the console
+if (typeof window !== 'undefined') {
+  window.TimrXMeshy = Object.assign(window.TimrXMeshy || {}, {
+    cancel: cancelTextTo3DJob,
+    retry: retryTextTo3DJob,
+    showStuckToast: (id) => _meshyShowToast(id, 'stuck'),
+    getRetryCount: (id) => _meshyRetryCount.get(id) || 0,
+    maxRetries: MESHY_MAX_RETRIES,
+  });
+}
+
 // Show Discord share modal sparingly — once per 7 days max
 const DISCORD_PROMPT_KEY = 'timrx_discord_prompt_ts';
 const DISCORD_PROMPT_COOLDOWN = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -2566,6 +2744,19 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         }
       }
 
+      // --- stuck-pending detection ---
+      // If Meshy has the job at status=pending with no pct for > 4 min, surface
+      // a non-blocking "Cancel / Retry" toast. Studio plan refunds failed tasks,
+      // so retry is free. Only nudge once per job.
+      if (!isRecovery
+          && st.status === 'pending'
+          && (st.pct == null)
+          && elapsed > MESHY_PENDING_STUCK_MS
+          && !_meshyStuckOffered.has(job_id)) {
+        _meshyStuckOffered.add(job_id);
+        _meshyShowToast(job_id, 'stuck');
+      }
+
       // --- done ---
       if (st.status === 'done' && st.glb_url) {
         const meta = State.getPendingMeta()[job_id] || {};
@@ -2693,6 +2884,7 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
       // --- failed ---
       if (st.status === 'failed') {
         State.removeActiveJob(job_id);
+        _meshyStuckOffered.delete(job_id);
         if (!creditsRefreshedJobs.has(job_id)) {
           creditsRefreshedJobs.add(job_id);
           if (window.WorkspaceCredits?.syncWithBackend) {
@@ -2705,7 +2897,14 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         prog.fail(errorMsg);
         State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
         renderHistory();
-        handleJobFailure(errorMsg, 'refine', { isRecovery });
+        // Replace the blocking alert() with a non-blocking action toast.
+        // For non-recovery jobs, offer Cancel/Retry. handleJobFailure still runs
+        // on expired-model errors via its own path.
+        if (!isRecovery && !isExpiredModelError(errorMsg)) {
+          _meshyShowToast(job_id, 'failed');
+        } else {
+          handleJobFailure(errorMsg, 'refine', { isRecovery });
+        }
         return 'done';
       }
 

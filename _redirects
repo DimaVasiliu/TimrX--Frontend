@@ -10,7 +10,7 @@
 /about.html       /about         301
 /company.html     /company       301
 /converter.html   /converter     301
-/avi-to-mp4.html  /avi-to-mp4    301
+/avi-to-mp4.html  /converters/avi-to-mp4    301
 /hub.html         /hub           301
 /3dprint.html     /3dprint       301
 /community.html   /community     301
@@ -48,7 +48,7 @@
 /admin/edit     /admin/admin-edit.html  200
 
 # Tool rewrites
-/avi-to-mp4     /avi-to-mp4.html        200
+/avi-to-mp4     /converters/avi-to-mp4  302
 
 # ----------------------------
 # Trailing-slash normalization (no trailing slashes)
@@ -57,7 +57,7 @@
 /about/       /about      301
 /company/     /company    301
 /converter/   /converter  301
-/avi-to-mp4/  /avi-to-mp4 301
+/avi-to-mp4/  /converters/avi-to-mp4 302
 /hub/         /hub        301
 /3dprint/     /3dprint    301
 /tutorials/   /tutorials  301

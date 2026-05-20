@@ -270,7 +270,7 @@ export const SEO_PAGES = {
     base: '/converters',
     pages: [
       { slug: 'avi-to-mp4', title: 'Free AVI to MP4 Converter Online', h1: 'Free AVI to MP4 Converter', desc: 'Convert AVI video files to MP4 online with TimrX. Temporary server-side processing, no permanent S3 storage, and a clean MP4 download.', prompt: 'Upload an AVI file, convert it to MP4, then download the converted video.', category: 'Free Converter', keywords: 'free AVI to MP4 converter, AVI converter online, convert AVI to MP4, video converter',
-        kind: 'converter', ctaUrl: '/avi-to-mp4', ctaLabel: 'Open AVI Converter', watermark: 'MP4',
+        kind: 'converter', ctaUrl: '#aviToMp4Tool', ctaLabel: 'Convert AVI to MP4', watermark: 'MP4',
         tips: [
           'Use AVI source files that are already finalized and playable before uploading',
           'For faster conversion, keep the file short and avoid very large uncompressed AVI exports',
