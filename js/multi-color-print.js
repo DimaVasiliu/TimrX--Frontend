@@ -171,14 +171,22 @@ const LABEL_GLYPHS = {
   '&': ['01100','10010','10100','01000','10101','10010','01101'],
 };
 
-// Angle threshold in radians for flood-fill (faces within ~30 deg are same region)
-const FLOOD_FILL_ANGLE = 0.52;
+// Angle threshold in radians for flood-fill (faces within ~20 deg are same region)
+// Tightened from 0.52 (30°) to 0.35 (20°) — Bambu-Studio-like "smart fill".
+const FLOOD_FILL_ANGLE = 0.35;
+// Cap how far the flood fill can spread from the seed in world units
+// (fraction of the model's longest axis). Prevents leaks across the whole model
+// through near-coplanar bridges.
+const FLOOD_FILL_MAX_DISTANCE_FRAC = 0.5;
 const BRUSH_MIN_MODEL_RATIO = 0.00045;
 const BRUSH_MAX_MODEL_RATIO = 0.12;
 const BRUSH_DEFAULT_MODEL_RATIO = 0.009;
 const BRUSH_SLIDER_STEPS = 1000;
-const BRUSH_SURFACE_NORMAL_DOT_MIN = 0.12;
-const BRUSH_SURFACE_DEPTH_FACTOR = 0.7;
+// Tighter back-face culling so the brush stays on the visible curve and
+// doesn't wrap around the back of curved features.
+const BRUSH_SURFACE_NORMAL_DOT_MIN = 0.35;
+// Tighter depth limit so the brush doesn't reach through to inner surfaces.
+const BRUSH_SURFACE_DEPTH_FACTOR = 0.45;
 const BASE_PREVIEW_COLOR = 0.72;
 const LABEL_TEXT_DEFAULT = 'TEXT';
 const LABEL_MAX_CHARS = 32;
@@ -951,6 +959,7 @@ function _setupViewer(glbUrl, sourceObject = null) {
 
 let _pDownX = 0, _pDownY = 0;
 let _didPaintThisStroke = false;
+let _lastPaintCoords = null; // {x,y} of last painted pointer position for stroke interpolation
 
 function _getPaintHit(e) {
   if (!_renderer || !_camera || !_raycaster) return null;
@@ -1017,6 +1026,7 @@ function _updateBrushCursor(e) {
 function _onPointerDown(e) {
   _pDownX = e.clientX; _pDownY = e.clientY;
   _didPaintThisStroke = false;
+  _lastPaintCoords = null;
   if (!_paintEnabled || !_paintMeshes.length) return;
   if (_brushMode === 'label') {
     _hideBrushCursor();
@@ -1055,9 +1065,34 @@ function _onPointerMove(e) {
   }
   const paintHit = _updateBrushCursor(e);
   if (!_isPainting || !_paintEnabled) return;
+
+  // Stroke interpolation: if the cursor jumped far in one frame, fill in
+  // intermediate stamps so fast strokes leave a continuous line, not dots.
+  // Applies to brush/eraser/face — region only paints on click in onPointerUp.
+  if (_lastPaintCoords && (_brushMode === 'brush' || _brushMode === 'eraser' || _brushMode === 'face')) {
+    const dx = e.clientX - _lastPaintCoords.x;
+    const dy = e.clientY - _lastPaintCoords.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    // Step ≈ 0.6 of brush pixel radius → ~40% stamp overlap (smooth line).
+    const stepPx = paintHit
+      ? Math.max(4, _brushPixelRadius(paintHit.hit.point, paintHit.rect) * 0.6)
+      : 6;
+    if (dist > stepPx) {
+      const steps = Math.min(12, Math.ceil(dist / stepPx));
+      for (let i = 1; i < steps; i++) {
+        const t = i / steps;
+        _paintAtEvent({
+          clientX: _lastPaintCoords.x + dx * t,
+          clientY: _lastPaintCoords.y + dy * t,
+        });
+      }
+    }
+  }
+
   // Continuous painting while dragging
   _paintAtEvent(e, paintHit);
   _didPaintThisStroke = true;
+  _lastPaintCoords = { x: e.clientX, y: e.clientY };
 }
 
 function _onPointerUp(e) {
@@ -1072,6 +1107,7 @@ function _onPointerUp(e) {
   }
   if (_isPainting) {
     _isPainting = false;
+    _lastPaintCoords = null;
     if (_controls) _controls.enabled = true;
     if (_didPaintThisStroke) { _applyColorsToMeshes(); _updateStats(); }
     return;
@@ -1413,6 +1449,16 @@ function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
   visited[localStart] = 1;
   const startNormal = normals[localStart];
 
+  // Seed center for the world-space distance cap (prevents the fill from
+  // leaking across the model through near-coplanar bridges).
+  const seedCenterIdx = (offset + localStart) * 3;
+  const haveCenters = !!_faceCenters && _faceCenters.length >= seedCenterIdx + 3;
+  const sx = haveCenters ? _faceCenters[seedCenterIdx]     : 0;
+  const sy = haveCenters ? _faceCenters[seedCenterIdx + 1] : 0;
+  const sz = haveCenters ? _faceCenters[seedCenterIdx + 2] : 0;
+  const maxDist = _modelMaxDim * FLOOD_FILL_MAX_DISTANCE_FRAC;
+  const maxDistSq = maxDist * maxDist;
+
   while (queue.length > 0) {
     const fi = queue.pop();
     _faceColors[offset + fi] = slotIdx;
@@ -1429,12 +1475,19 @@ function _floodFillRegion(startGlobal, slotIdx, meshIdx) {
       if (!neighbors) continue;
       for (const ni of neighbors) {
         if (visited[ni]) continue;
-        // Check normal similarity
+        // Check normal similarity vs seed
         const angle = normals[ni].angleTo(startNormal);
-        if (angle < FLOOD_FILL_ANGLE) {
-          visited[ni] = 1;
-          queue.push(ni);
+        if (angle >= FLOOD_FILL_ANGLE) continue;
+        // World-space distance cap from seed
+        if (haveCenters) {
+          const cIdx = (offset + ni) * 3;
+          const ddx = _faceCenters[cIdx]     - sx;
+          const ddy = _faceCenters[cIdx + 1] - sy;
+          const ddz = _faceCenters[cIdx + 2] - sz;
+          if (ddx * ddx + ddy * ddy + ddz * ddz > maxDistSq) continue;
         }
+        visited[ni] = 1;
+        queue.push(ni);
       }
     }
   }
