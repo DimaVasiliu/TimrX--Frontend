@@ -15,6 +15,7 @@
     '/docs': { preview: 'docs.html', live: '/docs' },
     '/3dprint': { preview: '3dprint.html', live: '/3dprint' },
     '/converter': { preview: 'converter.html', live: '/converter' },
+    '/avi-to-mp4': { preview: 'avi-to-mp4.html', live: '/avi-to-mp4' },
     '/company': { preview: 'company.html', live: '/company' },
     '/about': { preview: 'about.html', live: '/about' },
     '/terms': { preview: 'terms.html', live: '/terms' },
