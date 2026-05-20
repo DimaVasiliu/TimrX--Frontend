@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AVI to MP4 Converter | TimrX</title>
+  <meta name="description" content="Convert AVI video files to MP4 in TimrX using temporary server-side processing. Files are deleted after download.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="img/logo.png">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="site-shell.css">
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      background: #08090b;
+      color: #f5f7fb;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .video-convert-page {
+      min-height: 100vh;
+      padding: 112px 20px 64px;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(63, 131, 248, .16), transparent 30%),
+        linear-gradient(180deg, #111318 0%, #07080a 100%);
+    }
+    .video-convert-shell {
+      width: min(980px, 100%);
+      margin: 0 auto;
+    }
+    .video-convert-header {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .video-convert-kicker {
+      width: fit-content;
+      padding: 7px 10px;
+      border: 1px solid rgba(125, 165, 255, .25);
+      border-radius: 999px;
+      color: #9ec5ff;
+      background: rgba(66, 133, 244, .1);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .video-convert-header h1 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(36px, 6vw, 68px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+    .video-convert-header p {
+      max-width: 680px;
+      margin: 0;
+      color: #aeb5c2;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+    .video-convert-tool {
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      background: rgba(16, 18, 24, .92);
+      box-shadow: 0 24px 80px rgba(0,0,0,.42);
+    }
+    .video-drop {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px dashed rgba(158, 197, 255, .36);
+      border-radius: 8px;
+      background: rgba(255,255,255,.03);
+      cursor: pointer;
+      transition: border-color .16s ease, background .16s ease;
+    }
+    .video-drop.is-dragging {
+      border-color: #69a7ff;
+      background: rgba(75, 141, 255, .12);
+    }
+    .video-drop strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    .video-drop span,
+    .video-convert-meta {
+      color: #8f98a8;
+      font-size: 14px;
+    }
+    .video-convert-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .video-convert-btn {
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px;
+      background: #2f7df6;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .video-convert-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .video-convert-btn.secondary {
+      background: rgba(255,255,255,.06);
+      color: #d8dde7;
+    }
+    .video-convert-status {
+      min-height: 24px;
+      color: #aeb5c2;
+      font-size: 14px;
+    }
+    .video-convert-status.is-error { color: #ff8b8b; }
+    .video-convert-status.is-success { color: #72e39c; }
+    .video-convert-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .video-note {
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+    }
+    .video-note strong { display: block; margin-bottom: 6px; }
+    .video-note span {
+      color: #98a2b3;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    @media (max-width: 760px) {
+      .video-convert-page { padding: 92px 14px 40px; }
+      .video-convert-notes { grid-template-columns: 1fr; }
+      .video-convert-actions { align-items: stretch; flex-direction: column; }
+      .video-convert-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body class="has-site-shell" data-shell-page="converter">
+  <div data-site-shell="nav"></div>
+
+  <main class="video-convert-page">
+    <div class="video-convert-shell">
+      <header class="video-convert-header">
+        <span class="video-convert-kicker">Temporary Conversion</span>
+        <h1>AVI to MP4 Converter</h1>
+        <p>Upload one AVI file, convert it to MP4, and download the result. TimrX keeps the input and output only in temporary server storage during the request.</p>
+      </header>
+
+      <section class="video-convert-tool" aria-label="AVI to MP4 conversion tool">
+        <label class="video-drop" id="videoDrop">
+          <input id="videoInput" type="file" accept=".avi,video/avi,video/x-msvideo" hidden>
+          <span>
+            <strong id="videoDropTitle">Drop an AVI file here</strong>
+            <span id="videoDropHint">or click to choose a file. Maximum size follows the server limit.</span>
+          </span>
+        </label>
+
+        <div class="video-convert-actions">
+          <button class="video-convert-btn" id="convertBtn" type="button" disabled>Convert to MP4</button>
+          <button class="video-convert-btn secondary" id="clearBtn" type="button">Clear</button>
+          <span class="video-convert-meta" id="fileMeta">No file selected</span>
+        </div>
+        <div class="video-convert-status" id="statusText" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="video-convert-notes" aria-label="Safety notes">
+        <article class="video-note">
+          <strong>No S3 archive</strong>
+          <span>The converter writes to a temporary folder only and deletes files after the download response closes.</span>
+        </article>
+        <article class="video-note">
+          <strong>MP4 output</strong>
+          <span>Video is encoded with H.264 and audio with AAC for broad browser and social platform compatibility.</span>
+        </article>
+        <article class="video-note">
+          <strong>Logged-in use</strong>
+          <span>The API requires your TimrX session so anonymous users cannot burn server CPU.</span>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div data-site-shell="footer"></div>
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/auth-modal.js?v=20260407a" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
+  <script type="module">
+    import { BACKEND, fetchWithCsrf } from './js/config.js';
+
+    const drop = document.getElementById('videoDrop');
+    const input = document.getElementById('videoInput');
+    const convertBtn = document.getElementById('convertBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const fileMeta = document.getElementById('fileMeta');
+    const statusText = document.getElementById('statusText');
+    const dropTitle = document.getElementById('videoDropTitle');
+
+    let selectedFile = null;
+
+    function setStatus(message, type = '') {
+      statusText.textContent = message;
+      statusText.className = `video-convert-status${type ? ` is-${type}` : ''}`;
+    }
+
+    function setFile(file) {
+      selectedFile = file || null;
+      if (!selectedFile) {
+        input.value = '';
+        convertBtn.disabled = true;
+        fileMeta.textContent = 'No file selected';
+        dropTitle.textContent = 'Drop an AVI file here';
+        setStatus('');
+        return;
+      }
+      const name = selectedFile.name || '';
+      if (!name.toLowerCase().endsWith('.avi')) {
+        setFile(null);
+        setStatus('Choose a file ending in .avi.', 'error');
+        return;
+      }
+      convertBtn.disabled = false;
+      dropTitle.textContent = name;
+      fileMeta.textContent = `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB`;
+      setStatus('Ready to convert.');
+    }
+
+    input.addEventListener('change', () => setFile(input.files?.[0] || null));
+    clearBtn.addEventListener('click', () => setFile(null));
+
+    ['dragenter', 'dragover'].forEach(type => {
+      drop.addEventListener(type, (event) => {
+        event.preventDefault();
+        drop.classList.add('is-dragging');
+      });
+    });
+    ['dragleave', 'drop'].forEach(type => {
+      drop.addEventListener(type, () => drop.classList.remove('is-dragging'));
+    });
+    drop.addEventListener('drop', (event) => {
+      event.preventDefault();
+      setFile(event.dataTransfer?.files?.[0] || null);
+    });
+
+    convertBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      convertBtn.disabled = true;
+      clearBtn.disabled = true;
+      setStatus('Uploading and converting. Keep this tab open.');
+
+      const form = new FormData();
+      form.append('file', selectedFile, selectedFile.name);
+
+      try {
+        const response = await fetchWithCsrf(`${BACKEND}/api/_mod/video/convert/avi-to-mp4`, {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+          mode: 'cors',
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          let message = `Conversion failed (${response.status}).`;
+          if (contentType.includes('application/json')) {
+            const data = await response.json().catch(() => null);
+            message = data?.message || data?.error || message;
+          }
+          throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        const base = selectedFile.name.replace(/\.[^.]+$/, '') || 'timrx-video';
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${base}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setStatus('MP4 downloaded. Temporary files will be removed by the server.', 'success');
+      } catch (error) {
+        setStatus(error?.message || 'Conversion failed.', 'error');
+      } finally {
+        convertBtn.disabled = !selectedFile;
+        clearBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
