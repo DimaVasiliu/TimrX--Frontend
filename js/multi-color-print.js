@@ -16,23 +16,51 @@ import * as State from './state.js?v=20260407e';
 // ============================================================================
 
 function _isActiveUser() {
+  // Active = signed in (verified email) AND has at least 1 credit in the wallet.
   try {
     const auth = (typeof window !== 'undefined') ? window.TimrXAuth : null;
-    return !!(auth && typeof auth.isAuthenticated === 'function' && auth.isAuthenticated());
+    const authed = !!(auth && typeof auth.isAuthenticated === 'function' && auth.isAuthenticated());
+    if (!authed) return false;
+    const wc = (typeof window !== 'undefined') ? window.WorkspaceCredits : null;
+    if (!wc || typeof wc.getCredits !== 'function') return false;
+    const credits = Number(wc.getCredits());
+    return Number.isFinite(credits) && credits > 0;
   } catch { return false; }
+}
+
+function _3mfBlockReason() {
+  // Returns 'auth' (not signed in) or 'credits' (signed in but balance 0).
+  try {
+    const auth = (typeof window !== 'undefined') ? window.TimrXAuth : null;
+    if (!auth || typeof auth.isAuthenticated !== 'function' || !auth.isAuthenticated()) return 'auth';
+    return 'credits';
+  } catch { return 'auth'; }
 }
 
 function _requireActiveUserOr3mfBlock(action = 'download') {
   if (_isActiveUser()) return true;
   const verb = String(action || 'download').toLowerCase();
-  const msg = `Sign in with a verified email to ${verb} the 3MF.`;
+  const reason = _3mfBlockReason();
   try {
-    if (window.TimrXAuth && typeof window.TimrXAuth.openAuthModal === 'function') {
-      window.TimrXAuth.openAuthModal({ reason: '3mf-download' });
-    } else if (window.showToast) {
-      window.showToast(msg, 'info');
+    if (reason === 'auth') {
+      const msg = `Sign in with a verified email to ${verb} the 3MF.`;
+      if (window.TimrXAuth && typeof window.TimrXAuth.openAuthModal === 'function') {
+        window.TimrXAuth.openAuthModal({ reason: '3mf-download' });
+      } else if (window.showToast) {
+        window.showToast(msg, 'info');
+      } else {
+        alert(msg);
+      }
     } else {
-      alert(msg);
+      // Signed in but no credits
+      const msg = `You need credits to ${verb} the 3MF. Top up to continue.`;
+      if (window.WorkspaceCredits && typeof window.WorkspaceCredits.showInsufficientCreditsMessage === 'function') {
+        window.WorkspaceCredits.showInsufficientCreditsMessage();
+      } else if (window.showToast) {
+        window.showToast(msg, 'warning');
+      } else {
+        alert(msg);
+      }
     }
   } catch (err) {
     console.warn('[MCP] Auth gate failed:', err);
@@ -2550,10 +2578,13 @@ function _pollMeshyAutoJob(jobId, title) {
             dl.title = '';
             dl.onclick = () => _downloadAuto3mf(threeMfUrl, title);
           } else {
-            dl.textContent = 'Sign in to Download 3MF';
+            const reason = _3mfBlockReason();
+            dl.textContent = reason === 'auth' ? 'Sign in to Download 3MF' : 'Add Credits to Download 3MF';
             dl.setAttribute('aria-disabled', 'true');
             dl.style.opacity = '0.85';
-            dl.title = 'Sign in with a verified email to download the 3MF.';
+            dl.title = reason === 'auth'
+              ? 'Sign in with a verified email to download the 3MF.'
+              : 'You need credits to download the 3MF.';
             dl.onclick = () => _requireActiveUserOr3mfBlock('download');
           }
         }
