@@ -53,6 +53,8 @@ Allow: /
 Allow: /3dprint
 Allow: /hub
 Allow: /converter
+Allow: /avi-to-mp4
+Allow: /converters/
 Allow: /prompts
 Allow: /read
 
@@ -62,7 +64,7 @@ Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 
-# NOTE: /3dprint, /converter, /prompts, /read are PUBLIC pages — do NOT disallow them
+# NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /read are PUBLIC pages — do NOT disallow them
 
 Sitemap: https://timrx.live/sitemap.xml
 `;

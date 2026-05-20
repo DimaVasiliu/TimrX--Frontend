@@ -1,7 +1,7 @@
 /**
  * converter.js
  * Self-contained logic for the file converter tool (drag-and-drop 3D format converter).
- * Supports: GLB, GLTF, OBJ, STL, 3MF, FBX import and GLB, GLTF, OBJ, STL, 3MF export.
+ * Supports: GLB, GLTF, OBJ, STL, 3MF, FBX import and GLB, GLTF, OBJ, STL, 3MF, USDZ export.
  */
 
 // ============================================================================
@@ -429,22 +429,116 @@ function resetUpload() {
   converterModel = null;
 }
 
-async function ensureJSZip() {
-  if (window.JSZip) return;
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-  document.head.appendChild(script);
-  await new Promise((resolve, reject) => {
-    script.onload = resolve;
-    script.onerror = () => reject(new Error('Failed to load JSZip'));
-  });
+let crc32Table = null;
+
+function getCrc32Table() {
+  if (crc32Table) return crc32Table;
+  crc32Table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    crc32Table[n] = c >>> 0;
+  }
+  return crc32Table;
 }
 
-function uuid4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+function crc32(bytes) {
+  const table = getCrc32Table();
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) {
+    c = table[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function writeU16(view, offset, value) {
+  view.setUint16(offset, value, true);
+}
+
+function writeU32(view, offset, value) {
+  view.setUint32(offset, value >>> 0, true);
+}
+
+function concatUint8(parts) {
+  const total = parts.reduce((sum, part) => sum + part.length, 0);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  parts.forEach((part) => {
+    out.set(part, offset);
+    offset += part.length;
   });
+  return out;
+}
+
+function createStoreZip(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  files.forEach(({ path, content }) => {
+    const nameBytes = encoder.encode(path);
+    const dataBytes = typeof content === 'string' ? encoder.encode(content) : content;
+    const checksum = crc32(dataBytes);
+
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(localHeader.buffer);
+    writeU32(localView, 0, 0x04034b50);
+    writeU16(localView, 4, 20);
+    writeU16(localView, 6, 0);
+    writeU16(localView, 8, 0);
+    writeU16(localView, 10, 0);
+    writeU16(localView, 12, 0);
+    writeU32(localView, 14, checksum);
+    writeU32(localView, 18, dataBytes.length);
+    writeU32(localView, 22, dataBytes.length);
+    writeU16(localView, 26, nameBytes.length);
+    writeU16(localView, 28, 0);
+    localHeader.set(nameBytes, 30);
+
+    localParts.push(localHeader, dataBytes);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(centralHeader.buffer);
+    writeU32(centralView, 0, 0x02014b50);
+    writeU16(centralView, 4, 20);
+    writeU16(centralView, 6, 20);
+    writeU16(centralView, 8, 0);
+    writeU16(centralView, 10, 0);
+    writeU16(centralView, 12, 0);
+    writeU16(centralView, 14, 0);
+    writeU32(centralView, 16, checksum);
+    writeU32(centralView, 20, dataBytes.length);
+    writeU32(centralView, 24, dataBytes.length);
+    writeU16(centralView, 28, nameBytes.length);
+    writeU16(centralView, 30, 0);
+    writeU16(centralView, 32, 0);
+    writeU16(centralView, 34, 0);
+    writeU16(centralView, 36, 0);
+    writeU32(centralView, 38, 0);
+    writeU32(centralView, 42, offset);
+    centralHeader.set(nameBytes, 46);
+    centralParts.push(centralHeader);
+
+    offset += localHeader.length + dataBytes.length;
+  });
+
+  const centralStart = offset;
+  const centralDirectory = concatUint8(centralParts);
+  const endRecord = new Uint8Array(22);
+  const endView = new DataView(endRecord.buffer);
+  writeU32(endView, 0, 0x06054b50);
+  writeU16(endView, 4, 0);
+  writeU16(endView, 6, 0);
+  writeU16(endView, 8, files.length);
+  writeU16(endView, 10, files.length);
+  writeU32(endView, 12, centralDirectory.length);
+  writeU32(endView, 16, centralStart);
+  writeU16(endView, 20, 0);
+
+  return concatUint8([...localParts, centralDirectory, endRecord]);
 }
 
 function collectGeometryFor3MF(root) {
@@ -480,9 +574,30 @@ function collectGeometryFor3MF(root) {
   return { vertices, triangles };
 }
 
+function cloneForPrintExport(modelToExport) {
+  const mmScale = converterModel.userData.mmScale || 1;
+  const targetHeightInput = getEl('converterTargetHeight');
+  const targetHeight = targetHeightInput ? parseFloat(targetHeightInput.value) : 0;
+  const originalSize = converterModel.userData.originalSize || {};
+  const originalCenter = converterModel.userData.originalCenter || { x: 0, y: 0, z: 0 };
+  let exportScale = mmScale;
+
+  if (targetHeight > 0 && originalSize.y > 0) {
+    exportScale = targetHeight / originalSize.y;
+  }
+
+  const exportClone = modelToExport.clone();
+  exportClone.scale.setScalar(exportScale);
+  exportClone.position.set(
+    -originalCenter.x * exportScale,
+    -originalCenter.y * exportScale,
+    -originalCenter.z * exportScale
+  );
+  exportClone.updateMatrixWorld(true);
+  return exportClone;
+}
+
 async function exportBasic3MF(root) {
-  await ensureJSZip();
-  const zip = new window.JSZip();
   const { vertices, triangles } = collectGeometryFor3MF(root);
   if (!vertices.length || !triangles.length) throw new Error('No mesh geometry found for 3MF export');
 
@@ -497,12 +612,10 @@ async function exportBasic3MF(root) {
 
   const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US"
- xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
- xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
- requiredextensions="p">
+ xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
  <metadata name="Application">TimrX Converter</metadata>
  <resources>
-  <object id="1" type="model" p:UUID="${uuid4()}">
+  <object id="1" type="model">
    <mesh>
     <vertices>
 ${vLines.join('\n')}
@@ -513,8 +626,8 @@ ${tLines.join('\n')}
    </mesh>
   </object>
  </resources>
- <build p:UUID="${uuid4()}">
-  <item objectid="1" p:UUID="${uuid4()}" printable="1"/>
+ <build>
+  <item objectid="1" printable="1"/>
  </build>
 </model>`;
 
@@ -528,10 +641,13 @@ ${tLines.join('\n')}
  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
 </Relationships>`;
 
-  zip.file('[Content_Types].xml', contentTypes);
-  zip.file('_rels/.rels', rels);
-  zip.file('3D/3dmodel.model', modelXml);
-  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' });
+  const zipBytes = createStoreZip([
+    { path: '[Content_Types].xml', content: contentTypes },
+    { path: '_rels/.rels', content: rels },
+    { path: '3D/3dmodel.model', content: modelXml }
+  ]);
+
+  return new Blob([zipBytes], { type: 'model/3mf' });
 }
 
 // ============================================================================
@@ -658,29 +774,7 @@ async function exportModel(format) {
       if (progressFill) progressFill.style.width = '50%';
       if (progressText) progressText.textContent = 'Exporting to STL (print-ready)...';
 
-      // ── CRITICAL: Undo viewport display scale, apply real-world mm scale ──
-      const displayScale = converterModel.userData.displayScale || 1;
-      const mmScale = converterModel.userData.mmScale || 1;
-
-      // User-specified target height (if set)
-      const targetHeightInput = getEl('converterTargetHeight');
-      const targetHeight = targetHeightInput ? parseFloat(targetHeightInput.value) : 0;
-
-      let exportScale;
-      if (targetHeight > 0) {
-          // User wants a specific height in mm
-          const originalHeightMM = converterModel.userData.realSizeMM?.y || 1;
-          exportScale = (targetHeight / originalHeightMM) * mmScale / displayScale;
-      } else {
-          // Default: undo display scale, apply mm conversion
-          exportScale = mmScale / displayScale;
-      }
-
-      // Clone for export so we don't mutate the preview
-      const exportClone = modelToExport.clone();
-      exportClone.scale.setScalar(exportScale);
-      exportClone.updateMatrixWorld(true);
-
+      const exportClone = cloneForPrintExport(modelToExport);
       const result = exporter.parse(exportClone, { binary });
       if (binary) {
         blob = new Blob([result], { type: 'application/octet-stream' });
@@ -690,9 +784,10 @@ async function exportModel(format) {
       filename = baseName + '.stl';
     } else if (format === '3mf') {
       if (progressFill) progressFill.style.width = '50%';
-      if (progressText) progressText.textContent = 'Exporting geometry-only 3MF...';
+      if (progressText) progressText.textContent = 'Exporting to 3MF (print-ready)...';
 
-      blob = await exportBasic3MF(modelToExport, baseName);
+      const exportClone = cloneForPrintExport(modelToExport);
+      blob = await exportBasic3MF(exportClone);
       filename = baseName + '.3mf';
     } else if (format === 'usdz') {
       if (!THREE.USDZExporter) {
@@ -876,8 +971,8 @@ export function init() {
     // Binary STL: only for STL
     if (binaryStlRow) binaryStlRow.style.display = (format === 'stl') ? '' : 'none';
 
-    // Target print height: only for STL
-    if (targetHeightRow) targetHeightRow.style.display = (format === 'stl') ? '' : 'none';
+    // Target print height: print formats that use real-world millimeter scale.
+    if (targetHeightRow) targetHeightRow.style.display = (format === 'stl' || format === '3mf') ? '' : 'none';
   }
 
   formatRadios.forEach(radio => radio.addEventListener('change', updateFormatOptions));

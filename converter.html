@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Primary Meta Tags -->
-  <title>TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX</title>
-  <meta name="title" content="TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX" />
-  <meta name="description" content="Convert GLB, GLTF, OBJ, STL, and FBX files directly in your browser with TimrX. Private, client-side, and free." />
-  <meta name="keywords" content="3D file converter, GLB converter, GLTF converter, OBJ converter, STL converter, FBX converter, online 3D converter, browser converter" />
+  <title>Free 3D File Converter — GLB, GLTF, OBJ, STL, 3MF, FBX | TimrX</title>
+  <meta name="title" content="Free 3D File Converter — GLB, GLTF, OBJ, STL, 3MF, FBX | TimrX" />
+  <meta name="description" content="Convert GLB, GLTF, OBJ, STL, 3MF, and FBX files directly in your browser with TimrX. Free 3D converter for print, web, and asset workflows." />
+  <meta name="keywords" content="free 3D file converter, GLB to STL converter, GLB to OBJ converter, OBJ to STL converter, FBX to GLB converter, GLTF to GLB converter, 3MF converter, online 3D converter, browser converter" />
   <meta name="author" content="Dima Vasiliu" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://timrx.live/converter" />
@@ -23,8 +23,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/converter" />
-  <meta property="og:title" content="TimrX 3D File Converter — GLB, GLTF, OBJ, STL, FBX" />
-  <meta property="og:description" content="Convert 3D model files between popular formats instantly in your browser. Private, client-side, and free." />
+  <meta property="og:title" content="Free 3D File Converter — GLB, GLTF, OBJ, STL, 3MF, FBX | TimrX" />
+  <meta property="og:description" content="Convert 3D model files between popular formats instantly in your browser. Free, private, and client-side." />
   <meta property="og:site_name" content="TimrX" />
   <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
   <meta property="og:image:width" content="1200" />
@@ -33,8 +33,8 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/converter" />
-  <meta name="twitter:title" content="TimrX 3D File Converter" />
-  <meta name="twitter:description" content="Convert 3D model files between popular formats instantly in your browser. Private, client-side, and free." />
+  <meta name="twitter:title" content="Free 3D File Converter | TimrX" />
+  <meta name="twitter:description" content="Convert GLB, GLTF, OBJ, STL, 3MF, and FBX files instantly in your browser." />
   <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -74,7 +74,7 @@
           <div class="converter-hero-text" id="converterFocus" tabindex="-1">
             <span class="converter-pill">Free Tool · No Sign-up Required</span>
             <h1 class="converter-title" id="converterTitle">3D File Converter</h1>
-            <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, and FBX files. All processing happens in your browser, so your files never leave your device.</p>
+            <p>Convert your 3D models between popular formats instantly. Support for GLB, GLTF, OBJ, STL, 3MF, FBX, and USDZ workflows. All processing happens in your browser, so your files never leave your device.</p>
             <div class="converter-hero-actions">
               <a href="#converterTool" class="converter-primary-btn">Start Converting</a>
               <a href="/avi-to-mp4" class="converter-secondary-btn">AVI to MP4</a>
@@ -323,6 +323,22 @@
             <article class="converter-format-info">
               <div class="format-icon">
                 <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M24 5l17 10v18L24 43 7 33V15z"/>
+                  <path d="M24 5v18M7 15l17 8 17-8M15 29h18"/>
+                </svg>
+              </div>
+              <h3>3MF</h3>
+              <p>A modern 3D printing package. This browser converter exports clean geometry-only 3MF files at real-world millimeter scale.</p>
+              <ul>
+                <li>Modern print package</li>
+                <li>Millimeter scale export</li>
+                <li>Works with slicers</li>
+                <li>Geometry-only output</li>
+              </ul>
+            </article>
+            <article class="converter-format-info">
+              <div class="format-icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="24" cy="24" r="16"/>
                   <path d="M24 12v24M12 24h24"/>
                   <circle cx="24" cy="24" r="6"/>
@@ -386,7 +402,7 @@
             <article class="converter-step">
               <span>01</span>
               <h3>Upload Your File</h3>
-              <p>Drag and drop your 3D model or click to browse. Import GLB, GLTF, OBJ, STL, or FBX files up to 100MB. Export to GLB, GLTF, OBJ, or STL.</p>
+              <p>Drag and drop your 3D model or click to browse. Import GLB, GLTF, OBJ, STL, 3MF, or FBX files up to 100MB. Export to GLB, GLTF, OBJ, STL, 3MF, or USDZ.</p>
             </article>
             <article class="converter-step">
               <span>02</span>
@@ -510,7 +526,7 @@
     import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
     import { STLExporter } from 'three/addons/exporters/STLExporter.js';
     import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
-    import { init as initConverter } from './js/converter.js?v=20260507a';
+    import { init as initConverter } from './js/converter.js?v=20260520a';
 
     window.THREE = Object.assign({}, THREE_NS, {
       OrbitControls,

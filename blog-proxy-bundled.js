@@ -277,6 +277,139 @@ const SEO_PAGES = {
     ]
   },
 
+  // ─── /converters/:slug pages ───
+  'converters': {
+    base: '/converters',
+    pages: [
+      { slug: 'avi-to-mp4', title: 'Free AVI to MP4 Converter Online', h1: 'Free AVI to MP4 Converter', desc: 'Convert AVI video files to MP4 online with TimrX. Temporary server-side processing, no permanent S3 storage, and a clean MP4 download.', prompt: 'Upload an AVI file, convert it to MP4, then download the converted video.', category: 'Free Converter', keywords: 'free AVI to MP4 converter, AVI converter online, convert AVI to MP4, video converter',
+        kind: 'converter', ctaUrl: '/avi-to-mp4', ctaLabel: 'Open AVI Converter', watermark: 'MP4',
+        tips: [
+          'Use AVI source files that are already finalized and playable before uploading',
+          'For faster conversion, keep the file short and avoid very large uncompressed AVI exports',
+          'The converter writes temporary files only while the request is running',
+          'MP4 output is easier to share, preview, and upload than legacy AVI files'
+        ],
+        useCases: [
+          { title: 'Browser Playback', desc: 'Convert older AVI exports into MP4 files that play more reliably in modern browsers and devices.' },
+          { title: 'Social Uploads', desc: 'Prepare videos for platforms and apps that prefer H.264 MP4 instead of AVI containers.' },
+          { title: 'Client Delivery', desc: 'Turn local AVI renders into a common MP4 format before sending previews to clients or collaborators.' }
+        ],
+        relatedPrompts: [
+          'Free AVI to MP4 converter',
+          'Convert AVI video to browser-friendly MP4',
+          'Temporary video conversion with no permanent storage',
+          'Online AVI converter for TimrX users',
+          'Download converted MP4 after upload'
+        ],
+        faq: [
+          { q: 'Is the TimrX AVI to MP4 converter free?', a: 'Yes. The AVI to MP4 converter is available as a free TimrX utility.' },
+          { q: 'Are AVI files stored permanently?', a: 'No. The converter uses temporary server-side storage while the conversion runs and removes the files after the response finishes.' },
+          { q: 'What format does the converter download?', a: 'It downloads an MP4 file encoded for broad playback compatibility.' }
+        ]
+      },
+      { slug: 'glb-to-stl', title: 'Free GLB to STL Converter Online', h1: 'Free GLB to STL Converter', desc: 'Convert GLB 3D models to STL in your browser with TimrX. Prepare AI-generated GLB files for slicing, repair, and 3D printing.', prompt: 'Upload a GLB model and export an STL file for 3D printing workflows.', category: '3D Converter', keywords: 'GLB to STL converter, free GLB converter, convert GLB to STL, 3D print STL converter',
+        kind: 'converter', ctaUrl: '/converter', ctaLabel: 'Open 3D Converter', watermark: 'STL',
+        tips: [
+          'Use STL when your slicer or repair tool requires geometry-only files',
+          'Keep GLB for color and material workflows because STL does not preserve colors',
+          'Run print checks after conversion if the model is intended for physical printing',
+          'Set a target print height before export when scale matters'
+        ],
+        useCases: [
+          { title: '3D Printing', desc: 'Convert AI-generated GLB models into STL files for slicers and mesh repair tools.' },
+          { title: 'Geometry Repair', desc: 'Use STL export as part of a cleanup workflow when color data is not required.' },
+          { title: 'Slicer Compatibility', desc: 'Prepare files for older slicers that do not handle GLB imports reliably.' }
+        ],
+        relatedPrompts: ['GLB to STL converter', 'convert AI GLB to STL', 'free 3D print file converter', 'browser STL export', 'GLB model to slicer format'],
+        faq: [
+          { q: 'Does STL keep GLB colors?', a: 'No. STL is a geometry-only format and does not preserve GLB colors or textures.' },
+          { q: 'Is GLB to STL conversion client-side?', a: 'Yes. The TimrX 3D converter processes model conversion in the browser.' },
+          { q: 'Can I use the STL in Bambu Studio?', a: 'Yes, but use 3MF or GLB workflows when you need color information.' }
+        ]
+      },
+      { slug: 'glb-to-obj', title: 'Free GLB to OBJ Converter Online', h1: 'Free GLB to OBJ Converter', desc: 'Convert GLB files to OBJ online with TimrX. Export 3D models for Blender, modeling tools, and game asset cleanup workflows.', prompt: 'Upload a GLB model and export OBJ for editing in common 3D tools.', category: '3D Converter', keywords: 'GLB to OBJ converter, convert GLB to OBJ, free OBJ converter, online 3D converter',
+        kind: 'converter', ctaUrl: '/converter', ctaLabel: 'Open 3D Converter', watermark: 'OBJ',
+        tips: [
+          'Use OBJ for broad compatibility with modeling and inspection tools',
+          'Check material support in the target app before relying on color data',
+          'Use GLB for compact sharing and OBJ for older 3D pipelines',
+          'Review scale and orientation after export'
+        ],
+        useCases: [
+          { title: 'Blender Editing', desc: 'Move GLB models into OBJ-based editing and cleanup workflows.' },
+          { title: 'Legacy Pipelines', desc: 'Export assets for tools that prefer OBJ over modern GLB containers.' },
+          { title: 'Model Inspection', desc: 'Use OBJ when you need simple mesh interchange across many 3D applications.' }
+        ],
+        relatedPrompts: ['GLB to OBJ converter', 'convert GLB model to OBJ', 'free OBJ export tool', 'browser 3D converter', 'GLB file conversion'],
+        faq: [
+          { q: 'When should I use OBJ instead of GLB?', a: 'Use OBJ for broad tool compatibility and GLB for compact files that preserve more scene data.' },
+          { q: 'Does the converter require an account?', a: 'The 3D file converter is a free browser tool and does not require sign-up for basic conversion.' },
+          { q: 'Are files uploaded for GLB to OBJ conversion?', a: 'No. The 3D converter runs in the browser so files stay on the device.' }
+        ]
+      },
+      { slug: 'obj-to-stl', title: 'Free OBJ to STL Converter Online', h1: 'Free OBJ to STL Converter', desc: 'Convert OBJ 3D files to STL directly in your browser. Use TimrX to prepare mesh geometry for 3D printing and repair tools.', prompt: 'Upload an OBJ file and export STL for printing or mesh repair.', category: '3D Converter', keywords: 'OBJ to STL converter, convert OBJ to STL, free STL converter, 3D printing converter',
+        kind: 'converter', ctaUrl: '/converter', ctaLabel: 'Open 3D Converter', watermark: 'STL',
+        tips: [
+          'Use OBJ to STL when you only need printable geometry',
+          'Remember that STL does not carry materials, textures, or vertex colors',
+          'Inspect the exported model for scale and orientation before slicing',
+          'Repair non-watertight meshes before printing'
+        ],
+        useCases: [
+          { title: 'Slicer Export', desc: 'Convert OBJ files to STL for slicers that expect classic 3D printing formats.' },
+          { title: 'Mesh Cleanup', desc: 'Prepare simple geometry exports for repair, remeshing, or print validation.' },
+          { title: 'Workshop Sharing', desc: 'Create STL files that are easy to share with print shops and maker spaces.' }
+        ],
+        relatedPrompts: ['OBJ to STL converter', 'free STL export', 'OBJ file to 3D print format', 'browser OBJ converter', 'online mesh converter'],
+        faq: [
+          { q: 'Will OBJ materials appear in STL?', a: 'No. STL removes material and texture information.' },
+          { q: 'Can I convert OBJ to STL in the browser?', a: 'Yes. TimrX converts supported 3D files client-side in the browser.' },
+          { q: 'Is STL always best for printing?', a: 'STL is widely supported, but 3MF is better when color, units, or richer print data matters.' }
+        ]
+      },
+      { slug: 'fbx-to-glb', title: 'Free FBX to GLB Converter Online', h1: 'Free FBX to GLB Converter', desc: 'Convert FBX files to GLB online with TimrX. Prepare 3D assets for web previews, sharing, game engines, and browser workflows.', prompt: 'Upload an FBX file and export a compact GLB for web-friendly 3D workflows.', category: '3D Converter', keywords: 'FBX to GLB converter, convert FBX to GLB, free GLB converter, web 3D converter',
+        kind: 'converter', ctaUrl: '/converter', ctaLabel: 'Open 3D Converter', watermark: 'GLB',
+        tips: [
+          'Use GLB when you want a compact single-file web 3D asset',
+          'Check animations and materials after conversion in the target viewer',
+          'Prefer GLB for browser previews and product showcases',
+          'Keep a source FBX copy for authoring and rigging edits'
+        ],
+        useCases: [
+          { title: 'Web 3D Delivery', desc: 'Turn FBX assets into GLB files that are easier to preview and share online.' },
+          { title: 'Game Asset Transfer', desc: 'Convert between common engine interchange formats during asset cleanup.' },
+          { title: 'Portfolio Models', desc: 'Create GLB files for interactive previews on websites and galleries.' }
+        ],
+        relatedPrompts: ['FBX to GLB converter', 'convert FBX for web', 'free GLB export', 'browser 3D file converter', 'FBX web preview'],
+        faq: [
+          { q: 'Why convert FBX to GLB?', a: 'GLB is compact, web-friendly, and commonly used for browser-based 3D previews.' },
+          { q: 'Does conversion preserve animation?', a: 'Supported animation data can be carried through where the browser importer and exporter support it.' },
+          { q: 'Are FBX files uploaded?', a: 'The 3D converter is designed for client-side browser conversion.' }
+        ]
+      },
+      { slug: 'gltf-to-glb', title: 'Free GLTF to GLB Converter Online', h1: 'Free GLTF to GLB Converter', desc: 'Convert GLTF assets to a single GLB file with TimrX. Package web 3D models into one compact file for sharing and deployment.', prompt: 'Upload GLTF assets and export a single GLB file for web or app delivery.', category: '3D Converter', keywords: 'GLTF to GLB converter, convert GLTF to GLB, free GLB packer, web 3D converter',
+        kind: 'converter', ctaUrl: '/converter', ctaLabel: 'Open 3D Converter', watermark: 'GLB',
+        tips: [
+          'Use GLB when you want one file instead of separate GLTF, bin, and texture files',
+          'Check that referenced textures are present before conversion',
+          'Use GLB for easier upload, preview, and deployment workflows',
+          'Keep original GLTF assets when you still need editable source files'
+        ],
+        useCases: [
+          { title: 'Web Deployment', desc: 'Bundle GLTF scenes into GLB files for simpler hosting and loading.' },
+          { title: 'Asset Sharing', desc: 'Send a single GLB file instead of a folder of dependent assets.' },
+          { title: 'Viewer Compatibility', desc: 'Prepare models for viewers and apps that prefer GLB uploads.' }
+        ],
+        relatedPrompts: ['GLTF to GLB converter', 'pack GLTF as GLB', 'free web 3D converter', 'single file GLB export', 'browser GLTF converter'],
+        faq: [
+          { q: 'What is the difference between GLTF and GLB?', a: 'GLTF can reference separate files, while GLB packages the scene into one binary file.' },
+          { q: 'Is GLB better for sharing?', a: 'Usually yes, because one file is easier to upload, store, and preview.' },
+          { q: 'Does TimrX convert GLTF in the browser?', a: 'Yes. The 3D converter is built as a browser-based conversion tool.' }
+        ]
+      }
+    ]
+  },
+
   // ─── /text-to-3d/:slug pages ───
   'text-to-3d': {
     base: '/text-to-3d',
@@ -515,6 +648,7 @@ function generateSeoSitemap() {
   return entries.join('\n');
 }
 
+
 // ═══════════════════════════════════════════════════════════════════
 // SEO TEMPLATE (from seo-template.js)
 // ═══════════════════════════════════════════════════════════════════
@@ -526,7 +660,15 @@ function generateSeoSitemap() {
 
 function renderSeoPage(page) {
   const fullUrl = `https://timrx.live${page.basePath}/${page.slug}`;
-  const encodedPrompt = encodeURIComponent(page.prompt);
+  const isConverter = page.kind === 'converter';
+  const encodedPrompt = encodeURIComponent(page.prompt || '');
+  const ctaUrl = page.ctaUrl || `/3dprint?panel=model&prompt=${encodedPrompt}`;
+  const ctaLabel = page.ctaLabel || 'Try This Prompt';
+  const secondaryCtaUrl = isConverter ? '/converter' : '/prompts';
+  const secondaryCtaLabel = isConverter ? 'Browse All Converters' : 'Browse All Prompts';
+  const appName = isConverter ? 'TimrX File Converter' : 'TimrX AI 3D Generator';
+  const appCategory = isConverter ? 'UtilitiesApplication' : 'DesignApplication';
+  const appUrl = isConverter ? 'https://timrx.live/converter' : 'https://timrx.live/3dprint';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -571,14 +713,14 @@ function renderSeoPage(page) {
     },
     "mainEntity":{
       "@type":"SoftwareApplication",
-      "name":"TimrX AI 3D Generator",
-      "applicationCategory":"DesignApplication",
-      "url":"https://timrx.live/3dprint"
+      "name":"${appName}",
+      "applicationCategory":"${appCategory}",
+      "url":"${appUrl}"
     }
   }
   </script>
 
-  <script type="application/ld+json">
+  ${!isConverter ? `<script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"VideoObject",
@@ -590,7 +732,7 @@ function renderSeoPage(page) {
     "contentUrl":"https://www.youtube.com/watch?v=vnuoZ2xV_Ss&t=33s",
     "publisher":{"@type":"Organization","name":"TimrX","url":"https://timrx.live"}
   }
-  </script>
+  </script>` : ''}
 
   ${(page.faq && page.faq.length) ? `<script type="application/ld+json">
   {
@@ -742,23 +884,23 @@ function renderSeoPage(page) {
 
   <section class="seo-hero">
     <div class="container">
-      <div class="seo-hero-watermark" aria-hidden="true">3D</div>
-      <div class="seo-pill">${page.category} &middot; AI Generator</div>
+      <div class="seo-hero-watermark" aria-hidden="true">${page.watermark || '3D'}</div>
+      <div class="seo-pill">${page.category} &middot; ${isConverter ? 'Free Tool' : 'AI Generator'}</div>
       <h1>${page.h1}</h1>
       <p>${page.desc}</p>
 
       <div class="prompt-card">
-        <div class="prompt-label">Example Prompt</div>
+        <div class="prompt-label">${isConverter ? 'Tool Workflow' : 'Example Prompt'}</div>
         <div class="prompt-text">&ldquo;${page.prompt}&rdquo;</div>
         <div class="prompt-actions">
-          <a href="/3dprint?panel=model&prompt=${encodedPrompt}" class="btn">Try This Prompt &rarr;</a>
-          <a href="/prompts" class="btn ghost">Browse All Prompts</a>
+          <a href="${ctaUrl}" class="btn">${ctaLabel} &rarr;</a>
+          <a href="${secondaryCtaUrl}" class="btn ghost">${secondaryCtaLabel}</a>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="container seo-video">
+  ${!isConverter ? `<section class="container seo-video">
     <h2>See TimrX in Action</h2>
     <p class="seo-video-sub">Watch the full AI 3D model workflow — prompt to print-ready file.</p>
     <div class="seo-video-card">
@@ -769,29 +911,29 @@ function renderSeoPage(page) {
         <strong>Watch:</strong> See how AI generates ${page.h1.toLowerCase()} and other printable 3D models in TimrX — from prompt to print-ready file. Channel: <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">@TimrX-Studio</a>.
       </div>
     </div>
-  </section>
+  </section>` : ''}
 
   <section class="container">
     <div class="info-grid">
-      <h2>How TimrX Works</h2>
+      <h2>${isConverter ? 'How the Converter Works' : 'How TimrX Works'}</h2>
       <div class="info-card">
-        <h3>1. Generate</h3>
-        <p>Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.</p>
+        <h3>1. ${isConverter ? 'Upload' : 'Generate'}</h3>
+        <p>${isConverter ? 'Choose the source file for the converter workflow. 3D file conversion runs in the browser, while AVI to MP4 uses temporary server-side processing.' : 'Type a text description or upload a reference image. The AI generates a detailed 3D model in 3-5 minutes that you can preview, refine, and export.'}</p>
       </div>
       <div class="info-card">
-        <h3>2. Export</h3>
-        <p>Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.</p>
+        <h3>2. ${isConverter ? 'Convert' : 'Export'}</h3>
+        <p>${isConverter ? 'Pick the target format and let TimrX prepare the output for download.' : 'Download your model as GLB or GLTF — compatible with Blender, Unity, Unreal Engine, and all major 3D printing slicers.'}</p>
       </div>
       <div class="info-card">
-        <h3>3. Print-Ready</h3>
-        <p>Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.</p>
+        <h3>3. ${isConverter ? 'Download' : 'Print-Ready'}</h3>
+        <p>${isConverter ? 'Download the converted file immediately. Temporary video conversion files are removed after the response completes.' : 'Use the built-in Remesh tool for watertight topology, then run Print Check to validate your model for FDM or resin printing.'}</p>
       </div>
     </div>
   </section>
 
   ${(page.tips && page.tips.length) ? `<section class="container">
     <div class="info-grid">
-      <h2>Prompt Tips for ${page.h1}</h2>
+      <h2>${isConverter ? `Tips for ${page.h1}` : `Prompt Tips for ${page.h1}`}</h2>
       ${page.tips.map(tip => `<div class="info-card"><p>${tip}</p></div>`).join('\n      ')}
     </div>
   </section>` : ''}
@@ -804,7 +946,7 @@ function renderSeoPage(page) {
   </section>` : ''}
 
   ${(page.relatedPrompts && page.relatedPrompts.length) ? `<section class="container more-prompts">
-    <h2>More Prompts to Try</h2>
+    <h2>${isConverter ? 'Related Converter Searches' : 'More Prompts to Try'}</h2>
     <ul>
       ${page.relatedPrompts.map(p => `<li>${p}</li>`).join('\n      ')}
     </ul>
@@ -817,9 +959,9 @@ function renderSeoPage(page) {
 
   <section class="container">
     <div class="seo-cta">
-      <h2>Start Creating Now</h2>
-      <p>50 free credits on signup. No software to install. Generate your first 3D model in minutes.</p>
-      <a href="/3dprint?panel=model" class="btn">Open Workspace &rarr;</a>
+      <h2>${isConverter ? 'Open the Free Converter' : 'Start Creating Now'}</h2>
+      <p>${isConverter ? 'Convert files directly in TimrX with a focused browser workflow.' : '50 free credits on signup. No software to install. Generate your first 3D model in minutes.'}</p>
+      <a href="${isConverter ? ctaUrl : '/3dprint?panel=model'}" class="btn">${isConverter ? ctaLabel : 'Open Workspace'} &rarr;</a>
     </div>
   </section>
 
@@ -827,6 +969,14 @@ function renderSeoPage(page) {
     <div class="related">
       <h2>Explore More</h2>
       <div class="related-grid">
+        ${isConverter ? `
+        <a href="/converters/avi-to-mp4" class="related-link">AVI to MP4 Converter<small>Free video conversion</small></a>
+        <a href="/converters/glb-to-stl" class="related-link">GLB to STL Converter<small>3D print geometry export</small></a>
+        <a href="/converters/glb-to-obj" class="related-link">GLB to OBJ Converter<small>Model editing workflows</small></a>
+        <a href="/converters/obj-to-stl" class="related-link">OBJ to STL Converter<small>Slicer-ready mesh export</small></a>
+        <a href="/converters/fbx-to-glb" class="related-link">FBX to GLB Converter<small>Web-ready 3D assets</small></a>
+        <a href="/converters/gltf-to-glb" class="related-link">GLTF to GLB Converter<small>Single-file 3D delivery</small></a>
+        ` : `
         <a href="/3d-models/dragon" class="related-link">Dragon 3D Models<small>Fantasy creatures and drakes</small></a>
         <a href="/3d-models/robot" class="related-link">Robot 3D Models<small>Mechs, androids, and bots</small></a>
         <a href="/3d-models/character" class="related-link">Character 3D Models<small>Heroes, NPCs, and figurines</small></a>
@@ -834,7 +984,7 @@ function renderSeoPage(page) {
         <a href="/3d-models/animal" class="related-link">Animal 3D Models<small>Wildlife and mythical beasts</small></a>
         <a href="/3d-models/architecture" class="related-link">Architecture 3D Models<small>Buildings, temples, and ruins</small></a>
         <a href="/text-to-3d/sword" class="related-link">Text to 3D Sword<small>Weapons and props</small></a>
-        <a href="/text-to-3d/castle" class="related-link">Text to 3D Castle<small>Fortresses and citadels</small></a>
+        <a href="/text-to-3d/castle" class="related-link">Text to 3D Castle<small>Fortresses and citadels</small></a>`}
       </div>
     </div>
   </section>
@@ -851,9 +1001,11 @@ function renderSeoPage(page) {
 </html>`;
 }
 
+
 // ═══════════════════════════════════════════════════════════════════
-// BLOG PROXY (from blog-proxy.js)
+// BLOG PROXY WORKER (from blog-proxy.js)
 // ═══════════════════════════════════════════════════════════════════
+
 
 /**
  * TimrX Blog Proxy Worker
@@ -907,6 +1059,8 @@ Allow: /
 Allow: /3dprint
 Allow: /hub
 Allow: /converter
+Allow: /avi-to-mp4
+Allow: /converters/
 Allow: /prompts
 Allow: /read
 
@@ -916,7 +1070,7 @@ Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 
-# NOTE: /3dprint, /converter, /prompts, /read are PUBLIC pages — do NOT disallow them
+# NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /read are PUBLIC pages — do NOT disallow them
 
 Sitemap: https://timrx.live/sitemap.xml
 `;
@@ -947,7 +1101,7 @@ const SLUG_REDIRECTS = {
   'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
 
-export default {
+const worker = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -1251,3 +1405,6 @@ async function proxyToBackend(request, backendUrl, options = {}) {
     return new Response('Backend unavailable', { status: 502 });
   }
 }
+
+
+export default worker;
