@@ -485,12 +485,15 @@
       var CAT_ICON = {
         'Vehicles': 'fa-plane-up',
         'Animals': 'fa-paw',
-        'Tabletop': 'fa-dragon',
-        'Sci-Fi': 'fa-rocket',
-        'Architecture': 'fa-building-columns',
-        'Home & Decor': 'fa-couch',
+        'Characters': 'fa-user',
         'Toys': 'fa-robot',
-        'Fantasy': 'fa-hat-wizard'
+        'Gaming': 'fa-gamepad',
+        'Scenes': 'fa-mountain-city',
+        'Home & Decor': 'fa-couch',
+        'Film': 'fa-film',
+        'Miniatures': 'fa-chess-pawn',
+        'Religion': 'fa-place-of-worship',
+        'More': 'fa-cube'
       };
 
       var grid = document.getElementById('packGrid');
@@ -540,7 +543,7 @@
               '<p class="blurb">' + escapeHTML(p.blurb) + '</p>' +
               '<div class="stl-card-meta">' +
                 '<span><i class="fa-solid fa-cubes"></i> ' + p.fileCount + ' models</span>' +
-                '<span><i class="fa-solid fa-file-zipper"></i> ' + M.formatSize(p.sizeMB) + '</span>' +
+                (p.sizeMB ? '<span><i class="fa-solid fa-file-zipper"></i> ' + M.formatSize(p.sizeMB) + '</span>' : '') +
               '</div>' +
               '<div class="stl-card-foot">' +
                 '<div class="stl-price">' + M.formatPrice(p.priceGBP) + '<small>one-time</small></div>' +
