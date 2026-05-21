@@ -16,6 +16,7 @@
     '/3dprint': { preview: '3dprint.html', live: '/3dprint' },
     '/converter': { preview: 'converter.html', live: '/converter' },
     '/avi-to-mp4': { preview: 'avi-to-mp4.html', live: '/avi-to-mp4' },
+    '/stl-library': { preview: 'stl-library.html', live: '/stl-library' },
     '/company': { preview: 'company.html', live: '/company' },
     '/about': { preview: 'about.html', live: '/about' },
     '/terms': { preview: 'terms.html', live: '/terms' },
@@ -73,6 +74,7 @@
     { key: 'community', href: '/community', label: 'Community', sub: 'Showcase, creators, and discovery' },
     { key: 'prompts', href: '/prompts', label: 'Prompts', sub: 'Reusable prompt library' },
     { key: 'docs', href: '/docs', label: 'Docs', sub: 'Reference, pricing, and support' },
+    { key: 'stl-library', href: '/stl-library', label: 'STL Library', sub: 'Ready-to-print STL file packs' },
     { key: 'workspace', href: '/3dprint', label: 'Open Workspace', sub: 'Launch the TimrX app shell', accent: true }
   ];
 
@@ -81,6 +83,7 @@
       heading: 'Explore',
       links: [
         { href: '/blogs', label: 'Blog' },
+        { href: '/stl-library', label: 'STL Library' },
         { href: '/#works', label: 'Works' },
         { href: '/#services', label: 'Services' },
         { href: '/#contact', label: 'Contact' }

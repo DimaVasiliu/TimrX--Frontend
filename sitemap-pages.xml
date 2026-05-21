@@ -238,6 +238,14 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- STL Pack Library (downloadable ready-to-print STL files) -->
+  <url>
+    <loc>https://timrx.live/stl-library</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- Company -->
   <url>
     <loc>https://timrx.live/company</loc>

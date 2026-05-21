@@ -37,6 +37,7 @@
 /ai-animation-generator.html    /ai-animation-generator   301
 /ai-game-assets.html            /ai-game-assets           301
 /ai-texture-generator.html      /ai-texture-generator     301
+/stl-library.html               /stl-library              301
 
 # Legacy blog URLs crawled by Google; canonical public reader is /read?slug=
 /blog/:slug      /read?slug=:slug      301
@@ -85,3 +86,4 @@
 /ai-animation-generator/    /ai-animation-generator   301
 /ai-game-assets/            /ai-game-assets           301
 /ai-texture-generator/      /ai-texture-generator     301
+/stl-library/               /stl-library              301

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Primary Meta Tags -->
+  <title>STL Library — Ready-to-Print STL File Packs | TimrX</title>
+  <meta name="title" content="STL Library — Ready-to-Print STL File Packs | TimrX" />
+  <meta name="description" content="Download ready-to-print STL file packs from TimrX. Airplanes, vehicles, animals, tabletop miniatures and more — watertight, slicer-ready, instant download after payment." />
+  <meta name="keywords" content="STL files, STL pack, ready to print STL, 3D print files, downloadable STL, STL file download, 3D printing models, printable STL pack" />
+  <meta name="author" content="Dima Vasiliu" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://timrx.live/stl-library" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="msapplication-TileColor" content="#0b0b0b" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/stl-library" />
+  <meta property="og:title" content="STL Library — Ready-to-Print STL File Packs | TimrX" />
+  <meta property="og:description" content="Themed packs of watertight, print-ready STL files. Buy once, download instantly, print on any FDM or resin printer." />
+  <meta property="og:site_name" content="TimrX" />
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/stl-library" />
+  <meta name="twitter:title" content="STL Library — Ready-to-Print STL File Packs | TimrX" />
+  <meta name="twitter:description" content="Themed packs of watertight, print-ready STL files. Instant download after payment." />
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="site-shell.css" />
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "TimrX STL Library",
+    "description": "Themed packs of ready-to-print STL files for 3D printing — watertight, slicer-ready, instant download after payment.",
+    "url": "https://timrx.live/stl-library",
+    "isPartOf": { "@type": "WebSite", "name": "TimrX", "url": "https://timrx.live" },
+    "publisher": { "@type": "Organization", "name": "TimrX", "url": "https://timrx.live", "logo": "https://timrx.live/img/logo.png" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://timrx.live/" },
+      { "@type": "ListItem", "position": 2, "name": "STL Library", "item": "https://timrx.live/stl-library" }
+    ]
+  }
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+
+  <style>
+    .stl-page {
+      --stl-bg: #09090b;
+      --stl-surface: rgba(255, 255, 255, 0.04);
+      --stl-surface-2: rgba(255, 255, 255, 0.06);
+      --stl-line: rgba(255, 255, 255, 0.10);
+      --stl-line-strong: rgba(255, 255, 255, 0.18);
+      --stl-text: #f5f7fb;
+      --stl-muted: rgba(226, 232, 240, 0.70);
+      --stl-accent: #0ea5e9;
+      --stl-accent-2: #8b5cf6;
+      --stl-radius: 18px;
+      background: var(--stl-bg);
+      color: var(--stl-text);
+    }
+    .stl-page * { box-sizing: border-box; }
+    .stl-wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+    .stl-main { padding-bottom: 90px; }
+
+    /* Hero */
+    .stl-hero {
+      position: relative; overflow: hidden;
+      padding: clamp(48px, 8vw, 96px) 0 clamp(36px, 5vw, 60px);
+      border-bottom: 1px solid var(--stl-line);
+      background:
+        radial-gradient(900px 420px at 15% -10%, rgba(14,165,233,0.20), transparent 60%),
+        radial-gradient(760px 420px at 92% 0%, rgba(139,92,246,0.18), transparent 62%);
+    }
+    .stl-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 14px; border-radius: 999px;
+      border: 1px solid var(--stl-line-strong);
+      background: var(--stl-surface);
+      font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--stl-muted); text-transform: uppercase;
+    }
+    .stl-pill i { color: var(--stl-accent); }
+    .stl-hero h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2.1rem, 5.2vw, 3.6rem);
+      line-height: 1.06; font-weight: 800; letter-spacing: -0.02em;
+      max-width: 16ch;
+    }
+    .stl-hero h1 .grad {
+      background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .stl-hero p.lead {
+      margin: 0; max-width: 60ch;
+      font-size: clamp(1rem, 1.6vw, 1.18rem);
+      color: var(--stl-muted); line-height: 1.6;
+    }
+    .stl-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .stl-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 13px 22px; border-radius: 12px;
+      font-size: 0.97rem; font-weight: 700; cursor: pointer;
+      border: 1px solid transparent; text-decoration: none; transition: transform .12s ease, opacity .12s ease;
+    }
+    .stl-btn:active { transform: translateY(1px); }
+    .stl-btn-primary { background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2)); color: #fff; }
+    .stl-btn-primary:hover { opacity: 0.92; }
+    .stl-btn-ghost { background: var(--stl-surface); color: var(--stl-text); border-color: var(--stl-line-strong); }
+    .stl-btn-ghost:hover { background: var(--stl-surface-2); }
+    .stl-hero-stats {
+      list-style: none; margin: 34px 0 0; padding: 0;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 620px;
+    }
+    .stl-hero-stats li {
+      padding: 14px; border: 1px solid var(--stl-line); border-radius: 14px;
+      background: var(--stl-surface);
+    }
+    .stl-hero-stats span { display: block; font-size: 1.4rem; font-weight: 800; }
+    .stl-hero-stats small { color: var(--stl-muted); font-size: 0.78rem; }
+
+    /* Trust badges */
+    .stl-trust {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+      margin: 38px 0 8px;
+    }
+    .stl-trust div {
+      display: flex; align-items: center; gap: 11px;
+      padding: 15px 16px; border: 1px solid var(--stl-line); border-radius: 14px;
+      background: var(--stl-surface); font-size: 0.9rem; font-weight: 600;
+    }
+    .stl-trust i { color: var(--stl-accent); font-size: 1.15rem; }
+
+    /* Section heads */
+    .stl-section { margin-top: 56px; }
+    .stl-section-head h2 {
+      font-size: clamp(1.5rem, 3vw, 2.05rem); font-weight: 800;
+      letter-spacing: -0.015em; margin: 0 0 8px;
+    }
+    .stl-section-head p { color: var(--stl-muted); margin: 0; max-width: 64ch; line-height: 1.6; }
+
+    /* Controls */
+    .stl-controls {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+      margin: 24px 0 22px; justify-content: space-between;
+    }
+    .stl-chips { display: flex; flex-wrap: wrap; gap: 9px; }
+    .stl-chip {
+      padding: 8px 15px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--stl-line-strong); background: var(--stl-surface);
+      color: var(--stl-muted); font-size: 0.85rem; font-weight: 600;
+      transition: all .12s ease;
+    }
+    .stl-chip:hover { color: var(--stl-text); }
+    .stl-chip.is-active {
+      background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2));
+      color: #fff; border-color: transparent;
+    }
+    .stl-search {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 14px; border-radius: 11px;
+      border: 1px solid var(--stl-line-strong); background: var(--stl-surface);
+      min-width: 230px;
+    }
+    .stl-search i { color: var(--stl-muted); }
+    .stl-search input {
+      background: transparent; border: 0; outline: 0; color: var(--stl-text);
+      font-size: 0.9rem; width: 100%;
+    }
+
+    /* Pack grid */
+    .stl-grid {
+      display: grid; gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    .stl-card {
+      display: flex; flex-direction: column;
+      border: 1px solid var(--stl-line); border-radius: var(--stl-radius);
+      background: var(--stl-surface); overflow: hidden;
+      transition: transform .14s ease, border-color .14s ease;
+    }
+    .stl-card:hover { transform: translateY(-4px); border-color: var(--stl-line-strong); }
+    .stl-card-thumb {
+      position: relative; aspect-ratio: 16 / 10;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stl-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .stl-card-thumb .ph-icon { font-size: 3.4rem; color: rgba(255,255,255,0.92); }
+    .stl-tier {
+      position: absolute; top: 12px; left: 12px;
+      padding: 4px 11px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+      background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(4px);
+    }
+    .stl-tier.mega { background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2)); }
+    .stl-card-cat {
+      position: absolute; bottom: 12px; left: 12px;
+      padding: 4px 11px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700;
+      background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(4px);
+    }
+    .stl-card-body { padding: 17px 17px 19px; display: flex; flex-direction: column; flex: 1; }
+    .stl-card-body h3 { margin: 0 0 7px; font-size: 1.06rem; font-weight: 800; }
+    .stl-card-body .blurb { margin: 0; color: var(--stl-muted); font-size: 0.87rem; line-height: 1.55; flex: 1; }
+    .stl-card-meta {
+      display: flex; gap: 16px; margin: 14px 0 15px;
+      font-size: 0.8rem; color: var(--stl-muted);
+    }
+    .stl-card-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .stl-card-meta i { color: var(--stl-accent); }
+    .stl-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .stl-price { font-size: 1.4rem; font-weight: 800; }
+    .stl-price small { font-size: 0.72rem; font-weight: 600; color: var(--stl-muted); display: block; }
+    .stl-buy {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 18px; border-radius: 11px; border: 0; cursor: pointer;
+      background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2));
+      color: #fff; font-size: 0.9rem; font-weight: 700;
+      transition: opacity .12s ease;
+    }
+    .stl-buy:hover { opacity: 0.92; }
+    .stl-buy:disabled { opacity: 0.6; cursor: progress; }
+    .stl-empty { padding: 40px; text-align: center; color: var(--stl-muted); }
+
+    /* All-access banner */
+    .stl-allaccess {
+      margin-top: 56px; padding: clamp(26px, 4vw, 44px);
+      border-radius: 22px; border: 1px solid var(--stl-line-strong);
+      background:
+        radial-gradient(600px 300px at 10% 0%, rgba(14,165,233,0.20), transparent 60%),
+        radial-gradient(600px 300px at 95% 100%, rgba(139,92,246,0.22), transparent 60%),
+        var(--stl-surface);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .stl-allaccess h2 { margin: 0 0 8px; font-size: clamp(1.4rem, 2.6vw, 1.9rem); font-weight: 800; }
+    .stl-allaccess p { margin: 0; color: var(--stl-muted); max-width: 52ch; line-height: 1.6; }
+    .stl-allaccess-buy { text-align: center; }
+    .stl-allaccess-price { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+    .stl-allaccess-price del { font-size: 1.1rem; color: var(--stl-muted); font-weight: 600; margin-right: 8px; }
+    .stl-allaccess-buy small { display: block; color: var(--stl-muted); font-size: 0.78rem; margin: 4px 0 12px; }
+
+    /* How it works */
+    .stl-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+    .stl-step {
+      padding: 24px 22px; border: 1px solid var(--stl-line); border-radius: var(--stl-radius);
+      background: var(--stl-surface);
+    }
+    .stl-step-num {
+      width: 38px; height: 38px; border-radius: 11px; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.05rem;
+      background: linear-gradient(100deg, var(--stl-accent), var(--stl-accent-2)); color: #fff;
+    }
+    .stl-step h3 { margin: 0 0 7px; font-size: 1.05rem; font-weight: 800; }
+    .stl-step p { margin: 0; color: var(--stl-muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* FAQ */
+    .stl-faq { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+    .stl-faq details {
+      border: 1px solid var(--stl-line); border-radius: 13px;
+      background: var(--stl-surface); padding: 0 18px;
+    }
+    .stl-faq summary {
+      list-style: none; cursor: pointer; padding: 17px 0;
+      font-weight: 700; font-size: 0.97rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .stl-faq summary::-webkit-details-marker { display: none; }
+    .stl-faq summary i { color: var(--stl-accent); transition: transform .15s ease; }
+    .stl-faq details[open] summary i { transform: rotate(45deg); }
+    .stl-faq p { margin: 0 0 17px; color: var(--stl-muted); font-size: 0.9rem; line-height: 1.65; }
+
+    /* Toast */
+    .stl-toast {
+      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+      max-width: 460px; width: calc(100% - 40px);
+      background: #15151a; border: 1px solid var(--stl-line-strong); border-radius: 13px;
+      padding: 14px 18px; color: var(--stl-text); font-size: 0.9rem; line-height: 1.5;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+      z-index: 9999;
+    }
+    .stl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .stl-toast.err { border-color: rgba(248,113,113,0.5); }
+    .stl-toast.ok { border-color: rgba(52,211,153,0.5); }
+
+    @media (max-width: 860px) {
+      .stl-hero-stats { grid-template-columns: repeat(2, 1fr); }
+      .stl-trust { grid-template-columns: repeat(2, 1fr); }
+      .stl-steps { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .stl-controls { flex-direction: column; align-items: stretch; }
+      .stl-search { min-width: 0; }
+    }
+  </style>
+</head>
+<body class="has-site-shell stl-page" data-shell-page="stl-library">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <div data-site-shell="nav"></div>
+
+  <main class="stl-main">
+    <!-- HERO -->
+    <section class="stl-hero">
+      <div class="stl-wrap">
+        <span class="stl-pill"><i class="fa-solid fa-cube"></i> STL Library</span>
+        <h1>Ready-to-Print <span class="grad">STL File Packs</span></h1>
+        <p class="lead">Curated, themed collections of watertight STL files — cleaned, print-checked and organised so you can buy a pack, download the ZIP, and start printing in minutes. No subscriptions, no fuss.</p>
+        <div class="stl-hero-actions">
+          <a href="#packs" class="stl-btn stl-btn-primary"><i class="fa-solid fa-layer-group"></i> Browse packs</a>
+          <a href="/3dprint" class="stl-btn stl-btn-ghost"><i class="fa-solid fa-wand-magic-sparkles"></i> Open Workspace</a>
+        </div>
+        <ul class="stl-hero-stats" id="heroStats">
+          <li><span id="statPacks">—</span><small>Themed packs</small></li>
+          <li><span id="statFiles">—</span><small>STL files</small></li>
+          <li><span>Instant</span><small>Download</small></li>
+          <li><span>Lifetime</span><small>Access</small></li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="stl-wrap">
+      <!-- TRUST -->
+      <div class="stl-trust">
+        <div><i class="fa-solid fa-droplet-slash"></i> Watertight &amp; print-checked</div>
+        <div><i class="fa-solid fa-print"></i> FDM + resin ready</div>
+        <div><i class="fa-solid fa-bolt"></i> Instant ZIP download</div>
+        <div><i class="fa-solid fa-infinity"></i> Yours forever</div>
+      </div>
+
+      <!-- PACKS -->
+      <section class="stl-section" id="packs">
+        <div class="stl-section-head">
+          <h2>Browse STL Packs</h2>
+          <p>Every pack is a single ZIP of print-ready STL files. Pay once with card via secure checkout — your download is available instantly and saved to your workspace.</p>
+        </div>
+
+        <div class="stl-controls">
+          <div class="stl-chips" id="catChips"></div>
+          <label class="stl-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="packSearch" placeholder="Search packs…" aria-label="Search packs" />
+          </label>
+        </div>
+
+        <div class="stl-grid" id="packGrid"></div>
+        <div class="stl-empty" id="packEmpty" style="display:none;">No packs match your search.</div>
+      </section>
+
+      <!-- ALL ACCESS -->
+      <section class="stl-allaccess" id="allAccess">
+        <div>
+          <h2><i class="fa-solid fa-unlock-keyhole"></i> All-Access Library Pass</h2>
+          <p id="allAccessText">Unlock every pack on this page — plus every pack added in the future. One payment, lifetime access.</p>
+        </div>
+        <div class="stl-allaccess-buy">
+          <div class="stl-allaccess-price" id="allAccessPrice">£49</div>
+          <small>one-time · launch price</small>
+          <button class="stl-buy" id="allAccessBuy"><i class="fa-solid fa-unlock"></i> Get All-Access</button>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="stl-section">
+        <div class="stl-section-head">
+          <h2>How it works</h2>
+          <p>From pack to printer in three steps.</p>
+        </div>
+        <div class="stl-steps">
+          <div class="stl-step">
+            <div class="stl-step-num">1</div>
+            <h3>Pick a pack</h3>
+            <p>Browse themed collections, check the model count and file size, and choose the pack you want.</p>
+          </div>
+          <div class="stl-step">
+            <div class="stl-step-num">2</div>
+            <h3>Pay securely</h3>
+            <p>Checkout is handled by Mollie. Pay by card in a few seconds — no account juggling, no hidden fees.</p>
+          </div>
+          <div class="stl-step">
+            <div class="stl-step-num">3</div>
+            <h3>Download &amp; print</h3>
+            <p>Your ZIP is ready immediately and stored in your workspace. Unzip, drop the STLs into any slicer, and print.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="stl-section">
+        <div class="stl-section-head">
+          <h2>Frequently asked questions</h2>
+        </div>
+        <div class="stl-faq">
+          <details>
+            <summary>What format are the files? <i class="fa-solid fa-plus"></i></summary>
+            <p>Every model is a standard <strong>.STL</strong> file inside a ZIP. They open in any slicer — Cura, PrusaSlicer, Bambu Studio, OrcaSlicer and more — with no conversion needed.</p>
+          </details>
+          <details>
+            <summary>Are the models actually print-ready? <i class="fa-solid fa-plus"></i></summary>
+            <p>Yes. Each pack is checked for watertight, manifold geometry so it slices cleanly. You may still want supports depending on orientation and your printer, but the meshes themselves are ready to go.</p>
+          </details>
+          <details>
+            <summary>How do I get my files after paying? <i class="fa-solid fa-plus"></i></summary>
+            <p>As soon as payment is confirmed, your download link appears on the success page and in your TimrX workspace under your purchases. You can re-download it any time — access does not expire.</p>
+          </details>
+          <details>
+            <summary>What printer do I need? <i class="fa-solid fa-plus"></i></summary>
+            <p>Any FDM or resin 3D printer works. Packs tagged for miniatures are scaled for 28–32mm tabletop use; larger display models suit FDM. The file size and model count are listed on every pack.</p>
+          </details>
+          <details>
+            <summary>Can I use the models commercially? <i class="fa-solid fa-plus"></i></summary>
+            <p>Each purchase includes a personal and hobby printing licence. For commercial printing, reselling prints, or redistribution, contact <a href="mailto:admin@timrx.live">admin@timrx.live</a> about a commercial licence.</p>
+          </details>
+          <details>
+            <summary>Does the All-Access Pass include future packs? <i class="fa-solid fa-plus"></i></summary>
+            <p>Yes. The All-Access Library Pass unlocks every pack listed today and every new pack we add later — at no extra cost.</p>
+          </details>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div data-site-shell="footer"></div>
+
+  <div class="stl-toast" id="stlToast" role="status" aria-live="polite"></div>
+
+  <script src="js/site-shell.js" defer></script>
+  <script src="js/stl-packs.js" defer></script>
+  <script>
+  (function () {
+    'use strict';
+    function boot() {
+      var M = window.STLMarket;
+      if (!M) { return; }
+
+      var CAT_ICON = {
+        'Vehicles': 'fa-plane-up',
+        'Animals': 'fa-paw',
+        'Tabletop': 'fa-dragon',
+        'Sci-Fi': 'fa-rocket',
+        'Architecture': 'fa-building-columns',
+        'Home & Decor': 'fa-couch',
+        'Toys': 'fa-robot',
+        'Fantasy': 'fa-hat-wizard'
+      };
+
+      var grid = document.getElementById('packGrid');
+      var empty = document.getElementById('packEmpty');
+      var chips = document.getElementById('catChips');
+      var search = document.getElementById('packSearch');
+      var toast = document.getElementById('stlToast');
+      var activeCat = 'All';
+      var query = '';
+
+      // Hero stats
+      var totalFiles = M.packs.reduce(function (n, p) { return n + (p.fileCount || 0); }, 0);
+      document.getElementById('statPacks').textContent = M.packs.length;
+      document.getElementById('statFiles').textContent = (totalFiles >= 1000 ? (Math.floor(totalFiles / 100) * 100) + '+' : totalFiles);
+
+      // All-Access
+      document.getElementById('allAccessPrice').innerHTML =
+        '<del>' + M.formatPrice(M.allAccess.fullPriceGBP) + '</del>' + M.formatPrice(M.allAccess.priceGBP);
+      document.getElementById('allAccessText').textContent = M.allAccess.blurb;
+      document.getElementById('allAccessBuy').addEventListener('click', function () {
+        startCheckout(this, '*');
+      });
+
+      // Gradient placeholder from slug
+      function gradient(slug) {
+        var h = 0;
+        for (var i = 0; i < slug.length; i++) { h = (h * 31 + slug.charCodeAt(i)) % 360; }
+        return 'linear-gradient(135deg, hsl(' + h + ',62%,28%), hsl(' + ((h + 50) % 360) + ',58%,17%))';
+      }
+
+      function cardHTML(p) {
+        var icon = CAT_ICON[p.category] || 'fa-cube';
+        var thumb = p.image
+          ? '<img src="' + p.image + '" alt="' + escapeAttr(p.title) + '" loading="lazy">'
+          : '<i class="fa-solid ' + icon + ' ph-icon"></i>';
+        var thumbStyle = p.image ? '' : ' style="background:' + gradient(p.slug) + '"';
+        var tier = p.tier ? '<span class="stl-tier ' + p.tier + '">' + p.tier + '</span>' : '';
+        return '' +
+          '<article class="stl-card" id="pack-' + p.slug + '">' +
+            '<div class="stl-card-thumb"' + thumbStyle + '>' + thumb + tier +
+              '<span class="stl-card-cat">' + escapeHTML(p.category) + '</span>' +
+            '</div>' +
+            '<div class="stl-card-body">' +
+              '<h3>' + escapeHTML(p.title) + '</h3>' +
+              '<p class="blurb">' + escapeHTML(p.blurb) + '</p>' +
+              '<div class="stl-card-meta">' +
+                '<span><i class="fa-solid fa-cubes"></i> ' + p.fileCount + ' models</span>' +
+                '<span><i class="fa-solid fa-file-zipper"></i> ' + M.formatSize(p.sizeMB) + '</span>' +
+              '</div>' +
+              '<div class="stl-card-foot">' +
+                '<div class="stl-price">' + M.formatPrice(p.priceGBP) + '<small>one-time</small></div>' +
+                '<button class="stl-buy" data-slug="' + p.slug + '"><i class="fa-solid fa-cart-shopping"></i> Buy</button>' +
+              '</div>' +
+            '</div>' +
+          '</article>';
+      }
+
+      function escapeHTML(s) {
+        return String(s).replace(/[&<>]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+        });
+      }
+      function escapeAttr(s) { return escapeHTML(s).replace(/"/g, '&quot;'); }
+
+      function render() {
+        var list = M.packs.filter(function (p) {
+          var catOk = activeCat === 'All' || p.category === activeCat;
+          var q = query.trim().toLowerCase();
+          var qOk = !q ||
+            p.title.toLowerCase().indexOf(q) > -1 ||
+            p.blurb.toLowerCase().indexOf(q) > -1 ||
+            (p.tags || []).join(' ').toLowerCase().indexOf(q) > -1;
+          return catOk && qOk;
+        });
+        grid.innerHTML = list.map(cardHTML).join('');
+        empty.style.display = list.length ? 'none' : 'block';
+        grid.querySelectorAll('.stl-buy').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            startCheckout(btn, btn.getAttribute('data-slug'));
+          });
+        });
+      }
+
+      // Category chips
+      var cats = ['All'].concat(M.categories());
+      chips.innerHTML = cats.map(function (c) {
+        return '<button class="stl-chip' + (c === 'All' ? ' is-active' : '') + '" data-cat="' +
+          escapeAttr(c) + '">' + escapeHTML(c) + '</button>';
+      }).join('');
+      chips.querySelectorAll('.stl-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chips.querySelectorAll('.stl-chip').forEach(function (c) { c.classList.remove('is-active'); });
+          chip.classList.add('is-active');
+          activeCat = chip.getAttribute('data-cat');
+          render();
+        });
+      });
+
+      search.addEventListener('input', function () { query = search.value; render(); });
+
+      // Inject ItemList structured data for the packs
+      try {
+        var ld = {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          'name': 'TimrX STL Packs',
+          'itemListElement': M.packs.map(function (p, i) {
+            return {
+              '@type': 'ListItem',
+              'position': i + 1,
+              'item': {
+                '@type': 'Product',
+                'name': p.title,
+                'description': p.blurb,
+                'category': p.category,
+                'url': 'https://timrx.live/stl-library#pack-' + p.slug,
+                'brand': { '@type': 'Brand', 'name': 'TimrX' },
+                'offers': {
+                  '@type': 'Offer',
+                  'price': String(p.priceGBP),
+                  'priceCurrency': 'GBP',
+                  'availability': 'https://schema.org/InStock'
+                }
+              }
+            };
+          })
+        };
+        var s = document.createElement('script');
+        s.type = 'application/ld+json';
+        s.textContent = JSON.stringify(ld);
+        document.head.appendChild(s);
+      } catch (e) { /* non-fatal */ }
+
+      // Toast
+      var toastTimer = null;
+      function showToast(msg, kind) {
+        toast.textContent = msg;
+        toast.className = 'stl-toast show' + (kind ? ' ' + kind : '');
+        if (toastTimer) { clearTimeout(toastTimer); }
+        toastTimer = setTimeout(function () { toast.className = 'stl-toast'; }, 6500);
+      }
+
+      // Checkout
+      async function startCheckout(btn, slug) {
+        var label = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening…';
+        var r = await M.checkout(slug);
+        if (!r.ok) {
+          if (r.status === 401) {
+            showToast('Please sign in first, then tap Buy again to complete your purchase.', 'err');
+          } else if (r.status === 404 || r.status === 0) {
+            showToast('Checkout is being finished for this pack. Email admin@timrx.live and we will set you up right away.', 'err');
+          } else {
+            showToast('Could not start checkout: ' + r.error + '. Please try again shortly.', 'err');
+          }
+          btn.disabled = false;
+          btn.innerHTML = label;
+        }
+        // On success the browser redirects to Mollie — no need to reset the button.
+      }
+
+      render();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>
