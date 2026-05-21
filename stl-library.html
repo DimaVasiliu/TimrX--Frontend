@@ -113,6 +113,15 @@
         radial-gradient(900px 440px at 18% -12%, rgba(240,235,224,0.05), transparent 64%),
         radial-gradient(700px 380px at 92% 0%, rgba(240,235,224,0.03), transparent 66%);
     }
+    .stl-hero .stl-wrap { position: relative; z-index: 2; }
+    .stl-hero-canvas {
+      position: absolute; top: 0; right: 0;
+      width: 52%; height: 100%;
+      z-index: 1; pointer-events: none; display: block;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 26%, #000 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 26%, #000 100%);
+    }
+    @media (max-width: 880px) { .stl-hero-canvas { display: none; } }
     .stl-pill {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 7px 14px; border-radius: 999px;
@@ -352,6 +361,7 @@
   <main class="stl-main">
     <!-- HERO -->
     <section class="stl-hero">
+      <canvas class="stl-hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
       <div class="stl-wrap">
         <span class="stl-pill"><i class="fa-solid fa-cube"></i> STL Library</span>
         <h1>Ready-to-Print <span class="grad">STL File Packs</span></h1>
@@ -690,6 +700,230 @@
       document.addEventListener('DOMContentLoaded', boot);
     } else {
       boot();
+    }
+  })();
+  </script>
+  <!-- Hero 3D animation — an object that "prints" itself layer by layer -->
+  <script>
+  (function () {
+    'use strict';
+    var canvas = document.getElementById('heroCanvas');
+    if (!canvas || !window.requestAnimationFrame) return;
+    if (window.innerWidth < 880) return;            // canvas is hidden on mobile
+
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js')
+      .then(function (THREE) { try { start(THREE); } catch (e) {} })
+      .catch(function () { /* three unavailable — hero keeps its gradient */ });
+
+    function start(THREE) {
+      var WARM = 0xf0ebe0;
+      var SEG = 90, LAYERS = 72, H = 4.3;
+
+      var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+      camera.position.set(0, 0.35, 8.4);
+      camera.lookAt(0, 0.1, 0);
+
+      var group = new THREE.Group();
+      scene.add(group);
+
+      // ── profiles (radius vs height) ─────────────────────────────
+      function interp(pts, t) {
+        for (var i = 0; i < pts.length - 1; i++) {
+          if (t <= pts[i + 1][0]) {
+            var span = pts[i + 1][0] - pts[i][0] || 1;
+            var k = (t - pts[i][0]) / span;
+            k = k * k * (3 - 2 * k);
+            return pts[i][1] + (pts[i + 1][1] - pts[i][1]) * k;
+          }
+        }
+        return pts[pts.length - 1][1];
+      }
+      var VASE = [[0,0.46],[0.16,0.86],[0.36,1.28],[0.58,0.98],[0.78,0.5],[0.9,0.54],[1,0.72]];
+      var GEM  = [[0,0.04],[0.3,1.22],[0.44,1.04],[0.66,0.66],[1,0.05]];
+      var profiles = [
+        { radius: function (t) { return interp(VASE, t); },          lobes: 6, lobeAmp: 0.05, twist: 1.15 },
+        { radius: function (t) { return 1.16 * Math.sin(Math.PI * t); }, lobes: 0, lobeAmp: 0,   twist: 0 },
+        { radius: function (t) { return interp(GEM, t); },           lobes: 8, lobeAmp: 0.06, twist: 0.5 },
+        { radius: function (t) { return 0.74 + 0.12 * Math.sin(Math.PI * t); }, lobes: 3, lobeAmp: 0.3, twist: 3.3 }
+      ];
+      var pIndex = 0;
+
+      // ── layer rings ─────────────────────────────────────────────
+      var rings = [];
+      for (var i = 0; i < LAYERS; i++) {
+        var geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3));
+        var mat = new THREE.LineBasicMaterial({
+          color: WARM, transparent: true, opacity: 0, depthWrite: false, depthTest: false });
+        var ring = new THREE.LineLoop(geo, mat);
+        ring.userData.t = i / (LAYERS - 1);
+        rings.push(ring);
+        group.add(ring);
+      }
+      function applyProfile(p) {
+        for (var i = 0; i < LAYERS; i++) {
+          var ring = rings[i];
+          var t = ring.userData.t;
+          var y = -H / 2 + t * H;
+          ring.userData.y = y;
+          var baseR = Math.max(0.001, p.radius(t));
+          var tw = p.twist * t;
+          var pos = ring.geometry.attributes.position.array;
+          for (var s = 0; s < SEG; s++) {
+            var a = s / SEG * Math.PI * 2;
+            var rr = baseR * (1 + p.lobeAmp * Math.cos(p.lobes * a));
+            pos[s * 3]     = rr * Math.cos(a + tw);
+            pos[s * 3 + 1] = y;
+            pos[s * 3 + 2] = rr * Math.sin(a + tw);
+          }
+          ring.geometry.attributes.position.needsUpdate = true;
+          ring.scale.setScalar(1);
+          ring.position.y = 0;
+        }
+      }
+      applyProfile(profiles[pIndex]);
+
+      // ── build plate ─────────────────────────────────────────────
+      var plateGeo = new THREE.BufferGeometry();
+      var plateArr = new Float32Array(SEG * 3);
+      for (var s2 = 0; s2 < SEG; s2++) {
+        var a2 = s2 / SEG * Math.PI * 2;
+        plateArr[s2 * 3]     = 1.75 * Math.cos(a2);
+        plateArr[s2 * 3 + 1] = -H / 2 - 0.07;
+        plateArr[s2 * 3 + 2] = 1.75 * Math.sin(a2);
+      }
+      plateGeo.setAttribute('position', new THREE.BufferAttribute(plateArr, 3));
+      group.add(new THREE.LineLoop(plateGeo, new THREE.LineBasicMaterial({
+        color: WARM, transparent: true, opacity: 0.14, depthWrite: false, depthTest: false })));
+
+      // ── ambient particles ──────────────────────────────────────
+      var pCount = 120, pArr = new Float32Array(pCount * 3);
+      for (var j = 0; j < pCount; j++) {
+        pArr[j * 3]     = (Math.random() - 0.5) * 9;
+        pArr[j * 3 + 1] = (Math.random() - 0.5) * 7;
+        pArr[j * 3 + 2] = (Math.random() - 0.5) * 6;
+      }
+      var pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pArr, 3));
+      var particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+        color: WARM, size: 0.032, transparent: true, opacity: 0.4,
+        blending: THREE.AdditiveBlending, depthWrite: false }));
+      scene.add(particles);
+
+      // ── sizing ──────────────────────────────────────────────────
+      function resize() {
+        var w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // ── mouse parallax ──────────────────────────────────────────
+      var mx = 0, my = 0, tmx = 0, tmy = 0;
+      window.addEventListener('mousemove', function (e) {
+        tmx = (e.clientX / window.innerWidth - 0.5) * 2;
+        tmy = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      var SETTLED = 0.32, PEAK = 1.0, EDGE = 0.45, FADEIN = 0.18;
+
+      // reduced motion: render one static, fully-formed frame and stop
+      if (reduce) {
+        for (var r0 = 0; r0 < LAYERS; r0++) rings[r0].material.opacity = SETTLED;
+        renderer.render(scene, camera);
+        return;
+      }
+
+      // ── animation cycle: build -> hold -> dissolve -> next shape ─
+      var BUILD = 4.6, HOLD = 3.0, DISS = 1.7;
+      var phase = 'build', pt = 0;
+
+      function setBuild(progress) {
+        var printY = -H / 2 + progress * H;
+        for (var i = 0; i < LAYERS; i++) {
+          var ring = rings[i], d = printY - ring.userData.y, op, sc = 1;
+          if (d < -FADEIN) op = 0;
+          else if (d < 0) op = PEAK * (d + FADEIN) / FADEIN;
+          else if (d < EDGE) { var k = 1 - d / EDGE; op = SETTLED + (PEAK - SETTLED) * k; sc = 1 + 0.045 * k; }
+          else op = SETTLED;
+          ring.material.opacity = op;
+          ring.scale.setScalar(sc);
+          ring.position.y = 0;
+        }
+      }
+      function setHold() {
+        for (var i = 0; i < LAYERS; i++) {
+          rings[i].material.opacity = SETTLED;
+          rings[i].scale.setScalar(1);
+          rings[i].position.y = 0;
+        }
+      }
+      function setDissolve(progress) {
+        for (var i = 0; i < LAYERS; i++) {
+          var ring = rings[i];
+          var local = progress * 1.5 - (1 - ring.userData.t) * 0.5;
+          local = local < 0 ? 0 : (local > 1 ? 1 : local);
+          ring.material.opacity = SETTLED * (1 - local);
+          ring.scale.setScalar(1 + local * 0.55);
+          ring.position.y = local * 0.65;
+        }
+      }
+
+      var clock = new THREE.Clock();
+      var running = true;
+
+      function loop() {
+        if (!running) return;
+        requestAnimationFrame(loop);
+        var dt = Math.min(clock.getDelta(), 0.05);
+
+        pt += dt;
+        if (phase === 'build') {
+          setBuild(Math.min(1, pt / BUILD));
+          if (pt >= BUILD) { phase = 'hold'; pt = 0; }
+        } else if (phase === 'hold') {
+          setHold();
+          if (pt >= HOLD) { phase = 'dissolve'; pt = 0; }
+        } else {
+          setDissolve(Math.min(1, pt / DISS));
+          if (pt >= DISS) {
+            phase = 'build'; pt = 0;
+            pIndex = (pIndex + 1) % profiles.length;
+            applyProfile(profiles[pIndex]);
+          }
+        }
+
+        group.rotation.y += dt * 0.3;
+        mx += (tmx - mx) * 0.04;
+        my += (tmy - my) * 0.04;
+        group.rotation.x = my * 0.22;
+        camera.position.x = mx * 0.7;
+        camera.position.y = 0.35 - my * 0.35;
+        camera.lookAt(0, 0.1, 0);
+        particles.rotation.y -= dt * 0.025;
+        particles.rotation.x = my * 0.1;
+
+        renderer.render(scene, camera);
+      }
+      loop();
+
+      function pause() { running = false; }
+      function resume() { if (!running && !document.hidden) { running = true; clock.getDelta(); loop(); } }
+      document.addEventListener('visibilitychange', function () { document.hidden ? pause() : resume(); });
+      try {
+        new IntersectionObserver(function (ents) {
+          if (ents[0] && ents[0].isIntersecting) resume(); else pause();
+        }, { threshold: 0 }).observe(canvas);
+      } catch (e) {}
     }
   })();
   </script>
