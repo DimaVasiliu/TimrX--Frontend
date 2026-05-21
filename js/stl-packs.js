@@ -17,8 +17,11 @@
   'use strict';
 
   // ── CATALOG ────────────────────────────────────────────────
-  // First entry (Airplanes) is your real pack. The rest are
-  // example rows — replace them with your real themed packs.
+  // Your real packs. Each slug MUST match (a) the backend catalog in
+  // backend/services/stl_pack_service.py and (b) the <slug>.zip file
+  // uploaded to the R2 bucket.
+  // priceGBP must match the backend price (backend re-checks at checkout).
+  // fileCount / sizeMB are display-only — set them to your real numbers.
   const STL_PACKS = [
     {
       slug: 'airplanes',
@@ -27,102 +30,37 @@
       blurb: 'Fighter jets, airliners and vintage propeller planes. Every model cleaned, watertight and ready to slice.',
       priceGBP: 19.99,
       fileCount: 240,
-      sizeMB: 1208,
+      sizeMB: 1100,
       tier: 'mega',
       r2Key: 'airplanes.zip',
       image: '',
       tags: ['airplane', 'jet', 'aircraft', 'aviation', 'plane', 'fighter']
     },
     {
-      slug: 'supercars',
-      title: 'Supercars & Classic Cars Pack',
-      category: 'Vehicles',
-      blurb: 'Hypercars, muscle cars and vintage classics — display-quality models scaled for desk and shelf prints.',
-      priceGBP: 14.99,
-      fileCount: 110,
-      sizeMB: 720,
-      tier: 'standard',
-      r2Key: 'supercars.zip',
-      image: '',
-      tags: ['car', 'supercar', 'vehicle', 'automotive']
-    },
-    {
-      slug: 'wild-animals',
-      title: 'Wild Animals Collection',
-      category: 'Animals',
-      blurb: 'Big cats, bears, birds and reptiles with print-friendly poses and stable bases.',
-      priceGBP: 9.99,
-      fileCount: 85,
-      sizeMB: 540,
-      tier: 'standard',
-      r2Key: 'wild-animals.zip',
-      image: '',
-      tags: ['animal', 'wildlife', 'creature', 'nature']
-    },
-    {
-      slug: 'tabletop-miniatures',
-      title: 'Tabletop Miniatures Mega Pack',
-      category: 'Tabletop',
-      blurb: 'Heroes, monsters and scenery sized for 28–32mm tabletop gaming. Resin and FDM friendly.',
-      priceGBP: 19.99,
-      fileCount: 180,
-      sizeMB: 950,
-      tier: 'mega',
-      r2Key: 'tabletop-miniatures.zip',
-      image: '',
-      tags: ['miniature', 'tabletop', 'dnd', 'wargaming', 'fantasy']
-    },
-    {
-      slug: 'spaceships',
-      title: 'Sci-Fi Spaceships Pack',
-      category: 'Sci-Fi',
-      blurb: 'Fighters, cruisers and stations with panelled hulls. Great for display and gaming fleets.',
-      priceGBP: 14.99,
-      fileCount: 95,
-      sizeMB: 680,
-      tier: 'standard',
-      r2Key: 'spaceships.zip',
-      image: '',
-      tags: ['spaceship', 'scifi', 'space', 'starship']
-    },
-    {
-      slug: 'architecture-landmarks',
-      title: 'Architecture & Landmarks Pack',
-      category: 'Architecture',
-      blurb: 'Famous landmarks and detailed buildings, hollowed and optimised for clean tower prints.',
-      priceGBP: 9.99,
-      fileCount: 60,
-      sizeMB: 430,
-      tier: 'standard',
-      r2Key: 'architecture-landmarks.zip',
-      image: '',
-      tags: ['architecture', 'building', 'landmark', 'city']
-    },
-    {
-      slug: 'home-decor',
-      title: 'Home & Desk Decor Pack',
+      slug: 'decorations',
+      title: 'Decorations STL Pack',
       category: 'Home & Decor',
-      blurb: 'Vases, planters, organisers and ornaments — useful, fast prints with no supports needed.',
-      priceGBP: 4.99,
-      fileCount: 35,
-      sizeMB: 210,
-      tier: 'starter',
-      r2Key: 'home-decor.zip',
+      blurb: 'Decorative pieces, ornaments and display models — cleaned, watertight and ready to print.',
+      priceGBP: 9.99,
+      fileCount: 80,
+      sizeMB: 500,
+      tier: 'standard',
+      r2Key: 'decorations.zip',
       image: '',
-      tags: ['decor', 'home', 'vase', 'planter', 'functional']
+      tags: ['decor', 'decoration', 'ornament', 'home', 'display']
     },
     {
-      slug: 'articulated-toys',
-      title: 'Articulated Toys Pack',
-      category: 'Toys',
-      blurb: 'Print-in-place flexi toys — dragons, fidgets and creatures that move straight off the bed.',
+      slug: 'animals',
+      title: 'Animals STL Pack',
+      category: 'Animals',
+      blurb: 'A collection of animal and creature models — print-friendly poses, watertight and ready to slice.',
       priceGBP: 9.99,
-      fileCount: 50,
-      sizeMB: 380,
+      fileCount: 80,
+      sizeMB: 500,
       tier: 'standard',
-      r2Key: 'articulated-toys.zip',
+      r2Key: 'animals.zip',
       image: '',
-      tags: ['toy', 'articulated', 'flexi', 'print-in-place']
+      tags: ['animal', 'animals', 'creature', 'wildlife', 'pet']
     }
   ];
 

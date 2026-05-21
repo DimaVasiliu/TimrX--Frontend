@@ -471,6 +471,7 @@
 
   <div class="stl-toast" id="stlToast" role="status" aria-live="polite"></div>
 
+  <script type="module" src="js/config.js"></script>
   <script src="js/site-shell.js?v=20260521a" defer></script>
   <script src="js/stl-packs.js?v=20260521a" defer></script>
   <script>
@@ -654,6 +655,29 @@
       }
 
       render();
+
+      // After a successful Mollie payment the user returns to
+      // /stl-library?purchased=<slug>. Confirm and start the download
+      // once the payment webhook has granted the entitlement.
+      var purchased = new URLSearchParams(window.location.search).get('purchased');
+      if (purchased) {
+        showToast('Payment complete — preparing your download…', 'ok');
+        var tries = 0;
+        (function tryDownload() {
+          tries += 1;
+          M.download(purchased).then(function (r) {
+            if (r.ok) {
+              showToast('Your download has started. Thank you!', 'ok');
+            } else if (r.status === 403 && tries < 6) {
+              setTimeout(tryDownload, 3000);
+            } else if (r.status === 403) {
+              showToast('Payment received. Your pack will be ready in a moment — refresh this page shortly to download.', 'ok');
+            } else {
+              showToast('Payment received. If your download does not start, email admin@timrx.live.', 'err');
+            }
+          });
+        })();
+      }
     }
 
     if (document.readyState === 'loading') {
