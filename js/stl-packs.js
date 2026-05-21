@@ -25,13 +25,13 @@
   const STL_PACKS = [
     {
       slug: 'airplanes',
-      title: 'Airplanes STL Mega Pack',
+      title: 'Airplanes STL Pack',
       category: 'Vehicles',
       blurb: 'Fighter jets, airliners and vintage propeller planes. Every model cleaned, watertight and ready to slice.',
-      priceGBP: 19.99,
-      fileCount: 240,
+      priceGBP: 3.99,
+      fileCount: 42,
       sizeMB: 1100,
-      tier: 'mega',
+      tier: 'standard',
       r2Key: 'airplanes.zip',
       image: '',
       tags: ['airplane', 'jet', 'aircraft', 'aviation', 'plane', 'fighter']
@@ -41,27 +41,15 @@
       title: 'Decorations STL Pack',
       category: 'Home & Decor',
       blurb: 'Decorative pieces, ornaments and display models — cleaned, watertight and ready to print.',
-      priceGBP: 9.99,
-      fileCount: 80,
+      priceGBP: 4.99,
+      fileCount: 66,
       sizeMB: 500,
       tier: 'standard',
       r2Key: 'decorations.zip',
       image: '',
       tags: ['decor', 'decoration', 'ornament', 'home', 'display']
-    },
-    {
-      slug: 'animals',
-      title: 'Animals STL Pack',
-      category: 'Animals',
-      blurb: 'A collection of animal and creature models — print-friendly poses, watertight and ready to slice.',
-      priceGBP: 9.99,
-      fileCount: 80,
-      sizeMB: 500,
-      tier: 'standard',
-      r2Key: 'animals.zip',
-      image: '',
-      tags: ['animal', 'animals', 'creature', 'wildlife', 'pet']
     }
+    // Animals: add this entry back once animals.zip is uploaded to R2.
   ];
 
   // ── ALL-ACCESS PASS ────────────────────────────────────────

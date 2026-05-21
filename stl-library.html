@@ -394,8 +394,9 @@
         <div class="stl-empty" id="packEmpty" style="display:none;">No packs match your search.</div>
       </section>
 
-      <!-- ALL ACCESS -->
-      <section class="stl-allaccess" id="allAccess">
+      <!-- ALL ACCESS — hidden until there are enough packs to justify a bundle.
+           Remove style="display:none" to bring it back, and set its price in js/stl-packs.js. -->
+      <section class="stl-allaccess" id="allAccess" style="display:none">
         <div>
           <h2><i class="fa-solid fa-unlock-keyhole"></i> All-Access Library Pass</h2>
           <p id="allAccessText">Unlock every pack on this page — plus every pack added in the future. One payment, lifetime access.</p>
