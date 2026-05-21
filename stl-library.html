@@ -101,7 +101,7 @@
       color: var(--stl-text);
     }
     .stl-page * { box-sizing: border-box; }
-    .stl-wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+    .stl-wrap { max-width: 1320px; margin: 0 auto; padding: 0 22px; }
     .stl-main { padding-bottom: 90px; }
 
     /* Hero */
@@ -209,56 +209,59 @@
       font-size: 0.9rem; width: 100%;
     }
 
-    /* Pack grid */
+    /* Pack grid — compact tiles, ~7 columns on desktop */
     .stl-grid {
-      display: grid; gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      display: grid; gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
     }
     .stl-card {
       display: flex; flex-direction: column;
-      border: 1px solid var(--stl-line); border-radius: var(--stl-radius);
+      border: 1px solid var(--stl-line); border-radius: 13px;
       background: var(--stl-surface); overflow: hidden;
       transition: transform .14s ease, border-color .14s ease;
     }
-    .stl-card:hover { transform: translateY(-4px); border-color: var(--stl-line-strong); }
+    .stl-card:hover { transform: translateY(-3px); border-color: var(--stl-line-strong); }
     .stl-card-thumb {
-      position: relative; aspect-ratio: 16 / 10;
+      position: relative; aspect-ratio: 4 / 3;
       display: flex; align-items: center; justify-content: center;
     }
     .stl-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .stl-card-thumb .ph-icon { font-size: 3.2rem; color: rgba(240,235,224,0.5); }
+    .stl-card-thumb .ph-icon { font-size: 2.1rem; color: rgba(240,235,224,0.5); }
     .stl-tier {
-      position: absolute; top: 12px; left: 12px;
-      padding: 4px 11px; border-radius: 999px;
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      position: absolute; top: 8px; left: 8px;
+      padding: 3px 8px; border-radius: 999px;
+      font-size: 0.57rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
       background: rgba(10,10,11,0.62); color: var(--stl-warm);
       border: 1px solid var(--stl-line); backdrop-filter: blur(4px);
     }
     .stl-tier.mega { background: var(--stl-warm); color: var(--stl-ink); border-color: transparent; }
     .stl-card-cat {
-      position: absolute; bottom: 12px; left: 12px;
-      padding: 4px 11px; border-radius: 999px;
-      font-size: 0.7rem; font-weight: 600;
+      position: absolute; bottom: 8px; left: 8px;
+      padding: 3px 8px; border-radius: 999px;
+      font-size: 0.6rem; font-weight: 600;
       background: rgba(10,10,11,0.62); color: var(--stl-warm);
       border: 1px solid var(--stl-line); backdrop-filter: blur(4px);
     }
-    .stl-card-body { padding: 17px 17px 19px; display: flex; flex-direction: column; flex: 1; }
-    .stl-card-body h3 { margin: 0 0 7px; font-size: 1.06rem; font-weight: 800; }
-    .stl-card-body .blurb { margin: 0; color: var(--stl-muted); font-size: 0.87rem; line-height: 1.55; flex: 1; }
-    .stl-card-meta {
-      display: flex; gap: 16px; margin: 14px 0 15px;
-      font-size: 0.8rem; color: var(--stl-muted);
+    .stl-card-body { padding: 11px 12px 13px; display: flex; flex-direction: column; flex: 1; }
+    .stl-card-body h3 { margin: 0 0 5px; font-size: 0.9rem; font-weight: 800; line-height: 1.25; }
+    .stl-card-body .blurb {
+      margin: 0; color: var(--stl-muted); font-size: 0.76rem; line-height: 1.4; flex: 1;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .stl-card-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .stl-card-meta {
+      display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 9px 0 10px;
+      font-size: 0.68rem; color: var(--stl-muted);
+    }
+    .stl-card-meta span { display: inline-flex; align-items: center; gap: 5px; }
     .stl-card-meta i { color: var(--stl-warm-dim); }
-    .stl-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .stl-price { font-size: 1.4rem; font-weight: 800; }
-    .stl-price small { font-size: 0.72rem; font-weight: 600; color: var(--stl-muted); display: block; }
+    .stl-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .stl-price { font-size: 1.02rem; font-weight: 800; line-height: 1.05; }
+    .stl-price small { font-size: 0.58rem; font-weight: 600; color: var(--stl-muted); display: block; }
     .stl-buy {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 18px; border-radius: 11px; border: 0; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 9px; border: 0; cursor: pointer;
       background: var(--stl-warm);
-      color: var(--stl-ink); font-size: 0.9rem; font-weight: 700;
+      color: var(--stl-ink); font-size: 0.78rem; font-weight: 700;
       transition: background .12s ease;
     }
     .stl-buy:hover { background: #fbf8f1; }
@@ -394,9 +397,8 @@
         <div class="stl-empty" id="packEmpty" style="display:none;">No packs match your search.</div>
       </section>
 
-      <!-- ALL ACCESS — hidden until there are enough packs to justify a bundle.
-           Remove style="display:none" to bring it back, and set its price in js/stl-packs.js. -->
-      <section class="stl-allaccess" id="allAccess" style="display:none">
+      <!-- ALL ACCESS -->
+      <section class="stl-allaccess" id="allAccess">
         <div>
           <h2><i class="fa-solid fa-unlock-keyhole"></i> All-Access Library Pass</h2>
           <p id="allAccessText">Unlock every pack on this page — plus every pack added in the future. One payment, lifetime access.</p>
@@ -474,7 +476,7 @@
 
   <script type="module" src="js/config.js"></script>
   <script src="js/site-shell.js?v=20260521a" defer></script>
-  <script src="js/stl-packs.js?v=20260521a" defer></script>
+  <script src="js/stl-packs.js?v=20260521h" defer></script>
   <script>
   (function () {
     'use strict';

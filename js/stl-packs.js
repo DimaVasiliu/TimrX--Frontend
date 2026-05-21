@@ -134,9 +134,9 @@
   const ALL_ACCESS = {
     slug: '*',
     title: 'All-Access Library Pass',
-    blurb: 'Unlock every pack on this page — plus every pack added in the future. One payment, lifetime access.',
-    priceGBP: 49,
-    fullPriceGBP: 69
+    blurb: 'Buy every pack on this page in one go — plus every pack added in the future. One payment, lifetime access.',
+    priceGBP: 23.99,
+    fullPriceGBP: 104
   };
 
   // ── API ────────────────────────────────────────────────────
