@@ -29,15 +29,15 @@
       tags: ['airplane', 'jet', 'aircraft', 'plane'] },
     { slug: 'animals', title: 'Animals STL Pack', category: 'Animals',
       blurb: 'Animal and creature models with print-friendly poses and stable bases.',
-      priceGBP: 3.99, fileCount: 40, sizeMB: 0, r2Key: 'animals.zip', image: '',
+      priceGBP: 3.99, fileCount: 138, sizeMB: 0, r2Key: 'animals.zip', image: '',
       tags: ['animal', 'creature', 'wildlife', 'pet'] },
     { slug: 'anime', title: 'Anime STL Pack', category: 'Characters',
       blurb: 'Anime and manga characters, ready for FDM or resin printing.',
-      priceGBP: 3.99, fileCount: 40, sizeMB: 0, r2Key: 'anime.zip', image: '',
+      priceGBP: 3.99, fileCount: '100+', sizeMB: 0, r2Key: 'anime.zip', image: '',
       tags: ['anime', 'manga', 'character'] },
     { slug: 'articulated-toys', title: 'Articulated Toys Pack', category: 'Toys',
       blurb: 'Print-in-place articulated toys and creatures that move straight off the bed.',
-      priceGBP: 3.99, fileCount: 40, sizeMB: 0, r2Key: 'articulated-toys.zip', image: '',
+      priceGBP: 3.99, fileCount: 173, sizeMB: 0, r2Key: 'articulated-toys.zip', image: '',
       tags: ['articulated', 'flexi', 'toy', 'print-in-place'] },
     { slug: 'games', title: 'Games STL Pack', category: 'Gaming',
       blurb: 'Characters and props from popular video games, print-ready.',
@@ -45,7 +45,7 @@
       tags: ['game', 'gaming', 'video game'] },
     { slug: 'busts', title: 'Busts STL Pack', category: 'Characters',
       blurb: 'Detailed character busts sized for display and resin printing.',
-      priceGBP: 3.99, fileCount: 40, sizeMB: 0, r2Key: 'busts.zip', image: '',
+      priceGBP: 3.99, fileCount: 182, sizeMB: 0, r2Key: 'busts.zip', image: '',
       tags: ['bust', 'character', 'portrait'] },
     { slug: 'scenes', title: 'Scenes STL Pack', category: 'Scenes',
       blurb: 'Complete themed scenes to print and assemble.',
@@ -211,6 +211,29 @@
     }
   }
 
+  /* List the packs the signed-in user owns.  -> { ok, ownsAll, slugs:[...] }
+     Backend route: GET /api/stl/my-packs */
+  async function myPacks() {
+    try {
+      var res = await _fetch(BACKEND + '/api/stl/my-packs', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (res.ok && data && data.ok) {
+        return {
+          ok: true,
+          ownsAll: !!data.owns_all_access,
+          slugs: (data.packs || []).map(function (p) { return p.slug; })
+        };
+      }
+      return { ok: false, ownsAll: false, slugs: [] };
+    } catch (e) {
+      return { ok: false, ownsAll: false, slugs: [] };
+    }
+  }
+
   // ── Export ─────────────────────────────────────────────────
   window.STL_PACKS = STL_PACKS;
   window.STLMarket = {
@@ -221,6 +244,7 @@
     formatPrice: formatPrice,
     formatSize: formatSize,
     checkout: checkout,
-    download: download
+    download: download,
+    myPacks: myPacks
   };
 })();

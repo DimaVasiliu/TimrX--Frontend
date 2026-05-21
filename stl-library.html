@@ -266,6 +266,11 @@
     .stl-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .stl-price { font-size: 1.02rem; font-weight: 800; line-height: 1.05; }
     .stl-price small { font-size: 0.58rem; font-weight: 600; color: var(--stl-muted); display: block; }
+    .stl-price-own {
+      font-size: 0.8rem; font-weight: 700; color: var(--stl-warm-dim);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .stl-price-own i { color: var(--stl-warm); }
     .stl-buy {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 12px; border-radius: 9px; border: 0; cursor: pointer;
@@ -486,7 +491,7 @@
 
   <script type="module" src="js/config.js"></script>
   <script src="js/site-shell.js?v=20260521a" defer></script>
-  <script src="js/stl-packs.js?v=20260521h" defer></script>
+  <script src="js/stl-packs.js?v=20260521j" defer></script>
   <script>
   (function () {
     'use strict';
@@ -515,9 +520,10 @@
       var toast = document.getElementById('stlToast');
       var activeCat = 'All';
       var query = '';
+      var ownsAll = false, owned = {};
 
       // Hero stats
-      var totalFiles = M.packs.reduce(function (n, p) { return n + (p.fileCount || 0); }, 0);
+      var totalFiles = M.packs.reduce(function (n, p) { return n + (parseInt(p.fileCount, 10) || 0); }, 0);
       document.getElementById('statPacks').textContent = M.packs.length;
       document.getElementById('statFiles').textContent = (totalFiles >= 1000 ? (Math.floor(totalFiles / 100) * 100) + '+' : totalFiles);
 
@@ -545,6 +551,7 @@
           : '<i class="fa-solid ' + icon + ' ph-icon"></i>';
         var thumbStyle = p.image ? '' : ' style="background:' + gradient(p.slug) + '"';
         var tier = p.tier ? '<span class="stl-tier ' + p.tier + '">' + p.tier + '</span>' : '';
+        var ownsThis = ownsAll || !!owned[p.slug];
         return '' +
           '<article class="stl-card" id="pack-' + p.slug + '">' +
             '<div class="stl-card-thumb"' + thumbStyle + '>' + thumb + tier +
@@ -558,8 +565,12 @@
                 (p.sizeMB ? '<span><i class="fa-solid fa-file-zipper"></i> ' + M.formatSize(p.sizeMB) + '</span>' : '') +
               '</div>' +
               '<div class="stl-card-foot">' +
-                '<div class="stl-price">' + M.formatPrice(p.priceGBP) + '<small>one-time</small></div>' +
-                '<button class="stl-buy" data-slug="' + p.slug + '"><i class="fa-solid fa-cart-shopping"></i> Buy</button>' +
+                (ownsThis
+                  ? '<div class="stl-price stl-price-own"><i class="fa-solid fa-circle-check"></i> Owned</div>'
+                  : '<div class="stl-price">' + M.formatPrice(p.priceGBP) + '<small>one-time</small></div>') +
+                (ownsThis
+                  ? '<button class="stl-buy" data-dl="' + p.slug + '"><i class="fa-solid fa-download"></i> Download</button>'
+                  : '<button class="stl-buy" data-slug="' + p.slug + '"><i class="fa-solid fa-cart-shopping"></i> Buy</button>') +
               '</div>' +
             '</div>' +
           '</article>';
@@ -584,10 +595,11 @@
         });
         grid.innerHTML = list.map(cardHTML).join('');
         empty.style.display = list.length ? 'none' : 'block';
-        grid.querySelectorAll('.stl-buy').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            startCheckout(btn, btn.getAttribute('data-slug'));
-          });
+        grid.querySelectorAll('.stl-buy[data-slug]').forEach(function (btn) {
+          btn.addEventListener('click', function () { startCheckout(btn, btn.getAttribute('data-slug')); });
+        });
+        grid.querySelectorAll('.stl-buy[data-dl]').forEach(function (btn) {
+          btn.addEventListener('click', function () { startDownload(btn, btn.getAttribute('data-dl')); });
         });
       }
 
@@ -670,26 +682,56 @@
         // On success the browser redirects to Mollie — no need to reset the button.
       }
 
-      render();
+      // Fetch which packs the signed-in user owns, then re-render so owned
+      // packs show a Download button instead of Buy.
+      function refreshOwned() {
+        return M.myPacks().then(function (r) {
+          ownsAll = !!r.ownsAll;
+          owned = {};
+          (r.slugs || []).forEach(function (s) { owned[s] = true; });
+          render();
+        });
+      }
 
-      // After a successful Mollie payment the user returns to
-      // /stl-library?purchased=<slug>. Confirm and start the download
-      // once the payment webhook has granted the entitlement.
+      async function startDownload(btn, slug) {
+        var label = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> …';
+        var r = await M.download(slug);
+        if (!r.ok) {
+          if (r.status === 403) showToast('This pack is not on your account yet. If you just paid, give it a minute.', 'err');
+          else if (r.status === 401) showToast('Please sign in to download your pack.', 'err');
+          else showToast('Could not start the download: ' + r.error + '.', 'err');
+        }
+        btn.disabled = false;
+        btn.innerHTML = label;
+      }
+
+      render();
+      refreshOwned();   // owned packs get a Download button
+
+      // After a Mollie payment the user returns to /stl-library?purchased=<slug>.
+      // Strip the param immediately so refreshing the page never replays this.
       var purchased = new URLSearchParams(window.location.search).get('purchased');
       if (purchased) {
+        try {
+          var pu = new URL(window.location.href);
+          pu.searchParams.delete('purchased');
+          window.history.replaceState({}, document.title, pu.pathname + pu.search + pu.hash);
+        } catch (e) {}
         showToast('Payment complete — preparing your download…', 'ok');
         var tries = 0;
         (function tryDownload() {
           tries += 1;
           M.download(purchased).then(function (r) {
             if (r.ok) {
-              showToast('Your download has started. Thank you!', 'ok');
+              showToast('Your download has started — thank you!', 'ok');
+              refreshOwned();
             } else if (r.status === 403 && tries < 6) {
               setTimeout(tryDownload, 3000);
-            } else if (r.status === 403) {
-              showToast('Payment received. Your pack will be ready in a moment — refresh this page shortly to download.', 'ok');
             } else {
-              showToast('Payment received. If your download does not start, email admin@timrx.live.', 'err');
+              showToast('Payment received — your pack now has a Download button on its card below.', 'ok');
+              refreshOwned();
             }
           });
         })();
