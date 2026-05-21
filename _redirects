@@ -51,6 +51,10 @@
 # Tool rewrites
 /avi-to-mp4     /converters/avi-to-mp4  302
 
+# Static STL storefront clean URL. Keep this explicit so /stl-library is
+# served by the Pages asset instead of falling through to a generic handler.
+/stl-library   /stl-library.html        200
+
 # ----------------------------
 # Trailing-slash normalization (no trailing slashes)
 # ----------------------------
