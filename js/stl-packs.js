@@ -16,6 +16,8 @@
 (function () {
   'use strict';
 
+  const STL_PACK_ASSET_VERSION = '20260522a';
+
   // ── CATALOG ────────────────────────────────────────────────
   // Your real packs. Each slug MUST match (a) the backend catalog in
   // backend/services/stl_pack_service.py and (b) the <slug>.zip file
@@ -237,6 +239,7 @@
   // ── Export ─────────────────────────────────────────────────
   window.STL_PACKS = STL_PACKS;
   window.STLMarket = {
+    assetVersion: STL_PACK_ASSET_VERSION,
     packs: STL_PACKS,
     allAccess: ALL_ACCESS,
     getPack: getPack,
