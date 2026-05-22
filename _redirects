@@ -1,6 +1,20 @@
 # ----------------------------
-# Prefer host Pretty URLs, with targeted 200 rewrites for paths that need them
+# Prefer explicit static rewrites for primary app/tool pages.
+# Cloudflare Pages' implicit Pretty URL lookup has returned intermittent
+# empty 500s for these paths, so keep the clean URL but serve the file directly.
 # ----------------------------
+/hub                         /hub.html                      200
+/3dprint                     /3dprint.html                  200
+/ai-image-generator          /ai-image-generator.html       200
+/ai-video-generator          /ai-video-generator.html       200
+/ai-3d-generator             /ai-3d-generator.html          200
+/text-to-3d                  /text-to-3d.html               200
+/image-to-3d                 /image-to-3d.html              200
+/3d-print-model-generator    /3d-print-model-generator.html 200
+/ai-animation-generator      /ai-animation-generator.html   200
+/ai-game-assets              /ai-game-assets.html           200
+/ai-texture-generator        /ai-texture-generator.html     200
+/pricing                     /pricing.html                  200
 
 # ----------------------------
 # Canonical: redirect .html -> clean URL (301 for SEO)
@@ -11,8 +25,6 @@
 /company.html     /company       301
 /converter.html   /converter     301
 /avi-to-mp4.html  /converters/avi-to-mp4    301
-/hub.html         /hub           301
-/3dprint.html     /3dprint       301
 /community.html   /community     301
 /prompts.html     /prompts       301
 /docs.html        /docs          301
@@ -23,20 +35,10 @@
 /privacy.html     /privacy       301
 /admin.html       /admin         301
 /admin-edit.html  /admin/edit    301
-/ai-image-generator.html        /ai-image-generator       301
-/ai-video-generator.html        /ai-video-generator       301
-/ai-3d-generator.html           /ai-3d-generator          301
-/text-to-3d.html                /text-to-3d               301
-/image-to-3d.html               /image-to-3d              301
-/3d-print-model-generator.html  /3d-print-model-generator 301
 /3dprint-demo-video.html        /3dprint-demo-video       301
 /ai-tools.html                  /ai-tools                 301
 /ai-knowledge.html              /ai-knowledge             301
-/pricing.html                   /pricing                  301
 /gallery.html                   /gallery                  301
-/ai-animation-generator.html    /ai-animation-generator   301
-/ai-game-assets.html            /ai-game-assets           301
-/ai-texture-generator.html      /ai-texture-generator     301
 /stl-library.html               /stl-library              301
 /stl-generator.html  /stl-generator  301
 /veo-3-video-generator.html  /veo-3-video-generator  301
