@@ -1,5 +1,6 @@
 import { findSeoPage, generateSeoSitemap } from './seo-pages.js';
 import { renderSeoPage } from './seo-template.js';
+import { OUTAGE_PAGES } from './outage-pages.js';
 
 /**
  * TimrX Blog Proxy Worker
@@ -99,6 +100,34 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const pathname = url.pathname;
+
+    // ─────────────────────────────────────────────────────────────
+    // 0z. OUTAGE WORKAROUND — Cloudflare Pages currently returns empty
+    // HTTP 500s when serving the clean URLs of 12 specific pages
+    // (/hub, /3dprint, /pricing and the AI/3D tool pages). Until Pages
+    // is fixed, serve those pages directly from the embedded snapshot
+    // in outage-pages.js.
+    //
+    // TO REVERT once Cloudflare Pages serves these pages again:
+    //   1. delete this block
+    //   2. delete the `import { OUTAGE_PAGES }` line
+    //   3. delete outage-pages.js
+    //   4. remove the matching 12 routes from wrangler.toml, then redeploy
+    // ─────────────────────────────────────────────────────────────
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const outageKey = pathname.replace(/\/+$/, '') || '/';
+      const outageHtml = OUTAGE_PAGES[outageKey];
+      if (outageHtml !== undefined) {
+        return new Response(request.method === 'HEAD' ? null : outageHtml, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+            'X-TimrX-Worker': 'outage-pagefix',
+          },
+        });
+      }
+    }
 
     // ─────────────────────────────────────────────────────────────
     // 0. Handle permanent redirects for old/broken URLs (GSC 404 fixes)
