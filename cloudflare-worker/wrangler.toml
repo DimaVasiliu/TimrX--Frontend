@@ -13,7 +13,6 @@ routes = [
   { pattern = "timrx.live/rss.xml", zone_name = "timrx.live" },
   { pattern = "timrx.live/sitemap-blogs.xml", zone_name = "timrx.live" },
   { pattern = "timrx.live/sitemap.xml", zone_name = "timrx.live" },
-  { pattern = "timrx.live/sitemap-pages.xml", zone_name = "timrx.live" },
   { pattern = "timrx.live/sitemap-recent.xml", zone_name = "timrx.live" },
   { pattern = "timrx.live/robots.txt", zone_name = "timrx.live" },
   { pattern = "timrx.live/tools*", zone_name = "timrx.live" },

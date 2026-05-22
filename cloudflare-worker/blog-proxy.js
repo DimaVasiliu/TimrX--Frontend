@@ -19,7 +19,6 @@ import { OUTAGE_PAGES } from './outage-pages.js';
  * - /sitemap-blogs.xml     → Blog sitemap (proxied from /sitemap.xml)
  * - /robots.txt            → Dynamic robots.txt from backend
  * - /sitemap.xml           → Sitemap index from backend
- * - /sitemap-pages.xml     → Pages sitemap from backend
  * - /sitemap-recent.xml    → Recent posts sitemap from backend
  * - /api/*                 → API endpoints (no caching)
  *
@@ -35,7 +34,6 @@ import { OUTAGE_PAGES } from './outage-pages.js';
  *    - timrx.live/rss.xml
  *    - timrx.live/sitemap-blogs.xml
  *    - timrx.live/sitemap.xml
- *    - timrx.live/sitemap-pages.xml
  *    - timrx.live/sitemap-recent.xml
  *    - timrx.live/robots.txt
  *    - timrx.live/api/*
@@ -267,8 +265,7 @@ ${generateSeoSitemap()}
     // 8. Proxy dynamic SEO files to backend
     //    (sitemap index, page/recent sitemaps)
     // ─────────────────────────────────────────────────────────────
-    if (pathname === '/sitemap-pages.xml' ||
-        pathname === '/sitemap-recent.xml') {
+    if (pathname === '/sitemap-recent.xml') {
       return proxyToBackend(request, `${BLOG_ORIGIN}${pathname}`);
     }
 
