@@ -1,7 +1,7 @@
 {
-  "name": "TimrX - AI 3D Model Generator",
+  "name": "TimrX — 3D, Image & Video Generation Platform",
   "short_name": "TimrX",
-  "description": "Create 3D models from text or images with AI. Text-to-3D, image-to-3D, remeshing, texturing, and GLB/STL export. No Blender required.",
+  "description": "Generate 3D models, images and video in your browser with multiple engines. Remesh, texture, animate and export printable STL, OBJ and GLB files.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

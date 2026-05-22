@@ -6,10 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <!-- Primary Meta Tags -->
-<title>TimrX — AI Creative Platform for 3D, Video & Image Generation</title>
-<meta name="title" content="TimrX — AI Creative Platform for 3D, Video & Image Generation" />
-<meta name="description" content="Generate 3D-printable models with AI and order the print straight from TimrX — we print, ship and deliver. Browser-based workspace for 3D, images, and video with no Blender required." />
-<meta name="keywords" content="TimrX, timrx, AI 3D generator, AI 3D printing service, print on demand 3D, multi-color 3D printing, order 3D print online, text to video AI, image to video AI, AI image generator, image to 3D, AI platform, Dima Vasiliu, text to 3D, AI creative platform, AI video generation, 3D model generator" />
+<title>Generate 3D Models, Images & Videos Online | TimrX</title>
+<meta name="title" content="Generate 3D Models, Images & Videos Online | TimrX" />
+<meta name="description" content="Browser-based generation platform: create 3D models from text or images, generate images and video with Veo 3, Seedance and Meshy, then remesh, texture, animate and export STL, OBJ and GLB." />
 <meta name="author" content="Dima Vasiliu" />
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 <meta name="googlebot" content="index, follow" />
@@ -31,20 +30,20 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://timrx.live/" />
-<meta property="og:title" content="TimrX — AI Creative Platform · Create &amp; Order 3D Prints" />
-<meta property="og:description" content="Create AI 3D models ready to print and order them straight on TimrX — we print, ship and deliver. Plus AI image and video generation in one browser workspace." />
+<meta property="og:title" content="Generate 3D Models, Images &amp; Videos Online" />
+<meta property="og:description" content="Create 3D models, images and video in your browser with multiple generation engines. Remesh, texture, animate and export printable STL, OBJ and GLB files." />
 <meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="TimrX AI 3D Generator - Create 3D Models from Text and Images" />
+<meta property="og:image:alt" content="TimrX — generate 3D models, images and video online" />
 <meta property="og:site_name" content="TimrX" />
 <meta property="og:locale" content="en_GB" />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:url" content="https://timrx.live/" />
-<meta name="twitter:title" content="TimrX — AI Creative Platform · Create &amp; Order 3D Prints" />
-<meta name="twitter:description" content="Create AI 3D models ready to print and order them straight on TimrX — we print, ship and deliver. Plus AI image and video generation." />
+<meta name="twitter:title" content="Generate 3D Models, Images &amp; Videos Online" />
+<meta name="twitter:description" content="Browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export printable STL, OBJ and GLB." />
 <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
 <meta name="twitter:creator" content="@timrx_live" />
 
@@ -57,130 +56,93 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-<!-- Structured Data - WebSite (for sitelinks search box) -->
+<!-- Structured Data - consolidated entity graph (Organization + Person + WebSite + WebApplication + WebPage) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "TimrX",
-  "alternateName": ["TimrX 3D Print Hub", "AI 3D Generator"],
-  "url": "https://timrx.live",
-  "description": "AI-powered platform for 3D model generation. Create 3D models from text or images, remesh, texture, and export to GLB/STL for 3D printing and game development.",
-  "publisher": {
-    "@type": "Person",
-    "name": "Dima Vasiliu",
-    "url": "https://timrx.live/about"
-  },
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://timrx.live/hub?search={search_term_string}"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://timrx.live/#organization",
+      "name": "TimrX",
+      "url": "https://timrx.live/",
+      "logo": "https://timrx.live/img/favicon-logo-512.png",
+      "description": "TimrX is a browser-based generation platform for 3D models, images, video and printable STL files.",
+      "foundingDate": "2024",
+      "founder": { "@id": "https://timrx.live/#founder" },
+      "sameAs": [
+        "https://github.com/DimaVasiliu",
+        "https://www.linkedin.com/in/dumitru-vasiliu"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "admin@timrx.live"
+      }
     },
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
-
-<!-- Structured Data - SoftwareApplication (Primary focus) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "TimrX AI 3D Generator",
-  "applicationCategory": "DesignApplication",
-  "applicationSubCategory": "3D Modeling",
-  "operatingSystem": "Web Browser",
-  "url": "https://timrx.live",
-  "description": "AI-powered 3D model generator. Create 3D models from text prompts or images. Features text-to-3D, image-to-3D, remeshing, texturing, and export to GLB/STL/USDZ.",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "GBP",
-    "description": "Free tier with credit-based pricing for additional generations"
-  },
-  "featureList": [
-    "Text to 3D model generation",
-    "Image to 3D model conversion",
-    "AI image generation (OpenAI, Google Imagen)",
-    "AI video generation (Veo 3.1, Seedance 2.0, Seedance 1.5 Pro)",
-    "AI texture generation",
-    "Mesh remeshing and optimization",
-    "GLB/GLTF/STL/USDZ export",
-    "Real-time 3D preview",
-    "Print-ready model output",
-    "No Blender required"
-  ],
-  "screenshot": "https://timrx.live/img/OG_APP.png",
-  "author": {
-    "@type": "Person",
-    "name": "Dima Vasiliu",
-    "url": "https://timrx.live/about"
-  }
-}
-</script>
-
-<!-- Structured Data - Person (Creator) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Dima Vasiliu",
-  "alternateName": "Dumitru Vasiliu",
-  "url": "https://timrx.live/about",
-  "image": "https://timrx.live/img/dima.jpg",
-  "jobTitle": "Full-Stack Developer",
-  "description": "Full-stack developer and creator of TimrX, an AI-powered 3D generation platform. Specializes in Three.js, Flask, and modern web technologies.",
-  "sameAs": [
-    "https://github.com/DimaVasiliu",
-    "https://www.linkedin.com/in/dumitru-vasiliu"
-  ],
-  "knowsAbout": [
-    "Three.js",
-    "WebGL",
-    "Python",
-    "Flask",
-    "AI Integration",
-    "3D Printing",
-    "Full-Stack Development",
-    "Web Performance"
-  ],
-  "worksFor": {
-    "@type": "Organization",
-    "name": "TimrX",
-    "url": "https://timrx.live"
-  }
-}
-</script>
-
-<!-- Structured Data - Organization -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "TimrX",
-  "alternateName": "TimrX 3D Print Hub",
-  "url": "https://timrx.live",
-  "logo": "https://timrx.live/img/logo.png",
-  "description": "TimrX is an AI creative platform for generating 3D models, images, and videos using advanced AI tools.",
-  "founder": {
-    "@type": "Person",
-    "name": "Dima Vasiliu",
-    "jobTitle": "Full Stack Developer",
-    "url": "https://timrx.live"
-  },
-  "foundingDate": "2024",
-  "sameAs": [
-    "https://github.com/DimaVasiliu",
-    "https://www.linkedin.com/in/dumitru-vasiliu"
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer support",
-    "email": "admin@timrx.live"
-  },
-  "areaServed": "Worldwide",
-  "serviceType": ["AI 3D Generation", "Text to 3D", "Image to 3D", "Text to Video", "Image to Video", "AI Image Generation", "AI Video Generation", "3D Printing Service", "Multi-Color 3D Printing", "Print on Demand"]
+    {
+      "@type": "Person",
+      "@id": "https://timrx.live/#founder",
+      "name": "Dima Vasiliu",
+      "alternateName": "Dumitru Vasiliu",
+      "url": "https://timrx.live/about",
+      "image": "https://timrx.live/img/dima.jpg",
+      "jobTitle": "Founder & Developer",
+      "worksFor": { "@id": "https://timrx.live/#organization" },
+      "knowsAbout": ["3D generation", "WebGL", "Three.js", "AI integration", "3D printing", "Full-stack development"],
+      "sameAs": [
+        "https://github.com/DimaVasiliu",
+        "https://www.linkedin.com/in/dumitru-vasiliu"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://timrx.live/#website",
+      "url": "https://timrx.live/",
+      "name": "TimrX",
+      "publisher": { "@id": "https://timrx.live/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://timrx.live/hub?search={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://timrx.live/#app",
+      "name": "TimrX",
+      "url": "https://timrx.live/",
+      "applicationCategory": "DesignApplication",
+      "applicationSubCategory": "3D Modeling",
+      "operatingSystem": "Web browser",
+      "browserRequirements": "Requires a modern web browser. No install needed.",
+      "publisher": { "@id": "https://timrx.live/#organization" },
+      "screenshot": "https://timrx.live/img/OG_APP.png",
+      "featureList": [
+        "Text-to-3D and image-to-3D model generation (Meshy 5 and 6)",
+        "AI image generation (FLUX, Google Imagen, Ideogram, Recraft, Stable Diffusion, DALL-E)",
+        "AI video generation — text-to-video and image-to-video (Veo 3, Seedance)",
+        "Remesh, retopology and refine for 3D meshes",
+        "PBR texture generation from text or images",
+        "Auto-rigging and 3D animation",
+        "Print-readiness check (wall thickness, overhangs, print score)",
+        "Multi-color paint (MCP) — full-color 3MF for AMS and MMU",
+        "3D file conversion and STL / OBJ / GLB / GLTF / USDZ export",
+        "Downloadable ready-to-print STL packs",
+        "Game-ready 3D asset generation for Unity, Unreal and Blender",
+        "3D printing on demand — print, ship and deliver"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://timrx.live/#webpage",
+      "url": "https://timrx.live/",
+      "name": "Generate 3D Models, Images & Videos Online | TimrX",
+      "isPartOf": { "@id": "https://timrx.live/#website" },
+      "about": { "@id": "https://timrx.live/#organization" },
+      "primaryImageOfPage": "https://timrx.live/img/OG_APP.png"
+    }
+  ]
 }
 </script>
 
@@ -275,7 +237,7 @@
       "name": "What is TimrX?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "TimrX is an AI creative platform built by full-stack developer Dima Vasiliu. It supports text-to-3D, image-to-3D, text-to-video, image-to-video, and AI image generation — all directly in the browser."
+        "text": "TimrX is a browser-based generation platform built by developer Dima Vasiliu. It supports text-to-3D, image-to-3D, text-to-video, image-to-video, and AI image generation — all directly in the browser."
       }
     },
     {
@@ -463,7 +425,7 @@
         <div class="hero-stage">
               <!-- decor -->
             <div class="hero-plate hide-mobile" aria-hidden="true"></div>
-            <h2 class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</h2>
+            <div class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</div>
             <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
             <ul class="hero-list" aria-label="Capabilities">
                 <li><a href="#works">WEB DEVELOPMENT</a></li>
@@ -515,12 +477,12 @@
 
           <!-- Left: Content -->
           <div class="pf-content">
-            <span class="pf-badge"><span class="pf-badge-dot"></span>AI Creative Platform</span>
-            <h1 class="pf-heading">TimrX &mdash; AI Creative Platform for 3D, Video &amp; Image Generation</h1>
-            <p class="pf-sub">Built by full-stack developer Dima Vasiliu. Generate 3D models, images, and videos with text-to-video, image-to-video, and image-to-3D &mdash; directly in the browser.</p>
+            <span class="pf-badge"><span class="pf-badge-dot"></span>Browser-based generation platform</span>
+            <h1 class="pf-heading">Generate 3D Models, Images &amp; Videos in Your Browser</h1>
+            <p class="pf-sub">Create 3D models from text or images, generate images and video with multiple engines &mdash; Veo 3, Seedance, Meshy and Imagen &mdash; then remesh, refine, texture, rig and animate your assets and export production-ready STL, OBJ and GLB files. Start generating instantly with starter credits.</p>
             <div class="pf-ctas">
-              <a class="btn" href="/hub">Explore Hub</a>
-              <a class="btn secondary" href="#works">View Works</a>
+              <a class="btn" href="/hub">Start generating</a>
+              <a class="btn secondary" href="/3dprint">Open the workspace</a>
             </div>
           </div>
 
@@ -1057,7 +1019,7 @@
       <span class="kbadge is-outline">GSAP • Three.js</span>
       <span class="kbadge is-outline">3D & Print</span>
     </div>
-    <p class="muted contact-sub">Tell me a bit about your project and budget. I'll reply within 24–48h.</p>
+    <p class="muted contact-sub">Questions about the platform, partnerships, or freelance work? Send a message and I'll reply within 24–48h.</p>
 
     <div class="contact-grid">
       <!-- Left: info -->
@@ -1235,39 +1197,87 @@
   <!-- Explore TimrX AI Tools — internal linking for SEO -->
   <section class="seo-tools" aria-label="Explore TimrX AI tools">
     <div class="container">
-      <h2 class="seo-tools-title">Explore TimrX AI Tools</h2>
+      <h2 class="seo-tools-title">Explore the generation tools</h2>
       <div class="seo-tools-grid">
-        <a href="/ai-image-generator" class="seo-tool-card">
-          <h3>AI Image Generator</h3>
-          <p>Generate stunning images from text prompts. Concept art, product mockups, textures, and creative visuals in seconds.</p>
-        </a>
-        <a href="/ai-video-generator" class="seo-tool-card">
-          <h3>AI Video Generator</h3>
-          <p>Create AI videos from text or images. Text-to-video and image-to-video with automatic motion and transitions.</p>
-        </a>
-        <a href="/ai-3d-generator" class="seo-tool-card">
-          <h3>AI 3D Model Generator</h3>
-          <p>Generate 3D models from text or images. AI-powered mesh creation with texturing and GLB export.</p>
-        </a>
         <a href="/text-to-3d" class="seo-tool-card">
           <h3>Text to 3D</h3>
-          <p>Describe any object and get a textured 3D model. No modeling experience needed.</p>
+          <p>Generate a 3D model from a written description — meshes, textures and STL export.</p>
         </a>
         <a href="/image-to-3d" class="seo-tool-card">
           <h3>Image to 3D</h3>
-          <p>Upload any image and convert it into a 3D model with AI-powered depth estimation.</p>
+          <p>Convert a photo or image into a textured, print-ready 3D model.</p>
+        </a>
+        <a href="/ai-3d-generator" class="seo-tool-card">
+          <h3>AI 3D Model Generator</h3>
+          <p>Generate 3D models from text or images with multiple engines.</p>
+        </a>
+        <a href="/stl-generator" class="seo-tool-card">
+          <h3>STL Generator</h3>
+          <p>Generate watertight, printable STL files from text or images.</p>
         </a>
         <a href="/3d-print-model-generator" class="seo-tool-card">
           <h3>3D Print Model Generator</h3>
-          <p>Generate print-ready 3D models from text or images. Export STL for FDM and resin printers.</p>
+          <p>Build print-ready models, run a print check, export STL and 3MF.</p>
         </a>
-        <a href="/ai-tools" class="seo-tool-card">
-          <h3>All AI Tools</h3>
-          <p>Browse the complete directory of AI-powered creative tools on TimrX.</p>
+        <a href="/ai-image-generator" class="seo-tool-card">
+          <h3>AI Image Generator</h3>
+          <p>Generate images from text prompts with Imagen, FLUX and Ideogram.</p>
         </a>
-        <a href="/blogs" class="seo-tool-card">
-          <h3>Blog</h3>
-          <p>Guides on AI workflows, 3D generation, video creation, and creative engineering.</p>
+        <a href="/ai-video-generator" class="seo-tool-card">
+          <h3>AI Video Generator</h3>
+          <p>Text-to-video and image-to-video with Veo 3 and Seedance.</p>
+        </a>
+        <a href="/veo-3-video-generator" class="seo-tool-card">
+          <h3>Veo 3 Video Generator</h3>
+          <p>Generate cinematic video clips from text prompts with Veo 3.</p>
+        </a>
+        <a href="/seedance-video-generator" class="seo-tool-card">
+          <h3>Seedance Video Generator</h3>
+          <p>Turn text or a still image into a short animated clip.</p>
+        </a>
+        <a href="/ai-animation-generator" class="seo-tool-card">
+          <h3>AI Animation Generator</h3>
+          <p>Rig and animate 3D models with motion presets.</p>
+        </a>
+        <a href="/ai-texture-generator" class="seo-tool-card">
+          <h3>AI Texture Generator</h3>
+          <p>Generate seamless PBR textures from text or images.</p>
+        </a>
+        <a href="/ai-game-assets" class="seo-tool-card">
+          <h3>Game Asset Generator</h3>
+          <p>Game-ready 3D assets for Unity, Unreal, Godot and Blender.</p>
+        </a>
+        <a href="/converter" class="seo-tool-card">
+          <h3>3D File Converter</h3>
+          <p>Convert GLB, STL, OBJ, FBX, GLTF and 3MF in your browser.</p>
+        </a>
+        <a href="/multi-color-3d-printing" class="seo-tool-card">
+          <h3>Multi-Color 3D Printing</h3>
+          <p>Full-color 3MF for Bambu Lab AMS and Prusa MMU printers.</p>
+        </a>
+        <a href="/stl-library" class="seo-tool-card">
+          <h3>STL Packs</h3>
+          <p>Download ready-to-print STL file pack collections.</p>
+        </a>
+        <a href="/tutorials" class="seo-tool-card">
+          <h3>Tutorials</h3>
+          <p>Step-by-step guides for generating, preparing and exporting 3D models.</p>
+        </a>
+        <a href="/3d-model-cleanup" class="seo-tool-card">
+          <h3>Remesh & Retopology</h3>
+          <p>Clean and optimize 3D meshes for printing and game engines.</p>
+        </a>
+        <a href="/print-check" class="seo-tool-card">
+          <h3>Print Check</h3>
+          <p>Check wall thickness, overhangs and print readiness before printing.</p>
+        </a>
+        <a href="/meshy-3d-generator" class="seo-tool-card">
+          <h3>Meshy 3D Generator</h3>
+          <p>Generate 3D models with the Meshy engine, then refine and export.</p>
+        </a>
+        <a href="/imagen-image-generator" class="seo-tool-card">
+          <h3>Imagen Image Generator</h3>
+          <p>Generate images from text prompts with Google Imagen.</p>
         </a>
       </div>
     </div>
@@ -1283,8 +1293,8 @@
             <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
             <span class="ft-brand-name">TimrX</span>
           </a>
-          <span class="ft-brand-tag">AI Creative Platform</span>
-          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
         </div>
 
         <nav class="ft-cols" aria-label="Footer navigation">
@@ -1338,7 +1348,7 @@
       <!-- Bottom meta row -->
       <div class="ft-bottom">
         <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-        <span class="ft-meta">Built in London &middot; AI creative tools</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
       </div>
 
     </div>

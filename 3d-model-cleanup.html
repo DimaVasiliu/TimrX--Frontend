@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Remesh & Retopology — Clean 3D Models for Printing | TimrX</title>
+  <meta name="description" content="Remesh, retopologize and clean 3D models for 3D printing and game engines. Fix dense or messy meshes, optimize topology and export print-ready files." />
+  <link rel="canonical" href="https://timrx.live/3d-model-cleanup" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/3d-model-cleanup" />
+  <meta property="og:title" content="Remesh &amp; Retopology — Clean 3D Models for Printing" />
+  <meta property="og:description" content="Remesh, retopologize and clean 3D models for 3D printing and game engines. Fix dense or messy meshes, optimize topology and export print-ready files." />
+  <meta property="og:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/3d-model-cleanup" />
+  <meta name="twitter:title" content="Remesh &amp; Retopology — Clean 3D Models for Printing" />
+  <meta name="twitter:description" content="Remesh, retopologize and clean 3D models for 3D printing and game engines. Fix dense or messy meshes, optimize topology and export print-ready files." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX Remesh & Retopology",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://timrx.live/3d-model-cleanup",
+  "description": "Remesh, retopologize and clean 3D models for 3D printing and game engines. Fix dense or messy meshes, optimize topology and export print-ready files.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live/"
+  }
+}
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timrx.live/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Generation Tools",
+      "item": "https://timrx.live/ai-tools"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Remesh & Retopology",
+      "item": "https://timrx.live/3d-model-cleanup"
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Remesh and Clean a 3D Model",
+  "description": "Remesh, retopologize and clean a 3D model for printing and game engines with TimrX.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Load your model",
+      "text": "Generate a model in TimrX or upload an existing GLB, OBJ or STL that needs cleaning up."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Remesh and optimize",
+      "text": "Rebuild the topology with the remesh presets \u2014 reduce or increase density, close holes and make the surface watertight."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Export the clean file",
+      "text": "Export an optimized STL for printing, or GLB and OBJ for game engines and further editing."
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between remesh and retopology?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Remeshing rebuilds a model's surface into new, even geometry automatically. Retopology is the broader goal of giving a model clean, well-structured topology. On TimrX the remesh tool handles both \u2014 it regenerates the mesh so the topology is tidy and consistent."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do I need to remesh a 3D model?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Generated and scanned models often have uneven, dense or non-watertight geometry. Remeshing makes the surface even and watertight, which is required for reliable 3D printing and efficient use in game engines."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does remeshing make a model printable?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is a key step. Remeshing closes holes and produces a watertight mesh, which slicers need. Pair it with a print check to confirm wall thickness and overhangs before printing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I reduce polygon count for games?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The remesh presets let you lower triangle count so models are lightweight enough for real-time rendering in Unity, Unreal Engine and Godot."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What file formats can I clean and export?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can remesh models from GLB, OBJ and STL, and export the cleaned result as STL for printing or GLB and OBJ for editing and game engines."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does remeshing keep textures?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Remeshing rebuilds geometry. Re-apply or regenerate textures after a heavy remesh, or export GLB to carry color data where the topology change is minor."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does using the remesh tool cost credits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mesh operations run on credits. New accounts get starter credits to test the workflow, and credit plans cover ongoing use. See the pricing page for current plans."
+      }
+    }
+  ]
+}
+  </script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>Remesh &amp; Retopology — Clean and Optimize 3D Models</h1>
+      <p class="tool-subtitle">Clean up dense, messy or scanned meshes. Remesh and retopologize 3D models for 3D printing, game engines and rendering, then export the optimized file.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>A 3D model is only as useful as its mesh. Generated, scanned and sculpted models often arrive with uneven triangle density, non-manifold edges, holes or far more polygons than a printer or game engine needs. Remeshing rebuilds that surface into clean, even geometry.</p>
+      <p>TimrX's remesh tool rebuilds the topology of a model in the browser. You can reduce polygon count for game engines, increase resolution where detail matters, close holes, and make the mesh watertight so it slices cleanly for 3D printing.</p>
+      <p>Retopology matters because clean topology is what makes a model printable, riggable and efficient. A tidy mesh exports smaller files, prints without slicer errors and animates without distortion.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Load your model</h3>
+          <p>Generate a model in TimrX or upload an existing GLB, OBJ or STL that needs cleaning up.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Remesh and optimize</h3>
+          <p>Rebuild the topology with the remesh presets — reduce or increase density, close holes and make the surface watertight.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Export the clean file</h3>
+          <p>Export an optimized STL for printing, or GLB and OBJ for game engines and further editing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>3D Printing Prep</h4>
+          <p>Make a model watertight and even before slicing so it prints without errors on FDM or resin printers.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Game-Ready Optimization</h4>
+          <p>Reduce polygon count and rebuild clean topology so models run efficiently in Unity, Unreal and Godot.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Scanned Mesh Cleanup</h4>
+          <p>Tidy up photogrammetry and 3D-scan meshes — close holes, remove noise and even out triangle density.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Generated-Model Cleanup</h4>
+          <p>Refine AI-generated meshes into production-ready geometry before export, rigging or printing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>What is the difference between remesh and retopology?</summary>
+          <p>Remeshing rebuilds a model's surface into new, even geometry automatically. Retopology is the broader goal of giving a model clean, well-structured topology. On TimrX the remesh tool handles both — it regenerates the mesh so the topology is tidy and consistent.</p>
+        </details>
+        <details>
+          <summary>Why do I need to remesh a 3D model?</summary>
+          <p>Generated and scanned models often have uneven, dense or non-watertight geometry. Remeshing makes the surface even and watertight, which is required for reliable 3D printing and efficient use in game engines.</p>
+        </details>
+        <details>
+          <summary>Does remeshing make a model printable?</summary>
+          <p>It is a key step. Remeshing closes holes and produces a watertight mesh, which slicers need. Pair it with a print check to confirm wall thickness and overhangs before printing.</p>
+        </details>
+        <details>
+          <summary>Can I reduce polygon count for games?</summary>
+          <p>Yes. The remesh presets let you lower triangle count so models are lightweight enough for real-time rendering in Unity, Unreal Engine and Godot.</p>
+        </details>
+        <details>
+          <summary>What file formats can I clean and export?</summary>
+          <p>You can remesh models from GLB, OBJ and STL, and export the cleaned result as STL for printing or GLB and OBJ for editing and game engines.</p>
+        </details>
+        <details>
+          <summary>Does remeshing keep textures?</summary>
+          <p>Remeshing rebuilds geometry. Re-apply or regenerate textures after a heavy remesh, or export GLB to carry color data where the topology change is minor.</p>
+        </details>
+        <details>
+          <summary>Does using the remesh tool cost credits?</summary>
+          <p>Mesh operations run on credits. New accounts get starter credits to test the workflow, and credit plans cover ongoing use. See the pricing page for current plans.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Print, ship & deliver callout -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 8px;">TimrX prints, ships &amp; delivers</h2>
+      <p>Generate the model in TimrX, then order the physical print straight from the workspace. FDM, resin and multi-color AMS supported &mdash; we print, QC and ship worldwide. <a href="/print-on-demand" style="color:#7dd3fc;">Learn about the print service &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Clean up your 3D model</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint?panel=remesh" class="nav-cta">Open the remesh tool</a>
+        <a href="/3d-print-model-generator" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">3D Print Model Generator</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/3d-print-model-generator" class="tool-link-card">
+          <h4>3D Print Model Generator</h4>
+          <p>Generate print-ready models with a built-in print check.</p>
+        </a>
+        <a href="/print-check" class="tool-link-card">
+          <h4>Print Check</h4>
+          <p>Verify wall thickness and overhangs before printing.</p>
+        </a>
+        <a href="/converter" class="tool-link-card">
+          <h4>3D File Converter</h4>
+          <p>Convert between GLB, STL, OBJ, FBX and 3MF.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Generate</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/stl-generator">STL Generator</a></li>
+              <li><a href="/ai-image-generator">Image Generator</a></li>
+              <li><a href="/ai-video-generator">Video Generator</a></li>
+              <li><a href="/ai-game-assets">Game Assets</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Create &amp; print</h3>
+            <ul class="ft-links">
+              <li><a href="/3d-print-model-generator">3D Print Model Generator</a></li>
+              <li><a href="/converter">3D File Converter</a></li>
+              <li><a href="/stl-library">STL Packs</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color Printing</a></li>
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Learn</h3>
+            <ul class="ft-links">
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/prompts">Prompt Library</a></li>
+              <li><a href="/docs">Documentation</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

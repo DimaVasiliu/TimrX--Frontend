@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STL Generator — Create Printable STL Files from Text | TimrX</title>
+  <meta name="description" content="Generate printable STL files from text or images. The TimrX STL generator builds watertight meshes, runs a print check and exports STL for FDM and resin printers." />
+  <link rel="canonical" href="https://timrx.live/stl-generator" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/stl-generator" />
+  <meta property="og:title" content="STL Generator — Create Printable STL Files" />
+  <meta property="og:description" content="Generate printable STL files from text or images. The TimrX STL generator builds watertight meshes, runs a print check and exports STL for FDM and resin printers." />
+  <meta property="og:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/stl-generator" />
+  <meta name="twitter:title" content="STL Generator — Create Printable STL Files" />
+  <meta name="twitter:description" content="Generate printable STL files from text or images. The TimrX STL generator builds watertight meshes, runs a print check and exports STL for FDM and resin printers." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX STL Generator",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://timrx.live/stl-generator",
+  "description": "Generate printable STL files from text or images. The TimrX STL generator builds watertight meshes, runs a print check and exports STL for FDM and resin printers.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live/"
+  }
+}
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timrx.live/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Generation Tools",
+      "item": "https://timrx.live/ai-tools"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "STL Generator",
+      "item": "https://timrx.live/stl-generator"
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Generate an STL File",
+  "description": "Generate a printable STL file from a text prompt or image with TimrX.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Describe or upload",
+      "text": "Type a prompt describing the object, or upload a reference image. Add detail about scale, style and how the part will be used."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Generate and print-check",
+      "text": "The generator builds a textured mesh. Run the print check to verify wall thickness, overhangs and a watertight surface before export."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Export STL",
+      "text": "Export a watertight STL ready for your slicer \u2014 or 3MF for multi-color prints, or OBJ and GLB for further editing."
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an STL file?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "STL is the standard 3D printing file format. It stores a triangle mesh of the object's surface. Slicers read the STL and convert it into the layer-by-layer instructions a 3D printer follows."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I generate an STL file on TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Describe the object in a text prompt or upload a reference image. The generator builds a 3D mesh, you run the print check, and then export the result as an STL file."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are the generated STL files watertight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The print check verifies the mesh is watertight (manifold) and flags thin walls and steep overhangs. Run it before export so the STL slices cleanly without repair."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which slicers and printers work with these STL files?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The exported STL works with every standard slicer \u2014 Cura, PrusaSlicer, Bambu Studio, OrcaSlicer \u2014 and any FDM or resin printer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I generate an STL from an image?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Upload a photo or illustration and the generator reconstructs a 3D mesh from it, which you can then export as STL."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What if I need color on the print?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "STL stores geometry only. For multi-color prints, export full-color 3MF instead \u2014 it carries color regions for AMS and MMU multi-material printers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does generating STL files cost credits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Generation runs on credits. New accounts get starter credits to test the workflow, and credit plans cover ongoing generation. See the pricing page for current plans."
+      }
+    }
+  ]
+}
+  </script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>STL Generator — Generate Printable STL Files</h1>
+      <p class="tool-subtitle">Generate watertight, ready-to-print STL files from a text prompt or an image. The STL generator builds the mesh, runs a print check, and exports straight to your slicer.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>An STL file is the standard format for 3D printing — a watertight triangle mesh that any slicer can turn into print instructions. The TimrX STL generator skips the modelling step entirely: describe what you want, or upload a reference image, and the platform generates the mesh for you.</p>
+      <p>Every model can be checked for print readiness before you export. The print check looks at wall thickness, overhangs and non-manifold geometry, so the STL you download is ready to slice for FDM or resin printers.</p>
+      <p>Generated STL files work with Cura, PrusaSlicer, Bambu Studio, OrcaSlicer and every other standard slicer. If you need color, export full-color 3MF instead; if you need to edit, export OBJ or GLB and open it in Blender.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Describe or upload</h3>
+          <p>Type a prompt describing the object, or upload a reference image. Add detail about scale, style and how the part will be used.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Generate and print-check</h3>
+          <p>The generator builds a textured mesh. Run the print check to verify wall thickness, overhangs and a watertight surface before export.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Export STL</h3>
+          <p>Export a watertight STL ready for your slicer — or 3MF for multi-color prints, or OBJ and GLB for further editing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Tabletop Miniatures</h4>
+          <p>Generate characters, monsters and props as STL files sized for FDM or resin miniature printing.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Tabletop Terrain</h4>
+          <p>Create walls, scenery and modular terrain pieces and export them as print-ready STL sets.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Functional Parts</h4>
+          <p>Generate brackets, mounts, enclosures and replacement parts, then print-check and slice them.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Props and Cosplay</h4>
+          <p>Build helmet, weapon and accessory STL files, scale them to size, and split large parts for the print bed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>What is an STL file?</summary>
+          <p>STL is the standard 3D printing file format. It stores a triangle mesh of the object's surface. Slicers read the STL and convert it into the layer-by-layer instructions a 3D printer follows.</p>
+        </details>
+        <details>
+          <summary>How do I generate an STL file on TimrX?</summary>
+          <p>Describe the object in a text prompt or upload a reference image. The generator builds a 3D mesh, you run the print check, and then export the result as an STL file.</p>
+        </details>
+        <details>
+          <summary>Are the generated STL files watertight?</summary>
+          <p>The print check verifies the mesh is watertight (manifold) and flags thin walls and steep overhangs. Run it before export so the STL slices cleanly without repair.</p>
+        </details>
+        <details>
+          <summary>Which slicers and printers work with these STL files?</summary>
+          <p>The exported STL works with every standard slicer — Cura, PrusaSlicer, Bambu Studio, OrcaSlicer — and any FDM or resin printer.</p>
+        </details>
+        <details>
+          <summary>Can I generate an STL from an image?</summary>
+          <p>Yes. Upload a photo or illustration and the generator reconstructs a 3D mesh from it, which you can then export as STL.</p>
+        </details>
+        <details>
+          <summary>What if I need color on the print?</summary>
+          <p>STL stores geometry only. For multi-color prints, export full-color 3MF instead — it carries color regions for AMS and MMU multi-material printers.</p>
+        </details>
+        <details>
+          <summary>Does generating STL files cost credits?</summary>
+          <p>Generation runs on credits. New accounts get starter credits to test the workflow, and credit plans cover ongoing generation. See the pricing page for current plans.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Print, ship & deliver callout -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 8px;">TimrX prints, ships &amp; delivers</h2>
+      <p>Generate the model in TimrX, then order the physical print straight from the workspace. FDM, resin and multi-color AMS supported &mdash; we print, QC and ship worldwide. <a href="/print-on-demand" style="color:#7dd3fc;">Learn about the print service &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Generate your first STL file</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint?panel=model" class="nav-cta">Open the generator</a>
+        <a href="/stl-library" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Browse STL Packs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/text-to-3d" class="tool-link-card">
+          <h4>Text to 3D</h4>
+          <p>Generate 3D models from a written description.</p>
+        </a>
+        <a href="/3d-print-model-generator" class="tool-link-card">
+          <h4>3D Print Model Generator</h4>
+          <p>Build print-ready models with a print check.</p>
+        </a>
+        <a href="/stl-library" class="tool-link-card">
+          <h4>STL Packs</h4>
+          <p>Download ready-to-print STL pack collections.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Generate</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/stl-generator">STL Generator</a></li>
+              <li><a href="/ai-image-generator">Image Generator</a></li>
+              <li><a href="/ai-video-generator">Video Generator</a></li>
+              <li><a href="/ai-game-assets">Game Assets</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Create &amp; print</h3>
+            <ul class="ft-links">
+              <li><a href="/3d-print-model-generator">3D Print Model Generator</a></li>
+              <li><a href="/converter">3D File Converter</a></li>
+              <li><a href="/stl-library">STL Packs</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color Printing</a></li>
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Learn</h3>
+            <ul class="ft-links">
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/prompts">Prompt Library</a></li>
+              <li><a href="/docs">Documentation</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

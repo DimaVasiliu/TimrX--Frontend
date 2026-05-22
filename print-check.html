@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D Print Check — Is Your Model Printable? | TimrX</title>
+  <meta name="description" content="Run a 3D print check before you print. Verify wall thickness, overhangs, watertight geometry and a print-readiness score for FDM and resin printers." />
+  <link rel="canonical" href="https://timrx.live/print-check" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/print-check" />
+  <meta property="og:title" content="3D Print Check — Is Your Model Printable?" />
+  <meta property="og:description" content="Run a 3D print check before you print. Verify wall thickness, overhangs, watertight geometry and a print-readiness score for FDM and resin printers." />
+  <meta property="og:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/print-check" />
+  <meta name="twitter:title" content="3D Print Check — Is Your Model Printable?" />
+  <meta name="twitter:description" content="Run a 3D print check before you print. Verify wall thickness, overhangs, watertight geometry and a print-readiness score for FDM and resin printers." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-3d-print.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX Print Check",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://timrx.live/print-check",
+  "description": "Run a 3D print check before you print. Verify wall thickness, overhangs, watertight geometry and a print-readiness score for FDM and resin printers.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live/"
+  }
+}
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timrx.live/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Generation Tools",
+      "item": "https://timrx.live/ai-tools"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Print Check",
+      "item": "https://timrx.live/print-check"
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Run a 3D Print Check",
+  "description": "Run a print-readiness check on a 3D model before slicing it for FDM or resin printing.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Load the model",
+      "text": "Generate a model in TimrX or upload a GLB, OBJ or STL you plan to print."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Run the print check",
+      "text": "The check analyzes wall thickness, overhangs and watertight geometry, and returns a print-readiness score."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Fix and export",
+      "text": "Remesh or adjust the model to clear flagged issues, then export a print-ready STL or 3MF for your slicer."
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does the 3D print check look for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It analyzes wall thickness, overhang angles, non-manifold geometry and whether the mesh is watertight, then returns a print-readiness score summarizing how ready the model is to print."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I know if my model is printable?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Run the print check on TimrX. If walls are thick enough, overhangs are within a printable angle and the mesh is watertight, the model is ready. The readiness score gives you a quick verdict."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a watertight mesh?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A watertight (manifold) mesh has no holes or gaps in its surface \u2014 every edge belongs to a closed solid. Slicers need watertight geometry to produce a correct print."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What wall thickness do I need?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It depends on the printer and material, but very thin walls fail or do not print at all. The print check flags walls below a safe threshold so you can thicken them before printing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What do I do if the check finds problems?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the remesh tool to make the mesh watertight and even, thicken thin areas, or adjust the model, then run the check again before exporting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the print check work for resin and FDM?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The checks for wall thickness, overhangs and watertight geometry apply to both FDM and resin workflows."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does running a print check cost credits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The print check is part of the model workflow on TimrX, which runs on credits. New accounts get starter credits to try it. See the pricing page for current plans."
+      }
+    }
+  ]
+}
+  </script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>3D Print Check — Verify Your Model Before Printing</h1>
+      <p class="tool-subtitle">Check whether a 3D model is printable before you slice it. The print check flags thin walls, steep overhangs and non-watertight geometry, and gives a print-readiness score.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>Most failed prints can be predicted before slicing. Thin walls collapse, steep overhangs sag without support, and a mesh that is not watertight produces gaps in the slice. A print check catches these problems early.</p>
+      <p>TimrX's print check analyzes a model in the browser and reports the issues that matter for printing: wall thickness, overhang angles, non-manifold geometry and whether the surface is watertight. It returns a print-readiness score so you know at a glance if the model is ready.</p>
+      <p>Run the print check after generating or remeshing a model and before you export the STL. Fixing flagged issues first means fewer wasted prints, less filament and resin, and a cleaner result.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Load the model</h3>
+          <p>Generate a model in TimrX or upload a GLB, OBJ or STL you plan to print.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Run the print check</h3>
+          <p>The check analyzes wall thickness, overhangs and watertight geometry, and returns a print-readiness score.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Fix and export</h3>
+          <p>Remesh or adjust the model to clear flagged issues, then export a print-ready STL or 3MF for your slicer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Before Every Print</h4>
+          <p>Confirm a model is printable before you commit filament, resin and machine time to it.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Checking Generated Models</h4>
+          <p>Verify that AI-generated meshes are watertight and thick enough before exporting them to a slicer.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Miniatures and Detail Work</h4>
+          <p>Catch thin walls and fragile features on miniatures and detailed models before resin printing.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Functional Parts</h4>
+          <p>Make sure brackets, mounts and enclosures meet wall-thickness requirements for a strong print.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>What does the 3D print check look for?</summary>
+          <p>It analyzes wall thickness, overhang angles, non-manifold geometry and whether the mesh is watertight, then returns a print-readiness score summarizing how ready the model is to print.</p>
+        </details>
+        <details>
+          <summary>How do I know if my model is printable?</summary>
+          <p>Run the print check on TimrX. If walls are thick enough, overhangs are within a printable angle and the mesh is watertight, the model is ready. The readiness score gives you a quick verdict.</p>
+        </details>
+        <details>
+          <summary>What is a watertight mesh?</summary>
+          <p>A watertight (manifold) mesh has no holes or gaps in its surface — every edge belongs to a closed solid. Slicers need watertight geometry to produce a correct print.</p>
+        </details>
+        <details>
+          <summary>What wall thickness do I need?</summary>
+          <p>It depends on the printer and material, but very thin walls fail or do not print at all. The print check flags walls below a safe threshold so you can thicken them before printing.</p>
+        </details>
+        <details>
+          <summary>What do I do if the check finds problems?</summary>
+          <p>Use the remesh tool to make the mesh watertight and even, thicken thin areas, or adjust the model, then run the check again before exporting.</p>
+        </details>
+        <details>
+          <summary>Does the print check work for resin and FDM?</summary>
+          <p>Yes. The checks for wall thickness, overhangs and watertight geometry apply to both FDM and resin workflows.</p>
+        </details>
+        <details>
+          <summary>Does running a print check cost credits?</summary>
+          <p>The print check is part of the model workflow on TimrX, which runs on credits. New accounts get starter credits to try it. See the pricing page for current plans.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Print, ship & deliver callout -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 8px;">TimrX prints, ships &amp; delivers</h2>
+      <p>Generate the model in TimrX, then order the physical print straight from the workspace. FDM, resin and multi-color AMS supported &mdash; we print, QC and ship worldwide. <a href="/print-on-demand" style="color:#7dd3fc;">Learn about the print service &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Check your model before printing</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint?panel=model" class="nav-cta">Open the workspace</a>
+        <a href="/3d-print-model-generator" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">3D Print Model Generator</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/3d-print-model-generator" class="tool-link-card">
+          <h4>3D Print Model Generator</h4>
+          <p>Generate print-ready models with a built-in print check.</p>
+        </a>
+        <a href="/3d-model-cleanup" class="tool-link-card">
+          <h4>Remesh &amp; Retopology</h4>
+          <p>Clean and optimize meshes so they pass the print check.</p>
+        </a>
+        <a href="/stl-generator" class="tool-link-card">
+          <h4>STL Generator</h4>
+          <p>Generate watertight, printable STL files.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Generate</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/stl-generator">STL Generator</a></li>
+              <li><a href="/ai-image-generator">Image Generator</a></li>
+              <li><a href="/ai-video-generator">Video Generator</a></li>
+              <li><a href="/ai-game-assets">Game Assets</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Create &amp; print</h3>
+            <ul class="ft-links">
+              <li><a href="/3d-print-model-generator">3D Print Model Generator</a></li>
+              <li><a href="/converter">3D File Converter</a></li>
+              <li><a href="/stl-library">STL Packs</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color Printing</a></li>
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Learn</h3>
+            <ul class="ft-links">
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/prompts">Prompt Library</a></li>
+              <li><a href="/docs">Documentation</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

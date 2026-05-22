@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seedance AI Video Generator — Text & Image to Video | TimrX</title>
+  <meta name="description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <link rel="canonical" href="https://timrx.live/seedance-video-generator" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/seedance-video-generator" />
+  <meta property="og:title" content="Seedance AI Video Generator — Text &amp; Image to Video" />
+  <meta property="og:description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <meta property="og:image" content="https://timrx.live/img/og-video-generator.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/seedance-video-generator" />
+  <meta name="twitter:title" content="Seedance AI Video Generator — Text &amp; Image to Video" />
+  <meta name="twitter:description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-video-generator.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX Video Generator (Seedance)",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://timrx.live/seedance-video-generator",
+  "description": "Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live/"
+  }
+}
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timrx.live/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Generation Tools",
+      "item": "https://timrx.live/ai-tools"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Seedance Video Generator",
+      "item": "https://timrx.live/seedance-video-generator"
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Generate Video with Seedance",
+  "description": "Generate a short video from a text prompt or image using Seedance on TimrX.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Choose your input",
+      "text": "Start from a text prompt, or upload a still image you want to animate into a moving clip."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Generate with Seedance",
+      "text": "Seedance produces a short animated clip with natural motion. Preview it and refine the prompt or source frame to iterate."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Download the clip",
+      "text": "Export the result as an MP4, ready for a video editor or direct posting to social platforms."
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Seedance video generator?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is the Seedance video engine available in the TimrX workspace. It generates short video clips from text prompts or from still images you upload."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Seedance support image-to-video?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Seedance can animate a still image into a moving clip, as well as generate video from a text prompt."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I generate a video with Seedance?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Open the video panel in the workspace, choose a text prompt or upload a source image, and run the generation. Download the finished clip as an MP4."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Seedance and Veo 3 on TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both are video engines in the same workspace. They produce different motion and style; generating with both lets you compare and pick the clip that fits your project."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What format does the clip download as?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Seedance clips export as standard MP4 files compatible with every editor and social platform."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long are Seedance clips?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Seedance produces short clips designed for social posts, motion content and previz. Combine several clips in an editor for longer sequences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Seedance generation cost credits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Video generation runs on credits. New accounts get starter credits to test it; credit plans cover ongoing use. See the pricing page for current plans."
+      }
+    }
+  ]
+}
+  </script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>Seedance Video Generator</h1>
+      <p class="tool-subtitle">Generate video with Seedance inside TimrX. Turn a text prompt or a still image into a short animated clip with natural motion, then download it.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>Seedance is a video generation engine available in the TimrX workspace. It supports both text-to-video and image-to-video — start from a written prompt, or animate a still image into a moving clip.</p>
+      <p>Seedance is one of several video engines on TimrX, alongside Veo 3. Generating with more than one engine lets you compare motion and style and choose the best clip for your project.</p>
+      <p>Image-to-video is useful when you already have a frame you like — a generated image, a product photo, a piece of concept art — and want to bring it to life as short motion content.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Choose your input</h3>
+          <p>Start from a text prompt, or upload a still image you want to animate into a moving clip.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Generate with Seedance</h3>
+          <p>Seedance produces a short animated clip with natural motion. Preview it and refine the prompt or source frame to iterate.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Download the clip</h3>
+          <p>Export the result as an MP4, ready for a video editor or direct posting to social platforms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Animate a Still</h4>
+          <p>Turn a generated image or photo into a short moving clip with image-to-video.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Social Content</h4>
+          <p>Produce short clips for Reels, Shorts and TikTok directly from prompts or images.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Concept Motion</h4>
+          <p>Add movement to concept art and storyboards to preview how a scene plays out.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Product Showcases</h4>
+          <p>Animate product photos into short motion shots for ads and landing pages.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>What is the Seedance video generator?</summary>
+          <p>It is the Seedance video engine available in the TimrX workspace. It generates short video clips from text prompts or from still images you upload.</p>
+        </details>
+        <details>
+          <summary>Does Seedance support image-to-video?</summary>
+          <p>Yes. Seedance can animate a still image into a moving clip, as well as generate video from a text prompt.</p>
+        </details>
+        <details>
+          <summary>How do I generate a video with Seedance?</summary>
+          <p>Open the video panel in the workspace, choose a text prompt or upload a source image, and run the generation. Download the finished clip as an MP4.</p>
+        </details>
+        <details>
+          <summary>What is the difference between Seedance and Veo 3 on TimrX?</summary>
+          <p>Both are video engines in the same workspace. They produce different motion and style; generating with both lets you compare and pick the clip that fits your project.</p>
+        </details>
+        <details>
+          <summary>What format does the clip download as?</summary>
+          <p>Seedance clips export as standard MP4 files compatible with every editor and social platform.</p>
+        </details>
+        <details>
+          <summary>How long are Seedance clips?</summary>
+          <p>Seedance produces short clips designed for social posts, motion content and previz. Combine several clips in an editor for longer sequences.</p>
+        </details>
+        <details>
+          <summary>Does Seedance generation cost credits?</summary>
+          <p>Video generation runs on credits. New accounts get starter credits to test it; credit plans cover ongoing use. See the pricing page for current plans.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Generate a video with Seedance</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint?panel=video" class="nav-cta">Open the video generator</a>
+        <a href="/veo-3-video-generator" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Try Veo 3</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/ai-video-generator" class="tool-link-card">
+          <h4>AI Video Generator</h4>
+          <p>Text-to-video and image-to-video in one workspace.</p>
+        </a>
+        <a href="/veo-3-video-generator" class="tool-link-card">
+          <h4>Veo 3 Video Generator</h4>
+          <p>Generate video with the Veo 3 engine.</p>
+        </a>
+        <a href="/ai-image-generator" class="tool-link-card">
+          <h4>AI Image Generator</h4>
+          <p>Generate images and source frames from text.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Generate</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/stl-generator">STL Generator</a></li>
+              <li><a href="/ai-image-generator">Image Generator</a></li>
+              <li><a href="/ai-video-generator">Video Generator</a></li>
+              <li><a href="/ai-game-assets">Game Assets</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Create &amp; print</h3>
+            <ul class="ft-links">
+              <li><a href="/3d-print-model-generator">3D Print Model Generator</a></li>
+              <li><a href="/converter">3D File Converter</a></li>
+              <li><a href="/stl-library">STL Packs</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color Printing</a></li>
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Learn</h3>
+            <ul class="ft-links">
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/prompts">Prompt Library</a></li>
+              <li><a href="/docs">Documentation</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

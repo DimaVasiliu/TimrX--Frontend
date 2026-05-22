@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meshy 3D Generator — Text & Image to 3D Models | TimrX</title>
+  <meta name="description" content="Generate 3D models with Meshy on TimrX. Turn text prompts or images into textured meshes, then remesh, refine and export STL, OBJ and GLB files." />
+  <link rel="canonical" href="https://timrx.live/meshy-3d-generator" />
+  <link rel="icon" type="image/png" href="/img/logo.png" />
+  <link rel="apple-touch-icon" href="/img/logo.png" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://timrx.live/meshy-3d-generator" />
+  <meta property="og:title" content="Meshy 3D Generator — Text &amp; Image to 3D Models" />
+  <meta property="og:description" content="Generate 3D models with Meshy on TimrX. Turn text prompts or images into textured meshes, then remesh, refine and export STL, OBJ and GLB files." />
+  <meta property="og:image" content="https://timrx.live/img/og-3d-generator.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="TimrX" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://timrx.live/meshy-3d-generator" />
+  <meta name="twitter:title" content="Meshy 3D Generator — Text &amp; Image to 3D Models" />
+  <meta name="twitter:description" content="Generate 3D models with Meshy on TimrX. Turn text prompts or images into textured meshes, then remesh, refine and export STL, OBJ and GLB files." />
+  <meta name="twitter:image" content="https://timrx.live/img/og-3d-generator.png" />
+  <meta name="twitter:creator" content="@timrx_live" />
+
+  <!-- Self-hosted fonts -->
+  <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="footer.css">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TimrX 3D Generator (Meshy)",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://timrx.live/meshy-3d-generator",
+  "description": "Generate 3D models with Meshy on TimrX. Turn text prompts or images into textured meshes, then remesh, refine and export STL, OBJ and GLB files.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TimrX",
+    "url": "https://timrx.live/"
+  }
+}
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timrx.live/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Generation Tools",
+      "item": "https://timrx.live/ai-tools"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Meshy 3D Generator",
+      "item": "https://timrx.live/meshy-3d-generator"
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: HowTo -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Generate 3D Models with Meshy",
+  "description": "Generate a textured 3D model from a text prompt or image using Meshy on TimrX.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Describe or upload",
+      "text": "Write a text prompt describing the object, or upload a reference image for Meshy to reconstruct in 3D."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Generate with Meshy",
+      "text": "Meshy builds a textured 3D mesh from your input. Preview it in the 3D viewer and iterate on the prompt."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Refine and export",
+      "text": "Remesh, texture and print-check the model, then export STL, GLB or OBJ for printing, games or rendering."
+    }
+  ]
+}
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Meshy 3D generator on TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is the Meshy 3D generation engine made available inside the TimrX workspace. You provide a text prompt or image and Meshy generates a textured 3D mesh you can refine and export."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Meshy support text-to-3D and image-to-3D?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. You can generate a model from a written description or from a reference image, both through the Meshy engine in the workspace."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What can I do with a Meshy-generated model on TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "After generating, you can remesh, refine, texture, rig, animate and run a print check on the model, then export it \u2014 all in the same browser workspace."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What formats can I export Meshy models in?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Meshy models export as STL for 3D printing and GLB and OBJ for game engines, Blender and rendering."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are there other 3D engines on TimrX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. TimrX offers more than one 3D generation engine, so you can generate with different models and compare results before refining and exporting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I 3D print a Meshy model?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Remesh the model to make it watertight, run a print check, and export an STL ready for your slicer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Meshy generation cost credits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "3D generation runs on credits. New accounts receive starter credits to test the workflow; credit plans cover ongoing use. See the pricing page for current plans."
+      }
+    }
+  ]
+}
+  </script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <!-- NAV -->
+  <nav class="nav divider" aria-label="Main">
+    <div class="container nav-inner">
+      <div class="brand-group">
+        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
+        <a class="brand" href="/" aria-label="Home">
+          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
+        </a>
+      </div>
+      <div class="nav-links" role="navigation" aria-label="Primary">
+        <a href="/3dprint">3D Print Hub</a>
+        <a href="/#works">WORKS</a>
+        <a href="/#services">SERVICES</a>
+        <a href="/blogs">BLOGS</a>
+      </div>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
+        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
+        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
+        <a href="/#contact" class="mobile-nav-link"><span class="mnl-label">Connect</span><span class="mnl-sub">Get in touch</span></a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT</a>
+      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX / Dima Vasiliu</span></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="tool-hero">
+    <div class="container">
+      <h1>Meshy-Powered 3D Generator</h1>
+      <p class="tool-subtitle">Generate 3D models with Meshy inside the TimrX workspace. Turn a text prompt or an image into a textured mesh, then remesh, refine and export it.</p>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="tool-intro">
+    <div class="container">
+      <p>Meshy is a 3D generation engine available in the TimrX workspace. It turns a text prompt or a reference image into a textured 3D mesh, so you can go from an idea to a usable model without manual modelling.</p>
+      <p>Meshy is one of several engines on TimrX — you generate, then stay in the same workspace to remesh, refine, texture, rig, animate, run a print check and export. The engine creates the draft; the platform takes it to a finished asset.</p>
+      <p>Meshy-generated models export as STL for 3D printing, and GLB and OBJ for game engines, Blender and rendering — the same export pipeline as every other model on TimrX.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="tool-steps">
+    <div class="container">
+      <h2 class="tool-steps-title">How It Works</h2>
+      <div class="tool-steps-grid">
+        <div class="tool-step">
+          <span class="tool-step-num">01</span>
+          <h3>Describe or upload</h3>
+          <p>Write a text prompt describing the object, or upload a reference image for Meshy to reconstruct in 3D.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">02</span>
+          <h3>Generate with Meshy</h3>
+          <p>Meshy builds a textured 3D mesh from your input. Preview it in the 3D viewer and iterate on the prompt.</p>
+        </div>
+        <div class="tool-step">
+          <span class="tool-step-num">03</span>
+          <h3>Refine and export</h3>
+          <p>Remesh, texture and print-check the model, then export STL, GLB or OBJ for printing, games or rendering.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="tool-usecases">
+    <div class="container">
+      <h2 class="tool-usecases-title">Use Cases</h2>
+      <div class="tool-usecases-grid">
+        <div class="tool-usecase">
+          <h4>Rapid 3D Drafts</h4>
+          <p>Generate quick 3D drafts from a prompt or image before committing to detailed modelling.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Game Assets</h4>
+          <p>Create props, characters and environment pieces, then optimize them for Unity, Unreal and Godot.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Printable Models</h4>
+          <p>Generate models, run a print check and export watertight STL files for 3D printing.</p>
+        </div>
+        <div class="tool-usecase">
+          <h4>Reference and Concepts</h4>
+          <p>Turn concept art and reference images into 3D models for visualization and previsualization.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="tool-faq">
+    <div class="container">
+      <h2 class="tool-faq-title">Frequently Asked Questions</h2>
+      <div class="tool-faq-list">
+        <details>
+          <summary>What is the Meshy 3D generator on TimrX?</summary>
+          <p>It is the Meshy 3D generation engine made available inside the TimrX workspace. You provide a text prompt or image and Meshy generates a textured 3D mesh you can refine and export.</p>
+        </details>
+        <details>
+          <summary>Does Meshy support text-to-3D and image-to-3D?</summary>
+          <p>Yes. You can generate a model from a written description or from a reference image, both through the Meshy engine in the workspace.</p>
+        </details>
+        <details>
+          <summary>What can I do with a Meshy-generated model on TimrX?</summary>
+          <p>After generating, you can remesh, refine, texture, rig, animate and run a print check on the model, then export it — all in the same browser workspace.</p>
+        </details>
+        <details>
+          <summary>What formats can I export Meshy models in?</summary>
+          <p>Meshy models export as STL for 3D printing and GLB and OBJ for game engines, Blender and rendering.</p>
+        </details>
+        <details>
+          <summary>Are there other 3D engines on TimrX?</summary>
+          <p>Yes. TimrX offers more than one 3D generation engine, so you can generate with different models and compare results before refining and exporting.</p>
+        </details>
+        <details>
+          <summary>Can I 3D print a Meshy model?</summary>
+          <p>Yes. Remesh the model to make it watertight, run a print check, and export an STL ready for your slicer.</p>
+        </details>
+        <details>
+          <summary>Does Meshy generation cost credits?</summary>
+          <p>3D generation runs on credits. New accounts receive starter credits to test the workflow; credit plans cover ongoing use. See the pricing page for current plans.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Print, ship & deliver callout -->
+  <section class="tool-intro">
+    <div class="container">
+      <h2 style="margin:0 0 8px;">TimrX prints, ships &amp; delivers</h2>
+      <p>Generate the model in TimrX, then order the physical print straight from the workspace. FDM, resin and multi-color AMS supported &mdash; we print, QC and ship worldwide. <a href="/print-on-demand" style="color:#7dd3fc;">Learn about the print service &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tool-cta">
+    <div class="container">
+      <h2 class="tool-cta-title">Generate a 3D model with Meshy</h2>
+      <div class="tool-cta-buttons">
+        <a href="/3dprint?panel=model" class="nav-cta">Open the 3D generator</a>
+        <a href="/text-to-3d" class="nav-cta" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text);">Text to 3D</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Tools -->
+  <section class="tool-related">
+    <div class="container">
+      <h2 class="tool-related-title">Related Tools</h2>
+      <div class="tool-related-grid">
+        <a href="/ai-3d-generator" class="tool-link-card">
+          <h4>AI 3D Model Generator</h4>
+          <p>Generate 3D models from text or images.</p>
+        </a>
+        <a href="/text-to-3d" class="tool-link-card">
+          <h4>Text to 3D</h4>
+          <p>Generate 3D models from a written description.</p>
+        </a>
+        <a href="/image-to-3d" class="tool-link-card">
+          <h4>Image to 3D</h4>
+          <p>Convert a photo or image into a 3D model.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="ft-main">
+        <div class="ft-brand">
+          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
+            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
+            <span class="ft-brand-name">TimrX</span>
+          </a>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+        </div>
+        <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Generate</h3>
+            <ul class="ft-links">
+              <li><a href="/text-to-3d">Text to 3D</a></li>
+              <li><a href="/image-to-3d">Image to 3D</a></li>
+              <li><a href="/stl-generator">STL Generator</a></li>
+              <li><a href="/ai-image-generator">Image Generator</a></li>
+              <li><a href="/ai-video-generator">Video Generator</a></li>
+              <li><a href="/ai-game-assets">Game Assets</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Create &amp; print</h3>
+            <ul class="ft-links">
+              <li><a href="/3d-print-model-generator">3D Print Model Generator</a></li>
+              <li><a href="/converter">3D File Converter</a></li>
+              <li><a href="/stl-library">STL Packs</a></li>
+              <li><a href="/multi-color-3d-printing">Multi-Color Printing</a></li>
+              <li><a href="/print-on-demand">Print on Demand</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Learn</h3>
+            <ul class="ft-links">
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/blogs">Blog</a></li>
+              <li><a href="/prompts">Prompt Library</a></li>
+              <li><a href="/docs">Documentation</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="/rss.xml">RSS</a></li>
+              <li><a href="mailto:admin@timrx.live">Email</a></li>
+              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="ft-bottom">
+        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){
+    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
+    if(burger&&menu){
+      burger.addEventListener('click',function(){
+        var open=menu.classList.toggle('is-open');
+        burger.classList.toggle('is-open',open);
+        burger.setAttribute('aria-expanded',open);
+        menu.setAttribute('aria-hidden',!open);
+        document.body.style.overflow=open?'hidden':'';
+      });
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click',function(){
+          menu.classList.remove('is-open');burger.classList.remove('is-open');
+          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
+          document.body.style.overflow='';
+        });
+      });
+    }
+    window.addEventListener('scroll',function(){
+      var y=window.pageYOffset;
+      if(menu&&menu.classList.contains('is-open'))return;
+      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
+      lastY=y;
+    },{passive:true});
+  })();
+  </script>
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

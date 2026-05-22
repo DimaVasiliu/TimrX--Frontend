@@ -18,8 +18,10 @@ routes = [
   { pattern = "timrx.live/robots.txt", zone_name = "timrx.live" },
   { pattern = "timrx.live/tools*", zone_name = "timrx.live" },
   { pattern = "timrx.live/read*", zone_name = "timrx.live" },
+  { pattern = "timrx.live/avi-to-mp4*", zone_name = "timrx.live" },
   { pattern = "timrx.live/3d-models/*", zone_name = "timrx.live" },
   { pattern = "timrx.live/text-to-3d/*", zone_name = "timrx.live" },
+  { pattern = "timrx.live/converters/*", zone_name = "timrx.live" },
   { pattern = "timrx.live/sitemap-seo.xml", zone_name = "timrx.live" }
 ]
 

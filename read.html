@@ -284,8 +284,8 @@
             <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
             <span class="ft-brand-name">TimrX</span>
           </a>
-          <span class="ft-brand-tag">AI Creative Platform</span>
-          <p class="ft-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+          <span class="ft-brand-tag">3D, image &amp; video generation</span>
+          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
         </div>
         <nav class="ft-cols" aria-label="Footer navigation">
           <div class="ft-col">
@@ -318,7 +318,7 @@
       </div>
       <div class="ft-bottom">
         <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-        <span class="ft-meta">Built in London &middot; AI creative tools</span>
+        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
       </div>
     </div>
   </footer>
@@ -758,6 +758,34 @@
     qs('#twTitle').content = p.title;
     qs('#twDesc').content = p.excerpt || '';
     qs('#twImage').content = ogImage;
+
+    // SEO: inject BlogPosting structured data for this post
+    (function injectArticleSchema() {
+      const prev = document.getElementById('blogPostingLd');
+      if (prev) prev.remove();
+      const ld = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": p.title,
+        "description": p.excerpt || '',
+        "image": [ogImage],
+        "datePublished": p.created_at || undefined,
+        "dateModified": p.created_at || undefined,
+        "author": { "@type": "Person", "name": p.author || "Dima Vasiliu" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "TimrX",
+          "logo": { "@type": "ImageObject", "url": "https://timrx.live/img/favicon-logo-512.png" }
+        },
+        "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
+        "url": canonicalUrl
+      };
+      const tag = document.createElement('script');
+      tag.type = 'application/ld+json';
+      tag.id = 'blogPostingLd';
+      tag.textContent = JSON.stringify(ld);
+      document.head.appendChild(tag);
+    })();
 
     // Dual-format rendering: blocks or markdown
     const format = p.content_format || 'markdown';
