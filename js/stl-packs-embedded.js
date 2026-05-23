@@ -103,7 +103,7 @@
         tags: ['decor', 'decoration', 'ornament', 'home'] },
       { slug: 'animated-cartoons', title: 'Animated Cartoons STL Pack', category: 'Characters',
         blurb: 'Characters from animated cartoons, cleaned and print-ready.',
-        priceGBP: 3.99, fileCount: '40+', sizeMB: 0, r2Key: 'animated-cartoons.zip', image: STL_PREVIEW_IMAGES["animated-cartoons"],
+        priceGBP: 3.99, fileCount: '300+', sizeMB: 0, r2Key: 'animated-cartoons.zip', image: STL_PREVIEW_IMAGES["animated-cartoons"],
         tags: ['cartoon', 'animated', 'character'] },
       { slug: 'disney', title: 'Disney STL Pack', category: 'Characters',
         blurb: 'Disney-style characters and figures, ready to print.',
@@ -119,7 +119,7 @@
         tags: ['diorama', 'scene', 'terrain'] },
       { slug: 'foldable', title: 'Foldable STL Pack', category: 'Toys',
         blurb: 'Foldable, flexible print-in-place models.',
-        priceGBP: 3.99, fileCount: '40+', sizeMB: 0, r2Key: 'foldable.zip', image: STL_PREVIEW_IMAGES["foldable"],
+        priceGBP: 3.99, fileCount: '24+', sizeMB: 0, r2Key: 'foldable.zip', image: STL_PREVIEW_IMAGES["foldable"],
         tags: ['foldable', 'flexi', 'flexible'] },
       { slug: 'film', title: 'Film STL Pack', category: 'Film',
         blurb: 'Models and props inspired by film and TV.',
@@ -152,7 +152,11 @@
       { slug: 'miniatures', title: 'Miniatures STL Pack', category: 'Miniatures',
         blurb: 'Tabletop miniatures scaled for 28-32mm gaming.',
         priceGBP: 3.99, fileCount: '48+', sizeMB: 0, r2Key: 'miniatures.zip', image: STL_PREVIEW_IMAGES["miniatures"],
-        tags: ['miniature', 'tabletop', '28mm', 'wargaming'] }
+        tags: ['miniature', 'tabletop', '28mm', 'wargaming'] },
+      { slug: 'rpg', title: 'RPG STL Pack', category: 'More',
+        blurb: 'A massive role-playing collection — heroes, monsters, terrain and props spanning every theme.',
+        priceGBP: 4.99, fileCount: '200+', sizeMB: 0, r2Key: 'rpg.zip', image: STL_PREVIEW_IMAGES["rpg"],
+        tags: ['rpg', 'role-playing', 'tabletop', 'dnd', 'fantasy'] }
     ];
   
     // ── ALL-ACCESS PASS ────────────────────────────────────────
