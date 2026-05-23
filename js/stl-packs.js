@@ -168,7 +168,11 @@
       { slug: 'plant-pots-vases', title: 'Plant Pots & Vases STL Pack', category: 'Home & Decor',
         blurb: 'Decorative plant pots, planters and vases — print in vase mode or standard.',
         priceGBP: 2.49, fileCount: '65+', sizeMB: 0, r2Key: 'plant-pots-vases.zip', image: 'img/stl/plant-pots-vases.webp',
-        tags: ['plant pot', 'vase', 'planter', 'home', 'decor'] }
+        tags: ['plant pot', 'vase', 'planter', 'home', 'decor'] },
+      { slug: 'marvel', title: 'Marvel STL Pack', category: 'More',
+        blurb: 'The Marvel collection — a curated mix of print-ready superhero models.',
+        priceGBP: 2.49, fileCount: '40+', sizeMB: 0, r2Key: 'marvel.zip', image: STL_PREVIEW_IMAGES["marvel"],
+        tags: ['marvel', 'superhero', 'comics', 'collection'] }
     ];
   
     // ── ALL-ACCESS PASS ────────────────────────────────────────
