@@ -156,7 +156,15 @@
       { slug: 'rpg', title: 'RPG STL Pack', category: 'More',
         blurb: 'A massive role-playing collection — heroes, monsters, terrain and props spanning every theme.',
         priceGBP: 4.99, fileCount: '200+', sizeMB: 0, r2Key: 'rpg.zip', image: 'img/stl/rpg.webp',
-        tags: ['rpg', 'role-playing', 'tabletop', 'dnd', 'fantasy'] }
+        tags: ['rpg', 'role-playing', 'tabletop', 'dnd', 'fantasy'] },
+      { slug: 'famous-characters', title: 'Famous Characters STL Pack', category: 'Characters',
+        blurb: 'Iconic and instantly recognisable characters — cleaned, watertight and print-ready.',
+        priceGBP: 3.99, fileCount: '144+', sizeMB: 0, r2Key: 'famous-characters.zip', image: 'img/stl/famous-characters.webp',
+        tags: ['famous', 'character', 'iconic', 'celebrity', 'pop culture'] },
+      { slug: 'funkos', title: 'Funkos STL Pack', category: 'Characters',
+        blurb: 'Funko-style chibi figures of fan-favourite characters — cleaned and print-ready.',
+        priceGBP: 3.99, fileCount: '40+', sizeMB: 0, r2Key: 'funkos.zip', image: 'img/stl/funkos.webp',
+        tags: ['funko', 'pop', 'figure', 'collectible', 'chibi'] }
     ];
   
     // ── ALL-ACCESS PASS ────────────────────────────────────────
