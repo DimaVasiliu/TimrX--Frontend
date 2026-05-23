@@ -51,8 +51,11 @@
 /admin          /admin/admin.html       200
 /admin/edit     /admin/admin-edit.html  200
 
-# Tool alias
-/avi-to-mp4     /converters/avi-to-mp4  301
+# AVI -> MP4 converter (file: avi-tomp4.html, canonical URL: /converters/avi-to-mp4)
+/converters/avi-to-mp4   /avi-tomp4.html          200
+/avi-to-mp4              /converters/avi-to-mp4   301
+/avi-tomp4               /converters/avi-to-mp4   301
+/avi-tomp4.html          /converters/avi-to-mp4   301
 
 # Trailing-slash normalization
 /archive/     /archive    301
@@ -60,6 +63,7 @@
 /company/     /company    301
 /converter/   /converter  301
 /avi-to-mp4/  /converters/avi-to-mp4 301
+/converters/avi-to-mp4/  /converters/avi-to-mp4 301
 /hub/         /hub        301
 /3dprint/     /3dprint    301
 /tutorials/   /tutorials  301
