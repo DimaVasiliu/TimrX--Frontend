@@ -167,7 +167,7 @@
         tags: ['funko', 'pop', 'figure', 'collectible', 'chibi'] },
       { slug: 'plant-pots-vases', title: 'Plant Pots & Vases STL Pack', category: 'Home & Decor',
         blurb: 'Decorative plant pots, planters and vases — print in vase mode or standard.',
-        priceGBP: 3.99, fileCount: '40+', sizeMB: 0, r2Key: 'plant-pots-vases.zip', image: STL_PREVIEW_IMAGES["plant-pots-vases"],
+        priceGBP: 3.99, fileCount: '65+', sizeMB: 0, r2Key: 'plant-pots-vases.zip', image: STL_PREVIEW_IMAGES["plant-pots-vases"],
         tags: ['plant pot', 'vase', 'planter', 'home', 'decor'] }
     ];
   
