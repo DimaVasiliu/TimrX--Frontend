@@ -171,7 +171,7 @@
         tags: ['plant pot', 'vase', 'planter', 'home', 'decor'] },
       { slug: 'marvel', title: 'Marvel STL Pack', category: 'More',
         blurb: 'The Marvel collection — a curated mix of print-ready superhero models.',
-        priceGBP: 2.49, fileCount: '40+', sizeMB: 0, r2Key: 'marvel.zip', image: STL_PREVIEW_IMAGES["marvel"],
+        priceGBP: 2.49, fileCount: '40+', sizeMB: 0, r2Key: 'marvel.zip', image: 'img/stl/marvel.webp',
         tags: ['marvel', 'superhero', 'comics', 'collection'] }
     ];
   
