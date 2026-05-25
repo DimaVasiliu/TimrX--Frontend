@@ -68,25 +68,25 @@ Sitemap: https://timrx.live/sitemap.xml
 `;
 
 // ─────────────────────────────────────────────────────────────
+// Deleted blog posts reported by GSC. Return 410 so Google drops them.
+// ─────────────────────────────────────────────────────────────
+const DELETED_BLOG_PATHS = new Set([
+  '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier',
+  '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation',
+  '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era',
+  '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk',
+  '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk',
+  '/blog/react-performance',
+  '/blog/webgl-performance',
+]);
+
+// ─────────────────────────────────────────────────────────────
 // 301 Redirect map for old/broken URLs reported by GSC
 // Add entries as: '/old-path': '/new-path'
 // ─────────────────────────────────────────────────────────────
-const PERMANENT_REDIRECTS = {
-  // Deleted/legacy paths → live equivalents (or /blogs if no relevant alive post).
-  // For /blog/<slug> the worker already 301s to /read?slug=<slug>, but if the slug
-  // itself was deleted we override here.
-  '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
-    '/read?slug=openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
-  '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk':
-    '/read?slug=eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
-  '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier': '/blogs',
-  '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk': '/blogs',
-  '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era': '/blogs',
-  '/blog/react-performance': '/blogs',
-  '/blog/webgl-performance': '/blogs',
-};
+const PERMANENT_REDIRECTS = {};
 
-// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → /blogs.
+// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → 410 Gone.
 const SLUG_REDIRECTS = {
   'openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
     'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
@@ -118,9 +118,17 @@ export default {
     const pathname = url.pathname;
 
     // ─────────────────────────────────────────────────────────────
-    // 0. Handle permanent redirects for old/broken URLs (GSC 404 fixes)
+    // 0. Handle intentionally deleted blog URLs before redirect fallbacks.
     // ─────────────────────────────────────────────────────────────
-    const permanentRedirect = PERMANENT_REDIRECTS[pathname] || PERMANENT_REDIRECTS[pathname.replace(/\/$/, '')];
+    const normalizedPathname = pathname.replace(/\/$/, '');
+    if (DELETED_BLOG_PATHS.has(pathname) || DELETED_BLOG_PATHS.has(normalizedPathname)) {
+      return goneResponse();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 0a. Handle permanent redirects for old/broken URLs (GSC fixes)
+    // ─────────────────────────────────────────────────────────────
+    const permanentRedirect = PERMANENT_REDIRECTS[pathname] || PERMANENT_REDIRECTS[normalizedPathname];
     if (permanentRedirect) {
       return Response.redirect(`${PUBLIC_DOMAIN}${permanentRedirect}`, 301);
     }
@@ -132,12 +140,14 @@ export default {
       return Response.redirect(`${PUBLIC_DOMAIN}/converters/avi-to-mp4`, 302);
     }
 
-    // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
+    // 0b. Redirect renamed /read?slug=X to live equivalents. Slugs mapped
+    // to null are intentionally deleted and should be dropped by Google.
     if (pathname === '/read') {
       const slug = url.searchParams.get('slug');
       if (slug && Object.prototype.hasOwnProperty.call(SLUG_REDIRECTS, slug)) {
         const target = SLUG_REDIRECTS[slug];
-        const dest = target ? `/read?slug=${encodeURIComponent(target)}` : '/blogs';
+        if (!target) return goneResponse();
+        const dest = `/read?slug=${encodeURIComponent(target)}`;
         return Response.redirect(`${PUBLIC_DOMAIN}${dest}`, 301);
       }
     }
@@ -209,6 +219,8 @@ ${generateSeoSitemap()}
       if (!pathname.startsWith('/blog/tag/') && !pathname.startsWith('/blog/category/')) {
         const slug = pathname.slice('/blog/'.length).replace(/\/$/, '');
         if (slug) {
+          const metadata = await fetchPostMetadata(slug);
+          if (metadata.status === 'gone') return goneResponse();
           return Response.redirect(`${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`, 301);
         }
       }
@@ -334,6 +346,37 @@ async function serveFilteredBackendSitemap(request, sitemapPath) {
   });
 }
 
+function goneResponse() {
+  return new Response('Gone', {
+    status: 410,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+      'X-Robots-Tag': 'noindex, follow',
+    },
+  });
+}
+
+async function fetchPostMetadata(slug) {
+  try {
+    const response = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
+      cf: { cacheTtl: 300, cacheEverything: true },
+    });
+
+    if (response.ok) {
+      return { status: 'ok', post: await response.json() };
+    }
+
+    if (response.status === 404 || response.status === 410) {
+      return { status: 'gone' };
+    }
+  } catch (error) {
+    console.warn('Post metadata lookup failed:', error);
+  }
+
+  return { status: 'unknown' };
+}
+
 async function serveReadPageWithMetadata(request, slug) {
   const pageResponse = await fetch(request);
   const contentType = pageResponse.headers.get('Content-Type') || '';
@@ -343,11 +386,11 @@ async function serveReadPageWithMetadata(request, slug) {
   const canonical = `${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`;
 
   try {
-    const postResponse = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
-      cf: { cacheTtl: 300, cacheEverything: true },
-    });
-    if (postResponse.ok) {
-      const post = await postResponse.json();
+    const metadata = await fetchPostMetadata(slug);
+    if (metadata.status === 'gone') return goneResponse();
+
+    if (metadata.status === 'ok') {
+      const post = metadata.post;
       const title = escapeHtml(post.title || 'Read');
       const description = escapeHtml(post.excerpt || post.description || 'Read blog posts on TimrX — web development, 3D, and creative tech.');
       const image = escapeHtml(post.cover_url || `${PUBLIC_DOMAIN}/img/blogs.png`);
