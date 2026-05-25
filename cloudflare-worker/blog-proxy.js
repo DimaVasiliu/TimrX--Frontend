@@ -93,6 +93,25 @@ const SLUG_REDIRECTS = {
   'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
 
+// Keep legacy/off-topic posts reachable for users, but stop asking Google to
+// index them while TimrX builds topical authority around AI 3D/STL workflows.
+const NOINDEX_BLOG_SLUGS = new Set([
+  'upgrade-your-home-network-for-remote-work-a-comprehensive-guide',
+  'eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
+  'harnessing-the-physics-of-intelligence-emory-s-ai-periodic-table-and-vmib',
+  'from-generative-hype-to-zero-harm-why-ai-is-moving-toward-mission-critical-reliability',
+  'agi-trajectory-2030-why-the-industry-may-be-one-breakthrough-away',
+  'the-periodic-table-of-ai-a-new-map-for-creative-coders',
+  'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
+  'openai-s-moltbot-openclaw-decoding-the-latest-ai-leap',
+  'the-ai-industry-s-positive-shift-towards-measurable-performance',
+  'ai-s-2026-breakthrough-efficient-models-revolutionize-tech',
+  'the-positive-shift-toward-responsible-ai-governance-in-2026',
+  'ai-in-2026-efficiency-revolutionizes-the-field',
+  'when-technology-becomes-the-environment-the-quiet-shift-in-digital-reality',
+  'the-quantum-leap-ai-s-new-role-in-quantum-computing',
+]);
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -216,7 +235,7 @@ ${generateSeoSitemap()}
     // 6. Proxy /sitemap-blogs.xml to backend's /sitemap-blogs.xml
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/sitemap-blogs.xml') {
-      return proxyToBackend(request, `${BLOG_ORIGIN}/sitemap-blogs.xml`);
+      return serveFilteredBackendSitemap(request, '/sitemap-blogs.xml');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -237,7 +256,7 @@ ${generateSeoSitemap()}
     //    (sitemap index, page/recent sitemaps)
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/sitemap-recent.xml') {
-      return proxyToBackend(request, `${BLOG_ORIGIN}${pathname}`);
+      return serveFilteredBackendSitemap(request, '/sitemap-recent.xml');
     }
 
     // Sitemap index: proxy from backend then inject sitemap-seo.xml
@@ -291,6 +310,26 @@ ${generateSeoSitemap()}
   }
 };
 
+async function serveFilteredBackendSitemap(request, sitemapPath) {
+  const backendResponse = await proxyToBackend(request, `${BLOG_ORIGIN}${sitemapPath}`);
+  const xml = await backendResponse.text();
+  const filtered = xml.replace(/<url>[\s\S]*?<\/url>/g, (block) => {
+    const match = block.match(/\/read\?slug=([^<&#]+)/);
+    if (!match) return block;
+    return NOINDEX_BLOG_SLUGS.has(decodeURIComponent(match[1])) ? '' : block;
+  });
+
+  const headers = new Headers(backendResponse.headers);
+  headers.set('Content-Type', 'application/xml; charset=utf-8');
+  headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=3600');
+
+  return new Response(filtered, {
+    status: backendResponse.status,
+    statusText: backendResponse.statusText,
+    headers,
+  });
+}
+
 async function serveReadPageWithMetadata(request, slug) {
   const pageResponse = await fetch(request);
   const contentType = pageResponse.headers.get('Content-Type') || '';
@@ -323,8 +362,12 @@ async function serveReadPageWithMetadata(request, slug) {
     console.warn('Read metadata injection failed:', error);
   }
 
+  const robotsContent = NOINDEX_BLOG_SLUGS.has(slug)
+    ? 'noindex, follow, max-image-preview:large'
+    : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
   html = html
-    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />')
+    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${robotsContent}" />`)
     .replace(/<link rel="canonical" id="canonicalLink" href="[^"]*"\s*\/?>/i, `<link rel="canonical" id="canonicalLink" href="${canonical}" />`)
     .replace(/<meta property="og:url" id="ogUrl" content="[^"]*"\s*\/?>/i, `<meta property="og:url" id="ogUrl" content="${canonical}" />`)
     .replace(/<meta name="twitter:url" id="twUrl" content="[^"]*"\s*\/?>/i, `<meta name="twitter:url" id="twUrl" content="${canonical}" />`);
@@ -332,7 +375,11 @@ async function serveReadPageWithMetadata(request, slug) {
   const headers = new Headers(pageResponse.headers);
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
-  headers.delete('X-Robots-Tag');
+  if (NOINDEX_BLOG_SLUGS.has(slug)) {
+    headers.set('X-Robots-Tag', 'noindex, follow');
+  } else {
+    headers.delete('X-Robots-Tag');
+  }
   return new Response(html, {
     status: pageResponse.status,
     statusText: pageResponse.statusText,
