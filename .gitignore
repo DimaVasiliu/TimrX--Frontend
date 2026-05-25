@@ -16,6 +16,7 @@ venv/
 # Private admin frontend
 admin/
 media/admin.css
+.local/
 
 # Cloudflare local build cache
 .wrangler/
