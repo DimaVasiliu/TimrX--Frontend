@@ -581,7 +581,6 @@
         </div>
       </div>
     </section>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <script>
     (function(){
       var models=[
@@ -596,6 +595,25 @@
           fallback=document.getElementById('hx3dFallback'),
           dots=document.querySelectorAll('#hx3dDots .hx-dot');
       if(!stage||!mv){return;}
+      function loadModelViewer(){
+        if(window.__timrxModelViewerLoading || customElements.get('model-viewer')){return;}
+        window.__timrxModelViewerLoading=true;
+        var script=document.createElement('script');
+        script.type='module';
+        script.src='https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+        document.head.appendChild(script);
+      }
+      if('IntersectionObserver' in window){
+        var observer=new IntersectionObserver(function(entries){
+          if(entries.some(function(entry){return entry.isIntersecting;})){
+            observer.disconnect();
+            loadModelViewer();
+          }
+        },{rootMargin:'320px 0px'});
+        observer.observe(stage);
+      }else{
+        (window.requestIdleCallback||function(cb){return setTimeout(cb,1200);})(loadModelViewer);
+      }
       var i=0,busy=false;
       if(mv.addEventListener){mv.addEventListener('load',function(){if(fallback){fallback.style.display='none';}});}
       setTimeout(function(){if(fallback){fallback.style.display='none';}},6000);
