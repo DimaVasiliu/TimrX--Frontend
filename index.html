@@ -400,7 +400,6 @@
     </div>
   </div>
 
-
   <main class="page" style="flex:1;">
 
     <!-- Platform Showcase + Workflow -->
@@ -1065,6 +1064,208 @@
       </div>
     </section>
 
+    <!-- ============ Generation Tools ============ -->
+    <style>
+    /* ===== TimrX generation tools — self-contained, sgt- scoped ===== */
+    .sgt{position:relative;overflow:hidden;background:#0a0a0c;
+      padding:clamp(48px,8vh,104px) 0;}
+    .sgt *{box-sizing:border-box;}
+    .sgt-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
+    .sgt-dots{position:absolute;inset:-3px;
+      background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.6px);
+      background-size:46px 46px;opacity:.38;}
+    .sgt-glow{position:absolute;border-radius:50%;filter:blur(120px);}
+    .sgt-glow-a{width:44vw;height:44vw;max-width:600px;max-height:600px;
+      background:rgba(34,60,116,.5);top:-16vw;left:-12vw;}
+    .sgt-glow-b{width:40vw;height:40vw;max-width:540px;max-height:540px;
+      background:rgba(52,54,78,.42);bottom:-18vw;right:-10vw;}
+    .sgt-wrap{position:relative;z-index:2;width:100%;max-width:1200px;margin:0 auto;
+      padding:0 clamp(20px,5vw,64px);}
+
+    .sgt-head{text-align:center;max-width:660px;margin:0 auto clamp(30px,4.5vh,52px);}
+    .sgt-eyebrow{display:inline-flex;align-items:center;gap:9px;
+      font-size:clamp(10px,1.05vw,12px);letter-spacing:.24em;text-transform:uppercase;
+      color:rgba(244,242,236,.6);font-weight:600;margin:0 0 13px;}
+    .sgt-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4f8fd6;
+      box-shadow:0 0 11px #4f8fd6;}
+    .sgt-h2{margin:0 0 13px;font-weight:900;line-height:1.04;letter-spacing:-.04em;
+      text-transform:uppercase;color:#f5f3ee;font-size:clamp(28px,4vw,60px);}
+    .sgt-lead{margin:0;font-size:clamp(13.5px,1.05vw,16px);line-height:1.62;
+      color:rgba(244,242,236,.66);}
+
+    /* featured trio */
+    .sgt-feat{display:grid;grid-template-columns:repeat(3,1fr);
+      gap:clamp(16px,1.8vw,24px);margin:0 0 clamp(30px,4.5vh,50px);}
+    .sgt-fcard{position:relative;display:flex;flex-direction:column;
+      padding:clamp(22px,2.2vw,30px);border-radius:16px;text-decoration:none;
+      background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+      border:1px solid rgba(255,255,255,.09);overflow:hidden;
+      transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;}
+    .sgt-fcard::before{content:"";position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(120% 80% at 18% 0%,rgba(var(--ac),.16),transparent 62%);
+      opacity:.85;transition:opacity .22s ease;}
+    .sgt-fcard:hover{transform:translateY(-4px);
+      border-color:rgba(var(--ac),.5);
+      box-shadow:0 30px 60px -30px rgba(0,0,0,.85),0 0 50px -22px rgba(var(--ac),.55);}
+    .sgt-fic{position:relative;display:flex;align-items:center;justify-content:center;
+      width:50px;height:50px;border-radius:13px;margin:0 0 16px;font-size:20px;
+      color:rgb(var(--ac));background:rgba(var(--ac),.13);
+      border:1px solid rgba(var(--ac),.26);}
+    .sgt-fcard h3{position:relative;margin:0 0 8px;
+      font:800 clamp(16px,1.4vw,20px)/1.25 Inter,system-ui,sans-serif;
+      color:#f5f3ee;letter-spacing:-.01em;}
+    .sgt-fcard p{position:relative;margin:0 0 18px;font-size:13.5px;line-height:1.6;
+      color:rgba(244,242,236,.62);}
+    .sgt-fgo{position:relative;margin-top:auto;display:inline-flex;align-items:center;
+      gap:8px;font:700 12px/1 Inter,system-ui,sans-serif;letter-spacing:.04em;
+      text-transform:uppercase;color:rgb(var(--ac));}
+    .sgt-fgo i{transition:transform .2s ease;}
+    .sgt-fcard:hover .sgt-fgo i{transform:translateX(4px);}
+
+    /* sub-heading */
+    .sgt-sub{display:flex;align-items:center;gap:14px;
+      margin:0 0 clamp(16px,2.4vh,24px);
+      font:700 11px/1 Inter,system-ui,sans-serif;letter-spacing:.2em;
+      text-transform:uppercase;color:rgba(244,242,236,.5);}
+    .sgt-sub::after{content:"";flex:1;height:1px;
+      background:linear-gradient(to right,rgba(255,255,255,.12),transparent);}
+
+    /* compact tool grid */
+    .sgt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+      gap:clamp(10px,1.1vw,14px);}
+    .sgt-card{display:flex;gap:12px;align-items:flex-start;
+      padding:14px 15px;border-radius:12px;text-decoration:none;
+      background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
+      transition:transform .18s ease,border-color .18s ease,background .18s ease;}
+    .sgt-card:hover{transform:translateY(-2px);
+      border-color:rgba(124,176,234,.4);background:rgba(124,176,234,.06);}
+    .sgt-ic{flex:none;display:flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:9px;font-size:13px;color:#9db8da;
+      background:rgba(124,176,234,.1);border:1px solid rgba(124,176,234,.16);
+      transition:color .18s ease;}
+    .sgt-card:hover .sgt-ic{color:#bcd4f0;}
+    .sgt-tx{display:block;min-width:0;}
+    .sgt-tx b{display:block;font:700 13.5px/1.3 Inter,system-ui,sans-serif;
+      color:#f5f3ee;margin-bottom:3px;}
+    .sgt-tx span{display:block;font-size:11.5px;line-height:1.5;
+      color:rgba(244,242,236,.5);}
+
+    @media(max-width:760px){
+      .sgt-feat{grid-template-columns:1fr;}
+      .sgt-grid{grid-template-columns:1fr 1fr;}
+    }
+    @media(max-width:440px){
+      .sgt-grid{grid-template-columns:1fr;}
+    }
+    </style>
+    <section id="tools" class="sgt" aria-label="TimrX generation tools">
+      <div class="sgt-bg" aria-hidden="true">
+        <div class="sgt-dots"></div>
+        <div class="sgt-glow sgt-glow-a"></div>
+        <div class="sgt-glow sgt-glow-b"></div>
+      </div>
+      <div class="sgt-wrap">
+        <div class="sgt-head">
+          <span class="sgt-eyebrow"><b></b>The complete toolset</span>
+          <h2 class="sgt-h2">Explore the generation tools</h2>
+          <p class="sgt-lead">Every model, image and video the platform can generate &mdash; plus the tools to refine, convert and export them. Twenty generators, one workspace.</p>
+        </div>
+
+        <div class="sgt-feat">
+          <a href="/ai-3d-generator" class="sgt-fcard" style="--ac:79,143,214">
+            <span class="sgt-fic"><i class="fa-solid fa-cube" aria-hidden="true"></i></span>
+            <h3>AI 3D Model Generator</h3>
+            <p>Generate detailed 3D models from a text prompt or an image, across multiple engines.</p>
+            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </a>
+          <a href="/ai-image-generator" class="sgt-fcard" style="--ac:124,108,214">
+            <span class="sgt-fic"><i class="fa-solid fa-image" aria-hidden="true"></i></span>
+            <h3>AI Image Generator</h3>
+            <p>Create images from text prompts with Imagen, FLUX and Ideogram.</p>
+            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </a>
+          <a href="/ai-video-generator" class="sgt-fcard" style="--ac:63,166,184">
+            <span class="sgt-fic"><i class="fa-solid fa-film" aria-hidden="true"></i></span>
+            <h3>AI Video Generator</h3>
+            <p>Produce video from text or a still image with Veo 3 and Seedance.</p>
+            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </a>
+        </div>
+
+        <div class="sgt-sub">All generators &amp; tools</div>
+        <div class="sgt-grid">
+          <a href="/text-to-3d" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-font" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Text to 3D</b><span>A 3D model from a written description.</span></span>
+          </a>
+          <a href="/image-to-3d" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-panorama" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Image to 3D</b><span>Turn a photo into a textured 3D model.</span></span>
+          </a>
+          <a href="/stl-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>STL Generator</b><span>Watertight, printable STL from text or images.</span></span>
+          </a>
+          <a href="/3d-print-model-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-print" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>3D Print Model Generator</b><span>Print-ready models with a built-in print check.</span></span>
+          </a>
+          <a href="/veo-3-video-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Veo 3 Video Generator</b><span>Cinematic clips from text prompts with Veo 3.</span></span>
+          </a>
+          <a href="/seedance-video-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Seedance Video Generator</b><span>Animate text or a still image into a clip.</span></span>
+          </a>
+          <a href="/ai-animation-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>AI Animation Generator</b><span>Rig and animate 3D models with motion presets.</span></span>
+          </a>
+          <a href="/ai-texture-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-fill-drip" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>AI Texture Generator</b><span>Seamless PBR textures from text or images.</span></span>
+          </a>
+          <a href="/ai-game-assets" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Game Asset Generator</b><span>Game-ready assets for Unity, Unreal and Godot.</span></span>
+          </a>
+          <a href="/converter" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-right-left" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>3D File Converter</b><span>Convert GLB, STL, OBJ, FBX, GLTF and 3MF.</span></span>
+          </a>
+          <a href="/multi-color-3d-printing" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Multi-Color 3D Printing</b><span>Full-color 3MF for Bambu AMS and Prusa MMU.</span></span>
+          </a>
+          <a href="/stl-library" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>STL Packs</b><span>Ready-to-print STL file pack collections.</span></span>
+          </a>
+          <a href="/tutorials" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Tutorials</b><span>Step-by-step guides for generating and exporting.</span></span>
+          </a>
+          <a href="/3d-model-cleanup" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-vector-square" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Remesh &amp; Retopology</b><span>Clean and optimize meshes for print and games.</span></span>
+          </a>
+          <a href="/print-check" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Print Check</b><span>Check wall thickness and overhangs before printing.</span></span>
+          </a>
+          <a href="/meshy-3d-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-cubes" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Meshy 3D Generator</b><span>Generate 3D models with the Meshy engine.</span></span>
+          </a>
+          <a href="/imagen-image-generator" class="sgt-card">
+            <span class="sgt-ic"><i class="fa-solid fa-palette" aria-hidden="true"></i></span>
+            <span class="sgt-tx"><b>Imagen Image Generator</b><span>Generate images with Google Imagen.</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- HERO -->
     <section class="container hero" id="hero">
         <!-- Subtle decorative elements -->
@@ -1228,7 +1429,6 @@
                 </div>
             </div>
         </section>
-
 
 <!-- 3D PROMPT TICKER (between About & Philosophy) -->
 <div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
@@ -1662,95 +1862,6 @@
     </div>
   </section>
   </main>
-
-  <!-- Explore TimrX AI Tools — internal linking for SEO -->
-  <section class="seo-tools" aria-label="Explore TimrX AI tools">
-    <div class="container">
-      <h2 class="seo-tools-title">Explore the generation tools</h2>
-      <div class="seo-tools-grid">
-        <a href="/text-to-3d" class="seo-tool-card">
-          <h3>Text to 3D</h3>
-          <p>Generate a 3D model from a written description — meshes, textures and STL export.</p>
-        </a>
-        <a href="/image-to-3d" class="seo-tool-card">
-          <h3>Image to 3D</h3>
-          <p>Convert a photo or image into a textured, print-ready 3D model.</p>
-        </a>
-        <a href="/ai-3d-generator" class="seo-tool-card">
-          <h3>AI 3D Model Generator</h3>
-          <p>Generate 3D models from text or images with multiple engines.</p>
-        </a>
-        <a href="/stl-generator" class="seo-tool-card">
-          <h3>STL Generator</h3>
-          <p>Generate watertight, printable STL files from text or images.</p>
-        </a>
-        <a href="/3d-print-model-generator" class="seo-tool-card">
-          <h3>3D Print Model Generator</h3>
-          <p>Build print-ready models, run a print check, export STL and 3MF.</p>
-        </a>
-        <a href="/ai-image-generator" class="seo-tool-card">
-          <h3>AI Image Generator</h3>
-          <p>Generate images from text prompts with Imagen, FLUX and Ideogram.</p>
-        </a>
-        <a href="/ai-video-generator" class="seo-tool-card">
-          <h3>AI Video Generator</h3>
-          <p>Text-to-video and image-to-video with Veo 3 and Seedance.</p>
-        </a>
-        <a href="/veo-3-video-generator" class="seo-tool-card">
-          <h3>Veo 3 Video Generator</h3>
-          <p>Generate cinematic video clips from text prompts with Veo 3.</p>
-        </a>
-        <a href="/seedance-video-generator" class="seo-tool-card">
-          <h3>Seedance Video Generator</h3>
-          <p>Turn text or a still image into a short animated clip.</p>
-        </a>
-        <a href="/ai-animation-generator" class="seo-tool-card">
-          <h3>AI Animation Generator</h3>
-          <p>Rig and animate 3D models with motion presets.</p>
-        </a>
-        <a href="/ai-texture-generator" class="seo-tool-card">
-          <h3>AI Texture Generator</h3>
-          <p>Generate seamless PBR textures from text or images.</p>
-        </a>
-        <a href="/ai-game-assets" class="seo-tool-card">
-          <h3>Game Asset Generator</h3>
-          <p>Game-ready 3D assets for Unity, Unreal, Godot and Blender.</p>
-        </a>
-        <a href="/converter" class="seo-tool-card">
-          <h3>3D File Converter</h3>
-          <p>Convert GLB, STL, OBJ, FBX, GLTF and 3MF in your browser.</p>
-        </a>
-        <a href="/multi-color-3d-printing" class="seo-tool-card">
-          <h3>Multi-Color 3D Printing</h3>
-          <p>Full-color 3MF for Bambu Lab AMS and Prusa MMU printers.</p>
-        </a>
-        <a href="/stl-library" class="seo-tool-card">
-          <h3>STL Packs</h3>
-          <p>Download ready-to-print STL file pack collections.</p>
-        </a>
-        <a href="/tutorials" class="seo-tool-card">
-          <h3>Tutorials</h3>
-          <p>Step-by-step guides for generating, preparing and exporting 3D models.</p>
-        </a>
-        <a href="/3d-model-cleanup" class="seo-tool-card">
-          <h3>Remesh & Retopology</h3>
-          <p>Clean and optimize 3D meshes for printing and game engines.</p>
-        </a>
-        <a href="/print-check" class="seo-tool-card">
-          <h3>Print Check</h3>
-          <p>Check wall thickness, overhangs and print readiness before printing.</p>
-        </a>
-        <a href="/meshy-3d-generator" class="seo-tool-card">
-          <h3>Meshy 3D Generator</h3>
-          <p>Generate 3D models with the Meshy engine, then refine and export.</p>
-        </a>
-        <a href="/imagen-image-generator" class="seo-tool-card">
-          <h3>Imagen Image Generator</h3>
-          <p>Generate images from text prompts with Google Imagen.</p>
-        </a>
-      </div>
-    </div>
-  </section>
 
   <footer class="site-footer">
     <div class="container">
