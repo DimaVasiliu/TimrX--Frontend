@@ -319,6 +319,8 @@
   #hero{max-width:none;padding-bottom:clamp(56px,9vh,120px);padding-inline:clamp(16px,4vw,90px)}
   #about{margin-top:clamp(40px,6vh,96px)}
   #hero .hero-title{margin-left:0}
+  #hero .hero-watermark{left:3%}
+  #hero .hero-plate{left:-7%;right:-3%}
   .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
   @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
 </style>
@@ -432,23 +434,23 @@
       border-top:1px solid rgba(255,255,255,.08);
       border-bottom:1px solid rgba(255,255,255,.08);
       box-shadow:0 24px 70px -34px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.05);
-      padding:clamp(30px,5.2vw,72px) clamp(20px,5vw,64px) clamp(28px,4.6vw,66px);
-      margin:0 0 clamp(20px,3vh,40px);}
+      padding:clamp(18px,2.6vw,38px) clamp(20px,5vw,64px);
+      margin:0 0 clamp(12px,1.8vh,24px);}
     .hx-h1-fx::after{content:"";position:absolute;left:clamp(20px,5vw,64px);right:clamp(20px,5vw,64px);bottom:0;height:1px;
       background:linear-gradient(90deg,transparent,rgba(124,176,234,.7),transparent);opacity:.7;}
-    .hx-h1-fxlayer{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.66;mix-blend-mode:screen;}
+    .hx-h1-fxlayer{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.78;mix-blend-mode:screen;}
     .hx-h1-canvas{width:100%;height:100%;display:block;}
-    .hx-h1{position:relative;z-index:1;margin:0 auto;max-width:1480px;
-      font-weight:900;line-height:.86;letter-spacing:-.045em;
+    .hx-h1{position:relative;z-index:1;margin:0 auto;max-width:1180px;
+      font-weight:900;line-height:.88;letter-spacing:0;
       text-transform:uppercase;color:#f7f8fb;text-align:center;text-wrap:balance;
       text-shadow:0 18px 44px rgba(0,0,0,.55);
-      font-size:clamp(50px,6.4vw,126px);}
-    .hx-h1-l{display:block;overflow:hidden;padding:.07em 0;margin:-.07em 0;}
+      font-size:clamp(44px,5.2vw,92px);}
+    .hx-h1-l{display:block;overflow:hidden;padding:.04em 0;margin:-.04em 0;}
     .hx-h1-i{display:block;transform:translateY(106%);
       animation:hxWipe 1s cubic-bezier(.2,.78,.2,1) both;}
     .hx-h1-l:nth-child(1) .hx-h1-i{animation-delay:.12s;}
     .hx-h1-l:nth-child(2) .hx-h1-i{animation-delay:.26s;}
-    .hx-h1-i.a{color:#8fc5ff;text-shadow:0 0 34px rgba(124,176,234,.34),0 18px 44px rgba(0,0,0,.55);}
+    .hx-h1-i.a{color:#9db8da;text-shadow:0 0 34px rgba(157,184,218,.32),0 18px 44px rgba(0,0,0,.55);}
     .hx-main{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(30px,5vw,72px);
       align-items:center;}
     .hx-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:clamp(10px,1.05vw,12px);
@@ -528,11 +530,11 @@
     @keyframes hxRise{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
     @keyframes hxWipe{from{transform:translateY(106%);}to{transform:translateY(0);}}
     @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:34px;}.hx-orbit{display:none;}
-      .hx-h1-fx{padding:clamp(34px,8vw,54px) clamp(22px,6vw,44px) clamp(30px,7vw,46px);}
-      .hx-h1{max-width:760px;text-align:left;font-size:clamp(48px,10.5vw,82px);line-height:.88;}}
+      .hx-h1-fx{padding:clamp(24px,6vw,42px) clamp(22px,6vw,44px) clamp(22px,5.5vw,38px);}
+      .hx-h1{max-width:760px;text-align:center;font-size:clamp(44px,10vw,76px);line-height:.9;}}
     @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-stage-nav{opacity:.9;}
-      .hx-h1-fx{padding:30px 22px 28px;margin-bottom:26px;}
-      .hx-h1{font-size:clamp(42px,12.5vw,58px);letter-spacing:-.04em;}}
+      .hx-h1-fx{padding:24px 18px 22px;margin-bottom:22px;}
+      .hx-h1{font-size:clamp(37px,11.5vw,54px);letter-spacing:0;}}
     @media(prefers-reduced-motion:reduce){.hx-hero *{animation:none!important;}
       .hx-eyebrow,.hx-pipe,.hx-h1-i,.hx-sub,.hx-cta,.hx-tools,.hx-visual{opacity:1!important;transform:none!important;}}
     </style>
@@ -550,7 +552,7 @@
       </div>
       <div class="hx-h1-fx" id="hxH1Fx">
         <div class="hx-h1-fxlayer" aria-hidden="true"><canvas class="hx-h1-canvas"></canvas></div>
-        <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">3D Modeling, Images &amp; Video</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">in Your Browser</span></span></h1>
+        <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">3D Modeling Studio</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">Image &amp; Video Generators</span></span></h1>
       </div>
       <div class="hx-wrap">
         <div class="hx-main">
@@ -662,9 +664,9 @@
         var dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
         var lastW=0,lastH=0,firstSized=false;
         var parts=[];
-        var palette=['rgba(124,176,234,0.34)','rgba(180,210,250,0.24)','rgba(255,255,255,0.20)','rgba(69,116,190,0.28)'];
+        var palette=['rgba(255,250,238,0.48)','rgba(246,239,225,0.4)','rgba(255,255,255,0.3)','rgba(226,213,188,0.34)'];
         var rnd=function(a,b){return a+Math.random()*(b-a);};
-        function targetCount(){var area=canvas.width*canvas.height;return Math.max(160,Math.min(900,Math.floor(area/560)));}
+        function targetCount(){var area=canvas.width*canvas.height;return Math.max(220,Math.min(1200,Math.floor(area/430)));}
         function spawnOne(x,y){
           if(x==null){x=Math.random()*canvas.width;}
           if(y==null){y=Math.random()*canvas.height;}
@@ -701,7 +703,7 @@
         }
         var pointer={x:0,y:0,active:false};
         var INFLUENCE=function(){return 150*dpr;};
-        var STRENGTH=0.07,FRICTION=0.90,HOME_PULL=0.008,NOISE=0.18;
+        var STRENGTH=0.075,FRICTION=0.90,HOME_PULL=0.008,NOISE=0.2;
         host.addEventListener('mousemove',function(e){
           var r=host.getBoundingClientRect();
           pointer.x=(e.clientX-r.left)*dpr;pointer.y=(e.clientY-r.top)*dpr;pointer.active=true;
@@ -712,7 +714,7 @@
         host.addEventListener('pointerdown',function(e){
           var r=host.getBoundingClientRect();
           ripples.push({x:(e.clientX-r.left)*dpr,y:(e.clientY-r.top)*dpr,t:0,life:900,
-            maxR:Math.hypot(canvas.width,canvas.height)*0.7,band:40*dpr,power:0.72,
+            maxR:Math.hypot(canvas.width,canvas.height)*0.7,band:42*dpr,power:0.86,
             mode:e.altKey?'repel':'attract'});
         });
         function frame(){
@@ -722,8 +724,8 @@
             var rp=ripples[i];rp.t+=16;
             var k=Math.min(1,rp.t/rp.life);
             rp.radius=easeOutCubic(k)*rp.maxR;
-            ctx.beginPath();ctx.strokeStyle='rgba(124,176,234,0.18)';
-            ctx.lineWidth=Math.max(1,Math.min(6,rp.radius*0.006));
+            ctx.beginPath();ctx.strokeStyle='rgba(255,247,229,0.34)';
+            ctx.lineWidth=Math.max(1,Math.min(7,rp.radius*0.007));
             ctx.arc(rp.x,rp.y,rp.radius,0,Math.PI*2);ctx.stroke();
             if(k>=1){ripples.splice(i,1);}
           }
@@ -746,7 +748,7 @@
             }
             p.vx*=FRICTION;p.vy*=FRICTION;p.x+=p.vx;p.y+=p.vy;
             ctx.beginPath();ctx.fillStyle=p.c;ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.globalAlpha=0.32;
+            ctx.beginPath();ctx.globalAlpha=0.38;
             ctx.arc(p.x-p.vx*2.2,p.y-p.vy*2.2,Math.max(0.6,p.r*0.9),0,Math.PI*2);
             ctx.fill();ctx.globalAlpha=1;
           }
@@ -768,11 +770,16 @@
 
     <!-- Trustpilot trust strip -->
     <div class="tp-strip" aria-label="Trustpilot reviews">
-      <p class="tp-strip-label">We welcome honest feedback</p>
+      <div class="tp-strip-copy">
+        <div>
+          <p class="tp-strip-title"><span class="tp-strip-mark" aria-hidden="true">★</span>Help shape TimrX</p>
+          <p class="tp-strip-label">Read public reviews or leave honest feedback on Trustpilot.</p>
+        </div>
+      </div>
       <div class="tp-strip-actions">
-        <a class="tp-btn tp-btn--pill" data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
+        <a class="tp-btn tp-btn--pill" data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews</a>
         <span class="tp-strip-sep" aria-hidden="true"></span>
-        <a class="tp-btn tp-btn--pill" data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
+        <a class="tp-btn tp-btn--pill" data-tp="write" target="_blank" rel="noopener noreferrer">Leave a review</a>
       </div>
     </div>
 
@@ -1865,14 +1872,62 @@
 <!-- BLOGS -->
 
   <!-- SEO: About TimrX -->
-  <section aria-labelledby="aboutPageTitle" style="background:var(--warm-white);color:#0b0b0b;border-top:1px solid #ececec;padding:clamp(60px,8vh,100px) 0;">
-    <div class="container">
-      <!-- Centered Header -->
-      <div style="text-align:center;max-width:700px;margin:0 auto 40px;">
-        <h2 id="aboutPageTitle" style="font-family:'Bebas Neue',system-ui,sans-serif;font-size:clamp(36px,6vw,60px);margin:0 0 12px;letter-spacing:0.5px;color:#0b0b0b;">About TimrX</h2>
-        <p style="color:#5a5a5a;font-size:16px;line-height:1.6;margin:0;">AI tools, 3D workflows, and web products under one banner. A focused studio blending rapid prototyping with shipped, client-ready experiences.</p>
+  <style>
+    .abt-seo{position:relative;overflow:hidden;background:#0d0d0f;color:#f5f3ee;
+      border-top:1px solid rgba(255,255,255,.08);padding:clamp(38px,5.5vh,66px) 0;}
+    .abt-seo::before{content:"";position:absolute;inset:0;pointer-events:none;
+      background:
+        radial-gradient(circle at 16% 0%,rgba(79,143,214,.18),transparent 34%),
+        radial-gradient(circle at 86% 30%,rgba(255,255,255,.05),transparent 28%);}
+    .abt-seo-wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+      gap:clamp(24px,4vw,54px);align-items:center;}
+    .abt-seo-kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 10px;
+      font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#9db8da;}
+    .abt-seo-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#4f8fd6;
+      box-shadow:0 0 12px rgba(79,143,214,.9);}
+    .abt-seo h2{font-family:'Bebas Neue',system-ui,sans-serif;font-size:clamp(34px,4.6vw,58px);
+      line-height:.96;margin:0 0 12px;letter-spacing:0;color:#f5f3ee;text-transform:uppercase;}
+    .abt-seo-lead{margin:0;max-width:560px;color:rgba(244,242,236,.66);font-size:clamp(14px,1.15vw,16px);
+      line-height:1.65;}
+    .abt-seo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+    .abt-seo-card{display:block;min-height:132px;padding:18px;border-radius:12px;text-decoration:none;
+      color:#f5f3ee;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
+      transition:transform .2s ease,border-color .2s ease,background .2s ease;}
+    .abt-seo-card:hover{transform:translateY(-2px);background:rgba(255,255,255,.055);
+      border-color:rgba(157,184,218,.34);}
+    .abt-seo-card b{display:block;margin:0 0 7px;font-size:14px;line-height:1.25;color:#f5f3ee;}
+    .abt-seo-card span{display:block;font-size:12.5px;line-height:1.5;color:rgba(244,242,236,.56);}
+    .abt-seo-card i{display:inline-block;margin-top:14px;font-style:normal;font-size:12px;font-weight:800;
+      color:#9db8da;}
+    @media(max-width:860px){.abt-seo-wrap{grid-template-columns:1fr;text-align:center;}
+      .abt-seo-lead{margin:0 auto;}.abt-seo-kicker{justify-content:center;}
+      .abt-seo-grid{max-width:680px;margin:0 auto;}}
+    @media(max-width:620px){.abt-seo-grid{grid-template-columns:1fr;}.abt-seo-card{min-height:auto;padding:16px;}}
+  </style>
+  <section class="abt-seo" aria-labelledby="aboutPageTitle">
+    <div class="container abt-seo-wrap">
+      <div>
+        <p class="abt-seo-kicker">About TimrX</p>
+        <h2 id="aboutPageTitle">Browser-based creation tools</h2>
+        <p class="abt-seo-lead">TimrX brings 3D modeling workflows, image generation and video generation into one browser workspace, with tools for generating, refining and exporting production-ready assets.</p>
       </div>
-
+      <div class="abt-seo-grid" aria-label="TimrX core tools">
+        <a class="abt-seo-card" href="/3dprint">
+          <b>3D modeling workspace</b>
+          <span>Create, inspect, remesh and export STL, OBJ and GLB files from the browser.</span>
+          <i>Open hub →</i>
+        </a>
+        <a class="abt-seo-card" href="/text-to-3d">
+          <b>Text to 3D</b>
+          <span>Turn prompts into editable 3D assets for printing, games and product concepts.</span>
+          <i>Try prompts →</i>
+        </a>
+        <a class="abt-seo-card" href="/image-to-3d">
+          <b>Image to 3D</b>
+          <span>Use reference images to build 3D models and move faster from idea to asset.</span>
+          <i>Use images →</i>
+        </a>
+      </div>
     </div>
   </section>
   </main>
@@ -2369,7 +2424,7 @@
             var title = document.getElementById('aboutTitle');
             if (title) {
               gsap.to(title, {
-                x: -80,
+                x: -30,
                 scrollTrigger: { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
               });
             }
