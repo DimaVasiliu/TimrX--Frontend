@@ -750,17 +750,17 @@
     <style>
     /* ===== TimrX 3D App section — self-contained, tx3d- scoped ===== */
     .tx3d{position:relative;overflow:hidden;background:#0a0a0c;
-      padding:clamp(38px,6vh,72px) 0;}
+      padding:clamp(40px,6.5vh,82px) 0;}
     .tx3d *{box-sizing:border-box;}
     .tx3d-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
     .tx3d-dots{position:absolute;inset:-3px;
       background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.6px);
-      background-size:46px 46px;opacity:.45;}
-    .tx3d-glow{position:absolute;border-radius:50%;filter:blur(110px);}
-    .tx3d-glow-a{width:44vw;height:44vw;max-width:560px;max-height:560px;
-      background:rgba(34,60,116,.5);top:-15vw;right:-10vw;}
-    .tx3d-glow-b{width:40vw;height:40vw;max-width:520px;max-height:520px;
-      background:rgba(52,54,78,.42);bottom:-17vw;left:-9vw;}
+      background-size:46px 46px;opacity:.4;}
+    .tx3d-glow{position:absolute;border-radius:50%;filter:blur(120px);}
+    .tx3d-glow-a{width:46vw;height:46vw;max-width:620px;max-height:620px;
+      background:rgba(34,60,116,.55);top:-16vw;right:-10vw;}
+    .tx3d-glow-b{width:42vw;height:42vw;max-width:560px;max-height:560px;
+      background:rgba(52,54,78,.45);bottom:-18vw;left:-9vw;}
     .tx3d-wrap{position:relative;z-index:2;width:100%;margin:0 auto;
       padding:0 clamp(20px,5vw,64px);}
     .tx3d-head{margin:0 0 clamp(8px,1.4vh,16px);text-align:center;}
@@ -792,73 +792,133 @@
       border-right:1px solid rgba(255,255,255,.08);}
     @keyframes tx3dTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-    /* viewer + copy */
+    /* ===== editor window + info panel ===== */
     .tx3d-main{position:relative;z-index:2;display:grid;
-      grid-template-columns:minmax(300px,460px) 1fr;gap:clamp(22px,3vw,44px);
-      align-items:center;max-width:980px;margin:clamp(24px,4vh,48px) auto 0;}
-    .tx3d-stage{position:relative;border-radius:clamp(14px,1.4vw,20px);overflow:hidden;
-      background:#fff;border:1px solid rgba(255,255,255,.10);
-      box-shadow:0 40px 84px -38px rgba(0,0,0,.85);
-      width:100%;max-width:460px;aspect-ratio:1/1;margin-inline:auto;}
-    #viewerCanvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;}
-    .tx3d-actions{position:absolute;top:14px;left:14px;z-index:3;display:flex;gap:8px;}
-    .tx3d-chip-btn{font:600 12px/1 Inter,system-ui,sans-serif;
-      padding:9px 13px;border-radius:9px;cursor:pointer;
-      background:#101014;color:#f5f3ee;border:1px solid rgba(0,0,0,.12);
+      grid-template-columns:1.55fr 1fr;gap:clamp(24px,3.2vw,50px);
+      align-items:stretch;max-width:1180px;margin:clamp(26px,4vh,52px) auto 0;}
+
+    /* the editor window */
+    .tx3d-editor{position:relative;display:flex;flex-direction:column;
+      border-radius:16px;overflow:hidden;background:#0e0f15;
+      border:1px solid rgba(255,255,255,.09);
+      box-shadow:0 54px 104px -42px rgba(0,0,0,.92),
+                 0 0 86px -22px rgba(79,143,214,.3),
+                 0 1px 0 rgba(255,255,255,.05) inset;}
+
+    /* toolbar */
+    .tx3d-tbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:0 11px;height:46px;flex:none;
+      background:linear-gradient(180deg,#16171f,#101117);
+      border-bottom:1px solid rgba(255,255,255,.07);}
+    .tx3d-tbar-l,.tx3d-tbar-r{display:flex;align-items:center;gap:7px;min-width:0;}
+    .tx3d-mark{display:flex;align-items:center;justify-content:center;flex:none;
+      width:25px;height:25px;border-radius:7px;font-size:11px;color:#fff;
+      background:linear-gradient(150deg,#5a9ce0,#3a5fb0);
+      box-shadow:0 2px 8px rgba(79,143,214,.4);}
+    .tx3d-file{font:600 12px/1 Inter,system-ui,sans-serif;color:rgba(244,242,236,.82);
+      padding:6px 11px;border-radius:7px;background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+    .tx3d-tools{display:flex;gap:2px;margin-left:3px;}
+    .tx3d-tool{display:flex;align-items:center;justify-content:center;
+      width:27px;height:27px;border-radius:7px;font-size:11px;
+      color:rgba(244,242,236,.4);}
+    .tx3d-tool.on{color:#7cb0ea;background:rgba(124,176,234,.13);}
+    .tx3d-tbtn{font:600 11.5px/1 Inter,system-ui,sans-serif;cursor:pointer;
+      padding:8px 13px;border-radius:8px;white-space:nowrap;
       transition:transform .15s ease,background .2s ease;}
-    .tx3d-chip-btn:hover{transform:translateY(-1px);background:#1b1b22;}
-    .tx3d-chip-btn.ghost{background:rgba(13,13,16,.05);color:#0b0b0b;
-      border:1px solid rgba(0,0,0,.16);}
-    .tx3d-chip-btn.ghost:hover{background:rgba(13,13,16,.1);}
-    .tx3d-chip-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-    .viewer-placeholder{position:absolute;inset:0;z-index:2;display:flex;
-      align-items:center;justify-content:center;text-align:center;padding:24px;
-      font:500 14px/1.55 Inter,system-ui,sans-serif;color:#6b6b72;
-      pointer-events:none;transition:opacity .4s ease;}
-    .viewer-placeholder b{color:#0b0b0b;font-weight:700;}
-    .tx3d-gear{position:absolute;bottom:14px;right:14px;z-index:3;
-      width:38px;height:38px;border-radius:50%;cursor:pointer;
-      border:1px solid rgba(0,0,0,.12);background:#fff;color:#0b0b0b;
-      font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;
-      transition:transform .15s ease;}
-    .tx3d-gear:hover{transform:rotate(35deg);}
-    .tx3d-rotate{position:absolute;bottom:60px;right:14px;z-index:3;display:flex;
-      align-items:center;gap:11px;padding:10px 13px;border-radius:11px;
-      background:#fff;border:1px solid rgba(0,0,0,.12);
-      box-shadow:0 14px 32px -10px rgba(0,0,0,.3);}
+    .tx3d-tbtn--up{background:#4f8fd6;color:#fff;border:1px solid #4f8fd6;}
+    .tx3d-tbtn--up:hover{transform:translateY(-1px);background:#5fa0e4;}
+    .tx3d-tbtn--ghost{background:rgba(255,255,255,.04);color:rgba(244,242,236,.78);
+      border:1px solid rgba(255,255,255,.11);}
+    .tx3d-tbtn--ghost:hover{background:rgba(255,255,255,.09);}
+    .tx3d-tbtn:disabled{opacity:.34;cursor:not-allowed;transform:none;}
+
+    /* viewport */
+    .tx3d-viewport{position:relative;width:100%;aspect-ratio:16/11;overflow:hidden;
+      cursor:grab;background:radial-gradient(122% 116% at 50% 16%,
+        #1d1f2b 0%,#13141d 46%,#0a0b10 100%);}
+    .tx3d-viewport:active{cursor:grabbing;}
+    #viewerCanvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;}
+    .viewer-placeholder{position:absolute;inset:0;z-index:3;display:flex;
+      flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;padding:24px;
+      font:500 13.5px/1.55 Inter,system-ui,sans-serif;color:rgba(244,242,236,.5);
+      pointer-events:none;transition:opacity .45s ease;}
+    .viewer-placeholder b{color:rgba(244,242,236,.86);font-weight:700;}
+    .tx3d-hint{position:absolute;left:13px;bottom:12px;z-index:4;
+      font:600 9.5px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;
+      text-transform:uppercase;color:rgba(244,242,236,.36);pointer-events:none;}
+    .tx3d-gear{position:absolute;bottom:12px;right:12px;z-index:5;
+      width:34px;height:34px;border-radius:9px;cursor:pointer;
+      border:1px solid rgba(255,255,255,.12);background:rgba(18,19,26,.86);
+      color:rgba(244,242,236,.72);font-size:13px;backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;
+      transition:transform .25s ease,color .2s ease;}
+    .tx3d-gear:hover{transform:rotate(42deg);color:#7cb0ea;}
+    .tx3d-rotate{position:absolute;bottom:54px;right:12px;z-index:5;display:flex;
+      align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+      background:rgba(18,19,26,.96);border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 16px 34px -12px rgba(0,0,0,.7);backdrop-filter:blur(8px);}
     .tx3d-rotate.hidden{display:none;}
-    .tx3d-rotate .label{font:600 12px/1 Inter,system-ui,sans-serif;color:#0b0b0b;}
-    .tx3d-toggle{position:relative;display:inline-block;width:38px;height:21px;}
+    .tx3d-rotate .label{font:600 11.5px/1 Inter,system-ui,sans-serif;
+      color:rgba(244,242,236,.85);white-space:nowrap;}
+    .tx3d-toggle{position:relative;display:inline-block;width:36px;height:20px;flex:none;}
     .tx3d-toggle input{position:absolute;inset:0;width:100%;height:100%;
       margin:0;opacity:0;cursor:pointer;}
-    .tx3d-slider{position:absolute;inset:0;border-radius:21px;
-      background:#d3d3d8;transition:background .2s ease;}
-    .tx3d-slider::before{content:"";position:absolute;width:15px;height:15px;
-      left:3px;top:3px;border-radius:50%;background:#fff;
-      box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .2s ease;}
+    .tx3d-slider{position:absolute;inset:0;border-radius:20px;
+      background:rgba(255,255,255,.2);transition:background .2s ease;}
+    .tx3d-slider::before{content:"";position:absolute;width:14px;height:14px;
+      left:3px;top:3px;border-radius:50%;background:#fff;transition:transform .2s ease;}
     .tx3d-toggle input:checked+.tx3d-slider{background:#4f8fd6;}
-    .tx3d-toggle input:checked+.tx3d-slider::before{transform:translateX(17px);}
+    .tx3d-toggle input:checked+.tx3d-slider::before{transform:translateX(16px);}
 
-    .tx3d-copy{min-width:0;}
-    .tx3d-kicker{margin:0 0 14px;font:700 12px/1 Inter,system-ui,sans-serif;
-      letter-spacing:.18em;text-transform:uppercase;color:#9db8da;}
-    .tx3d-copy p{margin:0 0 20px;font-size:clamp(14px,1.1vw,16px);
-      line-height:1.65;color:rgba(244,242,236,.7);}
-    .tx3d-feat{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:11px;}
-    .tx3d-feat li{position:relative;padding-left:25px;
-      font-size:clamp(13px,1vw,15px);line-height:1.5;color:rgba(244,242,236,.8);}
-    .tx3d-feat li::before{content:"\2713";position:absolute;left:0;top:0;
-      color:#7cb0ea;font-weight:900;}
-    .tx3d-cta{display:inline-flex;align-items:center;gap:9px;
-      padding:14px 24px;border-radius:11px;background:#f5f3ee;color:#0b0b0b;
+    /* status bar */
+    .tx3d-sbar{display:flex;align-items:center;gap:18px;flex:none;
+      height:35px;padding:0 14px;
+      background:linear-gradient(180deg,#101117,#0c0d12);
+      border-top:1px solid rgba(255,255,255,.07);
+      font:600 10px/1 Inter,system-ui,sans-serif;letter-spacing:.07em;
+      text-transform:uppercase;color:rgba(244,242,236,.4);}
+    .tx3d-sbar .s1{display:flex;align-items:center;gap:7px;color:rgba(244,242,236,.62);}
+    .tx3d-sbar .sdot{width:6px;height:6px;border-radius:50%;background:#46d39a;
+      box-shadow:0 0 8px #46d39a;}
+    .tx3d-sbar .sgrow{margin-left:auto;}
+
+    /* info panel */
+    .tx3d-panel{position:relative;display:flex;flex-direction:column;
+      justify-content:center;padding:clamp(22px,2.5vw,36px);border-radius:16px;
+      background:linear-gradient(165deg,rgba(255,255,255,.052),rgba(255,255,255,.014));
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 34px 74px -42px rgba(0,0,0,.8);}
+    .tx3d-kicker{margin:0 0 13px;font:700 11px/1 Inter,system-ui,sans-serif;
+      letter-spacing:.2em;text-transform:uppercase;color:#7cb0ea;}
+    .tx3d-panel-lead{margin:0 0 22px;font-size:clamp(13.5px,1.05vw,15.5px);
+      line-height:1.62;color:rgba(244,242,236,.72);}
+    .tx3d-feat{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:13px;}
+    .tx3d-feat li{display:flex;gap:13px;align-items:flex-start;}
+    .tx3d-feat-ic{flex:none;display:flex;align-items:center;justify-content:center;
+      width:37px;height:37px;border-radius:10px;font-size:14px;color:#9db8da;
+      background:rgba(124,176,234,.1);border:1px solid rgba(124,176,234,.17);}
+    .tx3d-feat-tx{display:block;min-width:0;}
+    .tx3d-feat-tx b{display:block;font:700 13.5px/1.3 Inter,system-ui,sans-serif;
+      color:#f5f3ee;margin-bottom:2px;}
+    .tx3d-feat-tx span{display:block;font-size:12.5px;line-height:1.5;
+      color:rgba(244,242,236,.55);}
+    .tx3d-cta{display:inline-flex;align-items:center;gap:9px;align-self:flex-start;
+      padding:13px 22px;border-radius:11px;background:#f5f3ee;color:#0b0b0b;
       font:700 13px/1 Inter,system-ui,sans-serif;letter-spacing:.02em;
       text-decoration:none;transition:transform .15s ease,box-shadow .25s ease;}
     .tx3d-cta:hover{transform:translateY(-2px);
-      box-shadow:0 16px 34px -12px rgba(245,243,238,.4);}
+      box-shadow:0 18px 36px -14px rgba(245,243,238,.45);}
+    .tx3d-cta i{transition:transform .2s ease;}
+    .tx3d-cta:hover i{transform:translateX(3px);}
 
-    @media(max-width:880px){
-      .tx3d-main{grid-template-columns:1fr;gap:26px;}
-      .tx3d-stage{order:-1;}
+    @media(max-width:900px){
+      .tx3d-main{grid-template-columns:1fr;gap:20px;max-width:560px;}
+      .tx3d-editor{order:-1;}
+      .tx3d-tools,.tx3d-file{display:none;}
+      .tx3d-panel{justify-content:flex-start;}
     }
     @media(prefers-reduced-motion:reduce){
       .tx3d-ticker-track{animation:none;}
@@ -902,33 +962,64 @@
           <p class="tx3d-lead">Upload a model and orbit it instantly, or generate one from a prompt. TimrX runs a full WebGL engine right in the page &mdash; nothing to install, nothing to download. Inspect, refine and export 3D without ever leaving the tab.</p>
         </div>
         <div class="tx3d-main">
-          <div class="tx3d-stage">
-            <div class="tx3d-actions">
-              <button type="button" class="tx3d-chip-btn" id="uploadBtnTop">Upload .glb / .gltf</button>
-              <button type="button" class="tx3d-chip-btn ghost" id="clearBtnTop" disabled>Remove</button>
-              <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
+          <div class="tx3d-editor">
+            <div class="tx3d-tbar">
+              <div class="tx3d-tbar-l">
+                <span class="tx3d-mark"><i class="fa-solid fa-cube" aria-hidden="true"></i></span>
+                <span class="tx3d-file" id="viewerFileName">rabbit.glb</span>
+                <span class="tx3d-tools" aria-hidden="true">
+                  <span class="tx3d-tool on"><i class="fa-solid fa-arrows-rotate"></i></span>
+                  <span class="tx3d-tool"><i class="fa-solid fa-up-down-left-right"></i></span>
+                  <span class="tx3d-tool"><i class="fa-solid fa-magnifying-glass"></i></span>
+                </span>
+              </div>
+              <div class="tx3d-tbar-r">
+                <button type="button" class="tx3d-tbtn tx3d-tbtn--up" id="uploadBtnTop">Upload model</button>
+                <button type="button" class="tx3d-tbtn tx3d-tbtn--ghost" id="clearBtnTop" disabled>Remove</button>
+                <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
+              </div>
             </div>
-            <canvas id="viewerCanvas" aria-label="Interactive 3D model viewer"></canvas>
-            <div id="viewerPlaceholder" class="viewer-placeholder">Drag a GLB or GLTF model here, or click <b>Upload</b></div>
-            <button class="tx3d-gear" id="viewerGear" type="button" aria-label="Viewer settings"><i class="fa-solid fa-gear" aria-hidden="true"></i></button>
-            <div class="tx3d-rotate hidden" id="viewerRotateCard">
-              <span class="label">Auto-rotate</span>
-              <label class="tx3d-toggle">
-                <input type="checkbox" id="rotateToggle" aria-label="Toggle auto-rotate" />
-                <span class="tx3d-slider"></span>
-              </label>
+            <div class="tx3d-viewport">
+              <canvas id="viewerCanvas" aria-label="Interactive 3D model viewer"></canvas>
+              <div id="viewerPlaceholder" class="viewer-placeholder">Drag a GLB or GLTF model here, or click <b>Upload model</b></div>
+              <span class="tx3d-hint">Drag to orbit &middot; scroll to zoom</span>
+              <button class="tx3d-gear" id="viewerGear" type="button" aria-label="Viewer settings"><i class="fa-solid fa-gear" aria-hidden="true"></i></button>
+              <div class="tx3d-rotate hidden" id="viewerRotateCard">
+                <span class="label">Auto-rotate</span>
+                <label class="tx3d-toggle">
+                  <input type="checkbox" id="rotateToggle" aria-label="Toggle auto-rotate" />
+                  <span class="tx3d-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="tx3d-sbar">
+              <span class="s1"><i class="sdot" aria-hidden="true"></i>WebGL2 engine</span>
+              <span>Three.js renderer</span>
+              <span class="sgrow">GLB &middot; GLTF &middot; STL &middot; OBJ</span>
             </div>
           </div>
-          <div class="tx3d-copy">
-            <h3 class="tx3d-kicker">Generate &middot; view &middot; export</h3>
-            <p>Drop a GLB or GLTF into the viewer to inspect it with full orbit controls, or start from a text or image prompt. Refine the mesh, apply textures and rigging, then export production-ready files for printing or game engines.</p>
+          <div class="tx3d-panel">
+            <span class="tx3d-kicker">Generate &middot; view &middot; export</span>
+            <p class="tx3d-panel-lead">From the first prompt to a print-ready file, the TimrX engine runs the entire 3D pipeline &mdash; with no installs and nothing to export to another tool.</p>
             <ul class="tx3d-feat">
-              <li>Real-time GLB / GLTF viewer with orbit controls</li>
-              <li>Text and image to 3D model generation</li>
-              <li>Remesh, retexture and auto-rig your assets</li>
-              <li>Print-ready export &mdash; STL, OBJ and GLB</li>
+              <li>
+                <span class="tx3d-feat-ic"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span>
+                <span class="tx3d-feat-tx"><b>Real-time viewer</b><span>Orbit, zoom and inspect any GLB or GLTF the moment it loads.</span></span>
+              </li>
+              <li>
+                <span class="tx3d-feat-ic"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+                <span class="tx3d-feat-tx"><b>Prompt to 3D</b><span>Generate a model from a text description or a reference image.</span></span>
+              </li>
+              <li>
+                <span class="tx3d-feat-ic"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+                <span class="tx3d-feat-tx"><b>Refine &amp; retopo</b><span>Remesh, apply PBR textures and auto-rig your assets.</span></span>
+              </li>
+              <li>
+                <span class="tx3d-feat-ic"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
+                <span class="tx3d-feat-tx"><b>Production export</b><span>Download print-ready STL, OBJ and GLB files.</span></span>
+              </li>
             </ul>
-            <a class="tx3d-cta" href="/hub">Open the 3D workspace <span aria-hidden="true">&rarr;</span></a>
+            <a class="tx3d-cta" href="/hub">Open the 3D workspace <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
           </div>
         </div>
       </div>
@@ -1906,41 +1997,62 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-        const canvas     = document.getElementById('viewerCanvas');
-        const ph         = document.getElementById('viewerPlaceholder');
-        const gear       = document.getElementById('viewerGear');
-        const viewerMenu = document.getElementById('viewerMenu');
+        const canvas       = document.getElementById('viewerCanvas');
+        const ph           = document.getElementById('viewerPlaceholder');
         const rotateToggle = document.getElementById('rotateToggle');
-        const uploadBtn  = document.getElementById('uploadBtnTop');
-        const clearBtn   = document.getElementById('clearBtnTop');
-        const fileInput  = document.getElementById('modelFile');
+        const uploadBtn    = document.getElementById('uploadBtnTop');
+        const clearBtn     = document.getElementById('clearBtnTop');
+        const fileInput    = document.getElementById('modelFile');
+        const fileNameEl   = document.getElementById('viewerFileName');
+        const DEFAULT_SRC  = 'img/rabbit-web.glb';
+        const DEFAULT_NAME = 'rabbit.glb';
 
-        if (!canvas) { console.warn('viewerCanvas not found'); }
-        else {
+        if (canvas) {
           const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-          const scene  = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
-          camera.position.set(3, 2, 4);
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.05;
+
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.Fog(0x0b0c12, 9, 22);
+
+          const pmrem = new THREE.PMREMGenerator(renderer);
+          scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.045).texture;
+
+          const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 4000);
+          camera.position.set(3, 2, 4.6);
+
           const controls = new OrbitControls(camera, canvas);
           controls.enableDamping = true;
+          controls.dampingFactor = 0.08;
           controls.target.set(0, 0.75, 0);
-          controls.autoRotate = false;
+          controls.autoRotate = true;
+          controls.autoRotateSpeed = 1.4;
+          controls.minDistance = 1.2;
+          controls.maxDistance = 60;
           window.viewerControls = controls;
 
-          scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-          const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-          dir.position.set(3, 4, 2); scene.add(dir);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+          const key = new THREE.DirectionalLight(0xffffff, 1.7);
+          key.position.set(4, 6, 3); scene.add(key);
+          const rim = new THREE.DirectionalLight(0x9db8da, 0.85);
+          rim.position.set(-5, 2.5, -4); scene.add(rim);
 
-          const grid = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
-          grid.position.y = -0.0001; scene.add(grid);
+          const grid = new THREE.GridHelper(16, 32, 0x3b4150, 0x23262f);
+          grid.material.transparent = true; grid.material.opacity = 0.5;
+          scene.add(grid);
 
+          // immediate fallback object (used only if the showcase model fails)
           const cube = new THREE.Mesh(
-            new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshStandardMaterial({ color: 0x6eb4ff, metalness: .25, roughness: .55 })
+            new THREE.BoxGeometry(1.1, 1.1, 1.1),
+            new THREE.MeshStandardMaterial({ color: 0x6eb4ff, metalness: 0.3, roughness: 0.38 })
           );
-          cube.position.y = 1; scene.add(cube);
+          cube.position.y = 0.55; scene.add(cube);
+
+          let defaultModel = null;   // showcase model
+          let userModel    = null;   // an uploaded model
 
           const wrapper = canvas.parentElement || canvas;
           function resize(){
@@ -1953,15 +2065,68 @@
           if (window.ResizeObserver) new ResizeObserver(resize).observe(wrapper);
           resize();
 
-          gear?.addEventListener('click', () => viewerMenu?.classList.toggle('hidden'));
-          if (rotateToggle) rotateToggle.checked = !!controls.autoRotate;
-          rotateToggle?.addEventListener('change', (e) => {
-            controls.autoRotate = !!e.target.checked;
-            viewerMenu?.classList.add('hidden');
-          });
+          function fitCameraToObject(obj){
+            const box = new THREE.Box3().setFromObject(obj);
+            const size = new THREE.Vector3(); box.getSize(size);
+            const center = new THREE.Vector3(); box.getCenter(center);
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const dist = maxDim * 2.0;
+            controls.target.copy(center);
+            camera.near = Math.max(0.01, dist / 200); camera.far = dist * 200;
+            camera.updateProjectionMatrix();
+            const d = new THREE.Vector3(1, 0.5, 1).normalize();
+            camera.position.copy(center).addScaledVector(d, dist);
+            controls.minDistance = dist * 0.35;
+            controls.maxDistance = dist * 5;
+            controls.update();
+          }
+          function placeOnGround(obj){
+            const box = new THREE.Box3().setFromObject(obj);
+            obj.position.y -= box.min.y;
+          }
+          function disposeObject(root){
+            root.traverse((o) => {
+              if (o.geometry) o.geometry.dispose?.();
+              if (o.material){
+                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose?.());
+                else o.material.dispose?.();
+              }
+            });
+          }
+          function showActive(){
+            const active = userModel || defaultModel || cube;
+            cube.visible = (active === cube);
+            if (defaultModel) defaultModel.visible = (active === defaultModel);
+            if (userModel)    userModel.visible    = (active === userModel);
+            fitCameraToObject(active);
+          }
+
+          // showcase model
+          fitCameraToObject(cube);
+          new GLTFLoader().load(DEFAULT_SRC, (gltf) => {
+            defaultModel = gltf.scene;
+            placeOnGround(defaultModel);
+            scene.add(defaultModel);
+            if (!userModel) showActive();
+          }, undefined, (err) => { console.warn('Default model failed:', err); });
 
           const loader = new GLTFLoader();
-          let currentModel = null;
+          async function loadModelFromFile(file){
+            const url = URL.createObjectURL(file);
+            try {
+              const gltf = await loader.loadAsync(url);
+              if (userModel){ disposeObject(userModel); scene.remove(userModel); }
+              userModel = gltf.scene;
+              placeOnGround(userModel);
+              scene.add(userModel);
+              showActive();
+              if (clearBtn) clearBtn.disabled = false;
+              if (fileNameEl) fileNameEl.textContent = file.name;
+              if (ph) ph.style.opacity = 0;
+            } catch (err){ console.error('Failed to load model:', err); }
+            finally { URL.revokeObjectURL(url); }
+          }
+
           uploadBtn?.addEventListener('click', () => fileInput?.click());
           fileInput?.addEventListener('change', async (e) => {
             const file = e.target.files?.[0]; if (!file) return;
@@ -1975,56 +2140,25 @@
             if (file && /\\.(gltf?|glb)$/i.test(file.name)) await loadModelFromFile(file);
           });
           clearBtn?.addEventListener('click', () => {
-            if (!currentModel) return;
-            disposeObject(currentModel); scene.remove(currentModel); currentModel = null;
-            cube.visible = true; grid.position.y = -0.0001;
-            fitCameraToObject(cube, camera, controls);
-            clearBtn.disabled = true; if (ph) ph.style.opacity = 0;
+            if (!userModel) return;
+            disposeObject(userModel); scene.remove(userModel); userModel = null;
+            showActive();
+            if (clearBtn) clearBtn.disabled = true;
+            if (fileNameEl) fileNameEl.textContent = defaultModel ? DEFAULT_NAME : 'untitled';
           });
 
-          async function loadModelFromFile(file){
-            const url = URL.createObjectURL(file);
-            try {
-              const gltf = await loader.loadAsync(url);
-              if (currentModel) { disposeObject(currentModel); scene.remove(currentModel); }
-              currentModel = gltf.scene;
-              placeOnGround(currentModel); scene.add(currentModel);
-              cube.visible = false;
-              fitCameraToObject(currentModel, camera, controls);
-              clearBtn && (clearBtn.disabled = false);
-              if (ph) ph.style.opacity = 0;
-            } catch (err){ console.error('Failed to load model:', err); }
-            finally { URL.revokeObjectURL(url); }
-          }
-
-          function fitCameraToObject(obj, cam, ctrl){
-            const box = new THREE.Box3().setFromObject(obj);
-            const size = new THREE.Vector3(); box.getSize(size);
-            const center = new THREE.Vector3(); box.getCenter(center);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const dist = Math.max(1, maxDim * 1.8);
-            ctrl.target.copy(center);
-            cam.near = Math.max(0.01, dist / 100); cam.far = dist * 100;
-            cam.updateProjectionMatrix();
-            const d = new THREE.Vector3(1, 0.7, 1).normalize();
-            cam.position.copy(center).addScaledVector(d, dist); ctrl.update();
-          }
-          function placeOnGround(obj){
-            const box = new THREE.Box3().setFromObject(obj);
-            obj.position.y -= box.min.y; grid.position.y = -0.0001;
-          }
-          function disposeObject(root){
-            root.traverse((o) => {
-              if (o.geometry) o.geometry.dispose?.();
-              if (o.material) {
-                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose?.());
-                else o.material.dispose?.();
-              }
+          if (rotateToggle){
+            rotateToggle.checked = controls.autoRotate;
+            rotateToggle.addEventListener('change', (e) => {
+              controls.autoRotate = !!e.target.checked;
             });
           }
+
           function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); }
           loop();
-          ph && requestAnimationFrame(() => (ph.style.opacity = 0));
+          if (ph) requestAnimationFrame(() => (ph.style.opacity = 0));
+        } else {
+          console.warn('viewerCanvas not found');
         }
         `;
         document.body.appendChild(mod);
