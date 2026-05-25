@@ -477,19 +477,34 @@
     .hx-tools a{color:rgba(157,184,218,.9);text-decoration:none;}
     .hx-tools a:hover{color:#cfe0f6;text-decoration:underline;}
     .hx-visual{position:relative;opacity:0;animation:hxRise 1s cubic-bezier(.2,.7,.2,1) .3s both;}
-    .hx-frame{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:4/3;
-      border:1px solid rgba(255,255,255,.1);background:#111114;
-      display:flex;align-items:center;justify-content:center;}
-    .hx-frame img{position:relative;width:100%;height:100%;object-fit:cover;display:block;}
-    .hx-fallback{position:absolute;font-size:60px;color:rgba(255,255,255,.08);}
-    .hx-chip{position:absolute;display:flex;align-items:center;gap:8px;
-      padding:9px 15px;border-radius:30px;background:rgba(18,18,22,.92);
-      border:1px solid rgba(255,255,255,.13);font-size:12px;color:rgba(244,242,236,.86);
-      white-space:nowrap;z-index:2;}
-    .hx-chip i{font-size:14px;color:#9db8da;}
-    .hx-chip-1{top:-18px;right:24px;animation:hxFloat 6s ease-in-out infinite;}
-    .hx-chip-2{top:44%;left:-32px;animation:hxFloat 7.6s ease-in-out infinite 1s;}
-    .hx-chip-3{bottom:-16px;right:38px;animation:hxFloat 6.8s ease-in-out infinite .5s;}
+    .hx-stage{position:relative;width:100%;aspect-ratio:4/3;border-radius:20px;overflow:hidden;
+      border:1px solid rgba(255,255,255,.1);background:#0d0d11;cursor:pointer;
+      touch-action:pan-y;-webkit-tap-highlight-color:transparent;}
+    .hx-stage-glow{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);
+      width:64%;height:34%;border-radius:50%;background:rgba(58,94,158,.5);
+      filter:blur(56px);pointer-events:none;animation:hxGlow 7s ease-in-out infinite;}
+    .hx-mv{display:block;width:100%;height:100%;background:transparent;
+      transition:opacity .4s ease,transform .5s cubic-bezier(.2,.7,.2,1);}
+    .hx-stage.is-swap .hx-mv{opacity:0;transform:scale(.9);}
+    .hx-stage-fallback{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:64px;color:rgba(255,255,255,.07);pointer-events:none;}
+    .hx-stage-name{position:absolute;left:20px;bottom:18px;font-size:13px;font-weight:600;
+      letter-spacing:.04em;color:rgba(244,242,236,.78);pointer-events:none;
+      transition:opacity .3s ease;}
+    .hx-stage.is-swap .hx-stage-name{opacity:0;}
+    .hx-stage-nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;
+      border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:rgba(14,14,18,.82);border:1px solid rgba(255,255,255,.14);
+      color:rgba(244,242,236,.8);cursor:pointer;font-size:14px;
+      opacity:0;transition:opacity .25s ease,background .2s ease;}
+    .hx-stage:hover .hx-stage-nav{opacity:1;}
+    .hx-stage-nav:hover{background:rgba(124,176,234,.22);}
+    .hx-prev{left:14px;} .hx-next{right:14px;}
+    .hx-stage-dots{position:absolute;right:18px;bottom:16px;display:flex;gap:7px;}
+    .hx-dot{width:8px;height:8px;padding:0;border-radius:50%;cursor:pointer;
+      background:rgba(255,255,255,.24);border:none;transition:all .3s ease;}
+    .hx-dot.is-active{width:22px;border-radius:5px;background:#7cb0ea;}
+    .hx-dot:hover{background:rgba(255,255,255,.5);}
     @keyframes hxGrid{to{background-position:42px 42px;}}
     @keyframes hxGlow{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:.6;transform:scale(1.16);}}
     @keyframes hxOrbit{to{transform:rotate(360deg);}}
@@ -497,10 +512,9 @@
     @keyframes hxPulse{0%{left:2px;opacity:0;}7%{opacity:1;}93%{opacity:1;}100%{left:calc(100% - 36px);opacity:0;}}
     @keyframes hxNode{0%,100%{color:rgba(244,242,236,.4);border-color:rgba(255,255,255,.1);box-shadow:0 0 0 0 rgba(124,176,234,0);}
       10%,18%{color:#dce8f8;border-color:rgba(124,176,234,.7);box-shadow:0 0 22px 0 rgba(124,176,234,.4);}}
-    @keyframes hxFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
     @keyframes hxRise{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
     @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:38px;}.hx-orbit{display:none;}}
-    @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-chip-2{left:-12px;}}
+    @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-stage-nav{opacity:.9;}}
     @media(prefers-reduced-motion:reduce){.hx-hero *{animation:none!important;}
       .hx-eyebrow,.hx-pipe,.hx-h1 span,.hx-sub,.hx-cta,.hx-tools,.hx-visual{opacity:1!important;transform:none!important;}}
     </style>
@@ -538,17 +552,75 @@
             <p class="hx-tools">Generators &nbsp;&middot;&nbsp; <a href="/ai-3d-generator">text &amp; image to 3D</a> &nbsp;&middot;&nbsp; <a href="/ai-image-generator">AI image generator</a> &nbsp;&middot;&nbsp; <a href="/ai-video-generator">AI video generator</a> &nbsp;&middot;&nbsp; <a href="/stl-library">STL packs</a></p>
           </div>
           <div class="hx-visual">
-            <div class="hx-frame">
-              <i class="fa-solid fa-cube hx-fallback" aria-hidden="true"></i>
-              <img src="img/img1.jpg" alt="3D models, images and video generated with TimrX" width="800" height="600" decoding="async" fetchpriority="high" loading="eager" onerror="this.style.display='none'">
+            <div class="hx-stage" id="hx3dStage">
+              <div class="hx-stage-glow" aria-hidden="true"></div>
+              <i class="fa-solid fa-cube hx-stage-fallback" id="hx3dFallback" aria-hidden="true"></i>
+              <model-viewer id="hx3dViewer" class="hx-mv" src="img/panda-web.glb"
+                auto-rotate auto-rotate-delay="0" rotation-per-second="24deg"
+                camera-orbit="0deg 78deg 105%" field-of-view="22deg"
+                interaction-prompt="none" disable-zoom
+                environment-image="neutral" shadow-intensity="0.5" shadow-softness="1"
+                loading="eager" reveal="auto"
+                alt="Interactive 3D model generated with TimrX"></model-viewer>
+              <span class="hx-stage-name" id="hx3dName">Kung Fu Panda</span>
+              <button class="hx-stage-nav hx-prev" id="hx3dPrev" type="button" aria-label="Previous model"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+              <button class="hx-stage-nav hx-next" id="hx3dNext" type="button" aria-label="Next model"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+              <div class="hx-stage-dots" id="hx3dDots">
+                <button class="hx-dot is-active" type="button" aria-label="Kung Fu Panda model"></button>
+                <button class="hx-dot" type="button" aria-label="Royal Rabbit model"></button>
+                <button class="hx-dot" type="button" aria-label="Winged Pegasus model"></button>
+                <button class="hx-dot" type="button" aria-label="Spell Book model"></button>
+              </div>
             </div>
-            <div class="hx-chip hx-chip-1"><i class="fa-solid fa-cube" aria-hidden="true"></i>3D models</div>
-            <div class="hx-chip hx-chip-2"><i class="fa-solid fa-video" aria-hidden="true"></i>Text to video</div>
-            <div class="hx-chip hx-chip-3"><i class="fa-solid fa-globe" aria-hidden="true"></i>Browser-based</div>
           </div>
         </div>
       </div>
     </section>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <script>
+    (function(){
+      var models=[
+        {src:'img/panda-web.glb',name:'Kung Fu Panda'},
+        {src:'img/rabbit-web.glb',name:'Royal Rabbit'},
+        {src:'img/uni-web.glb',name:'Winged Pegasus'},
+        {src:'img/book-web.glb',name:'Spell Book'}
+      ];
+      var stage=document.getElementById('hx3dStage'),
+          mv=document.getElementById('hx3dViewer'),
+          nameEl=document.getElementById('hx3dName'),
+          fallback=document.getElementById('hx3dFallback'),
+          dots=document.querySelectorAll('#hx3dDots .hx-dot');
+      if(!stage||!mv){return;}
+      var i=0,busy=false;
+      if(mv.addEventListener){mv.addEventListener('load',function(){if(fallback){fallback.style.display='none';}});}
+      setTimeout(function(){if(fallback){fallback.style.display='none';}},6000);
+      function show(n){
+        n=(n%models.length+models.length)%models.length;
+        if(n===i||busy){return;}
+        busy=true;i=n;
+        stage.classList.add('is-swap');
+        setTimeout(function(){
+          mv.setAttribute('src',models[i].src);
+          nameEl.textContent=models[i].name;
+          for(var k=0;k<dots.length;k++){dots[k].classList.toggle('is-active',k===i);}
+          stage.classList.remove('is-swap');
+          setTimeout(function(){busy=false;},440);
+        },300);
+      }
+      document.getElementById('hx3dNext').addEventListener('click',function(e){e.stopPropagation();show(i+1);});
+      document.getElementById('hx3dPrev').addEventListener('click',function(e){e.stopPropagation();show(i-1);});
+      for(var d=0;d<dots.length;d++){(function(k){dots[k].addEventListener('click',function(e){e.stopPropagation();show(k);});})(d);}
+      stage.addEventListener('click',function(){show(i+1);});
+      var x0=null,y0=null;
+      stage.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+      stage.addEventListener('touchend',function(e){
+        if(x0==null){return;}
+        var dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
+        x0=null;
+        if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)){show(dx<0?i+1:i-1);}
+      },{passive:true});
+    })();
+    </script>
 
     <!-- Trustpilot trust strip -->
     <div class="tp-strip" aria-label="Trustpilot reviews">
