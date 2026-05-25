@@ -305,7 +305,7 @@
 <link rel="preload" href="./styles.css?v=7" as="style">
 <link rel="stylesheet" href="./styles.css?v=7" />
 <link rel="stylesheet" href="./media/index.css?v=7" />
-<link rel="stylesheet" href="./trustpilot.css" />
+<link rel="stylesheet" href="./trustpilot.css?v=20260525" />
 
 <!-- Critical CSS: Above-the-fold styles for faster FCP -->
 <style>
@@ -2360,7 +2360,7 @@
                   +(isFeatured?'<p class="featured-preview muted" id="featuredPreview"></p>':'')
                   +(isFeatured&&allTags.length>1?'<div class="featured-tags">'+allTags.map(function(t){return '<span class="featured-tag">'+t.trim()+'</span>';}).join('')+'</div>':'')
                   +'<div class="blog-footer"><div class="author-mini">'
-                  +'<img src="img/dima.jpg" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" width="32" height="32" />'
+                  +'<img src="img/dima-480.webp" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" width="32" height="32" loading="lazy" decoding="async" />'
                   +'<span class="author-mini-name">'+(post.author||'Dima Vasiliu')+'</span></div>'
                   +'<div class="meta"><span>'+readTime+' min read</span><span>\u2022</span>'
                   +'<time datetime="'+post.created_at+'">'+date+'</time></div></div></div></a>';
