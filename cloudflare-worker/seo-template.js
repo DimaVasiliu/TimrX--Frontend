@@ -15,6 +15,9 @@ export function renderSeoPage(page) {
   const appName = isConverter ? 'TimrX File Converter' : 'TimrX AI 3D Generator';
   const appCategory = isConverter ? 'UtilitiesApplication' : 'DesignApplication';
   const appUrl = isConverter ? 'https://timrx.live/converter' : 'https://timrx.live/3dprint';
+  const robots = page.indexable === false
+    ? 'noindex, follow, max-image-preview:large'
+    : 'index, follow, max-image-preview:large';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -25,7 +28,7 @@ export function renderSeoPage(page) {
   <meta name="description" content="${page.desc}"/>
   <meta name="keywords" content="${page.keywords}"/>
   <meta name="author" content="Dima Vasiliu"/>
-  <meta name="robots" content="index, follow, max-image-preview:large"/>
+  <meta name="robots" content="${robots}"/>
   <link rel="canonical" href="${fullUrl}"/>
   <link rel="alternate" hreflang="en-gb" href="${fullUrl}"/>
   <link rel="alternate" hreflang="x-default" href="${fullUrl}"/>

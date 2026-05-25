@@ -148,14 +148,18 @@ export default {
     const seoPage = findSeoPage(pathname);
     if (seoPage) {
       const html = renderSeoPage(seoPage);
+      const headers = {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+        'X-TimrX-Worker': 'blog-proxy',
+        'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
+      };
+      if (seoPage.indexable === false) {
+        headers['X-Robots-Tag'] = 'noindex, follow';
+      }
       return new Response(html, {
         status: 200,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
-          'X-TimrX-Worker': 'blog-proxy',
-          'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
-        },
+        headers,
       });
     }
 

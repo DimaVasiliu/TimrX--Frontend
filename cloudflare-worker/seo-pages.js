@@ -1,7 +1,22 @@
 /**
  * Programmatic SEO page definitions for TimrX.
- * Each entry generates a unique, Google-indexable landing page.
+ * Each entry generates a unique landing page. Keep only the strongest,
+ * most topically aligned pages indexable while the domain builds authority.
  */
+
+export const INDEXABLE_SEO_PATHS = new Set([
+  '/3d-models/dragon',
+  '/3d-models/robot',
+  '/3d-models/character',
+  '/3d-models/miniature',
+  '/converters/glb-to-stl',
+  '/converters/glb-to-obj',
+  '/converters/obj-to-stl',
+  '/text-to-3d/dragon',
+  '/text-to-3d/robot',
+  '/text-to-3d/sword',
+  '/text-to-3d/castle',
+]);
 
 export const SEO_PAGES = {
   // ─── /3d-models/:slug pages ───
@@ -611,7 +626,13 @@ export function findSeoPage(pathname) {
   for (const [groupKey, group] of Object.entries(SEO_PAGES)) {
     for (const page of group.pages) {
       if (pathname === `${group.base}/${page.slug}`) {
-        return { ...page, group: groupKey, basePath: group.base };
+        const pagePath = `${group.base}/${page.slug}`;
+        return {
+          ...page,
+          group: groupKey,
+          basePath: group.base,
+          indexable: INDEXABLE_SEO_PATHS.has(pagePath),
+        };
       }
     }
   }
@@ -625,6 +646,7 @@ export function generateSeoSitemap() {
   const entries = [];
   for (const [, group] of Object.entries(SEO_PAGES)) {
     for (const page of group.pages) {
+      if (!INDEXABLE_SEO_PATHS.has(`${group.base}/${page.slug}`)) continue;
       entries.push(`  <url>
     <loc>https://timrx.live${group.base}/${page.slug}</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
