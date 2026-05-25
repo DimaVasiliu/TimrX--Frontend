@@ -295,7 +295,6 @@
 
 <!-- Self-hosted fonts (no external DNS lookups) -->
 <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/fonts/fonts.css">
 
 <!-- Font Awesome: Async load (no preload — below fold, not critical) -->
@@ -426,11 +425,11 @@
       animation:hxOrbit 46s linear infinite;}
     .hx-wrap{position:relative;z-index:3;width:100%;margin:0 auto;
       padding:0 clamp(20px,5vw,64px);}
-    .hx-h1{margin:0 0 clamp(28px,4.4vh,52px);
-      font-family:'Bebas Neue','Arial Narrow',sans-serif;font-weight:400;
-      line-height:1.08;letter-spacing:.012em;text-transform:uppercase;color:#f5f3ee;
-      font-size:clamp(42px,6.6vw,140px);}
-    .hx-h1-l{display:block;overflow:hidden;}
+    .hx-h1{margin:0;
+      font-weight:900;line-height:1;letter-spacing:-.04em;
+      text-transform:uppercase;color:#f5f3ee;
+      font-size:clamp(34px,4.8vw,106px);}
+    .hx-h1-l{display:block;overflow:hidden;padding:.07em 0;margin:-.07em 0;}
     .hx-h1-i{display:block;transform:translateY(106%);
       animation:hxWipe 1s cubic-bezier(.2,.78,.2,1) both;}
     .hx-h1-l:nth-child(1) .hx-h1-i{animation-delay:.12s;}
