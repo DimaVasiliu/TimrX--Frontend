@@ -318,6 +318,7 @@
   .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:clamp(28px,5vh,64px)}
   #hero{max-width:none;padding-bottom:clamp(56px,9vh,120px)}
   #about{margin-top:clamp(40px,6vh,96px)}
+  #hero .hero-title{margin-left:0}
   .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
   @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
 </style>
@@ -423,23 +424,31 @@
       animation:hxOrbit 46s linear infinite;}
     .hx-wrap{position:relative;z-index:3;width:100%;margin:0 auto;
       padding:0 clamp(20px,5vw,64px);}
-    /* White magnet-dust panel behind the H1 (ported from hub .strip--light.is-fx) */
-    .hx-h1-fx{position:relative;z-index:3;overflow:hidden;background:#fff;
-      box-shadow:0 22px 54px -26px rgba(0,0,0,.7);
-      padding:clamp(10px,1.5vh,20px) clamp(20px,5vw,64px);
+    .hx-h1-fx{position:relative;z-index:3;overflow:hidden;
+      background:
+        radial-gradient(circle at 18% 0%,rgba(92,148,222,.20),transparent 36%),
+        radial-gradient(circle at 82% 18%,rgba(255,255,255,.08),transparent 32%),
+        linear-gradient(135deg,rgba(15,18,25,.98),rgba(7,8,11,.98));
+      border-top:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      box-shadow:0 24px 70px -34px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.05);
+      padding:clamp(30px,5.2vw,72px) clamp(20px,5vw,64px) clamp(28px,4.6vw,66px);
       margin:0 0 clamp(20px,3vh,40px);}
-    .hx-h1-fxlayer{position:absolute;inset:0;z-index:0;pointer-events:none;}
+    .hx-h1-fx::after{content:"";position:absolute;left:clamp(20px,5vw,64px);right:clamp(20px,5vw,64px);bottom:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(124,176,234,.7),transparent);opacity:.7;}
+    .hx-h1-fxlayer{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.66;mix-blend-mode:screen;}
     .hx-h1-canvas{width:100%;height:100%;display:block;}
-    .hx-h1{position:relative;z-index:1;margin:0;
-      font-weight:900;line-height:1;letter-spacing:-.04em;
-      text-transform:uppercase;color:#0b0b0b;text-align:center;
-      font-size:clamp(30px,4.0vw,110px);}
+    .hx-h1{position:relative;z-index:1;margin:0 auto;max-width:1480px;
+      font-weight:900;line-height:.86;letter-spacing:-.045em;
+      text-transform:uppercase;color:#f7f8fb;text-align:center;text-wrap:balance;
+      text-shadow:0 18px 44px rgba(0,0,0,.55);
+      font-size:clamp(50px,6.4vw,126px);}
     .hx-h1-l{display:block;overflow:hidden;padding:.07em 0;margin:-.07em 0;}
     .hx-h1-i{display:block;transform:translateY(106%);
       animation:hxWipe 1s cubic-bezier(.2,.78,.2,1) both;}
     .hx-h1-l:nth-child(1) .hx-h1-i{animation-delay:.12s;}
     .hx-h1-l:nth-child(2) .hx-h1-i{animation-delay:.26s;}
-    .hx-h1-i.a{color:#0b0b0b;}
+    .hx-h1-i.a{color:#8fc5ff;text-shadow:0 0 34px rgba(124,176,234,.34),0 18px 44px rgba(0,0,0,.55);}
     .hx-main{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(30px,5vw,72px);
       align-items:center;}
     .hx-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:clamp(10px,1.05vw,12px);
@@ -518,8 +527,12 @@
       10%,18%{color:#dce8f8;border-color:rgba(124,176,234,.7);box-shadow:0 0 22px 0 rgba(124,176,234,.4);}}
     @keyframes hxRise{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
     @keyframes hxWipe{from{transform:translateY(106%);}to{transform:translateY(0);}}
-    @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:34px;}.hx-orbit{display:none;}}
-    @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-stage-nav{opacity:.9;}}
+    @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:34px;}.hx-orbit{display:none;}
+      .hx-h1-fx{padding:clamp(34px,8vw,54px) clamp(22px,6vw,44px) clamp(30px,7vw,46px);}
+      .hx-h1{max-width:760px;text-align:left;font-size:clamp(48px,10.5vw,82px);line-height:.88;}}
+    @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-stage-nav{opacity:.9;}
+      .hx-h1-fx{padding:30px 22px 28px;margin-bottom:26px;}
+      .hx-h1{font-size:clamp(42px,12.5vw,58px);letter-spacing:-.04em;}}
     @media(prefers-reduced-motion:reduce){.hx-hero *{animation:none!important;}
       .hx-eyebrow,.hx-pipe,.hx-h1-i,.hx-sub,.hx-cta,.hx-tools,.hx-visual{opacity:1!important;transform:none!important;}}
     </style>
@@ -537,7 +550,7 @@
       </div>
       <div class="hx-h1-fx" id="hxH1Fx">
         <div class="hx-h1-fxlayer" aria-hidden="true"><canvas class="hx-h1-canvas"></canvas></div>
-        <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">Generate 3D Models, Images &amp; Videos</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">in Your Browser</span></span></h1>
+        <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">3D Modeling, Images &amp; Video</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">in Your Browser</span></span></h1>
       </div>
       <div class="hx-wrap">
         <div class="hx-main">
@@ -649,14 +662,14 @@
         var dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
         var lastW=0,lastH=0,firstSized=false;
         var parts=[];
-        var palette=['rgba(40,40,40,0.40)','rgba(72,66,58,0.38)','rgba(90,82,72,0.35)','rgba(26,26,26,0.42)'];
+        var palette=['rgba(124,176,234,0.34)','rgba(180,210,250,0.24)','rgba(255,255,255,0.20)','rgba(69,116,190,0.28)'];
         var rnd=function(a,b){return a+Math.random()*(b-a);};
-        function targetCount(){var area=canvas.width*canvas.height;return Math.max(320,Math.min(1800,Math.floor(area/280)));}
+        function targetCount(){var area=canvas.width*canvas.height;return Math.max(160,Math.min(900,Math.floor(area/560)));}
         function spawnOne(x,y){
           if(x==null){x=Math.random()*canvas.width;}
           if(y==null){y=Math.random()*canvas.height;}
           return {x:x,y:y,hx:x,hy:y,vx:rnd(-0.25,0.25),vy:rnd(-0.25,0.25),
-            r:rnd(0.9,2.1)*(dpr*0.9),c:palette[(Math.random()*palette.length)|0]};
+            r:rnd(0.7,1.8)*(dpr*0.9),c:palette[(Math.random()*palette.length)|0]};
         }
         function scatterHomes(){for(var i=0;i<parts.length;i++){var p=parts[i];
           p.x=p.hx=Math.random()*canvas.width;p.y=p.hy=Math.random()*canvas.height;p.vx=p.vy=0;}}
@@ -667,7 +680,7 @@
           for(var j=0;j<parts.length;j++){var p=parts[j];
             p.hx=Math.min(Math.max(p.hx,0),canvas.width);
             p.hy=Math.min(Math.max(p.hy,0),canvas.height);
-            p.r=Math.min(Math.max(p.r,0.8*dpr),2.4*dpr);}
+            p.r=Math.min(Math.max(p.r,0.65*dpr),2*dpr);}
         }
         function ensureSize(){
           dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
@@ -688,7 +701,7 @@
         }
         var pointer={x:0,y:0,active:false};
         var INFLUENCE=function(){return 150*dpr;};
-        var STRENGTH=0.09,FRICTION=0.90,HOME_PULL=0.008,NOISE=0.22;
+        var STRENGTH=0.07,FRICTION=0.90,HOME_PULL=0.008,NOISE=0.18;
         host.addEventListener('mousemove',function(e){
           var r=host.getBoundingClientRect();
           pointer.x=(e.clientX-r.left)*dpr;pointer.y=(e.clientY-r.top)*dpr;pointer.active=true;
@@ -699,19 +712,17 @@
         host.addEventListener('pointerdown',function(e){
           var r=host.getBoundingClientRect();
           ripples.push({x:(e.clientX-r.left)*dpr,y:(e.clientY-r.top)*dpr,t:0,life:900,
-            maxR:Math.hypot(canvas.width,canvas.height)*0.7,band:40*dpr,power:0.95,
+            maxR:Math.hypot(canvas.width,canvas.height)*0.7,band:40*dpr,power:0.72,
             mode:e.altKey?'repel':'attract'});
         });
         function frame(){
           if(!ensureSize()){requestAnimationFrame(frame);return;}
-          ctx.globalCompositeOperation='source-over';
-          ctx.fillStyle='rgba(255,255,255,0.12)';
-          ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.clearRect(0,0,canvas.width,canvas.height);
           for(var i=ripples.length-1;i>=0;i--){
             var rp=ripples[i];rp.t+=16;
             var k=Math.min(1,rp.t/rp.life);
             rp.radius=easeOutCubic(k)*rp.maxR;
-            ctx.beginPath();ctx.strokeStyle='rgba(60,60,70,0.24)';
+            ctx.beginPath();ctx.strokeStyle='rgba(124,176,234,0.18)';
             ctx.lineWidth=Math.max(1,Math.min(6,rp.radius*0.006));
             ctx.arc(rp.x,rp.y,rp.radius,0,Math.PI*2);ctx.stroke();
             if(k>=1){ripples.splice(i,1);}
