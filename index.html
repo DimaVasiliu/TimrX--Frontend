@@ -1266,6 +1266,99 @@
       </div>
     </section>
 
+<section id="blogs" class="section container blogs">
+  <div class="blogs-header">
+    <!-- Left column: content stack -->
+    <div class="blogs-header-left">
+      <div class="blogs-badge" id="blogsBadge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span>LATEST INSIGHTS</span>
+      </div>
+      <h2 class="title-xl blogs-title blog-title-animated">BLOGS</h2>
+      <p class="muted blogs-sub" id="blogSubtitle">Notes on building modern, motion-first websites, 3D workflows, and creative tech.</p>
+      <div class="blogs-topics">
+        <span class="topic-tag">Web Dev</span>
+        <span class="topic-tag">3D Design</span>
+        <span class="topic-tag">UX/UI</span>
+        <span class="topic-tag">Motion</span>
+      </div>
+    </div>
+
+    <!-- Right column: meta stack -->
+    <div class="blogs-header-right">
+      <a class="blogs-view-all" href="/blogs">
+        <span>View all posts</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+
+      <div class="blogs-stats" id="blogsStats">
+        <div class="stat-item">
+          <div class="stat-number" data-target="20">0</div>
+          <div class="stat-label">Articles</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="10">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="3">0</div>
+          <div class="stat-label">Min Read</div>
+        </div>
+      </div>
+
+      <p class="blogs-tagline" id="blogTagline">Build better • Learn faster • Create more</p>
+    </div>
+  </div>
+
+  <div id="blogsGrid" class="blogs-grid" role="list">
+    <!-- Blog posts will be loaded dynamically from API -->
+  </div>
+
+  <!-- Latest Articles (crawlable SEO links, populated by API) -->
+  <div class="latest-articles" id="latestArticles">
+    <div class="latest-articles-header">
+      <span class="latest-articles-line"></span>
+      <h3 class="latest-articles-title">Latest Articles</h3>
+      <span class="latest-articles-line"></span>
+    </div>
+    <ul class="latest-articles-list" id="latestArticlesList">
+      <li><a href="/blogs">Browse all blog posts</a></li>
+      <li><a href="/blog/tag/ai">AI Articles</a></li>
+      <li><a href="/blog/tag/3d">3D Printing Articles</a></li>
+      <li><a href="/blog/tag/workflow">Workflow Articles</a></li>
+    </ul>
+    <script>
+    (function(){
+      var ul = document.getElementById('latestArticlesList');
+      if (!ul) return;
+      var API = '/api';
+      fetch(API + '/posts?page=1&size=5')
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          var posts = (j.items || j.posts || []).slice(0, 5);
+          if (!posts.length) return;
+          ul.innerHTML = posts.map(function(p){
+            return '<li><a href="/blog/' + p.slug + '">' + p.title + '</a></li>';
+          }).join('');
+        })
+        .catch(function(){});
+    })();
+    </script>
+  </div>
+
+  <div class="blogs-cta">
+    <a class="btn secondary" href="/blogs">Explore all posts →</a>
+    <p class="blogs-footer-text">Join the journey through code, design, and 3D innovation</p>
+  </div>
+</section>
+
     <!-- HERO -->
     <section class="container hero" id="hero">
         <!-- Subtle decorative elements -->
@@ -1757,98 +1850,6 @@
     
     
 <!-- BLOGS -->
-<section id="blogs" class="section container blogs">
-  <div class="blogs-header">
-    <!-- Left column: content stack -->
-    <div class="blogs-header-left">
-      <div class="blogs-badge" id="blogsBadge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
-        <span>LATEST INSIGHTS</span>
-      </div>
-      <h2 class="title-xl blogs-title blog-title-animated">BLOGS</h2>
-      <p class="muted blogs-sub" id="blogSubtitle">Notes on building modern, motion-first websites, 3D workflows, and creative tech.</p>
-      <div class="blogs-topics">
-        <span class="topic-tag">Web Dev</span>
-        <span class="topic-tag">3D Design</span>
-        <span class="topic-tag">UX/UI</span>
-        <span class="topic-tag">Motion</span>
-      </div>
-    </div>
-
-    <!-- Right column: meta stack -->
-    <div class="blogs-header-right">
-      <a class="blogs-view-all" href="/blogs">
-        <span>View all posts</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-      </a>
-
-      <div class="blogs-stats" id="blogsStats">
-        <div class="stat-item">
-          <div class="stat-number" data-target="20">0</div>
-          <div class="stat-label">Articles</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-number" data-target="10">0</div>
-          <div class="stat-label">Categories</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-number" data-target="3">0</div>
-          <div class="stat-label">Min Read</div>
-        </div>
-      </div>
-
-      <p class="blogs-tagline" id="blogTagline">Build better • Learn faster • Create more</p>
-    </div>
-  </div>
-
-  <div id="blogsGrid" class="blogs-grid" role="list">
-    <!-- Blog posts will be loaded dynamically from API -->
-  </div>
-
-  <!-- Latest Articles (crawlable SEO links, populated by API) -->
-  <div class="latest-articles" id="latestArticles">
-    <div class="latest-articles-header">
-      <span class="latest-articles-line"></span>
-      <h3 class="latest-articles-title">Latest Articles</h3>
-      <span class="latest-articles-line"></span>
-    </div>
-    <ul class="latest-articles-list" id="latestArticlesList">
-      <li><a href="/blogs">Browse all blog posts</a></li>
-      <li><a href="/blog/tag/ai">AI Articles</a></li>
-      <li><a href="/blog/tag/3d">3D Printing Articles</a></li>
-      <li><a href="/blog/tag/workflow">Workflow Articles</a></li>
-    </ul>
-    <script>
-    (function(){
-      var ul = document.getElementById('latestArticlesList');
-      if (!ul) return;
-      var API = '/api';
-      fetch(API + '/posts?page=1&size=5')
-        .then(function(r){ return r.json(); })
-        .then(function(j){
-          var posts = (j.items || j.posts || []).slice(0, 5);
-          if (!posts.length) return;
-          ul.innerHTML = posts.map(function(p){
-            return '<li><a href="/blog/' + p.slug + '">' + p.title + '</a></li>';
-          }).join('');
-        })
-        .catch(function(){});
-    })();
-    </script>
-  </div>
-
-  <div class="blogs-cta">
-    <a class="btn secondary" href="/blogs">Explore all posts →</a>
-    <p class="blogs-footer-text">Join the journey through code, design, and 3D innovation</p>
-  </div>
-</section>
 
   <!-- SEO: About TimrX -->
   <section aria-labelledby="aboutPageTitle" style="background:var(--warm-white);color:#0b0b0b;border-top:1px solid #ececec;padding:clamp(60px,8vh,100px) 0;">
@@ -2397,22 +2398,84 @@
             });
           }
 
-          // Stats counter
-          var statsEl = document.getElementById('blogsStats');
-          if (statsEl) {
-            var obs = new IntersectionObserver(function(entries){
-              entries.forEach(function(entry){
-                if (entry.isIntersecting) {
-                  statsEl.querySelectorAll('.stat-number').forEach(function(el, idx){
-                    var target = parseInt(el.getAttribute('data-target') || '0');
-                    setTimeout(function(){ animateCounter(el, target, 1500); }, idx * 100);
-                  });
-                  obs.disconnect();
-                }
-              });
+          // Stats counter — reads the live, exact total post & category counts
+          (function(){
+            var statsEl = document.getElementById('blogsStats');
+            if (!statsEl) return;
+            var nums = statsEl.querySelectorAll('.stat-number');
+            if (nums.length < 3) return;
+            var visible = false, data = null, animated = false;
+            function tween(el, target, dur){
+              target = target || 0;
+              var start = performance.now();
+              function step(now){
+                var t = Math.min(1, (now - start) / dur);
+                el.textContent = Math.floor(target * (1 - Math.pow(1 - t, 3)));
+                if (t < 1) requestAnimationFrame(step); else el.textContent = target;
+              }
+              requestAnimationFrame(step);
+            }
+            function run(){
+              if (!visible || !data) return;
+              if (animated){
+                nums[0].textContent = data.articles;
+                nums[1].textContent = data.categories;
+                nums[2].textContent = data.minRead;
+                return;
+              }
+              animated = true;
+              tween(nums[0], data.articles, 1400);
+              setTimeout(function(){ tween(nums[1], data.categories, 1400); }, 120);
+              setTimeout(function(){ tween(nums[2], data.minRead, 1400); }, 240);
+            }
+            function fallback(){
+              return {
+                articles:   parseInt(nums[0].getAttribute('data-target') || '0', 10),
+                categories: parseInt(nums[1].getAttribute('data-target') || '0', 10),
+                minRead:    parseInt(nums[2].getAttribute('data-target') || '0', 10)
+              };
+            }
+            var io = new IntersectionObserver(function(es){
+              es.forEach(function(e){ if (e.isIntersecting){ visible = true; io.disconnect(); run(); } });
             }, { threshold: 0.5 });
-            obs.observe(statsEl);
-          }
+            io.observe(statsEl);
+            // safety: if the API is slow, fall back to the static numbers
+            setTimeout(function(){ if (!data){ data = fallback(); run(); } }, 3500);
+            // walk every page of /api/posts so the counts are exact and always live
+            (async function(){
+              try {
+                var all = [], page = 1, pageSize = 0;
+                while (page <= 40){
+                  var r = await fetch('/api/posts?page=' + page + '&size=100', { cache: 'no-store' });
+                  if (!r.ok) break;
+                  var j = await r.json();
+                  var batch = j.items || j.posts || [];
+                  if (!batch.length) break;
+                  all = all.concat(batch);
+                  if (page === 1) pageSize = batch.length;
+                  if (batch.length < pageSize) break;
+                  page++;
+                }
+                if (!all.length){ data = data || fallback(); run(); return; }
+                var cats = new Set(), minutes = 0;
+                all.forEach(function(p){
+                  String(p.tags || '').split(',').forEach(function(tg){
+                    tg = tg.trim(); if (tg) cats.add(tg.toLowerCase());
+                  });
+                  minutes += (p.minutes || Math.max(3, Math.round(((p.excerpt||'') + (p.title||'')).length / 60)));
+                });
+                data = {
+                  articles: all.length,
+                  categories: cats.size,
+                  minRead: Math.max(1, Math.round(minutes / all.length))
+                };
+                nums[0].setAttribute('data-target', data.articles);
+                nums[1].setAttribute('data-target', data.categories);
+                nums[2].setAttribute('data-target', data.minRead);
+                run();
+              } catch (e){ data = data || fallback(); run(); }
+            })();
+          })();
 
           // Blog card scroll-in
           var cardObs = new IntersectionObserver(function(entries){
@@ -2452,20 +2515,7 @@
                 return;
               }
 
-              // Update stats counters
-              var statsEl = document.getElementById('blogsStats');
-              var statsNumbers = statsEl ? statsEl.querySelectorAll('.stat-number') : [];
-              if (statsNumbers.length >= 3) {
-                var totalMinutes = posts.reduce(function(sum, post){
-                  return sum + (post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60)));
-                }, 0);
-                setTimeout(function(){
-                  _blogCounter(statsNumbers[0], posts.length, 1500);
-                  var tags = new Set(posts.flatMap(function(p){ return (p.tags||'').split(',').filter(Boolean); }));
-                  _blogCounter(statsNumbers[1], tags.size || 5, 1500);
-                  _blogCounter(statsNumbers[2], totalMinutes, 1500);
-                }, 600);
-              }
+              // Blog/category counts handled by the dedicated #blogsStats counter
 
               blogsGrid.innerHTML = posts.map(function(post, index){
                 var url = '/blog/' + encodeURIComponent(post.slug);
