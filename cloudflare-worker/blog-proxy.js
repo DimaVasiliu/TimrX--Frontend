@@ -56,10 +56,9 @@ Allow: /converters/
 Allow: /prompts
 Allow: /read
 
-# Block admin & private/write areas only
+# Block admin and API areas only. /write is noindex in-page, so crawlers can see that directive.
 Disallow: /admin
 Disallow: /admin-edit
-Disallow: /write
 Disallow: /api/
 
 # NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /read are PUBLIC pages — do NOT disallow them
