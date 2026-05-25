@@ -426,14 +426,23 @@
       animation:hxOrbit 46s linear infinite;}
     .hx-wrap{position:relative;z-index:3;width:100%;margin:0 auto;
       padding:0 clamp(20px,5vw,64px);}
+    .hx-h1{margin:0 0 clamp(28px,4.4vh,52px);font-weight:800;line-height:1.04;
+      letter-spacing:-.015em;text-transform:uppercase;color:#f5f3ee;
+      font-size:clamp(34px,4.7vw,104px);}
+    .hx-h1 span{display:block;opacity:0;animation:hxRise .9s cubic-bezier(.2,.7,.2,1) both;}
+    .hx-h1 span:nth-child(1){animation-delay:.08s;}
+    .hx-h1 span:nth-child(2){animation-delay:.2s;}
+    .hx-h1 .a{color:#9db8da;}
+    .hx-main{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(30px,5vw,72px);
+      align-items:center;}
     .hx-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:clamp(10px,1.05vw,12px);
       letter-spacing:.24em;text-transform:uppercase;color:rgba(244,242,236,.6);font-weight:600;
-      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) both;}
+      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) .34s both;}
     .hx-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4f8fd6;
       box-shadow:0 0 11px #4f8fd6;animation:hxBlink 3s ease-in-out infinite;}
     .hx-pipe{position:relative;display:flex;justify-content:space-between;
-      max-width:600px;margin:clamp(22px,3.4vh,36px) 0;
-      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) .1s both;}
+      max-width:560px;margin:clamp(16px,2.3vh,26px) 0 0;
+      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) .42s both;}
     .hx-pipe-track{position:absolute;left:21px;right:21px;top:21px;height:1.5px;
       background:rgba(255,255,255,.12);}
     .hx-pipe-pulse{position:absolute;top:16px;width:34px;height:11px;border-radius:11px;
@@ -450,20 +459,11 @@
     .hx-node:nth-child(5) i{animation-delay:2s;}
     .hx-node:nth-child(6) i{animation-delay:3s;}
     .hx-node:nth-child(7) i{animation-delay:4s;}
-    .hx-main{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(30px,5vw,72px);
-      align-items:center;}
-    .hx-h1{margin:0;font-weight:800;line-height:1.03;letter-spacing:-.015em;
-      text-transform:uppercase;color:#f5f3ee;font-size:clamp(34px,6.6vw,76px);}
-    .hx-h1 span{display:block;opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) both;}
-    .hx-h1 span:nth-child(1){animation-delay:.16s;}
-    .hx-h1 span:nth-child(2){animation-delay:.28s;}
-    .hx-h1 span:nth-child(3){animation-delay:.4s;}
-    .hx-h1 .a{color:#9db8da;}
-    .hx-sub{margin:clamp(16px,2.4vh,24px) 0 0;max-width:520px;
+    .hx-sub{margin:clamp(18px,2.8vh,28px) 0 0;max-width:520px;
       font-size:clamp(14px,1.45vw,16px);line-height:1.65;color:rgba(244,242,236,.62);
-      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .52s both;}
+      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .5s both;}
     .hx-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:clamp(22px,3vh,32px);
-      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .62s both;}
+      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .58s both;}
     .hx-btn{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
       padding:15px 28px;border-radius:44px;cursor:pointer;text-decoration:none;
       display:inline-block;border:1px solid rgba(255,255,255,.2);
@@ -473,7 +473,7 @@
     .hx-btn-s{background:transparent;color:rgba(244,242,236,.9);}
     .hx-btn-s:hover{background:rgba(255,255,255,.06);}
     .hx-tools{margin:clamp(16px,2.3vh,22px) 0 0;font-size:12.5px;letter-spacing:.03em;
-      color:rgba(244,242,236,.42);opacity:0;animation:hxRise .85s ease .72s both;}
+      color:rgba(244,242,236,.42);opacity:0;animation:hxRise .85s ease .66s both;}
     .hx-tools a{color:rgba(157,184,218,.9);text-decoration:none;}
     .hx-tools a:hover{color:#cfe0f6;text-decoration:underline;}
     .hx-visual{position:relative;opacity:0;animation:hxRise 1s cubic-bezier(.2,.7,.2,1) .3s both;}
@@ -513,7 +513,7 @@
     @keyframes hxNode{0%,100%{color:rgba(244,242,236,.4);border-color:rgba(255,255,255,.1);box-shadow:0 0 0 0 rgba(124,176,234,0);}
       10%,18%{color:#dce8f8;border-color:rgba(124,176,234,.7);box-shadow:0 0 22px 0 rgba(124,176,234,.4);}}
     @keyframes hxRise{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
-    @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:38px;}.hx-orbit{display:none;}}
+    @media(max-width:860px){.hx-main{grid-template-columns:1fr;gap:34px;}.hx-orbit{display:none;}}
     @media(max-width:520px){.hx-pipe{max-width:100%;}.hx-node i{width:36px;height:36px;font-size:15px;}.hx-stage-nav{opacity:.9;}}
     @media(prefers-reduced-motion:reduce){.hx-hero *{animation:none!important;}
       .hx-eyebrow,.hx-pipe,.hx-h1 span,.hx-sub,.hx-cta,.hx-tools,.hx-visual{opacity:1!important;transform:none!important;}}
@@ -531,19 +531,19 @@
         </svg>
       </div>
       <div class="hx-wrap">
-        <span class="hx-eyebrow"><b></b>Browser-based generation platform</span>
-        <div class="hx-pipe">
-          <div class="hx-pipe-track" aria-hidden="true"></div>
-          <div class="hx-pipe-pulse" aria-hidden="true"></div>
-          <div class="hx-node"><i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Prompt</span></div>
-          <div class="hx-node"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Generate</span></div>
-          <div class="hx-node"><i class="fa-solid fa-cube" aria-hidden="true"></i><span>Transform</span></div>
-          <div class="hx-node"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Animate</span></div>
-          <div class="hx-node"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Export</span></div>
-        </div>
+        <h1 class="hx-h1"><span>Generate 3D Models, Images &amp; Videos</span> <span class="a">in Your Browser</span></h1>
         <div class="hx-main">
           <div class="hx-text">
-            <h1 class="hx-h1"><span>Generate 3D Models,</span> <span>Images &amp; Videos</span> <span class="a">in Your Browser</span></h1>
+            <span class="hx-eyebrow"><b></b>Browser-based generation platform</span>
+            <div class="hx-pipe">
+              <div class="hx-pipe-track" aria-hidden="true"></div>
+              <div class="hx-pipe-pulse" aria-hidden="true"></div>
+              <div class="hx-node"><i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Prompt</span></div>
+              <div class="hx-node"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Generate</span></div>
+              <div class="hx-node"><i class="fa-solid fa-cube" aria-hidden="true"></i><span>Transform</span></div>
+              <div class="hx-node"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Animate</span></div>
+              <div class="hx-node"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Export</span></div>
+            </div>
             <p class="hx-sub">Create 3D models from text or images, generate images and video with multiple engines &mdash; Veo 3, Seedance, Meshy and Imagen &mdash; then remesh, texture, rig and animate your assets and export production-ready STL, OBJ and GLB files. Start generating instantly with starter credits.</p>
             <div class="hx-cta">
               <a class="hx-btn hx-btn-p" href="/hub">Start generating</a>
