@@ -1997,6 +1997,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader }  from 'three/addons/loaders/DRACOLoader.js';
         import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
         const canvas       = document.getElementById('viewerCanvas');
@@ -2016,22 +2017,19 @@
           renderer.toneMappingExposure = 1.05;
 
           const scene = new THREE.Scene();
-          scene.fog = new THREE.Fog(0x0b0c12, 9, 22);
+          scene.fog = new THREE.Fog(0x0b0c12, 12, 30);
 
           const pmrem = new THREE.PMREMGenerator(renderer);
           scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.045).texture;
 
-          const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 4000);
-          camera.position.set(3, 2, 4.6);
+          const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 5000);
+          camera.position.set(4, 2.6, 6);
 
           const controls = new OrbitControls(camera, canvas);
           controls.enableDamping = true;
           controls.dampingFactor = 0.08;
-          controls.target.set(0, 0.75, 0);
           controls.autoRotate = true;
           controls.autoRotateSpeed = 1.4;
-          controls.minDistance = 1.2;
-          controls.maxDistance = 60;
           window.viewerControls = controls;
 
           scene.add(new THREE.AmbientLight(0xffffff, 0.22));
@@ -2040,7 +2038,7 @@
           const rim = new THREE.DirectionalLight(0x9db8da, 0.85);
           rim.position.set(-5, 2.5, -4); scene.add(rim);
 
-          const grid = new THREE.GridHelper(16, 32, 0x3b4150, 0x23262f);
+          const grid = new THREE.GridHelper(22, 44, 0x3b4150, 0x23262f);
           grid.material.transparent = true; grid.material.opacity = 0.5;
           scene.add(grid);
 
@@ -2065,18 +2063,19 @@
           if (window.ResizeObserver) new ResizeObserver(resize).observe(wrapper);
           resize();
 
+          // frame an object with comfortable padding, rotation-invariant (bounding sphere)
           function fitCameraToObject(obj){
             const box = new THREE.Box3().setFromObject(obj);
-            const size = new THREE.Vector3(); box.getSize(size);
-            const center = new THREE.Vector3(); box.getCenter(center);
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            const dist = maxDim * 2.0;
-            controls.target.copy(center);
-            camera.near = Math.max(0.01, dist / 200); camera.far = dist * 200;
+            const sphere = box.getBoundingSphere(new THREE.Sphere());
+            const r = sphere.radius || 1;
+            const dist = r * 3.6;
+            controls.target.copy(sphere.center);
+            camera.near = Math.max(0.01, dist / 200);
+            camera.far  = dist * 200;
             camera.updateProjectionMatrix();
             const d = new THREE.Vector3(1, 0.5, 1).normalize();
-            camera.position.copy(center).addScaledVector(d, dist);
-            controls.minDistance = dist * 0.35;
+            camera.position.copy(sphere.center).addScaledVector(d, dist);
+            controls.minDistance = dist * 0.4;
             controls.maxDistance = dist * 5;
             controls.update();
           }
@@ -2101,16 +2100,21 @@
             fitCameraToObject(active);
           }
 
+          // shared loader with Draco decompression (the -web.glb models are Draco-compressed)
+          const draco = new DRACOLoader();
+          draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+          const loader = new GLTFLoader();
+          loader.setDRACOLoader(draco);
+
           // showcase model
           fitCameraToObject(cube);
-          new GLTFLoader().load(DEFAULT_SRC, (gltf) => {
+          loader.load(DEFAULT_SRC, (gltf) => {
             defaultModel = gltf.scene;
             placeOnGround(defaultModel);
             scene.add(defaultModel);
             if (!userModel) showActive();
           }, undefined, (err) => { console.warn('Default model failed:', err); });
 
-          const loader = new GLTFLoader();
           async function loadModelFromFile(file){
             const url = URL.createObjectURL(file);
             try {
