@@ -345,9 +345,6 @@
           <span class="swap" id="brandTim" aria-label="TimrX">
             <span class="b-tim">Timr</span><span class="b-x">X</span>
           </span>
-          <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
-            <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
-          </span>
         </a>
       </div>
 
@@ -426,10 +423,9 @@
     .hx-wrap{position:relative;z-index:3;width:100%;margin:0 auto;
       padding:0 clamp(20px,5vw,64px);}
     /* White magnet-dust panel behind the H1 (ported from hub .strip--light.is-fx) */
-    .hx-h1-fx{position:relative;overflow:hidden;background:#fff;
-      border:1px solid #ececec;border-radius:clamp(14px,1.6vw,22px);
-      box-shadow:0 26px 64px -30px rgba(0,0,0,.6);
-      padding:clamp(10px,1.5vh,20px) clamp(16px,2.2vw,34px);
+    .hx-h1-fx{position:relative;z-index:3;overflow:hidden;background:#fff;
+      box-shadow:0 22px 54px -26px rgba(0,0,0,.7);
+      padding:clamp(10px,1.5vh,20px) clamp(20px,5vw,64px);
       margin:0 0 clamp(20px,3vh,40px);}
     .hx-h1-fxlayer{position:absolute;inset:0;z-index:0;pointer-events:none;}
     .hx-h1-canvas{width:100%;height:100%;display:block;}
@@ -442,8 +438,8 @@
       animation:hxWipe 1s cubic-bezier(.2,.78,.2,1) both;}
     .hx-h1-l:nth-child(1) .hx-h1-i{animation-delay:.12s;}
     .hx-h1-l:nth-child(2) .hx-h1-i{animation-delay:.26s;}
-    .hx-h1-i.a{color:#2f6dba;background:linear-gradient(95deg,#2f6dba,#6d4bc4);
-      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    .hx-h1-l:nth-child(2){text-align:center;}
+    .hx-h1-i.a{color:#0b0b0b;}
     .hx-main{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(30px,5vw,72px);
       align-items:center;}
     .hx-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:clamp(10px,1.05vw,12px);
@@ -539,11 +535,11 @@
           <circle cx="100" cy="6" r="3.5" fill="#7cb0ea"/>
         </svg>
       </div>
+      <div class="hx-h1-fx" id="hxH1Fx">
+        <div class="hx-h1-fxlayer" aria-hidden="true"><canvas class="hx-h1-canvas"></canvas></div>
+        <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">Generate 3D Models, Images &amp; Videos</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">in Your Browser</span></span></h1>
+      </div>
       <div class="hx-wrap">
-        <div class="hx-h1-fx" id="hxH1Fx">
-          <div class="hx-h1-fxlayer" aria-hidden="true"><canvas class="hx-h1-canvas"></canvas></div>
-          <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">Generate 3D Models, Images &amp; Videos</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">in Your Browser</span></span></h1>
-        </div>
         <div class="hx-main">
           <div class="hx-text">
             <span class="hx-eyebrow"><b></b>Browser-based generation platform</span>
