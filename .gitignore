@@ -13,9 +13,7 @@ venv/
 .vscode/*
 !.vscode/settings.json
 
-# Private admin frontend
-admin/
-media/admin.css
+# Local-only helpers
 .local/
 
 # Cloudflare local build cache
