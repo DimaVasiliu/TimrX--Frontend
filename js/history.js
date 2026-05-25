@@ -1484,8 +1484,15 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   }
 
   // MODEL TYPE
+  // A derived asset (e.g. a rigged model) often has no thumbnail of its own —
+  // fall back to the group's thumbnail so its tile is never blank.
+  const galleryGroupThumb = (function(){
+    var wt = models.find(function(m){ return m && (m.thumbnail_url || m.image_url); });
+    return wt ? (wt.thumbnail_url || wt.image_url) : '';
+  })();
   const buildSinglePreview = (model) => {
     const isVariantActive = historyActiveModelId === model.id;
+    const _thumb = model.thumbnail_url || galleryGroupThumb;
     return `
       <button class="${thumbPrefix}__preview ${isVariantActive ? 'is-focused' : ''} ${status === 'generating' ? 'is-loading' : ''}"
               type="button"
@@ -1493,7 +1500,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               data-id="${model.id}"
               aria-pressed="${isVariantActive ? 'true' : 'false'}"
               title="Open ${shortTitle(model)}">
-        ${model.thumbnail_url ? `<img src="${model.thumbnail_url}" alt="${shortTitle(model)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(model)}</span>');">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
+        ${_thumb ? `<img src="${_thumb}" alt="${shortTitle(model)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(model)}</span>');">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
       </button>
     `;
   };
@@ -1502,13 +1509,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     const tiles = models.slice(0, 4).map((variant, idx) => {
       if (!variant) return '';
       const isVariantActive = historyActiveModelId === variant.id;
+      const _thumb = variant.thumbnail_url || galleryGroupThumb;
       return `
         <button class="${thumbPrefix}__composite-tile ${isVariantActive ? 'is-focused' : ''}"
                 type="button"
                 data-act="open"
                 data-id="${variant.id}"
                 aria-label="Open variation ${idx + 1}">
-          ${variant.thumbnail_url ? `<img src="${variant.thumbnail_url}" alt="${shortTitle(variant)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(variant)}</span>');">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
+          ${_thumb ? `<img src="${_thumb}" alt="${shortTitle(variant)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(variant)}</span>');">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
         </button>
       `;
     }).join('');
