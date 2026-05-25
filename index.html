@@ -746,6 +746,191 @@
       </div>
     </div>
 
+    <!-- ============ TimrX 3D App ============ -->
+    <style>
+    /* ===== TimrX 3D App section — self-contained, tx3d- scoped ===== */
+    .tx3d{position:relative;overflow:hidden;background:#0a0a0c;
+      padding:clamp(58px,9vh,112px) 0;}
+    .tx3d *{box-sizing:border-box;}
+    .tx3d-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
+    .tx3d-dots{position:absolute;inset:-3px;
+      background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.6px);
+      background-size:46px 46px;opacity:.45;}
+    .tx3d-glow{position:absolute;border-radius:50%;filter:blur(110px);}
+    .tx3d-glow-a{width:44vw;height:44vw;max-width:560px;max-height:560px;
+      background:rgba(34,60,116,.5);top:-15vw;right:-10vw;}
+    .tx3d-glow-b{width:40vw;height:40vw;max-width:520px;max-height:520px;
+      background:rgba(52,54,78,.42);bottom:-17vw;left:-9vw;}
+    .tx3d-wrap{position:relative;z-index:2;width:100%;margin:0 auto;
+      padding:0 clamp(20px,5vw,64px);}
+    .tx3d-head{max-width:780px;margin:0 0 clamp(8px,1.4vh,16px);}
+    .tx3d-eyebrow{display:inline-flex;align-items:center;gap:9px;
+      font-size:clamp(10px,1.05vw,12px);letter-spacing:.24em;text-transform:uppercase;
+      color:rgba(244,242,236,.6);font-weight:600;margin:0 0 16px;}
+    .tx3d-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4f8fd6;
+      box-shadow:0 0 11px #4f8fd6;}
+    .tx3d-h2{margin:0 0 14px;font-weight:900;line-height:1.02;letter-spacing:-.04em;
+      text-transform:uppercase;color:#f5f3ee;font-size:clamp(30px,4vw,72px);}
+    .tx3d-h2 .a{color:#9db8da;}
+    .tx3d-lead{margin:0;font-size:clamp(14px,1.15vw,17px);line-height:1.65;
+      color:rgba(244,242,236,.66);max-width:640px;}
+
+    /* prompt ticker */
+    .tx3d-ticker{position:relative;z-index:2;
+      margin:clamp(22px,3.4vh,40px) 0 clamp(26px,4vh,46px);
+      border-top:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.022);overflow:hidden;
+      -webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+      mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);}
+    .tx3d-ticker-track{display:flex;width:max-content;
+      padding:11px 0;animation:tx3dTicker 46s linear infinite;}
+    .tx3d-chip{font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+      color:rgba(244,242,236,.5);padding:0 26px;white-space:nowrap;
+      border-right:1px solid rgba(255,255,255,.08);}
+    @keyframes tx3dTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* viewer + copy */
+    .tx3d-main{position:relative;z-index:2;display:grid;
+      grid-template-columns:1.5fr 1fr;gap:clamp(28px,4vw,56px);align-items:center;}
+    .tx3d-stage{position:relative;border-radius:clamp(14px,1.4vw,20px);overflow:hidden;
+      background:#fff;border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 40px 84px -38px rgba(0,0,0,.85);
+      height:clamp(300px,52vh,540px);}
+    #viewerCanvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;}
+    .tx3d-actions{position:absolute;top:14px;left:14px;z-index:3;display:flex;gap:8px;}
+    .tx3d-chip-btn{font:600 12px/1 Inter,system-ui,sans-serif;
+      padding:9px 13px;border-radius:9px;cursor:pointer;
+      background:#101014;color:#f5f3ee;border:1px solid rgba(0,0,0,.12);
+      transition:transform .15s ease,background .2s ease;}
+    .tx3d-chip-btn:hover{transform:translateY(-1px);background:#1b1b22;}
+    .tx3d-chip-btn.ghost{background:rgba(13,13,16,.05);color:#0b0b0b;
+      border:1px solid rgba(0,0,0,.16);}
+    .tx3d-chip-btn.ghost:hover{background:rgba(13,13,16,.1);}
+    .tx3d-chip-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+    .viewer-placeholder{position:absolute;inset:0;z-index:2;display:flex;
+      align-items:center;justify-content:center;text-align:center;padding:24px;
+      font:500 14px/1.55 Inter,system-ui,sans-serif;color:#6b6b72;
+      pointer-events:none;transition:opacity .4s ease;}
+    .viewer-placeholder b{color:#0b0b0b;font-weight:700;}
+    .tx3d-gear{position:absolute;bottom:14px;right:14px;z-index:3;
+      width:38px;height:38px;border-radius:50%;cursor:pointer;
+      border:1px solid rgba(0,0,0,.12);background:#fff;color:#0b0b0b;
+      font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;
+      transition:transform .15s ease;}
+    .tx3d-gear:hover{transform:rotate(35deg);}
+    .tx3d-rotate{position:absolute;bottom:60px;right:14px;z-index:3;display:flex;
+      align-items:center;gap:11px;padding:10px 13px;border-radius:11px;
+      background:#fff;border:1px solid rgba(0,0,0,.12);
+      box-shadow:0 14px 32px -10px rgba(0,0,0,.3);}
+    .tx3d-rotate.hidden{display:none;}
+    .tx3d-rotate .label{font:600 12px/1 Inter,system-ui,sans-serif;color:#0b0b0b;}
+    .tx3d-toggle{position:relative;display:inline-block;width:38px;height:21px;}
+    .tx3d-toggle input{position:absolute;inset:0;width:100%;height:100%;
+      margin:0;opacity:0;cursor:pointer;}
+    .tx3d-slider{position:absolute;inset:0;border-radius:21px;
+      background:#d3d3d8;transition:background .2s ease;}
+    .tx3d-slider::before{content:"";position:absolute;width:15px;height:15px;
+      left:3px;top:3px;border-radius:50%;background:#fff;
+      box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .2s ease;}
+    .tx3d-toggle input:checked+.tx3d-slider{background:#4f8fd6;}
+    .tx3d-toggle input:checked+.tx3d-slider::before{transform:translateX(17px);}
+
+    .tx3d-copy{min-width:0;}
+    .tx3d-kicker{margin:0 0 14px;font:700 12px/1 Inter,system-ui,sans-serif;
+      letter-spacing:.18em;text-transform:uppercase;color:#9db8da;}
+    .tx3d-copy p{margin:0 0 20px;font-size:clamp(14px,1.1vw,16px);
+      line-height:1.65;color:rgba(244,242,236,.7);}
+    .tx3d-feat{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:11px;}
+    .tx3d-feat li{position:relative;padding-left:25px;
+      font-size:clamp(13px,1vw,15px);line-height:1.5;color:rgba(244,242,236,.8);}
+    .tx3d-feat li::before{content:"\2713";position:absolute;left:0;top:0;
+      color:#7cb0ea;font-weight:900;}
+    .tx3d-cta{display:inline-flex;align-items:center;gap:9px;
+      padding:14px 24px;border-radius:11px;background:#f5f3ee;color:#0b0b0b;
+      font:700 13px/1 Inter,system-ui,sans-serif;letter-spacing:.02em;
+      text-decoration:none;transition:transform .15s ease,box-shadow .25s ease;}
+    .tx3d-cta:hover{transform:translateY(-2px);
+      box-shadow:0 16px 34px -12px rgba(245,243,238,.4);}
+
+    @media(max-width:880px){
+      .tx3d-main{grid-template-columns:1fr;gap:26px;}
+      .tx3d-stage{order:-1;}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .tx3d-ticker-track{animation:none;}
+      .tx3d-gear:hover{transform:none;}
+    }
+    </style>
+    <section id="app3d" class="tx3d" aria-label="TimrX 3D App">
+      <div class="tx3d-bg" aria-hidden="true">
+        <div class="tx3d-dots"></div>
+        <div class="tx3d-glow tx3d-glow-a"></div>
+        <div class="tx3d-glow tx3d-glow-b"></div>
+      </div>
+      <div class="tx3d-wrap">
+        <div class="tx3d-head">
+          <span class="tx3d-eyebrow"><b></b>The TimrX 3D workspace</span>
+          <h2 class="tx3d-h2">A real-time 3D engine, <span class="a">built for the browser</span></h2>
+          <p class="tx3d-lead">Upload a model and orbit it instantly, or generate one from a prompt. TimrX runs a full WebGL engine right in the page &mdash; nothing to install, nothing to download. Inspect, refine and export 3D without ever leaving the tab.</p>
+        </div>
+      </div>
+      <div class="tx3d-ticker" aria-label="3D prompt ideas">
+        <div class="tx3d-ticker-track">
+          <span class="tx3d-chip">Origami-style dragon</span>
+          <span class="tx3d-chip">Steampunk potion bottle</span>
+          <span class="tx3d-chip">Futuristic lounge chair</span>
+          <span class="tx3d-chip">Ancient silver key</span>
+          <span class="tx3d-chip">Celtic knot ring</span>
+          <span class="tx3d-chip">Minimal chess set</span>
+          <span class="tx3d-chip">Retro ray gun</span>
+          <span class="tx3d-chip">Viking drinking horn</span>
+          <span class="tx3d-chip">Art-deco mask</span>
+          <span class="tx3d-chip" aria-hidden="true">Origami-style dragon</span>
+          <span class="tx3d-chip" aria-hidden="true">Steampunk potion bottle</span>
+          <span class="tx3d-chip" aria-hidden="true">Futuristic lounge chair</span>
+          <span class="tx3d-chip" aria-hidden="true">Ancient silver key</span>
+          <span class="tx3d-chip" aria-hidden="true">Celtic knot ring</span>
+          <span class="tx3d-chip" aria-hidden="true">Minimal chess set</span>
+          <span class="tx3d-chip" aria-hidden="true">Retro ray gun</span>
+          <span class="tx3d-chip" aria-hidden="true">Viking drinking horn</span>
+          <span class="tx3d-chip" aria-hidden="true">Art-deco mask</span>
+        </div>
+      </div>
+      <div class="tx3d-wrap">
+        <div class="tx3d-main">
+          <div class="tx3d-stage">
+            <div class="tx3d-actions">
+              <button type="button" class="tx3d-chip-btn" id="uploadBtnTop">Upload .glb / .gltf</button>
+              <button type="button" class="tx3d-chip-btn ghost" id="clearBtnTop" disabled>Remove</button>
+              <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
+            </div>
+            <canvas id="viewerCanvas" aria-label="Interactive 3D model viewer"></canvas>
+            <div id="viewerPlaceholder" class="viewer-placeholder">Drag a GLB or GLTF model here, or click <b>Upload</b></div>
+            <button class="tx3d-gear" id="viewerGear" type="button" aria-label="Viewer settings"><i class="fa-solid fa-gear" aria-hidden="true"></i></button>
+            <div class="tx3d-rotate hidden" id="viewerRotateCard">
+              <span class="label">Auto-rotate</span>
+              <label class="tx3d-toggle">
+                <input type="checkbox" id="rotateToggle" aria-label="Toggle auto-rotate" />
+                <span class="tx3d-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="tx3d-copy">
+            <h3 class="tx3d-kicker">Generate &middot; view &middot; export</h3>
+            <p>Drop a GLB or GLTF into the viewer to inspect it with full orbit controls, or start from a text or image prompt. Refine the mesh, apply textures and rigging, then export production-ready files for printing or game engines.</p>
+            <ul class="tx3d-feat">
+              <li>Real-time GLB / GLTF viewer with orbit controls</li>
+              <li>Text and image to 3D model generation</li>
+              <li>Remesh, retexture and auto-rig your assets</li>
+              <li>Print-ready export &mdash; STL, OBJ and GLB</li>
+            </ul>
+            <a class="tx3d-cta" href="/hub">Open the 3D workspace <span aria-hidden="true">&rarr;</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- HERO -->
     <section class="container hero" id="hero">
         <!-- Subtle decorative elements -->
@@ -937,83 +1122,6 @@
     </div>
     </div>
 </div>
-    
-    
-    <!-- 3D APP PREVIEW (under ticker) -->
-    <section id="app3d" class="section container app3d">
-        <div class="title-xl">TIMRX 3D APP</div>
-      
-        <!-- INLINE TICKER (now inside the app preview) -->
-        <div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
-          <div class="idx-ticker-inner">
-            <div class="idx-ticker-track">
-              <span class="idx-ticker-item">Origami-style dragon</span>
-              <span class="idx-ticker-item">Steampunk potion bottle</span>
-              <span class="idx-ticker-item">Futuristic lounge chair</span>
-              <span class="idx-ticker-item">Ancient silver key</span>
-              <span class="idx-ticker-item">Celtic knot ring</span>
-              <span class="idx-ticker-item">Minimal chess set</span>
-              <span class="idx-ticker-item">Retro ray gun</span>
-              <span class="idx-ticker-item">Viking drinking horn</span>
-              <span class="idx-ticker-item">Art-deco mask</span>
-              <!-- duplicates for seamless loop -->
-              <span class="idx-ticker-item" aria-hidden="true">Origami-style dragon</span>
-              <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
-              <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
-              <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
-              <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
-              <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
-              <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
-              <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
-              <span class="idx-ticker-item" aria-hidden="true">Art-deco mask</span>
-            </div>
-          </div>
-        </div>
-      
-        <div class="app3d-grid">
-            <!-- APP3D viewer (left column) -->
-            <div class="viewer-canvas-wrapper">
-                <!-- always visible actions (top-left) -->
-                <div class="viewer-actions">
-                  <button type="button" class="chip-btn" id="uploadBtnTop">Upload (.glb/.gltf)</button>
-                  <button type="button" class="chip-btn ghost" id="clearBtnTop" disabled>Remove</button>
-                  <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
-                </div>
-              
-                <canvas id="viewerCanvas" aria-label="3D viewer"></canvas>
-              
-                <div id="viewerPlaceholder" class="viewer-placeholder">
-                  Drag a GLB/GLTF here or click <b>Upload</b>
-                </div>
-              
-                <!-- settings (gear) stays for auto-rotate only -->
-                <button class="viewer-gear" id="viewerGear" aria-label="Viewer settings">⚙️</button>
-
-                  <div class="viewer-autorotate hidden" id="viewerRotateCard">
-                    <span class="label">Auto-rotate</span>
-                    <label class="toggle sm">
-                      <input type="checkbox" id="rotateToggle" />
-                      <span class="slider"></span>
-                    </label>
-                  </div>
-              </div>
-            <!-- APP3D copy (right column) -->
-            <div class="app3d-copy">
-            <h3 class="about-kicker">Generate • View • Print</h3>
-            <p class="muted">A fast, browser-based 3D pipeline I’m building for creators
-                and small teams. Upload or prompt, preview in real‑time, export print‑ready
-                files.</p>
-            <ul class="muted bullets">
-            <li>GLB/GLTF viewer with orbit controls</li>
-            <li>Print‑ready export experiments (FDM/SLA)</li>
-            <li>Prompt‑to‑3D prototypes via API</li>
-            </ul>
-            <a class="btn" href="/hub">Explore 3D Print Hub →</a>
-            </div>
-            <!-- FX layer (sits behind content) -->
-            <div class="app3d-fx" aria-hidden="true"><canvas id="app3dFx"></canvas></div>
-        </div>
-    </section>
 
 <!-- SERVICES -->
 <section id="services" class="section services services-light">
