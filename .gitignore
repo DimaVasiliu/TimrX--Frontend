@@ -13,6 +13,10 @@ venv/
 .vscode/*
 !.vscode/settings.json
 
+# Cloudflare local build cache
+.wrangler/
+cloudflare-worker/.wrangler/
+
 __pycache__/
 *.pyc
 .venv/

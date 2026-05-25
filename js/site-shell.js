@@ -113,6 +113,7 @@
       links: [
         { href: '/rss.xml', label: 'RSS' },
         { href: 'mailto:admin@timrx.live', label: 'Email' },
+        { href: 'https://www.youtube.com/@TimrX-Studio', label: 'YouTube', external: true },
         { href: 'https://www.linkedin.com/in/dumitru-vasiliu', label: 'LinkedIn', external: true },
         { href: 'https://github.com/DimaVasiliu', label: 'GitHub', external: true }
       ]

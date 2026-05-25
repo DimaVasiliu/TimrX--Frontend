@@ -46,6 +46,13 @@ export function renderSeoPage(page) {
   {
     "@context":"https://schema.org",
     "@type":"WebPage",
+    "publisher":{
+      "@type":"Organization",
+      "@id":"https://timrx.live/#organization",
+      "name":"TimrX",
+      "url":"https://timrx.live/",
+      "sameAs":["https://www.youtube.com/@TimrX-Studio"]
+    },
     "name":"${page.title}",
     "description":"${page.desc}",
     "url":"${fullUrl}",
@@ -353,7 +360,7 @@ export function renderSeoPage(page) {
 
   <footer class="seo-footer">
     <div class="container">
-      <p>&copy; ${new Date().getFullYear()} TimrX / Dima Vasiliu &middot; <a href="/hub">Hub</a> &middot; <a href="/tutorials">Tutorials</a> &middot; <a href="/community">Community</a> &middot; <a href="/prompts">Prompts</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/blogs">Blog</a></p>
+      <p>&copy; ${new Date().getFullYear()} TimrX / Dima Vasiliu &middot; <a href="/hub">Hub</a> &middot; <a href="/tutorials">Tutorials</a> &middot; <a href="/community">Community</a> &middot; <a href="/prompts">Prompts</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/blogs">Blog</a> &middot; <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">YouTube</a></p>
     </div>
   </footer>
 
