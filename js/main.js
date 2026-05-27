@@ -1056,7 +1056,7 @@ function initViewerToolbar() {
           const after = res.data.report?.after;
           const msg = after?.is_watertight
             ? 'Repaired STL is ready and watertight.'
-            : 'Repaired STL is ready. Check it in your slicer before printing.';
+            : 'Repair finished, but the mesh may still need slicer repair.';
           if (window.showToast) window.showToast(msg, after?.is_watertight ? 'success' : 'info');
         } catch (err) {
           console.error('[STLRepair] Repair failed:', err);

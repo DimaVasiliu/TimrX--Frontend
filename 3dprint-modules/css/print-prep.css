@@ -93,35 +93,88 @@
     margin-bottom: 4px;
 }
 
+.print-prep-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    margin-top: 16px;
+    padding-right: 14px;
+}
+
 .print-panel-export-btn {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
-    padding: 10px 16px;
-    margin-top: 14px;
+    min-height: 50px;
+    padding: 0 22px;
     background: linear-gradient(135deg, #0ea5e9, #2563eb);
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     color: #fff;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0;
     cursor: pointer;
-    transition: all .2s ease;
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, filter .18s ease;
+    will-change: transform;
 }
 
 .print-panel-export-btn:hover {
-    background: linear-gradient(135deg, #38bdf8, #3b82f6);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(14,165,233,.3);
-    margin-left: 10px;
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.24);
+    filter: brightness(1.08);
+    box-shadow: 0 16px 34px rgba(37, 99, 235, 0.34);
 }
 
 .print-panel-export-btn:active {
     transform: translateY(0);
+    filter: brightness(0.98);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
+}
+
+.print-panel-export-btn:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, 0.9);
+    outline-offset: 3px;
+}
+
+.print-panel-export-btn:disabled {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
 }
 
 .print-panel-export-btn svg {
     flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    transition: transform .18s ease;
+}
+
+.print-panel-export-btn:hover svg {
+    transform: translateY(-1px);
+}
+
+.print-panel-export-btn--repair {
+    background: linear-gradient(135deg, #22c1f1, #2f80ed);
+}
+
+.print-panel-export-btn--3mf {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+}
+
+@media (max-width: 720px) {
+    .print-prep-actions {
+        grid-template-columns: 1fr;
+        padding-right: 0;
+    }
+
+    .print-panel-export-btn--3mf {
+        grid-column: auto;
+    }
 }
