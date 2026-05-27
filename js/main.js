@@ -1013,6 +1013,21 @@ function initViewerToolbar() {
     // Wire up server-side STL repair button
     const repairStlBtn = document.getElementById('printRepairSTLBtn');
     if (repairStlBtn) {
+      const showRepairMessage = (message, tone = 'info') => {
+        if (window.showToast) {
+          window.showToast(message, tone);
+          return;
+        }
+        const statusEl = document.getElementById('printScaledDimensions');
+        if (!statusEl) return;
+        statusEl.style.display = '';
+        statusEl.innerHTML = '';
+        const note = document.createElement('div');
+        note.className = 'print-prep-dim-note';
+        note.textContent = message;
+        statusEl.appendChild(note);
+      };
+
       repairStlBtn.onclick = async () => {
         const item = API.getActiveHistoryItem();
         if (!item) {
@@ -1046,7 +1061,10 @@ function initViewerToolbar() {
             timeout: 120000,
           });
           if (!res.ok || !res.data?.ok) {
-            throw new Error(res.error || res.data?.error || `Server error (${res.status})`);
+            const suggestion = Array.isArray(res.data?.suggestions) && res.data.suggestions.length
+              ? ` ${res.data.suggestions[0]}`
+              : '';
+            throw new Error((res.error || res.data?.error || `Server error (${res.status})`) + suggestion);
           }
 
           const downloadUrl = res.data.download_url || res.data.repaired_url;
@@ -1057,11 +1075,10 @@ function initViewerToolbar() {
           const msg = after?.is_watertight
             ? 'Repaired STL is ready and watertight.'
             : 'Repair finished, but the mesh may still need slicer repair.';
-          if (window.showToast) window.showToast(msg, after?.is_watertight ? 'success' : 'info');
+          showRepairMessage(msg, after?.is_watertight ? 'success' : 'info');
         } catch (err) {
           console.error('[STLRepair] Repair failed:', err);
-          if (window.showToast) window.showToast(err.message || 'STL repair failed.', 'error');
-          else alert(err.message || 'STL repair failed.');
+          showRepairMessage(err.message || 'STL repair failed.', 'error');
         } finally {
           repairStlBtn.disabled = false;
           repairStlBtn.classList.remove('is-loading');
