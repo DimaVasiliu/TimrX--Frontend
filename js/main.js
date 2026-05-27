@@ -1010,6 +1010,66 @@ function initViewerToolbar() {
       };
     }
 
+    // Wire up server-side STL repair button
+    const repairStlBtn = document.getElementById('printRepairSTLBtn');
+    if (repairStlBtn) {
+      repairStlBtn.onclick = async () => {
+        const item = API.getActiveHistoryItem();
+        if (!item) {
+          alert('No model selected. Open a model from history first.');
+          return;
+        }
+
+        const jobId = item.id || item.model_id;
+        if (!jobId) {
+          alert('No model id found for this item.');
+          return;
+        }
+
+        const modelUrl = item.stl_url || item.model_urls?.stl || item.textured_model_urls?.stl || item.glb_url || item.glb_proxy || '';
+        const filename = buildItemDownloadFilename(item, {
+          type: 'model',
+          sourceUrl: modelUrl,
+          extension: 'stl',
+        }).replace(/\.stl$/i, '-repaired.stl');
+
+        const originalHtml = repairStlBtn.innerHTML;
+        repairStlBtn.disabled = true;
+        repairStlBtn.classList.add('is-loading');
+        repairStlBtn.textContent = 'Repairing...';
+
+        try {
+          const res = await apiFetch(`/api/_mod/stl-repair/${encodeURIComponent(jobId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model_url: modelUrl, filename }),
+            timeout: 120000,
+          });
+          if (!res.ok || !res.data?.ok) {
+            throw new Error(res.error || res.data?.error || `Server error (${res.status})`);
+          }
+
+          const downloadUrl = res.data.download_url || res.data.repaired_url;
+          if (!downloadUrl) throw new Error('Repair completed but no download URL was returned.');
+
+          triggerBrowserDownload(downloadUrl, res.data.filename || filename);
+          const after = res.data.report?.after;
+          const msg = after?.is_watertight
+            ? 'Repaired STL is ready and watertight.'
+            : 'Repaired STL is ready. Check it in your slicer before printing.';
+          if (window.showToast) window.showToast(msg, after?.is_watertight ? 'success' : 'info');
+        } catch (err) {
+          console.error('[STLRepair] Repair failed:', err);
+          if (window.showToast) window.showToast(err.message || 'STL repair failed.', 'error');
+          else alert(err.message || 'STL repair failed.');
+        } finally {
+          repairStlBtn.disabled = false;
+          repairStlBtn.classList.remove('is-loading');
+          repairStlBtn.innerHTML = originalHtml;
+        }
+      };
+    }
+
     // Wire up 3MF export button
     const threeMfBtn = document.getElementById('printExport3MFBtn');
     if (threeMfBtn) {
