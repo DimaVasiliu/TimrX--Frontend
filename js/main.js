@@ -1048,16 +1048,26 @@ function initViewerToolbar() {
           extension: 'stl',
         }).replace(/\.stl$/i, '-repaired.stl');
 
+        // Read the user's Target Print Height (mm) from the print panel. If
+        // empty or invalid, send nothing and the server keeps the original scale.
+        const rawTargetHeight = document.getElementById('printTargetHeight')?.value;
+        const parsedTargetHeight = parseFloat(rawTargetHeight);
+        const targetHeightMm = Number.isFinite(parsedTargetHeight) && parsedTargetHeight > 0
+          ? parsedTargetHeight
+          : null;
+
         const originalHtml = repairStlBtn.innerHTML;
         repairStlBtn.disabled = true;
         repairStlBtn.classList.add('is-loading');
         repairStlBtn.textContent = 'Repairing...';
 
         try {
+          const requestBody = { model_url: modelUrl, filename };
+          if (targetHeightMm) requestBody.target_height_mm = targetHeightMm;
           const res = await apiFetch(`/api/_mod/stl-repair/${encodeURIComponent(jobId)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model_url: modelUrl, filename }),
+            body: JSON.stringify(requestBody),
             timeout: 120000,
           });
           if (!res.ok || !res.data?.ok) {
