@@ -3698,16 +3698,28 @@ export async function startOpenAIImageGeneration() {
   try {
     prog.label('Queueing image...');
 
+    // Image-to-image refs (any of these → backend routes through /v1/images/edits)
+    const refs = normalizeImageAssetList(stateSettings.referenceImages);
+    const srcImg = stateSettings.sourceImage || '';
+    const maskImg = stateSettings.maskImage || '';
+    const operation = stateSettings.operation
+      || ((srcImg || refs.length) ? 'edit' : 'generate');
+
     // Debug log before API call
     const payload = {
       prompt: promptRaw,
       size: resolution,
       image_size: imageSize,
       model,
+      operation,
+      source_image: srcImg,
+      reference_images: refs,
+      mask_image: maskImg,
       client_id: tempId
     };
     console.log('[GEN] mode=image provider=openai cost=' + imageCredits +
-                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' op=' + operation +
+                ' refs=' + (refs.length + (srcImg ? 1 : 0)));
 
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image/openai', {
@@ -3898,16 +3910,29 @@ export async function startGeminiImageGeneration() {
   try {
     prog.label('Generating image with Gemini...');
 
+    // Image-to-image refs (any of these → backend routes through Vertex Imagen 3 capability)
+    const refs = normalizeImageAssetList(stateSettings.referenceImages);
+    const srcImg = stateSettings.sourceImage || '';
+    const maskImg = stateSettings.maskImage || '';
+    const operation = stateSettings.operation
+      || ((srcImg || refs.length) ? 'edit' : 'generate');
+
     // Debug log before API call
     const payload = {
       provider: 'google',
       prompt: promptRaw,
       aspect_ratio: aspectRatio,
       image_size: imageSize,
+      operation,
+      source_image: srcImg,
+      reference_images: refs,
+      mask_image: maskImg,
+      edit_mode: stateSettings.editMode || 'EDIT_MODE_DEFAULT',
       client_id: tempId
     };
     console.log('[GEN] mode=image provider=google cost=' + imageCredits +
-                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' op=' + operation +
+                ' refs=' + (refs.length + (srcImg ? 1 : 0)));
 
     // Call unified endpoint with provider=google and idempotency key
     const result = await apiFetch('/api/image/generate', {
@@ -4521,15 +4546,25 @@ export async function startNanoBananaImageGeneration() {
   try {
     prog.label('Generating image with Nano Banana...');
 
+    // Image-to-image refs (Nano Banana 2 uses a single reference image)
+    const refs = normalizeImageAssetList(stateSettings.referenceImages);
+    const srcImg = stateSettings.sourceImage || '';
+    const operation = stateSettings.operation
+      || ((srcImg || refs.length) ? 'edit' : 'generate');
+
     const payload = {
       provider: 'nano_banana',
       prompt: promptRaw,
       aspect_ratio: aspectRatio,
       image_size: imageSize,
+      operation,
+      source_image: srcImg,
+      reference_images: refs,
       client_id: tempId
     };
     console.log('[GEN] mode=image provider=nano_banana cost=' + imageCredits +
-                ' available=' + creditCheck.available + ' payload=' + JSON.stringify(payload));
+                ' available=' + creditCheck.available + ' op=' + operation +
+                ' refs=' + (refs.length + (srcImg ? 1 : 0)));
 
     // Call unified endpoint with provider=nano_banana and idempotency key
     const result = await apiFetch('/api/image/generate', {
@@ -4700,6 +4735,12 @@ export async function startGoogleNanoImageGeneration() {
     credits: getImageCredits('standard')
   };
 
+  // Image-to-image refs (Gemini 2.5 Flash Image supports inline_data parts)
+  const refs = normalizeImageAssetList(stateSettings.referenceImages);
+  const srcImg = stateSettings.sourceImage || '';
+  const operation = stateSettings.operation
+    || ((srcImg || refs.length) ? 'edit' : 'generate');
+
   await startAsyncImageProvider({
     provider: 'google_nano',
     providerLabel: 'Google Nano',
@@ -4710,14 +4751,17 @@ export async function startGoogleNanoImageGeneration() {
       provider: 'google_nano',
       prompt: promptRaw,
       aspect_ratio: aspectRatio,
-      image_size: '1K'
+      image_size: '1K',
+      operation,
+      source_image: srcImg,
+      reference_images: refs
     },
     placeholderLabel: 'Generating image with Google Nano...',
     queuedLabel: 'Queueing image with Google Nano...',
     successLabel: 'Image generated!',
     tempIdPrefix: 'google-nano-temp',
     responseModel: 'gemini-2.5-flash-image',
-    pendingMeta: { provider_variant: 'direct_google' }
+    pendingMeta: { provider_variant: 'direct_google', operation }
   });
 }
 

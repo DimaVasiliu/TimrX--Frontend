@@ -4367,11 +4367,38 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const requiresSource = !!opSpec?.requiresSource;
         const requiresMask = !!opSpec?.requiresMask;
 
-        if (imageSourceUploadHint) imageSourceUploadHint.textContent = 'Shown for edit, remix, reframe, upscale, and utility modes.';
+        // Provider-specific upload hints so each tab clearly explains
+        // what the reference image will do for that model.
+        const provider = snapshot?.provider;
+        const PROVIDER_SOURCE_HINTS = {
+          openai: 'Drop an image — gpt-image will edit it based on your prompt. PNG / JPG / WebP.',
+          google: 'Drop an image — Vertex AI Imagen will use it as your reference (image-to-image edit).',
+          google_nano: 'Drop an image — Gemini 2.5 Flash Image will edit it natively. Describe the change in your prompt.',
+          nano_banana: 'Drop a reference image — Nano Banana 2 will steer its 1K/2K/4K generation off it.',
+          flux_pro: 'Shown for edit, remix, reframe, upscale, and utility modes.',
+          ideogram_v3: 'Source image for remix / edit / reframe operations.',
+          recraft_v4: 'Source image for image-to-image, inpaint, background ops, and vectorize.'
+        };
+        const PROVIDER_REF_HINTS = {
+          openai: (n) => `Up to ${n} reference images — gpt-image will blend them based on your prompt.`,
+          google: (n) => `Up to ${n} references — primary becomes the base; extras act as subject guides.`,
+          google_nano: (n) => `Up to ${n} references — Gemini will weave them into the result.`,
+          nano_banana: () => 'Single reference image — Nano Banana 2 uses one reference at a time.',
+          flux_pro: (n) => `Add up to ${n} references to guide composition, style, pose, or materials.`,
+          ideogram_v3: () => 'Up to 8 style references.',
+          recraft_v4: () => 'Reference image for image-to-image and related operations.'
+        };
+
+        const sourceHint = PROVIDER_SOURCE_HINTS[provider]
+          || 'Shown for edit, remix, reframe, upscale, and utility modes.';
+        if (imageSourceUploadHint) imageSourceUploadHint.textContent = sourceHint;
         if (imageMaskUploadHint) imageMaskUploadHint.textContent = 'White changes, black protects.';
         if (imageReferenceUploadHint) {
           const maxRefs = caps?.maxReferenceImages || 8;
-          imageReferenceUploadHint.textContent = `Add up to ${maxRefs} references to guide composition, style, pose, or materials.`;
+          const refHintFn = PROVIDER_REF_HINTS[provider];
+          imageReferenceUploadHint.textContent = refHintFn
+            ? refHintFn(maxRefs)
+            : `Add up to ${maxRefs} references to guide composition, style, pose, or materials.`;
         }
         if (imageStyleReferenceUploadHint) imageStyleReferenceUploadHint.textContent = 'Optional Ideogram style guides.';
         if (imageCharacterReferenceUploadHint) imageCharacterReferenceUploadHint.textContent = 'Use one image to keep a character consistent.';

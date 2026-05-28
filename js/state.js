@@ -1092,12 +1092,21 @@ export const PROVIDER_CAPABILITIES = {
       qualityMap: { standard: '1K', high: '2K', '4k': '4K' },
       actionKeyByQuality: { standard: 'piapi_image_generate', high: 'piapi_image_generate_2k', '4k': 'piapi_image_generate_4k' },
       supportsNegativePrompt: false,
-      supportsSourceImage: false,
-      hint: 'Premium provider with exclusive 4K output.'
+      operations: [
+        { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
+        { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
+      ],
+      defaultOperation: 'generate',
+      supportsSourceImage: true,
+      maxReferenceImages: 1,
+      hint: 'Premium provider with exclusive 4K output. Drop a reference image and Nano Banana 2 will steer the generation off it.'
     },
     openai: {
       name: 'OpenAI',
-      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      operations: [
+        { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
+        { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
+      ],
       defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
@@ -1114,11 +1123,18 @@ export const PROVIDER_CAPABILITIES = {
       sizeMap: { standard: '1024x1024', high: '1792x1024' },
       actionKeyByQuality: { standard: 'image_generate', high: 'image_generate_2k' },
       supportsNegativePrompt: false,
-      supportsSourceImage: false
+      supportsSourceImage: true,
+      supportsMaskImage: true,
+      supportsReferenceImages: true,
+      maxReferenceImages: 4,
+      hint: 'Drop an image (and optional mask) — gpt-image will edit it based on your prompt.'
     },
     google: {
       name: 'Google (Imagen)',
-      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      operations: [
+        { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
+        { value: 'edit',     label: 'Reference / Edit',    requiresSource: true,  requiresMask: false }
+      ],
       defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard', 'high'],
@@ -1134,12 +1150,18 @@ export const PROVIDER_CAPABILITIES = {
       qualityMap: { standard: '1K', high: '2K' },
       actionKeyByQuality: { standard: 'gemini_image_generate', high: 'gemini_image_generate_2k' },
       supportsNegativePrompt: false,
-      supportsSourceImage: false,
-      hint: 'Style is controlled via prompt text.'
+      supportsSourceImage: true,
+      supportsMaskImage: true,
+      supportsReferenceImages: true,
+      maxReferenceImages: 4,
+      hint: 'Text-to-image uses Imagen 4.0 Fast. Reference / edit mode runs Vertex AI Imagen 3 capability — drop an image to use as your reference.'
     },
     google_nano: {
       name: 'Google Nano',
-      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
+      operations: [
+        { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
+        { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
+      ],
       defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard'],
@@ -1155,8 +1177,10 @@ export const PROVIDER_CAPABILITIES = {
       qualityMap: { standard: '1K' },
       actionKeyByQuality: { standard: 'google_nano_image_generate' },
       supportsNegativePrompt: false,
-      supportsSourceImage: false,
-      hint: 'Direct Google image generation with a single standard tier.'
+      supportsSourceImage: true,
+      supportsReferenceImages: true,
+      maxReferenceImages: 3,
+      hint: 'Gemini 2.5 Flash Image — native image-to-image. Drop a photo and tell it what to change.'
     },
     flux_pro: {
       name: 'FLUX.2 Pro',
