@@ -56,9 +56,44 @@
         <a href="/#services">SERVICES</a>
         <a href="/blogs">BLOGS</a>
       </div>
-      <a class="nav-cta" href="/#contact" aria-label="Contact">CONTACT</a>
+      <a class="nav-cta nav-cta-desktop" href="/#contact" aria-label="Contact">CONTACT</a>
+
+      <!-- Mobile hamburger button -->
+      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile menu overlay -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/3dprint" class="mobile-nav-link">
+          <span class="mnl-label">3D Print Hub</span>
+          <span class="mnl-sub">Explore the hub</span>
+        </a>
+        <a href="/#works" class="mobile-nav-link">
+          <span class="mnl-label">Works</span>
+          <span class="mnl-sub">Selected projects</span>
+        </a>
+        <a href="/#services" class="mobile-nav-link">
+          <span class="mnl-label">Services</span>
+          <span class="mnl-sub">What I offer</span>
+        </a>
+        <a href="/blogs" class="mobile-nav-link">
+          <span class="mnl-label">Blogs</span>
+          <span class="mnl-sub">Latest writing</span>
+        </a>
+      </nav>
+      <a class="mobile-cta" href="/#contact">CONTACT ME &#8599;</a>
+      <div class="mobile-menu-footer">
+        <span class="mobile-footer-text">TimrX / Dumitru Vasiliu</span>
+      </div>
+    </div>
+  </div>
 
   <header class="legal-hero">
     <div class="container">
@@ -253,5 +288,42 @@
   </script>
   <script src="/js/cookie-consent.js" defer></script>
   <script type="module" src="/js/analytics.js"></script>
+  <!-- Mobile burger menu toggle -->
+  <script>
+    (function() {
+      const burger = document.getElementById("navBurger");
+      const menu = document.getElementById("mobileMenu");
+      const body = document.body;
+      if (!burger || !menu) return;
+      function openMenu() {
+        burger.classList.add("is-open");
+        burger.setAttribute("aria-expanded", "true");
+        burger.setAttribute("aria-label", "Close menu");
+        menu.classList.add("is-open");
+        menu.setAttribute("aria-hidden", "false");
+        body.classList.add("menu-open");
+      }
+      function closeMenu() {
+        burger.classList.remove("is-open");
+        burger.setAttribute("aria-expanded", "false");
+        burger.setAttribute("aria-label", "Open menu");
+        menu.classList.remove("is-open");
+        menu.setAttribute("aria-hidden", "true");
+        body.classList.remove("menu-open");
+      }
+      burger.addEventListener("click", function() {
+        menu.classList.contains("is-open") ? closeMenu() : openMenu();
+      });
+      menu.querySelectorAll("a").forEach(function(link) {
+        link.addEventListener("click", closeMenu);
+      });
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && menu.classList.contains("is-open")) { closeMenu(); burger.focus(); }
+      });
+      window.addEventListener("resize", function() {
+        if (window.innerWidth >= 1024 && menu.classList.contains("is-open")) closeMenu();
+      });
+    })();
+  </script>
 </body>
 </html>
