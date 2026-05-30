@@ -29,6 +29,11 @@
 /terms.html                     /terms                     301
 /cookies.html                   /cookies                   301
 /privacy.html                   /privacy                   301
+# NIA Trainer (Network Infrastructure Trainer) legal pages
+/legal/nia/privacy.html         /legal/nia/privacy         301
+/legal/nia/terms.html           /legal/nia/terms           301
+/legal/nia/refunds.html         /legal/nia/refunds         301
+/legal/nia/eula.html            /legal/nia/eula            301
 /admin.html                     /admin                     301
 /admin-edit.html                /admin/edit                301
 /3dprint-demo-video.html        /3dprint-demo-video        301
@@ -75,6 +80,10 @@
 /terms/       /terms      301
 /cookies/     /cookies    301
 /privacy/     /privacy    301
+/legal/nia/privacy/   /legal/nia/privacy   301
+/legal/nia/terms/     /legal/nia/terms     301
+/legal/nia/refunds/   /legal/nia/refunds   301
+/legal/nia/eula/      /legal/nia/eula      301
 /admin/edit/  /admin/edit 301
 /admin/       /admin      301
 /ai-image-generator/        /ai-image-generator       301
