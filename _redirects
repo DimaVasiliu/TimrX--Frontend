@@ -29,7 +29,8 @@
 /terms.html                     /terms                     301
 /cookies.html                   /cookies                   301
 /privacy.html                   /privacy                   301
-# NIA Trainer (Network Infrastructure Trainer) legal pages
+# NIA Trainer (Network Infrastructure Trainer) support + legal pages
+/nia/support.html               /nia/support               301
 /legal/nia/privacy.html         /legal/nia/privacy         301
 /legal/nia/terms.html           /legal/nia/terms           301
 /legal/nia/refunds.html         /legal/nia/refunds         301
@@ -80,6 +81,7 @@
 /terms/       /terms      301
 /cookies/     /cookies    301
 /privacy/     /privacy    301
+/nia/support/         /nia/support         301
 /legal/nia/privacy/   /legal/nia/privacy   301
 /legal/nia/terms/     /legal/nia/terms     301
 /legal/nia/refunds/   /legal/nia/refunds   301

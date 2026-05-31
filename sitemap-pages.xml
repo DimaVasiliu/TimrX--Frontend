@@ -215,7 +215,14 @@
     <priority>0.3</priority>
   </url>
 
-  <!-- NIA Trainer Legal Pages -->
+  <!-- NIA Trainer Support + Legal Pages -->
+  <url>
+    <loc>https://timrx.live/nia/support</loc>
+    <lastmod>2026-05-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
   <url>
     <loc>https://timrx.live/legal/nia/privacy</loc>
     <lastmod>2026-05-30</lastmod>
