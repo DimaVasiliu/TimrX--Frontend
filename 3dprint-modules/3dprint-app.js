@@ -1563,8 +1563,8 @@
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
             <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
-            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Seedance</span><span class="vpb-tag">Fast &amp; Flexible</span></button>
-            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">Fast / Quality</span></button>
+            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">PiAPI &middot; Recommended</span></button>
+            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Seedance 1.5</span><span class="vpb-tag">fal &middot; Legacy</span></button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -1574,6 +1574,10 @@
             <button type="button" class="video-mode-btn" data-mode="image2video">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
               Image
+            </button>
+            <button type="button" class="video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance 2.0 only — mix image, video & audio references">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg>
+              Reference
             </button>
           </div>
         </div>
@@ -1788,6 +1792,44 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           </div>
         </div>
 
+      </div>
+
+      <!-- Reference Video (Seedance 2.0 omni_reference): mixed image/video/audio refs -->
+      <div class="video-mode-content video-input-section hidden" id="referenceVideoContent">
+        <div class="ref-intro">
+          <strong>Reference Video</strong> — mix up to <strong>12</strong> references (images, videos, audio). Address them in your prompt with
+          <code>@image1</code>, <code>@video1</code>, <code>@audio1</code>. Seedance 2.0 only.
+        </div>
+
+        <div class="ref-upload-grid">
+          <div class="ref-upload-col">
+            <label class="video-section-label">Images <span class="vs-optional">(refs)</span></label>
+            <button type="button" class="ref-add-btn" id="refAddImageBtn">+ Add image</button>
+            <input type="file" id="refImageInput" accept="image/png,image/jpeg,image/webp,image/bmp" multiple hidden />
+            <div class="ref-chip-list" id="refImageList"></div>
+          </div>
+          <div class="ref-upload-col">
+            <label class="video-section-label">Videos <span class="vs-optional">(refs)</span></label>
+            <button type="button" class="ref-add-btn" id="refAddVideoBtn">+ Add video</button>
+            <input type="file" id="refVideoInput" accept="video/mp4,video/quicktime" multiple hidden />
+            <div class="ref-chip-list" id="refVideoList"></div>
+          </div>
+          <div class="ref-upload-col">
+            <label class="video-section-label">Audio <span class="vs-optional">(refs)</span></label>
+            <button type="button" class="ref-add-btn" id="refAddAudioBtn">+ Add audio</button>
+            <input type="file" id="refAudioInput" accept="audio/mpeg,audio/wav,audio/x-wav" multiple hidden />
+            <div class="ref-chip-list" id="refAudioList"></div>
+          </div>
+        </div>
+
+        <div class="vs-section" style="margin-top:10px">
+          <label for="videoReferencePrompt" class="vs-label">Prompt</label>
+          <div class="ref-mention-row" id="refMentionRow"></div>
+          <textarea id="videoReferencePrompt" rows="3" placeholder="Describe the video. Insert references with @image1, @video1, @audio1.
+Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack."></textarea>
+        </div>
+
+        <div class="ref-cost-warning hidden" id="refCostWarning"></div>
       </div>
 
       <div class="card-divider"></div>
@@ -2769,8 +2811,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
         fal_seedance: {
-          label: 'Seedance',
-          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true },
+          label: 'Seedance 1.5',
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true, referenceVideo: false },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
@@ -2796,13 +2838,14 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           showMotion: false,
           showTier: false,
           showLoop: false,
-          hint: 'Fast generation with audio. 5s, 10s, or 12s clips.',
+          hint: 'Legacy budget engine (being phased out). Fast generation with audio. 5s, 10s, or 12s clips.',
           timeEstimate: () => '~1\u20133 min',
         },
         seedance: {
           label: 'Seedance 2.0',
           // Seedance 2 GA via PiAPI: native first_last_frames replaces the legacy "experimental morph" hack.
-          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true },
+          // referenceVideo \u2192 omni_reference mode (mixed image/video/audio references).
+          capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true, referenceVideo: true },
           durations: [
             { value: '5', text: '5 sec', selected: true },
             { value: '10', text: '10 sec' },
@@ -3232,6 +3275,8 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
               text2videoContent.classList.toggle('hidden', mode !== 'text2video');
               image2videoContent.classList.toggle('hidden', mode !== 'image2video');
             }
+            const refContent = leftStack.querySelector('#referenceVideoContent');
+            if (refContent) refContent.classList.toggle('hidden', mode !== 'reference_video');
 
             // Update style row visibility (Vertex hides style in image mode)
             const currentProvider = videoAIProvider?.value || 'vertex';
@@ -3400,6 +3445,18 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
         const customMotionSection = leftStack.querySelector('.vs-custom-section');
         if (customMotionSection) customMotionSection.classList.remove('hidden');
 
+        // Reference Video mode button — Seedance 2.0 only (omni_reference).
+        const refModeBtn = leftStack.querySelector('#videoReferenceModeBtn');
+        const hasReferenceVideo = !!caps.referenceVideo;
+        if (refModeBtn) refModeBtn.classList.toggle('hidden', !hasReferenceVideo);
+        // If we're leaving a provider that supported Reference Video while that mode
+        // is active, fall back to text2video so the user isn't stuck on a dead panel.
+        const modeValEl = leftStack.querySelector('#videoModeValue');
+        if (!hasReferenceVideo && modeValEl && modeValEl.value === 'reference_video') {
+          const textBtn = videoModeSwitcher?.querySelector('[data-mode="text2video"]');
+          if (textBtn) textBtn.click();
+        }
+
         // Hint text
         if (resolutionHint) resolutionHint.textContent = cfg.hint;
       }
@@ -3426,6 +3483,166 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           selectProvider(this.dataset.provider, this);
         });
       });
+
+      // ── Reference Video (Seedance 2.0 omni_reference) wiring ──────────────
+      // Self-contained: manages its own upload/chip/mention/surcharge state and
+      // exposes window.VideoReferenceState for api.startVideoGeneration().
+      function initReferenceVideoMode() {
+        const refContent = leftStack.querySelector('#referenceVideoContent');
+        if (!refContent || refContent._refWired) return;
+        refContent._refWired = true;
+
+        const state = { images: [], videos: [], audios: [] };
+        window.VideoReferenceState = state;
+
+        const MAX_TOTAL = 12;
+        const MAX_AUDIO_SECONDS = 15;
+        const promptEl = leftStack.querySelector('#videoReferencePrompt');
+        const mentionRow = leftStack.querySelector('#refMentionRow');
+        const costWarn = leftStack.querySelector('#refCostWarning');
+
+        const readAsDataURL = (file) => new Promise((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.onerror = reject;
+          fr.readAsDataURL(file);
+        });
+
+        // Probe media duration (video/audio) from a data URL.
+        const probeDuration = (dataUrl, kind) => new Promise((resolve) => {
+          try {
+            const el = document.createElement(kind === 'audio' ? 'audio' : 'video');
+            el.preload = 'metadata';
+            el.onloadedmetadata = () => resolve(Number.isFinite(el.duration) ? el.duration : 0);
+            el.onerror = () => resolve(0);
+            el.src = dataUrl;
+          } catch (_e) { resolve(0); }
+        });
+
+        const totalRefs = () => state.images.length + state.videos.length + state.audios.length;
+        const totalInputVideoSeconds = () => state.videos.reduce((s, v) => s + (v.duration || 0), 0);
+        const totalAudioSeconds = () => state.audios.reduce((s, a) => s + (a.duration || 0), 0);
+
+        function seedanceCps() {
+          const tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
+          // SEEDANCE_CPS is defined in this scope (fast:16, quality:20), 480p baseline.
+          return (typeof SEEDANCE_CPS !== 'undefined' && SEEDANCE_CPS[tier]) ? SEEDANCE_CPS[tier] : 16;
+        }
+
+        function renderChips(kind) {
+          const map = { image: 'refImageList', video: 'refVideoList', audio: 'refAudioList' };
+          const listEl = leftStack.querySelector('#' + map[kind]);
+          if (!listEl) return;
+          const arr = state[kind + 's'];
+          listEl.innerHTML = arr.map((item, i) => {
+            const dur = item.duration ? ` · ${item.duration.toFixed(1)}s` : '';
+            const safeName = (item.name || `${kind}${i + 1}`).replace(/[<>&]/g, '');
+            return `<span class="ref-chip" data-kind="${kind}" data-idx="${i}">@${kind}${i + 1} <span class="ref-chip-name">${safeName}${dur}</span> <button type="button" class="ref-chip-remove" data-kind="${kind}" data-idx="${i}" aria-label="Remove">×</button></span>`;
+          }).join('');
+        }
+
+        function renderMentions() {
+          if (!mentionRow) return;
+          const chips = [];
+          state.images.forEach((_, i) => chips.push(`@image${i + 1}`));
+          state.videos.forEach((_, i) => chips.push(`@video${i + 1}`));
+          state.audios.forEach((_, i) => chips.push(`@audio${i + 1}`));
+          mentionRow.innerHTML = chips.map(c =>
+            `<button type="button" class="ref-mention-chip" data-token="${c}">${c}</button>`
+          ).join('');
+        }
+
+        function updateCostWarning() {
+          if (!costWarn) return;
+          const vSec = totalInputVideoSeconds();
+          if (vSec <= 0) { costWarn.classList.add('hidden'); costWarn.innerHTML = ''; return; }
+          const extraCredits = Math.round((seedanceCps() / 2) * vSec);
+          costWarn.classList.remove('hidden');
+          costWarn.innerHTML =
+            `<strong>Heads up:</strong> reference videos add to the cost. PiAPI bills an extra ` +
+            `half the per-second rate for each second of input video — about <strong>${vSec.toFixed(1)}s</strong> here ` +
+            `(≈ <strong>${extraCredits}</strong> extra credits at the current tier). Audio + image references don't add a surcharge.`;
+        }
+
+        function refreshAll(kind) {
+          if (kind) renderChips(kind);
+          renderMentions();
+          updateCostWarning();
+          if (typeof validateVideoForm === 'function') validateVideoForm();
+        }
+
+        async function addFiles(kind, fileList) {
+          const files = Array.from(fileList || []);
+          for (const file of files) {
+            if (totalRefs() >= MAX_TOTAL) {
+              if (window.UI?.toast) UI.toast(`Reference Video accepts at most ${MAX_TOTAL} references`, 'error');
+              break;
+            }
+            try {
+              const dataUrl = await readAsDataURL(file);
+              const entry = { dataUrl, name: file.name };
+              if (kind === 'video' || kind === 'audio') {
+                entry.duration = await probeDuration(dataUrl, kind);
+              }
+              if (kind === 'audio' && (totalAudioSeconds() + (entry.duration || 0)) > MAX_AUDIO_SECONDS) {
+                if (window.UI?.toast) UI.toast(`Total audio must stay under ${MAX_AUDIO_SECONDS}s`, 'error');
+                continue;
+              }
+              state[kind + 's'].push(entry);
+            } catch (_e) { /* skip unreadable file */ }
+          }
+          refreshAll(kind);
+        }
+
+        // Wire add buttons → hidden file inputs
+        [['refAddImageBtn', 'refImageInput', 'image'],
+         ['refAddVideoBtn', 'refVideoInput', 'video'],
+         ['refAddAudioBtn', 'refAudioInput', 'audio']].forEach(([btnId, inputId, kind]) => {
+          const btn = leftStack.querySelector('#' + btnId);
+          const input = leftStack.querySelector('#' + inputId);
+          if (btn && input) {
+            btn.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => { addFiles(kind, input.files); input.value = ''; });
+          }
+        });
+
+        // Chip remove (event delegation)
+        refContent.addEventListener('click', (e) => {
+          const rm = e.target.closest('.ref-chip-remove');
+          if (rm) {
+            const kind = rm.dataset.kind; const idx = parseInt(rm.dataset.idx, 10);
+            if (state[kind + 's'] && idx >= 0) { state[kind + 's'].splice(idx, 1); refreshAll(kind); }
+            return;
+          }
+          const mention = e.target.closest('.ref-mention-chip');
+          if (mention && promptEl) {
+            const token = mention.dataset.token + ' ';
+            const start = promptEl.selectionStart ?? promptEl.value.length;
+            const end = promptEl.selectionEnd ?? promptEl.value.length;
+            promptEl.value = promptEl.value.slice(0, start) + token + promptEl.value.slice(end);
+            promptEl.focus();
+            const pos = start + token.length;
+            promptEl.setSelectionRange(pos, pos);
+          }
+        });
+
+        // Recompute surcharge when tier changes (cps differs by tier).
+        const tierInput = leftStack.querySelector('#seedanceTier');
+        if (tierInput) tierInput.addEventListener('change', updateCostWarning);
+
+        // Expose a payload builder for the API layer.
+        window.VideoReferenceState.getPayload = function () {
+          return {
+            image_urls: state.images.map(x => x.dataUrl),
+            video_urls: state.videos.map(x => x.dataUrl),
+            audio_urls: state.audios.map(x => x.dataUrl),
+            input_video_seconds: totalInputVideoSeconds(),
+            prompt: (promptEl?.value || '').trim(),
+            total_refs: totalRefs(),
+          };
+        };
+      }
+      initReferenceVideoMode();
 
       // Wire up video credits calculation on any option change
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {

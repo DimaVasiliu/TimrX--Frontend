@@ -5456,6 +5456,51 @@ export async function startVideoGeneration() {
         console.log('[VIDEO] Animate Image mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
       }
 
+    } else if (settings.mode === 'reference_video') {
+      // ── Reference Video (Seedance 2.0 omni_reference): mixed image/video/audio refs ──
+      endpoint = '/api/video/reference';
+
+      const refState = window.VideoReferenceState;
+      const ref = (refState && typeof refState.getPayload === 'function') ? refState.getPayload() : null;
+
+      if (!ref || (ref.total_refs || 0) === 0) {
+        releaseSubmitLock();
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast('Add at least one image, video, or audio reference', 'error');
+        return;
+      }
+      const refPrompt = (ref.prompt || prompt || '').trim();
+      if (!refPrompt) {
+        releaseSubmitLock();
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast('Describe the video and reference your media with @image1 / @video1 / @audio1', 'error');
+        return;
+      }
+      if (ref.audio_urls.length && !(ref.image_urls.length || ref.video_urls.length)) {
+        releaseSubmitLock();
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast('Audio references need at least one image or video reference too', 'error');
+        return;
+      }
+
+      payload = {
+        provider: 'seedance',
+        prompt: _composeSeedancePrompt(refPrompt, stylePreset, null, settings),
+        image_urls: ref.image_urls,
+        video_urls: ref.video_urls,
+        audio_urls: ref.audio_urls,
+        input_video_seconds: ref.input_video_seconds,
+        duration_sec: settings.durationSec,
+        aspect_ratio: settings.aspectRatio,
+        resolution: settings.resolution,
+        seedance_variant: settings.seedanceVariant || undefined,
+        seedance_tier: settings.seedanceTier || undefined,
+      };
+
+      console.log('[VIDEO] Reference Video mode -',
+        'images:', ref.image_urls.length, 'videos:', ref.video_urls.length,
+        'audios:', ref.audio_urls.length, 'inputVideoSec:', ref.input_video_seconds);
+
     } else {
       // ── Text → cinematic clip ──
       endpoint = '/api/video/text';
