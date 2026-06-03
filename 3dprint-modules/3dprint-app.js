@@ -2992,9 +2992,17 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
                 source = `seedance-${tier}-${seedanceRes}-backend`;
               }
             }
-            if (cost === null || cost === undefined) {
+          if (cost === null || cost === undefined) {
               cost = (SEEDANCE_CPS[tier] || 16) * duration;
               source = `seedance-${tier}-cps`;
+            }
+          }
+          if (mode === 'reference_video') {
+            const ref = window.VideoReferenceState?.getPayload?.();
+            const inputVideoSeconds = Math.max(0, Number(ref?.input_video_seconds || 0));
+            if (inputVideoSeconds > 0) {
+              cost += Math.ceil((cost / Math.max(1, duration)) * 0.5 * inputVideoSeconds);
+              source += '+reference-video';
             }
           }
         }
@@ -3529,6 +3537,20 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
           return (typeof SEEDANCE_CPS !== 'undefined' && SEEDANCE_CPS[tier]) ? SEEDANCE_CPS[tier] : 16;
         }
 
+        function seedanceBaseCreditsForCurrentOptions() {
+          let tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
+          if (tier === 'preview') tier = 'quality';
+          const duration = parseInt(videoDuration?.value || '5', 10) || 5;
+          const resolution = (videoQuality?.value || '480p').toLowerCase();
+          const tierCosts = (typeof SEEDANCE_COSTS !== 'undefined' && SEEDANCE_COSTS[tier]) ? SEEDANCE_COSTS[tier] : {};
+          let resCosts = tierCosts[resolution];
+          if (!resCosts && tier === 'fast' && resolution === '1080p') {
+            resCosts = tierCosts['720p'];
+          }
+          if (resCosts && resCosts[duration] != null) return resCosts[duration];
+          return seedanceCps() * duration;
+        }
+
         function renderChips(kind) {
           const map = { image: 'refImageList', video: 'refVideoList', audio: 'refAudioList' };
           const listEl = leftStack.querySelector('#' + map[kind]);
@@ -3556,7 +3578,9 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
           if (!costWarn) return;
           const vSec = totalInputVideoSeconds();
           if (vSec <= 0) { costWarn.classList.add('hidden'); costWarn.innerHTML = ''; return; }
-          const extraCredits = Math.round((seedanceCps() / 2) * vSec);
+          const duration = parseInt(videoDuration?.value || '5', 10) || 5;
+          const baseCredits = seedanceBaseCreditsForCurrentOptions();
+          const extraCredits = Math.ceil((baseCredits / Math.max(1, duration)) * 0.5 * vSec);
           costWarn.classList.remove('hidden');
           costWarn.innerHTML =
             `<strong>Heads up:</strong> reference videos add to the cost. PiAPI bills an extra ` +
@@ -3629,6 +3653,9 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         // Recompute surcharge when tier changes (cps differs by tier).
         const tierInput = leftStack.querySelector('#seedanceTier');
         if (tierInput) tierInput.addEventListener('change', updateCostWarning);
+        [videoDuration, videoQuality].forEach(el => {
+          if (el) el.addEventListener('change', updateCostWarning);
+        });
 
         // Expose a payload builder for the API layer.
         window.VideoReferenceState.getPayload = function () {

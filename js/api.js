@@ -5150,8 +5150,19 @@ const VIDEO_IMAGE_CREDIT_COSTS = {
   '4k':    { 8: 156 }
 };
 
-// Seedance: Fast=STANDARD (10 cps), Preview=PREMIUM (16 cps)
-const SEEDANCE_CPS = { fast: 10, preview: 16 };
+// Seedance 2 GA credit costs. Keep in sync with pricing_service.py and migrations 068/069.
+const SEEDANCE_COSTS = {
+  fast: {
+    '480p': { 5: 80, 10: 160, 15: 240 },
+    '720p': { 5: 120, 10: 240, 15: 360 },
+  },
+  quality: {
+    '480p': { 5: 100, 10: 200, 15: 300 },
+    '720p': { 5: 160, 10: 320, 15: 480 },
+    '1080p': { 5: 300, 10: 600, 15: 900 },
+  },
+};
+const SEEDANCE_CPS = { fast: 16, quality: 20, preview: 20 };
 // fal Seedance 1.5 Pro: BUDGET tier (8 cps)
 const FAL_SEEDANCE_CPS = 8;
 
@@ -5190,11 +5201,26 @@ function getVideoCredits(settings) {
     return FAL_SEEDANCE_CPS * (settings.durationSec || 5);
   }
 
-  // Seedance (PiAPI): tier * duration (Fast=10 cps, Preview=16 cps)
+  // Seedance (PiAPI): exact GA tier/resolution/duration table, plus Reference Video input surcharge.
   if (settings.provider === 'seedance') {
-    const tier = settings.seedanceTier || 'fast';
-    const cps = SEEDANCE_CPS[tier] || 10;
-    return cps * (settings.durationSec || 5);
+    let tier = settings.seedanceTier || 'fast';
+    if (tier === 'preview') tier = 'quality';
+    const duration = settings.durationSec || 5;
+    const resolution = (settings.resolution || '480p').toLowerCase();
+    const tierCosts = SEEDANCE_COSTS[tier] || {};
+    let resCosts = tierCosts[resolution];
+    if (!resCosts && tier === 'fast' && resolution === '1080p') {
+      resCosts = tierCosts['720p'];
+    }
+    let baseCost = resCosts?.[duration] ?? ((SEEDANCE_CPS[tier] || 16) * duration);
+    if (settings.mode === 'reference_video') {
+      const ref = window.VideoReferenceState?.getPayload?.();
+      const inputVideoSeconds = Math.max(0, Number(ref?.input_video_seconds || 0));
+      if (inputVideoSeconds > 0) {
+        baseCost += Math.ceil((baseCost / Math.max(1, duration)) * 0.5 * inputVideoSeconds);
+      }
+    }
+    return baseCost;
   }
 
   // Veo — all modes equalized (no image-to-video premium)
