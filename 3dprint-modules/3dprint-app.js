@@ -1562,9 +1562,9 @@
       <div class="card video-header-card">
         <div class="video-header-row">
           <div class="video-provider-switcher" id="videoProviderSwitcher">
-            <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Veo 3.1</span><span class="vpb-tag">Google &middot; Premium</span></button>
-            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Seedance 2.0</span><span class="vpb-tag">PiAPI &middot; Recommended</span></button>
-            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Seedance 1.5</span><span class="vpb-tag">fal &middot; Legacy</span></button>
+            <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Cinematic</span><span class="vpb-tag">Veo &middot; Premium</span></button>
+            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Fast / Quality</span><span class="vpb-tag">Seedance &middot; Recommended</span></button>
+            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Legacy</span><span class="vpb-tag">Seedance 1.5</span></button>
           </div>
           <div class="video-mode-switcher compact" id="videoModeSwitcher">
             <button type="button" class="video-mode-btn is-active" data-mode="text2video">
@@ -1573,11 +1573,11 @@
             </button>
             <button type="button" class="video-mode-btn" data-mode="image2video">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
-              Image
+              Animate
             </button>
-            <button type="button" class="video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance 2.0 only — mix image, video & audio references">
+            <button type="button" class="video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance only — guide video with references">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg>
-              Reference
+              Reference-Guided
             </button>
           </div>
         </div>
@@ -1794,11 +1794,11 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
 
       </div>
 
-      <!-- Reference Video (Seedance 2.0 omni_reference): mixed image/video/audio refs -->
+      <!-- Reference-Guided Video (Seedance omni_reference): image refs public; video/audio gated -->
       <div class="video-mode-content video-input-section hidden" id="referenceVideoContent">
         <div class="ref-intro">
-          <strong>Reference Video</strong> — mix up to <strong>12</strong> references (images, videos, audio). Address them in your prompt with
-          <code>@image1</code>, <code>@video1</code>, <code>@audio1</code>. Seedance 2.0 only.
+          <strong>Reference-Guided Video</strong> — guide the scene with reference images. Video and audio references are premium beta options.
+          Address references in your prompt with <code>@image1</code>, <code>@video1</code>, <code>@audio1</code>.
         </div>
 
         <div class="ref-upload-grid">
@@ -1826,7 +1826,7 @@ Example: Smooth morphing transition with cinematic camera movement."></textarea>
           <label for="videoReferencePrompt" class="vs-label">Prompt</label>
           <div class="ref-mention-row" id="refMentionRow"></div>
           <textarea id="videoReferencePrompt" rows="3" placeholder="Describe the video. Insert references with @image1, @video1, @audio1.
-Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack."></textarea>
+Example: Use @image1 as the subject and create a smooth product-style camera move."></textarea>
         </div>
 
         <div class="ref-cost-warning hidden" id="refCostWarning"></div>
@@ -2744,6 +2744,29 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         fast:    ['480p', '720p'],
         quality: ['480p', '720p', '1080p'],
       };
+      const DEFAULT_REFERENCE_POLICY = {
+        tier: 'public',
+        image_refs: true,
+        video_refs: false,
+        audio_refs: false,
+        quality_1080p: false,
+        audio_output: false,
+        limits: {
+          max_total_refs: 8,
+          max_image_refs: 6,
+          max_video_refs: 2,
+          max_audio_refs: 1,
+          max_image_mb: 10,
+          max_video_mb: 30,
+          max_audio_mb: 15,
+          max_total_upload_mb: 75,
+          max_input_video_seconds: 15.4,
+          max_audio_seconds: 15,
+          input_retention_hours: 24,
+          failed_input_retention_hours: 6,
+        },
+      };
+      let videoReferencePolicy = { ...DEFAULT_REFERENCE_POLICY, limits: { ...DEFAULT_REFERENCE_POLICY.limits } };
       // fal Seedance 1.5 Pro — BUDGET tier (8–9 c/s)
       const FAL_SEEDANCE_COSTS = { 5: 45, 10: 80, 12: 95 };
       const FAL_SEEDANCE_CPS = 8;
@@ -2773,7 +2796,7 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
       // ========================================
       const VIDEO_PROVIDER_CONFIG = {
         vertex: {
-          label: 'Veo 3.1',
+          label: 'Cinematic',
           capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: false },
           durations: [
             { value: '4', text: '4 seconds', selected: true },
@@ -2811,7 +2834,7 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
           timeEstimate: (s) => VIDEO_TIME_ESTIMATE[s.resolution] || '~2 min',
         },
         fal_seedance: {
-          label: 'Seedance 1.5',
+          label: 'Legacy',
           capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true, referenceVideo: false },
           durations: [
             { value: '5', text: '5 sec', selected: true },
@@ -2838,11 +2861,11 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
           showMotion: false,
           showTier: false,
           showLoop: false,
-          hint: 'Legacy budget engine (being phased out). Fast generation with audio. 5s, 10s, or 12s clips.',
+          hint: 'Legacy engine. Kept available for existing workflows, but no longer the recommended option.',
           timeEstimate: () => '~1\u20133 min',
         },
         seedance: {
-          label: 'Seedance 2.0',
+          label: 'Fast / Quality',
           // Seedance 2 GA via PiAPI: native first_last_frames replaces the legacy "experimental morph" hack.
           // referenceVideo \u2192 omni_reference mode (mixed image/video/audio references).
           capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true, referenceVideo: true },
@@ -3069,7 +3092,11 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         let tier = (tierInput && tierInput.value) || 'fast';
         if (tier === 'preview') tier = 'quality';
 
-        const allowed = SEEDANCE_RESOLUTIONS[tier] || ['480p'];
+        let allowed = SEEDANCE_RESOLUTIONS[tier] || ['480p'];
+        const mode = videoModeValue?.value || 'text2video';
+        if (mode === 'reference_video' && !videoReferencePolicy.quality_1080p) {
+          allowed = allowed.filter(r => r !== '1080p');
+        }
         const labels = {
           '480p': '480p — Draft',
           '720p': '720p — Standard',
@@ -3214,6 +3241,15 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
           // Text-to-Video: require video prompt
           const prompt = videoTextPrompt?.value?.trim() || '';
           isValid = prompt.length > 0;
+        } else if (mode === 'reference_video') {
+          const ref = window.VideoReferenceState?.getPayload?.();
+          const refPrompt = ref?.prompt || '';
+          const hasAllowedRef = !!ref && (
+            (ref.image_urls?.length || 0) > 0 ||
+            (videoReferencePolicy.video_refs && (ref.video_urls?.length || 0) > 0) ||
+            (videoReferencePolicy.audio_refs && (ref.audio_urls?.length || 0) > 0)
+          );
+          isValid = hasAllowedRef && refPrompt.trim().length > 0;
         } else {
           // Image-to-Video: validate based on image sub-mode
           const imgMode = document.getElementById('videoImgModeValue')?.value || 'animate_image';
@@ -3297,6 +3333,8 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
             }
 
             // Re-validate form
+            updateSeedanceResolutionOptions();
+            updateVideoFooter();
             validateVideoForm();
 
             console.log('[Video] Mode switched to:', mode);
@@ -3358,7 +3396,7 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Model Tier</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
@@ -3503,11 +3541,70 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         const state = { images: [], videos: [], audios: [] };
         window.VideoReferenceState = state;
 
-        const MAX_TOTAL = 12;
-        const MAX_AUDIO_SECONDS = 15;
         const promptEl = leftStack.querySelector('#videoReferencePrompt');
         const mentionRow = leftStack.querySelector('#refMentionRow');
         const costWarn = leftStack.querySelector('#refCostWarning');
+        const refIntro = leftStack.querySelector('#referenceVideoContent .ref-intro');
+
+        const getRefLimits = () => videoReferencePolicy?.limits || DEFAULT_REFERENCE_POLICY.limits;
+        const maxForKind = (kind) => {
+          const limits = getRefLimits();
+          if (kind === 'image') return limits.max_image_refs;
+          if (kind === 'video') return limits.max_video_refs;
+          if (kind === 'audio') return limits.max_audio_refs;
+          return limits.max_total_refs;
+        };
+        const mbLimitForKind = (kind) => {
+          const limits = getRefLimits();
+          if (kind === 'image') return limits.max_image_mb;
+          if (kind === 'video') return limits.max_video_mb;
+          if (kind === 'audio') return limits.max_audio_mb;
+          return limits.max_total_upload_mb;
+        };
+        const isKindEnabled = (kind) => {
+          if (kind === 'image') return !!videoReferencePolicy.image_refs;
+          if (kind === 'video') return !!videoReferencePolicy.video_refs;
+          if (kind === 'audio') return !!videoReferencePolicy.audio_refs;
+          return false;
+        };
+        const totalPayloadBytes = () => ['images', 'videos', 'audios'].reduce(
+          (sum, key) => sum + state[key].reduce((s, item) => s + (item.bytes || 0), 0),
+          0
+        );
+        const toastRefError = (message) => {
+          if (window.UI?.toast) UI.toast(message, 'error');
+          else console.warn('[Reference-Guided]', message);
+        };
+
+        function applyReferencePolicyUI() {
+          const limits = getRefLimits();
+          if (!isKindEnabled('video') && state.videos.length) state.videos = [];
+          if (!isKindEnabled('audio') && state.audios.length) state.audios = [];
+          if (refIntro) {
+            refIntro.innerHTML =
+              `<strong>Reference-Guided Video</strong> — add up to <strong>${limits.max_image_refs}</strong> image references. ` +
+              `Video and audio references are ${videoReferencePolicy.video_refs || videoReferencePolicy.audio_refs ? 'available as premium options' : 'private beta options'}. ` +
+              `Reference inputs are retained for about <strong>${limits.input_retention_hours}h</strong>.`;
+          }
+          [
+            ['refAddImageBtn', 'image'],
+            ['refAddVideoBtn', 'video'],
+            ['refAddAudioBtn', 'audio'],
+          ].forEach(([btnId, kind]) => {
+            const btn = leftStack.querySelector('#' + btnId);
+            if (!btn) return;
+            const enabled = isKindEnabled(kind);
+            btn.disabled = !enabled;
+            btn.title = enabled
+              ? `${maxForKind(kind)} ${kind} reference${maxForKind(kind) === 1 ? '' : 's'}, ${mbLimitForKind(kind)} MB each`
+              : `${kind[0].toUpperCase() + kind.slice(1)} references are private beta`;
+            btn.classList.toggle('is-disabled', !enabled);
+          });
+          renderChips('video');
+          renderChips('audio');
+          renderMentions();
+        }
+        window.VideoReferenceState.applyPolicy = applyReferencePolicyUI;
 
         const readAsDataURL = (file) => new Promise((resolve, reject) => {
           const fr = new FileReader();
@@ -3596,20 +3693,41 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         }
 
         async function addFiles(kind, fileList) {
+          if (!isKindEnabled(kind)) {
+            toastRefError(`${kind[0].toUpperCase() + kind.slice(1)} references are not enabled for this account.`);
+            return;
+          }
           const files = Array.from(fileList || []);
           for (const file of files) {
-            if (totalRefs() >= MAX_TOTAL) {
-              if (window.UI?.toast) UI.toast(`Reference Video accepts at most ${MAX_TOTAL} references`, 'error');
+            const limits = getRefLimits();
+            if (totalRefs() >= limits.max_total_refs) {
+              toastRefError(`Reference-Guided accepts at most ${limits.max_total_refs} references`);
+              break;
+            }
+            if (state[kind + 's'].length >= maxForKind(kind)) {
+              toastRefError(`${kind[0].toUpperCase() + kind.slice(1)} references accept at most ${maxForKind(kind)} item(s)`);
+              break;
+            }
+            if (file.size > mbLimitForKind(kind) * 1024 * 1024) {
+              toastRefError(`${file.name} is too large. ${kind} references are limited to ${mbLimitForKind(kind)} MB each.`);
+              continue;
+            }
+            if (totalPayloadBytes() + file.size > limits.max_total_upload_mb * 1024 * 1024) {
+              toastRefError(`Total reference upload payload is limited to ${limits.max_total_upload_mb} MB.`);
               break;
             }
             try {
               const dataUrl = await readAsDataURL(file);
-              const entry = { dataUrl, name: file.name };
+              const entry = { dataUrl, name: file.name, bytes: file.size };
               if (kind === 'video' || kind === 'audio') {
                 entry.duration = await probeDuration(dataUrl, kind);
               }
-              if (kind === 'audio' && (totalAudioSeconds() + (entry.duration || 0)) > MAX_AUDIO_SECONDS) {
-                if (window.UI?.toast) UI.toast(`Total audio must stay under ${MAX_AUDIO_SECONDS}s`, 'error');
+              if (kind === 'video' && (totalInputVideoSeconds() + (entry.duration || 0)) > limits.max_input_video_seconds) {
+                toastRefError(`Reference videos can total at most ${limits.max_input_video_seconds}s.`);
+                continue;
+              }
+              if (kind === 'audio' && (totalAudioSeconds() + (entry.duration || 0)) > limits.max_audio_seconds) {
+                toastRefError(`Audio references can total at most ${limits.max_audio_seconds}s.`);
                 continue;
               }
               state[kind + 's'].push(entry);
@@ -3656,20 +3774,61 @@ Example: Apply @image1 artistic style with @video1 motion and @audio1 soundtrack
         [videoDuration, videoQuality].forEach(el => {
           if (el) el.addEventListener('change', updateCostWarning);
         });
+        if (promptEl) promptEl.addEventListener('input', validateVideoForm);
 
         // Expose a payload builder for the API layer.
         window.VideoReferenceState.getPayload = function () {
           return {
             image_urls: state.images.map(x => x.dataUrl),
-            video_urls: state.videos.map(x => x.dataUrl),
-            audio_urls: state.audios.map(x => x.dataUrl),
-            input_video_seconds: totalInputVideoSeconds(),
+            video_urls: isKindEnabled('video') ? state.videos.map(x => x.dataUrl) : [],
+            audio_urls: isKindEnabled('audio') ? state.audios.map(x => x.dataUrl) : [],
+            input_video_seconds: isKindEnabled('video') ? totalInputVideoSeconds() : 0,
             prompt: (promptEl?.value || '').trim(),
             total_refs: totalRefs(),
           };
         };
+        applyReferencePolicyUI();
       }
       initReferenceVideoMode();
+
+      async function syncVideoProviderCatalog() {
+        if (!window.TimrXApi?.apiFetch) return;
+        try {
+          const result = await window.TimrXApi.apiFetch('/api/video/providers');
+          if (!result?.ok || !result.data) return;
+
+          const enabled = new Set(Array.isArray(result.data.enabled_providers) ? result.data.enabled_providers : []);
+          if (enabled.size) {
+            allProviderBtns.forEach(btn => {
+              const isEnabled = enabled.has(btn.dataset.provider);
+              btn.disabled = !isEnabled;
+              btn.classList.toggle('hidden', !isEnabled);
+            });
+            const current = videoAIProvider?.value || 'vertex';
+            if (!enabled.has(current)) {
+              const fallback = result.data.default_provider || enabled.values().next().value;
+              const fallbackBtn = Array.from(allProviderBtns).find(btn => btn.dataset.provider === fallback);
+              if (fallbackBtn) selectProvider(fallback, fallbackBtn);
+            }
+          }
+
+          const seedancePolicy = result.data.providers?.seedance?.reference_guided;
+          if (seedancePolicy?.limits) {
+            videoReferencePolicy = {
+              ...DEFAULT_REFERENCE_POLICY,
+              ...seedancePolicy,
+              limits: { ...DEFAULT_REFERENCE_POLICY.limits, ...seedancePolicy.limits },
+            };
+            window.VideoReferenceState?.applyPolicy?.();
+            updateSeedanceResolutionOptions();
+            updateVideoFooter();
+            validateVideoForm();
+          }
+        } catch (err) {
+          console.warn('[Video Provider UI] Failed to fetch video provider catalog:', err);
+        }
+      }
+      syncVideoProviderCatalog();
 
       // Wire up video credits calculation on any option change
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
