@@ -56,9 +56,10 @@ Allow: /converters/
 Allow: /prompts
 Allow: /read
 
-# Block admin and API areas only. /write is noindex in-page, so crawlers can see that directive.
+# Block admin & private/write areas only
 Disallow: /admin
 Disallow: /admin-edit
+Disallow: /write
 Disallow: /api/
 
 # NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /read are PUBLIC pages — do NOT disallow them
@@ -67,48 +68,48 @@ Sitemap: https://timrx.live/sitemap.xml
 `;
 
 // ─────────────────────────────────────────────────────────────
-// Deleted blog posts reported by GSC. Return 410 so Google drops them.
-// ─────────────────────────────────────────────────────────────
-const DELETED_BLOG_PATHS = new Set([
-  '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier',
-  '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation',
-  '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era',
-  '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk',
-  '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk',
-  '/blog/react-performance',
-  '/blog/webgl-performance',
-]);
-
-// ─────────────────────────────────────────────────────────────
 // 301 Redirect map for old/broken URLs reported by GSC
 // Add entries as: '/old-path': '/new-path'
 // ─────────────────────────────────────────────────────────────
-const PERMANENT_REDIRECTS = {};
+const PERMANENT_REDIRECTS = {
+  // Deleted/legacy paths → live equivalents (or /blogs if no relevant alive post).
+  // For /blog/<slug> the worker already 301s to /read?slug=<slug>, but if the slug
+  // itself was deleted we override here.
+  '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
+    '/read?slug=openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
+  '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk':
+    '/read?slug=eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
+  '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier': '/blogs',
+  '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk': '/blogs',
+  '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era': '/blogs',
+  '/blog/react-performance': '/blogs',
+  '/blog/webgl-performance': '/blogs',
+};
 
-// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → 410 Gone.
+const DELETED_BLOG_PATHS = new Set([
+  '/blog/scroll-choreography',
+]);
+
+// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → /blogs.
 const SLUG_REDIRECTS = {
   'openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
     'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
   'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
 
-// Keep legacy/off-topic posts reachable for users, but stop asking Google to
-// index them while TimrX builds topical authority around AI 3D/STL workflows.
-const NOINDEX_BLOG_SLUGS = new Set([
-  'upgrade-your-home-network-for-remote-work-a-comprehensive-guide',
-  'eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
-  'harnessing-the-physics-of-intelligence-emory-s-ai-periodic-table-and-vmib',
-  'from-generative-hype-to-zero-harm-why-ai-is-moving-toward-mission-critical-reliability',
-  'agi-trajectory-2030-why-the-industry-may-be-one-breakthrough-away',
-  'the-periodic-table-of-ai-a-new-map-for-creative-coders',
-  'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
-  'openai-s-moltbot-openclaw-decoding-the-latest-ai-leap',
-  'the-ai-industry-s-positive-shift-towards-measurable-performance',
-  'ai-s-2026-breakthrough-efficient-models-revolutionize-tech',
-  'the-positive-shift-toward-responsible-ai-governance-in-2026',
-  'ai-in-2026-efficiency-revolutionizes-the-field',
-  'when-technology-becomes-the-environment-the-quiet-shift-in-digital-reality',
-  'the-quantum-leap-ai-s-new-role-in-quantum-computing',
+const DELETED_READ_SLUGS = new Set([
+  '3d-printing-tips',
+  'ai-workflow-2024',
+  'blender-basics',
+  'css-grid-mastery',
+  'gsap-deep-dive',
+  'print-workflow',
+  'react-performance',
+  'scroll-choreography',
+  'threejs-materials',
+  'ux-micro-interactions',
+  'viewer-craft',
+  'webgl-performance',
 ]);
 
 export default {
@@ -117,17 +118,9 @@ export default {
     const pathname = url.pathname;
 
     // ─────────────────────────────────────────────────────────────
-    // 0. Handle intentionally deleted blog URLs before redirect fallbacks.
+    // 0. Handle permanent redirects for old/broken URLs (GSC 404 fixes)
     // ─────────────────────────────────────────────────────────────
-    const normalizedPathname = pathname.replace(/\/$/, '');
-    if (DELETED_BLOG_PATHS.has(pathname) || DELETED_BLOG_PATHS.has(normalizedPathname)) {
-      return goneResponse();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 0a. Handle permanent redirects for old/broken URLs (GSC fixes)
-    // ─────────────────────────────────────────────────────────────
-    const permanentRedirect = PERMANENT_REDIRECTS[pathname] || PERMANENT_REDIRECTS[normalizedPathname];
+    const permanentRedirect = PERMANENT_REDIRECTS[pathname] || PERMANENT_REDIRECTS[pathname.replace(/\/$/, '')];
     if (permanentRedirect) {
       return Response.redirect(`${PUBLIC_DOMAIN}${permanentRedirect}`, 301);
     }
@@ -139,15 +132,16 @@ export default {
       return Response.redirect(`${PUBLIC_DOMAIN}/converters/avi-to-mp4`, 302);
     }
 
-    // 0b. Redirect renamed /read?slug=X to live equivalents. Slugs mapped
-    // to null are intentionally deleted and should be dropped by Google.
+    // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
     if (pathname === '/read') {
       const slug = url.searchParams.get('slug');
       if (slug && Object.prototype.hasOwnProperty.call(SLUG_REDIRECTS, slug)) {
         const target = SLUG_REDIRECTS[slug];
-        if (!target) return goneResponse();
-        const dest = `/read?slug=${encodeURIComponent(target)}`;
+        const dest = target ? `/read?slug=${encodeURIComponent(target)}` : '/blogs';
         return Response.redirect(`${PUBLIC_DOMAIN}${dest}`, 301);
+      }
+      if (slug && DELETED_READ_SLUGS.has(slug)) {
+        return goneResponse();
       }
     }
 
@@ -157,18 +151,14 @@ export default {
     const seoPage = findSeoPage(pathname);
     if (seoPage) {
       const html = renderSeoPage(seoPage);
-      const headers = {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
-        'X-TimrX-Worker': 'blog-proxy',
-        'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
-      };
-      if (seoPage.indexable === false) {
-        headers['X-Robots-Tag'] = 'noindex, follow';
-      }
       return new Response(html, {
         status: 200,
-        headers,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+          'X-TimrX-Worker': 'blog-proxy',
+          'X-TimrX-SEO-Page': `${seoPage.basePath}/${seoPage.slug}`,
+        },
       });
     }
 
@@ -217,14 +207,25 @@ ${generateSeoSitemap()}
     if (pathname.startsWith('/blog/')) {
       if (!pathname.startsWith('/blog/tag/') && !pathname.startsWith('/blog/category/')) {
         const slug = pathname.slice('/blog/'.length).replace(/\/$/, '');
+        if (DELETED_BLOG_PATHS.has(pathname.replace(/\/$/, ''))) {
+          return goneResponse();
+        }
         if (slug) {
-          const metadata = await fetchPostMetadata(slug);
-          if (metadata.status === 'gone') return goneResponse();
           return Response.redirect(`${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`, 301);
         }
       }
       const backendUrl = `${BLOG_ORIGIN}${pathname}`;
-      return proxyToBackend(request, backendUrl);
+      const response = await proxyToBackend(request, backendUrl);
+      if (pathname.startsWith('/blog/tag/') || pathname.startsWith('/blog/category/')) {
+        const headers = new Headers(response.headers);
+        headers.set('X-Robots-Tag', 'noindex, follow');
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      }
+      return response;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -250,7 +251,7 @@ ${generateSeoSitemap()}
     // 6. Proxy /sitemap-blogs.xml to backend's /sitemap-blogs.xml
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/sitemap-blogs.xml') {
-      return serveFilteredBackendSitemap(request, '/sitemap-blogs.xml');
+      return proxyToBackend(request, `${BLOG_ORIGIN}/sitemap-blogs.xml`);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -271,7 +272,7 @@ ${generateSeoSitemap()}
     //    (sitemap index, page/recent sitemaps)
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/sitemap-recent.xml') {
-      return serveFilteredBackendSitemap(request, '/sitemap-recent.xml');
+      return proxyToBackend(request, `${BLOG_ORIGIN}${pathname}`);
     }
 
     // Sitemap index: proxy from backend then inject sitemap-seo.xml
@@ -325,55 +326,15 @@ ${generateSeoSitemap()}
   }
 };
 
-async function serveFilteredBackendSitemap(request, sitemapPath) {
-  const backendResponse = await proxyToBackend(request, `${BLOG_ORIGIN}${sitemapPath}`);
-  const xml = await backendResponse.text();
-  const filtered = xml.replace(/<url>[\s\S]*?<\/url>/g, (block) => {
-    const match = block.match(/\/read\?slug=([^<&#]+)/);
-    if (!match) return block;
-    return NOINDEX_BLOG_SLUGS.has(decodeURIComponent(match[1])) ? '' : block;
-  });
-
-  const headers = new Headers(backendResponse.headers);
-  headers.set('Content-Type', 'application/xml; charset=utf-8');
-  headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=3600');
-
-  return new Response(filtered, {
-    status: backendResponse.status,
-    statusText: backendResponse.statusText,
-    headers,
-  });
-}
-
 function goneResponse() {
   return new Response('Gone', {
     status: 410,
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
       'X-Robots-Tag': 'noindex, follow',
+      'Cache-Control': 'public, max-age=3600',
     },
   });
-}
-
-async function fetchPostMetadata(slug) {
-  try {
-    const response = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
-      cf: { cacheTtl: 300, cacheEverything: true },
-    });
-
-    if (response.ok) {
-      return { status: 'ok', post: await response.json() };
-    }
-
-    if (response.status === 404 || response.status === 410) {
-      return { status: 'gone' };
-    }
-  } catch (error) {
-    console.warn('Post metadata lookup failed:', error);
-  }
-
-  return { status: 'unknown' };
 }
 
 async function serveReadPageWithMetadata(request, slug) {
@@ -385,11 +346,11 @@ async function serveReadPageWithMetadata(request, slug) {
   const canonical = `${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`;
 
   try {
-    const metadata = await fetchPostMetadata(slug);
-    if (metadata.status === 'gone') return goneResponse();
-
-    if (metadata.status === 'ok') {
-      const post = metadata.post;
+    const postResponse = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
+      cf: { cacheTtl: 300, cacheEverything: true },
+    });
+    if (postResponse.ok) {
+      const post = await postResponse.json();
       const title = escapeHtml(post.title || 'Read');
       const description = escapeHtml(post.excerpt || post.description || 'Read blog posts on TimrX — web development, 3D, and creative tech.');
       const image = escapeHtml(post.cover_url || `${PUBLIC_DOMAIN}/img/blogs.png`);
@@ -408,12 +369,8 @@ async function serveReadPageWithMetadata(request, slug) {
     console.warn('Read metadata injection failed:', error);
   }
 
-  const robotsContent = NOINDEX_BLOG_SLUGS.has(slug)
-    ? 'noindex, follow, max-image-preview:large'
-    : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
-
   html = html
-    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${robotsContent}" />`)
+    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />')
     .replace(/<link rel="canonical" id="canonicalLink" href="[^"]*"\s*\/?>/i, `<link rel="canonical" id="canonicalLink" href="${canonical}" />`)
     .replace(/<meta property="og:url" id="ogUrl" content="[^"]*"\s*\/?>/i, `<meta property="og:url" id="ogUrl" content="${canonical}" />`)
     .replace(/<meta name="twitter:url" id="twUrl" content="[^"]*"\s*\/?>/i, `<meta name="twitter:url" id="twUrl" content="${canonical}" />`);
@@ -421,11 +378,7 @@ async function serveReadPageWithMetadata(request, slug) {
   const headers = new Headers(pageResponse.headers);
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
-  if (NOINDEX_BLOG_SLUGS.has(slug)) {
-    headers.set('X-Robots-Tag', 'noindex, follow');
-  } else {
-    headers.delete('X-Robots-Tag');
-  }
+  headers.delete('X-Robots-Tag');
   return new Response(html, {
     status: pageResponse.status,
     statusText: pageResponse.statusText,
