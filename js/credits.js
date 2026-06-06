@@ -52,7 +52,7 @@
         window.TimrXAnalytics.trackCheckoutStarted({
           plan_code: planCode,
           value: Number.isFinite(value) ? value : undefined,
-          currency: 'GBP',
+          currency: 'USD',
           credit_type: isVideoFlow ? 'video' : 'general',
         });
       }
@@ -64,7 +64,7 @@
     transactionId = '',
     planCode = '',
     value,
-    currency = 'GBP',
+    currency = 'USD',
     newCustomer,
   } = {}) {
     if (adsPurchaseConversionReported) return;
@@ -751,9 +751,9 @@
    * One-time card content per tier (original values)
    */
   const ONE_TIME_CARDS = {
-    starter: { price: '£7.99', sub: '350 Credits', btn: 'Get Starter' },
-    creator: { price: '£19.99', sub: '1,100 Credits', btn: 'Get Creator' },
-    studio:  { price: '£37.99', sub: '2,400 Credits', btn: 'Get Studio' },
+    starter: { price: '$7.99', sub: '350 Credits', btn: 'Get Starter' },
+    creator: { price: '$19.99', sub: '1,100 Credits', btn: 'Get Creator' },
+    studio:  { price: '$37.99', sub: '2,400 Credits', btn: 'Get Studio' },
   };
 
   /**
@@ -820,7 +820,7 @@
           }
           return;
         }
-        const priceStr = `£${plan.price.toFixed(2)}`;
+        const priceStr = `$${plan.price.toFixed(2)}`;
         if (priceEl) priceEl.textContent = priceStr;
         // Show credits appropriately for each cadence
         if (cadence === 'yearly') {
@@ -867,7 +867,7 @@
       const priceEl = card.querySelector('.pc-price');
       if (!priceEl) return;
 
-      // Get the GBP price from the card's data or current mode
+      // Get the USD price from the card's data or current mode
       const ctaBtn = card.querySelector('.pricing-cta');
       if (!ctaBtn) return;
 
@@ -875,25 +875,25 @@
       const tier = CARD_TO_TIER[planId];
       if (!tier) return;
 
-      let gbpPrice = 0;
+      let usdPrice = 0;
       if (pricingMode === 'one_time') {
         // One-time prices: parse from ONE_TIME_CARDS
-        const priceStr = ONE_TIME_CARDS[tier]?.price || '£0';
-        gbpPrice = parseFloat(priceStr.replace('£', ''));
+        const priceStr = ONE_TIME_CARDS[tier]?.price || '$0';
+        usdPrice = parseFloat(priceStr.replace('$', ''));
       } else {
         // Subscription prices
         const plan = SUB_PLANS[pricingMode]?.[tier];
-        if (plan) gbpPrice = plan.price;
+        if (plan) usdPrice = plan.price;
       }
 
-      if (!gbpPrice) return;
+      if (!usdPrice) return;
 
       // Remove existing converted price if any
       const existingConverted = priceEl.querySelector('.price-converted');
       if (existingConverted) existingConverted.remove();
 
       // Add converted price
-      const convertedHtml = window.TimrXFx.getConvertedPriceHtml(gbpPrice, targetCurrency, rates);
+      const convertedHtml = window.TimrXFx.getConvertedPriceHtml(usdPrice, targetCurrency, rates);
       if (convertedHtml) {
         priceEl.insertAdjacentHTML('beforeend', convertedHtml);
       }
@@ -946,8 +946,8 @@
     selectedSubPlan = plan;
     const cadenceLabel = cadence === 'yearly' ? 'Yearly' : 'Monthly';
     const priceLabel = cadence === 'yearly'
-      ? `£${plan.price.toFixed(2)}<small>/yr</small>`
-      : `£${plan.price.toFixed(2)}<small>/mo</small>`;
+      ? `$${plan.price.toFixed(2)}<small>/yr</small>`
+      : `$${plan.price.toFixed(2)}<small>/mo</small>`;
 
     // Build converted price label if FX available
     let convertedLabel = '';
@@ -957,7 +957,7 @@
       const converted = window.TimrXFx.convert(plan.price, targetCurrency, rates);
       if (converted !== null) {
         const formatted = window.TimrXFx.formatCurrency(converted, targetCurrency);
-        convertedLabel = `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in GBP)</span></span>`;
+        convertedLabel = `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in USD)</span></span>`;
       }
     }
 
@@ -1421,7 +1421,7 @@
     // Update selected plan display
     if (selectedPlanName) selectedPlanName.textContent = plan.name;
     if (selectedPlanPrice) {
-      let priceHtml = `£${plan.price.toFixed(2)}`;
+      let priceHtml = `$${plan.price.toFixed(2)}`;
 
       // Add converted price if FX available
       const fxContext = window.__TIMRX_FX_CONTEXT__;
@@ -1430,7 +1430,7 @@
         const converted = window.TimrXFx.convert(plan.price, targetCurrency, rates);
         if (converted !== null) {
           const formatted = window.TimrXFx.formatCurrency(converted, targetCurrency);
-          priceHtml += `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in GBP)</span></span>`;
+          priceHtml += `<span class="checkout-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(charged in USD)</span></span>`;
         }
       }
       selectedPlanPrice.innerHTML = priceHtml;
@@ -1530,7 +1530,7 @@
     if (checkoutEmail && userEmail) {
       checkoutEmail.value = userEmail;
       if (emailVerified) {
-        // Verified user: read-only email, button says "Buy · £X.xx"
+        // Verified user: read-only email, button says "Buy · $X.xx"
         checkoutEmail.readOnly = true;
         checkoutEmail.classList.add('verified-email');
         checkoutEmail.title = 'Using your verified email address';
@@ -1624,7 +1624,7 @@
     if (videoBuyTitle) videoBuyTitle.textContent = `Buy ${plan.name}`;
     if (videoBuySubtitle) videoBuySubtitle.textContent = 'One-time purchase. No subscription.';
     if (videoBuyCredits) videoBuyCredits.textContent = plan.credits.toLocaleString();
-    if (videoBuyPrice) videoBuyPrice.textContent = `£${plan.price.toFixed(2)}`;
+    if (videoBuyPrice) videoBuyPrice.textContent = `$${plan.price.toFixed(2)}`;
 
     // Reset verify state (uses shared verification layer)
     videoVerifier.reset();
@@ -2261,7 +2261,7 @@
           transactionId: paymentId,
           planCode,
           value: subPlanInfo?.price,
-          currency: 'GBP',
+          currency: 'USD',
         });
         await Promise.allSettled([
           refreshCredits({ force: true, maxRetries: 5 }),
@@ -2883,7 +2883,7 @@
    *                                               THIS is where product-specific billing runs.
    *                                               General credits: startCheckout()
    *                                               Video credits:   startVideoCheckout()
-   * @param {Function}     cfg.getBuyLabel       - fn() → string for the "Buy · £X.xx" button label
+   * @param {Function}     cfg.getBuyLabel       - fn() → string for the "Buy · $X.xx" button label
    */
   function createPreCheckoutVerifier(cfg) {
     let pendingEmail = null;
@@ -3200,7 +3200,7 @@
     const btnText = checkoutBtn?.querySelector('.btn-text');
     if (!btnText) return;
     if (mode === 'buy' && selectedPlan) {
-      btnText.textContent = `Buy · £${selectedPlan.price.toFixed(2)}`;
+      btnText.textContent = `Buy · $${selectedPlan.price.toFixed(2)}`;
     } else {
       btnText.textContent = 'Continue';
     }
@@ -3262,7 +3262,7 @@
     if (!btnText) return;
     if (mode === 'buy' && selectedVideoPlan) {
       const plan = VIDEO_PLANS[selectedVideoPlan];
-      btnText.textContent = plan ? `Buy · £${plan.price.toFixed(2)}` : 'Buy';
+      btnText.textContent = plan ? `Buy · $${plan.price.toFixed(2)}` : 'Buy';
     } else {
       btnText.textContent = 'Continue';
     }
@@ -3681,7 +3681,7 @@
                 reportAdsPurchaseConversion({
                   transactionId: pendingPaymentId || confirmData.payment_id || '',
                   planCode: pendingPlanCode,
-                  currency: 'GBP',
+                  currency: 'USD',
                 });
                 return;
               }
@@ -3691,7 +3691,7 @@
               reportAdsPurchaseConversion({
                 transactionId: pendingPaymentId || confirmData.payment_id || '',
                 planCode: pendingPlanCode,
-                currency: 'GBP',
+                currency: 'USD',
               });
               await refreshCredits({ force: true, maxRetries: 3 });
               // Modal will auto-update via wallet event listener
@@ -3739,7 +3739,7 @@
             reportAdsPurchaseConversion({
               transactionId: pendingPaymentId || '',
               planCode: pendingPlanCode,
-              currency: 'GBP',
+              currency: 'USD',
             });
             return;
           }

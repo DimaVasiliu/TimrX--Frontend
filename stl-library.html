@@ -262,6 +262,12 @@
     }
     .stl-card-meta span { display: inline-flex; align-items: center; gap: 5px; }
     .stl-card-meta i { color: var(--stl-warm-dim); }
+    .stl-card-rating {
+      display: inline-flex; align-items: center; gap: 5px; width: fit-content;
+      margin: -3px 0 10px; font-size: 0.68rem; font-weight: 700;
+      color: var(--stl-warm);
+    }
+    .stl-card-rating i { font-size: 0.62rem; color: var(--stl-warm-dim); }
     .stl-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .stl-price { font-size: 1.02rem; font-weight: 800; line-height: 1.05; }
     .stl-price small { font-size: 0.58rem; font-weight: 600; color: var(--stl-muted); display: block; }
@@ -284,6 +290,19 @@
       border-radius: 7px; white-space: nowrap;
     }
     .stl-buy[data-dl] i { font-size: 0.62rem; }
+    .stl-owned-actions {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .stl-review {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 9px; border-radius: 7px;
+      border: 1px solid var(--stl-line-strong);
+      background: transparent; color: var(--stl-warm);
+      font-size: 0.68rem; font-weight: 700; cursor: pointer;
+      white-space: nowrap;
+    }
+    .stl-review:hover { background: rgba(240,235,224,0.08); }
+    .stl-review i { font-size: 0.62rem; color: var(--stl-warm-dim); }
     .stl-empty { padding: 40px; text-align: center; color: var(--stl-muted); }
 
     /* All-access banner */
@@ -424,7 +443,7 @@
           <p id="allAccessText">Unlock every pack on this page — plus every pack added in the future. One payment, lifetime access.</p>
         </div>
         <div class="stl-allaccess-buy">
-          <div class="stl-allaccess-price" id="allAccessPrice">£49</div>
+          <div class="stl-allaccess-price" id="allAccessPrice">$49</div>
           <small>one-time · launch price</small>
           <button class="stl-buy" id="allAccessBuy"><i class="fa-solid fa-unlock"></i> Get All-Access</button>
         </div>
@@ -496,13 +515,18 @@
 
   <script type="module" src="js/config.js"></script>
   <script src="js/site-shell.js?v=20260521a" defer></script>
-  <script src="js/stl-packs-embedded.js?v=20260523l" defer></script>
+  <script src="js/stl-packs-embedded.js?v=20260525b" defer></script>
+  <script src="js/stl-reviews.js?v=20260606a" defer></script>
   <script>
   (function () {
     'use strict';
     function boot() {
       var M = window.STLMarket;
       if (!M) { return; }
+      var Reviews = window.STLReviews || {
+        get: function () { return []; },
+        summary: function () { return null; }
+      };
 
       var CAT_ICON = {
         'Vehicles': 'fa-plane-up',
@@ -533,7 +557,7 @@
 
       // All-Access
       document.getElementById('allAccessPrice').innerHTML =
-        '<del>' + M.formatPrice(M.allAccess.fullPriceGBP) + '</del>' + M.formatPrice(M.allAccess.priceGBP);
+        '<del>' + M.formatPrice(M.allAccess.fullPriceUSD) + '</del>' + M.formatPrice(M.allAccess.priceUSD);
       document.getElementById('allAccessText').textContent = M.allAccess.blurb;
       document.getElementById('allAccessBuy').addEventListener('click', function () {
         startCheckout(this, '*');
@@ -556,6 +580,7 @@
         var thumbStyle = p.image ? '' : ' style="background:' + gradient(p.slug) + '"';
         var tier = p.tier ? '<span class="stl-tier ' + p.tier + '">' + p.tier + '</span>' : '';
         var ownsThis = ownsAll || !!owned[p.slug];
+        var rating = reviewSummaryHTML(p);
         return '' +
           '<article class="stl-card" id="pack-' + p.slug + '">' +
             '<div class="stl-card-thumb"' + thumbStyle + '>' + thumb + tier +
@@ -568,12 +593,16 @@
                 '<span><i class="fa-solid fa-cubes"></i> ' + p.fileCount + ' models</span>' +
                 (p.sizeMB ? '<span><i class="fa-solid fa-file-zipper"></i> ' + M.formatSize(p.sizeMB) + '</span>' : '') +
               '</div>' +
+              rating +
               '<div class="stl-card-foot">' +
                 (ownsThis
                   ? '<div class="stl-price stl-price-own"><i class="fa-solid fa-circle-check"></i> Owned</div>'
-                  : '<div class="stl-price">' + M.formatPrice(p.priceGBP) + '<small>one-time</small></div>') +
+                  : '<div class="stl-price">' + M.formatPrice(p.priceUSD) + '<small>one-time</small></div>') +
                 (ownsThis
-                  ? '<button class="stl-buy" data-dl="' + p.slug + '"><i class="fa-solid fa-download"></i> Download</button>'
+                  ? '<div class="stl-owned-actions">' +
+                      '<button class="stl-review" data-review="' + p.slug + '"><i class="fa-solid fa-star"></i> Review</button>' +
+                      '<button class="stl-buy" data-dl="' + p.slug + '"><i class="fa-solid fa-download"></i> Download</button>' +
+                    '</div>'
                   : '<button class="stl-buy" data-slug="' + p.slug + '"><i class="fa-solid fa-cart-shopping"></i> Buy</button>') +
               '</div>' +
             '</div>' +
@@ -586,6 +615,16 @@
         });
       }
       function escapeAttr(s) { return escapeHTML(s).replace(/"/g, '&quot;'); }
+
+      function reviewSummaryHTML(pack) {
+        var summary = Reviews.summary(pack.slug);
+        if (!summary) return '';
+        var label = summary.reviewCount === 1 ? 'review' : 'reviews';
+        return '<div class="stl-card-rating">' +
+          '<i class="fa-solid fa-star"></i> ' +
+          summary.ratingValue.toFixed(1) + ' (' + summary.reviewCount + ' ' + label + ')' +
+        '</div>';
+      }
 
       function render() {
         var list = M.packs.filter(function (p) {
@@ -604,6 +643,9 @@
         });
         grid.querySelectorAll('.stl-buy[data-dl]').forEach(function (btn) {
           btn.addEventListener('click', function () { startDownload(btn, btn.getAttribute('data-dl')); });
+        });
+        grid.querySelectorAll('.stl-review[data-review]').forEach(function (btn) {
+          btn.addEventListener('click', function () { startReview(btn.getAttribute('data-review')); });
         });
       }
 
@@ -634,8 +676,8 @@
       function merchantOffer(pack) {
         return {
           '@type': 'Offer',
-          'price': String(pack.priceGBP),
-          'priceCurrency': 'GBP',
+          'price': String(pack.priceUSD),
+          'priceCurrency': 'USD',
           'availability': 'https://schema.org/InStock',
           'url': 'https://timrx.live/stl-library#pack-' + pack.slug,
           'seller': { '@type': 'Organization', 'name': 'TimrX', 'url': 'https://timrx.live/' },
@@ -655,7 +697,7 @@
             'shippingRate': {
               '@type': 'MonetaryAmount',
               'value': '0',
-              'currency': 'GBP'
+              'currency': 'USD'
             },
             'deliveryTime': {
               '@type': 'ShippingDeliveryTime',
@@ -676,6 +718,36 @@
         };
       }
 
+      function productReviewData(pack) {
+        var reviews = Reviews.get(pack.slug);
+        if (!reviews.length) return null;
+        var total = reviews.reduce(function (sum, review) { return sum + review.rating; }, 0);
+        var ratingValue = Math.round((total / reviews.length) * 10) / 10;
+        return {
+          'aggregateRating': {
+            '@type': 'AggregateRating',
+            'ratingValue': String(ratingValue),
+            'reviewCount': reviews.length,
+            'bestRating': '5',
+            'worstRating': '1'
+          },
+          'review': reviews.map(function (review) {
+            return {
+              '@type': 'Review',
+              'author': { '@type': 'Person', 'name': review.author },
+              'datePublished': review.datePublished,
+              'reviewBody': review.body,
+              'reviewRating': {
+                '@type': 'Rating',
+                'ratingValue': String(review.rating),
+                'bestRating': '5',
+                'worstRating': '1'
+              }
+            };
+          })
+        };
+      }
+
       // Inject one complete Product ItemList for the live pack catalog.
       try {
         var ld = {
@@ -683,23 +755,29 @@
           '@type': 'ItemList',
           'name': 'TimrX STL Packs',
           'itemListElement': M.packs.map(function (p, i) {
+            var product = {
+              '@type': 'Product',
+              'name': p.title,
+              'description': p.blurb,
+              'category': p.category,
+              'image': productImageUrl(p),
+              'sku': 'timrx-stl-' + p.slug,
+              'url': 'https://timrx.live/stl-library#pack-' + p.slug,
+              'brand': { '@type': 'Brand', 'name': 'TimrX' },
+              'offers': merchantOffer(p)
+            };
+            var reviewData = productReviewData(p);
+            if (reviewData) {
+              product.aggregateRating = reviewData.aggregateRating;
+              product.review = reviewData.review;
+            }
             return {
               '@type': 'ListItem',
               'position': i + 1,
-              'item': {
-	                '@type': 'Product',
-	                'name': p.title,
-	                'description': p.blurb,
-	                'category': p.category,
-	                'image': productImageUrl(p),
-	                'sku': 'timrx-stl-' + p.slug,
-	                'url': 'https://timrx.live/stl-library#pack-' + p.slug,
-	                'brand': { '@type': 'Brand', 'name': 'TimrX' },
-	                'offers': merchantOffer(p)
-	              }
-	            };
-	          })
-	        };
+              'item': product
+            };
+          })
+        };
         var s = document.createElement('script');
         s.type = 'application/ld+json';
         s.textContent = JSON.stringify(ld);
@@ -758,6 +836,30 @@
         }
         btn.disabled = false;
         btn.innerHTML = label;
+      }
+
+      function startReview(slug) {
+        var pack = M.getPack(slug);
+        if (!pack) return;
+        var subject = 'Review for ' + pack.title;
+        var body = [
+          'Pack: ' + pack.title,
+          'Pack URL: https://timrx.live/stl-library#pack-' + pack.slug,
+          '',
+          'Rating: /5',
+          '',
+          'What did you print?',
+          '',
+          'What worked well?',
+          '',
+          'What should be improved?',
+          '',
+          'Name to show publicly:',
+          '',
+          'I confirm this is my honest review and TimrX may publish it on the STL Library page.'
+        ].join('\n');
+        window.location.href = 'mailto:admin@timrx.live?subject=' +
+          encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
       }
 
       render();

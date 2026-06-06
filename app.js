@@ -63,7 +63,7 @@ const TIMRX_FAQ_LOCAL = [
   },
   {
     q: "What are your usual budgets?",
-    a: "Typical custom project ranges are £100–£500, £500–£1.5k, £1.5k–£3k, and £3k–£7k+. For a real quote, use the budget chips in #contact.",
+    a: "Typical custom project ranges are $100–$500, $500–$1.5k, $1.5k–$3k, and $3k–$7k+. For a real quote, use the budget chips in #contact.",
     keywords: ["budget", "price", "pricing", "rates", "quote"]
   },
   {

@@ -2220,11 +2220,11 @@
         </div>
         <div class="ops-card" id="opsCardProvCost">
           <span class="ops-card-value" id="opsProvCost24h">--</span>
-          <span class="ops-card-label">Provider Cost 24h (&pound;)</span>
+          <span class="ops-card-label">Provider Cost 24h ($)</span>
         </div>
         <div class="ops-card" id="opsCardRevenue">
           <span class="ops-card-value" id="opsRevenueToday">--</span>
-          <span class="ops-card-label">Revenue Today (&pound;)</span>
+          <span class="ops-card-label">Revenue Today ($)</span>
         </div>
         <div class="ops-card" id="opsCardSafety">
           <span class="ops-card-value" id="opsSafetyCount">0</span>
@@ -2364,7 +2364,7 @@
             <!-- Quick-access modal triggers -->
             <div class="ops-section">
               <button class="ops-modal-trigger" id="openLedgerModal">
-                <span class="trigger-left"><span class="trigger-icon">&pound;</span><span class="trigger-label">Provider Ledger</span></span>
+                <span class="trigger-left"><span class="trigger-icon">$</span><span class="trigger-label">Provider Ledger</span></span>
                 <span class="trigger-arrow">&rsaquo;</span>
               </button>
               <button class="ops-modal-trigger" id="openMonthlyModal">
@@ -3005,7 +3005,7 @@
                       <th>Category</th>
                       <th>Jobs</th>
                       <th>Credits Used</th>
-                      <th>Cost (£)</th>
+                      <th>Cost ($)</th>
                       <th>Cost/Job</th>
                     </tr>
                   </thead>
@@ -3022,7 +3022,7 @@
                       <th>Provider</th>
                       <th>Jobs</th>
                       <th>Credits Used</th>
-                      <th>Cost (£)</th>
+                      <th>Cost ($)</th>
                       <th>Cost/Job</th>
                     </tr>
                   </thead>
@@ -3655,11 +3655,11 @@
               </select>
             </div>
             <div class="ops-form-field">
-              <label>Amount (GBP)</label>
+              <label>Amount (USD)</label>
               <input id="ledgerAmount" type="number" step="0.01" class="form-input" placeholder="e.g. 50.00"/>
             </div>
             <div class="ops-form-field">
-              <label>Balance Snapshot (GBP)</label>
+              <label>Balance Snapshot (USD)</label>
               <input id="ledgerBalance" type="number" step="0.01" class="form-input" placeholder="Optional"/>
             </div>
             <div class="ops-form-field" style="grid-column:1/-1;">
@@ -7703,22 +7703,22 @@
         if (!data.ok) { console.error('Margin error:', data.error); return; }
 
         const o = data.overview;
-        const fmt = v => `£${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const fmt = v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const marginColor = m => m >= 55 ? 'green' : m >= 40 ? 'amber' : 'red';
 
         // Overview cards
-        $('#mTotalRevenue').textContent = fmt(o.total_revenue_gbp);
-        $('#mTotalCost').textContent = fmt(o.total_cost_gbp);
-        $('#mTotalProfit').textContent = fmt(o.total_profit_gbp);
-        $('#mTotalProfit').className = 'margin-card-value ' + (o.total_profit_gbp >= 0 ? 'green' : 'red');
+        $('#mTotalRevenue').textContent = fmt(o.total_revenue_usd);
+        $('#mTotalCost').textContent = fmt(o.total_cost_usd);
+        $('#mTotalProfit').textContent = fmt(o.total_profit_usd);
+        $('#mTotalProfit').className = 'margin-card-value ' + (o.total_profit_usd >= 0 ? 'green' : 'red');
         $('#mOverallMargin').textContent = o.overall_margin_pct.toFixed(1) + '%';
         $('#mOverallMargin').className = 'margin-card-value ' + marginColor(o.overall_margin_pct);
 
         // Period cards
-        $('#mPeriodRevenue').textContent = fmt(o.period_revenue_gbp);
-        $('#mPeriodCost').textContent = fmt(o.period_cost_gbp);
-        $('#mPeriodProfit').textContent = fmt(o.period_profit_gbp);
-        $('#mPeriodProfit').className = 'margin-card-value ' + (o.period_profit_gbp >= 0 ? 'green' : 'red');
+        $('#mPeriodRevenue').textContent = fmt(o.period_revenue_usd);
+        $('#mPeriodCost').textContent = fmt(o.period_cost_usd);
+        $('#mPeriodProfit').textContent = fmt(o.period_profit_usd);
+        $('#mPeriodProfit').className = 'margin-card-value ' + (o.period_profit_usd >= 0 ? 'green' : 'red');
         $('#mPeriodMargin').textContent = o.period_margin_pct.toFixed(1) + '%';
         $('#mPeriodMargin').className = 'margin-card-value ' + marginColor(o.period_margin_pct);
 
@@ -7729,7 +7729,7 @@
             <td><strong>${escapeHtmlText(p.category)}</strong></td>
             <td>${Number(p.jobs).toLocaleString()}</td>
             <td>${Number(p.credits_used).toLocaleString()}</td>
-            <td>${fmt(p.cost_gbp)}</td>
+            <td>${fmt(p.cost_usd)}</td>
             <td>${fmt(p.cost_per_job)}</td>
           </tr>
         `).join('') || '<tr><td colspan="5" style="color:#888;text-align:center;">No data</td></tr>';
@@ -7741,7 +7741,7 @@
             <td><strong>${escapeHtmlText(p.provider || '—')}</strong></td>
             <td>${Number(p.jobs).toLocaleString()}</td>
             <td>${Number(p.credits_used).toLocaleString()}</td>
-            <td>${fmt(p.cost_gbp)}</td>
+            <td>${fmt(p.cost_usd)}</td>
             <td>${fmt(p.cost_per_job)}</td>
           </tr>
         `).join('') || '<tr><td colspan="5" style="color:#888;text-align:center;">No data</td></tr>';
@@ -7754,8 +7754,8 @@
           alertTbody.innerHTML = data.alerts.map(a => `
             <tr class="row-${a.severity === 'critical' ? 'red' : 'amber'}">
               <td>${escapeHtmlText(a.email)}</td>
-              <td>${fmt(a.revenue_gbp)}</td>
-              <td>${fmt(a.cost_gbp)}</td>
+              <td>${fmt(a.revenue_usd)}</td>
+              <td>${fmt(a.cost_usd)}</td>
               <td>${Number(a.margin_pct).toFixed(1)}%</td>
               <td><span class="margin-badge ${escapeHtmlText(a.severity)}">${escapeHtmlText(a.severity)}</span></td>
             </tr>
@@ -7773,9 +7773,9 @@
             <tr class="${rowClass}">
               <td title="${escapeHtmlText(u.identity_id)}">${escapeHtmlText(u.email)}</td>
               <td>${u.jobs.toLocaleString()}</td>
-              <td>${fmt(u.revenue_gbp)}</td>
-              <td>${fmt(u.cost_gbp)}</td>
-              <td class="${mc}">${fmt(u.profit_gbp)}</td>
+              <td>${fmt(u.revenue_usd)}</td>
+              <td>${fmt(u.cost_usd)}</td>
+              <td class="${mc}">${fmt(u.profit_usd)}</td>
               <td><span class="margin-badge ${mc === 'green' ? 'healthy' : mc === 'amber' ? 'warning' : 'critical'}">${u.margin_pct.toFixed(1)}%</span></td>
             </tr>
           `;
@@ -8054,7 +8054,7 @@
                 <div class="ops-pstat"><span class="ops-pstat-label">Success</span><span class="ops-pstat-value">${rate}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Latency</span><span class="ops-pstat-value">${formatOpsLatency(p.avg_success_latency_ms_24h)}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Credits 24h</span><span class="ops-pstat-value">${p.credits_consumed_24h || 0} cr</span></div>
-                <div class="ops-pstat"><span class="ops-pstat-label">Provider Cost 24h</span><span class="ops-pstat-value">\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-pstat"><span class="ops-pstat-label">Provider Cost 24h</span><span class="ops-pstat-value">$${(p.estimated_spend_today_usd || 0).toFixed(2)}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Alerts</span><span class="ops-pstat-value${p.active_alerts > 0 ? ' crit' : ''}">${p.active_alerts || 0}</span></div>
                 <div class="ops-pstat"><span class="ops-pstat-label">Config</span><span class="ops-pstat-value${configClass}">${configLabel}</span></div>
               </div>
@@ -8095,11 +8095,11 @@
         const credEl = $('#opsCreditsSpent');
         if (credEl) credEl.textContent = `${(econ.credits_spent_today || 0).toLocaleString()} cr`;
         const costEl = $('#opsProvCost24h');
-        if (costEl) costEl.textContent = '\u00A3' + (econ.provider_cost_today_gbp || 0).toFixed(2);
+        if (costEl) costEl.textContent = '$' + (econ.provider_cost_today_usd || 0).toFixed(2);
         const revEl = $('#opsRevenueToday');
         if (revEl) {
           const pCount = econ.purchases_today || 0;
-          revEl.textContent = '\u00A3' + (econ.revenue_today_gbp || 0).toFixed(2) + (pCount > 0 ? ` (${pCount})` : '');
+          revEl.textContent = '$' + (econ.revenue_today_usd || 0).toFixed(2) + (pCount > 0 ? ` (${pCount})` : '');
         }
 
         // Row 2: Safety card
@@ -8233,10 +8233,10 @@
             unknown: 'no snapshot',
           };
 
-          const hasSnapshot = p.last_snapshot_gbp != null;
-          const balStr = hasSnapshot ? `\u00A3${p.last_snapshot_gbp.toFixed(2)}` : '--';
-          const estRemStr = p.estimated_remaining_gbp != null ? `\u00A3${p.estimated_remaining_gbp.toFixed(2)}` : '--';
-          const spendStr = `\u00A3${(p.estimated_spend_since_gbp || 0).toFixed(2)}`;
+          const hasSnapshot = p.last_snapshot_usd != null;
+          const balStr = hasSnapshot ? `$${p.last_snapshot_usd.toFixed(2)}` : '--';
+          const estRemStr = p.estimated_remaining_usd != null ? `$${p.estimated_remaining_usd.toFixed(2)}` : '--';
+          const spendStr = `$${(p.estimated_spend_since_usd || 0).toFixed(2)}`;
 
           // Snapshot recorded date
           const recordedStr = p.last_snapshot_at ? formatDateUK(p.last_snapshot_at) : 'never';
@@ -8251,8 +8251,8 @@
           }
 
           // Value color classes
-          const remClass = p.estimated_remaining_gbp != null
-            ? (p.estimated_remaining_gbp <= 3 ? ' low' : p.estimated_remaining_gbp <= 10 ? ' med' : '')
+          const remClass = p.estimated_remaining_usd != null
+            ? (p.estimated_remaining_usd <= 3 ? ' low' : p.estimated_remaining_usd <= 10 ? ' med' : '')
             : '';
 
           const walletBadge = p.wallet_alerts_7d > 0
@@ -8270,9 +8270,9 @@
             breakdownHtml = `
               <div class="ops-balance-breakdown">
                 <div class="ops-bstat"><span class="ops-bstat-label">Video Jobs Since</span><span class="ops-bstat-value">${b.video_jobs_since_snapshot || 0}</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Video Cost Since (&pound;)</span><span class="ops-bstat-value">&pound;${(b.video_cost_since_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Video Cost Since ($)</span><span class="ops-bstat-value">$${(b.video_cost_since_usd || 0).toFixed(2)}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Image Jobs Since</span><span class="ops-bstat-value">${b.image_jobs_since_snapshot || 0}</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Image Cost Since (&pound;)</span><span class="ops-bstat-value">&pound;${(b.image_cost_since_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Image Cost Since ($)</span><span class="ops-bstat-value">$${(b.image_cost_since_usd || 0).toFixed(2)}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">NB Standard</span><span class="ops-bstat-value">${b.nano_banana_standard_count || 0}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">NB 2K</span><span class="ops-bstat-value">${b.nano_banana_2k_count || 0}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">NB 4K</span><span class="ops-bstat-value">${b.nano_banana_4k_count || 0}</span></div>
@@ -8286,11 +8286,11 @@
                 <span class="ops-bal-status ${st}">${statusLabels[st] || st}</span>
               </div>
               <div class="ops-balance-stats">
-                <div class="ops-bstat"><span class="ops-bstat-label">Provider Balance (&pound;)</span><span class="ops-bstat-value">${balStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Provider Balance ($)</span><span class="ops-bstat-value">${balStr}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Recorded</span><span class="ops-bstat-value" style="font-size:10px;">${escapeHtmlText(recordedStr)}</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Provider Cost Since (&pound;)</span><span class="ops-bstat-value">${spendStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Provider Cost Since ($)</span><span class="ops-bstat-value">${spendStr}</span></div>
                 <div class="ops-bstat"><span class="ops-bstat-label">Credits Since</span><span class="ops-bstat-value">${p.credits_consumed_since_snapshot || 0} cr</span></div>
-                <div class="ops-bstat"><span class="ops-bstat-label">Est. Remaining (&pound;)</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
+                <div class="ops-bstat"><span class="ops-bstat-label">Est. Remaining ($)</span><span class="ops-bstat-value${remClass}">${estRemStr}</span></div>
               </div>${breakdownHtml}
               <div class="ops-balance-footer">
                 <span class="snap-age ${ageClass}">${escapeHtmlText(ageLabel)}</span>
@@ -8306,7 +8306,7 @@
     }
 
     async function updateProviderSnapshot(provider) {
-      const balStr = prompt(`Enter current balance (GBP) for ${provider}:`);
+      const balStr = prompt(`Enter current balance (USD) for ${provider}:`);
       if (balStr === null) return;
       const balance = parseFloat(balStr);
       if (isNaN(balance) || balance < 0) { Toast.error('Invalid balance amount'); return; }
@@ -8321,13 +8321,13 @@
           body: JSON.stringify({
             provider: provider,
             entry_type: 'balance_snapshot',
-            balance_snapshot_gbp: balance,
+            balance_snapshot_usd: balance,
             description: desc,
           }),
         });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'Failed');
-        Toast.success(`Snapshot updated: ${provider} \u00A3${balance.toFixed(2)}`);
+        Toast.success(`Snapshot updated: ${provider} $${balance.toFixed(2)}`);
         loadOpsBalances();
         loadOpsLedger();
         loadOpsMonthly();
@@ -8338,9 +8338,9 @@
 
     function renderOpsSpend(providers) {
       const wrap = $('#opsSpendWrap');
-      const sorted = [...providers].sort((a, b) => (b.estimated_spend_today_gbp || 0) - (a.estimated_spend_today_gbp || 0));
-      const totalDay = sorted.reduce((s, p) => s + (p.estimated_spend_today_gbp || 0), 0);
-      const totalMonth = sorted.reduce((s, p) => s + (p.estimated_spend_month_gbp || 0), 0);
+      const sorted = [...providers].sort((a, b) => (b.estimated_spend_today_usd || 0) - (a.estimated_spend_today_usd || 0));
+      const totalDay = sorted.reduce((s, p) => s + (p.estimated_spend_today_usd || 0), 0);
+      const totalMonth = sorted.reduce((s, p) => s + (p.estimated_spend_month_usd || 0), 0);
 
       if (!sorted.length) {
         wrap.innerHTML = '<div class="ops-empty">No provider cost data</div>';
@@ -8349,18 +8349,18 @@
 
       wrap.innerHTML = `
         <table class="ops-spend-table">
-          <thead><tr><th>Provider</th><th>Feature</th><th>Provider Cost 24h (&pound;)</th><th>Provider Cost MTD (&pound;)</th></tr></thead>
+          <thead><tr><th>Provider</th><th>Feature</th><th>Provider Cost 24h ($)</th><th>Provider Cost MTD ($)</th></tr></thead>
           <tbody>
             ${sorted.map(p => `<tr>
               <td>${escapeHtmlText(p.display_label || p.provider)}</td>
               <td style="color:#888;text-transform:uppercase;font-size:10px;">${escapeHtmlText(p.feature_area)}</td>
-              <td>\u00A3${(p.estimated_spend_today_gbp || 0).toFixed(2)}</td>
-              <td>\u00A3${(p.estimated_spend_month_gbp || 0).toFixed(2)}</td>
+              <td>$${(p.estimated_spend_today_usd || 0).toFixed(2)}</td>
+              <td>$${(p.estimated_spend_month_usd || 0).toFixed(2)}</td>
             </tr>`).join('')}
             <tr class="spend-total">
               <td colspan="2">Total</td>
-              <td>\u00A3${totalDay.toFixed(2)}</td>
-              <td>\u00A3${totalMonth.toFixed(2)}</td>
+              <td>$${totalDay.toFixed(2)}</td>
+              <td>$${totalMonth.toFixed(2)}</td>
             </tr>
           </tbody>
         </table>`;
@@ -8463,7 +8463,7 @@
                 <span class="ops-rec-badge ${rec}">${rec.replace(/_/g, ' ')}</span>
               </div>
               <div class="ops-refund-details">
-                <div class="ops-refund-detail"><span class="lbl">Amount</span><span class="val">\u00A3${(item.amount_gbp || 0).toFixed(2)}</span></div>
+                <div class="ops-refund-detail"><span class="lbl">Amount</span><span class="val">$${(item.amount_usd || 0).toFixed(2)}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Credits</span><span class="val">${item.credits_granted || 0}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Used</span><span class="val${usedWarning ? ' crit' : ''}">${item.credits_used || 0}</span></div>
                 <div class="ops-refund-detail"><span class="lbl">Remaining</span><span class="val">${item.credits_remaining || 0}</span></div>
@@ -8473,7 +8473,7 @@
                 <div class="ops-refund-detail"><span class="lbl">Date</span><span class="val">${formatDateUK(item.created_at)}</span></div>
               </div>
               ${canRefund ? `<div class="ops-refund-actions">
-                <button class="ops-refund-btn" onclick="showRefundConfirm(this)" data-purchase-id="${escapeHtmlText(item.purchase_id)}" data-email="${escapeHtmlText(item.email || '')}" data-amount="${item.amount_gbp || 0}" data-credits="${item.credits_granted || 0}" data-used="${item.credits_used || 0}" data-provider="${escapeHtmlText(item.payment_provider || '')}">Execute Refund</button>
+                <button class="ops-refund-btn" onclick="showRefundConfirm(this)" data-purchase-id="${escapeHtmlText(item.purchase_id)}" data-email="${escapeHtmlText(item.email || '')}" data-amount="${item.amount_usd || 0}" data-credits="${item.credits_granted || 0}" data-used="${item.credits_used || 0}" data-provider="${escapeHtmlText(item.payment_provider || '')}">Execute Refund</button>
                 ${usedWarning ? '<span class="ops-refund-warn">Credits used — review required</span>' : ''}
               </div>` : (item.is_subscription ? '<div class="ops-refund-actions"><span class="ops-refund-warn">Subscription — manual refund only</span></div>' : '')}
             </div>`;
@@ -8509,7 +8509,7 @@
         <div class="ops-refund-confirm-box">
           <h4>Execute Refund</h4>
           <div class="confirm-detail"><span class="lbl">User: </span>${escapeHtmlText(email)}</div>
-          <div class="confirm-detail"><span class="lbl">Amount: </span>\u00A3${amount.toFixed(2)}</div>
+          <div class="confirm-detail"><span class="lbl">Amount: </span>$${amount.toFixed(2)}</div>
           <div class="confirm-detail"><span class="lbl">Credits granted: </span>${credits}</div>
           <div class="confirm-detail"><span class="lbl">Credits used: </span>${used}</div>
           <div class="confirm-detail"><span class="lbl">Provider: </span>${escapeHtmlText(provider || 'unknown')}</div>
@@ -8568,7 +8568,7 @@
         if (j.ok) {
           const s = j.summary || {};
           const ext = j.external_refund || {};
-          let msg = `Refund ${manualOnly ? 'recorded' : 'executed'}: \u00A3${(s.amount_gbp || 0).toFixed(2)}, ` +
+          let msg = `Refund ${manualOnly ? 'recorded' : 'executed'}: $${(s.amount_usd || 0).toFixed(2)}, ` +
             `${j.refund?.credits_reversed || 0} credits reversed`;
           if (ext.attempted && ext.executed) {
             msg += ` | Mollie refund sent`;
@@ -8612,8 +8612,8 @@
         }
 
         list.innerHTML = entries.map(e => {
-          const amtStr = e.amount_gbp != null ? `\u00A3${e.amount_gbp.toFixed(2)}` : '';
-          const snapStr = e.balance_snapshot_gbp != null ? `bal: \u00A3${e.balance_snapshot_gbp.toFixed(2)}` : '';
+          const amtStr = e.amount_usd != null ? `$${e.amount_usd.toFixed(2)}` : '';
+          const snapStr = e.balance_snapshot_usd != null ? `bal: $${e.balance_snapshot_usd.toFixed(2)}` : '';
           const display = amtStr || snapStr || '';
           const detail = [e.description || e.reference || '', e.recorded_by ? `by ${e.recorded_by}` : '']
             .filter(Boolean)
@@ -8665,8 +8665,8 @@
           reference: $('#ledgerRef').value || null,
           period_month: $('#ledgerPeriod').value || null,
         };
-        if (amountRaw !== '') body.amount_gbp = parseFloat(amountRaw);
-        if (balanceRaw !== '') body.balance_snapshot_gbp = parseFloat(balanceRaw);
+        if (amountRaw !== '') body.amount_usd = parseFloat(amountRaw);
+        if (balanceRaw !== '') body.balance_snapshot_usd = parseFloat(balanceRaw);
 
         btn.disabled = true;
         btn.textContent = 'Saving...';
@@ -8743,11 +8743,11 @@
             const rowSubtitle = row.display_subtitle ? `<div style="font-size:9px;color:#888;">${escapeHtmlText(row.display_subtitle)}</div>` : '';
             tableHtml += `<tr>
               <td>${escapeHtmlText(rowLabel)}${rowSubtitle}</td>
-              <td>\u00A3${(row.estimated_usage_gbp || 0).toFixed(2)}</td>
+              <td>$${(row.estimated_usage_usd || 0).toFixed(2)}</td>
               <td>${row.job_count || 0}</td>
-              <td>${row.topup_count ? `\u00A3${(row.topups_gbp || 0).toFixed(2)} (${row.topup_count})` : '\u2014'}</td>
-              <td>${row.invoice_count ? `\u00A3${(row.invoices_gbp || 0).toFixed(2)} (${row.invoice_count})` : '\u2014'}</td>
-              <td>${row.adjustment_count ? `\u00A3${(row.adjustments_gbp || 0).toFixed(2)} (${row.adjustment_count})` : '\u2014'}</td>
+              <td>${row.topup_count ? `$${(row.topups_usd || 0).toFixed(2)} (${row.topup_count})` : '\u2014'}</td>
+              <td>${row.invoice_count ? `$${(row.invoices_usd || 0).toFixed(2)} (${row.invoice_count})` : '\u2014'}</td>
+              <td>${row.adjustment_count ? `$${(row.adjustments_usd || 0).toFixed(2)} (${row.adjustment_count})` : '\u2014'}</td>
             </tr>`;
           }
         }
@@ -8764,7 +8764,7 @@
             const snapSubtitle = s.display_subtitle ? `<span class="snap-date" style="color:#888;">${escapeHtmlText(s.display_subtitle)}</span>` : '';
             return `<div class="ops-snapshot-card">
               <span class="snap-prov">${escapeHtmlText(snapLabel)}</span>
-              <span class="snap-bal">\u00A3${s.balance_gbp.toFixed(2)}</span>
+              <span class="snap-bal">$${s.balance_usd.toFixed(2)}</span>
               ${snapSubtitle}
               <span class="snap-date">${formatDateUK(s.recorded_at)}</span>
             </div>`;
@@ -9095,7 +9095,7 @@
 
         list.innerHTML = headerHtml + purchases.map(p => {
           const statusClass = p.status || '';
-          const amt = p.amount_gbp != null ? `\u00A3${p.amount_gbp.toFixed(2)}` : '--';
+          const amt = p.amount_usd != null ? `$${p.amount_usd.toFixed(2)}` : '--';
           const dateStr = formatDateUK(p.created_at);
 
           // Risk badge
@@ -9191,7 +9191,7 @@
               <span class="ops-pch-badge ${p.status}">${escapeHtmlText(p.status)}</span>
             </div>
             <div class="ops-pch-grid" style="margin-bottom:8px;">
-              <div class="ops-pch-field"><span class="lbl">Amount</span><span class="val">\u00A3${(p.amount_gbp || 0).toFixed(2)}</span></div>
+              <div class="ops-pch-field"><span class="lbl">Amount</span><span class="val">$${(p.amount_usd || 0).toFixed(2)}</span></div>
               <div class="ops-pch-field"><span class="lbl">Credits granted</span><span class="val">${p.credits_granted || 0}</span></div>
               <div class="ops-pch-field"><span class="lbl">Credits used since</span><span class="val">${p.credits_used_since || 0}</span></div>
               <div class="ops-pch-field"><span class="lbl">Wallet remaining</span><span class="val">${p.credits_remaining || 0}</span></div>
@@ -9231,7 +9231,7 @@
         if (j.refunds && j.refunds.length) {
           for (const rf of j.refunds) {
             html += `<div style="font-size:11px;padding:6px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;margin-bottom:4px;">
-              <strong>${escapeHtmlText(rf.refund_status)}</strong> &mdash; \u00A3${(rf.amount_gbp || 0).toFixed(2)}, ${rf.credits_reversed || 0} credits reversed
+              <strong>${escapeHtmlText(rf.refund_status)}</strong> &mdash; $${(rf.amount_usd || 0).toFixed(2)}, ${rf.credits_reversed || 0} credits reversed
               <span style="color:#888;margin-left:6px;">${formatDateUK(rf.created_at)}</span>
               ${rf.reason ? `<br/><span style="color:#aaa;">${escapeHtmlText(rf.reason)}</span>` : ''}
             </div>`;
@@ -9293,10 +9293,10 @@
         // Actions
         html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-wrap:wrap;">`;
         if (p.refund_action_state === 'eligible') {
-          html += `<button class="btn small" style="font-size:10px;background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);" onclick="closePurchaseDetail();openStartRefundModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '\u00A3${(p.amount_gbp || 0).toFixed(2)}', ${p.credits_granted || 0})">Start Refund</button>`;
+          html += `<button class="btn small" style="font-size:10px;background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);" onclick="closePurchaseDetail();openStartRefundModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '$${(p.amount_usd || 0).toFixed(2)}', ${p.credits_granted || 0})">Start Refund</button>`;
         }
         if (!p.has_dispute) {
-          html += `<button class="btn small" style="font-size:10px;background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.25);" onclick="closePurchaseDetail();openMarkDisputeModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '\u00A3${(p.amount_gbp || 0).toFixed(2)}')">Mark Dispute</button>`;
+          html += `<button class="btn small" style="font-size:10px;background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.25);" onclick="closePurchaseDetail();openMarkDisputeModal('${escapeHtmlText(p.id)}', '${escapeHtmlText(p.email || '')}', '$${(p.amount_usd || 0).toFixed(2)}')">Mark Dispute</button>`;
         }
         html += `<button class="btn small" style="font-size:10px;" onclick="closePurchaseDetail()">Close</button>`;
         html += '</div>';
@@ -9417,7 +9417,7 @@
         }
 
         list.innerHTML = disputes.map(d => {
-          const amt = d.amount_gbp != null ? `\u00A3${d.amount_gbp.toFixed(2)}` : '--';
+          const amt = d.amount_usd != null ? `$${d.amount_usd.toFixed(2)}` : '--';
           const dateStr = formatDateUK(d.created_at);
           const updatedStr = formatDateUK(d.updated_at);
           const statusLabel = (d.dispute_status || '').replace('_', ' ');
@@ -9862,7 +9862,7 @@
               ${rf.email && rf.identity_id ? `<span style="font-size:10px;color:#666;margin-left:6px;" title="${escapeHtmlText(rf.identity_id)}">${escapeHtmlText(rf.identity_id.substring(0, 8))}...</span>` : ''}
             </div>
             <div class="ops-rh-grid">
-              <div class="ops-rh-field"><span class="lbl">Amount</span><span class="val">\u00A3${(rf.amount_gbp || 0).toFixed(2)}</span></div>
+              <div class="ops-rh-field"><span class="lbl">Amount</span><span class="val">$${(rf.amount_usd || 0).toFixed(2)}</span></div>
               <div class="ops-rh-field"><span class="lbl">Credits reversed</span><span class="val">${rf.credits_reversed || 0}${rf.credits_granted ? ` / ${rf.credits_granted}` : ''}</span></div>
               <div class="ops-rh-field"><span class="lbl">Credit type</span><span class="val">${escapeHtmlText(rf.credit_type || 'general')}</span></div>
               <div class="ops-rh-field"><span class="lbl">Provider</span><span class="val">${escapeHtmlText(rf.payment_provider || '—')}</span></div>
@@ -10533,7 +10533,7 @@
           const u = d.identity;
           const w = u.wallet || {};
           const purchases = u.purchases || [];
-          const totalSpent = purchases.reduce((s, p) => s + (p.amount_gbp || 0), 0);
+          const totalSpent = purchases.reduce((s, p) => s + (p.amount_usd || 0), 0);
           const totalCredits = purchases.reduce((s, p) => s + (p.credits_granted || 0), 0);
 
           let purchaseHtml = '';
@@ -10543,7 +10543,7 @@
               const dt = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '-';
               purchaseHtml += `<div class="nc-su-purchase-row">
                 <span>${dt}</span>
-                <span>£${(p.amount_gbp || 0).toFixed(2)}</span>
+                <span>$${(p.amount_usd || 0).toFixed(2)}</span>
                 <span>${p.credits_granted || 0} cr</span>
                 <span class="nc-status-badge nc-badge-${p.status === 'paid' ? 'published' : 'draft'}">${p.status}</span>
               </div>`;
@@ -10560,7 +10560,7 @@
               <div class="nc-su-stat"><strong>${w.available ?? w.balance ?? '-'}</strong><span>Available</span></div>
               <div class="nc-su-stat"><strong>${w.balance ?? '-'}</strong><span>Balance</span></div>
               <div class="nc-su-stat"><strong>${purchases.length}</strong><span>Purchases</span></div>
-              <div class="nc-su-stat"><strong>£${totalSpent.toFixed(2)}</strong><span>Total Spent</span></div>
+              <div class="nc-su-stat"><strong>$${totalSpent.toFixed(2)}</strong><span>Total Spent</span></div>
               <div class="nc-su-stat"><strong>${totalCredits}</strong><span>Credits Bought</span></div>
             </div>
             <div class="nc-su-id">ID: <code>${identityId}</code></div>

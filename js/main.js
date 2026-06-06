@@ -1607,37 +1607,20 @@ function initTimrxOrderModal() {
 
   // Country-to-currency map mirrors backend pick_currency.
   const USD_COUNTRIES = new Set(['US', 'CA', 'AU']);
-  const GBP_COUNTRIES = new Set(['GB']);
+  const UK_COUNTRIES = new Set(['GB']);
   function currencyFor(country) {
     const c = String(country || '').toUpperCase();
     if (USD_COUNTRIES.has(c)) return 'USD';
-    if (GBP_COUNTRIES.has(c)) return 'GBP';
+    if (UK_COUNTRIES.has(c)) return 'USD';
     return 'EUR';
   }
   function currencySymbol(cur) {
-    return cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
+    return cur === 'EUR' ? '€' : cur === 'USD' ? '$' : '$';
   }
 
   // ── Native per-currency pricing tables — MUST mirror
   //    backend/services/print_order_pricing.py::PRICING exactly.
   const PRICING = {
-    GBP: {
-      production_fee: 9.75,
-      print_time_per_hour: 1.10,
-      min_order: 14.95,
-      packaging_premium: 3.99,
-      free_shipping_threshold: 40.00,
-      shipping: {
-        small: { standard: 4.95, express: 7.95, priority: 12.95 },
-        parcel: { standard: 5.95, express: 8.95, priority: 14.95 },
-        medium: { standard: 7.95, express: 10.95, priority: 18.95 },
-        oversized: { standard: 14.95, express: 19.95, priority: 29.95 },
-      },
-      materials: {
-        fdm:   { pla: 78, plaplus: 95, petg: 105, abs: 115, tpu: 145, silk: 110 },
-        resin: { std: 145, tough: 175, clear: 190, flex: 220 },
-      },
-    },
     EUR: {
       production_fee: 11.50,
       print_time_per_hour: 1.25,
@@ -2447,7 +2430,7 @@ function initTimrxOrderModal() {
     const value = Number(order.total);
     window.gtag_report_conversion(undefined, {
       value: Number.isFinite(value) ? value : 1.0,
-      currency: order.currency || 'GBP',
+      currency: order.currency || 'USD',
       transaction_id: order.id || order.order_number || '',
     });
   }

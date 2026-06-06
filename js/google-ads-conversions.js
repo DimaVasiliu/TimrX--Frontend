@@ -7,7 +7,7 @@
   'use strict';
 
   const SEND_TO = 'AW-18162436469/ruWaCPm54qwcEPWSw9RD';
-  const DEFAULT_CURRENCY = 'GBP';
+  const DEFAULT_CURRENCY = 'USD';
   const DEFAULT_VALUE = 1.0;
   const DEDUPE_PREFIX = 'timrx_ads_purchase_conversion:';
 

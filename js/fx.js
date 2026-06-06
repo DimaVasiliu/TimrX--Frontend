@@ -2,7 +2,7 @@
  * fx.js
  * Multi-currency price display for TimrX
  *
- * Shows estimated prices in user's local currency while billing remains in GBP.
+ * Shows estimated prices in user's local currency while billing remains in USD.
  * Uses 24h cached FX rates from backend or localStorage fallback.
  */
 
@@ -15,11 +15,13 @@
 
   // Country to currency mapping
   const COUNTRY_CURRENCY_MAP = {
-    // USD countries
+    // USD countries (US + UK + USD-pegged territories)
     'US': 'USD',
     'PR': 'USD', // Puerto Rico
     'GU': 'USD', // Guam
     'VI': 'USD', // US Virgin Islands
+    'GB': 'USD', // UK ships at USD pricing
+    'UK': 'USD',
     // EUR countries (Eurozone)
     'AT': 'EUR', 'BE': 'EUR', 'CY': 'EUR', 'EE': 'EUR', 'FI': 'EUR',
     'FR': 'EUR', 'DE': 'EUR', 'GR': 'EUR', 'IE': 'EUR', 'IT': 'EUR',
@@ -29,9 +31,6 @@
     'CA': 'CAD',
     // AUD
     'AU': 'AUD',
-    // GBP - no conversion needed
-    'GB': 'GBP',
-    'UK': 'GBP',
   };
 
   // Locale to currency fallback
@@ -39,7 +38,7 @@
     'en-US': 'USD',
     'en-CA': 'CAD',
     'en-AU': 'AUD',
-    'en-GB': 'GBP',
+    'en-GB': 'USD',
     // European locales
     'de': 'EUR', 'de-DE': 'EUR', 'de-AT': 'EUR',
     'fr': 'EUR', 'fr-FR': 'EUR', 'fr-BE': 'EUR',
@@ -51,11 +50,10 @@
     'fi': 'EUR', 'fi-FI': 'EUR',
   };
 
-  // Currency symbols and formatting
+  // Currency symbols and formatting. USD is the base (billing) currency.
   const CURRENCY_CONFIG = {
-    GBP: { symbol: '£', locale: 'en-GB' },
-    USD: { symbol: '$', locale: 'en-US' },
-    EUR: { symbol: '€', locale: 'de-DE' },
+    USD: { symbol: '$',  locale: 'en-US' },
+    EUR: { symbol: '€',  locale: 'de-DE' },
     CAD: { symbol: 'C$', locale: 'en-CA' },
     AUD: { symbol: 'A$', locale: 'en-AU' },
   };
@@ -74,7 +72,7 @@
     }
 
     // 2. Fall back to browser locale
-    const locale = navigator.language || navigator.userLanguage || 'en-GB';
+    const locale = navigator.language || navigator.userLanguage || 'en-US';
 
     // Try exact match first
     if (LOCALE_CURRENCY_MAP[locale]) {
@@ -87,8 +85,8 @@
       return LOCALE_CURRENCY_MAP[lang];
     }
 
-    // Default: no conversion (show GBP only)
-    return 'GBP';
+    // Default: show USD (the base currency — no conversion)
+    return 'USD';
   }
 
   /**
@@ -128,7 +126,7 @@
 
   /**
    * Fetch FX rates from backend with caching.
-   * Returns rates object or null if unavailable.
+   * Returns rates object (X per USD) or null if unavailable.
    */
   async function getFxRatesCached() {
     // Check local cache first
@@ -164,21 +162,22 @@
   }
 
   /**
-   * Convert GBP amount to target currency.
-   * Returns null if conversion not possible.
+   * Convert a USD amount to the target currency.
+   * `rates` is an object whose values are units of the target currency per 1 USD.
+   * Returns null if the target is USD itself (no conversion needed) or no rate available.
    */
-  function convert(amountGbp, currency, rates) {
-    if (!rates || currency === 'GBP') return null;
+  function convert(amountUsd, currency, rates) {
+    if (!rates || currency === 'USD') return null;
     const rate = rates[currency];
     if (!rate) return null;
-    return amountGbp * rate;
+    return amountUsd * rate;
   }
 
   /**
    * Format currency amount using Intl.NumberFormat.
    */
   function formatCurrency(amount, currency) {
-    const config = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.GBP;
+    const config = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.USD;
     try {
       return new Intl.NumberFormat(config.locale, {
         style: 'currency',
@@ -193,29 +192,29 @@
   }
 
   /**
-   * Format GBP price with symbol.
+   * Format a USD price with symbol.
    */
-  function formatGBP(amount) {
-    return formatCurrency(amount, 'GBP');
+  function formatUSD(amount) {
+    return formatCurrency(amount, 'USD');
   }
 
   /**
-   * Generate the secondary price line HTML.
-   * Returns empty string if no conversion available.
+   * Generate the secondary price line HTML for a non-USD viewer.
+   * Returns empty string if no conversion is available or the target is USD.
    *
-   * @param {number} gbpAmount - Price in GBP
+   * @param {number} usdAmount - Price in USD (the billing currency)
    * @param {string} targetCurrency - Target currency code
-   * @param {object} rates - FX rates object
+   * @param {object} rates - FX rates object (target-per-USD)
    * @returns {string} HTML string for secondary price line
    */
-  function getConvertedPriceHtml(gbpAmount, targetCurrency, rates) {
-    if (!rates || targetCurrency === 'GBP') return '';
+  function getConvertedPriceHtml(usdAmount, targetCurrency, rates) {
+    if (!rates || targetCurrency === 'USD') return '';
 
-    const converted = convert(gbpAmount, targetCurrency, rates);
+    const converted = convert(usdAmount, targetCurrency, rates);
     if (converted === null) return '';
 
     const formatted = formatCurrency(converted, targetCurrency);
-    return `<span class="price-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(estimated, charged in GBP)</span></span>`;
+    return `<span class="price-converted">≈ ${formatted} ${targetCurrency} <span class="price-disclaimer">(estimated, charged in USD)</span></span>`;
   }
 
   /**
@@ -229,7 +228,7 @@
     const context = {
       targetCurrency,
       rates,
-      hasConversion: rates !== null && targetCurrency !== 'GBP',
+      hasConversion: rates !== null && targetCurrency !== 'USD',
     };
 
     console.log('[FX] Initialized:', context);
@@ -243,7 +242,7 @@
     getFxRatesCached,
     convert,
     formatCurrency,
-    formatGBP,
+    formatUSD,
     getConvertedPriceHtml,
     CURRENCY_CONFIG,
   };
