@@ -40,6 +40,14 @@
     template.innerHTML=String(markup);
     parent.appendChild(template.content);
   }
+  function ensureTurnstileContainer(){
+    if(turnstileContainer&&document.body.contains(turnstileContainer))return turnstileContainer;
+    turnstileWidgetId=null;
+    turnstileContainer=document.createElement('div');
+    turnstileContainer.className='turnstile-holder';
+    turnstileContainer.setAttribute('aria-label','Human verification');
+    return turnstileContainer;
+  }
   function track(name,extra={}){
     window.dataLayer=window.dataLayer||[];
     const payload={interaction_name:name,page_type:'platform_landing',...extra};
@@ -94,12 +102,8 @@
     if(isFile)return '';
     if(!turnstileSiteKey)throw new Error('turnstile_site_key_missing');
     const turnstile=await waitForTurnstile();
-    if(!turnstileContainer){
-      turnstileContainer=document.createElement('div');
-      turnstileContainer.className='turnstile-holder';
-      turnstileContainer.setAttribute('aria-hidden','true');
-      document.body.appendChild(turnstileContainer);
-    }
+    const container=ensureTurnstileContainer();
+    if(!answer.contains(container))answer.appendChild(container);
     return new Promise((resolve,reject)=>{
       let settled=false;
       const done=(fn,value)=>{
@@ -108,10 +112,11 @@
         window.clearTimeout(timeout);
         fn(value);
       };
-      const timeout=window.setTimeout(()=>done(reject,new Error('turnstile_timeout')),15000);
+      const timeout=window.setTimeout(()=>done(reject,new Error('turnstile_timeout')),60000);
       const options={
         sitekey:turnstileSiteKey,
-        size:'invisible',
+        size:'normal',
+        theme:'dark',
         callback:token=>done(resolve,token),
         'error-callback':()=>done(reject,new Error('turnstile_error')),
         'expired-callback':()=>done(reject,new Error('turnstile_expired')),
@@ -119,11 +124,10 @@
       };
       try{
         if(turnstileWidgetId===null||turnstileWidgetId===undefined){
-          turnstileWidgetId=turnstile.render(turnstileContainer,options);
+          turnstileWidgetId=turnstile.render(container,options);
         }else{
           turnstile.reset(turnstileWidgetId);
         }
-        turnstile.execute(turnstileWidgetId);
       }catch(error){
         done(reject,error);
       }
