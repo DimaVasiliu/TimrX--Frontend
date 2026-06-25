@@ -17,7 +17,8 @@
 /ai-texture-generator.html      /ai-texture-generator      301
 /pricing.html                   /pricing                   301
 /archive.html                   /archive                   301
-/about.html                     /about                     301
+/about.html                     /dima-vasiliu              301
+/dima-vasiliu.html              /dima-vasiliu              301
 /company.html                   /company                   301
 /converter.html                 /converter                 301
 /avi-to-mp4.html                /converters/avi-to-mp4     301
@@ -53,6 +54,11 @@
 # Legacy blog URLs -> canonical reader
 /blog/:slug      /read?slug=:slug      301
 
+# Personal portfolio canonical route. Keep /about as a permanent legacy alias.
+/about           /dima-vasiliu         301
+/about/          /dima-vasiliu         301
+/dima-vasiliu    /dima-vasiliu.html    200
+
 # Admin rewrites (target's clean form differs, so no loop)
 /admin          /admin/admin.html       200
 /admin/edit     /admin/admin-edit.html  200
@@ -65,7 +71,7 @@
 
 # Trailing-slash normalization
 /archive/     /archive    301
-/about/       /about      301
+/dima-vasiliu/ /dima-vasiliu 301
 /company/     /company    301
 /converter/   /converter  301
 /avi-to-mp4/  /converters/avi-to-mp4 301

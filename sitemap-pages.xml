@@ -5,7 +5,7 @@
   <!-- Homepage - 3D / image / video generation platform -->
   <url>
     <loc>https://timrx.live/</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -185,10 +185,10 @@
     </image:image>
   </url>
 
-  <!-- About (founder) -->
+  <!-- Founder portfolio -->
   <url>
-    <loc>https://timrx.live/about</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>https://timrx.live/dima-vasiliu</loc>
+    <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

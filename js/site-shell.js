@@ -18,7 +18,7 @@
     '/avi-to-mp4': { preview: 'avi-to-mp4.html', live: '/avi-to-mp4' },
     '/stl-library': { preview: 'stl-library.html', live: '/stl-library' },
     '/company': { preview: 'company.html', live: '/company' },
-    '/about': { preview: 'about.html', live: '/about' },
+    '/dima-vasiliu': { preview: 'dima-vasiliu.html', live: '/dima-vasiliu' },
     '/terms': { preview: 'terms.html', live: '/terms' },
     '/privacy': { preview: 'privacy.html', live: '/privacy' },
     '/cookies': { preview: 'cookies.html', live: '/cookies' },
@@ -84,9 +84,9 @@
       links: [
         { href: '/blogs', label: 'Blog' },
         { href: '/stl-library', label: 'STL Library' },
-        { href: '/#works', label: 'Works' },
-        { href: '/#services', label: 'Services' },
-        { href: '/#contact', label: 'Contact' }
+        { href: '/converter', label: 'Converter' },
+        { href: '/company', label: 'Company' },
+        { href: '/dima-vasiliu', label: 'Founder' }
       ]
     },
     {
@@ -113,7 +113,6 @@
       links: [
         { href: '/rss.xml', label: 'RSS' },
         { href: 'mailto:admin@timrx.live', label: 'Email' },
-        { href: 'https://www.youtube.com/@TimrX-Studio', label: 'YouTube', external: true },
         { href: 'https://www.linkedin.com/in/dumitru-vasiliu', label: 'LinkedIn', external: true },
         { href: 'https://github.com/DimaVasiliu', label: 'GitHub', external: true }
       ]
@@ -210,7 +209,7 @@
             ${mobileLinks}
           </nav>
           <div class="site-shell-mobile-footer">
-            <span class="site-shell-mobile-footer-text">TimrX / Dima Vasiliu</span>
+            <span class="site-shell-mobile-footer-text">TimrX creative platform</span>
           </div>
         </div>
       </div>
@@ -257,13 +256,13 @@
                 <span class="site-shell-footer-name">TimrX</span>
               </a>
               <span class="site-shell-footer-tag">AI Creative Platform</span>
-              <p class="site-shell-footer-desc">TimrX is a creative AI platform by Dima Vasiliu for 3D models, AI image generation, and video workflows built for the web.</p>
+              <p class="site-shell-footer-desc">TimrX is a creative AI platform for 3D models, image generation, video workflows and production-ready exports.</p>
             </div>
             <div class="site-shell-footer-cols">${footerCols}</div>
           </div>
           <div class="site-shell-footer-bottom">
-            <span>&copy; <span data-site-shell-year></span> TimrX / Dima Vasiliu</span>
-            <span>Built in London &middot; AI creative tools</span>
+            <span>&copy; <span data-site-shell-year></span> TimrX</span>
+            <a href="${resolveInternalHref('/dima-vasiliu')}">Built by Dima Vasiliu</a>
           </div>
         </div>
       </footer>

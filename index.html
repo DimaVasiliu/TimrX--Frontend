@@ -1,2779 +1,405 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-GB">
 <head>
-<script>(function(){var qs=(location.search||"")+(location.hash||"");var ref=document.referrer||"";var allow=/[?&#]gtm_debug=/.test(qs)||/^https:\/\/tagassistant\.google\.com/.test(ref);if(self!==top&&!allow){top.location=self.location;}})();</script>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<!-- Primary Meta Tags -->
-<title>AI 3D Model Generator - Text or Image to STL | TimrX</title>
-<meta name="title" content="AI 3D Model Generator - Text or Image to STL | TimrX" />
-<meta name="description" content="Generate 3D models from text prompts or images in your browser. Remesh, texture, run print checks and export STL, OBJ and GLB files for 3D printing, games and rendering." />
-<meta name="author" content="Dima Vasiliu" />
-<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-<meta name="googlebot" content="index, follow" />
-<link rel="canonical" href="https://timrx.live/" />
-
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-logo-32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-logo-16.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png" />
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#0b0b0b" />
-<meta name="msapplication-TileColor" content="#0b0b0b" />
-
-<!-- Hreflang Tags -->
-<link rel="alternate" hreflang="en-gb" href="https://timrx.live/" />
-<link rel="alternate" hreflang="en-us" href="https://timrx.live/" />
-<link rel="alternate" hreflang="x-default" href="https://timrx.live/" />
-
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://timrx.live/" />
-<meta property="og:title" content="AI 3D Model Generator - Text or Image to STL" />
-<meta property="og:description" content="Create 3D models from text or images in your browser, then remesh, texture, check printability and export STL, OBJ and GLB files." />
-<meta property="og:image" content="https://timrx.live/img/OG_APP.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="TimrX — generate 3D models, images and video online" />
-<meta property="og:site_name" content="TimrX" />
-<meta property="og:locale" content="en_GB" />
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:url" content="https://timrx.live/" />
-<meta name="twitter:title" content="AI 3D Model Generator - Text or Image to STL" />
-<meta name="twitter:description" content="Generate 3D models from text or images, then remesh, texture, check printability and export STL, OBJ and GLB files." />
-<meta name="twitter:image" content="https://timrx.live/img/OG_APP.png" />
-<meta name="twitter:creator" content="@timrx_live" />
-
-<!-- Google Site Verification (replace with your actual verification code) -->
-<meta name="google-site-verification" content="d6b6cc096a6be524" />
-
-<!-- Additional SEO -->
-<meta name="application-name" content="TimrX" />
-<meta name="apple-mobile-web-app-title" content="TimrX" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-<!-- Structured Data - consolidated entity graph (Organization + Person + WebSite + WebApplication + WebPage) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://timrx.live/#organization",
-      "name": "TimrX",
-      "url": "https://timrx.live/",
-      "logo": "https://timrx.live/img/favicon-logo-512.png",
-      "description": "TimrX is a browser-based generation platform for 3D models, images, video and printable STL files.",
-      "foundingDate": "2024",
-      "founder": { "@id": "https://timrx.live/#founder" },
-      "sameAs": [
-        "https://www.youtube.com/@TimrX-Studio",
-        "https://github.com/DimaVasiliu",
-        "https://www.linkedin.com/in/dumitru-vasiliu"
-      ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "customer support",
-        "email": "admin@timrx.live"
-      }
-    },
-    {
-      "@type": "Person",
-      "@id": "https://timrx.live/#founder",
-      "name": "Dima Vasiliu",
-      "alternateName": "Dumitru Vasiliu",
-      "url": "https://timrx.live/about",
-      "image": "https://timrx.live/img/dima.jpg",
-      "jobTitle": "Founder & Developer",
-      "worksFor": { "@id": "https://timrx.live/#organization" },
-      "knowsAbout": ["3D generation", "WebGL", "Three.js", "AI integration", "3D printing", "Full-stack development"],
-      "sameAs": [
-        "https://www.youtube.com/@TimrX-Studio",
-        "https://github.com/DimaVasiliu",
-        "https://www.linkedin.com/in/dumitru-vasiliu"
-      ]
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://timrx.live/#website",
-      "url": "https://timrx.live/",
-      "name": "TimrX",
-      "publisher": { "@id": "https://timrx.live/#organization" },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": { "@type": "EntryPoint", "urlTemplate": "https://timrx.live/hub?search={search_term_string}" },
-        "query-input": "required name=search_term_string"
-      }
-    },
-    {
-      "@type": "WebApplication",
-      "@id": "https://timrx.live/#app",
-      "name": "TimrX",
-      "url": "https://timrx.live/",
-      "applicationCategory": "DesignApplication",
-      "applicationSubCategory": "3D Modeling",
-      "operatingSystem": "Web browser",
-      "browserRequirements": "Requires a modern web browser. No install needed.",
-      "publisher": { "@id": "https://timrx.live/#organization" },
-      "screenshot": "https://timrx.live/img/OG_APP.png",
-      "featureList": [
-        "Text-to-3D and image-to-3D model generation (Meshy 5 and 6)",
-        "AI image generation (FLUX, Google Imagen, Ideogram, Recraft, Stable Diffusion, DALL-E)",
-        "AI video generation — text-to-video and image-to-video (Veo 3, Seedance)",
-        "Remesh, retopology and refine for 3D meshes",
-        "PBR texture generation from text or images",
-        "Auto-rigging and 3D animation",
-        "Print-readiness check (wall thickness, overhangs, print score)",
-        "Multi-color paint (MCP) — full-color 3MF for AMS and MMU",
-        "3D file conversion and STL / OBJ / GLB / GLTF / USDZ export",
-        "Downloadable ready-to-print STL packs",
-        "Game-ready 3D asset generation for Unity, Unreal and Blender",
-        "3D printing on demand — print, ship and deliver"
-      ]
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://timrx.live/#webpage",
-      "url": "https://timrx.live/",
-      "name": "AI 3D Model Generator - Text or Image to STL | TimrX",
-      "isPartOf": { "@id": "https://timrx.live/#website" },
-      "about": { "@id": "https://timrx.live/#organization" },
-      "primaryImageOfPage": "https://timrx.live/img/OG_APP.png"
-    }
-  ]
-}
-</script>
-
-<!-- Structured Data - Service (3D Printing Fulfillment) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "@id": "https://timrx.live/#printing-service",
-  "name": "TimrX 3D Printing & Delivery Service",
-  "serviceType": "3D Printing on Demand",
-  "provider": {
-    "@type": "Organization",
-    "name": "TimrX",
-    "url": "https://timrx.live"
-  },
-  "areaServed": "Worldwide",
-  "description": "Create AI-generated 3D models on TimrX and order them as physical prints. We print on FDM and resin printers, support multi-color AMS/MMU prints, then ship and deliver direct to your door.",
-  "url": "https://timrx.live/print-on-demand",
-  "offers": [
-    {
-      "@type": "Offer",
-      "name": "First Small Print Free",
-      "description": "First order: one small print (up to 50 mm tall) is free — you only pay shipping. Limit one per customer. Launching with the print service in summer 2026.",
-      "price": "0",
-      "priceCurrency": "USD",
-      "eligibleQuantity": { "@type": "QuantitativeValue", "value": 1, "unitText": "print" },
-      "availability": "https://schema.org/PreOrder",
-      "validFrom": "2026-07-01",
-      "availabilityStarts": "2026-07-01"
-    },
-    {
-      "@type": "Offer",
-      "name": "Free Worldwide Shipping over $40",
-      "description": "Orders with a print subtotal of $40 or more ship free worldwide. No code required. Launching with the print service in summer 2026.",
-      "priceSpecification": {
-        "@type": "PriceSpecification",
-        "price": "0",
-        "priceCurrency": "USD",
-        "minPrice": "40",
-        "description": "Free shipping threshold"
-      },
-      "availability": "https://schema.org/PreOrder",
-      "validFrom": "2026-07-01",
-      "availabilityStarts": "2026-07-01"
-    },
-    {
-      "@type": "Offer",
-      "name": "Refer-a-Friend Print Credit",
-      "description": "Refer a friend and you both receive $5 in print credit when they place their first paid order. Launching with the print service in summer 2026.",
-      "price": "5",
-      "priceCurrency": "USD",
-      "availability": "https://schema.org/PreOrder",
-      "validFrom": "2026-07-01",
-      "availabilityStarts": "2026-07-01"
-    }
-  ],
-  "hasOfferCatalog": {
-    "@type": "OfferCatalog",
-    "name": "TimrX Print Services",
-    "itemListElement": [
-      {
-        "@type": "OfferCatalog",
-        "name": "FDM Printing",
-        "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "PLA single-color FDM print" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "PETG functional FDM print" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Multi-color AMS / MMU print (up to 16 filaments)" } }
-        ]
-      },
-      {
-        "@type": "OfferCatalog",
-        "name": "Resin Printing",
-        "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Standard resin print (miniatures, detail work)" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tough resin functional print" } }
-        ]
-      }
-    ]
-  }
-}
-</script>
-
-<!-- Structured Data - FAQPage (for rich snippets) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What is TimrX?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "TimrX is a browser-based AI 3D model generator built by developer Dima Vasiliu. It turns text prompts or images into 3D assets, then supports remesh, texturing, print checks and STL, OBJ and GLB export."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How does text-to-3D work?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Describe what you want to create in natural language, and our AI generates a detailed 3D model. For example: 'A medieval castle with towers' produces a downloadable 3D asset."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What formats can I export?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "TimrX exports to GLB, GLTF, STL, and USDZ formats, compatible with Blender, Unity, Unreal Engine, and 3D printing slicers like Cura and PrusaSlicer."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Do I need Blender to use TimrX?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No. TimrX is a complete browser-based solution. Generate, preview, remesh, texture, and export 3D models without any external software."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Can TimrX print and ship my model for me?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The print-and-ship service launches summer 2026. Once live, after generating a model on TimrX you'll be able to order it as a physical print directly from the workspace — FDM or resin, single-color or multi-color, with worldwide shipping. The model generation, refinement and 3MF export tools are live today. Email admin@timrx.live to join the print waitlist."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Does TimrX support multi-color 3D printing?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes — the multi-color export is live today. TimrX exports full-color 3MF files compatible with Bambu Lab AMS, Prusa MMU and other multi-material printers, with 1 to 16 filament colors. Multi-color print-on-demand (we run it on our AMS hardware and ship to you) launches with the rest of the print service in summer 2026."
-      }
-    }
-  ]
-}
-</script>
-
-<!-- Preload LCP image for mobile -->
-<link rel="preload" as="image" type="image/webp"
-      href="img/dima-480.webp"
-      imagesrcset="img/dima-480.webp 480w, img/dima-768.webp 768w, img/dima-1024.webp 1024w"
-      imagesizes="(max-width: 600px) 90vw, 600px"
-      fetchpriority="high">
-
-<!-- Self-hosted fonts (no external DNS lookups) -->
-<link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/fonts/fonts.css">
-
-<!-- Font Awesome: Async load (no preload — below fold, not critical) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous"></noscript>
-
-<!-- Stylesheets -->
-<link rel="preload" href="./styles.css?v=7" as="style">
-<link rel="stylesheet" href="./styles.css?v=7" />
-<link rel="stylesheet" href="./media/index.css?v=7" />
-<link rel="stylesheet" href="./trustpilot.css?v=20260525-2" />
-
-<!-- Critical CSS: Above-the-fold styles for faster FCP -->
-<style>
-  :root{--bg:#0d0d0d;--text:#f5f5f5;--navH:72px;--gutter:28px;--maxw:1320px}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-  .container{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
-  .nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,8,8,.88);backdrop-filter:blur(12px)}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:none;margin:0;padding:0 clamp(20px,5vw,64px)}
-  .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:clamp(28px,5vh,64px)}
-  #hero{max-width:none;padding-bottom:clamp(56px,9vh,120px);padding-inline:clamp(16px,4vw,90px)}
-  #about{margin-top:clamp(40px,6vh,96px)}
-  #hero .hero-title{margin-left:0}
-  #hero .hero-watermark{left:3%}
-  #hero .hero-plate{left:-7%;right:-3%}
-  .hero-title{font-weight:900;font-size:clamp(36px,12vw,60px);line-height:.9;text-transform:uppercase;text-align:center}
-  @media(min-width:1024px){.hero-title{text-align:left;white-space:nowrap;font-size:clamp(58px,8.5vw,118px)}}
-</style>
-  <!-- Google Tag Manager -->
-  <script>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TH8DB6S5');
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <script>(function(){var q=(location.search||'')+(location.hash||''),r=document.referrer||'';var a=/[?&#]gtm_debug=/.test(q)||/^https:\/\/tagassistant\.google\.com/.test(r);if(self!==top&&!a){top.location=self.location;}})();</script>
+  <title>TimrX — Create Images, Videos and 3D Models Online</title>
+  <meta name="description" content="Create images, videos and printable 3D models in one workspace. Generate from prompts or uploads, refine assets, convert files and export STL, OBJ, GLB or 3MF.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="TimrX">
+  <meta name="theme-color" content="#08090d">
+  <link rel="canonical" href="https://timrx.live/">
+  <link rel="alternate" hreflang="en-gb" href="https://timrx.live/">
+  <link rel="alternate" hreflang="x-default" href="https://timrx.live/">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-logo-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-logo-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TimrX">
+  <meta property="og:url" content="https://timrx.live/">
+  <meta property="og:title" content="TimrX — Create Images, Videos and 3D Models Online">
+  <meta property="og:description" content="One browser workspace for generating, refining, converting and exporting creative assets.">
+  <meta property="og:image" content="https://timrx.live/img/OG_APP.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TimrX — Create Images, Videos and 3D Models Online">
+  <meta name="twitter:description" content="Generate images, videos and printable 3D models from prompts or uploads.">
+  <meta name="twitter:image" content="https://timrx.live/img/OG_APP.png">
+  <meta name="twitter:image:alt" content="TimrX — create images, videos and 3D models in one browser workspace">
+  <meta name="twitter:url" content="https://timrx.live/">
+  <meta name="twitter:creator" content="@timrx_live">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="TimrX — create images, videos and 3D models in one browser workspace">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[
+    {"@type":"Organization","@id":"https://timrx.live/#organization","name":"TimrX","url":"https://timrx.live/","logo":"https://timrx.live/img/favicon-logo-512.png","founder":{"@id":"https://timrx.live/dima-vasiliu#person"}},
+    {"@type":"WebSite","@id":"https://timrx.live/#website","url":"https://timrx.live/","name":"TimrX","publisher":{"@id":"https://timrx.live/#organization"}},
+    {"@type":"SoftwareApplication","@id":"https://timrx.live/#software","name":"TimrX","url":"https://timrx.live/3dprint","applicationCategory":"DesignApplication","operatingSystem":"Web browser","description":"A browser workspace for AI image, video and 3D generation, refinement, conversion and print-ready export.","featureList":["Text and image to 3D","AI image generation","AI video generation","Remesh and retexture","STL, OBJ, GLB and 3MF export","3D print preparation"],"publisher":{"@id":"https://timrx.live/#organization"}},
+    {"@type":"WebPage","@id":"https://timrx.live/#webpage","url":"https://timrx.live/","name":"TimrX — Create Images, Videos and 3D Models Online","isPartOf":{"@id":"https://timrx.live/#website"},"mainEntity":{"@id":"https://timrx.live/#software"}}
+  ]}
   </script>
-  <!-- End Google Tag Manager -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"What can I create with TimrX?","acceptedAnswer":{"@type":"Answer","text":"Create images, short videos, textured 3D models and printable assets from prompts, images or existing files."}},
+    {"@type":"Question","name":"Can I export models for 3D printing?","acceptedAnswer":{"@type":"Answer","text":"Yes. TimrX supports print checks and export workflows for STL and 3MF."}},
+    {"@type":"Question","name":"Which file formats are supported?","acceptedAnswer":{"@type":"Answer","text":"Core workflows support STL, OBJ, GLB, GLTF, USDZ and 3MF, with additional formats available through the converter."}},
+    {"@type":"Question","name":"Do I need Blender or advanced 3D skills?","acceptedAnswer":{"@type":"Answer","text":"No. TimrX is designed to generate, inspect, refine and export assets directly in the browser."}},
+    {"@type":"Question","name":"How do credits work?","acceptedAnswer":{"@type":"Answer","text":"Credits are used when running AI generation and selected refinement tools. You can choose a credit pack that fits your workflow."}}
+  ]}
+  </script>
+  <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="landing.css?v=6">
+  <link rel="stylesheet" href="hero-assistant.css?v=9">
+  <link rel="stylesheet" href="landing-widgets.css?v=4">
+  <script>window.dataLayer=window.dataLayer||[];</script>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');</script>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-
-    
-<!-- NAV -->
-<nav class="nav divider" aria-label="Main">
-    <div class="container nav-inner">
-      <div class="brand-group">
-        <img src="img/logo.png" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-        <a class="brand" id="brand" href="/" aria-label="Home">
-          <span class="swap" id="brandTim" aria-label="TimrX">
-            <span class="b-tim">Timr</span><span class="b-x">X</span>
-          </span>
-        </a>
-      </div>
-
-      <!-- Desktop links -->
-      <div class="nav-links" role="navigation" aria-label="Primary">
-        <a href="#app3d">—&gt; 3D Print Hub</a>
-        <a href="#works">WORKS</a>
-        <a href="#services">SERVICES</a>
-        <a href="#blogs">BLOGS</a>
-        <a href="#contact">{ CONNECT }</a>
-      </div>
-
-      <a class="nav-cta nav-cta-desktop" href="#contact" aria-label="Contact Dima">CONTACT ME ↗</a>
-
-      <!-- Mobile hamburger button -->
-      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Mobile menu overlay -->
-  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="#app3d" class="mobile-nav-link">
-          <span class="mnl-label">3D Print Hub</span>
-          <span class="mnl-sub">Explore the hub</span>
-        </a>
-        <a href="#works" class="mobile-nav-link">
-          <span class="mnl-label">Works</span>
-          <span class="mnl-sub">Selected projects</span>
-        </a>
-        <a href="#services" class="mobile-nav-link">
-          <span class="mnl-label">Services</span>
-          <span class="mnl-sub">What I offer</span>
-        </a>
-        <a href="#blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blogs</span>
-          <span class="mnl-sub">Latest writing</span>
-        </a>
-        <a href="#contact" class="mobile-nav-link">
-          <span class="mnl-label">Connect</span>
-          <span class="mnl-sub">Get in touch</span>
-        </a>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/hub">Product</a><a href="/ai-tools">Tools</a><a href="/hub#pricing">Pricing</a><a href="/blogs">Blog</a>
       </nav>
-      <a class="mobile-cta" href="#contact">CONTACT ME ↗</a>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX / Dima Vasiliu</span>
-      </div>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span></button>
     </div>
-  </div>
-
-  <main class="page" style="flex:1;">
-
-    <!-- Platform Showcase + Workflow -->
-    <style>
-    /* ===== Redesigned platform hero — self-contained, hx- scoped ===== */
-    .hx-hero{position:relative;overflow:hidden;background:#08090b;
-      min-height:calc(100svh - 64px);
-      display:flex;align-items:center;
-      padding:clamp(92px,10vh,136px) 0 clamp(72px,10vh,128px);
-      isolation:isolate;}
-    .hx-hero *{box-sizing:border-box;}
-    .hx-dotfield{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
-      mask-image:linear-gradient(to bottom,transparent 0%,#000 12%,#000 86%,transparent 100%);
-      -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 12%,#000 86%,transparent 100%);}
-    .hx-h1-canvas{width:100%;height:100%;display:block;}
-    .hx-wrap{position:relative;z-index:3;width:100%;margin:0 auto;
-      padding:0 clamp(20px,5vw,64px);}
-    .hx-main{max-width:1240px;margin:0 auto;text-align:center;}
-    .hx-text{display:flex;flex-direction:column;align-items:center;}
-    .hx-h1{position:relative;margin:clamp(22px,3vh,34px) auto 0;max-width:1240px;
-      font-weight:900;line-height:.88;letter-spacing:0;
-      text-transform:uppercase;color:#f7f8fb;text-align:center;text-wrap:balance;
-      text-shadow:0 24px 60px rgba(0,0,0,.72),0 0 28px rgba(157,184,218,.18);
-      font-size:clamp(46px,6.2vw,96px);}
-    .hx-h1::after{content:"";position:absolute;left:50%;bottom:-18px;width:min(440px,58vw);height:1px;
-      transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(65,178,232,.52),rgba(157,184,218,.76),transparent);}
-    .hx-h1-l{display:block;overflow:hidden;padding:.04em 0;margin:-.04em 0;}
-    .hx-h1-i{display:block;transform:translateY(106%);
-      animation:hxWipe 1s cubic-bezier(.2,.78,.2,1) both;}
-    .hx-h1-l:nth-child(1) .hx-h1-i{animation-delay:.12s;}
-    .hx-h1-l:nth-child(2) .hx-h1-i{animation-delay:.26s;}
-    .hx-h1-i.a{color:#9db8da;text-shadow:0 0 34px rgba(157,184,218,.32),0 18px 44px rgba(0,0,0,.55);}
-    .hx-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:clamp(10px,1.05vw,12px);
-      letter-spacing:.2em;text-transform:uppercase;color:rgba(244,242,236,.78);font-weight:700;
-      padding:10px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.045);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 60px rgba(0,0,0,.25);
-      backdrop-filter:blur(12px);
-      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) .34s both;}
-    .hx-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4fb6ff;
-      box-shadow:0 0 14px #4fb6ff;animation:hxBlink 3s ease-in-out infinite;}
-    .hx-pipe{position:relative;display:flex;justify-content:space-between;
-      width:min(720px,100%);margin:clamp(40px,5vh,60px) auto 0;
-      opacity:0;animation:hxRise .8s cubic-bezier(.2,.7,.2,1) .42s both;}
-    .hx-pipe-track{position:absolute;left:21px;right:21px;top:21px;height:1.5px;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);}
-    .hx-pipe-pulse{position:absolute;top:16px;width:34px;height:11px;border-radius:11px;
-      background:#4fb6ff;box-shadow:0 0 22px 5px rgba(79,182,255,.34);
-      animation:hxPulse 5s ease-in-out infinite;}
-    .hx-node{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;}
-    .hx-node i{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;
-      justify-content:center;font-size:18px;background:#141418;
-      border:1px solid rgba(255,255,255,.14);color:rgba(244,242,236,.64);
-      box-shadow:0 16px 40px rgba(0,0,0,.22);
-      animation:hxNode 5s ease-in-out infinite;}
-    .hx-node span{font-size:clamp(8.5px,.95vw,10.5px);letter-spacing:.13em;
-      text-transform:uppercase;color:rgba(244,242,236,.5);white-space:nowrap;}
-    .hx-node:nth-child(4) i{animation-delay:1s;}
-    .hx-node:nth-child(5) i{animation-delay:2s;}
-    .hx-node:nth-child(6) i{animation-delay:3s;}
-    .hx-node:nth-child(7) i{animation-delay:4s;}
-    .hx-sub{margin:clamp(34px,4.5vh,52px) auto 0;max-width:780px;
-      font-size:clamp(15px,1.45vw,20px);line-height:1.62;color:rgba(244,242,236,.72);
-      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .5s both;}
-    .hx-cta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:clamp(26px,3.6vh,42px);
-      opacity:0;animation:hxRise .85s cubic-bezier(.2,.7,.2,1) .58s both;}
-    .hx-btn{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
-      padding:16px 30px;border-radius:44px;cursor:pointer;text-decoration:none;
-      display:inline-block;border:1px solid rgba(255,255,255,.2);
-      transition:transform .2s ease,background .2s ease,box-shadow .2s ease;}
-    .hx-btn:hover{transform:translateY(-2px);}
-    .hx-btn-p{background:#f5f3ee;color:#08090b;border-color:#ffffff;box-shadow:0 0 0 1px rgba(79,182,255,.14),0 18px 46px rgba(65,142,216,.22);}
-    .hx-btn-p:hover{box-shadow:0 0 0 1px rgba(79,182,255,.28),0 24px 62px rgba(65,142,216,.30);}
-    .hx-btn-s{background:rgba(255,255,255,.045);color:rgba(244,242,236,.9);backdrop-filter:blur(12px);}
-    .hx-btn-s:hover{background:rgba(255,255,255,.06);}
-    .hx-tools{margin:clamp(18px,2.8vh,28px) auto 0;max-width:920px;font-size:12.5px;letter-spacing:.03em;
-      color:rgba(244,242,236,.62);opacity:0;animation:hxRise .85s ease .66s both;}
-    .hx-tools a{color:rgba(157,184,218,.96);text-decoration:none;}
-    .hx-tools a:hover{color:#cfe0f6;text-decoration:underline;}
-    @keyframes hxBlink{0%,100%{opacity:1;}50%{opacity:.35;}}
-    @keyframes hxPulse{0%{left:2px;opacity:0;}7%{opacity:1;}93%{opacity:1;}100%{left:calc(100% - 36px);opacity:0;}}
-    @keyframes hxNode{0%,100%{color:rgba(244,242,236,.4);border-color:rgba(255,255,255,.1);box-shadow:0 0 0 0 rgba(124,176,234,0);}
-      10%,18%{color:#eaf5ff;border-color:rgba(79,182,255,.62);box-shadow:0 0 26px 0 rgba(79,182,255,.22);background:rgba(79,182,255,.09);}}
-    @keyframes hxRise{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes hxWipe{from{transform:translateY(106%);}to{transform:translateY(0);}}
-    @media(max-width:860px){
-      .hx-hero{min-height:auto;padding-top:clamp(92px,14vh,132px);}
-      .hx-h1{max-width:760px;text-align:center;font-size:clamp(44px,10vw,76px);line-height:.9;}
-      .hx-sub{max-width:680px;}}
-    @media(max-width:520px){
-      .hx-wrap{padding:0 18px;}
-      .hx-eyebrow{max-width:100%;font-size:9px;letter-spacing:.13em;padding:9px 12px;text-align:center;}
-      .hx-pipe{max-width:100%;gap:6px;}
-      .hx-pipe-track{left:18px;right:18px;top:18px;}
-      .hx-pipe-pulse{top:13px;width:28px;height:10px;}
-      .hx-node{min-width:0;flex:1;}
-      .hx-node i{width:36px;height:36px;font-size:15px;}
-      .hx-node span{font-size:8px;letter-spacing:.08em;}
-      .hx-h1{max-width:340px;font-size:clamp(30px,9.2vw,36px);line-height:.94;letter-spacing:0;}
-      .hx-sub{font-size:14.5px;line-height:1.58;}
-      .hx-cta{display:grid;width:100%;max-width:280px;margin-left:auto;margin-right:auto;}
-      .hx-btn{text-align:center;padding:15px 22px;}
-      .hx-tools{max-width:320px;font-size:11.5px;line-height:1.7;overflow-wrap:anywhere;}
-    }
-    @media(prefers-reduced-motion:reduce){.hx-hero *{animation:none!important;}
-      .hx-eyebrow,.hx-pipe,.hx-h1-i,.hx-sub,.hx-cta,.hx-tools{opacity:1!important;transform:none!important;}}
-    </style>
-    <section class="hx-hero" id="platformShowcase" aria-label="Platform overview">
-      <div class="hx-dotfield" aria-hidden="true"><canvas class="hx-h1-canvas"></canvas></div>
-      <div class="hx-wrap">
-        <div class="hx-main">
-          <div class="hx-text">
-            <span class="hx-eyebrow"><b></b>Browser-based generation platform</span>
-            <h1 class="hx-h1"><span class="hx-h1-l"><span class="hx-h1-i">3D Modeling Studio</span></span> <span class="hx-h1-l"><span class="hx-h1-i a">Image &amp; Video Generators</span></span></h1>
-            <div class="hx-pipe">
-              <div class="hx-pipe-track" aria-hidden="true"></div>
-              <div class="hx-pipe-pulse" aria-hidden="true"></div>
-              <div class="hx-node"><i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Prompt</span></div>
-              <div class="hx-node"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Generate</span></div>
-              <div class="hx-node"><i class="fa-solid fa-cube" aria-hidden="true"></i><span>Transform</span></div>
-              <div class="hx-node"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Animate</span></div>
-              <div class="hx-node"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Export</span></div>
-            </div>
-            <p class="hx-sub">Create 3D models from text or images, generate images and video with multiple engines &mdash; Veo 3, Seedance, Meshy and Imagen &mdash; then remesh, texture, rig and animate your assets and export production-ready STL, OBJ and GLB files. Start generating instantly with starter credits.</p>
-            <div class="hx-cta">
-              <a class="hx-btn hx-btn-p" href="/hub">Start generating</a>
-              <a class="hx-btn hx-btn-s" href="/3dprint">Open the workspace</a>
-            </div>
-            <p class="hx-tools">Generators &nbsp;&middot;&nbsp; <a href="/ai-3d-generator">text &amp; image to 3D</a> &nbsp;&middot;&nbsp; <a href="/ai-image-generator">AI image generator</a> &nbsp;&middot;&nbsp; <a href="/ai-video-generator">AI video generator</a> &nbsp;&middot;&nbsp; <a href="/stl-library">STL packs</a></p>
-          </div>
-        </div>
-      </div>
-    </section>
-    <script>
-    /* Magnet-dust + click ripple behind the hero H1 — ported from hub .strip.is-fx */
-    (function(){
-      function start(){
-        var host=document.getElementById('platformShowcase');
-        if(!host){return;}
-        var canvas=host.querySelector('.hx-h1-canvas');
-        if(!canvas){return;}
-        var ctx=canvas.getContext('2d',{alpha:true});
-        var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-        var dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-        var lastW=0,lastH=0,firstSized=false;
-        var parts=[];
-        var palette=['rgba(255,250,238,0.52)','rgba(246,239,225,0.40)','rgba(255,255,255,0.34)','rgba(79,182,255,0.34)','rgba(124,176,234,0.34)'];
-        var rnd=function(a,b){return a+Math.random()*(b-a);};
-        function targetCount(){var area=canvas.width*canvas.height;return Math.max(520,Math.min(2600,Math.floor(area/360)));}
-        function spawnOne(x,y){
-          if(x==null){x=Math.random()*canvas.width;}
-          if(y==null){y=Math.random()*canvas.height;}
-          return {x:x,y:y,hx:x,hy:y,vx:rnd(-0.25,0.25),vy:rnd(-0.25,0.25),
-            r:rnd(0.7,1.8)*(dpr*0.9),c:palette[(Math.random()*palette.length)|0]};
-        }
-        function scatterHomes(){for(var i=0;i<parts.length;i++){var p=parts[i];
-          p.x=p.hx=Math.random()*canvas.width;p.y=p.hy=Math.random()*canvas.height;p.vx=p.vy=0;}}
-        function rebalance(){
-          var want=targetCount();
-          if(want>parts.length){for(var i=parts.length;i<want;i++){parts.push(spawnOne());}}
-          else if(want<parts.length){parts.length=want;}
-          for(var j=0;j<parts.length;j++){var p=parts[j];
-            p.hx=Math.min(Math.max(p.hx,0),canvas.width);
-            p.hy=Math.min(Math.max(p.hy,0),canvas.height);
-            p.r=Math.min(Math.max(p.r,0.65*dpr),2*dpr);}
-        }
-        function ensureSize(){
-          dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-          var w=Math.max(1,Math.floor(host.clientWidth));
-          var h=Math.max(1,Math.floor(host.clientHeight));
-          if(w!==lastW||h!==lastH||canvas.width===0||canvas.height===0){
-            var prevW=lastW,prevH=lastH;lastW=w;lastH=h;
-            canvas.width=Math.max(1,Math.floor(w*dpr));
-            canvas.height=Math.max(1,Math.floor(h*dpr));
-            canvas.style.width=w+'px';canvas.style.height=h+'px';
-            if(!firstSized){firstSized=true;var N=targetCount();parts.length=0;
-              for(var i=0;i<N;i++){parts.push(spawnOne());}}
-            else{var big=prevW===0||prevH===0||
-              Math.abs(w-prevW)/Math.max(1,prevW)>0.2||Math.abs(h-prevH)/Math.max(1,prevH)>0.2;
-              rebalance();if(big){scatterHomes();}}
-          }
-          return canvas.width>0&&canvas.height>0;
-        }
-        var pointer={x:0,y:0,active:false};
-        var INFLUENCE=function(){return 190*dpr;};
-        var STRENGTH=0.068,FRICTION=0.91,HOME_PULL=0.008,NOISE=0.16;
-        host.addEventListener('mousemove',function(e){
-          var r=host.getBoundingClientRect();
-          pointer.x=(e.clientX-r.left)*dpr;pointer.y=(e.clientY-r.top)*dpr;pointer.active=true;
-        },{passive:true});
-        host.addEventListener('mouseleave',function(){pointer.active=false;},{passive:true});
-        var ripples=[];
-        var easeOutCubic=function(t){return 1-Math.pow(1-t,3);};
-        host.addEventListener('pointerdown',function(e){
-          var r=host.getBoundingClientRect();
-          ripples.push({x:(e.clientX-r.left)*dpr,y:(e.clientY-r.top)*dpr,t:0,life:900,
-            maxR:Math.hypot(canvas.width,canvas.height)*0.7,band:42*dpr,power:0.86,
-            mode:e.altKey?'repel':'attract'});
-        });
-        function frame(){
-          if(!ensureSize()){requestAnimationFrame(frame);return;}
-          ctx.clearRect(0,0,canvas.width,canvas.height);
-          for(var i=ripples.length-1;i>=0;i--){
-            var rp=ripples[i];rp.t+=16;
-            var k=Math.min(1,rp.t/rp.life);
-            rp.radius=easeOutCubic(k)*rp.maxR;
-            ctx.beginPath();ctx.strokeStyle='rgba(255,247,229,0.34)';
-            ctx.lineWidth=Math.max(1,Math.min(7,rp.radius*0.007));
-            ctx.arc(rp.x,rp.y,rp.radius,0,Math.PI*2);ctx.stroke();
-            if(k>=1){ripples.splice(i,1);}
-          }
-          for(var n=0;n<parts.length;n++){
-            var p=parts[n];
-            p.vx+=(Math.random()-0.5)*NOISE;
-            p.vy+=(Math.random()-0.5)*NOISE;
-            if(pointer.active){
-              var dx=pointer.x-p.x,dy=pointer.y-p.y,inf=INFLUENCE(),d2=dx*dx+dy*dy;
-              if(d2<inf*inf){var d=Math.sqrt(d2)||1,m=(1-d/inf)*STRENGTH;p.vx+=(dx/d)*m;p.vy+=(dy/d)*m;}
-            }else{p.vx+=(p.hx-p.x)*HOME_PULL;p.vy+=(p.hy-p.y)*HOME_PULL;}
-            for(var r2=0;r2<ripples.length;r2++){
-              var rp2=ripples[r2],rdx=p.x-rp2.x,rdy=p.y-rp2.y;
-              var dist=Math.hypot(rdx,rdy)||1,drr=Math.abs(dist-rp2.radius);
-              if(drr<rp2.band){
-                var fall=1-(drr/rp2.band),dirX=rdx/dist,dirY=rdy/dist;
-                if(rp2.mode==='attract'){var sign=dist<rp2.radius?-1:1;dirX*=sign;dirY*=sign;}
-                var imp=rp2.power*fall*0.18;p.vx+=dirX*imp;p.vy+=dirY*imp;
-              }
-            }
-            p.vx*=FRICTION;p.vy*=FRICTION;p.x+=p.vx;p.y+=p.vy;
-            ctx.beginPath();ctx.fillStyle=p.c;ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.globalAlpha=0.38;
-            ctx.arc(p.x-p.vx*2.2,p.y-p.vy*2.2,Math.max(0.6,p.r*0.9),0,Math.PI*2);
-            ctx.fill();ctx.globalAlpha=1;
-          }
-          requestAnimationFrame(frame);
-        }
-        if(reduce){
-          if(ensureSize()){
-            for(var s=0;s<parts.length;s++){var sp=parts[s];
-              ctx.beginPath();ctx.fillStyle=sp.c;ctx.arc(sp.x,sp.y,sp.r,0,Math.PI*2);ctx.fill();}
-          }
-          return;
-        }
-        requestAnimationFrame(frame);
-      }
-      if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',start,{once:true});}
-      else{start();}
-    })();
-    </script>
-
-    <!-- Trustpilot trust strip -->
-    <div class="tp-strip" aria-label="Trustpilot reviews">
-      <div class="tp-strip-copy">
-        <div>
-          <p class="tp-strip-title"><span class="tp-strip-mark" aria-hidden="true">★</span>Help shape TimrX</p>
-          <p class="tp-strip-label">Read public reviews or leave honest feedback on Trustpilot.</p>
-        </div>
-      </div>
-      <div class="tp-strip-actions">
-        <a class="tp-btn tp-btn--pill" data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews</a>
-        <span class="tp-strip-sep" aria-hidden="true"></span>
-        <a class="tp-btn tp-btn--pill" data-tp="write" target="_blank" rel="noopener noreferrer">Leave a review</a>
-      </div>
-    </div>
-
-    <!-- ============ TimrX 3D App ============ -->
-    <style>
-    /* ===== TimrX 3D App section — self-contained, tx3d- scoped ===== */
-    .tx3d{position:relative;overflow:hidden;background:#0a0a0c;
-      padding:0 0 clamp(26px,4vh,52px);}
-    .tx3d *{box-sizing:border-box;}
-    .tx3d-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
-    .tx3d-dots{position:absolute;inset:-3px;
-      background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.6px);
-      background-size:46px 46px;opacity:.4;}
-    .tx3d-glow{position:absolute;border-radius:50%;filter:blur(120px);}
-    .tx3d-glow-a{width:46vw;height:46vw;max-width:620px;max-height:620px;
-      background:rgba(34,60,116,.55);top:-16vw;right:-10vw;}
-    .tx3d-glow-b{width:42vw;height:42vw;max-width:560px;max-height:560px;
-      background:rgba(52,54,78,.45);bottom:-18vw;left:-9vw;}
-    .tx3d-wrap{position:relative;z-index:2;width:100%;margin:0 auto;
-      padding:0 clamp(20px,5vw,64px);}
-    .tx3d-head{margin:0 0 clamp(8px,1.4vh,16px);text-align:center;}
-    .tx3d-eyebrow{display:inline-flex;align-items:center;gap:9px;
-      font-size:clamp(10px,1.05vw,12px);letter-spacing:.24em;text-transform:uppercase;
-      color:rgba(244,242,236,.6);font-weight:600;margin:0 0 11px;}
-    .tx3d-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4f8fd6;
-      box-shadow:0 0 11px #4f8fd6;}
-    .tx3d-h2{margin:0 0 12px;font-weight:900;line-height:1;letter-spacing:-.04em;
-      text-transform:uppercase;color:#f5f3ee;font-size:clamp(28px,4.8vw,90px);}
-    .tx3d-h2 .a{color:#9db8da;display:block;}
-    .tx3d-lead{margin:0 auto;font-size:clamp(13px,1vw,15px);line-height:1.6;
-      color:rgba(244,242,236,.66);max-width:600px;}
-
-    /* prompt ticker */
-    .tx3d-ticker{position:relative;z-index:2;
-      margin:clamp(14px,2.4vh,24px) 0 clamp(16px,2.6vh,28px);
-      border-top:1px solid rgba(255,255,255,.08);
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.022);overflow:hidden;
-      -webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
-      mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);}
-    .tx3d-ticker-track{display:flex;width:max-content;
-      padding:9px 0;animation:tx3dTicker 46s linear infinite;}
-    .tx3d-ticker--rev{margin-top:0;}
-    .tx3d-ticker--rev .tx3d-ticker-track{animation-direction:reverse;}
-    .tx3d-chip{font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
-      color:rgba(244,242,236,.5);padding:0 26px;white-space:nowrap;
-      border-right:1px solid rgba(255,255,255,.08);}
-    @keyframes tx3dTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-    /* ===== editor window + info panel ===== */
-    .tx3d-main{position:relative;z-index:2;display:grid;
-      grid-template-columns:1.55fr 1fr;gap:clamp(24px,3.2vw,50px);
-      align-items:stretch;max-width:1180px;margin:clamp(26px,4vh,52px) auto 0;}
-
-    /* the editor window */
-    .tx3d-editor{position:relative;display:flex;flex-direction:column;
-      border-radius:16px;overflow:hidden;background:#0e0f15;
-      border:1px solid rgba(255,255,255,.09);
-      box-shadow:0 54px 104px -42px rgba(0,0,0,.92),
-                 0 0 86px -22px rgba(79,143,214,.3),
-                 0 1px 0 rgba(255,255,255,.05) inset;}
-
-    /* toolbar */
-    .tx3d-tbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:0 11px;height:46px;flex:none;
-      background:linear-gradient(180deg,#16171f,#101117);
-      border-bottom:1px solid rgba(255,255,255,.07);}
-    .tx3d-tbar-l,.tx3d-tbar-r{display:flex;align-items:center;gap:7px;min-width:0;}
-    .tx3d-mark{display:flex;align-items:center;justify-content:center;flex:none;
-      width:25px;height:25px;border-radius:7px;font-size:11px;color:#fff;
-      background:linear-gradient(150deg,#5a9ce0,#3a5fb0);
-      box-shadow:0 2px 8px rgba(79,143,214,.4);}
-    .tx3d-file{font:600 12px/1 Inter,system-ui,sans-serif;color:rgba(244,242,236,.82);
-      padding:6px 11px;border-radius:7px;background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);white-space:nowrap;
-      overflow:hidden;text-overflow:ellipsis;max-width:150px;}
-    .tx3d-tools{display:flex;gap:2px;margin-left:3px;}
-    .tx3d-tool{display:flex;align-items:center;justify-content:center;
-      width:27px;height:27px;border-radius:7px;font-size:11px;
-      color:rgba(244,242,236,.4);}
-    .tx3d-tool.on{color:#7cb0ea;background:rgba(124,176,234,.13);}
-    .tx3d-tbtn{font:600 11.5px/1 Inter,system-ui,sans-serif;cursor:pointer;
-      padding:8px 13px;border-radius:8px;white-space:nowrap;
-      transition:transform .15s ease,background .2s ease;}
-    .tx3d-tbtn--up{background:#4f8fd6;color:#fff;border:1px solid #4f8fd6;}
-    .tx3d-tbtn--up:hover{transform:translateY(-1px);background:#5fa0e4;}
-    .tx3d-tbtn--ghost{background:rgba(255,255,255,.04);color:rgba(244,242,236,.78);
-      border:1px solid rgba(255,255,255,.11);}
-    .tx3d-tbtn--ghost:hover{background:rgba(255,255,255,.09);}
-    .tx3d-tbtn:disabled{opacity:.34;cursor:not-allowed;transform:none;}
-
-    /* viewport */
-    .tx3d-viewport{position:relative;width:100%;aspect-ratio:16/11;overflow:hidden;
-      cursor:grab;background:radial-gradient(122% 116% at 50% 16%,
-        #1d1f2b 0%,#13141d 46%,#0a0b10 100%);}
-    .tx3d-viewport:active{cursor:grabbing;}
-    #viewerCanvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;}
-    .viewer-placeholder{position:absolute;inset:0;z-index:3;display:flex;
-      flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;padding:24px;
-      font:500 13.5px/1.55 Inter,system-ui,sans-serif;color:rgba(244,242,236,.5);
-      pointer-events:none;transition:opacity .45s ease;}
-    .viewer-placeholder b{color:rgba(244,242,236,.86);font-weight:700;}
-    .tx3d-hint{position:absolute;left:13px;bottom:12px;z-index:4;
-      font:600 9.5px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;
-      text-transform:uppercase;color:rgba(244,242,236,.36);pointer-events:none;}
-    .tx3d-gear{position:absolute;bottom:12px;right:12px;z-index:5;
-      width:34px;height:34px;border-radius:9px;cursor:pointer;
-      border:1px solid rgba(255,255,255,.12);background:rgba(18,19,26,.86);
-      color:rgba(244,242,236,.72);font-size:13px;backdrop-filter:blur(6px);
-      display:flex;align-items:center;justify-content:center;
-      transition:transform .25s ease,color .2s ease;}
-    .tx3d-gear:hover{transform:rotate(42deg);color:#7cb0ea;}
-    .tx3d-rotate{position:absolute;bottom:54px;right:12px;z-index:5;display:flex;
-      align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
-      background:rgba(18,19,26,.96);border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 16px 34px -12px rgba(0,0,0,.7);backdrop-filter:blur(8px);}
-    .tx3d-rotate.hidden{display:none;}
-    .tx3d-rotate .label{font:600 11.5px/1 Inter,system-ui,sans-serif;
-      color:rgba(244,242,236,.85);white-space:nowrap;}
-    .tx3d-toggle{position:relative;display:inline-block;width:36px;height:20px;flex:none;}
-    .tx3d-toggle input{position:absolute;inset:0;width:100%;height:100%;
-      margin:0;opacity:0;cursor:pointer;}
-    .tx3d-slider{position:absolute;inset:0;border-radius:20px;
-      background:rgba(255,255,255,.2);transition:background .2s ease;}
-    .tx3d-slider::before{content:"";position:absolute;width:14px;height:14px;
-      left:3px;top:3px;border-radius:50%;background:#fff;transition:transform .2s ease;}
-    .tx3d-toggle input:checked+.tx3d-slider{background:#4f8fd6;}
-    .tx3d-toggle input:checked+.tx3d-slider::before{transform:translateX(16px);}
-
-    /* status bar */
-    .tx3d-sbar{display:flex;align-items:center;gap:18px;flex:none;
-      height:35px;padding:0 14px;
-      background:linear-gradient(180deg,#101117,#0c0d12);
-      border-top:1px solid rgba(255,255,255,.07);
-      font:600 10px/1 Inter,system-ui,sans-serif;letter-spacing:.07em;
-      text-transform:uppercase;color:rgba(244,242,236,.4);}
-    .tx3d-sbar .s1{display:flex;align-items:center;gap:7px;color:rgba(244,242,236,.62);}
-    .tx3d-sbar .sdot{width:6px;height:6px;border-radius:50%;background:#46d39a;
-      box-shadow:0 0 8px #46d39a;}
-    .tx3d-sbar .sgrow{margin-left:auto;}
-
-    /* info panel */
-    .tx3d-panel{position:relative;display:flex;flex-direction:column;
-      justify-content:center;padding:clamp(22px,2.5vw,36px);border-radius:16px;
-      background:linear-gradient(165deg,rgba(255,255,255,.052),rgba(255,255,255,.014));
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:0 34px 74px -42px rgba(0,0,0,.8);}
-    .tx3d-kicker{margin:0 0 13px;font:700 11px/1 Inter,system-ui,sans-serif;
-      letter-spacing:.2em;text-transform:uppercase;color:#7cb0ea;}
-    .tx3d-panel-lead{margin:0 0 22px;font-size:clamp(13.5px,1.05vw,15.5px);
-      line-height:1.62;color:rgba(244,242,236,.72);}
-    .tx3d-feat{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:13px;}
-    .tx3d-feat li{display:flex;gap:13px;align-items:flex-start;}
-    .tx3d-feat-ic{flex:none;display:flex;align-items:center;justify-content:center;
-      width:37px;height:37px;border-radius:10px;font-size:14px;color:#9db8da;
-      background:rgba(124,176,234,.1);border:1px solid rgba(124,176,234,.17);}
-    .tx3d-feat-tx{display:block;min-width:0;}
-    .tx3d-feat-tx b{display:block;font:700 13.5px/1.3 Inter,system-ui,sans-serif;
-      color:#f5f3ee;margin-bottom:2px;}
-    .tx3d-feat-tx span{display:block;font-size:12.5px;line-height:1.5;
-      color:rgba(244,242,236,.55);}
-    .tx3d-cta{display:inline-flex;align-items:center;gap:9px;align-self:flex-start;
-      padding:13px 22px;border-radius:11px;background:#f5f3ee;color:#0b0b0b;
-      font:700 13px/1 Inter,system-ui,sans-serif;letter-spacing:.02em;
-      text-decoration:none;transition:transform .15s ease,box-shadow .25s ease;}
-    .tx3d-cta:hover{transform:translateY(-2px);
-      box-shadow:0 18px 36px -14px rgba(245,243,238,.45);}
-    .tx3d-cta i{transition:transform .2s ease;}
-    .tx3d-cta:hover i{transform:translateX(3px);}
-
-    @media(max-width:900px){
-      .tx3d-main{grid-template-columns:1fr;gap:20px;max-width:560px;}
-      .tx3d-editor{order:-1;}
-      .tx3d-tools,.tx3d-file{display:none;}
-      .tx3d-panel{justify-content:flex-start;}
-    }
-    @media(prefers-reduced-motion:reduce){
-      .tx3d-ticker-track{animation:none;}
-      .tx3d-gear:hover{transform:none;}
-    }
-    </style>
-    <section id="app3d" class="tx3d" aria-label="TimrX 3D App">
-      <div class="tx3d-bg" aria-hidden="true">
-        <div class="tx3d-dots"></div>
-        <div class="tx3d-glow tx3d-glow-a"></div>
-        <div class="tx3d-glow tx3d-glow-b"></div>
-      </div>
-      <div class="tx3d-ticker tx3d-ticker--rev" aria-label="TimrX 3D capabilities">
-        <div class="tx3d-ticker-track">
-          <span class="tx3d-chip">Text to 3D</span>
-          <span class="tx3d-chip">Image to 3D</span>
-          <span class="tx3d-chip">GLB / GLTF viewer</span>
-          <span class="tx3d-chip">STL export</span>
-          <span class="tx3d-chip">OBJ export</span>
-          <span class="tx3d-chip">Remesh</span>
-          <span class="tx3d-chip">Auto-rig</span>
-          <span class="tx3d-chip">PBR textures</span>
-          <span class="tx3d-chip">Print check</span>
-          <span class="tx3d-chip">Real-time WebGL</span>
-          <span class="tx3d-chip" aria-hidden="true">Text to 3D</span>
-          <span class="tx3d-chip" aria-hidden="true">Image to 3D</span>
-          <span class="tx3d-chip" aria-hidden="true">GLB / GLTF viewer</span>
-          <span class="tx3d-chip" aria-hidden="true">STL export</span>
-          <span class="tx3d-chip" aria-hidden="true">OBJ export</span>
-          <span class="tx3d-chip" aria-hidden="true">Remesh</span>
-          <span class="tx3d-chip" aria-hidden="true">Auto-rig</span>
-          <span class="tx3d-chip" aria-hidden="true">PBR textures</span>
-          <span class="tx3d-chip" aria-hidden="true">Print check</span>
-          <span class="tx3d-chip" aria-hidden="true">Real-time WebGL</span>
-        </div>
-      </div>
-      <div class="tx3d-wrap">
-        <div class="tx3d-head">
-          <span class="tx3d-eyebrow"><b></b>The TimrX 3D workspace</span>
-          <h2 class="tx3d-h2">A real-time 3D engine, <span class="a">built for the browser</span></h2>
-          <p class="tx3d-lead">Upload a model and orbit it instantly, or generate one from a prompt. TimrX runs a full WebGL engine right in the page &mdash; nothing to install, nothing to download. Inspect, refine and export 3D without ever leaving the tab.</p>
-        </div>
-        <div class="tx3d-main">
-          <div class="tx3d-editor">
-            <div class="tx3d-tbar">
-              <div class="tx3d-tbar-l">
-                <span class="tx3d-mark"><i class="fa-solid fa-cube" aria-hidden="true"></i></span>
-                <span class="tx3d-file" id="viewerFileName">rabbit.glb</span>
-                <span class="tx3d-tools" aria-hidden="true">
-                  <span class="tx3d-tool on"><i class="fa-solid fa-arrows-rotate"></i></span>
-                  <span class="tx3d-tool"><i class="fa-solid fa-up-down-left-right"></i></span>
-                  <span class="tx3d-tool"><i class="fa-solid fa-magnifying-glass"></i></span>
-                </span>
-              </div>
-              <div class="tx3d-tbar-r">
-                <button type="button" class="tx3d-tbtn tx3d-tbtn--up" id="uploadBtnTop">Upload model</button>
-                <button type="button" class="tx3d-tbtn tx3d-tbtn--ghost" id="clearBtnTop" disabled>Remove</button>
-                <input type="file" id="modelFile" accept=".glb,.gltf" hidden />
-              </div>
-            </div>
-            <div class="tx3d-viewport">
-              <canvas id="viewerCanvas" aria-label="Interactive 3D model viewer"></canvas>
-              <div id="viewerPlaceholder" class="viewer-placeholder">Drag a GLB or GLTF model here, or click <b>Upload model</b></div>
-              <span class="tx3d-hint">Drag to orbit &middot; scroll to zoom</span>
-              <button class="tx3d-gear" id="viewerGear" type="button" aria-label="Viewer settings"><i class="fa-solid fa-gear" aria-hidden="true"></i></button>
-              <div class="tx3d-rotate hidden" id="viewerRotateCard">
-                <span class="label">Auto-rotate</span>
-                <label class="tx3d-toggle">
-                  <input type="checkbox" id="rotateToggle" aria-label="Toggle auto-rotate" />
-                  <span class="tx3d-slider"></span>
-                </label>
-              </div>
-            </div>
-            <div class="tx3d-sbar">
-              <span class="s1"><i class="sdot" aria-hidden="true"></i>WebGL2 engine</span>
-              <span>Three.js renderer</span>
-              <span class="sgrow">GLB &middot; GLTF &middot; STL &middot; OBJ</span>
-            </div>
-          </div>
-          <div class="tx3d-panel">
-            <span class="tx3d-kicker">Generate &middot; view &middot; export</span>
-            <p class="tx3d-panel-lead">From the first prompt to a print-ready file, the TimrX engine runs the entire 3D pipeline &mdash; with no installs and nothing to export to another tool.</p>
-            <ul class="tx3d-feat">
-              <li>
-                <span class="tx3d-feat-ic"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span>
-                <span class="tx3d-feat-tx"><b>Real-time viewer</b><span>Orbit, zoom and inspect any GLB or GLTF the moment it loads.</span></span>
-              </li>
-              <li>
-                <span class="tx3d-feat-ic"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
-                <span class="tx3d-feat-tx"><b>Prompt to 3D</b><span>Generate a model from a text description or a reference image.</span></span>
-              </li>
-              <li>
-                <span class="tx3d-feat-ic"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-                <span class="tx3d-feat-tx"><b>Refine &amp; retopo</b><span>Remesh, apply PBR textures and auto-rig your assets.</span></span>
-              </li>
-              <li>
-                <span class="tx3d-feat-ic"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
-                <span class="tx3d-feat-tx"><b>Production export</b><span>Download print-ready STL, OBJ and GLB files.</span></span>
-              </li>
-            </ul>
-            <a class="tx3d-cta" href="/hub">Open the 3D workspace <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="tx3d-ticker" aria-label="3D prompt ideas">
-        <div class="tx3d-ticker-track">
-          <span class="tx3d-chip">Origami-style dragon</span>
-          <span class="tx3d-chip">Steampunk potion bottle</span>
-          <span class="tx3d-chip">Futuristic lounge chair</span>
-          <span class="tx3d-chip">Ancient silver key</span>
-          <span class="tx3d-chip">Celtic knot ring</span>
-          <span class="tx3d-chip">Minimal chess set</span>
-          <span class="tx3d-chip">Retro ray gun</span>
-          <span class="tx3d-chip">Viking drinking horn</span>
-          <span class="tx3d-chip">Art-deco mask</span>
-          <span class="tx3d-chip" aria-hidden="true">Origami-style dragon</span>
-          <span class="tx3d-chip" aria-hidden="true">Steampunk potion bottle</span>
-          <span class="tx3d-chip" aria-hidden="true">Futuristic lounge chair</span>
-          <span class="tx3d-chip" aria-hidden="true">Ancient silver key</span>
-          <span class="tx3d-chip" aria-hidden="true">Celtic knot ring</span>
-          <span class="tx3d-chip" aria-hidden="true">Minimal chess set</span>
-          <span class="tx3d-chip" aria-hidden="true">Retro ray gun</span>
-          <span class="tx3d-chip" aria-hidden="true">Viking drinking horn</span>
-          <span class="tx3d-chip" aria-hidden="true">Art-deco mask</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ Generation Tools ============ -->
-    <style>
-    /* ===== TimrX generation tools — self-contained, sgt- scoped ===== */
-    .sgt{position:relative;overflow:hidden;background:#0a0a0c;
-      padding:clamp(30px,5vh,62px) 0;}
-    .sgt *{box-sizing:border-box;}
-    .sgt-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
-    .sgt-dots{position:absolute;inset:-3px;
-      background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.6px);
-      background-size:46px 46px;opacity:.38;}
-    .sgt-glow{position:absolute;border-radius:50%;filter:blur(120px);}
-    .sgt-glow-a{width:44vw;height:44vw;max-width:600px;max-height:600px;
-      background:rgba(34,60,116,.5);top:-16vw;left:-12vw;}
-    .sgt-glow-b{width:40vw;height:40vw;max-width:540px;max-height:540px;
-      background:rgba(52,54,78,.42);bottom:-18vw;right:-10vw;}
-    .sgt-wrap{position:relative;z-index:2;width:100%;max-width:1200px;margin:0 auto;
-      padding:0 clamp(20px,5vw,64px);}
-
-    .sgt-head{text-align:center;max-width:660px;margin:0 auto clamp(30px,4.5vh,52px);}
-    .sgt-eyebrow{display:inline-flex;align-items:center;gap:9px;
-      font-size:clamp(10px,1.05vw,12px);letter-spacing:.24em;text-transform:uppercase;
-      color:rgba(244,242,236,.6);font-weight:600;margin:0 0 13px;}
-    .sgt-eyebrow b{width:7px;height:7px;border-radius:50%;background:#4f8fd6;
-      box-shadow:0 0 11px #4f8fd6;}
-    .sgt-h2{margin:0 0 13px;font-weight:900;line-height:1.04;letter-spacing:-.04em;
-      text-transform:uppercase;color:#f5f3ee;font-size:clamp(28px,4vw,60px);}
-    .sgt-lead{margin:0;font-size:clamp(13.5px,1.05vw,16px);line-height:1.62;
-      color:rgba(244,242,236,.66);}
-
-    /* featured trio */
-    .sgt-feat{display:grid;grid-template-columns:repeat(3,1fr);
-      gap:clamp(16px,1.8vw,24px);margin:0 0 clamp(30px,4.5vh,50px);}
-    .sgt-fcard{position:relative;display:flex;flex-direction:column;
-      padding:clamp(22px,2.2vw,30px);border-radius:16px;text-decoration:none;
-      background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
-      border:1px solid rgba(255,255,255,.09);overflow:hidden;
-      transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;}
-    .sgt-fcard::before{content:"";position:absolute;inset:0;pointer-events:none;
-      background:radial-gradient(120% 80% at 18% 0%,rgba(var(--ac),.16),transparent 62%);
-      opacity:.85;transition:opacity .22s ease;}
-    .sgt-fcard:hover{transform:translateY(-4px);
-      border-color:rgba(var(--ac),.5);
-      box-shadow:0 30px 60px -30px rgba(0,0,0,.85),0 0 50px -22px rgba(var(--ac),.55);}
-    .sgt-fic{position:relative;display:flex;align-items:center;justify-content:center;
-      width:50px;height:50px;border-radius:13px;margin:0 0 16px;font-size:20px;
-      color:rgb(var(--ac));background:rgba(var(--ac),.13);
-      border:1px solid rgba(var(--ac),.26);}
-    .sgt-fcard h3{position:relative;margin:0 0 8px;
-      font:800 clamp(16px,1.4vw,20px)/1.25 Inter,system-ui,sans-serif;
-      color:#f5f3ee;letter-spacing:-.01em;}
-    .sgt-fcard p{position:relative;margin:0 0 18px;font-size:13.5px;line-height:1.6;
-      color:rgba(244,242,236,.62);}
-    .sgt-fgo{position:relative;margin-top:auto;display:inline-flex;align-items:center;
-      gap:8px;font:700 12px/1 Inter,system-ui,sans-serif;letter-spacing:.04em;
-      text-transform:uppercase;color:rgb(var(--ac));}
-    .sgt-fgo i{transition:transform .2s ease;}
-    .sgt-fcard:hover .sgt-fgo i{transform:translateX(4px);}
-
-    /* sub-heading */
-    .sgt-sub{display:flex;align-items:center;gap:14px;
-      margin:0 0 clamp(16px,2.4vh,24px);
-      font:700 11px/1 Inter,system-ui,sans-serif;letter-spacing:.2em;
-      text-transform:uppercase;color:rgba(244,242,236,.5);}
-    .sgt-sub::after{content:"";flex:1;height:1px;
-      background:linear-gradient(to right,rgba(255,255,255,.12),transparent);}
-
-    /* compact tool grid */
-    .sgt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
-      gap:clamp(10px,1.1vw,14px);}
-    .sgt-card{display:flex;gap:12px;align-items:flex-start;
-      padding:14px 15px;border-radius:12px;text-decoration:none;
-      background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
-      transition:transform .18s ease,border-color .18s ease,background .18s ease;}
-    .sgt-card:hover{transform:translateY(-2px);
-      border-color:rgba(124,176,234,.4);background:rgba(124,176,234,.06);}
-    .sgt-ic{flex:none;display:flex;align-items:center;justify-content:center;
-      width:34px;height:34px;border-radius:9px;font-size:13px;color:#9db8da;
-      background:rgba(124,176,234,.1);border:1px solid rgba(124,176,234,.16);
-      transition:color .18s ease;}
-    .sgt-card:hover .sgt-ic{color:#bcd4f0;}
-    .sgt-tx{display:block;min-width:0;}
-    .sgt-tx b{display:block;font:700 13.5px/1.3 Inter,system-ui,sans-serif;
-      color:#f5f3ee;margin-bottom:3px;}
-    .sgt-tx span{display:block;font-size:11.5px;line-height:1.5;
-      color:rgba(244,242,236,.5);}
-
-    @media(max-width:760px){
-      .sgt-feat{grid-template-columns:1fr;}
-      .sgt-grid{grid-template-columns:1fr 1fr;}
-    }
-    @media(max-width:440px){
-      .sgt-grid{grid-template-columns:1fr;}
-    }
-    </style>
-    <section id="tools" class="sgt" aria-label="TimrX generation tools">
-      <div class="sgt-bg" aria-hidden="true">
-        <div class="sgt-dots"></div>
-        <div class="sgt-glow sgt-glow-a"></div>
-        <div class="sgt-glow sgt-glow-b"></div>
-      </div>
-      <div class="sgt-wrap">
-        <div class="sgt-head">
-          <span class="sgt-eyebrow"><b></b>The complete toolset</span>
-          <h2 class="sgt-h2">Explore the generation tools</h2>
-          <p class="sgt-lead">Every model, image and video the platform can generate &mdash; plus the tools to refine, convert and export them. Twenty generators, one workspace.</p>
-        </div>
-
-        <div class="sgt-feat">
-          <a href="/ai-3d-generator" class="sgt-fcard" style="--ac:79,143,214">
-            <span class="sgt-fic"><i class="fa-solid fa-cube" aria-hidden="true"></i></span>
-            <h3>AI 3D Model Generator</h3>
-            <p>Generate detailed 3D models from a text prompt or an image, across multiple engines.</p>
-            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-          </a>
-          <a href="/ai-image-generator" class="sgt-fcard" style="--ac:124,108,214">
-            <span class="sgt-fic"><i class="fa-solid fa-image" aria-hidden="true"></i></span>
-            <h3>AI Image Generator</h3>
-            <p>Create images from text prompts with Imagen, FLUX and Ideogram.</p>
-            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-          </a>
-          <a href="/ai-video-generator" class="sgt-fcard" style="--ac:63,166,184">
-            <span class="sgt-fic"><i class="fa-solid fa-film" aria-hidden="true"></i></span>
-            <h3>AI Video Generator</h3>
-            <p>Produce video from text or a still image with Veo 3 and Seedance.</p>
-            <span class="sgt-fgo">Open tool <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-          </a>
-        </div>
-
-        <div class="sgt-sub">All generators &amp; tools</div>
-        <div class="sgt-grid">
-          <a href="/text-to-3d" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-font" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Text to 3D</b><span>A 3D model from a written description.</span></span>
-          </a>
-          <a href="/image-to-3d" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-panorama" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Image to 3D</b><span>Turn a photo into a textured 3D model.</span></span>
-          </a>
-          <a href="/stl-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>STL Generator</b><span>Watertight, printable STL from text or images.</span></span>
-          </a>
-          <a href="/3d-print-model-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-print" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>3D Print Model Generator</b><span>Print-ready models with a built-in print check.</span></span>
-          </a>
-          <a href="/veo-3-video-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Veo 3 Video Generator</b><span>Cinematic clips from text prompts with Veo 3.</span></span>
-          </a>
-          <a href="/seedance-video-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Seedance Video Generator</b><span>Animate text or a still image into a clip.</span></span>
-          </a>
-          <a href="/ai-animation-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>AI Animation Generator</b><span>Rig and animate 3D models with motion presets.</span></span>
-          </a>
-          <a href="/ai-texture-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-fill-drip" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>AI Texture Generator</b><span>Seamless PBR textures from text or images.</span></span>
-          </a>
-          <a href="/ai-game-assets" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Game Asset Generator</b><span>Game-ready assets for Unity, Unreal and Godot.</span></span>
-          </a>
-          <a href="/converter" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-right-left" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>3D File Converter</b><span>Convert GLB, STL, OBJ, FBX, GLTF and 3MF.</span></span>
-          </a>
-          <a href="/multi-color-3d-printing" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Multi-Color 3D Printing</b><span>Full-color 3MF for Bambu AMS and Prusa MMU.</span></span>
-          </a>
-          <a href="/stl-library" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>STL Packs</b><span>Ready-to-print STL file pack collections.</span></span>
-          </a>
-          <a href="/tutorials" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Tutorials</b><span>Step-by-step guides for generating and exporting.</span></span>
-          </a>
-          <a href="/3d-model-cleanup" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-vector-square" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Remesh &amp; Retopology</b><span>Clean and optimize meshes for print and games.</span></span>
-          </a>
-          <a href="/print-check" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Print Check</b><span>Check wall thickness and overhangs before printing.</span></span>
-          </a>
-          <a href="/meshy-3d-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-cubes" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Meshy 3D Generator</b><span>Generate 3D models with the Meshy engine.</span></span>
-          </a>
-          <a href="/imagen-image-generator" class="sgt-card">
-            <span class="sgt-ic"><i class="fa-solid fa-palette" aria-hidden="true"></i></span>
-            <span class="sgt-tx"><b>Imagen Image Generator</b><span>Generate images with Google Imagen.</span></span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-<section id="blogs" class="section container blogs">
-  <div class="blogs-header">
-    <!-- Left column: content stack -->
-    <div class="blogs-header-left">
-      <div class="blogs-badge" id="blogsBadge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
-        <span>LATEST INSIGHTS</span>
-      </div>
-      <h2 class="title-xl blogs-title blog-title-animated">BLOGS</h2>
-      <p class="muted blogs-sub" id="blogSubtitle">Notes on building modern, motion-first websites, 3D workflows, and creative tech.</p>
-      <div class="blogs-topics">
-        <span class="topic-tag">Web Dev</span>
-        <span class="topic-tag">3D Design</span>
-        <span class="topic-tag">UX/UI</span>
-        <span class="topic-tag">Motion</span>
-      </div>
-    </div>
-
-    <!-- Right column: meta stack -->
-    <div class="blogs-header-right">
-      <a class="blogs-view-all" href="/blogs">
-        <span>View all posts</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-      </a>
-
-      <div class="blogs-stats" id="blogsStats">
-        <div class="stat-item">
-          <div class="stat-number" data-target="20">0</div>
-          <div class="stat-label">Articles</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-number" data-target="10">0</div>
-          <div class="stat-label">Categories</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-number" data-target="3">0</div>
-          <div class="stat-label">Min Read</div>
-        </div>
-      </div>
-
-      <p class="blogs-tagline" id="blogTagline">Build better • Learn faster • Create more</p>
-    </div>
-  </div>
-
-  <div id="blogsGrid" class="blogs-grid" role="list">
-    <!-- Blog posts will be loaded dynamically from API -->
-  </div>
-
-  <!-- Latest Articles (crawlable SEO links, populated by API) -->
-  <div class="latest-articles" id="latestArticles">
-    <div class="latest-articles-header">
-      <span class="latest-articles-line"></span>
-      <h3 class="latest-articles-title">Latest Articles</h3>
-      <span class="latest-articles-line"></span>
-    </div>
-    <ul class="latest-articles-list" id="latestArticlesList">
-      <li><a href="/blogs">Browse all blog posts</a></li>
-      <li><a href="/blog/tag/ai">AI Articles</a></li>
-      <li><a href="/blog/tag/3d">3D Printing Articles</a></li>
-      <li><a href="/blog/tag/workflow">Workflow Articles</a></li>
-    </ul>
-    <script>
-    (function(){
-      var ul = document.getElementById('latestArticlesList');
-      if (!ul) return;
-      var API = '/api';
-      fetch(API + '/posts?page=1&size=5')
-        .then(function(r){ return r.json(); })
-        .then(function(j){
-          var posts = (j.items || j.posts || []).slice(0, 5);
-          if (!posts.length) return;
-          ul.innerHTML = posts.map(function(p){
-            return '<li><a href="/blog/' + p.slug + '">' + p.title + '</a></li>';
-          }).join('');
-        })
-        .catch(function(){});
-    })();
-    </script>
-  </div>
-
-  <div class="blogs-cta">
-    <a class="btn secondary" href="/blogs">Explore all posts →</a>
-    <p class="blogs-footer-text">Join the journey through code, design, and 3D innovation</p>
-  </div>
-</section>
-
-    <!-- HERO -->
-    <section class="container hero" id="hero">
-        <!-- Subtle decorative elements -->
-        <div class="hero-watermark hide-mobile" aria-hidden="true">BUILD</div>
-        <div class="hero-arc hide-mobile" aria-hidden="true"></div>
-        <div class="hero-eyebrow">
-            <span class="eyebrow-line"></span>
-            <span class="eyebrow-text" id="eyebrowText" data-text="The developer behind TimrX">The developer behind TimrX</span>
-        </div>
-
-        <!-- stage holds the image + left list like the reference -->
-        <div class="hero-stage">
-              <!-- decor -->
-            <div class="hero-plate hide-mobile" aria-hidden="true"></div>
-            <div class="hero-title" id="heroTitle" data-text="CREATIVE DEVELOPER">CREATIVE DEVELOPER</div>
-            <div class="hero-left-note hide-tablet" aria-hidden="true">WEB • UX/UI • 3D • MOTION</div>
-            <ul class="hero-list" aria-label="Capabilities">
-                <li><a href="#works">WEB DEVELOPMENT</a></li>
-                <li><a href="#services">UX/UI DESIGN</a></li>
-                <li><a href="#app3d">3D MODELING & PRINT</a></li>
-                <li><a href="#works">LIGHT VIDEO & MOTION</a></li>
-            </ul>
-    
-            <figure class="hero-photo">
-                <!-- Using a placeholder image for demonstration -->
-                <img
-                  class="portrait"
-                  src="img/dima-768.webp"
-                  srcset="
-                    img/dima-480.webp 480w,
-                    img/dima-768.webp 768w,
-                    img/dima-1024.webp 1024w
-                  "
-                  sizes="(max-width: 600px) 90vw, 600px"
-                  width="600"
-                  height="760"
-                  alt="Portrait of Dima Vasiliu"
-                  decoding="async"
-                  fetchpriority="high"
-                />
-            </figure>
-
-            <div class="hero-cta">
-                <a class="btn" href="#works">WORKS</a>
-                <a class="btn secondary" href="#contact">CONTACT ME</a>
-            </div>
-        </div>
-    </section>
-        <section id="about" class="about-hero">
-            <!-- Outside vertical label -->
-            <div class="about-left-note hide-tablet" aria-hidden="true">ABOUT • PROFILE</div>
-
-            <!-- Geometric background -->
-            <div class="about-geometric-bg" aria-hidden="true">
-                <div class="geo-circle geo-circle-1"></div>
-                <div class="geo-circle geo-circle-2"></div>
-                <div class="geo-grid"></div>
-            </div>
-
-            <!-- Floating particles -->
-            <div class="about-particles" id="aboutParticles" aria-hidden="true"></div>
-
-            <!-- Main centered dark box - bigger shell -->
-            <div class="about-shell">
-                <!-- Geometric decorations inside shell -->
-                <div class="shell-geometric" aria-hidden="true">
-                    <div class="shell-grid"></div>
-                </div>
-
-                <!-- Header: Badge + Title -->
-                <header class="about-header">
-                    <div class="about-header-left">
-                        <div class="about-badge" id="aboutBadge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            <span>DEVELOPER & DESIGNER</span>
-                        </div>
-                        <h2 class="title-xl about-title" id="aboutTitle">ABOUT ME</h2>
-                    </div>
-                    <div class="about-drone-wrap">
-                        <div class="about-drone" aria-hidden="true">
-                            <div class="drone-body">
-                                <span class="drone-core"></span>
-                                <span class="drone-display">
-                                    <span class="display-track">
-                                        <span>4 YEARS EXP</span>
-                                        <span>15 PROJECTS</span>
-                                        <span>16 SKILLS</span>
-                                        <span>TIMRX LAB</span>
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Content Grid: Left + Right -->
-                <div class="about-content">
-                    <!-- Left Column -->
-                    <div class="about-content-left">
-                        <div class="hello-badge">
-                            <span class="dot"></span>
-                            <span>HELLO! I'M DIMA VASILIU</span>
-                        </div>
-
-                        <p class="about-lead muted">
-                            I design and develop modern websites, build 3D models for print and web,
-                            and craft clear interfaces with thoughtful motion. I value clarity, speed, and results.
-                        </p>
-
-                        <!-- Stats -->
-                        <div class="about-stats" id="aboutStats">
-                            <div class="stat-item">
-                                <div class="stat-number about-year" data-start-year="2022">4Y+</div>
-                                <div class="stat-label">Experience building web + 3D systems</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-number">SHIP</div>
-                                <div class="stat-label">TimrX 3D Print Hub + live experiments</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-number">FOCUS</div>
-                                <div class="stat-label">Motion UX, WebGL, print-ready workflows</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Info Cards -->
-                    <aside class="about-content-right">
-                        <div class="info-card">
-                            <div class="info-card-icon">📍</div>
-                            <div class="info-card-content">
-                                <h3>Based in London</h3>
-                                <p class="muted">Remote-friendly</p>
-                            </div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-card-icon">🛠️</div>
-                            <div class="info-card-content">
-                                <h3>Tools I enjoy</h3>
-                                <p class="muted">HTML/CSS/JS, TypeScript, React, GSAP, Three.js, Flask, Meshy, Figma, Blender, Git, Python, Node.js, PostgreSQL, WebGL</p>
-                            </div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-card-icon">🚀</div>
-                            <div class="info-card-content">
-                                <h3>Milestones</h3>
-                                <p class="muted">2024 — TimrX born · 2025 — 3D Print Hub · AI expansion</p>
-                            </div>
-                        </div>
-
-                        <a href="/about" class="about-profile-link" onmouseover="this.style.color='rgba(255,255,255,0.85)';this.querySelector('svg').style.transform='translateX(3px)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.querySelector('svg').style.transform='translateX(0)'">
-                            Full Profile
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </a>
-                    </aside>
-                </div>
-            </div>
-        </section>
-
-<!-- 3D PROMPT TICKER (between About & Philosophy) -->
-<div class="idx-ticker idx-ticker--inline" aria-label="3D prompt ideas">
-    <div class="idx-ticker-inner">
-    <div class="idx-ticker-track">
-    <span class="idx-ticker-item">Origami‑style dragon</span>
-    <span class="idx-ticker-item">Steampunk potion bottle</span>
-    <span class="idx-ticker-item">Futuristic lounge chair</span>
-    <span class="idx-ticker-item">Ancient silver key</span>
-    <span class="idx-ticker-item">Celtic knot ring</span>
-    <span class="idx-ticker-item">Minimal chess set</span>
-    <span class="idx-ticker-item">Retro ray gun</span>
-    <span class="idx-ticker-item">Viking drinking horn</span>
-    <span class="idx-ticker-item">Art‑deco mask</span>
-    <!-- duplicate for seamless loop -->
-    <span class="idx-ticker-item" aria-hidden="true">Origami‑style dragon</span>
-    <span class="idx-ticker-item" aria-hidden="true">Steampunk potion bottle</span>
-    <span class="idx-ticker-item" aria-hidden="true">Futuristic lounge chair</span>
-    <span class="idx-ticker-item" aria-hidden="true">Ancient silver key</span>
-    <span class="idx-ticker-item" aria-hidden="true">Celtic knot ring</span>
-    <span class="idx-ticker-item" aria-hidden="true">Minimal chess set</span>
-    <span class="idx-ticker-item" aria-hidden="true">Retro ray gun</span>
-    <span class="idx-ticker-item" aria-hidden="true">Viking drinking horn</span>
-    <span class="idx-ticker-item" aria-hidden="true">Art‑deco mask</span>
-    </div>
-    </div>
-</div>
-
-<!-- SERVICES -->
-<section id="services" class="section services services-light">
-    <div class="container services-shell">
-    <div class="services-header">
-      <div class="title-xl">SERVICES</div>
-      <p class="services-sub">Focused, fast, and outcome-driven. Pick what you need — or mix a bundle.</p>
-    </div>
-
-    <div class="services-grid" role="list">
-      <!-- Web Design -->
-      <div class="service-card svc-card-light" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🖥️</div>
-        <h3 class="svc-title">Web Design</h3>
-        <p class="svc-copy">Wireframes to polished UI with motion. Accessible, scalable, fast.</p>
-        <ul class="svc-bullets-light">
-          <li><span class="svc-bullet-arrow">→</span> Figma → Dev-ready</li>
-          <li><span class="svc-bullet-arrow">→</span> Design systems</li>
-          <li><span class="svc-bullet-arrow">→</span> Landing pages</li>
-        </ul>
-        <a class="svc-cta-light" href="#contact">Get a quote <span>→</span></a>
-      </div>
-
-      <!-- UX/UI -->
-      <div class="service-card svc-card-light" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🎛️</div>
-        <h3 class="svc-title">UX / UI</h3>
-        <p class="svc-copy">Clear flows, components, and micro-interactions that guide attention.</p>
-        <ul class="svc-bullets-light">
-          <li><span class="svc-bullet-arrow">→</span> User flows & IA</li>
-          <li><span class="svc-bullet-arrow">→</span> Components & tokens</li>
-          <li><span class="svc-bullet-arrow">→</span> Motion guidelines</li>
-        </ul>
-        <a class="svc-cta-light" href="#contact">Let's map it <span>→</span></a>
-      </div>
-
-      <!-- Development -->
-      <div class="service-card svc-card-light" role="listitem">
-        <div class="svc-icon" aria-hidden="true">⚙️</div>
-        <h3 class="svc-title">Development</h3>
-        <p class="svc-copy">Clean, semantic code with performance and SEO in mind.</p>
-        <ul class="svc-bullets-light">
-          <li><span class="svc-bullet-arrow">→</span> HTML/CSS/JS</li>
-          <li><span class="svc-bullet-arrow">→</span> GSAP / Three.js</li>
-          <li><span class="svc-bullet-arrow">→</span> Flask backends</li>
-        </ul>
-        <a class="svc-cta-light" href="#contact">Ship it <span>→</span></a>
-      </div>
-
-      <!-- 3D -->
-      <div class="service-card svc-card-light" role="listitem">
-        <div class="svc-icon" aria-hidden="true">🧊</div>
-        <h3 class="svc-title">3D Modeling & Print</h3>
-        <p class="svc-copy">Prompt-to-3D, remesh, viewer integration, print-ready exports.</p>
-        <ul class="svc-bullets-light">
-          <li><span class="svc-bullet-arrow">→</span> GLB/GLTF assets</li>
-          <li><span class="svc-bullet-arrow">→</span> Viewer embeds</li>
-          <li><span class="svc-bullet-arrow">→</span> FDM/SLA prep</li>
-        </ul>
-        <a class="svc-cta-light" href="#contact">Make it 3D <span>→</span></a>
-      </div>
-
-      <!-- Overview panel -->
-      <div class="svc-panel" role="listitem" aria-label="Services overview">
-        <div class="svc-panel-hd">
-          <span class="svc-panel-status"><span class="svc-pdot"></span>ACTIVE</span>
-          <span class="svc-panel-count">04</span>
-        </div>
-        <ul class="svc-panel-list">
-          <li class="svc-pitem pitem-1"><span class="svc-pmark"></span>Web Design</li>
-          <li class="svc-pitem pitem-2"><span class="svc-pmark"></span>UX / UI</li>
-          <li class="svc-pitem pitem-3"><span class="svc-pmark"></span>Development</li>
-          <li class="svc-pitem pitem-4"><span class="svc-pmark"></span>3D Modeling</li>
-        </ul>
-        <div class="svc-panel-prog-wrap">
-          <div class="svc-panel-prog"></div>
-        </div>
-      </div>
-    </div>
-    </div>
-  </section>
-
-<!-- WORKS -->
-<section id="works" class="section container works-showcase">
-  <div class="works-head">
-    <div class="works-intro">
-      <div class="title-xl">WORKS</div>
-      <p class="muted works-sub">Early stage, but loud. Two live products, a few university builds, and a lab of experiments.</p>
-      <div class="works-meta" role="list">
-        <span class="meta-pill" role="listitem">02 Live</span>
-        <span class="meta-pill" role="listitem">03 Uni apps</span>
-        <span class="meta-pill" role="listitem">In progress</span>
-      </div>
-    </div>
-    <div class="works-orbit hide-mobile" aria-hidden="true">
-      <div class="orbit-ring ring-a"></div>
-      <div class="orbit-ring ring-b"></div>
-      <div class="orbit-ring ring-c"></div>
-      <span class="orbit-prism"></span>
-      <span class="orbit-core-dot"></span>
-      <span class="orbit-spark os1"></span>
-      <span class="orbit-spark os2"></span>
-      <span class="orbit-spark os3"></span>
-      <span class="orbit-spark os4"></span>
-    </div>
-  </div>
-
-  <div class="works-list">
-
-    <article class="work-row">
-      <span class="work-row__num">01</span>
-      <div class="work-row__body">
-        <span class="work-row__name">TimrX 3D Print Hub</span>
-        <span class="work-row__sub">Browser-based pipeline turning prompts into printable 3D models.</span>
-      </div>
-      <div class="work-row__meta">
-        <div class="work-row__pills">
-          <span class="work-pill is-live">Live</span>
-          <span class="work-pill">3D Platform</span>
-        </div>
-        <span class="work-row__arrow">›</span>
-      </div>
-      <div class="work-panel">
-        <div class="work-panel__inner">
-          <ul>
-            <li>Prompt or image to 3D flow with live preview</li>
-            <li>Orbit controls, material tweaks, and print export tests</li>
-            <li>Guided workspace UI with step-by-step checkpoints</li>
-            <li>Watertight checks + scale hints for printability</li>
-            <li>S3 asset pipeline with history sync and previews</li>
-          </ul>
-          <div class="work-panel__foot">
-            <span class="work-stack">Meshy API / Three.js / GSAP</span>
-            <a class="work-link" href="/hub">Explore hub →</a>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <article class="work-row">
-      <span class="work-row__num">02</span>
-      <div class="work-row__body">
-        <span class="work-row__name">University Web Apps</span>
-        <span class="work-row__sub">Course projects focused on practical UX, clean data flows, and responsive UI.</span>
-      </div>
-      <div class="work-row__meta">
-        <div class="work-row__pills">
-          <span class="work-pill">Uni</span>
-          <span class="work-pill">Web Apps</span>
-        </div>
-        <span class="work-row__arrow">›</span>
-      </div>
-      <div class="work-panel">
-        <div class="work-panel__inner">
-          <ul>
-            <li>Campus Queue: book equipment or lab slots</li>
-            <li>Study Planner: weekly tasks with reminders</li>
-            <li>Club Finder: browse events and sign up fast</li>
-            <li>Auth + CRUD flows for student and staff roles</li>
-            <li>Responsive UI QA and accessibility passes</li>
-          </ul>
-          <div class="work-panel__foot">
-            <span class="work-stack">React / Flask / SQLite</span>
-            <span class="work-stack">Teams of 2–3, rapid sprints</span>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <article class="work-row">
-      <span class="work-row__num">03</span>
-      <div class="work-row__body">
-        <span class="work-row__name">Experiment Queue</span>
-        <span class="work-row__sub">Ideas I want to ship next. Small, sharp, and very visual.</span>
-      </div>
-      <div class="work-row__meta">
-        <div class="work-row__pills">
-          <span class="work-pill">Lab</span>
-          <span class="work-pill">Next</span>
-        </div>
-        <span class="work-row__arrow">›</span>
-      </div>
-      <div class="work-panel">
-        <div class="work-panel__inner">
-          <ul>
-            <li>Interactive product cards with real-time 3D spins</li>
-            <li>Procedural materials gallery for print-ready textures</li>
-            <li>Animated build log timeline for shipping updates</li>
-            <li>Shader-driven highlights for hero visuals</li>
-            <li>Collab mode: live notes + feedback snapshots</li>
-          </ul>
-          <div class="work-panel__foot">
-            <span class="work-stack">R&amp;D / GSAP / Three.js</span>
-            <a class="work-link" href="#contact">Want to collab? →</a>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <article class="work-row">
-      <span class="work-row__num">04</span>
-      <div class="work-row__body">
-        <span class="work-row__name">Network Infrastructure Trainer</span>
-        <span class="work-row__sub">Mobile training &amp; self-assessment app for network infrastructure awareness.</span>
-      </div>
-      <div class="work-row__meta">
-        <div class="work-row__pills">
-          <span class="work-pill is-live">Live</span>
-          <span class="work-pill">Mobile App</span>
-        </div>
-        <span class="work-row__arrow">›</span>
-      </div>
-      <div class="work-panel">
-        <div class="work-panel__inner">
-          <ul>
-            <li>Bite-sized training modules with progress tracking</li>
-            <li>Self-assessment quizzes, scoring, and streaks</li>
-            <li>Offline-friendly: progress stored on-device</li>
-            <li>Crash reporting and analytics for a stable release</li>
-            <li>UK-GDPR-aware data handling, minimal data collected</li>
-          </ul>
-          <div class="work-panel__foot">
-            <span class="work-stack">React Native / iOS &amp; Android</span>
-            <a class="work-link" href="/legal/nia/privacy">Legal &amp; privacy →</a>
-          </div>
-        </div>
-      </div>
-    </article>
-
-  </div>
-
-  <div class="works-cta">
-    <a class="btn" href="#contact">Need something similar? Let's build it →</a>
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section id="contact" class="section contact contact-light">
-  <!-- Decorative floating element - prismatic beacon -->
-  <div class="contact-deco hide-tablet" aria-hidden="true">
-    <div class="contact-figurine">
-      <span class="cf-ring ring-a"></span>
-      <span class="cf-ring ring-b"></span>
-      <span class="cf-ring ring-c"></span>
-      <span class="cf-prism"></span>
-      <span class="cf-core"></span>
-      <span class="cf-spark s1"></span>
-      <span class="cf-spark s2"></span>
-      <span class="cf-spark s3"></span>
-      <span class="cf-spark s4"></span>
-      <span class="cf-spark s5"></span>
-    </div>
-  </div>
-
-  <div class="container contact-shell">
-    <h2 class="title-xl contact-title">CONTACT</h2>
-    <div class="contact-badges">
-      <span class="kbadge is-solid">Available for new projects</span>
-      <span class="kbadge is-outline">Web/UI</span>
-      <span class="kbadge is-outline">GSAP • Three.js</span>
-      <span class="kbadge is-outline">3D & Print</span>
-    </div>
-    <p class="muted contact-sub">Questions about the platform, partnerships, or freelance work? Send a message and I'll reply within 24–48h.</p>
-
-    <div class="contact-grid">
-      <!-- Left: info -->
-      <aside class="contact-info">
-        <div class="contact-info-card">
-          <div class="contact-info-icon">📍</div>
-          <div>
-            <strong class="contact-info-title">Based in London</strong>
-            <p class="contact-info-copy">Available for remote and hybrid work.</p>
-          </div>
-        </div>
-        <div class="contact-info-card">
-          <div class="contact-info-icon">🕒</div>
-          <div>
-            <strong class="contact-info-title">Response</strong>
-            <p class="contact-info-copy">Usually within 24–48 hours.</p>
-          </div>
-        </div>
-        <div class="contact-info-card">
-          <div class="contact-info-icon">⚡</div>
-          <div>
-            <strong class="contact-info-title">Services</strong>
-            <p class="contact-info-copy">Web & UI/UX, motion dev, AI 3D generation, print prep.</p>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Right: form -->
-      <form id="contactForm" class="contact-form-card" novalidate>
-        <label class="contact-form-label">Budget (required)</label>
-        <div id="budgetChips" class="contact-chips">
-          <label class="contact-chip"><input type="radio" name="budget" value="$100–$500" />$100–$500</label>
-          <label class="contact-chip"><input type="radio" name="budget" value="$500–$1,500" />$500–$1,500</label>
-          <label class="contact-chip"><input type="radio" name="budget" value="$1,500–$3,000" />$1,500–$3,000</label>
-          <label class="contact-chip"><input type="radio" name="budget" value="$3,000–$7,000" />$3,000–$7,000</label>
-          <label class="contact-chip"><input type="radio" name="budget" value="$7,000+" />$7,000+</label>
-        </div>
-
-        <div class="contact-row">
-          <div class="contact-field">
-            <span class="contact-field-icon">👤</span>
-            <input name="name" type="text" placeholder="Your name *" required />
-          </div>
-          <div class="contact-field">
-            <span class="contact-field-icon">✉️</span>
-            <input name="email" type="email" placeholder="Email *" required />
-          </div>
-        </div>
-
-        <div class="contact-field">
-          <span class="contact-field-icon">🏷️</span>
-          <input name="subject" type="text" placeholder="Subject (optional)" />
-        </div>
-
-        <div class="contact-field">
-          <span class="contact-field-icon area">📝</span>
-          <textarea name="message" placeholder="Tell me about the project *" required></textarea>
-        </div>
-
-        <p id="formNote" class="contact-note"></p>
-        <button class="contact-submit-btn" type="submit">Send message <span>→</span></button>
-      </form>
-    </div>
-  </div>
-</section>
-    
-    
-<!-- BLOGS -->
-
-  <!-- SEO: About TimrX -->
-  <style>
-    .abt-seo{position:relative;overflow:hidden;background:#0d0d0f;color:#f5f3ee;
-      border-top:1px solid rgba(255,255,255,.08);padding:clamp(38px,5.5vh,66px) 0;}
-    .abt-seo::before{content:"";position:absolute;inset:0;pointer-events:none;
-      background:
-        radial-gradient(circle at 16% 0%,rgba(79,143,214,.18),transparent 34%),
-        radial-gradient(circle at 86% 30%,rgba(255,255,255,.05),transparent 28%);}
-    .abt-seo-wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
-      gap:clamp(24px,4vw,54px);align-items:center;}
-    .abt-seo-kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 10px;
-      font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#9db8da;}
-    .abt-seo-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#4f8fd6;
-      box-shadow:0 0 12px rgba(79,143,214,.9);}
-    .abt-seo h2{font-family:'Bebas Neue',system-ui,sans-serif;font-size:clamp(34px,4.6vw,58px);
-      line-height:.96;margin:0 0 12px;letter-spacing:0;color:#f5f3ee;text-transform:uppercase;}
-    .abt-seo-lead{margin:0;max-width:560px;color:rgba(244,242,236,.66);font-size:clamp(14px,1.15vw,16px);
-      line-height:1.65;}
-    .abt-seo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
-    .abt-seo-card{display:block;min-height:132px;padding:18px;border-radius:12px;text-decoration:none;
-      color:#f5f3ee;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
-      transition:transform .2s ease,border-color .2s ease,background .2s ease;}
-    .abt-seo-card:hover{transform:translateY(-2px);background:rgba(255,255,255,.055);
-      border-color:rgba(157,184,218,.34);}
-    .abt-seo-card b{display:block;margin:0 0 7px;font-size:14px;line-height:1.25;color:#f5f3ee;}
-    .abt-seo-card span{display:block;font-size:12.5px;line-height:1.5;color:rgba(244,242,236,.56);}
-    .abt-seo-card i{display:inline-block;margin-top:14px;font-style:normal;font-size:12px;font-weight:800;
-      color:#9db8da;}
-    @media(max-width:860px){.abt-seo-wrap{grid-template-columns:1fr;text-align:center;}
-      .abt-seo-lead{margin:0 auto;}.abt-seo-kicker{justify-content:center;}
-      .abt-seo-grid{max-width:680px;margin:0 auto;}}
-    @media(max-width:620px){.abt-seo-grid{grid-template-columns:1fr;}.abt-seo-card{min-height:auto;padding:16px;}}
-  </style>
-  <section class="abt-seo" aria-labelledby="aboutPageTitle">
-    <div class="container abt-seo-wrap">
-      <div>
-        <p class="abt-seo-kicker">About TimrX</p>
-        <h2 id="aboutPageTitle">Browser-based creation tools</h2>
-        <p class="abt-seo-lead">TimrX brings 3D modeling workflows, image generation and video generation into one browser workspace, with tools for generating, refining and exporting production-ready assets.</p>
-      </div>
-      <div class="abt-seo-grid" aria-label="TimrX core tools">
-        <a class="abt-seo-card" href="/3dprint">
-          <b>3D modeling workspace</b>
-          <span>Create, inspect, remesh and export STL, OBJ and GLB files from the browser.</span>
-          <i>Open hub →</i>
-        </a>
-        <a class="abt-seo-card" href="/text-to-3d">
-          <b>Text to 3D</b>
-          <span>Turn prompts into editable 3D assets for printing, games and product concepts.</span>
-          <i>Try prompts →</i>
-        </a>
-        <a class="abt-seo-card" href="/image-to-3d">
-          <b>Image to 3D</b>
-          <span>Use reference images to build 3D models and move faster from idea to asset.</span>
-          <i>Use images →</i>
-        </a>
-      </div>
-    </div>
-  </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-
-      <!-- Top: brand + nav columns -->
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="img/logo.png" alt="" class="ft-brand-icon" width="28" height="28">
-            <span class="ft-brand-name">TimrX</span>
-          </a>
-          <span class="ft-brand-tag">3D, image &amp; video generation</span>
-          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
-        </div>
-
-        <nav class="ft-cols" aria-label="Footer navigation">
-          <div class="ft-col">
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/blogs">Blog</a></li>
-              <li><a href="#works">Works</a></li>
-              <li><a href="#services">Services</a></li>
-              <li><a href="#contact">Contact</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">AI Tools</h3>
-            <ul class="ft-links">
-              <li><a href="/ai-image-generator">AI Image Generator</a></li>
-              <li><a href="/ai-video-generator">AI Video Generator</a></li>
-              <li><a href="/ai-3d-generator">AI 3D Generator</a></li>
-              <li><a href="/text-to-3d">Text to 3D</a></li>
-              <li><a href="/image-to-3d">Image to 3D</a></li>
-              <li><a href="/3d-print-model-generator">3D Print Models</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="/rss.xml">RSS</a></li>
-              <li><a href="mailto:admin@timrx.live">Email</a></li>
-              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-
-      <!-- Trustpilot -->
-      <div class="ft-trust">
-        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
-        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
-        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
-      </div>
-
-      <!-- Bottom meta row -->
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
-      </div>
-
-    </div>
-  </footer>
-    
-    
-<!-- CHAT -->
-<!-- CHAT TOGGLE -->
-<button id="chatToggle" class="chat-toggle chat-min" aria-controls="chatPanel" aria-expanded="false" aria-label="Open chat">
-    <svg class="chat-ico chat-ico--open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <svg class="chat-ico chat-ico--close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-
-<div id="chatBackdrop" class="chat-backdrop" hidden></div>
-
-<div id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatTitle" aria-describedby="chatIntroCopy" aria-modal="true" aria-hidden="true" hidden>
-  <div class="chat-panel__aura chat-panel__aura--one" aria-hidden="true"></div>
-  <div class="chat-panel__aura chat-panel__aura--two" aria-hidden="true"></div>
-  <header class="chat-head">
-    <div class="chat-head__brand">
-      <img src="img/logo.png" alt="" class="chat-avatar" width="42" height="42">
-      <div class="chat-title">
-        <span class="chat-kicker">TimrX Concierge</span>
-        <strong id="chatTitle">Ask TimrX</strong>
-        <span class="muted"><span class="chat-status"></span>Fast guidance on TimrX, 3D prints, file formats, pricing, and next steps</span>
-      </div>
-    </div>
-    <button id="chatClose" class="chat-x" aria-label="Close chat">✕</button>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" hidden>
+      <a href="/hub">Product</a><a href="/ai-tools">Tools</a><a href="/hub#pricing">Pricing</a><a href="/blogs">Blog</a><a class="button" href="/3dprint" data-track="mobile_open_workspace">Open Workspace</a>
+    </nav>
   </header>
 
-  <div class="chat-layout">
-    <aside class="chat-aside">
-      <div class="chat-spotlight">
-        <span class="chat-spotlight__eyebrow">Built for quick clarity</span>
-        <h3>Get sharp answers without leaving the page.</h3>
-        <p id="chatIntroCopy">Ask about TimrX, the 3D Print Hub, supported formats, pricing ranges, shipping, custom work, and what to do next.</p>
-      </div>
-
-      <div class="chat-side-list">
-        <div class="chat-side-stat">
-          <span class="chat-side-stat__label">Best for</span>
-          <strong>3D workflows, TimrX features, printing questions, and project planning</strong>
+  <main id="main">
+    <section class="hero section-pad hero-guided hero-minimal" aria-labelledby="hero-title">
+      <div class="hero-grid-bg" aria-hidden="true"></div><div class="hero-glow hero-glow-one" aria-hidden="true"></div><div class="hero-glow hero-glow-two" aria-hidden="true"></div>
+      <div class="shell hero-minimal-shell">
+        <div class="hero-copy hero-minimal-copy reveal">
+          <div class="eyebrow"><span></span> TimrX creative workspace</div>
+          <h1 id="hero-title">Create <span class="typed-phrase-wrap"><em data-hero-headline>Product Mockups.</em><i class="typed-cursor" aria-hidden="true"></i></span></h1>
+          <p>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
         </div>
-        <div class="chat-side-stat">
-          <span class="chat-side-stat__label">Reply style</span>
-          <strong>Fast, practical, and tailored to this site and your next step</strong>
-        </div>
-      </div>
 
-      <div class="chat-action-stack">
-        <span class="chat-section-label">Start with one of these</span>
-        <div class="chat-quick">
-          <button class="q" data-chat-prompt="What can TimrX help me with?">What can TimrX help me with?</button>
-          <button class="q" data-chat-prompt="How do I start a 3D project?">How do I start a 3D project?</button>
-          <button class="q" data-chat-prompt="What file formats can TimrX export?">What file formats can TimrX export?</button>
-          <button class="q" data-chat-prompt="What’s the usual budget?">What’s the usual budget?</button>
+        <div class="hero-command-wrap reveal" data-hero-command-wrap>
+          <div class="hero-command" id="heroCommand">
+            <form class="hero-promptbar" id="heroAssistantForm">
+              <label class="sr-only" for="heroAssistantInput">Ask a question or describe what to create</label>
+              <input id="heroAssistantInput" name="question" type="text" autocomplete="off" placeholder="Ask a question or describe what to create…">
+              <button class="prompt-ask" type="button" id="heroAskBtn" aria-label="Speak to the TimrX assistant"><i aria-hidden="true">✦</i><span>Ask</span></button>
+              <button class="prompt-generate" type="submit" aria-label="Generate with TimrX"><span>Generate</span><i aria-hidden="true">→</i></button>
+            </form>
+            <div class="assistant-answer" id="heroAssistantAnswer" aria-live="polite" hidden>
+              <span class="assistant-answer-kicker">TimrX guide</span>
+              <p>Tell me what you want to create and I’ll suggest the right workflow.</p>
+              <a class="assistant-route" href="/3dprint" data-hero-route>Open Workspace <span>→</span></a>
+            </div>
+          </div>
+          <div class="hero-qcarousel" aria-label="Example questions the assistant can answer">
+            <div class="qcar-track">
+              <button class="qcar-item" type="button" data-hero-question="What can I create with TimrX?">What can I create with TimrX?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do credits work?">How do credits work?</button>
+              <button class="qcar-item" type="button" data-hero-question="Which file formats can I export?">Which file formats can I export?</button>
+              <button class="qcar-item" type="button" data-hero-question="Can I export models for 3D printing?">Can I export models for 3D printing?</button>
+              <button class="qcar-item" type="button" data-hero-question="Do I need Blender or 3D skills?">Do I need Blender or 3D skills?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do I turn an image into a 3D model?">How do I turn an image into a 3D model?</button>
+              <button class="qcar-item" type="button" data-hero-question="What is the difference between the tools?">What is the difference between the tools?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do I get started for free?">How do I get started for free?</button>
+              <button class="qcar-item" type="button" data-hero-question="What can I create with TimrX?" aria-hidden="true" tabindex="-1">What can I create with TimrX?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do credits work?" aria-hidden="true" tabindex="-1">How do credits work?</button>
+              <button class="qcar-item" type="button" data-hero-question="Which file formats can I export?" aria-hidden="true" tabindex="-1">Which file formats can I export?</button>
+              <button class="qcar-item" type="button" data-hero-question="Can I export models for 3D printing?" aria-hidden="true" tabindex="-1">Can I export models for 3D printing?</button>
+              <button class="qcar-item" type="button" data-hero-question="Do I need Blender or 3D skills?" aria-hidden="true" tabindex="-1">Do I need Blender or 3D skills?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do I turn an image into a 3D model?" aria-hidden="true" tabindex="-1">How do I turn an image into a 3D model?</button>
+              <button class="qcar-item" type="button" data-hero-question="What is the difference between the tools?" aria-hidden="true" tabindex="-1">What is the difference between the tools?</button>
+              <button class="qcar-item" type="button" data-hero-question="How do I get started for free?" aria-hidden="true" tabindex="-1">How do I get started for free?</button>
+            </div>
+          </div>
+          <ul class="hero-trust-line" aria-label="Highlights">
+            <li>No installs</li>
+            <li>Runs in your browser</li>
+            <li>STL · OBJ · GLB · 3MF export</li>
+            <li>Starter credits included</li>
+          </ul>
         </div>
-      </div>
-    </aside>
-
-    <section class="chat-main">
-      <div id="chatBody" class="chat-body" aria-live="polite">
-        <div class="chat-welcome">
-          <span class="chat-welcome__eyebrow">Start here</span>
-          <h3>What do you want help with today?</h3>
-          <p>I can guide you through TimrX, the 3D Print Hub, supported files, design-to-print workflows, pricing ranges, and where to start.</p>
-          <div class="chat-welcome__grid">
-            <button class="chat-prompt-card" data-chat-prompt="What is TimrX and what does it offer?">
-              <span class="chat-prompt-card__title">What is TimrX?</span>
-              <span class="chat-prompt-card__copy">Get the short version of the platform and what it can do.</span>
-            </button>
-            <button class="chat-prompt-card" data-chat-prompt="Can this chat generate images, videos, or 3D files for me?">
-              <span class="chat-prompt-card__title">What can the chat do?</span>
-              <span class="chat-prompt-card__copy">See what it can answer directly and where platform tools take over.</span>
-            </button>
-            <button class="chat-prompt-card" data-chat-prompt="Who is behind TimrX?">
-              <span class="chat-prompt-card__title">Who is behind TimrX?</span>
-              <span class="chat-prompt-card__copy">Ask about Dima, the project vision, and how to work together.</span>
-            </button>
-            <button class="chat-prompt-card" data-chat-prompt="Do you work remote and how do I get started?">
-              <span class="chat-prompt-card__title">How do I start?</span>
-              <span class="chat-prompt-card__copy">Get a clean next-step path for custom work or TimrX usage.</span>
-            </button>
+        <div class="hero-showcase reveal" aria-label="Examples of what you can create in TimrX">
+          <div class="show-stage">
+          <div class="show-track">
+            <figure class="show-card"><img src="img/AI-img-gen-3.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-1.jpg"><source src="vid/hero-1.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card show-card--model"><img src="img/model-posters/mod1.png" alt="3D model preview" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
+            <figure class="show-card"><img src="img/AI-img-gen-4.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-2.jpg"><source src="vid/hero-2.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card show-card--model"><img src="img/model-posters/mod2.png" alt="3D model preview" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
+            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-3.jpg"><source src="vid/hero-3.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card"><img src="img/AI-img-gen-5.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--export"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>
+            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-3.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-1.jpg"><source src="vid/hero-1.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card show-card--model show-card--dup" aria-hidden="true"><img src="img/model-posters/mod1.png" alt="" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
+            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-4.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-2.jpg"><source src="vid/hero-2.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card show-card--model show-card--dup" aria-hidden="true"><img src="img/model-posters/mod2.png" alt="" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
+            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-3.jpg"><source src="vid/hero-3.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
+            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-5.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
+            <figure class="show-card show-card--export show-card--dup" aria-hidden="true"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>
+          </div>
           </div>
         </div>
-        <!-- messages injected here -->
-      </div>
-
-      <div class="chat-inputbar">
-        <div class="chat-inputwrap">
-          <textarea id="chatInput" rows="1" placeholder="Ask about TimrX, printing, formats, pricing, or next steps..."></textarea>
-          <span class="chat-inputmeta">Press Enter to send. Shift+Enter for a new line.</span>
-        </div>
-        <button id="chatSend" class="btn small"><span>Send</span><span aria-hidden="true">→</span></button>
       </div>
     </section>
-  </div>
-</div>
-    
-    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" defer></script>
-    <script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous" defer></script>
 
-    <script src="js/env-config.js"></script>
+    <section class="section-pad capabilities" aria-labelledby="capabilities-title">
+      <div class="shell">
+        <div class="section-heading section-heading-center reveal">
+          <span class="section-index">01 / CAPABILITIES</span>
+          <h2 id="capabilities-title">From idea to usable asset.</h2>
+          <p>Focused tools for the visual workflows that matter most.</p>
+        </div>
+        <div class="capability-grid">
+          <article class="capability-card reveal">
+            <span class="card-num">01</span>
+            <div class="cap-icon cap-icon-image" aria-hidden="true">✦</div>
+            <h3>Image Generation</h3>
+            <p>Create concept art, product visuals, characters and creative images from prompts.</p>
+            <a href="/ai-image-generator" data-track="capability_images">Create Images <span>→</span></a>
+          </article>
+          <article class="capability-card reveal">
+            <span class="card-num">02</span>
+            <div class="cap-icon cap-icon-video" aria-hidden="true">▶</div>
+            <h3>Video Generation</h3>
+            <p>Turn prompts or images into short cinematic videos and animated assets.</p>
+            <a href="/ai-video-generator" data-track="capability_video">Create Videos <span>→</span></a>
+          </article>
+          <article class="capability-card reveal">
+            <span class="card-num">03</span>
+            <div class="cap-icon cap-icon-model" aria-hidden="true">⬢</div>
+            <h3>3D Generation &amp; Refinement</h3>
+            <p>Generate 3D models from text or images, remesh, retexture, refine and export.</p>
+            <a href="/3dprint" data-track="capability_3d">Create 3D Models <span>→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-pad workflow" aria-labelledby="workflow-title">
+      <div class="shell">
+        <div class="section-heading section-heading-center reveal">
+          <span class="section-index">02 / WORKFLOW</span>
+          <h2 id="workflow-title">A simple creative pipeline.</h2>
+          <p>Start from a prompt, reference or file, then generate, refine and export.</p>
+        </div>
+        <ol class="workflow-grid">
+          <li class="reveal"><span>STEP 01</span><div class="workflow-symbol" aria-hidden="true">⌁</div><h3>Describe or upload</h3><p>Start with a prompt, image, reference or existing file.</p></li>
+          <li class="reveal"><span>STEP 02</span><div class="workflow-symbol" aria-hidden="true">✧</div><h3>Generate and refine</h3><p>Create images, videos or 3D models, then improve the result with built-in tools.</p></li>
+          <li class="reveal"><span>STEP 03</span><div class="workflow-symbol" aria-hidden="true">↓</div><h3>Export or print</h3><p>Download STL, OBJ, GLB or 3MF, convert files, or prepare assets for printing.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="tools-band" aria-labelledby="tools-title">
+      <div class="shell tools-layout reveal">
+        <div>
+          <span class="section-index">03 / TOOLS</span>
+          <h2 id="tools-title">Open the right tool fast.</h2>
+        </div>
+        <nav class="tool-links" aria-label="TimrX tools">
+          <a href="/text-to-3d" data-track="tool_text_to_3d">Text to 3D <span>↗</span></a>
+          <a href="/image-to-3d" data-track="tool_image_to_3d">Image to 3D <span>↗</span></a>
+          <a href="/ai-image-generator" data-track="tool_image_generator">Image Generator <span>↗</span></a>
+          <a href="/ai-video-generator" data-track="tool_image_to_video">Image to Video <span>↗</span></a>
+          <a href="/converter" data-track="tool_converter">File Converter <span>↗</span></a>
+          <a href="/stl-library" data-track="tool_stl_library">STL Library <span>↗</span></a>
+          <a href="/print-on-demand" data-track="tool_print_ship">Print &amp; Ship <span>↗</span></a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture and print preparation.</small></li></ul></div></div></section>
+
+    <section class="section-pad insight-feed" aria-labelledby="insights-title">
+      <div class="shell">
+        <div class="insight-head reveal">
+          <div class="insight-head-left">
+            <span class="section-index">04 / BLOG</span>
+            <h2 id="insights-title">Latest TimrX insights.</h2>
+            <p>Short product notes, workflow guides and practical articles for creators working with AI images, video and 3D assets.</p>
+            <div class="insight-topics" aria-label="Topics"><span>AI generation</span><span>3D &amp; printing</span><span>Workflow</span><span>Web &amp; motion</span></div>
+          </div>
+          <div class="insight-head-right">
+            <a class="insight-viewall" href="/blogs" data-track="blog_feed_view_all">View all posts <span aria-hidden="true">→</span></a>
+            <dl class="insight-stats">
+              <div><dt data-stat="articles">20+</dt><dd>Articles</dd></div>
+              <div><dt data-stat="categories">10</dt><dd>Categories</dd></div>
+              <div><dt data-stat="read">3 min</dt><dd>Avg read</dd></div>
+            </dl>
+            <p class="insight-tagline">Build better · Learn faster · Create more</p>
+          </div>
+        </div>
+        <div class="insight-grid" data-blog-feed aria-live="polite">
+          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
+          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
+          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
+        </div>
+        <nav class="insight-links" aria-label="Browse the blog">
+          <span class="insight-links-cap">Browse articles</span>
+          <ul data-blog-links>
+            <li><a href="/blogs">All blog posts</a></li>
+            <li><a href="/blog/tag/ai">AI articles</a></li>
+            <li><a href="/blog/tag/3d">3D printing articles</a></li>
+            <li><a href="/blog/tag/workflow">Workflow articles</a></li>
+          </ul>
+        </nav>
+      </div>
+    </section>
+
     <script>
-      document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
-
-    <!-- Mobile Navigation Toggle -->
-    <script>
-      (function() {
-        const burger = document.getElementById('navBurger');
-        const menu = document.getElementById('mobileMenu');
-        const body = document.body;
-
-        if (!burger || !menu) return;
-
-        function openMenu() {
-          burger.classList.add('is-open');
-          burger.setAttribute('aria-expanded', 'true');
-          burger.setAttribute('aria-label', 'Close menu');
-          menu.classList.add('is-open');
-          menu.setAttribute('aria-hidden', 'false');
-          body.classList.add('menu-open');
-        }
-
-        function closeMenu() {
-          burger.classList.remove('is-open');
-          burger.setAttribute('aria-expanded', 'false');
-          burger.setAttribute('aria-label', 'Open menu');
-          menu.classList.remove('is-open');
-          menu.setAttribute('aria-hidden', 'true');
-          body.classList.remove('menu-open');
-        }
-
-        function toggleMenu() {
-          if (menu.classList.contains('is-open')) {
-            closeMenu();
-          } else {
-            openMenu();
-          }
-        }
-
-        // Toggle on burger click
-        burger.addEventListener('click', toggleMenu);
-
-        // Close menu when clicking a nav link
-        menu.querySelectorAll('a').forEach(function(link) {
-          link.addEventListener('click', closeMenu);
-        });
-
-        // Close menu on Escape key
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-            closeMenu();
-            burger.focus();
-          }
-        });
-
-        // Close menu when resizing to desktop
-        window.addEventListener('resize', function() {
-          if (window.innerWidth >= 1024 && menu.classList.contains('is-open')) {
-            closeMenu();
-          }
-        });
-      })();
-    </script>
-
-    <!-- Three.js viewer: lazy-loaded when #app3d scrolls into view (desktop only) -->
-    <script>
-    (function lazyViewer(){
-      var section = document.getElementById('app3d');
-      if (!section) return;
-
-      var loaded = false;
-      function boot(){
-        if (loaded) return;
-        loaded = true;
-
-        // Inject the importmap dynamically
-        var im = document.createElement('script');
-        im.type = 'importmap';
-        im.textContent = JSON.stringify({
-          imports: {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-          }
-        });
-        document.head.appendChild(im);
-
-        // Now load the viewer module
-        var mod = document.createElement('script');
-        mod.type = 'module';
-        mod.textContent = `
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
-        import { DRACOLoader }  from 'three/addons/loaders/DRACOLoader.js';
-        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-        const canvas       = document.getElementById('viewerCanvas');
-        const ph           = document.getElementById('viewerPlaceholder');
-        const rotateToggle = document.getElementById('rotateToggle');
-        const uploadBtn    = document.getElementById('uploadBtnTop');
-        const clearBtn     = document.getElementById('clearBtnTop');
-        const fileInput    = document.getElementById('modelFile');
-        const fileNameEl   = document.getElementById('viewerFileName');
-        const DEFAULT_SRC  = 'img/rabbit-web.glb';
-        const DEFAULT_NAME = 'rabbit.glb';
-
-        if (canvas) {
-          const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-          renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.05;
-
-          const scene = new THREE.Scene();
-          scene.fog = new THREE.Fog(0x0b0c12, 12, 30);
-
-          const pmrem = new THREE.PMREMGenerator(renderer);
-          scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.045).texture;
-
-          const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 5000);
-          camera.position.set(4, 2.6, 6);
-
-          const controls = new OrbitControls(camera, canvas);
-          controls.enableDamping = true;
-          controls.dampingFactor = 0.08;
-          controls.autoRotate = true;
-          controls.autoRotateSpeed = 1.4;
-          window.viewerControls = controls;
-
-          scene.add(new THREE.AmbientLight(0xffffff, 0.22));
-          const key = new THREE.DirectionalLight(0xffffff, 1.7);
-          key.position.set(4, 6, 3); scene.add(key);
-          const rim = new THREE.DirectionalLight(0x9db8da, 0.85);
-          rim.position.set(-5, 2.5, -4); scene.add(rim);
-
-          const grid = new THREE.GridHelper(22, 44, 0x3b4150, 0x23262f);
-          grid.material.transparent = true; grid.material.opacity = 0.5;
-          scene.add(grid);
-
-          // immediate fallback object (used only if the showcase model fails)
-          const cube = new THREE.Mesh(
-            new THREE.BoxGeometry(1.1, 1.1, 1.1),
-            new THREE.MeshStandardMaterial({ color: 0x6eb4ff, metalness: 0.3, roughness: 0.38 })
-          );
-          cube.position.y = 0.55; scene.add(cube);
-
-          let defaultModel = null;   // showcase model
-          let userModel    = null;   // an uploaded model
-
-          const wrapper = canvas.parentElement || canvas;
-          function resize(){
-            const r = wrapper.getBoundingClientRect();
-            const w = Math.max(1, r.width|0), h = Math.max(1, r.height|0);
-            renderer.setSize(w, h, false);
-            camera.aspect = w / h; camera.updateProjectionMatrix();
-          }
-          window.addEventListener('resize', resize);
-          if (window.ResizeObserver) new ResizeObserver(resize).observe(wrapper);
-          resize();
-
-          // frame an object with comfortable padding, rotation-invariant (bounding sphere)
-          function fitCameraToObject(obj){
-            const box = new THREE.Box3().setFromObject(obj);
-            const sphere = box.getBoundingSphere(new THREE.Sphere());
-            const r = sphere.radius || 1;
-            const dist = r * 3.6;
-            controls.target.copy(sphere.center);
-            camera.near = Math.max(0.01, dist / 200);
-            camera.far  = dist * 200;
-            camera.updateProjectionMatrix();
-            const d = new THREE.Vector3(1, 0.5, 1).normalize();
-            camera.position.copy(sphere.center).addScaledVector(d, dist);
-            controls.minDistance = dist * 0.4;
-            controls.maxDistance = dist * 5;
-            controls.update();
-          }
-          function placeOnGround(obj){
-            const box = new THREE.Box3().setFromObject(obj);
-            obj.position.y -= box.min.y;
-          }
-          function disposeObject(root){
-            root.traverse((o) => {
-              if (o.geometry) o.geometry.dispose?.();
-              if (o.material){
-                if (Array.isArray(o.material)) o.material.forEach(m => m.dispose?.());
-                else o.material.dispose?.();
-              }
-            });
-          }
-          function showActive(){
-            const active = userModel || defaultModel || cube;
-            cube.visible = (active === cube);
-            if (defaultModel) defaultModel.visible = (active === defaultModel);
-            if (userModel)    userModel.visible    = (active === userModel);
-            fitCameraToObject(active);
-          }
-
-          // shared loader with Draco decompression (the -web.glb models are Draco-compressed)
-          const draco = new DRACOLoader();
-          draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-          const loader = new GLTFLoader();
-          loader.setDRACOLoader(draco);
-
-          // showcase model
-          fitCameraToObject(cube);
-          loader.load(DEFAULT_SRC, (gltf) => {
-            defaultModel = gltf.scene;
-            placeOnGround(defaultModel);
-            scene.add(defaultModel);
-            if (!userModel) showActive();
-          }, undefined, (err) => { console.warn('Default model failed:', err); });
-
-          async function loadModelFromFile(file){
-            const url = URL.createObjectURL(file);
-            try {
-              const gltf = await loader.loadAsync(url);
-              if (userModel){ disposeObject(userModel); scene.remove(userModel); }
-              userModel = gltf.scene;
-              placeOnGround(userModel);
-              scene.add(userModel);
-              showActive();
-              if (clearBtn) clearBtn.disabled = false;
-              if (fileNameEl) fileNameEl.textContent = file.name;
-              if (ph) ph.style.opacity = 0;
-            } catch (err){ console.error('Failed to load model:', err); }
-            finally { URL.revokeObjectURL(url); }
-          }
-
-          uploadBtn?.addEventListener('click', () => fileInput?.click());
-          fileInput?.addEventListener('change', async (e) => {
-            const file = e.target.files?.[0]; if (!file) return;
-            await loadModelFromFile(file); fileInput.value = '';
-          });
-          ['dragenter','dragover','dragleave','drop'].forEach(ev =>
-            wrapper.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
-          );
-          wrapper.addEventListener('drop', async (e) => {
-            const file = e.dataTransfer?.files?.[0];
-            if (file && /\\.(gltf?|glb)$/i.test(file.name)) await loadModelFromFile(file);
-          });
-          clearBtn?.addEventListener('click', () => {
-            if (!userModel) return;
-            disposeObject(userModel); scene.remove(userModel); userModel = null;
-            showActive();
-            if (clearBtn) clearBtn.disabled = true;
-            if (fileNameEl) fileNameEl.textContent = defaultModel ? DEFAULT_NAME : 'untitled';
-          });
-
-          if (rotateToggle){
-            rotateToggle.checked = controls.autoRotate;
-            rotateToggle.addEventListener('change', (e) => {
-              controls.autoRotate = !!e.target.checked;
-            });
-          }
-
-          function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); }
-          loop();
-          if (ph) requestAnimationFrame(() => (ph.style.opacity = 0));
-        } else {
-          console.warn('viewerCanvas not found');
-        }
-        `;
-        document.body.appendChild(mod);
+    (function(){
+      function run(){
+        var env=window.TIMRX_ENV||{};
+        var base=(env.blogApiBase||window.TIMRX_BLOGS_API_BASE||window.location.origin).replace(/\/+$/,'');
+        function setStat(n,v){var el=document.querySelector('[data-stat="'+n+'"]');if(el&&v!=null&&v!=='')el.textContent=v;}
+        fetch(base+'/api/posts?page=1&size=100',{cache:'no-store',mode:'cors'})
+          .then(function(r){return r.ok?r.json():null;})
+          .then(function(data){
+            if(!data)return;
+            var posts=data.items||data.posts||[];
+            if(!posts.length)return;
+            var total=(typeof data.total==='number')?data.total:(typeof data.count==='number'?data.count:(posts.length>=100?'100+':posts.length));
+            var cats={};posts.forEach(function(p){String(p.tags||'').split(',').forEach(function(t){t=t.trim().toLowerCase();if(t)cats[t]=1;});});
+            var catCount=Object.keys(cats).length;
+            var mins=posts.map(function(p){return p.minutes||Math.max(3,Math.round(((p.excerpt||'')+(p.title||'')).length/62));});
+            var avg=Math.max(1,Math.round(mins.reduce(function(a,b){return a+b;},0)/mins.length));
+            setStat('articles',total+'');
+            if(catCount)setStat('categories',catCount+'');
+            setStat('read',avg+' min');
+            var ul=document.querySelector('[data-blog-links]');
+            if(ul){
+              var frag=document.createDocumentFragment();
+              posts.slice(0,5).forEach(function(p){
+                if(!p.slug)return;
+                var li=document.createElement('li');
+                var a=document.createElement('a');
+                a.href='/read?slug='+encodeURIComponent(p.slug);
+                a.textContent=p.title||'Article';
+                li.appendChild(a);frag.appendChild(li);
+              });
+              ul.insertBefore(frag,ul.firstChild);
+            }
+          })
+          .catch(function(){});
       }
-
-      // Only load on desktop (>=900px) via IntersectionObserver
-      if (window.innerWidth < 900) return;
-
-      var io = new IntersectionObserver(function(entries){
-        if (entries[0].isIntersecting) { io.disconnect(); boot(); }
-      }, { rootMargin: '200px 0px' });
-      io.observe(section);
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
     })();
     </script>
 
-      <!-- About + Blog section enhancements: deferred to idle time -->
-      <script>
-      (function deferBelowFold(){
-        var idle = window.requestIdleCallback || function(cb){ setTimeout(cb, 200); };
+    <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">05 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
+      <details class="reveal"><summary>What can I create with TimrX?<span>＋</span></summary><p>Images, short videos, textured 3D models and printable assets from prompts, reference images or existing files.</p></details>
+      <details class="reveal"><summary>Can I export models for 3D printing?<span>＋</span></summary><p>Yes. Use print checks and export workflows for STL and 3MF, then prepare the result for your slicer or print service.</p></details>
+      <details class="reveal"><summary>Which file formats are supported?<span>＋</span></summary><p>Core workflows support STL, OBJ, GLB, GLTF, USDZ and 3MF. The converter provides additional format paths.</p></details>
+      <details class="reveal"><summary>Do I need Blender or advanced 3D skills?<span>＋</span></summary><p>No. TimrX is designed to generate, inspect, refine and export assets directly in your browser.</p></details>
+      <details class="reveal"><summary>How do credits work?<span>＋</span></summary><p>Generation and selected refinement actions use credits. Choose a pack based on the tools and output volume you need.</p></details>
+      <details class="reveal"><summary>Can I use TimrX for content, games or products?<span>＋</span></summary><p>Yes. Workflows support content creation, game concepts, product visualisation, prototypes and print-ready ideas.</p></details>
+    </div></div></section>
 
-        idle(function(){
-          // About particles
-          var container = document.getElementById('aboutParticles');
-          if (container) {
-            for (var i = 0; i < 12; i++) {
-              var p = document.createElement('div');
-              p.className = 'particle';
-              var sx = Math.random() * 100, sy = Math.random() * 100;
-              p.style.left = sx + '%'; p.style.top = sy + '%';
-              p.style.setProperty('--dx', ((Math.random()-.5)*150)+'px');
-              p.style.setProperty('--dy', ((Math.random()-.5)*150)+'px');
-              p.style.animationDelay = (Math.random()*12)+'s';
-              if (Math.random() > 0.6) {
-                p.style.background = 'rgba(139, 92, 246, 0.3)';
-                p.style.boxShadow = '0 0 8px rgba(139, 92, 246, 0.4)';
-              }
-              container.appendChild(p);
-            }
-          }
+    <section class="final-cta"><div class="shell reveal"><span class="eyebrow"><span></span> Start with an idea</span><h2>Make the next asset in TimrX.</h2><p>Generate, refine and export without leaving the browser.</p><a class="button button-primary" href="/3dprint" data-track="footer_open_workspace">Open Workspace <span>→</span></a></div></section>
+  </main>
 
-          // About parallax
-          var aboutSection = document.getElementById('about');
-          var geoBg = aboutSection ? aboutSection.querySelector('.about-geometric-bg') : null;
-          if (geoBg) {
-            var ticking = false;
-            window.addEventListener('scroll', function(){
-              if (ticking) return; ticking = true;
-              requestAnimationFrame(function(){
-                var rect = aboutSection.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                  var pct = Math.max(0, Math.min(1, -rect.top / rect.height));
-                  geoBg.style.transform = 'translateY(' + (pct*40) + 'px)';
-                }
-                ticking = false;
-              });
-            });
-          }
-
-          // About title GSAP scrub
-          if (window.gsap && window.ScrollTrigger) {
-            var title = document.getElementById('aboutTitle');
-            if (title) {
-              gsap.to(title, {
-                x: -30,
-                scrollTrigger: { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
-              });
-            }
-          }
-
-          // About kicker hover
-          var kicker = document.querySelector('.about-kicker');
-          if (kicker) {
-            kicker.addEventListener('mouseenter', function(){ kicker.style.transform = 'scale(1.05) translateY(-2px)'; });
-            kicker.addEventListener('mouseleave', function(){ kicker.style.transform = 'scale(1) translateY(0)'; });
-          }
-        });
-
-        // Blog enhancements — slightly later idle
-        idle(function(){
-          // Tagline rotation
-          var taglines = [
-            'Fresh insights \u2022 Deep dives \u2022 Creative experiments',
-            'Code stories \u2022 Design patterns \u2022 3D adventures',
-            'Web magic \u2022 UI craft \u2022 Innovation notes',
-            'Build better \u2022 Learn faster \u2022 Create more'
-          ];
-          var ci = 0, tagEl = document.getElementById('blogTagline');
-          if (tagEl) {
-            setInterval(function(){
-              ci = (ci + 1) % taglines.length;
-              tagEl.style.opacity = '0'; tagEl.style.transform = 'translateX(-20px)';
-              setTimeout(function(){ tagEl.textContent = taglines[ci]; tagEl.style.opacity = '1'; tagEl.style.transform = 'translateX(0)'; }, 300);
-            }, 5000);
-          }
-
-          // Blog cursor glow
-          var blogsSection = document.getElementById('blogs');
-          if (blogsSection) {
-            blogsSection.addEventListener('mousemove', function(e){
-              var r = blogsSection.getBoundingClientRect();
-              blogsSection.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
-              blogsSection.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
-            });
-          }
-
-          // Stats counter — reads the live, exact total post & category counts
-          (function(){
-            var statsEl = document.getElementById('blogsStats');
-            if (!statsEl) return;
-            var nums = statsEl.querySelectorAll('.stat-number');
-            if (nums.length < 3) return;
-            var visible = false, data = null, animated = false;
-            function tween(el, target, dur){
-              target = target || 0;
-              var start = performance.now();
-              function step(now){
-                var t = Math.min(1, (now - start) / dur);
-                el.textContent = Math.floor(target * (1 - Math.pow(1 - t, 3)));
-                if (t < 1) requestAnimationFrame(step); else el.textContent = target;
-              }
-              requestAnimationFrame(step);
-            }
-            function run(){
-              if (!visible || !data) return;
-              if (animated){
-                nums[0].textContent = data.articles;
-                nums[1].textContent = data.categories;
-                nums[2].textContent = data.minRead;
-                return;
-              }
-              animated = true;
-              tween(nums[0], data.articles, 1400);
-              setTimeout(function(){ tween(nums[1], data.categories, 1400); }, 120);
-              setTimeout(function(){ tween(nums[2], data.minRead, 1400); }, 240);
-            }
-            function fallback(){
-              return {
-                articles:   parseInt(nums[0].getAttribute('data-target') || '0', 10),
-                categories: parseInt(nums[1].getAttribute('data-target') || '0', 10),
-                minRead:    parseInt(nums[2].getAttribute('data-target') || '0', 10)
-              };
-            }
-            var io = new IntersectionObserver(function(es){
-              es.forEach(function(e){ if (e.isIntersecting){ visible = true; io.disconnect(); run(); } });
-            }, { threshold: 0.5 });
-            io.observe(statsEl);
-            // safety: if the API is slow, fall back to the static numbers
-            setTimeout(function(){ if (!data){ data = fallback(); run(); } }, 3500);
-            // walk every page of /api/posts so the counts are exact and always live
-            (async function(){
-              try {
-                var all = [], page = 1, pageSize = 0;
-                while (page <= 40){
-                  var r = await fetch('/api/posts?page=' + page + '&size=100', { cache: 'no-store' });
-                  if (!r.ok) break;
-                  var j = await r.json();
-                  var batch = j.items || j.posts || [];
-                  if (!batch.length) break;
-                  all = all.concat(batch);
-                  if (page === 1) pageSize = batch.length;
-                  if (batch.length < pageSize) break;
-                  page++;
-                }
-                if (!all.length){ data = data || fallback(); run(); return; }
-                var cats = new Set(), minutes = 0;
-                all.forEach(function(p){
-                  String(p.tags || '').split(',').forEach(function(tg){
-                    tg = tg.trim(); if (tg) cats.add(tg.toLowerCase());
-                  });
-                  minutes += (p.minutes || Math.max(3, Math.round(((p.excerpt||'') + (p.title||'')).length / 60)));
-                });
-                data = {
-                  articles: all.length,
-                  categories: cats.size,
-                  minRead: Math.max(1, Math.round(minutes / all.length))
-                };
-                nums[0].setAttribute('data-target', data.articles);
-                nums[1].setAttribute('data-target', data.categories);
-                nums[2].setAttribute('data-target', data.minRead);
-                run();
-              } catch (e){ data = data || fallback(); run(); }
-            })();
-          })();
-
-          // Blog card scroll-in
-          var cardObs = new IntersectionObserver(function(entries){
-            entries.forEach(function(entry, idx){
-              if (entry.isIntersecting) { entry.target.style.animationDelay = (idx*0.1)+'s'; entry.target.classList.add('visible'); }
-            });
-          }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-          setTimeout(function(){
-            document.querySelectorAll('.blog-card').forEach(function(c){ cardObs.observe(c); });
-          }, 1000);
-        });
-
-        function animateCounter(el, target, dur){
-          var inc = target / (dur / 16), cur = 0;
-          var t = setInterval(function(){
-            cur += inc; if (cur >= target) { cur = target; clearInterval(t); }
-            el.textContent = Math.floor(cur);
-          }, 16);
-        }
-      })();
-      </script>
-
-      <!-- Dynamic Blog Loading: deferred until after window.load to keep it out of the critical path -->
-      <script>
-        function _loadBlogs() {
-          var blogsGrid = document.getElementById('blogsGrid');
-          if (!blogsGrid) return;
-
-          var API = '/api';
-
-          fetch(API + '/posts?page=1&size=9', { cache: 'no-store' })
-            .then(function(r){ if (!r.ok) throw new Error('Failed'); return r.json(); })
-            .then(function(data){
-              var posts = data.items || data.posts || [];
-              if (!posts.length) {
-                blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">No blog posts available yet.</p>';
-                return;
-              }
-
-              // Blog/category counts handled by the dedicated #blogsStats counter
-
-              blogsGrid.innerHTML = posts.map(function(post, index){
-                var url = '/blog/' + encodeURIComponent(post.slug);
-                var tag = (post.tags || '').split(',')[0] || 'Post';
-                var date = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
-                var readTime = post.minutes || Math.max(3, Math.round(((post.excerpt||'')+(post.title||'')).length / 60));
-                var coverUrl = post.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop';
-                var isFeatured = index === 0;
-                var isUnsplash = coverUrl.indexOf('unsplash.com') !== -1;
-                var srcsetAttr = isUnsplash
-                  ? 'srcset="'+coverUrl+'&w=640 640w, '+coverUrl+'&w=960 960w, '+coverUrl+'&w=1280 1280w" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"'
-                  : '';
-                var allTags = (post.tags || '').split(',').filter(Boolean);
-
-                return '<a class="blog-card'+(isFeatured?' featured':'')+'" href="'+url+'" role="listitem">'
-                  +'<div class="cover"><img src="'+coverUrl+'" '+srcsetAttr+' alt="'+post.title+'" loading="lazy" decoding="async" width="400" height="225" style="aspect-ratio:16/9;object-fit:cover" />'
-                  +(isFeatured?'<span class="pill featured-pill">FEATURED</span>':'')
-                  +'<span class="pill category-pill">'+tag+'</span></div>'
-                  +'<div class="inner"><h3 class="title">'+post.title+'</h3>'
-                  +'<p class="excerpt muted">'+(post.excerpt||'')+'</p>'
-                  +(isFeatured?'<p class="featured-preview muted" id="featuredPreview"></p>':'')
-                  +(isFeatured&&allTags.length>1?'<div class="featured-tags">'+allTags.map(function(t){return '<span class="featured-tag">'+t.trim()+'</span>';}).join('')+'</div>':'')
-                  +'<div class="blog-footer"><div class="author-mini">'
-                  +'<img src="img/dima-480.webp" alt="'+(post.author||'Dima Vasiliu')+'" class="author-mini-avatar" width="32" height="32" loading="lazy" decoding="async" />'
-                  +'<span class="author-mini-name">'+(post.author||'Dima Vasiliu')+'</span></div>'
-                  +'<div class="meta"><span>'+readTime+' min read</span><span>\u2022</span>'
-                  +'<time datetime="'+post.created_at+'">'+date+'</time></div></div></div></a>';
-              }).join('');
-
-              // Fetch featured post detail (non-critical)
-              var fp = posts[0];
-              if (fp) {
-                fetch(API+'/post/'+encodeURIComponent(fp.slug))
-                  .then(function(r){ return r.ok ? r.json() : null; })
-                  .then(function(full){
-                    if (!full) return;
-                    var el = document.getElementById('featuredPreview');
-                    if (!el) return;
-                    var txt = '';
-                    var fmt = full.content_format || 'markdown';
-                    if (fmt==='blocks' && full.content_blocks) {
-                      try {
-                        var blocks = typeof full.content_blocks==='string'?JSON.parse(full.content_blocks):full.content_blocks;
-                        txt = (blocks.blocks||[]).filter(function(b){return b.type==='paragraph';}).map(function(b){return (b.data&&b.data.text)||'';}).join(' ').replace(/<[^>]+>/g,'');
-                      } catch(e){}
-                    } else if (full.content_md) {
-                      txt = full.content_md.replace(/^#{1,6}\s+.*$/gm,'').replace(/!\[.*?\]\(.*?\)/g,'').replace(/\[([^\]]+)\]\(.*?\)/g,'$1').replace(/[*_~`>#\-]/g,'').replace(/\n{2,}/g,' ').replace(/\n/g,' ').trim();
-                    }
-                    if (txt.length>50) el.textContent = txt.length>480 ? txt.slice(0,480).replace(/\s\S*$/,'')+'...' : txt;
-                  }).catch(function(){});
-              }
-            })
-            .catch(function(err){
-              console.error('Error loading blog posts:', err);
-              blogsGrid.innerHTML = '<p class="muted" style="text-align:center;padding:40px;">Unable to load blog posts. <a href="/blogs" style="color:var(--accent-blue)">Visit the blogs page \u2192</a></p>';
-            });
-        }
-
-        function _blogCounter(el, target, dur){
-          var inc = target/(dur/16), cur = 0;
-          var t = setInterval(function(){ cur+=inc; if(cur>=target){cur=target;clearInterval(t);} el.textContent=Math.floor(cur); }, 16);
-        }
-
-        // Defer blog loading until AFTER window.load + idle — keeps it off the critical path
-        window.addEventListener('load', function(){
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(_loadBlogs, { timeout: 2000 });
-          } else {
-            setTimeout(_loadBlogs, 800);
-          }
-        });
-
-      </script>
-
-    <script src="script.js?v=7" defer></script>
-    <script src="app.js?v=7" defer></script>
-
-    <!-- About TimrX Modal -->
-    <!-- Service card hover effects -->
-    <style>
-
-    /* Service cards light theme - flexbox for button alignment */
-    .svc-card-light {
-      display: flex;
-      flex-direction: column;
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Workspace</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Company"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/company">Company</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
+  <script src="js/env-config.js"></script>
+  <script>
+    window.TIMRX_CHAT_CONTEXT = 'You are the TimrX platform assistant on the main product landing page. Answer as TimrX, not as Dima personally. Focus on helping visitors understand the product, choose the right tool, open the workspace, understand credits, exports, formats and workflows. Keep answers concise, conversion-focused and practical. If users ask for freelance services or Dima personally, route them to /dima-vasiliu instead of mixing that into the product funnel.';
+    window.TIMRX_CHAT_FAQ = [
+      {q:'What can I create with TimrX?',a:'You can create images, short videos, 3D models and print-ready assets from prompts, images or existing files. Start in /3dprint or browse /ai-tools.',keywords:['create','what can i make','images','video','3d','assets']},
+      {q:'Where should I start?',a:'Open the workspace at /3dprint if you want to generate now. Use /ai-tools if you want to pick a specific tool first.',keywords:['start','begin','workspace','open workspace','first step']},
+      {q:'Can I export for 3D printing?',a:'Yes. TimrX supports print-focused workflows and exports such as STL and 3MF, with OBJ and GLB available for broader 3D use.',keywords:['export','3d print','stl','3mf','obj','glb','formats']},
+      {q:'How do credits work?',a:'Credits are used for AI generation and selected refinement actions. Use /hub#pricing to compare packs before starting a larger workflow.',keywords:['credits','pricing','cost','billing','packs']},
+      {q:'Do I need Blender?',a:'No. TimrX is browser-based, so you can generate, inspect, refine and export without installing Blender just to get started.',keywords:['blender','software','install','browser']},
+      {q:'Which tool should I use?',a:'Use text-to-3D for prompt-based models, image-to-3D for reference images, the image generator for visuals, image-to-video for motion, and the converter for file format changes.',keywords:['which tool','text to 3d','image to 3d','converter','image generator','video']}
+    ];
+    window.TIMRX_CHAT_WIDGET = {kicker:'Platform assistant',title:'Ask TimrX',subtitle:'Product guidance for images, video, 3D, exports and credits.',spotlightTitle:'Find the right workflow',spotlightCopy:'Ask what to create, which tool to open, what formats are supported, or how credits work.',welcomeTitle:'What do you want to create?',welcomeCopy:'I can point you to the right TimrX tool and explain the workflow before you open the workspace.',placeholder:'Ask about tools, exports, credits or workflows…',prompts:[{label:'Which tool should I use?',prompt:'Which TimrX tool should I use for my idea?'},{label:'Can I export STL?',prompt:'Can I export models for 3D printing as STL or 3MF?'},{label:'How do credits work?',prompt:'How do credits work on TimrX?'},{label:'Start creating',prompt:'Where should I start if I want to create an asset now?'}]};
+  </script>
+  <script src="app.js?v=2" defer></script>
+  <script src="hero-assistant.js?v=3" defer></script>
+  <script src="landing-widgets.js?v=1" defer></script>
+  <script src="landing.js?v=2" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
+  <script>
+  /* Live showcase — pull generated assets from the inspire feed (same source as Inspire), with the static cards as instant fallback. */
+  (function(){
+    var track=document.querySelector('.hero-showcase .show-track');
+    if(!track)return;
+    var BACKEND=(window.TIMRX_3D_API_BASE||(window.TIMRX_ENV&&window.TIMRX_ENV.threedApiBase)||'https://3d.timrx.live').replace(/\/+$/,'');
+    var mq=function(q){return window.matchMedia&&window.matchMedia(q).matches;};
+    var conn=navigator.connection||{};
+    var lite=mq('(prefers-reduced-motion:reduce)')||conn.saveData===true||/(^|\b)(slow-2g|2g)\b/.test(conn.effectiveType||'');
+    var videoBudget=lite?0:(mq('(max-width:760px)')?1:2);
+    var PAT=[[-10,34],[8,-8],[-14,16],[6,-12],[-8,26],[12,0],[-12,20],[4,-6],[-6,12]];
+    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function thumb(c){return c.thumb_preview||c.thumb_url||c.thumbnail||c.thumbnail_url||'';}
+    function kind(c){var t=String(c.type||'').toLowerCase();if(c.video_url||t.indexOf('video')>=0)return'video';if(/3d|model|stl|glb|obj|mesh/.test(t))return'3d';return'image';}
+    function fig(c,j,dup,autoplay){
+      var th=thumb(c);if(!th&&!c.video_url)return'';
+      var k=kind(c),p=PAT[j%9];
+      var cls='show-card'+(k==='3d'?' show-card--model':(k==='video'?' show-card--video':''))+(dup?' show-card--dup':'');
+      var label=k==='video'?'Video':(k==='3d'?'3D model':'Image');
+      var badge=k==='video'?'<span class="show-badge show-badge--play" aria-hidden="true">▶</span>':(k==='3d'?'<span class="show-badge" aria-hidden="true">3D</span>':'');
+      var alt=dup?'':esc(c.prompt||(label+' generated with TimrX'));
+      var media;
+      if(k==='video'&&c.video_url&&autoplay){media='<video class="show-video" autoplay muted loop playsinline preload="metadata"'+(th?' poster="'+esc(th)+'"':'')+'><source src="'+esc(c.video_url)+'" type="video/mp4"></video>';}
+      else{media='<img src="'+esc(th)+'" alt="'+alt+'" loading="lazy" decoding="async">';}
+      return '<figure class="'+cls+'"'+(dup?' aria-hidden="true"':'')+' style="--ty:'+p[0]+'px;--tz:'+p[1]+'px">'+media+badge+'<figcaption>'+label+'</figcaption></figure>';
     }
-    .svc-card-light .svc-cta-light {
-      margin-top: auto;
+    function exp(j,dup){var p=PAT[j%9];return '<figure class="show-card show-card--export'+(dup?' show-card--dup':'')+'"'+(dup?' aria-hidden="true"':'')+' style="--ty:'+p[0]+'px;--tz:'+p[1]+'px"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>';}
+    var io;
+    function observeVideos(){
+      if(!('IntersectionObserver'in window))return;
+      if(io)io.disconnect();
+      io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){var pr=v.play&&v.play();if(pr&&pr.catch)pr.catch(function(){});}else if(v.pause){v.pause();}});},{rootMargin:'140px',threshold:.01});
+      track.querySelectorAll('video.show-video').forEach(function(v){io.observe(v);});
     }
-    .svc-card-light:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
-      border-color: #d0d0d0 !important;
+    function render(cards){
+      var seen={},pick=[];
+      cards.forEach(function(c){var key=thumb(c)||c.video_url;if(!key||seen[key])return;seen[key]=1;pick.push(c);});
+      if(pick.length<4)return;
+      pick=pick.slice(0,8);
+      var u1=0,g='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u1<videoBudget;if(ap)u1++;g+=fig(c,i,false,ap);});g+=exp(pick.length,false);
+      var u2=0,d='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u2<videoBudget;if(ap)u2++;d+=fig(c,i,true,ap);});d+=exp(pick.length,true);
+      var html=g+d;if(!html)return;
+      track.innerHTML=html;observeVideos();
     }
-    .svc-card-light:hover .svc-icon {
-      transform: scale(1.1);
+    function run(){
+      var ctrl=('AbortController'in window)?new AbortController():null,to=setTimeout(function(){ctrl&&ctrl.abort();},8000);
+      fetch(BACKEND+'/api/_mod/inspire/feed?type=all&mix=balanced&limit=16',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(d){clearTimeout(to);if(!d||d.ok===false)return;var cards=d.cards||d.items||[];if(cards&&cards.length)render(cards);})
+        .catch(function(){clearTimeout(to);});
     }
-    .svc-card-light .svc-icon {
-      transition: transform 0.3s ease;
-    }
-    .svc-cta-light:hover {
-      background: #0b0b0b !important;
-      color: #ffffff !important;
-    }
-    .svc-cta-light:hover span {
-      transform: translateX(4px);
-    }
-
-    /* Contact figurine (prismatic beacon) */
-    .contact-deco{
-      position:absolute;
-      top:48px;
-      right:8%;
-      pointer-events:none;
-      z-index:0;
-      opacity:0.9;
-      filter: saturate(1.15);
-    }
-    .contact-figurine{
-      position:relative;
-      width:clamp(150px, 20vw, 230px);
-      height:clamp(150px, 20vw, 230px);
-      transform-style:preserve-3d;
-      animation: cfFloat 7.5s ease-in-out infinite;
-    }
-    .contact-figurine::before{
-      content:"";
-      position:absolute;
-      inset:-18%;
-      background:
-        radial-gradient(60% 60% at 25% 25%, rgba(14,165,233,0.35), transparent 60%),
-        radial-gradient(60% 60% at 75% 70%, rgba(236,72,153,0.28), transparent 65%);
-      filter: blur(10px);
-      opacity:0.8;
-    }
-    .contact-figurine::after{
-      content:"";
-      position:absolute;
-      inset:10%;
-      border-radius:50%;
-      background: conic-gradient(from 120deg, rgba(14,165,233,0.28), rgba(255,77,77,0.18), rgba(236,72,153,0.22), rgba(14,165,233,0.28));
-      opacity:0.25;
-      animation: cfSpinFlat 18s linear infinite;
-    }
-
-    .cf-ring{
-      position:absolute;
-      inset:8%;
-      border-radius:50%;
-      border:1px solid rgba(11,11,11,0.18);
-      --tilt: 68deg;
-      animation: cfSpin 16s linear infinite;
-    }
-    .cf-ring.ring-b{
-      inset:18%;
-      border-style:dashed;
-      border-color: rgba(14,165,233,0.35);
-      --tilt: 74deg;
-      animation-duration: 22s;
-    }
-    .cf-ring.ring-c{
-      inset:28%;
-      border-color: rgba(236,72,153,0.32);
-      --tilt: 62deg;
-      animation-duration: 26s;
-    }
-
-    .cf-prism{
-      position:absolute;
-      width:46%;
-      height:46%;
-      left:27%;
-      top:27%;
-      background: linear-gradient(135deg, rgba(14,165,233,0.55), rgba(236,72,153,0.38));
-      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-      transform: rotate(45deg);
-      box-shadow: 0 0 22px rgba(14,165,233,0.35), inset 0 0 12px rgba(255,255,255,0.35);
-      animation: cfPrism 6s ease-in-out infinite;
-    }
-    .cf-core{
-      position:absolute;
-      width:22%;
-      height:22%;
-      left:39%;
-      top:39%;
-      border-radius:50%;
-      background: radial-gradient(circle at 30% 30%, var(--warm-white), rgba(14,165,233,0.6) 55%, rgba(236,72,153,0.35) 70%, transparent 72%);
-      box-shadow: 0 0 24px rgba(14,165,233,0.35), 0 0 50px rgba(236,72,153,0.25);
-      animation: cfPulse 2.8s ease-in-out infinite;
-    }
-
-    .cf-spark{
-      position:absolute;
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(14,165,233,0.7) 55%, transparent 70%);
-      opacity:0.7;
-      animation: cfSpark 3s ease-in-out infinite;
-    }
-    .cf-spark.s1{ top:6%; left:62%; animation-delay:0s; }
-    .cf-spark.s2{ top:22%; right:6%; animation-delay:.6s; }
-    .cf-spark.s3{ bottom:18%; left:14%; animation-delay:1.1s; }
-    .cf-spark.s4{ bottom:6%; right:26%; animation-delay:1.6s; }
-    .cf-spark.s5{ top:40%; left:4%; animation-delay:2.1s; }
-
-    @keyframes cfFloat{
-      0%, 100%{ transform: translateY(0) rotate(-2deg); }
-      50%{ transform: translateY(-12px) rotate(3deg); }
-    }
-    @keyframes cfSpin{
-      0%{ transform: rotateX(var(--tilt)) rotateZ(0deg); }
-      100%{ transform: rotateX(var(--tilt)) rotateZ(360deg); }
-    }
-    @keyframes cfSpinFlat{
-      0%{ transform: rotate(0deg); }
-      100%{ transform: rotate(360deg); }
-    }
-    @keyframes cfPrism{
-      0%, 100%{ transform: rotate(45deg) translateY(0); }
-      50%{ transform: rotate(45deg) translateY(-8px) scale(1.05); }
-    }
-    @keyframes cfPulse{
-      0%, 100%{ transform: scale(1); opacity:1; }
-      50%{ transform: scale(1.15); opacity:.75; }
-    }
-    @keyframes cfSpark{
-      0%, 100%{ transform: scale(1); opacity:.8; }
-      50%{ transform: scale(1.7); opacity:.35; }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .contact-figurine,
-      .contact-figurine::after,
-      .cf-ring,
-      .cf-prism,
-      .cf-core,
-      .cf-spark{
-        animation: none !important;
-      }
-    }
-
-    /* Contact form styling - minimal black/white */
-    .contact-chip:hover {
-      background: #ebebeb !important;
-      transform: translateY(-2px);
-    }
-    .contact-chip:has(input:checked) {
-      background: #0b0b0b !important;
-      color: #fff !important;
-      border-color: #0b0b0b !important;
-    }
-    .contact-field input:focus,
-    .contact-field textarea:focus {
-      border-color: #0b0b0b !important;
-      background: var(--warm-white) !important;
-      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
-    }
-    .contact-submit-btn:hover {
-      background: #2a2a2a !important;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
-    }
-    .contact-submit-btn:hover span {
-      transform: translateX(5px);
-    }
-    .contact-info-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 35px rgba(0,0,0,0.08) !important;
-      border-color: #d0d0d0 !important;
-    }
-    </style>
-
-    <script src="js/trustpilot.js" defer></script>
-    <script src="js/cookie-consent.js" defer></script>
-      <script type="module" src="js/analytics.js"></script>
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+  })();
+  </script>
+  <script>
+  (function(){
+    var hs=document.querySelector('.hero-showcase'),stage=hs&&hs.querySelector('.show-stage');
+    if(!hs||!stage)return;
+    if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    var raf=0;
+    hs.addEventListener('pointermove',function(e){
+      if(e.pointerType==='touch')return;
+      var r=hs.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-0.5,py=(e.clientY-r.top)/r.height-0.5;
+      if(raf)cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(function(){
+        stage.style.setProperty('--ry',(px*9).toFixed(2)+'deg');
+        stage.style.setProperty('--rx',(5-py*7).toFixed(2)+'deg');
+      });
+    },{passive:true});
+    hs.addEventListener('pointerleave',function(){stage.style.setProperty('--ry','0deg');stage.style.setProperty('--rx','5deg');});
+  })();
+  </script>
 </body>
 </html>

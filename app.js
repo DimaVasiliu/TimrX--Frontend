@@ -5,7 +5,7 @@ window.TIMRX_API_BASE = TIMRX_API_BASE;
 console.log('TimrX API →', TIMRX_API_BASE, `(env: ${TIMRX_ENV.mode || 'production'})`);
 
 /** 3) Local “house style” fallback (no API) */
-const TIMRX_FAQ_LOCAL = [
+const TIMRX_FAQ_DEFAULT = [
   {
     q: "What is TimrX?",
     a: "TimrX is an AI creative platform built by Dima Vasiliu. In the workspace you can generate 3D models, images, and videos directly in the browser.",
@@ -88,6 +88,16 @@ const TIMRX_FAQ_LOCAL = [
   }
 ];
 
+function getTimrxFaqItems() {
+  return Array.isArray(window.TIMRX_CHAT_FAQ) && window.TIMRX_CHAT_FAQ.length
+    ? window.TIMRX_CHAT_FAQ
+    : TIMRX_FAQ_DEFAULT;
+}
+
+function getTimrxSystemPrompt() {
+  return (window.TIMRX_CHAT_CONTEXT || '').trim();
+}
+
 function normalizeTimrxQuery(text) {
   return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
@@ -127,7 +137,7 @@ function scoreTimrxFaq(item, query) {
 function findTimrxFaqMatches(query, limit = 5) {
   const normalized = normalizeTimrxQuery(query);
   if (!normalized) return [];
-  return TIMRX_FAQ_LOCAL
+  return getTimrxFaqItems()
     .map(item => ({ ...item, _score: scoreTimrxFaq(item, query) }))
     .filter(item => item._score >= 20)
     .sort((a, b) => b._score - a._score)
@@ -143,12 +153,16 @@ function timrxLocalRouter(q) {
 
 /** 4) ask(): STREAM → JSON → local fallback */
 async function timrxAsk(messages, onStreamToken) {
+  const systemPrompt = getTimrxSystemPrompt();
+  const outboundMessages = systemPrompt
+    ? [{ role: 'system', content: systemPrompt }, ...messages.filter(m => m.role !== 'system')]
+    : messages;
   // (A) try streaming first
   try {
     const res = await fetch(`${TIMRX_API_BASE}/api/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, temperature: 0.25 })
+      body: JSON.stringify({ messages: outboundMessages, temperature: 0.25 })
     });
     if (!res.ok || !res.body) throw new Error(`stream ${res.status}`);
     const reader = res.body.getReader();
@@ -179,7 +193,7 @@ async function timrxAsk(messages, onStreamToken) {
     const res = await fetch(`${TIMRX_API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, temperature: 0.25 })
+      body: JSON.stringify({ messages: outboundMessages, temperature: 0.25 })
     });
     if (!res.ok) throw new Error(`json ${res.status}`);
     const data = await res.json();
