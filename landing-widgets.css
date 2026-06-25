@@ -81,3 +81,35 @@ body.chat-open{overflow:hidden}
 .insight-links a:hover{color:var(--ink)}
 .insight-links a:hover::after{width:100%}
 @media(max-width:860px){.insight-head{grid-template-columns:1fr;align-items:start}.insight-head-right{align-items:flex-start;text-align:left}}
+
+/* === v5: chat panel — warm theme + markdown rendering === */
+.chat-panel{border:1px solid rgba(244,241,234,.1);background:#121110;box-shadow:0 46px 120px rgba(0,0,0,.55)}
+.chat-backdrop{background:rgba(6,6,6,.6);backdrop-filter:blur(12px)}
+.chat-head{border-bottom:1px solid rgba(244,241,234,.08)}
+.chat-kicker{color:#b3a99b!important}
+.chat-title strong{color:#f4f1ea}
+.chat-title span:last-child{color:#a39b8f}
+.chat-close{background:rgba(244,241,234,.06);color:#f4f1ea;box-shadow:inset 0 0 0 1px rgba(244,241,234,.1)}
+.chat-close:hover{background:rgba(244,241,234,.12)}
+.chat-aside{border-right:1px solid rgba(244,241,234,.07)}
+.chat-spotlight{background:rgba(244,241,234,.03);border:1px solid rgba(244,241,234,.08)}
+.chat-spotlight h3{color:#f4f1ea}
+.chat-spotlight p{color:#a39b8f}
+.chat-quick button{background:rgba(244,241,234,.04);color:#e7ded0;border:1px solid rgba(244,241,234,.08)}
+.chat-quick button:hover{background:rgba(244,241,234,.08);color:#f4f1ea}
+.chat-welcome h3{color:#f4f1ea}
+.chat-welcome p{color:#a39b8f}
+.chat-message{background:rgba(244,241,234,.045);color:#cfc7ba;border:1px solid rgba(244,241,234,.06)}
+.chat-message.me{background:#f4f1ea;color:#14110c;border:0}
+.chat-message strong{color:#f4f1ea;font-weight:700}
+.chat-message.me strong{color:#14110c}
+.chat-message em{font-style:italic}
+.chat-message p{margin:0 0 8px}.chat-message p:last-child{margin-bottom:0}
+.chat-message ul{margin:6px 0;padding-left:18px}.chat-message li{margin:3px 0}
+.chat-message.typing span{background:#cdc4b5}
+.chat-inputbar{border-top:1px solid rgba(244,241,234,.08)}
+.chat-inputbar textarea{background:rgba(244,241,234,.04);color:#f4f1ea;border:1px solid rgba(244,241,234,.1)}
+.chat-inputbar textarea:focus{border-color:rgba(244,241,234,.28);box-shadow:none;outline:none}
+.chat-inputbar textarea::placeholder{color:#8d8b86}
+.chat-send{background:#f4f1ea;color:#14110c;border:0}
+.chat-send:hover{background:#fff}

@@ -107,10 +107,22 @@
       }
     }
     function scroll(){requestAnimationFrame(()=>{body.scrollTop = body.scrollHeight})}
+    function formatChat(text){
+      var safe = String(text == null ? '' : text).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+      safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+      var lines = safe.split(/\n/), out = [], list = [];
+      function flush(){ if(list.length){ out.push('<ul>' + list.map(function(li){ return '<li>' + li + '</li>'; }).join('') + '</ul>'); list = []; } }
+      lines.forEach(function(ln){
+        var m = ln.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/);
+        if(m){ list.push(m[1]); } else { flush(); if(ln.trim()){ out.push('<p>' + ln + '</p>'); } }
+      });
+      flush();
+      return out.join('') || safe;
+    }
     function addMessage(text, mine){
       const node = document.createElement('div');
       node.className = `chat-message${mine ? ' me' : ''}`;
-      node.textContent = text;
+      if(mine){ node.textContent = text; } else { node.innerHTML = formatChat(text); }
       body.appendChild(node);
       scroll();
       return node;
@@ -139,7 +151,7 @@
             answerNode.className = 'chat-message';
             typing.replaceWith(answerNode);
           }
-          answerNode.textContent = partial;
+          answerNode.innerHTML = formatChat(partial);
           scroll();
         }) || Promise.resolve('The assistant is not ready yet. Try again in a moment.'));
         if(!answerNode){
@@ -147,7 +159,7 @@
           answerNode.className = 'chat-message';
           typing.replaceWith(answerNode);
         }
-        answerNode.textContent = answer;
+        answerNode.innerHTML = formatChat(answer);
         history.push({role:'assistant', content:answer});
         scroll();
       }catch(error){
