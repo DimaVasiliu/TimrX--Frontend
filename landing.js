@@ -11,10 +11,15 @@
   const mobileNav=document.getElementById('mobileNav');
   const setHeader=()=>header?.classList.toggle('is-scrolled',window.scrollY>18);
   setHeader();window.addEventListener('scroll',setHeader,{passive:true});
-  function closeMenu(){if(!menuButton||!mobileNav)return;menuButton.setAttribute('aria-expanded','false');menuButton.setAttribute('aria-label','Open menu');mobileNav.hidden=true;document.body.classList.remove('menu-open')}
-  menuButton?.addEventListener('click',()=>{const open=menuButton.getAttribute('aria-expanded')==='true';if(open){closeMenu();return}menuButton.setAttribute('aria-expanded','true');menuButton.setAttribute('aria-label','Close menu');mobileNav.hidden=false;document.body.classList.add('menu-open')});
+  let backdrop=document.querySelector('[data-mobile-backdrop]');
+  if(!backdrop&&mobileNav){backdrop=document.createElement('div');backdrop.className='mobile-nav-backdrop';backdrop.setAttribute('data-mobile-backdrop','');document.body.appendChild(backdrop);}
+  function closeMenu(){if(!menuButton||!mobileNav)return;menuButton.setAttribute('aria-expanded','false');menuButton.setAttribute('aria-label','Open menu');mobileNav.classList.remove('is-open');mobileNav.setAttribute('aria-hidden','true');backdrop&&backdrop.classList.remove('is-open');document.body.classList.remove('menu-open')}
+  function openMenu(){if(!menuButton||!mobileNav)return;menuButton.setAttribute('aria-expanded','true');menuButton.setAttribute('aria-label','Close menu');mobileNav.classList.add('is-open');mobileNav.setAttribute('aria-hidden','false');backdrop&&backdrop.classList.add('is-open');document.body.classList.add('menu-open')}
+  menuButton?.addEventListener('click',()=>{(menuButton.getAttribute('aria-expanded')==='true')?closeMenu():openMenu()});
   mobileNav?.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
+  backdrop?.addEventListener('click',closeMenu);
   document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu()});
+  window.addEventListener('resize',()=>{if(window.innerWidth>760)closeMenu()},{passive:true});
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealItems=document.querySelectorAll('.reveal');
   if(reduced||!('IntersectionObserver'in window)){revealItems.forEach(item=>item.classList.add('is-visible'))}else{const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -30px'});revealItems.forEach(item=>observer.observe(item))}

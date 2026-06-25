@@ -135,6 +135,28 @@
     modal.hidden=true;
     document.body.classList.remove('generation-modal-open');
   }
+  function filenameFor(url,type,index){
+    let ext='';
+    try{const path=new URL(url,window.location.href).pathname;const m=path.match(/\.([a-z0-9]{2,5})$/i);if(m)ext=m[1].toLowerCase();}catch(err){}
+    if(!ext)ext=type==='video'?'mp4':type==='3d'?'glb':'png';
+    return 'timrx-'+(type||'asset')+(index?'-'+(index+1):'')+'.'+ext;
+  }
+  async function downloadAsset(url,filename){
+    try{
+      const res=await fetch(url,{mode:'cors',credentials:'omit'});
+      if(!res.ok)throw new Error('http '+res.status);
+      const blob=await res.blob();
+      const obj=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=obj;a.download=filename||'timrx-asset';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(obj),5000);
+      return true;
+    }catch(err){
+      try{window.open(url,'_blank','noopener');}catch(e){}
+      return false;
+    }
+  }
   function downloadLinks(urls,type){
     const clean=urls.map(url=>safeUrl(url,{allowBlob:true})).filter(Boolean).filter((value,index,array)=>array.indexOf(value)===index);
     const wrap=node('div','generation-downloads');
@@ -142,11 +164,11 @@
     clean.forEach((url,index)=>{
       const link=node('a','button button-ghost',label+(clean.length>1?' '+(index+1):''));
       link.href=url;
-      link.download='';
-      link.target='_blank';
+      link.download=filenameFor(url,type,index);
       link.rel='noopener';
       link.dataset.resultDownload='';
       link.dataset.generationType=type||'asset';
+      link.addEventListener('click',ev=>{ev.preventDefault();downloadAsset(url,filenameFor(url,type,index));});
       wrap.appendChild(link);
     });
     return wrap;

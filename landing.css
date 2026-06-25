@@ -50,3 +50,26 @@ body.menu-open{overflow:hidden}a{color:inherit}button,a{-webkit-tap-highlight-co
 .pricing-uses li span{font-size:15px;font-weight:700;color:var(--ink)}
 .pricing-uses li small{color:var(--muted);font-size:13px;line-height:1.5}
 @media(max-width:860px){.pricing-card{grid-template-columns:1fr;gap:38px}.pricing-main{max-width:none}}
+
+/* === v7: enhanced burger menu (warm, animated, backdrop) + responsive polish === */
+@media(max-width:760px){
+  .menu-button{width:46px;height:46px;border:1px solid var(--line);border-radius:13px;background:rgba(244,241,234,.04);transition:background .2s ease,border-color .2s ease;z-index:1002}
+  .menu-button:active{background:rgba(244,241,234,.08)}
+  .menu-button span{width:18px;height:1.5px;background:#f4f1ea;transition:transform .25s cubic-bezier(.22,1,.36,1)}
+  .menu-button span+span{margin-top:5px}
+  .mobile-nav{display:flex;inset:var(--header) 0 auto;padding:14px var(--gutter) 26px;background:rgba(10,10,10,.98);border-bottom:1px solid var(--line);box-shadow:0 34px 60px rgba(0,0,0,.55);backdrop-filter:blur(22px);opacity:0;visibility:hidden;transform:translateY(-12px);transition:opacity .26s ease,transform .32s cubic-bezier(.22,1,.36,1),visibility .26s;z-index:1001}
+  .mobile-nav.is-open{opacity:1;visibility:visible;transform:none}
+  .mobile-nav>a:not(.button){display:flex;align-items:center;justify-content:space-between;padding:16px 2px;border-bottom:1px solid var(--line);font-size:17px;font-weight:700;color:#e7ded0;text-decoration:none;transition:color .15s ease}
+  .mobile-nav>a:not(.button)::after{content:"→";color:#7a7265;font-size:14px;transition:transform .2s ease,color .15s ease}
+  .mobile-nav>a:not(.button):active{color:#f4f1ea}
+  .mobile-nav>a:not(.button):active::after{transform:translateX(3px);color:#cdc4b5}
+  .mobile-nav .button{margin-top:18px;width:100%;min-height:52px;background:#f4f1ea;color:#14110c;border-color:#f4f1ea;font-size:14px}
+  .mobile-nav-backdrop{position:fixed;inset:0;z-index:999;background:rgba(6,6,6,.5);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .26s ease,visibility .26s;-webkit-tap-highlight-color:transparent}
+  .mobile-nav-backdrop.is-open{opacity:1;visibility:visible}
+  .nav-shell{gap:14px}
+  .button,.mobile-nav .button{-webkit-tap-highlight-color:transparent}
+}
+@media(max-width:430px){
+  .menu-button{width:44px;height:44px}
+  .mobile-nav>a:not(.button){font-size:16px;padding:15px 2px}
+}
