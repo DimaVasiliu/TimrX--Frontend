@@ -47,6 +47,34 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu()}
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const revealItems=document.querySelectorAll('.reveal');
 if(reduced||!('IntersectionObserver'in window)){revealItems.forEach(item=>item.classList.add('is-visible'))}else{const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.1,rootMargin:'0px 0px -25px'});revealItems.forEach(item=>observer.observe(item))}
+const heroStage=document.querySelector('.hero-stage');
+const heroPhoto=document.querySelector('.hero-photo');
+const heroNameEl=document.querySelector('.hero-name');
+const heroTitleStrip=document.querySelector('.hero-title-strip');
+if(heroStage&&heroPhoto&&heroNameEl&&!reduced&&window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+  let raf=0,nx=0,ny=0;
+  heroStage.addEventListener('pointermove',event=>{
+    const rect=heroStage.getBoundingClientRect();
+    nx=(event.clientX-rect.left)/rect.width-0.5;
+    ny=(event.clientY-rect.top)/rect.height-0.5;
+    if(!raf)raf=requestAnimationFrame(()=>{raf=0;
+      heroPhoto.style.setProperty('--ppx',(nx*14).toFixed(1)+'px');
+      heroPhoto.style.setProperty('--ppy',(ny*14).toFixed(1)+'px');
+      heroNameEl.style.setProperty('--npx',(nx*-10).toFixed(1)+'px');
+      heroNameEl.style.setProperty('--npy',(ny*-7).toFixed(1)+'px');
+      heroTitleStrip?.style.setProperty('--spx',(nx*7).toFixed(1)+'px');
+      heroTitleStrip?.style.setProperty('--spy',(ny*5).toFixed(1)+'px');
+      heroTitleStrip?.style.setProperty('--mx',((nx+0.5)*100).toFixed(1)+'%');
+      heroTitleStrip?.style.setProperty('--my',((ny+0.5)*100).toFixed(1)+'%');
+    });
+  });
+  heroStage.addEventListener('pointerleave',()=>{
+    heroPhoto.style.setProperty('--ppx','0px');heroPhoto.style.setProperty('--ppy','0px');
+    heroNameEl.style.setProperty('--npx','0px');heroNameEl.style.setProperty('--npy','0px');
+    heroTitleStrip?.style.setProperty('--spx','0px');heroTitleStrip?.style.setProperty('--spy','0px');
+    heroTitleStrip?.style.setProperty('--mx','52%');heroTitleStrip?.style.setProperty('--my','46%');
+  });
+}
 document.querySelectorAll('[data-experience]').forEach(node=>{node.textContent=`${Math.max(1,new Date().getFullYear()-2022)}+`});
 document.querySelectorAll('[data-year]').forEach(node=>{node.textContent=String(new Date().getFullYear())});
 

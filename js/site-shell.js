@@ -69,6 +69,7 @@
   }
 
   const navItems = [
+    { key: 'home', href: '/', label: 'Home', sub: 'Back to the TimrX landing page' },
     { key: 'hub', href: '/hub', label: 'Hub', sub: 'Overview and product entry point' },
     { key: 'tutorials', href: '/tutorials', label: 'Tutorials', sub: 'Guides, flows, and walkthroughs' },
     { key: 'community', href: '/community', label: 'Community', sub: 'Showcase, creators, and discovery' },
@@ -157,7 +158,7 @@
       <nav class="site-shell-nav" aria-label="Primary">
         <div class="site-shell-container site-shell-nav-inner">
           <div class="site-shell-nav-left">
-            <a href="${resolveInternalHref('/hub')}" class="site-shell-brand" aria-label="TimrX Hub">
+            <a href="${resolveInternalHref('/')}" class="site-shell-brand" aria-label="TimrX home">
               <img src="${resolveAssetHref('img/logo.png')}" alt="TimrX" width="42" height="42">
               <span class="site-shell-brand-wordmark"><span>Timr</span><span class="site-shell-brand-x">X</span></span>
             </a>
@@ -251,7 +252,7 @@
         <div class="site-shell-container site-shell-footer-inner">
           <div class="site-shell-footer-main">
             <div class="site-shell-footer-brand">
-              <a href="${resolveInternalHref('/hub')}" class="site-shell-footer-mark" aria-label="TimrX Hub">
+              <a href="${resolveInternalHref('/')}" class="site-shell-footer-mark" aria-label="TimrX home">
                 <img src="${resolveAssetHref('img/logo.png')}" alt="TimrX" width="32" height="32">
                 <span class="site-shell-footer-name">TimrX</span>
               </a>

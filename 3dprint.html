@@ -14,7 +14,7 @@
   <title>3D Generation Workspace — Text & Image to 3D | TimrX</title>
   <meta name="title" content="3D Generation Workspace — Text &amp; Image to 3D | TimrX" />
   <meta name="description" content="Generate 3D models, images and video from text or references, then remesh, refine, texture, rig, animate and export STL, OBJ, GLB and USDZ in your browser." />
-  <meta name="author" content="Dima Vasiliu" />
+  <meta name="author" content="TimrX" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://timrx.live/3dprint" />
@@ -87,8 +87,8 @@
     ],
     "screenshot": "https://timrx.live/img/OG_APP.png",
     "author": {
-      "@type": "Person",
-      "name": "Dima Vasiliu",
+      "@type": "Organization",
+      "name": "TimrX",
       "url": "https://timrx.live"
     },
     "publisher": {
@@ -211,15 +211,14 @@
   <header class="ws-header" aria-label="Workspace header">
     <!-- Brand (top-left) -->
     <div class="ws-header-left">
-      <img src="img/logo.png" alt="TimrX" class="ws-nav-logo" width="50" height="50">
-      <span class="ws-brand" id="brand" aria-label="Home">
+      <a href="/" class="ws-home-link" aria-label="Back to TimrX landing page">
+        <img src="img/logo.png" alt="TimrX" class="ws-nav-logo" width="50" height="50">
+      </a>
+      <a href="/" class="ws-brand" id="brand" aria-label="Back to TimrX landing page">
         <span class="swap" id="brandTim" aria-label="TimrX">
           <span class="b-tim">Timr</span><span class="b-x">X</span>
         </span>
-        <span class="swap out" id="brandDima" aria-label="Dima Vasiliu">
-          <span class="b-dima">Dima</span> <span class="b-surname">Vasiliu</span>
-        </span>
-      </span>
+      </a>
     </div>
 
     <!-- SEO Ticker (absolutely centered between brand and nav) -->
@@ -236,6 +235,7 @@
 
     <!-- Center Links -->
     <nav class="ws-nav" aria-label="Workspace navigation">
+      <a href="/" class="ws-nav-link">HOME</a>
       <a href="/hub" class="ws-nav-link is-active">HUB</a>
       <a href="/community" class="ws-nav-link">COMMUNITY</a>
       <a href="#my-assets" class="ws-nav-link" data-open-assets>MY ASSETS</a>
@@ -311,6 +311,10 @@
   <div class="ws-mobile-menu" id="wsMobileMenu" aria-hidden="true" style="display:none">
     <div class="ws-mobile-menu-inner">
       <nav class="ws-mobile-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/" class="ws-mobile-link">
+          <span class="wml-label">Home</span>
+          <span class="wml-sub">Back to the TimrX landing page</span>
+        </a>
         <a href="/hub" class="ws-mobile-link">
           <span class="wml-label">Hub</span>
           <span class="wml-sub">Back to 3D Print Hub</span>

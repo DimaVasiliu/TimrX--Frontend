@@ -57,7 +57,6 @@
 # Personal portfolio canonical route. Keep /about as a permanent legacy alias.
 /about           /dima-vasiliu         301
 /about/          /dima-vasiliu         301
-/dima-vasiliu    /dima-vasiliu.html    200
 
 # Admin rewrites (target's clean form differs, so no loop)
 /admin          /admin/admin.html       200

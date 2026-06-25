@@ -5,7 +5,7 @@
   <!-- Homepage - 3D / image / video generation platform -->
   <url>
     <loc>https://timrx.live/</loc>
-    <lastmod>2026-06-24</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -34,7 +34,7 @@
   <!-- 3D Print Hub -->
   <url>
     <loc>https://timrx.live/hub</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
@@ -47,7 +47,7 @@
   <!-- Public 3D Workspace -->
   <url>
     <loc>https://timrx.live/3dprint</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -55,7 +55,7 @@
   <!-- Generation Tools Directory -->
   <url>
     <loc>https://timrx.live/ai-tools</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -175,7 +175,7 @@
   <!-- Blog Listing -->
   <url>
     <loc>https://timrx.live/blogs</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
     <image:image>
@@ -188,7 +188,7 @@
   <!-- Founder portfolio -->
   <url>
     <loc>https://timrx.live/dima-vasiliu</loc>
-    <lastmod>2026-06-24</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -278,7 +278,7 @@
   <!-- File Converter -->
   <url>
     <loc>https://timrx.live/converter</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -293,7 +293,7 @@
   <!-- STL Pack Library (downloadable ready-to-print STL files) -->
   <url>
     <loc>https://timrx.live/stl-library</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -301,7 +301,7 @@
   <!-- Company -->
   <url>
     <loc>https://timrx.live/company</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
