@@ -16,6 +16,8 @@
   const requestKeys=new Map();
   let turnstileWidgetId=null;
   let turnstileContainer=null;
+  const desktopPlaceholder=input.getAttribute('placeholder')||'Ask a question or describe what to create…';
+  const mobilePlaceholder='Describe what to create…';
 
   function href(path){if(!isFile)return path;const match=String(path).match(/^([^?#]+)(.*)$/);return match&&routes[match[1]]?routes[match[1]]+match[2]:path}
   function safeUrl(value,{allowBlob=false}={}){
@@ -450,6 +452,9 @@
     }
   }
   function syncDock(){document.body.classList.toggle('hero-command-docked',window.scrollY>Math.max(260,window.innerHeight*.42))}
+  function syncPromptPlaceholder(){
+    input.setAttribute('placeholder',window.innerWidth<=760?mobilePlaceholder:desktopPlaceholder);
+  }
   function initDynamicHeadline(){
     if(!headline)return;
     const phrases=['Product Mockups.','Printable 3D Models.','Cinematic Videos.','Game Assets.','Product Visuals.','Multi-Colour Models.','STL Files.','Anything.'];
@@ -499,8 +504,9 @@
   });
   answer.addEventListener('click',event=>{const link=event.target.closest('[data-hero-route]');if(link)track('assistant_route_click',{assistant_route:link.getAttribute('href')})});
   window.addEventListener('scroll',syncDock,{passive:true});
-  window.addEventListener('resize',syncDock,{passive:true});
+  window.addEventListener('resize',()=>{syncDock();syncPromptPlaceholder()},{passive:true});
   /* The result panel only appears in response to a Generate/Ask action — never unsolicited on load. */
   initDynamicHeadline();
+  syncPromptPlaceholder();
   syncDock();
 })();
