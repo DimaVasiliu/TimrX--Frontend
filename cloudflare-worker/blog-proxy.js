@@ -86,31 +86,12 @@ const PERMANENT_REDIRECTS = {
   '/blog/webgl-performance': '/blogs',
 };
 
-const DELETED_BLOG_PATHS = new Set([
-  '/blog/scroll-choreography',
-]);
-
 // Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → /blogs.
 const SLUG_REDIRECTS = {
   'openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
     'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
   'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
-
-const DELETED_READ_SLUGS = new Set([
-  '3d-printing-tips',
-  'ai-workflow-2024',
-  'blender-basics',
-  'css-grid-mastery',
-  'gsap-deep-dive',
-  'print-workflow',
-  'react-performance',
-  'scroll-choreography',
-  'threejs-materials',
-  'ux-micro-interactions',
-  'viewer-craft',
-  'webgl-performance',
-]);
 
 export default {
   async fetch(request, env, ctx) {
@@ -139,9 +120,6 @@ export default {
         const target = SLUG_REDIRECTS[slug];
         const dest = target ? `/read?slug=${encodeURIComponent(target)}` : '/blogs';
         return Response.redirect(`${PUBLIC_DOMAIN}${dest}`, 301);
-      }
-      if (slug && DELETED_READ_SLUGS.has(slug)) {
-        return goneResponse();
       }
     }
 
@@ -207,25 +185,12 @@ ${generateSeoSitemap()}
     if (pathname.startsWith('/blog/')) {
       if (!pathname.startsWith('/blog/tag/') && !pathname.startsWith('/blog/category/')) {
         const slug = pathname.slice('/blog/'.length).replace(/\/$/, '');
-        if (DELETED_BLOG_PATHS.has(pathname.replace(/\/$/, ''))) {
-          return goneResponse();
-        }
         if (slug) {
           return Response.redirect(`${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`, 301);
         }
       }
       const backendUrl = `${BLOG_ORIGIN}${pathname}`;
-      const response = await proxyToBackend(request, backendUrl);
-      if (pathname.startsWith('/blog/tag/') || pathname.startsWith('/blog/category/')) {
-        const headers = new Headers(response.headers);
-        headers.set('X-Robots-Tag', 'noindex, follow');
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers,
-        });
-      }
-      return response;
+      return proxyToBackend(request, backendUrl);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -325,17 +290,6 @@ ${generateSeoSitemap()}
     return fetch(request);
   }
 };
-
-function goneResponse() {
-  return new Response('Gone', {
-    status: 410,
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'X-Robots-Tag': 'noindex, follow',
-      'Cache-Control': 'public, max-age=3600',
-    },
-  });
-}
 
 async function serveReadPageWithMetadata(request, slug) {
   const pageResponse = await fetch(request);

@@ -124,7 +124,7 @@
             <li>No installs</li>
             <li>Runs in your browser</li>
             <li>STL · OBJ · GLB · 3MF export</li>
-            <li>Starter credits included</li>
+            <li>Credit-based generation</li>
           </ul>
         </div>
         <div class="hero-showcase reveal" aria-label="Examples of what you can create in TimrX">
@@ -258,46 +258,6 @@
       </div>
     </section>
 
-    <script>
-    (function(){
-      function run(){
-        var env=window.TIMRX_ENV||{};
-        var base=(env.blogApiBase||window.TIMRX_BLOGS_API_BASE||window.location.origin).replace(/\/+$/,'');
-        function setStat(n,v){var el=document.querySelector('[data-stat="'+n+'"]');if(el&&v!=null&&v!=='')el.textContent=v;}
-        fetch(base+'/api/posts?page=1&size=100',{cache:'no-store',mode:'cors'})
-          .then(function(r){return r.ok?r.json():null;})
-          .then(function(data){
-            if(!data)return;
-            var posts=data.items||data.posts||[];
-            if(!posts.length)return;
-            var total=(typeof data.total==='number')?data.total:(typeof data.count==='number'?data.count:(posts.length>=100?'100+':posts.length));
-            var cats={};posts.forEach(function(p){String(p.tags||'').split(',').forEach(function(t){t=t.trim().toLowerCase();if(t)cats[t]=1;});});
-            var catCount=Object.keys(cats).length;
-            var mins=posts.map(function(p){return p.minutes||Math.max(3,Math.round(((p.excerpt||'')+(p.title||'')).length/62));});
-            var avg=Math.max(1,Math.round(mins.reduce(function(a,b){return a+b;},0)/mins.length));
-            setStat('articles',total+'');
-            if(catCount)setStat('categories',catCount+'');
-            setStat('read',avg+' min');
-            var ul=document.querySelector('[data-blog-links]');
-            if(ul){
-              var frag=document.createDocumentFragment();
-              posts.slice(0,5).forEach(function(p){
-                if(!p.slug)return;
-                var li=document.createElement('li');
-                var a=document.createElement('a');
-                a.href='/read?slug='+encodeURIComponent(p.slug);
-                a.textContent=p.title||'Article';
-                li.appendChild(a);frag.appendChild(li);
-              });
-              ul.insertBefore(frag,ul.firstChild);
-            }
-          })
-          .catch(function(){});
-      }
-      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-    })();
-    </script>
-
     <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">05 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
       <details class="reveal"><summary>What can I create with TimrX?<span>＋</span></summary><p>Images, short videos, textured 3D models and printable assets from prompts, reference images or existing files.</p></details>
       <details class="reveal"><summary>Can I export models for 3D printing?<span>＋</span></summary><p>Yes. Use print checks and export workflows for STL and 3MF, then prepare the result for your slicer or print service.</p></details>
@@ -311,7 +271,7 @@
   </main>
 
   <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Workspace</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Company"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/company">Company</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
-  <script src="js/env-config.js"></script>
+  <script src="js/env-config.js?v=2"></script>
   <script>
     window.TIMRX_CHAT_CONTEXT = 'You are the TimrX platform assistant on the main product landing page. Answer as TimrX, not as Dima personally. Focus on helping visitors understand the product, choose the right tool, open the workspace, understand credits, exports, formats and workflows. Keep answers concise, conversion-focused and practical. If users ask for freelance services or Dima personally, route them to /dima-vasiliu instead of mixing that into the product funnel.';
     window.TIMRX_CHAT_FAQ = [
@@ -324,9 +284,9 @@
     ];
     window.TIMRX_CHAT_WIDGET = {kicker:'Platform assistant',title:'Ask TimrX',subtitle:'Product guidance for images, video, 3D, exports and credits.',spotlightTitle:'Find the right workflow',spotlightCopy:'Ask what to create, which tool to open, what formats are supported, or how credits work.',welcomeTitle:'What do you want to create?',welcomeCopy:'I can point you to the right TimrX tool and explain the workflow before you open the workspace.',placeholder:'Ask about tools, exports, credits or workflows…',prompts:[{label:'Which tool should I use?',prompt:'Which TimrX tool should I use for my idea?'},{label:'Can I export STL?',prompt:'Can I export models for 3D printing as STL or 3MF?'},{label:'How do credits work?',prompt:'How do credits work on TimrX?'},{label:'Start creating',prompt:'Where should I start if I want to create an asset now?'}]};
   </script>
-  <script src="app.js?v=3" defer></script>
+  <script src="app.js?v=4" defer></script>
   <script src="hero-assistant.js?v=4" defer></script>
-  <script src="landing-widgets.js?v=2" defer></script>
+  <script src="landing-widgets.js?v=3" defer></script>
   <script src="landing.js?v=3" defer></script>
   <script src="js/cookie-consent.js" defer></script>
   <script>

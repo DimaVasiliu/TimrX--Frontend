@@ -338,13 +338,13 @@
         return;
       }
       if(data.error==='active_trial'&&data.job_id){
-        setAnswer('thinking','Generation already running','Your free homepage generation is already processing.');
+        setAnswer('thinking','Generation already running','Your homepage generation is already processing.');
         poll(data.job_id,data.generation_type||requestedType);
         return;
       }
       if(data.error==='free_trial_used'||data.error==='active_trial'||data.http_status===402){
         markLocalTrialUsed();
-        setAnswer('blocked','Free generation used',data.message||'Your one free homepage generation has been used. Sign up or buy credits to keep creating.',blockMarkup());
+        setAnswer('blocked','Continue with credits',data.message||'Homepage starter generation is not available right now. Create an account or add credits to keep creating.',blockMarkup());
         track('homepage_free_trial_used',{reason:data.error||'free_trial_used'});
         return;
       }
@@ -407,7 +407,7 @@
   answer.addEventListener('click',event=>{const link=event.target.closest('[data-hero-route]');if(link)track('assistant_route_click',{assistant_route:link.getAttribute('href')})});
   window.addEventListener('scroll',syncDock,{passive:true});
   window.addEventListener('resize',syncDock,{passive:true});
-  if(localTrialUsed())setAnswer('blocked','One free generation included','You can generate once from the homepage. If you already used it, open the workspace or buy credits to keep creating.',blockMarkup());
+  if(localTrialUsed())setAnswer('blocked','Continue creating in TimrX','Open the workspace or add credits to keep generating images, video and 3D assets.',blockMarkup());
   initDynamicHeadline();
   syncDock();
 })();

@@ -2,7 +2,6 @@
 const TIMRX_ENV = window.TIMRX_ENV || {};
 const TIMRX_API_BASE = TIMRX_ENV.chatApiBase || window.TIMRX_API_BASE || 'https://chat.timrx.live';
 window.TIMRX_API_BASE = TIMRX_API_BASE;
-console.log('TimrX API →', TIMRX_API_BASE, `(env: ${TIMRX_ENV.mode || 'production'})`);
 
 /** 3) Local “house style” fallback (no API) */
 const TIMRX_FAQ_DEFAULT = [
@@ -23,7 +22,7 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "Can this chat generate images, videos, or 3D files for me?",
-    a: "No. This chat answers questions and helps you navigate the site. Media generation happens in the TimrX workspace at /hub, not inside the chat itself.",
+    a: "The floating chat answers questions and helps you navigate the site. To create assets, use the homepage prompt when available or open the TimrX workspace at /3dprint.",
     keywords: ["chat generate image", "chat generate video", "can you make an image", "can you make a video"]
   },
   {
@@ -103,7 +102,7 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — new users get one free starter generation from the homepage. Sign up to keep your results and keep creating.",
+    a: "TimrX may offer controlled starter access, but public generation uses credits. Open /hub#pricing for current credit packs or /3dprint to start in the workspace.",
     keywords: ["free", "trial", "free generation", "try", "demo", "starter"]
   },
   {
@@ -154,7 +153,7 @@ const TIMRX_PLATFORM_CONTEXT = [
   "",
   "CREDITS & GETTING STARTED:",
   "- AI generation and some refinement tools use credits. Start small and top up; pick a credit pack that fits your workflow. Current prices and packs are at /hub#pricing.",
-  "- New users get one free starter generation from the homepage. Sign up to keep your results and keep creating.",
+  "- Public generation is credit-based. If controlled starter access is enabled, the homepage prompt will guide users; otherwise it routes them to the workspace and pricing.",
   "- No Blender or advanced 3D skills are needed — generate, inspect, refine and export directly in the browser.",
   "",
   "GUIDANCE: When a user describes what they want to make, recommend the most relevant tool and briefly explain the workflow (prompt/upload → generate → refine → export). For account, billing, or custom-work questions you can't answer from the above, suggest opening the workspace at /3dprint or the pricing page at /hub#pricing. Keep a warm, plain tone; avoid heavy markdown."

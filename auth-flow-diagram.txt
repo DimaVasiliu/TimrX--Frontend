@@ -1,0 +1,362 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    TIMRX ADMIN AUTHENTICATION FLOW                            ║
+║                         JWT Implementation                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: INITIAL LOGIN                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐                                          ┌──────────┐
+    │          │  1. User opens admin.html                │          │
+    │          │  ────────────────────────────────────>   │          │
+    │          │                                          │          │
+    │          │  2. Modal shows login form               │          │
+    │  Browser │  <────────────────────────────────────   │  Server  │
+    │          │                                          │          │
+    │          │  3. Enter username + password            │          │
+    │          │  ────────────────────────────────────>   │          │
+    │          │     POST /api/admin/login                │          │
+    │          │     { username, password }               │          │
+    └──────────┘                                          └──────────┘
+                                                                │
+                                                                │
+                     ┌──────────────────────────────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │   Check Admin   │
+            │   in Database   │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │ Verify Password │
+            │  with bcrypt    │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │   Generate JWT  │
+            │     Tokens      │
+            └─────────────────┘
+                     │
+                     │
+    ┌──────────┐    │                                     ┌──────────┐
+    │          │ <──┘                                     │          │
+    │          │  4. Return tokens + admin info           │          │
+    │  Browser │  <────────────────────────────────────   │  Server  │
+    │          │     {                                    │          │
+    │          │       access_token: "eyJ...",            │          │
+    │          │       refresh_token: "eyJ...",           │          │
+    │          │       admin: { id, username, email }     │          │
+    │          │     }                                    │          │
+    └──────────┘                                          └──────────┘
+         │
+         │ 5. Store tokens
+         │    in localStorage
+         ▼
+    ┌──────────────┐
+    │ localStorage │
+    ├──────────────┤
+    │ ACCESS_TOKEN │ → "eyJhbGciOiJIUzI1NiIs..." (expires: 1h)
+    │ REFRESH_TOKEN│ → "eyJhbGciOiJIUzI1NiIs..." (expires: 30d)
+    │ ADMIN_INFO   │ → {"id":1,"username":"dima",...}
+    └──────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: AUTHENTICATED REQUESTS                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐                                          ┌──────────┐
+    │          │  1. Request admin data                   │          │
+    │          │  ────────────────────────────────────>   │          │
+    │  Browser │     GET /api/admin/posts                 │  Server  │
+    │          │     Headers: {                           │          │
+    │          │       Authorization: "Bearer eyJ..."     │          │
+    │          │     }                                    │          │
+    └──────────┘                                          └──────────┘
+                                                                │
+                                                                │
+                     ┌──────────────────────────────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │   Decode Token  │
+            │   Verify Sig    │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │ Check Expiry    │◄───── Token Valid?
+            │ Check Blocklist │       │
+            └─────────────────┘       │
+                     │                │
+                     │ ✅ Valid        │ ❌ Expired/Invalid
+                     │                │
+                     ▼                ▼
+            ┌─────────────────┐   ┌─────────────────┐
+            │  Process        │   │  Return 401     │
+            │  Request        │   │  Unauthorized   │
+            └─────────────────┘   └─────────────────┘
+                     │                     │
+                     │                     │
+    ┌──────────┐    │                     │           ┌──────────┐
+    │          │ <──┘                     └────────>  │          │
+    │  Browser │  2. Return data                      │  Server  │
+    │          │  <────────────────────────────────   │          │
+    │          │     { posts: [...] }                 │          │
+    └──────────┘                                      └──────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 3: TOKEN REFRESH (when access token expires)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐                                          ┌──────────┐
+    │          │  1. Request with expired token           │          │
+    │          │  ────────────────────────────────────>   │          │
+    │  Browser │     GET /api/admin/posts                 │  Server  │
+    │          │     Authorization: Bearer eyJ... (old)   │          │
+    │          │                                          │          │
+    │          │  2. Returns 401 Unauthorized             │          │
+    │          │  <────────────────────────────────────   │          │
+    └──────────┘                                          └──────────┘
+         │
+         │ 3. Detect 401
+         │    Auto-refresh
+         ▼
+    ┌──────────┐                                          ┌──────────┐
+    │          │  4. Request new access token             │          │
+    │          │  ────────────────────────────────────>   │          │
+    │  Browser │     POST /api/admin/refresh              │  Server  │
+    │          │     Authorization: Bearer <refresh>     │          │
+    │          │                                          │          │
+    │          │  5. Return new access token              │          │
+    │          │  <────────────────────────────────────   │          │
+    │          │     { access_token: "eyJ..." }           │          │
+    └──────────┘                                          └──────────┘
+         │
+         │ 6. Store new token
+         │
+         ▼
+    ┌──────────────┐
+    │ localStorage │
+    ├──────────────┤
+    │ ACCESS_TOKEN │ → Updated! ✅
+    └──────────────┘
+         │
+         │ 7. Retry original request
+         │    with new token
+         ▼
+    ┌──────────┐                                          ┌──────────┐
+    │          │  8. Request with new token               │          │
+    │          │  ────────────────────────────────────>   │          │
+    │  Browser │     GET /api/admin/posts                 │  Server  │
+    │          │     Authorization: Bearer eyJ... (new)   │          │
+    │          │                                          │          │
+    │          │  9. Success! Return data                 │          │
+    │          │  <────────────────────────────────────   │          │
+    └──────────┘                                          └──────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 4: LOGOUT                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐                                          ┌──────────┐
+    │          │  1. Click logout button                  │          │
+    │          │  ────────────────────────────────────>   │          │
+    │  Browser │     POST /api/admin/logout               │  Server  │
+    │          │     Authorization: Bearer eyJ...         │          │
+    └──────────┘                                          └──────────┘
+                                                                │
+                                                                │
+                     ┌──────────────────────────────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │  Extract Token  │
+            │   JTI (ID)      │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │   Add JTI to    │
+            │   BLOCKLIST     │
+            │  (Redis/Memory) │
+            └─────────────────┘
+                     │
+                     │
+    ┌──────────┐    │                                     ┌──────────┐
+    │          │ <──┘                                     │          │
+    │          │  2. Logout success                       │          │
+    │  Browser │  <────────────────────────────────────   │  Server  │
+    │          │     { message: "Logged out" }            │          │
+    └──────────┘                                          └──────────┘
+         │
+         │ 3. Clear all tokens
+         │    from localStorage
+         ▼
+    ┌──────────────┐
+    │ localStorage │
+    ├──────────────┤
+    │ ACCESS_TOKEN │ → ❌ Cleared
+    │ REFRESH_TOKEN│ → ❌ Cleared
+    │ ADMIN_INFO   │ → ❌ Cleared
+    └──────────────┘
+         │
+         │ 4. Reload page
+         │    Show login modal
+         ▼
+    ┌──────────────┐
+    │ Login Modal  │
+    │    Shown     │
+    └──────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          TOKEN STRUCTURE                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Access Token (JWT):
+┌────────────────────────────────────────────────────────────┐
+│ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.                      │
+│ eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYzNjk4NzY1NCwianRpIjoiOT... │
+│ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c              │
+└────────────────────────────────────────────────────────────┘
+  │                      │                    │
+  │                      │                    └─ Signature (verifies integrity)
+  │                      └────────────────────── Payload (user data)
+  └───────────────────────────────────────────── Header (algorithm)
+
+Decoded Payload:
+{
+  "fresh": false,
+  "iat": 1636987654,      ← Issued At
+  "jti": "9abc...",       ← JWT ID (for blocklist)
+  "type": "access",       ← Token type
+  "sub": 1,               ← Subject (user ID)
+  "exp": 1636991254       ← Expires (1 hour later)
+}
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          SECURITY LAYERS                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Layer 1: Password Security
+┌────────────────────────────────────────────────┐
+│ Plain Password: "MyPassword123!"               │
+│         ↓                                      │
+│ bcrypt.hashpw()                                │
+│         ↓                                      │
+│ Hashed: "$2b$12$eJ5Hzw..."                    │
+│ Stored in Database ✅                          │
+└────────────────────────────────────────────────┘
+
+Layer 2: JWT Signature
+┌────────────────────────────────────────────────┐
+│ Payload + Secret Key                           │
+│         ↓                                      │
+│ HMAC-SHA256                                    │
+│         ↓                                      │
+│ Signature: "SflKxwRJSMeKKF2QT4fwpMeJf36POk..." │
+│ Verifies token wasn't tampered ✅              │
+└────────────────────────────────────────────────┘
+
+Layer 3: Token Expiry
+┌────────────────────────────────────────────────┐
+│ Access Token: 1 hour                           │
+│ Refresh Token: 30 days                         │
+│ Expired tokens rejected ✅                     │
+└────────────────────────────────────────────────┘
+
+Layer 4: Token Blocklist
+┌────────────────────────────────────────────────┐
+│ On logout: Add JTI to blocklist                │
+│ On request: Check if JTI in blocklist          │
+│ Logged out tokens rejected ✅                  │
+└────────────────────────────────────────────────┘
+
+Layer 5: HTTPS
+┌────────────────────────────────────────────────┐
+│ All communication encrypted                    │
+│ Man-in-the-middle prevented ✅                 │
+└────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        COMPARISON: TOKEN vs JWT                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Current System (Simple Token):
+┌─────────────────────────────────────────────────────────────┐
+│ Frontend                    Backend                         │
+│    │                           │                            │
+│    │  X-Admin-Token: abc123    │                            │
+│    ├──────────────────────────>│                            │
+│    │                           │ Check if token == env var  │
+│    │                           │ Allow if match ✅          │
+│    │<──────────────────────────┤                            │
+│    │  { posts: [...] }         │                            │
+└─────────────────────────────────────────────────────────────┘
+
+Issues:
+❌ Token is environment variable (your API key)
+❌ Single token for all admins
+❌ Can't revoke without changing env var
+❌ No user identification
+❌ No expiry
+
+
+JWT System:
+┌─────────────────────────────────────────────────────────────┐
+│ Frontend                    Backend                         │
+│    │                           │                            │
+│    │  Authorization: Bearer    │                            │
+│    │  eyJhbGci...              │                            │
+│    ├──────────────────────────>│                            │
+│    │                           │ Decode JWT                 │
+│    │                           │ Verify signature           │
+│    │                           │ Check expiry               │
+│    │                           │ Check blocklist            │
+│    │                           │ Get user ID from token     │
+│    │                           │ Allow if valid ✅          │
+│    │<──────────────────────────┤                            │
+│    │  { posts: [...] }         │                            │
+└─────────────────────────────────────────────────────────────┘
+
+Benefits:
+✅ Each user has unique token
+✅ Tokens expire automatically
+✅ Can revoke on logout
+✅ Identifies which admin made request
+✅ Industry standard
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         STORAGE COMPARISON                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+sessionStorage (Current):
+┌──────────────────────────────────────────────┐
+│ • Cleared when tab closed                    │
+│ • Not shared between tabs                   │
+│ • More secure (can't steal from other tabs) │
+│ • User must login on each new tab           │
+└──────────────────────────────────────────────┘
+
+localStorage (JWT Recommended):
+┌──────────────────────────────────────────────┐
+│ • Persists across sessions                   │
+│ • Shared between tabs                        │
+│ • User stays logged in                       │
+│ • Refresh token enables long sessions        │
+└──────────────────────────────────────────────┘
+
+
+Created for TimrX Admin Panel
+Last updated: 2025-11-05

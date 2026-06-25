@@ -50,7 +50,6 @@
       if(!posts.length) throw new Error('No posts returned');
       grid.innerHTML = posts.slice(0,3).map(renderPost).join('');
     }catch(error){
-      console.warn('[TimrX widgets] Blog feed unavailable:', error?.message || error);
       grid.innerHTML = [
         {slug:'timrx-ai-generation-hub',title:'Build faster creative workflows with TimrX',excerpt:'How image, video and 3D generation fit together in one browser workspace.',tags:'TimrX,Workflow'},
         {slug:'prompt-to-print-workflow',title:'From prompt to print-ready model',excerpt:'A practical path from text or image prompts to usable STL, OBJ, GLB and 3MF exports.',tags:'3D Printing'},
@@ -163,7 +162,6 @@
         history.push({role:'assistant', content:answer});
         scroll();
       }catch(error){
-        console.error('[TimrX chat]', error);
         typing.replaceWith(addMessage('Something went wrong. Please try again or use the page links.', false));
       }
     }

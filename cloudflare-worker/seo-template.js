@@ -15,9 +15,6 @@ export function renderSeoPage(page) {
   const appName = isConverter ? 'TimrX File Converter' : 'TimrX AI 3D Generator';
   const appCategory = isConverter ? 'UtilitiesApplication' : 'DesignApplication';
   const appUrl = isConverter ? 'https://timrx.live/converter' : 'https://timrx.live/3dprint';
-  const robots = page.indexable === false
-    ? 'noindex, follow, max-image-preview:large'
-    : 'index, follow, max-image-preview:large';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -28,7 +25,7 @@ export function renderSeoPage(page) {
   <meta name="description" content="${page.desc}"/>
   <meta name="keywords" content="${page.keywords}"/>
   <meta name="author" content="Dima Vasiliu"/>
-  <meta name="robots" content="${robots}"/>
+  <meta name="robots" content="index, follow, max-image-preview:large"/>
   <link rel="canonical" href="${fullUrl}"/>
   <link rel="alternate" hreflang="en-gb" href="${fullUrl}"/>
   <link rel="alternate" hreflang="x-default" href="${fullUrl}"/>
@@ -49,13 +46,6 @@ export function renderSeoPage(page) {
   {
     "@context":"https://schema.org",
     "@type":"WebPage",
-    "publisher":{
-      "@type":"Organization",
-      "@id":"https://timrx.live/#organization",
-      "name":"TimrX",
-      "url":"https://timrx.live/",
-      "sameAs":["https://www.youtube.com/@TimrX-Studio"]
-    },
     "name":"${page.title}",
     "description":"${page.desc}",
     "url":"${fullUrl}",
@@ -363,7 +353,7 @@ export function renderSeoPage(page) {
 
   <footer class="seo-footer">
     <div class="container">
-      <p>&copy; ${new Date().getFullYear()} TimrX / Dima Vasiliu &middot; <a href="/hub">Hub</a> &middot; <a href="/tutorials">Tutorials</a> &middot; <a href="/community">Community</a> &middot; <a href="/prompts">Prompts</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/blogs">Blog</a> &middot; <a href="https://www.youtube.com/@TimrX-Studio" rel="noopener">YouTube</a></p>
+      <p>&copy; ${new Date().getFullYear()} TimrX / Dima Vasiliu &middot; <a href="/hub">Hub</a> &middot; <a href="/tutorials">Tutorials</a> &middot; <a href="/community">Community</a> &middot; <a href="/prompts">Prompts</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/blogs">Blog</a></p>
     </div>
   </footer>
 
