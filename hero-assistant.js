@@ -11,8 +11,11 @@
   const routes={'/':'index.html','/3dprint':'3dprint.html','/hub':'hub.html','/ai-tools':'ai-tools.html','/ai-image-generator':'ai-image-generator.html','/ai-video-generator':'ai-video-generator.html','/ai-3d-generator':'ai-3d-generator.html','/ai-game-assets':'ai-game-assets.html','/text-to-3d':'text-to-3d.html','/image-to-3d':'image-to-3d.html','/converter':'converter.html','/stl-library':'stl-library.html','/blogs':'blogs.html','/print-on-demand':'print-on-demand.html'};
   const trialStorageKey='timrx_homepage_free_generation_used';
   const apiBase=(window.TIMRX_3D_API_BASE||(window.TIMRX_ENV&&window.TIMRX_ENV.threedApiBase)||'https://3d.timrx.live').replace(/\/+$/,'');
+  const turnstileSiteKey=(window.TIMRX_TURNSTILE_SITE_KEY||(window.TIMRX_ENV&&window.TIMRX_ENV.turnstileSiteKey)||'0x4AAAAAADrAmfltMdgMr9lE').trim();
   let currentPoll=null;
   const requestKeys=new Map();
+  let turnstileWidgetId=null;
+  let turnstileContainer=null;
 
   function href(path){if(!isFile)return path;const match=String(path).match(/^([^?#]+)(.*)$/);return match&&routes[match[1]]?routes[match[1]]+match[2]:path}
   function safeUrl(value,{allowBlob=false}={}){
@@ -70,13 +73,84 @@
     data.http_status=response.status;
     return data;
   }
+  function waitForTurnstile(timeoutMs=8000){
+    if(window.turnstile&&typeof window.turnstile.render==='function')return Promise.resolve(window.turnstile);
+    return new Promise((resolve,reject)=>{
+      const started=Date.now();
+      const timer=window.setInterval(()=>{
+        if(window.turnstile&&typeof window.turnstile.render==='function'){
+          window.clearInterval(timer);
+          resolve(window.turnstile);
+          return;
+        }
+        if(Date.now()-started>timeoutMs){
+          window.clearInterval(timer);
+          reject(new Error('turnstile_unavailable'));
+        }
+      },80);
+    });
+  }
+  async function getTurnstileToken(){
+    if(isFile)return '';
+    if(!turnstileSiteKey)throw new Error('turnstile_site_key_missing');
+    const turnstile=await waitForTurnstile();
+    if(!turnstileContainer){
+      turnstileContainer=document.createElement('div');
+      turnstileContainer.className='turnstile-holder';
+      turnstileContainer.setAttribute('aria-hidden','true');
+      document.body.appendChild(turnstileContainer);
+    }
+    return new Promise((resolve,reject)=>{
+      let settled=false;
+      const done=(fn,value)=>{
+        if(settled)return;
+        settled=true;
+        window.clearTimeout(timeout);
+        fn(value);
+      };
+      const timeout=window.setTimeout(()=>done(reject,new Error('turnstile_timeout')),15000);
+      const options={
+        sitekey:turnstileSiteKey,
+        size:'invisible',
+        callback:token=>done(resolve,token),
+        'error-callback':()=>done(reject,new Error('turnstile_error')),
+        'expired-callback':()=>done(reject,new Error('turnstile_expired')),
+        'timeout-callback':()=>done(reject,new Error('turnstile_timeout'))
+      };
+      try{
+        if(turnstileWidgetId===null||turnstileWidgetId===undefined){
+          turnstileWidgetId=turnstile.render(turnstileContainer,options);
+        }else{
+          turnstile.reset(turnstileWidgetId);
+        }
+        turnstile.execute(turnstileWidgetId);
+      }catch(error){
+        done(reject,error);
+      }
+    });
+  }
+  function resetTurnstile(){
+    try{
+      if(window.turnstile&&turnstileWidgetId!==null&&turnstileWidgetId!==undefined)window.turnstile.reset(turnstileWidgetId);
+    }catch(error){}
+  }
+  let answerDismissTimer=null;
+  function closeAnswer(){if(answerDismissTimer){clearTimeout(answerDismissTimer);answerDismissTimer=null;}answer.hidden=true;answer.classList.remove('is-thinking');answer.replaceChildren();}
   function setAnswer(state,title,body,actions=''){
+    if(answerDismissTimer){clearTimeout(answerDismissTimer);answerDismissTimer=null;}
     answer.hidden=false;
     answer.classList.toggle('is-thinking',state==='thinking');
     answer.replaceChildren();
+    const close=node('button','assistant-answer-close','×');
+    close.type='button';
+    close.setAttribute('aria-label','Dismiss');
+    close.addEventListener('click',closeAnswer);
+    answer.appendChild(close);
     answer.appendChild(node('span','assistant-answer-kicker',title));
     answer.appendChild(node('p','',body));
     appendTrustedMarkup(answer,actions);
+    // Auto-dismiss only on a successful result; keep errors/upsells/progress sticky.
+    if(state==='ready'){answerDismissTimer=setTimeout(closeAnswer,7000);}
   }
   function blockMarkup(){
     return `<div class="assistant-actions">
@@ -328,7 +402,11 @@
     track('homepage_generation_type',{generation_type:requestedType});
     setAnswer('thinking','Preparing generation',`Choosing the cheapest suitable ${generationLabel(requestedType)} route.`);
     try{
-      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,requested_type:'auto',source:'homepage_chat',idempotency_key:requestKey}});
+      setAnswer('thinking','Human check','Please verify you are human to use your free generation.');
+      const turnstileToken=await getTurnstileToken();
+      setAnswer('thinking','Preparing generation',`Choosing the cheapest suitable ${generationLabel(requestedType)} route.`);
+      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,requested_type:'auto',source:'homepage_chat',idempotency_key:requestKey,turnstile_token:turnstileToken}});
+      resetTurnstile();
       if(data.ok&&data.job_id){
         markLocalTrialUsed();
         const type=data.generation_type||requestedType;
@@ -348,9 +426,20 @@
         track('homepage_free_trial_used',{reason:data.error||'free_trial_used'});
         return;
       }
+      if(data.error==='turnstile_required'||data.http_status===403){
+        setAnswer('error','Human verification needed',data.message||'Please verify you are human to use your free generation.');
+        track('homepage_generation_error',{error:data.error||'turnstile_required'});
+        return;
+      }
       setAnswer('error','Could not start generation',data.message||data.error||'Open the workspace to continue with credits.',`<a class="assistant-route" href="${href('/3dprint')}">Open workspace <span>→</span></a>`);
       track('homepage_generation_error',{error:data.error||String(data.http_status||'unknown')});
     }catch(err){
+      resetTurnstile();
+      if(String(err&&err.message||'').startsWith('turnstile_')){
+        setAnswer('error','Human verification needed','Please verify you are human to use your free generation. If the check does not load, refresh the page and try again.');
+        track('homepage_generation_error',{error:err.message});
+        return;
+      }
       const localHint=apiBase.includes('localhost')||apiBase.includes('127.0.0.1')?' Make sure the local 3D backend is running on the configured API port.':'';
       setAnswer('error','Generation service unavailable','The homepage generator could not reach the TimrX generation backend.'+localHint,`<a class="assistant-route" href="${href('/3dprint')}">Open workspace <span>→</span></a>`);
       track('homepage_generation_network_error',{message:err&&err.message||'network_error'});
@@ -407,7 +496,7 @@
   answer.addEventListener('click',event=>{const link=event.target.closest('[data-hero-route]');if(link)track('assistant_route_click',{assistant_route:link.getAttribute('href')})});
   window.addEventListener('scroll',syncDock,{passive:true});
   window.addEventListener('resize',syncDock,{passive:true});
-  if(localTrialUsed())setAnswer('blocked','Continue creating in TimrX','Open the workspace or add credits to keep generating images, video and 3D assets.',blockMarkup());
+  /* The result panel only appears in response to a Generate/Ask action — never unsolicited on load. */
   initDynamicHeadline();
   syncDock();
 })();

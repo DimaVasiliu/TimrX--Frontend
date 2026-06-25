@@ -18,6 +18,7 @@
   const PROD_SITE_ORIGIN = 'https://timrx.live';
   const PROD_CHAT_API = 'https://chat.timrx.live';
   const PROD_3D_API = 'https://3d.timrx.live';
+  const PROD_TURNSTILE_SITE_KEY = '0x4AAAAAADrAmfltMdgMr9lE';
   const LOCAL_BLOG_API = 'http://localhost:5050';
   const LOCAL_CHAT_API = 'http://localhost:8000';
   const LOCAL_3D_API = 'http://localhost:5001';
@@ -75,6 +76,7 @@
   const blogOverride = params.get('timrx_blogs_api_base') || readStorage('TIMRX_BLOGS_API_BASE') || readStorage('BLOGS_API_BASE');
   const chatOverride = params.get('timrx_chat_api_base') || readStorage('TIMRX_CHAT_API_BASE');
   const threedOverride = params.get('timrx_3d_api_base') || readStorage('TIMRX_3D_API_BASE');
+  const turnstileOverride = params.get('timrx_turnstile_site_key') || readStorage('TIMRX_TURNSTILE_SITE_KEY');
 
   const config = Object.freeze({
     mode,
@@ -84,6 +86,7 @@
     blogApiBase: normalizeUrl(allowOverrides ? blogOverride : '', base.blogApiBase),
     chatApiBase: normalizeUrl(allowOverrides ? chatOverride : '', base.chatApiBase),
     threedApiBase: normalizeUrl(allowOverrides ? threedOverride : '', base.threedApiBase),
+    turnstileSiteKey: (allowOverrides ? turnstileOverride : '') || PROD_TURNSTILE_SITE_KEY,
   });
 
   window.TIMRX_ENV = config;
@@ -91,17 +94,5 @@
   window.TIMRX_BLOGS_API_BASE = config.blogApiBase;
   window.TIMRX_API_BASE = config.chatApiBase;
   window.TIMRX_3D_API_BASE = config.threedApiBase;
-
-  // Anti-tamper / self-XSS warning for anyone opening the developer console.
-  try {
-    var stop = 'color:#e24b4a;font-size:42px;font-weight:800;line-height:1.2';
-    var head = 'color:#f4f1ea;font-size:15px;font-weight:700;line-height:1.6';
-    var body = 'color:#a39b8f;font-size:13px;line-height:1.6';
-    console.log('%c⛔  STOP', stop);
-    console.log('%cThis console is intended for developers only.', head);
-    console.log(
-      '%cDo NOT paste or run any code here. Tampering with TimrX, your account, or other users — or running code that someone sent you — is unauthorized, may be unlawful, and is a well-known scam ("self-XSS"). If someone told you to paste something into this window, close this tab.',
-      body
-    );
-  } catch (e) {}
+  window.TIMRX_TURNSTILE_SITE_KEY = config.turnstileSiteKey;
 })();
