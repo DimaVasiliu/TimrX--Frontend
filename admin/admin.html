@@ -2340,6 +2340,22 @@
               <div id="safetyTopUsers" style="margin-top:10px;"></div>
             </div>
 
+            <!-- Homepage Free Generation Monitor -->
+            <div class="ops-section" id="homepageFreeGenerationSection">
+              <div class="ops-section-header">
+                <h4>Homepage Free Generation (24h)</h4>
+                <button class="btn small" id="refreshHomepageFreeGen">Refresh</button>
+              </div>
+              <div class="ops-summary-cards ops-safety-mini-cards">
+                <div class="ops-card"><span class="ops-card-value" id="homepageFreeTotal">--</span><span class="ops-card-label">Trials 24h</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="homepageFreeCompleted">--</span><span class="ops-card-label">Completed</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="homepageFreeActive">--</span><span class="ops-card-label">Active</span></div>
+                <div class="ops-card"><span class="ops-card-value" id="homepageFreeFailed">--</span><span class="ops-card-label">Failed</span></div>
+              </div>
+              <div id="homepageFreeGrouped" style="margin-top:10px;"></div>
+              <div id="homepageFreeRecent" style="margin-top:10px;"></div>
+            </div>
+
             <!-- Provider Cost Snapshot -->
             <div class="ops-section">
               <div class="ops-section-header">
@@ -8185,6 +8201,76 @@
       }
     }
 
+    async function loadHomepageFreeGeneration() {
+      const groupedEl = $('#homepageFreeGrouped');
+      const recentEl = $('#homepageFreeRecent');
+      if (groupedEl) groupedEl.innerHTML = '<div class="ops-loading">Loading homepage free generation counts...</div>';
+      if (recentEl) recentEl.innerHTML = '<div class="ops-loading">Loading latest trials...</div>';
+      try {
+        const r = await adminFetch(`${BACKEND}/api/admin/homepage-free-generation?hours=24&limit=20`, { headers: headers(), credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'Failed');
+
+        const grouped = j.grouped || [];
+        const recent = j.recent || [];
+        const totalsByStatus = grouped.reduce((acc, row) => {
+          const status = row.status || 'unknown';
+          acc[status] = (acc[status] || 0) + (row.count || 0);
+          return acc;
+        }, {});
+        const activeCount = (totalsByStatus.reserved || 0) + (totalsByStatus.started || 0);
+
+        const totalEl = $('#homepageFreeTotal');
+        if (totalEl) totalEl.textContent = j.total_24h ?? 0;
+        const completedEl = $('#homepageFreeCompleted');
+        if (completedEl) completedEl.textContent = totalsByStatus.completed || 0;
+        const activeEl = $('#homepageFreeActive');
+        if (activeEl) activeEl.textContent = activeCount;
+        const failedEl = $('#homepageFreeFailed');
+        if (failedEl) failedEl.textContent = totalsByStatus.failed || 0;
+
+        if (groupedEl) {
+          groupedEl.innerHTML = grouped.length ? `
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">Grouped by status and generation type</div>
+            <table class="ops-table compact">
+              <thead><tr><th>Status</th><th>Type</th><th>Count</th></tr></thead>
+              <tbody>${grouped.map(row => `
+                <tr>
+                  <td>${escapeHtmlText(row.status || 'unknown')}</td>
+                  <td>${escapeHtmlText(row.generation_type || 'unknown')}</td>
+                  <td>${row.count || 0}</td>
+                </tr>
+              `).join('')}</tbody>
+            </table>` : '<div class="ops-empty" style="font-size:11px;">No homepage free-generation trials in the last 24h</div>';
+        }
+
+        if (recentEl) {
+          recentEl.innerHTML = recent.length ? `
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">Latest 20 trial records</div>
+            <div style="overflow:auto;">
+              <table class="ops-table compact">
+                <thead><tr><th>Created</th><th>Status</th><th>Type</th><th>Job</th><th>Cost</th><th>Blocked</th></tr></thead>
+                <tbody>${recent.map(row => `
+                  <tr>
+                    <td>${formatDateUK(row.created_at)}</td>
+                    <td>${escapeHtmlText(row.status || 'unknown')}</td>
+                    <td>${escapeHtmlText(row.generation_type || '—')}</td>
+                    <td title="${escapeHtmlText(row.job_id || '')}">${escapeHtmlText(row.job_id ? String(row.job_id).slice(0, 8) + '…' : '—')}</td>
+                    <td>${row.trial_credit_amount != null ? `${row.trial_credit_amount} ${escapeHtmlText(row.trial_credit_type || 'cr')}` : '—'}</td>
+                    <td>${escapeHtmlText(row.blocked_reason || '—')}</td>
+                  </tr>
+                `).join('')}</tbody>
+              </table>
+            </div>` : '<div class="ops-empty" style="font-size:11px;">No recent trial records</div>';
+        }
+      } catch (err) {
+        console.error('Homepage free generation monitor error:', err);
+        if (groupedEl) groupedEl.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+        if (recentEl) recentEl.innerHTML = '';
+      }
+    }
+
     // ========== PROVIDER BALANCE SUMMARY ==========
 
     async function loadOpsBalances() {
@@ -8490,6 +8576,7 @@
     if ($('#refreshOpsBalances')) $('#refreshOpsBalances').onclick = loadOpsBalances;
     if ($('#refreshOpsAlerts')) $('#refreshOpsAlerts').onclick = loadOpsAlerts;
     if ($('#refreshOpsRefunds')) $('#refreshOpsRefunds').onclick = loadOpsRefunds;
+    if ($('#refreshHomepageFreeGen')) $('#refreshHomepageFreeGen').onclick = loadHomepageFreeGeneration;
 
     // ========== REFUND EXECUTION ==========
 
@@ -9937,6 +10024,7 @@
       loadOpsBalances();
       loadOpsAlerts();
       loadOpsSafety();
+      loadHomepageFreeGeneration();
       loadOpsRefunds();
       loadOpsLedger();
       loadOpsMonthly();
