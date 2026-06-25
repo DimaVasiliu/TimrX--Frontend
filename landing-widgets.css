@@ -113,3 +113,7 @@ body.chat-open{overflow:hidden}
 .chat-inputbar textarea::placeholder{color:#8d8b86}
 .chat-send{background:#f4f1ea;color:#14110c;border:0}
 .chat-send:hover{background:#fff}
+/* chat toggle: hidden while the hero is on screen, reveals once scrolled past it */
+.chat-toggle{opacity:0;visibility:hidden;transform:translateY(16px) scale(.9);transition:opacity .3s ease,transform .38s cubic-bezier(.22,1,.36,1),visibility .3s,box-shadow .22s ease}
+body.chat-toggle-on .chat-toggle:not([aria-expanded=true]){opacity:1;visibility:visible;transform:none}
+body.chat-toggle-on .chat-toggle:not([aria-expanded=true]):hover{transform:translateY(-3px) scale(1.03)}

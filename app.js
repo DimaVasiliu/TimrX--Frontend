@@ -85,6 +85,46 @@ const TIMRX_FAQ_DEFAULT = [
     q: "How do I get started?",
     a: "If you want to use the platform, go to /hub. If you want custom work, use #contact with a short brief, your deadline, a couple of references, and a budget range.",
     keywords: ["start", "contact", "begin", "brief", "what do you need"]
+  },
+  {
+    q: "Which file formats can I export?",
+    a: "Depending on the workflow you can export STL, OBJ, GLB, GLTF, USDZ and 3MF. The File Converter at /converter handles conversions between formats.",
+    keywords: ["formats", "export", "stl", "obj", "glb", "gltf", "usdz", "3mf", "file types"]
+  },
+  {
+    q: "Can I export models for 3D printing?",
+    a: "Yes. Run the print check to prepare a model, then export STL or 3MF. You can also order a physical print via Print on Demand at /print-on-demand.",
+    keywords: ["3d print", "printing", "stl", "3mf", "print check", "printable", "slicer"]
+  },
+  {
+    q: "How do credits and pricing work?",
+    a: "AI generation and some refinement tools use credits — start small and top up with a pack that fits your workflow. For current prices and packs, see /hub#pricing.",
+    keywords: ["credits", "price", "pricing", "cost", "pay", "plans", "packs", "billing", "subscription"]
+  },
+  {
+    q: "Is there a free trial?",
+    a: "Yes — new users get one free starter generation from the homepage. Sign up to keep your results and keep creating.",
+    keywords: ["free", "trial", "free generation", "try", "demo", "starter"]
+  },
+  {
+    q: "Do I need Blender or 3D skills?",
+    a: "No. TimrX runs entirely in the browser — generate, inspect, refine and export without any 3D software or experience.",
+    keywords: ["blender", "skills", "experience", "beginner", "no software", "install", "download"]
+  },
+  {
+    q: "How do I turn an image into a 3D model?",
+    a: "Open Image to 3D at /image-to-3d, upload your image, generate the model, then refine and export. Text to 3D at /text-to-3d does the same from a prompt.",
+    keywords: ["image to 3d", "photo to 3d", "picture to 3d", "convert image", "text to 3d", "from image"]
+  },
+  {
+    q: "Can I generate videos?",
+    a: "Yes. The AI Video Generator at /ai-video-generator creates short videos from a prompt or an image.",
+    keywords: ["video", "animation", "ai video", "clip", "motion", "animate"]
+  },
+  {
+    q: "Which tool should I use?",
+    a: "Images: /ai-image-generator. Short videos: /ai-video-generator. 3D from text: /text-to-3d. 3D from an image: /image-to-3d. Convert files: /converter. The full workspace is /3dprint.",
+    keywords: ["which tool", "what tool", "where do i", "how do i make", "difference between tools", "best tool"]
   }
 ];
 

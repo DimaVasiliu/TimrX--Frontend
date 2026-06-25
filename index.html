@@ -55,7 +55,7 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="landing.css?v=6">
   <link rel="stylesheet" href="hero-assistant.css?v=11">
-  <link rel="stylesheet" href="landing-widgets.css?v=5">
+  <link rel="stylesheet" href="landing-widgets.css?v=6">
   <script>window.dataLayer=window.dataLayer||[];</script>
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');</script>
 </head>
@@ -399,6 +399,14 @@
       });
     },{passive:true});
     hs.addEventListener('pointerleave',function(){stage.style.setProperty('--ry','0deg');stage.style.setProperty('--rx','5deg');});
+  })();
+  </script>
+  <script>
+  /* Reveal the chat toggle only after the hero has scrolled out of view */
+  (function(){
+    var hero=document.querySelector('.hero');
+    if(!hero||!('IntersectionObserver'in window)){document.body.classList.add('chat-toggle-on');return;}
+    new IntersectionObserver(function(es){document.body.classList.toggle('chat-toggle-on',!es[0].isIntersecting);},{threshold:0}).observe(hero);
   })();
   </script>
 </body>
