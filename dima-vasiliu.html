@@ -30,7 +30,7 @@
   <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="portfolio.css?v=6">
-  <link rel="stylesheet" href="landing-widgets.css?v=1">
+  <link rel="stylesheet" href="landing-widgets.css?v=6">
   <script>window.dataLayer=window.dataLayer||[];</script>
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');</script>
   <script src="js/console-shield.js?v=1"></script>
@@ -83,14 +83,36 @@
     <section class="portfolio-section insight-feed" aria-labelledby="portfolio-insights-title">
       <div class="portfolio-shell">
         <div class="insight-head reveal">
-          <div><span class="section-label">05 / Writing</span><h2 id="portfolio-insights-title">Notes from the build.</h2></div>
-          <div><p>Selected writing on TimrX, production web development, creative technology, 3D workflows and the practical decisions behind shipping software.</p><a class="portfolio-button" href="/blogs">Read Blog <span aria-hidden="true">→</span></a></div>
+          <div class="insight-head-left">
+            <span class="section-index">04 / BLOG</span>
+            <h2 id="portfolio-insights-title">Latest TimrX insights.</h2>
+            <p>Short product notes, workflow guides and practical articles for creators working with AI images, video and 3D assets.</p>
+            <div class="insight-topics" aria-label="Topics"><span>AI generation</span><span>3D &amp; printing</span><span>Workflow</span><span>Web &amp; motion</span></div>
+          </div>
+          <div class="insight-head-right">
+            <a class="insight-viewall" href="/blogs" data-track="blog_feed_view_all">View all posts <span aria-hidden="true">→</span></a>
+            <dl class="insight-stats">
+              <div><dt data-stat="articles">20+</dt><dd>Articles</dd></div>
+              <div><dt data-stat="categories">10</dt><dd>Categories</dd></div>
+              <div><dt data-stat="read">3 min</dt><dd>Avg read</dd></div>
+            </dl>
+            <p class="insight-tagline">Build better · Learn faster · Create more</p>
+          </div>
         </div>
         <div class="insight-grid" data-blog-feed aria-live="polite">
           <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
           <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
           <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
         </div>
+        <nav class="insight-links" aria-label="Browse the blog">
+          <span class="insight-links-cap">Browse articles</span>
+          <ul data-blog-links>
+            <li><a href="/blogs">All blog posts</a></li>
+            <li><a href="/blog/tag/ai">AI articles</a></li>
+            <li><a href="/blog/tag/3d">3D printing articles</a></li>
+            <li><a href="/blog/tag/workflow">Workflow articles</a></li>
+          </ul>
+        </nav>
       </div>
     </section>
 
@@ -114,7 +136,7 @@
     window.TIMRX_CHAT_WIDGET = {kicker:'Portfolio assistant',title:'Ask about Dima',subtitle:'Project fit, services, selected work, budgets and contact guidance.',spotlightTitle:'Prepare a better enquiry',spotlightCopy:'Ask about Dima’s work, services, project scope, budget ranges or what to include before sending the form.',welcomeTitle:'Planning a project?',welcomeCopy:'I can help you understand whether Dima is a fit and what details to send in your enquiry.',placeholder:'Ask about services, project fit or budgets…',prompts:[{label:'Can I hire Dima?',prompt:'Can I hire Dima for a web or 3D project?'},{label:'What services fit?',prompt:'Which of Dima’s services would fit my project?'},{label:'Budget guidance',prompt:'What budget range should I choose for my project?'},{label:'Write a brief',prompt:'What should I include in a good project brief?'}]};
   </script>
   <script src="app.js?v=2" defer></script>
-  <script src="landing-widgets.js?v=1" defer></script>
+  <script src="landing-widgets.js?v=3" defer></script>
   <script src="portfolio.js?v=2" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 </body>
