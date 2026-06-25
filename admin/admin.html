@@ -8265,8 +8265,12 @@
             </div>` : '<div class="ops-empty" style="font-size:11px;">No recent trial records</div>';
         }
       } catch (err) {
-        console.error('Homepage free generation monitor error:', err);
-        if (groupedEl) groupedEl.innerHTML = `<div class="ops-error">Failed to load: ${escapeHtmlText(err.message)}</div>`;
+        const isMissingRoute = err && err.message === 'HTTP 404';
+        if (!isMissingRoute) console.error('Homepage free generation monitor error:', err);
+        const message = isMissingRoute
+          ? 'Backend monitor endpoint is not deployed yet. Deploy the backend route for /api/admin/homepage-free-generation.'
+          : `Failed to load: ${err && err.message ? err.message : 'Unknown error'}`;
+        if (groupedEl) groupedEl.innerHTML = `<div class="ops-error">${escapeHtmlText(message)}</div>`;
         if (recentEl) recentEl.innerHTML = '';
       }
     }
