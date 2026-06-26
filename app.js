@@ -3,12 +3,14 @@ const TIMRX_ENV = window.TIMRX_ENV || {};
 const TIMRX_API_BASE = TIMRX_ENV.chatApiBase || window.TIMRX_API_BASE || 'https://chat.timrx.live';
 window.TIMRX_API_BASE = TIMRX_API_BASE;
 
-/** 3) Local “house style” fallback (no API) */
+/** 3) Local platform knowledge fallback (no API)
+ * Keep this product-only. Portfolio/custom-service answers live on /dima-vasiliu.
+ */
 const TIMRX_FAQ_DEFAULT = [
   {
     q: "What is TimrX?",
-    a: "TimrX is an AI creative platform built by Dima Vasiliu. In the workspace you can generate 3D models, images, and videos directly in the browser.",
-    keywords: ["timrx", "platform", "what is timrx", "what does timrx do"]
+    a: "TimrX is a browser-based creative platform for generating images, short videos and 3D models from prompts or uploads. You can refine assets, convert files, export STL/OBJ/GLB/3MF and prepare 3D models for printing from one workspace.",
+    keywords: ["timrx", "platform", "what is timrx", "what does timrx do", "what can i create"]
   },
   {
     q: "Who is behind TimrX?",
@@ -17,8 +19,13 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "What can TimrX do?",
-    a: "TimrX offers text-to-3D, image-to-3D, AI image generation, AI video generation, remesh, texture, a real-time 3D viewer, and export workflows in one workspace.",
-    keywords: ["features", "tools", "workspace", "text to 3d", "image to 3d", "video", "image"]
+    a: "TimrX offers AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/retopology, retexture, paint, print checks, file conversion, STL library browsing and print-on-demand ordering when the print service is live.",
+    keywords: ["features", "tools", "services", "workspace", "text to 3d", "image to 3d", "video", "image", "what services"]
+  },
+  {
+    q: "What services does TimrX offer?",
+    a: "TimrX services include AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/model cleanup, retexture and paint tools, print checks, file conversion, STL library access, exports to common 3D formats and planned print-on-demand ordering/shipping.",
+    keywords: ["what services does timrx offer", "services timrx", "platform services", "all services", "what tools are available", "offer"]
   },
   {
     q: "Can this chat generate images, videos, or 3D files for me?",
@@ -27,88 +34,103 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "What is the TimrX 3D Print Hub?",
-    a: "The 3D Print Hub is the TimrX workspace for generating and refining 3D assets. It includes text-to-3D, image-to-3D, remesh, texture tools, a viewer, exports, and history.",
+    a: "The 3D Print Hub is the main TimrX workspace at /3dprint. It includes text-to-3D, image-to-3D, image/video generation panels, remesh, retexture, paint, print checks, a 3D viewer, history and exports.",
     keywords: ["3d print hub", "hub", "workspace", "3d workspace"]
   },
   {
+    q: "Can I generate images?",
+    a: "Yes. Use the AI Image Generator at /ai-image-generator or the image panel in /3dprint. Describe the visual you want, generate, then download or keep refining in the workspace.",
+    keywords: ["image", "images", "ai image", "picture", "concept art", "product visual", "mockup", "generate image"]
+  },
+  {
+    q: "Can I generate videos?",
+    a: "Yes. Use the AI Video Generator at /ai-video-generator or the video panel in /3dprint. It can create short motion clips from prompts or image references depending on the workflow.",
+    keywords: ["video", "animation", "ai video", "clip", "motion", "animate", "cinematic", "reel"]
+  },
+  {
+    q: "Can I generate 3D models?",
+    a: "Yes. Use Text to 3D at /text-to-3d for prompts, Image to 3D at /image-to-3d for reference images, or the full workspace at /3dprint. After generation, preview the model, refine it, then export for printing, games, AR or further editing.",
+    keywords: ["3d", "model", "3d model", "text to 3d", "image to 3d", "photo to 3d", "figurine", "miniature", "keychain"]
+  },
+  {
     q: "What formats can TimrX export?",
-    a: "TimrX supports common formats including GLB, GLTF, STL, and USDZ depending on the workflow.",
-    keywords: ["export", "formats", "glb", "gltf", "stl", "usdz"]
+    a: "Depending on the workflow, TimrX supports STL, OBJ, GLB, GLTF, USDZ and 3MF. Use STL/3MF for 3D printing, GLB/GLTF for web and game workflows, and OBJ for broad 3D software compatibility.",
+    keywords: ["export", "formats", "glb", "gltf", "stl", "usdz", "obj", "3mf", "file types", "download"]
   },
   {
     q: "Do I need Blender or other software to use TimrX?",
-    a: "No. TimrX is browser-based for the core workflow, so you can generate, preview, refine, and export without needing Blender just to start.",
+    a: "No. TimrX runs in the browser, so you can generate, preview, refine and export without Blender just to start. You can still export standard files if you want to continue in Blender, Unity, Unreal, a slicer or another tool.",
     keywords: ["blender", "software", "install", "browser"]
   },
   {
-    q: "What services does Dima offer?",
-    a: "Dima offers web/UI design, motion development, Three.js viewers, 3D modeling and print workflows, plus short-form video editing. For custom work, use #services or #contact.",
-    keywords: ["services", "offer", "web", "motion", "three.js", "3d", "shorts"]
+    q: "How do credits and pricing work?",
+    a: "AI generation and selected refinement tools use credits. The exact credit cost is shown in the workspace before generation, and current packs/pricing are at /hub#pricing. Print orders are priced separately from AI credits.",
+    keywords: ["credits", "price", "pricing", "cost", "pay", "plans", "packs", "billing", "subscription", "how much", "deduct", "reserve"]
   },
   {
-    q: "Can you build websites and motion-heavy interfaces too?",
-    a: "Yes. That includes modern websites, motion-led UI, interactive 3D viewers, and product experiences.",
-    keywords: ["website", "landing page", "motion", "gsap", "ui", "ux"]
-  },
-  {
-    q: "Can you help with 3D printing or print-ready files?",
-    a: "Yes. TimrX supports print-focused 3D workflows, and Dima also offers custom 3D modeling and print-prep service work.",
-    keywords: ["3d printing", "print ready", "print prep", "stl", "slicer"]
-  },
-  {
-    q: "Can you edit Shorts or social videos?",
-    a: "Yes, as a service. Dima can help with short-form edits, pacing, packaging, and platform-native video work.",
-    keywords: ["shorts", "reels", "tiktok", "video editing"]
-  },
-  {
-    q: "What are your usual budgets?",
-    a: "Typical custom project ranges are $100–$500, $500–$1.5k, $1.5k–$3k, and $3k–$7k+. For a real quote, use the budget chips in #contact.",
-    keywords: ["budget", "price", "pricing", "rates", "quote"]
-  },
-  {
-    q: "How fast can you reply or start?",
-    a: "Dima usually replies within 24–48 hours. Service work typically starts within 1–2 weeks depending on scope.",
-    keywords: ["reply", "response", "start", "timeline", "availability"]
-  },
-  {
-    q: "Do you work only in London, or also remote?",
-    a: "Dima is based in London and works remotely or hybrid. TimrX as a platform is browser-based, so people can use it from anywhere.",
-    keywords: ["london", "remote", "hybrid", "worldwide", "ship"]
-  },
-  {
-    q: "Where can I see examples or learn more?",
-    a: "Use #works for featured projects, #blogs for articles, and /hub for the live TimrX workspace. For custom work, head to #contact.",
-    keywords: ["examples", "portfolio", "works", "blog", "docs", "learn more"]
-  },
-  {
-    q: "How do I get started?",
-    a: "If you want to use the platform, go to /hub. If you want custom work, use #contact with a short brief, your deadline, a couple of references, and a budget range.",
-    keywords: ["start", "contact", "begin", "brief", "what do you need"]
-  },
-  {
-    q: "Which file formats can I export?",
-    a: "Depending on the workflow you can export STL, OBJ, GLB, GLTF, USDZ and 3MF. The File Converter at /converter handles conversions between formats.",
-    keywords: ["formats", "export", "stl", "obj", "glb", "gltf", "usdz", "3mf", "file types"]
+    q: "Do I get free credits to start?",
+    a: "TimrX can offer starter/free credits or controlled free generation depending on the current launch settings. After free access is used, generation requires an account and credits. Check /hub#pricing for the current offer.",
+    keywords: ["free", "trial", "free generation", "try", "demo", "starter", "free credits", "signup credits"]
   },
   {
     q: "Can I export models for 3D printing?",
-    a: "Yes. Run the print check to prepare a model, then export STL or 3MF. You can also order a physical print via Print on Demand at /print-on-demand.",
-    keywords: ["3d print", "printing", "stl", "3mf", "print check", "printable", "slicer"]
+    a: "Yes. Generate or upload a model, run print-prep checks where available, then export STL or 3MF for slicers such as Bambu Studio, Cura or PrusaSlicer. Use 3MF when you need multi-color/material information.",
+    keywords: ["3d print", "printing", "stl", "3mf", "print check", "printable", "slicer", "bambu", "cura", "prusa"]
   },
   {
-    q: "How do credits and pricing work?",
-    a: "AI generation and some refinement tools use credits — start small and top up with a pack that fits your workflow. For current prices and packs, see /hub#pricing.",
-    keywords: ["credits", "price", "pricing", "cost", "pay", "plans", "packs", "billing", "subscription"]
+    q: "Can TimrX print and ship my model?",
+    a: "TimrX has a Print on Demand service page at /print-on-demand. The print/order/payment/shipping flow is listed as launching in summer 2026; generation, refinement, print check and 3MF export workflows are already available. Join the waitlist from /print-on-demand or email admin@timrx.live.",
+    keywords: ["print and ship", "shipping", "ship", "order", "order print", "print on demand", "deliver", "delivery", "fulfillment", "physical print", "buy print"]
   },
   {
-    q: "Is there a free trial?",
-    a: "TimrX may offer controlled starter access, but public generation uses credits. Open /hub#pricing for current credit packs or /3dprint to start in the workspace.",
-    keywords: ["free", "trial", "free generation", "try", "demo", "starter"]
+    q: "How much will a physical 3D print cost?",
+    a: "Physical print pricing is separate from AI credits and depends on model volume, material, infill, finish and destination. The print page lists starting examples: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, and shipping from $4 worldwide. A 100mm character/figurine needs the order screen or manual quote because volume and material matter more than height alone.",
+    keywords: ["physical print cost", "print cost", "shipping cost", "quote print", "100mm", "height", "material", "infill", "resin", "fdm", "pla", "petg", "batman", "figurine cost", "model cost"]
   },
   {
-    q: "Do I need Blender or 3D skills?",
-    a: "No. TimrX runs entirely in the browser — generate, inspect, refine and export without any 3D software or experience.",
-    keywords: ["blender", "skills", "experience", "beginner", "no software", "install", "download"]
+    q: "What materials can TimrX print?",
+    a: "The planned print service covers FDM materials such as PLA, PETG and PLA-CF, resin options such as standard/tough/clear resin, and multi-color FDM through AMS/MMU-style workflows. Availability is tied to the print-on-demand launch.",
+    keywords: ["materials", "pla", "petg", "resin", "clear resin", "pla cf", "multi color", "multicolor", "ams", "mmu", "filament"]
+  },
+  {
+    q: "Where does TimrX ship?",
+    a: "The print-on-demand page describes worldwide tracked shipping when the print service launches. Typical estimates shown there are 3–7 business days for the UK/EU and 7–14 business days for the US/rest of world after printing is complete.",
+    keywords: ["where ship", "worldwide", "uk", "eu", "usa", "us", "delivery time", "tracked", "shipping time"]
+  },
+  {
+    q: "Can I order an externally-made STL or model?",
+    a: "The planned order flow is built around models generated or uploaded to TimrX so the print check can validate the file. If you already have an STL/GLB and want it printed manually, the print page says to contact admin@timrx.live for a quote.",
+    keywords: ["external model", "own stl", "existing stl", "upload model", "upload stl", "manual quote", "my file", "print my model"]
+  },
+  {
+    q: "What does the File Converter do?",
+    a: "The converter at /converter helps convert creative/3D files between formats. Use it when you need files like STL, OBJ, GLB, GLTF, USDZ or 3MF prepared for another app, web viewer, slicer or game workflow.",
+    keywords: ["converter", "convert", "file converter", "stl to obj", "obj to glb", "glb to stl", "3mf", "format conversion"]
+  },
+  {
+    q: "What is the STL Library?",
+    a: "The STL Library at /stl-library is for browsing printable STL assets/packs. Use it when you want ready-made printable models instead of generating a new model from a prompt or image.",
+    keywords: ["stl library", "library", "stl packs", "download stl", "ready made", "printable files", "models library"]
+  },
+  {
+    q: "What is remesh or model cleanup?",
+    a: "Remesh/model cleanup rebuilds or optimizes the mesh so generated/scanned models become cleaner, more watertight and easier to print, animate or use in game engines. Open /3d-model-cleanup or the remesh panel in /3dprint.",
+    keywords: ["remesh", "retopology", "cleanup", "clean model", "watertight", "holes", "non manifold", "mesh", "optimize"]
+  },
+  {
+    q: "Can I create multi-colour 3D models?",
+    a: "Yes. TimrX supports workflows around 3MF and multi-color 3D printing. Use 3MF export for printers/slicers that understand color/material data, especially Bambu AMS or Prusa MMU-style setups.",
+    keywords: ["multi color", "multi-colour", "multicolor", "multiple colours", "paint", "3mf", "bambu", "ams", "mmu", "colour model", "color model"]
+  },
+  {
+    q: "Can I use TimrX assets commercially?",
+    a: "TimrX is built for creators, games, products, content and prototypes. Usage rights can depend on the provider, plan and asset source, so check the current terms and licensing before using outputs commercially.",
+    keywords: ["commercial", "license", "rights", "sell", "game asset", "product", "use in game", "client"]
+  },
+  {
+    q: "How do I get started?",
+    a: "For a guided overview, open /hub. To create immediately, open /3dprint. Use /ai-image-generator for images, /ai-video-generator for videos, /text-to-3d for prompts, /image-to-3d for reference images, /converter for file conversion and /print-on-demand for the print service/waitlist.",
+    keywords: ["start", "begin", "get started", "where do i start", "open workspace", "try timrx"]
   },
   {
     q: "How do I turn an image into a 3D model?",
@@ -116,14 +138,9 @@ const TIMRX_FAQ_DEFAULT = [
     keywords: ["image to 3d", "photo to 3d", "picture to 3d", "convert image", "text to 3d", "from image"]
   },
   {
-    q: "Can I generate videos?",
-    a: "Yes. The AI Video Generator at /ai-video-generator creates short videos from a prompt or an image.",
-    keywords: ["video", "animation", "ai video", "clip", "motion", "animate"]
-  },
-  {
     q: "Which tool should I use?",
-    a: "Images: /ai-image-generator. Short videos: /ai-video-generator. 3D from text: /text-to-3d. 3D from an image: /image-to-3d. Convert files: /converter. The full workspace is /3dprint.",
-    keywords: ["which tool", "what tool", "where do i", "how do i make", "difference between tools", "best tool"]
+    a: "Use /ai-image-generator for images, /ai-video-generator for short videos, /text-to-3d for prompt-based models, /image-to-3d for photo/reference-to-3D, /converter for file conversion, /stl-library for ready STL files, and /3dprint for the full workspace.",
+    keywords: ["which tool", "what tool", "where do i", "how do i make", "difference between tools", "best tool", "recommend"]
   }
 ];
 
@@ -145,18 +162,26 @@ const TIMRX_PLATFORM_CONTEXT = [
   "- Text to 3D (/text-to-3d) and Image to 3D (/image-to-3d): turn a prompt or a reference image into a 3D model.",
   "- AI Image Generator (/ai-image-generator): create images from text.",
   "- AI Video Generator (/ai-video-generator): create short videos from prompts or images.",
-  "- Refinement: remesh, retexture, auto-rig/animate, and a print check that prepares models for printing.",
+  "- Refinement: remesh/retopology, retexture, paint, auto-rig/animate, and a print check that prepares models for printing.",
   "- File Converter (/converter): convert between 3D and media formats.",
-  "- STL Library (/stl-library): ready-made printable models. Print on Demand (/print-on-demand): order physical prints.",
+  "- STL Library (/stl-library): ready-made printable models.",
+  "- Print on Demand (/print-on-demand): planned physical print/order/shipping service. The page says generation, refinement, print check and 3MF export are live, while order/payment/fulfillment/shipping launch in summer 2026.",
   "",
   "FORMATS: export STL, OBJ, GLB, GLTF, USDZ and 3MF (which ones depend on the workflow).",
+  "",
+  "PRINTING, ORDERS & SHIPPING:",
+  "- TimrX can prepare print-ready files now: generate/upload → print check/remesh → export STL or 3MF.",
+  "- Physical print-on-demand is launching summer 2026. Do not say TimrX does not handle printing; say the service is in build and point to /print-on-demand or admin@timrx.live for the waitlist/manual quote.",
+  "- Planned print materials include FDM PLA/PETG/PLA-CF, resin standard/tough/clear, and multi-color FDM via AMS/MMU workflows.",
+  "- Print order pricing is separate from AI credits and depends on volume, material, infill, finish and destination. Starting examples on the site: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, shipping from $4 worldwide. For a specific 100mm figurine or character, explain that height alone is not enough; volume/material/finish/destination determine the quote.",
+  "- Planned shipping is worldwide tracked shipping, with example timings of 3–7 business days for UK/EU and 7–14 business days for US/rest of world after printing is complete.",
   "",
   "CREDITS & GETTING STARTED:",
   "- AI generation and some refinement tools use credits. Start small and top up; pick a credit pack that fits your workflow. Current prices and packs are at /hub#pricing.",
   "- Public generation is credit-based. If controlled starter access is enabled, the homepage prompt will guide users; otherwise it routes them to the workspace and pricing.",
   "- No Blender or advanced 3D skills are needed — generate, inspect, refine and export directly in the browser.",
   "",
-  "GUIDANCE: When a user describes what they want to make, recommend the most relevant tool and briefly explain the workflow (prompt/upload → generate → refine → export). For account, billing, or custom-work questions you can't answer from the above, suggest opening the workspace at /3dprint or the pricing page at /hub#pricing. Keep a warm, plain tone; avoid heavy markdown."
+  "GUIDANCE: When a user describes what they want to make, recommend the most relevant tool and briefly explain the workflow (prompt/upload → generate → refine → export). For product print/order/shipping questions, answer from the print-on-demand facts above. For exact pricing point users to /hub#pricing for credits or /print-on-demand for physical prints. Do not answer platform questions as if they are Dima portfolio enquiries, and do not send product users to #contact budget chips. Keep a warm, plain tone; avoid heavy markdown."
 ].join("\n");
 function getTimrxSystemPrompt() {
   return (window.TIMRX_CHAT_CONTEXT || TIMRX_PLATFORM_CONTEXT || '').trim();
@@ -210,14 +235,56 @@ function findTimrxFaqMatches(query, limit = 5) {
 }
 
 function timrxLocalRouter(q) {
+  const direct = timrxDirectIntentAnswer(q);
+  if (direct) return direct;
   const [best] = findTimrxFaqMatches(q, 1);
   if (best) return best.a;
-  return 'I can help with TimrX, the 3D Print Hub, Dima, services, examples, and contact. If you want to use the platform, open /hub. If you want custom work, use #contact.';
+  return 'I can help with TimrX tools, credits, exports, print-ready workflows, file conversion, STL files and print-on-demand. For the full workspace open /3dprint, or use /hub for the product overview and pricing.';
+}
+
+function timrxDirectIntentAnswer(query) {
+  const normalized = normalizeTimrxQuery(query);
+  if (!normalized) return '';
+  const hasPrint = /\b(print|printing|printed|physical|figurine|miniature|model|stl|3d)\b/.test(normalized);
+  const hasOrder = /\b(order|buy|purchase|checkout|ship|shipping|deliver|delivery|quote|fulfillment)\b/.test(normalized);
+  const hasCost = /\b(cost|price|pricing|quote|how much|pay|fee|fees|100mm|height|material|infill)\b/.test(normalized);
+  const hasWhereShip = /\b(where|worldwide|uk|eu|usa|us|america|europe|international|how long|delivery time|shipping time|tracked)\b/.test(normalized)
+    && /\b(ship|shipping|deliver|delivery)\b/.test(normalized);
+
+  if ((hasPrint || hasOrder) && hasCost) {
+    return "Physical print pricing is separate from AI credits and depends on model volume, material, infill, finish and destination. The print page lists starting examples: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, and shipping from $4 worldwide. For a 100mm character/figurine, height alone is not enough — the order screen or a manual quote needs volume, material, finish and destination.";
+  }
+  if (hasWhereShip) {
+    return "The print-on-demand page describes worldwide tracked shipping when the print service launches. Typical estimates shown there are 3–7 business days for the UK/EU and 7–14 business days for the US/rest of world after printing is complete.";
+  }
+  if (hasOrder || /\b(print on demand|print and ship|order print|shipping)\b/.test(normalized)) {
+    return "TimrX has a Print on Demand service page at /print-on-demand. The print/order/payment/shipping flow is listed as launching in summer 2026; generation, refinement, print check and 3MF export workflows are already available. Join the waitlist from /print-on-demand or email admin@timrx.live.";
+  }
+  return '';
+}
+
+function shouldUseLocalTimrxAnswer(query) {
+  const normalized = normalizeTimrxQuery(query);
+  if (!normalized) return false;
+  const platformIntent = [
+    'print', 'printing', 'ship', 'shipping', 'deliver', 'delivery', 'order', 'quote',
+    'cost', 'price', 'pricing', 'credit', 'credits', 'billing', 'export', 'format',
+    'stl', 'obj', 'glb', 'gltf', '3mf', 'usdz', 'converter', 'library', 'remesh',
+    'texture', 'paint', 'image', 'video', '3d', 'model', 'workspace', 'tool'
+  ];
+  return platformIntent.some(term => normalized.includes(term));
 }
 
 /** 4) ask(): STREAM → JSON → local fallback */
 async function timrxAsk(messages, onStreamToken) {
   const systemPrompt = getTimrxSystemPrompt();
+  const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+  const directAnswer = !window.TIMRX_CHAT_CONTEXT ? timrxDirectIntentAnswer(lastUserMessage) : '';
+  if (directAnswer) return directAnswer;
+  const [localBest] = findTimrxFaqMatches(lastUserMessage, 1);
+  if (!window.TIMRX_CHAT_CONTEXT && localBest && shouldUseLocalTimrxAnswer(lastUserMessage) && scoreTimrxFaq(localBest, lastUserMessage) >= 35) {
+    return localBest.a;
+  }
   const outboundMessages = systemPrompt
     ? [{ role: 'system', content: systemPrompt }, ...messages.filter(m => m.role !== 'system')]
     : messages;
@@ -265,8 +332,7 @@ async function timrxAsk(messages, onStreamToken) {
   } catch (_) { /* fall through */ }
 
   // (C) local fallback
-  const last = [...messages].reverse().find(m => m.role === 'user');
-  return timrxLocalRouter(last?.content || '');
+  return timrxLocalRouter(lastUserMessage);
 }
 
 window.timrxAsk = timrxAsk;
