@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TimrX — Ad scene (serve over localhost · any resolution)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --ink:#f4f1ea; --muted:#a39b8f; --warm:#c9a98a; --line:rgba(244,241,234,.12);
+    --disp:"Space Grotesk",-apple-system,system-ui,sans-serif;
+    --body:"Inter",-apple-system,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:var(--body)}
+
+  .stage{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;color:var(--ink);
+         background:radial-gradient(125% 70% at 50% -8%, #16140f 0%, #0d0c0a 52%, #060605 100%)}
+  .grid{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;
+        background:linear-gradient(90deg,rgba(244,241,234,.045) 1px,transparent 1px) 0 0/8vmin 100%,
+                   linear-gradient(rgba(244,241,234,.045) 1px,transparent 1px) 0 0/100% 8vmin;
+        -webkit-mask-image:radial-gradient(120% 80% at 50% 26%,#000 45%,transparent);mask-image:radial-gradient(120% 80% at 50% 26%,#000 45%,transparent)}
+  .glow{position:absolute;width:120vmin;height:120vmin;left:50%;top:16%;transform:translate(-50%,-50%);
+        background:radial-gradient(circle, rgba(244,241,234,.06), rgba(244,241,234,0) 60%);filter:blur(8px);animation:drift 14s ease-in-out infinite;pointer-events:none}
+  @keyframes drift{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-50%) translateY(5vmin)}}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.35;z-index:1;
+         background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+         background-size:14vmin 14vmin;mix-blend-mode:soft-light}
+  .bar{position:absolute;top:0;left:0;height:.6vmin;background:var(--ink);width:0;z-index:9;box-shadow:0 0 1.5vmin rgba(244,241,234,.35)}
+
+  .scene{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
+         text-align:center;padding:7vmin 6vmin;opacity:0;transform:translateY(1.4vmin);
+         transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .scene.on{opacity:1;transform:none}
+
+  .brandmark{display:flex;align-items:center;gap:1.6vmin;margin-bottom:4vmin}
+  .brandmark img{width:5.4vmin;height:5.4vmin}
+  .brandmark span{font-family:var(--disp);font-weight:700;font-size:3.4vmin;letter-spacing:-.04em}
+  .brandmark b{color:var(--warm)}
+  .eyebrow{display:inline-flex;align-items:center;gap:1.6vmin;color:var(--muted);font-weight:700;letter-spacing:.24em;text-transform:uppercase;font-size:2.6vmin}
+  .eyebrow::before,.eyebrow::after{content:"";width:4vmin;height:1px;background:var(--line)}
+  h1{font-family:var(--disp);font-size:9vmin;line-height:1;font-weight:600;letter-spacing:-.03em;margin-top:3.6vmin}
+  .grad{background:linear-gradient(100deg,#f4f1ea 0%,var(--warm) 50%,#f4f1ea 100%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% auto;animation:sheen 5s linear infinite}
+  @keyframes sheen{to{background-position:220% center}}
+  .sub{margin-top:3.6vmin;font-size:3.6vmin;color:var(--muted);line-height:1.45;max-width:22ch}
+
+  .caption{font-family:var(--disp);font-size:4.8vmin;font-weight:600;letter-spacing:-.01em;margin-bottom:4.2vmin;max-width:21ch;line-height:1.12}
+  .caption b{color:var(--ink)} .caption em{font-style:normal;color:var(--muted)}
+
+  /* browser / workspace frame */
+  .browser{position:relative;width:64vmin;max-width:94vw;background:#131210;border:1px solid var(--line);border-radius:2.8vmin;overflow:hidden;box-shadow:0 6vmin 13vmin rgba(0,0,0,.55);animation:floaty 7s ease-in-out infinite}
+  .topbar{display:flex;align-items:center;gap:1.3vmin;padding:2.2vmin 2.6vmin;border-bottom:1px solid var(--line);background:rgba(244,241,234,.02)}
+  .topbar .d{width:1.6vmin;height:1.6vmin;border-radius:50%;background:#2c2a26}
+  .topbar .addr{margin-left:1.6vmin;display:flex;align-items:center;gap:1.2vmin;font-family:var(--mono);font-size:2.4vmin;color:var(--muted)}
+  .topbar .addr img{width:2.8vmin;height:2.8vmin}
+  .panel{padding:3.4vmin}
+  .prompt{position:relative;display:flex;align-items:center;gap:2vmin;background:#1b1916;border:1px solid var(--line);border-radius:1.8vmin;padding:2.6vmin 2.8vmin}
+  .prompt .ph{font-family:var(--mono);font-size:2.6vmin;color:var(--ink);white-space:nowrap;overflow:hidden;border-right:.4vmin solid var(--ink)}
+  .scene.promptscene.on .ph{width:0;animation:typing 1.7s steps(21,end) forwards .3s,caret .7s step-end infinite}
+  @keyframes typing{to{width:21ch}}
+  @keyframes caret{50%{border-color:transparent}}
+  .genbtn{margin-left:auto;flex:0 0 auto;background:var(--ink);color:#0a0a0a;font-family:var(--disp);font-weight:700;font-size:2.6vmin;padding:1.7vmin 2.8vmin;border-radius:1.3vmin;white-space:nowrap}
+  .scene.promptscene.on .genbtn{animation:btnPress .5s ease 2.5s}
+  @keyframes btnPress{0%,100%{transform:scale(1)}45%{transform:scale(.93)}}
+  .cursor{position:absolute;right:10.5vmin;top:50%;z-index:6;width:5vmin;height:5vmin;opacity:0;pointer-events:none;filter:drop-shadow(0 .4vmin .6vmin rgba(0,0,0,.55))}
+  .cursor svg{width:100%;height:100%;display:block}
+  .scene.promptscene.on .cursor{animation:curIn 1s cubic-bezier(.2,.7,.2,1) forwards 1.3s,curClick .5s ease 2.5s}
+  @keyframes curIn{from{opacity:0;transform:translate(7vmin,9vmin)}to{opacity:1;transform:translate(0,0)}}
+  @keyframes curClick{0%,100%{transform:translate(0,0) scale(1)}45%{transform:translate(0,0) scale(.78)}}
+  .clickring{position:absolute;right:8vmin;top:50%;width:6vmin;height:6vmin;margin-top:-3vmin;border-radius:50%;border:.35vmin solid rgba(244,241,234,.55);opacity:0;z-index:5;pointer-events:none}
+  .scene.promptscene.on .clickring{animation:ring .6s ease-out 2.55s}
+  @keyframes ring{0%{opacity:.6;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
+  .result{position:relative;margin-top:3vmin;border-radius:1.8vmin;overflow:hidden;background:#f2efe9;aspect-ratio:3/2;opacity:0}
+  .result img{width:100%;height:100%;object-fit:cover}
+  .result .gtag{position:absolute;left:1.8vmin;bottom:1.8vmin;display:flex;align-items:center;gap:1vmin;background:rgba(10,10,10,.55);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:99px;padding:1vmin 2vmin;font-family:var(--mono);font-size:2vmin;color:var(--ink)}
+  .scene.promptscene.on .result{animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards 2.9s}
+
+  /* image -> 3D */
+  .stage3d{display:flex;align-items:center;justify-content:center;gap:3vmin}
+  .src{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1.3vmin;opacity:0}
+  .src img{width:17vmin;height:17vmin;object-fit:cover;border-radius:1.6vmin;border:1px solid var(--line)}
+  .src small{font-family:var(--mono);font-size:2.1vmin;color:var(--muted)}
+  .arrow{font-size:4.6vmin;color:var(--warm);opacity:0}
+  .modelwrap{width:56vmin;height:56vmin;max-width:72vw;position:relative}
+  model-viewer{width:100%;height:100%;--poster-color:transparent;background:transparent}
+  .scene.scene3d.on .src{animation:rise .5s ease forwards .3s}
+  .scene.scene3d.on .arrow{animation:fade .5s ease forwards .6s}
+  .chips{display:flex;flex-wrap:wrap;gap:1.6vmin;justify-content:center;max-width:80vmin;margin-top:3.2vmin}
+  .chip{font-family:var(--mono);font-size:2.8vmin;color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:1.3vmin 2.6vmin;background:rgba(244,241,234,.03);opacity:0}
+  .scene.scene3d.on .chip:nth-child(1){animation:fade .5s ease forwards 1.0s}
+  .scene.scene3d.on .chip:nth-child(2){animation:fade .5s ease forwards 1.2s}
+  .scene.scene3d.on .chip:nth-child(3){animation:fade .5s ease forwards 1.4s}
+  .scene.scene3d.on .chip:nth-child(4){animation:fade .5s ease forwards 1.6s}
+  .scene.scene3d.on .chip:nth-child(5){animation:fade .5s ease forwards 1.8s}
+
+  /* video */
+  .vid{position:relative;width:58vmin;max-width:90vw;border-radius:2.4vmin;overflow:hidden;border:1px solid var(--line);box-shadow:0 5vmin 13vmin rgba(0,0,0,.55);animation:floaty 7s ease-in-out infinite}
+  .vid video{display:block;width:100%;height:auto;background:#111}
+  .vbadge{position:absolute;left:2vmin;top:2vmin;display:flex;align-items:center;gap:1vmin;background:rgba(10,10,10,.5);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:99px;padding:1vmin 1.9vmin;font-family:var(--mono);font-size:2.1vmin;color:var(--ink)}
+  .vbadge .dot{width:1.2vmin;height:1.2vmin;border-radius:50%;background:#e24b4a;animation:blink 1.6s infinite}
+  .filmstrip{display:flex;gap:1.8vmin;margin-top:2.4vmin}
+  .filmstrip video{width:17vmin;border-radius:1.3vmin;border:1px solid var(--line);opacity:0}
+  .scene.videoscene.on .filmstrip video:nth-child(1){animation:fade .5s ease forwards .6s}
+  .scene.videoscene.on .filmstrip video:nth-child(2){animation:fade .5s ease forwards .85s}
+
+  /* features */
+  .feat{display:grid;grid-template-columns:repeat(2,1fr);gap:2.2vmin;width:82vmin;max-width:96vw}
+  .fcard{display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;padding:3vmin;border:1px solid var(--line);border-radius:2.2vmin;background:rgba(244,241,234,.02);text-align:left;opacity:0;transform:translateY(1vmin)}
+  .fcard .fi{font-size:4.4vmin;line-height:1}
+  .fcard b{font-family:var(--disp);font-size:3.1vmin;font-weight:600}
+  .fcard small{font-family:var(--mono);font-size:2.1vmin;color:var(--muted)}
+  .scene.features.on .fcard:nth-child(1){animation:rise .5s ease forwards .2s}
+  .scene.features.on .fcard:nth-child(2){animation:rise .5s ease forwards .33s}
+  .scene.features.on .fcard:nth-child(3){animation:rise .5s ease forwards .46s}
+  .scene.features.on .fcard:nth-child(4){animation:rise .5s ease forwards .59s}
+  .scene.features.on .fcard:nth-child(5){animation:rise .5s ease forwards .72s}
+  .scene.features.on .fcard:nth-child(6){animation:rise .5s ease forwards .85s}
+
+  /* gallery */
+  .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8vmin;width:82vmin;max-width:96vw}
+  .gal figure{position:relative;aspect-ratio:1;border-radius:1.6vmin;overflow:hidden;background:#1b1916;border:1px solid var(--line);opacity:0}
+  .gal img{width:100%;height:100%;object-fit:cover}
+  .scene.gallery.on .gal figure:nth-child(1){animation:fade .5s ease forwards .2s}
+  .scene.gallery.on .gal figure:nth-child(2){animation:fade .5s ease forwards .32s}
+  .scene.gallery.on .gal figure:nth-child(3){animation:fade .5s ease forwards .44s}
+  .scene.gallery.on .gal figure:nth-child(4){animation:fade .5s ease forwards .56s}
+  .scene.gallery.on .gal figure:nth-child(5){animation:fade .5s ease forwards .68s}
+  .scene.gallery.on .gal figure:nth-child(6){animation:fade .5s ease forwards .8s}
+
+  /* CTA */
+  .ctalogo{display:flex;align-items:center;gap:2.2vmin;opacity:0}
+  .ctalogo img{width:12vmin;height:12vmin}
+  .ctalogo span{font-family:var(--disp);font-weight:700;font-size:13vmin;letter-spacing:-.04em;line-height:1}
+  .ctalogo b{color:var(--warm)}
+  .scene.cta.on .ctalogo{animation:rise .6s ease forwards}
+  .cta-line{font-family:var(--disp);font-size:5.2vmin;font-weight:600;margin-top:3.6vmin;max-width:15ch;line-height:1.1;letter-spacing:-.01em}
+  .pill{margin-top:5vmin;display:inline-block;background:var(--ink);color:#0a0a0a;font-family:var(--disp);font-weight:700;font-size:3.6vmin;padding:2.4vmin 4.6vmin;border-radius:99px;box-shadow:0 1.6vmin 5vmin rgba(244,241,234,.16);animation:pulse 2.8s ease-in-out infinite}
+  .url{margin-top:4vmin;font-family:var(--mono);font-size:3.6vmin;color:var(--ink);letter-spacing:.04em}
+  .url b{color:var(--warm)}
+  .tag{position:absolute;bottom:3vmin;width:100%;text-align:center;color:#4a463f;font-family:var(--mono);font-size:2.1vmin;z-index:3}
+
+  @keyframes rise{from{opacity:0;transform:translateY(1.2vmin) scale(.985)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0;transform:translateY(.8vmin)}to{opacity:1;transform:none}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-1vmin)}}
+  @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="grain"></div>
+    <div class="bar" id="bar"></div>
+
+    <!-- 1 HOOK -->
+    <section class="scene" data-dur="3400">
+      <div class="brandmark"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+      <div class="eyebrow">AI creative workspace</div>
+      <h1>Type it.<br><span class="grad">Create it.</span></h1>
+      <div class="sub">Images, video and 3D models — generated in your browser.</div>
+    </section>
+
+    <!-- 2 PROMPT -> IMAGE (cursor clicks Generate) -->
+    <section class="scene promptscene" data-dur="6600">
+      <div class="caption">From a prompt to a <b>finished image.</b></div>
+      <div class="browser">
+        <div class="topbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="addr"><img src="img/logo.png" alt="">timrx.live/3dprint</span></div>
+        <div class="panel">
+          <div class="prompt">
+            <span class="ph">a vintage film camera</span><span class="genbtn">Generate</span>
+            <span class="clickring"></span>
+            <span class="cursor"><svg viewBox="0 0 24 24"><path d="M5 3l14.5 8.6-6 1.4 3.2 6.2-3 1.4-3.2-6.3-4.7 4z" fill="#fff" stroke="#0a0a0a" stroke-width="1.1" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="result"><img src="vid/image-to-3d/vintage-camera.png" alt="Generated vintage camera"><span class="gtag">✓ generated · 1024²</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 IMAGE -> 3D -->
+    <section class="scene scene3d" data-dur="5800">
+      <div class="caption">Turn that image into a <b>3D model.</b></div>
+      <div class="stage3d">
+        <div class="src"><img src="vid/image-to-3d/vintage-camera.png" alt=""><small>your image</small></div>
+        <div class="arrow">→</div>
+        <div class="modelwrap">
+          <model-viewer src="img/ad-camera.glb" alt="3D model of a vintage camera" auto-rotate auto-rotate-delay="0"
+            rotation-per-second="30deg" interaction-prompt="none" disable-zoom disable-pan disable-tap
+            shadow-intensity="0.7" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">STL</span><span class="chip">OBJ</span><span class="chip">GLB</span><span class="chip">3MF</span><span class="chip">print-ready</span></div>
+    </section>
+
+    <!-- 4 VIDEO -->
+    <section class="scene videoscene" data-dur="5000">
+      <div class="caption">Bring it to life — <b>generate video.</b></div>
+      <div class="vid">
+        <span class="vbadge"><span class="dot"></span>AI video</span>
+        <video src="vid/hero-1.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="filmstrip">
+        <video src="vid/hero-2.mp4" autoplay muted loop playsinline></video>
+        <video src="vid/hero-3.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </section>
+
+    <!-- 5 FEATURES -->
+    <section class="scene features" data-dur="5400">
+      <div class="caption">Way past <b>generation.</b></div>
+      <div class="feat">
+        <div class="fcard"><span class="fi">🎨</span><b>Multi-colour printing</b><small>Full-colour 3MF · AMS</small></div>
+        <div class="fcard"><span class="fi">✅</span><b>Print check</b><small>Is it printable?</small></div>
+        <div class="fcard"><span class="fi">🧩</span><b>Remesh &amp; retopo</b><small>Clean for printing</small></div>
+        <div class="fcard"><span class="fi">🖌️</span><b>PBR textures</b><small>Materials from text</small></div>
+        <div class="fcard"><span class="fi">🦴</span><b>Rig &amp; animate</b><small>Pose and move models</small></div>
+        <div class="fcard"><span class="fi">🔄</span><b>Convert anything</b><small>GLB·STL·OBJ·FBX·3MF</small></div>
+      </div>
+    </section>
+
+    <!-- 6 GALLERY -->
+    <section class="scene gallery" data-dur="4400">
+      <div class="caption">Made with <b>TimrX.</b></div>
+      <div class="gal">
+        <figure><img src="vid/image-to-3d/vintage-camera.png" alt=""></figure>
+        <figure><img src="vid/image-to-3d/running-shoe.png" alt=""></figure>
+        <figure><img src="vid/image-to-3d/toy-robot.png" alt=""></figure>
+        <figure><img src="vid/image-to-3d/ceramic-mug.png" alt=""></figure>
+        <figure><img src="vid/image-to-3d/fantasy-character.png" alt=""></figure>
+        <figure><img src="vid/image-to-3d/bonsai-tree.png" alt=""></figure>
+      </div>
+    </section>
+
+    <!-- 7 CTA -->
+    <section class="scene cta" data-dur="5400">
+      <div class="ctalogo"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+      <div class="cta-line">Create anything. Right now.</div>
+      <div class="pill">Start free — no install</div>
+      <div class="url">timrx<b>.</b>live</div>
+    </section>
+
+    <div class="tag">Serve over localhost · resize window to your ratio · loops automatically</div>
+  </div>
+
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
+<script>
+  const scenes=[...document.querySelectorAll('.scene')];
+  const bar=document.getElementById('bar');
+  let i=0;
+  function play(){
+    const s=scenes[i],dur=+s.dataset.dur;
+    scenes.forEach(x=>x.classList.remove('on'));
+    void s.offsetWidth;
+    s.classList.add('on');
+    s.querySelectorAll('video').forEach(v=>{try{v.currentTime=0;v.play();}catch(e){}});
+    bar.style.transition='none';bar.style.width=(i/scenes.length*100)+'%';
+    void bar.offsetWidth;
+    bar.style.transition='width '+dur+'ms linear';
+    bar.style.width=((i+1)/scenes.length*100)+'%';
+    i=(i+1)%scenes.length;
+    setTimeout(play,dur);
+  }
+  play();
+</script>
+</body>
+</html>
