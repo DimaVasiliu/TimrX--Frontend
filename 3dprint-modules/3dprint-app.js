@@ -1557,6 +1557,8 @@
       <input type="hidden" id="videoAIProvider" value="vertex" />
       <input type="hidden" id="videoMotionPreset" value="" />
       <input type="hidden" id="seedanceTier" value="fast" />
+      <!-- PiAPI Seedance 2 "audio" flag. Soundtrack generation is on by default. -->
+      <input type="hidden" id="seedanceAudio" value="true" />
 
       <!-- Header: Provider + Mode Selection -->
       <div class="card video-header-card">
@@ -1625,173 +1627,34 @@
       </div>
 
       <!-- Image-to-Video: Dual-mode (Animate / Transition) -->
+      <!-- Image-to-Video: one image strip. The mode follows the image count —
+           1 = animate, 2 = first→last frame, 3+ = multi-reference (Seedance).
+           This replaces the old Animate / Transition / Morph sub-mode switcher and
+           its four separate drop zones, which asked the user to pick a mode before
+           they had even chosen their images. -->
       <div class="video-mode-content video-input-section hidden" id="image2videoContent">
-
-        <!-- Image sub-mode switcher (hidden by default for Veo, shown for Seedance) -->
-        <div class="video-img-mode-switcher hidden" id="videoImgModeSwitcher">
-          <button type="button" class="video-img-mode-btn is-active" data-img-mode="animate_image">Animate from Image</button>
-          <button type="button" class="video-img-mode-btn" data-img-mode="image_transition">Transition Between Two Images</button>
-          <button type="button" class="video-img-mode-btn" data-img-mode="experimental_morph" id="experimentalMorphBtn" style="display:none">Morph (Beta)</button>
-        </div>
         <input type="hidden" id="videoImgModeValue" value="animate_image" />
 
-        <!-- ── MODE 1: Animate Image ── -->
-        <div class="video-img-mode-content" id="animateImageContent">
-          <span class="field-hint" style="margin-bottom:8px">Bring a single image to life with motion and camera direction.</span>
+        <div class="vimg-head">
+          <label class="video-section-label" for="videoImageInput">Images</label>
+          <span class="vimg-mode-badge" id="vimgModeBadge">Add an image</span>
+        </div>
 
-          <label for="videoSource" class="video-section-label">Reference Image</label>
-          <div class="video-image-grid compact">
-            <div id="videoImageDrop" class="video-drop-zone">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Upload</span>
-              <input type="file" id="videoSource" accept="image/*" hidden />
-            </div>
-            <div class="video-preview-wrap">
-              <img id="videoImagePreview" class="video-preview-img" alt="Preview" width="280" height="280" loading="lazy" decoding="async"/>
-              <div class="video-preview-placeholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <path d="M21 15l-5-5L5 21"/>
-                </svg>
-              </div>
-            </div>
-          </div>
+        <div class="vimg-strip" id="videoImageStrip">
+          <button type="button" class="vimg-add" id="vimgAddBtn" aria-label="Add image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add image</span>
+          </button>
+          <input type="file" id="videoImageInput" accept="image/jpeg,image/png,image/webp" multiple hidden />
+        </div>
 
-          <div class="vs-section vs-animation-prompt-section hidden">
-            <label for="videoAnimationPrompt" class="vs-label">Animation Prompt</label>
-            <textarea id="videoAnimationPrompt" rows="3" placeholder="Describe what should happen in the scene.
+        <span class="vimg-hint" id="vimgHint">Drop an image here, or click to browse. JPG, PNG or WEBP.</span>
+
+        <div class="vs-section vs-animation-prompt-section">
+          <label for="videoAnimationPrompt" class="vs-label" id="vimgPromptLabel">Motion Prompt</label>
+          <textarea id="videoAnimationPrompt" rows="3" placeholder="Describe what should happen in the scene.
 Example: The man slowly looks up, wind moves his jacket, subtle cinematic motion."></textarea>
-          </div>
         </div>
-
-        <!-- ── MODE 2: Image Transition ── -->
-        <div class="video-img-mode-content hidden" id="imageTransitionContent">
-          <span class="field-hint" style="margin-bottom:8px">Create a cinematic transition between two images. The video smoothly interpolates from the first frame to the last frame. Available on Veo and Seedance.</span>
-
-          <div class="video-transition-grid">
-            <div class="video-transition-col">
-              <label class="video-section-label">Start Image</label>
-              <div id="videoStartImageDrop" class="video-drop-zone">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Upload</span>
-                <input type="file" id="videoStartImageSource" accept="image/*" hidden />
-              </div>
-              <div class="video-preview-wrap">
-                <img id="videoStartImagePreview" class="video-preview-img" alt="Start" width="280" height="280" loading="lazy" decoding="async"/>
-                <div class="video-preview-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="video-transition-arrow">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                <path d="M5 12h14M13 6l6 6-6 6"/>
-              </svg>
-            </div>
-
-            <div class="video-transition-col">
-              <label class="video-section-label">End Image</label>
-              <div id="videoEndImageDrop" class="video-drop-zone">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Upload</span>
-                <input type="file" id="videoEndImageSource" accept="image/*" hidden />
-              </div>
-              <div class="video-preview-wrap">
-                <img id="videoEndImagePreview" class="video-preview-img" alt="End" width="280" height="280" loading="lazy" decoding="async"/>
-                <div class="video-preview-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="vs-section vs-animation-prompt-section">
-            <label for="videoTransitionPrompt" class="vs-label">Transition Prompt</label>
-            <textarea id="videoTransitionPrompt" rows="3" placeholder="Describe how image one should transform into image two.
-Example: The calm expression slowly turns into anger while the camera pushes in."></textarea>
-          </div>
-        </div>
-
-        <!-- ── MODE 3: Experimental Morph (Beta) ── -->
-        <div class="video-img-mode-content hidden" id="experimentalMorphContent">
-          <div class="field-hint" style="margin-bottom:8px;padding:8px 10px;background:rgba(255,190,60,0.12);border-radius:6px;border-left:3px solid #ffbe3c;font-size:12px;line-height:1.4">
-            <strong>Experimental Morph (Beta)</strong><br>
-            Uses two reference images where available. Results may not behave like exact first-to-last-frame interpolation. This feature is experimental and may produce unexpected results.
-          </div>
-
-          <div class="video-transition-grid">
-            <div class="video-transition-col">
-              <label class="video-section-label">Image 1</label>
-              <div id="morphStartImageDrop" class="video-drop-zone">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Upload</span>
-                <input type="file" id="morphStartImageSource" accept="image/*" hidden />
-              </div>
-              <div class="video-preview-wrap">
-                <img id="morphStartImagePreview" class="video-preview-img" alt="Image 1" width="280" height="280" loading="lazy" decoding="async"/>
-                <div class="video-preview-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="video-transition-arrow">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                <path d="M5 12h14M13 6l6 6-6 6"/>
-              </svg>
-            </div>
-
-            <div class="video-transition-col">
-              <label class="video-section-label">Image 2</label>
-              <div id="morphEndImageDrop" class="video-drop-zone">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Upload</span>
-                <input type="file" id="morphEndImageSource" accept="image/*" hidden />
-              </div>
-              <div class="video-preview-wrap">
-                <img id="morphEndImagePreview" class="video-preview-img" alt="Image 2" width="280" height="280" loading="lazy" decoding="async"/>
-                <div class="video-preview-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="vs-section vs-animation-prompt-section">
-            <label for="morphPrompt" class="vs-label">Morph Prompt</label>
-            <textarea id="morphPrompt" rows="3" placeholder="Describe how the two images should blend or morph together.
-Example: Smooth morphing transition with cinematic camera movement."></textarea>
-          </div>
-        </div>
-
       </div>
 
       <!-- Reference-Guided Video (Seedance omni_reference): image refs public; video/audio gated -->
@@ -2570,118 +2433,186 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       // Video: image upload & preview
-      const videoImageDrop    = leftStack.querySelector('#videoImageDrop');
-      const videoSource       = leftStack.querySelector('#videoSource');
-      const videoImagePreview = leftStack.querySelector('#videoImagePreview');
+      // ── Unified image references ────────────────────────────────────────
+      // One list drives every image mode. Downstream code still reads
+      // #videoImgModeValue, which we derive from the image count:
+      //   1 image  -> animate_image
+      //   2 images -> image_transition (first frame -> last frame)
+      //   3+       -> reference_images (Seedance only)
+      // Images are downscaled in the browser before upload: a 12MP phone photo is
+      // ~8MB as a data URL, and nine of those would blow past the request limit
+      // long before the provider ever saw them.
+      const VIMG_MAX_EDGE = 2048;
+      const VIMG_JPEG_QUALITY = 0.9;
+      const videoImageRefs = [];
+      window.VideoImageRefs = videoImageRefs;
 
-      if (videoImageDrop && videoSource && videoImagePreview) {
-        videoImageDrop.addEventListener('click', () => videoSource.click());
-        videoSource.addEventListener('change', async function () {
-          if (this.files && this.files[0]) {
+      function vimgProviderMax() {
+        // Reads the DOM rather than closing over `videoAIProvider` /
+        // `videoReferencePolicy`: those are `const`s declared further down this
+        // scope, so touching them from a listener that fires early would hit the
+        // temporal dead zone.
+        const provider = leftStack.querySelector('#videoAIProvider')?.value || 'vertex';
+        // Only Seedance takes more than a first/last pair.
+        if (provider !== 'seedance') return 2;
+        const limits = (typeof videoReferencePolicy !== 'undefined' && videoReferencePolicy?.limits)
+          ? videoReferencePolicy.limits
+          : null;
+        return Math.max(2, (limits && limits.max_image_refs) || 6);
+      }
+
+      function vimgDeriveMode() {
+        if (videoImageRefs.length >= 3) return 'reference_images';
+        if (videoImageRefs.length === 2) return 'image_transition';
+        return 'animate_image';
+      }
+
+      // Downscale + re-encode in a canvas. Keeps PNG for images with alpha so we
+      // don't flatten transparency to black.
+      function vimgProcessFile(file) {
+        return new Promise((resolve, reject) => {
+          if (!file || !String(file.type || '').toLowerCase().startsWith('image/')) {
+            reject(new Error('Please choose an image file.'));
+            return;
+          }
+          const objectUrl = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
             try {
-              videoImagePreview.src = await readFileAsDataUrl(this.files[0]);
-              videoImagePreview.style.display = 'block';
+              const scale = Math.min(1, VIMG_MAX_EDGE / Math.max(img.width, img.height));
+              const w = Math.max(1, Math.round(img.width * scale));
+              const h = Math.max(1, Math.round(img.height * scale));
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              const keepAlpha = /png|webp/i.test(file.type);
+              const dataUrl = keepAlpha
+                ? canvas.toDataURL('image/png')
+                : canvas.toDataURL('image/jpeg', VIMG_JPEG_QUALITY);
+              resolve({ dataUrl, name: file.name || 'image', width: w, height: h });
             } catch (err) {
-              console.warn('[Video Upload] Invalid source image:', err);
-              this.value = '';
-              videoImagePreview.src = '';
-              videoImagePreview.style.display = 'none';
-              showImageUploadError(err?.message || 'Invalid image file.');
+              reject(new Error('That image could not be processed.'));
             }
-          }
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Invalid image file. Use JPG, PNG or WEBP.'));
+          };
+          img.src = objectUrl;
         });
-        // Drag-n-drop
-        videoImageDrop.addEventListener('dragover', (e) => {
+      }
+
+      function vimgRender() {
+        const strip = leftStack.querySelector('#videoImageStrip');
+        const addBtn = leftStack.querySelector('#vimgAddBtn');
+        const badge = leftStack.querySelector('#vimgModeBadge');
+        const hint = leftStack.querySelector('#vimgHint');
+        const promptLabel = leftStack.querySelector('#vimgPromptLabel');
+        if (!strip || !addBtn) return;
+
+        strip.querySelectorAll('.vimg-item').forEach(el => el.remove());
+
+        const max = vimgProviderMax();
+        const mode = vimgDeriveMode();
+        const modeValue = leftStack.querySelector('#videoImgModeValue');
+        if (modeValue) modeValue.value = mode;
+
+        videoImageRefs.forEach((ref, i) => {
+          const item = document.createElement('div');
+          item.className = 'vimg-item';
+          let roleLabel = '';
+          if (videoImageRefs.length === 2) roleLabel = i === 0 ? 'First frame' : 'Last frame';
+          else if (videoImageRefs.length >= 3) roleLabel = '@image' + (i + 1);
+          item.innerHTML =
+            '<img src="' + ref.dataUrl + '" alt="" />' +
+            (roleLabel ? '<span class="vimg-role">' + roleLabel + '</span>' : '') +
+            '<button type="button" class="vimg-remove" data-idx="' + i + '" aria-label="Remove image">&times;</button>';
+          strip.insertBefore(item, addBtn);
+        });
+
+        addBtn.classList.toggle('hidden', videoImageRefs.length >= max);
+
+        const n = videoImageRefs.length;
+        if (badge) {
+          badge.textContent =
+            n === 0 ? 'Add an image' :
+            n === 1 ? 'Animate one image' :
+            n === 2 ? 'First → last frame' :
+            n + ' references';
+        }
+        if (hint) {
+          hint.textContent =
+            n === 0 ? 'Drop an image here, or click to browse. JPG, PNG or WEBP.' :
+            n === 1 ? (max > 2
+                        ? 'Add a second image to morph between two frames, or more to guide the scene.'
+                        : 'Add a second image to create a first-to-last frame transition.') :
+            n === 2 ? 'The video starts on the first image and ends on the second.' :
+                      'Reference these in your prompt with @image1, @image2, …';
+        }
+        if (promptLabel) {
+          promptLabel.textContent =
+            n === 2 ? 'Transition Prompt' : n >= 3 ? 'Scene Prompt' : 'Motion Prompt';
+        }
+
+        if (typeof validateVideoForm === 'function') validateVideoForm();
+        if (typeof updateVideoFooter === 'function') updateVideoFooter();
+      }
+      window.VideoImageRefs.render = vimgRender;
+
+      async function vimgAddFiles(fileList) {
+        const files = Array.from(fileList || []);
+        const max = vimgProviderMax();
+        for (const file of files) {
+          if (videoImageRefs.length >= max) {
+            showImageUploadError(
+              max === 2
+                ? 'This engine takes at most 2 images (a first and last frame).'
+                : 'You can add up to ' + max + ' images.'
+            );
+            break;
+          }
+          try {
+            videoImageRefs.push(await vimgProcessFile(file));
+          } catch (err) {
+            showImageUploadError(err?.message || 'Invalid image file.');
+          }
+        }
+        vimgRender();
+      }
+
+      (function wireImageStrip() {
+        const strip = leftStack.querySelector('#videoImageStrip');
+        const addBtn = leftStack.querySelector('#vimgAddBtn');
+        const input = leftStack.querySelector('#videoImageInput');
+        if (!strip || !addBtn || !input) return;
+
+        addBtn.addEventListener('click', () => input.click());
+        input.addEventListener('change', () => { vimgAddFiles(input.files); input.value = ''; });
+
+        strip.addEventListener('click', (e) => {
+          const rm = e.target.closest('.vimg-remove');
+          if (!rm) return;
+          const idx = parseInt(rm.dataset.idx, 10);
+          if (idx >= 0) { videoImageRefs.splice(idx, 1); vimgRender(); }
+        });
+
+        ['dragenter', 'dragover'].forEach(ev =>
+          strip.addEventListener(ev, (e) => { e.preventDefault(); strip.classList.add('is-drop'); }));
+        ['dragleave', 'drop'].forEach(ev =>
+          strip.addEventListener(ev, () => strip.classList.remove('is-drop')));
+        strip.addEventListener('drop', (e) => {
           e.preventDefault();
-          videoImageDrop.style.borderColor = 'rgba(255,255,255,.3)';
+          if (e.dataTransfer?.files?.length) vimgAddFiles(e.dataTransfer.files);
         });
-        videoImageDrop.addEventListener('dragleave', () => {
-          videoImageDrop.style.borderColor = 'rgba(255,255,255,.15)';
-        });
-        videoImageDrop.addEventListener('drop', (e) => {
-          e.preventDefault();
-          videoImageDrop.style.borderColor = 'rgba(255,255,255,.15)';
-          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            videoSource.files = e.dataTransfer.files;
-            videoSource.dispatchEvent(new Event('change'));
-          }
-        });
-      }
+      })();
 
-      // ── Image sub-mode switcher (Animate / Transition / Morph) ──
-      const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
-      if (imgModeSwitcher) {
-        const imgModeBtns = imgModeSwitcher.querySelectorAll('.video-img-mode-btn');
-        const imgModeValue = leftStack.querySelector('#videoImgModeValue');
-        const animatePanel = leftStack.querySelector('#animateImageContent');
-        const transitionPanel = leftStack.querySelector('#imageTransitionContent');
-        const morphPanel = leftStack.querySelector('#experimentalMorphContent');
-
-        imgModeBtns.forEach(btn => {
-          btn.addEventListener('click', function () {
-            const mode = this.dataset.imgMode;
-            imgModeBtns.forEach(b => b.classList.remove('is-active'));
-            this.classList.add('is-active');
-            if (imgModeValue) imgModeValue.value = mode;
-
-            if (animatePanel) animatePanel.classList.toggle('hidden', mode !== 'animate_image');
-            if (transitionPanel) transitionPanel.classList.toggle('hidden', mode !== 'image_transition');
-            if (morphPanel) morphPanel.classList.toggle('hidden', mode !== 'experimental_morph');
-
-            validateVideoForm();
-          });
-        });
-      }
-
-      // ── Transition mode: Start Image upload ──
-      function wireDropZone(dropId, sourceId, previewId) {
-        const drop = leftStack.querySelector('#' + dropId);
-        const source = leftStack.querySelector('#' + sourceId);
-        const preview = leftStack.querySelector('#' + previewId);
-        if (!drop || !source || !preview) return;
-
-        drop.addEventListener('click', () => source.click());
-        source.addEventListener('change', async function () {
-          if (this.files && this.files[0]) {
-            try {
-              preview.src = await readFileAsDataUrl(this.files[0]);
-              preview.style.display = 'block';
-            } catch (err) {
-              console.warn('[Video Upload] Invalid image file:', err);
-              this.value = '';
-              preview.src = '';
-              preview.style.display = 'none';
-              showImageUploadError(err?.message || 'Invalid image file.');
-            }
-            validateVideoForm();
-          }
-        });
-        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = 'rgba(255,255,255,.3)'; });
-        drop.addEventListener('dragleave', () => { drop.style.borderColor = 'rgba(255,255,255,.15)'; });
-        drop.addEventListener('drop', (e) => {
-          e.preventDefault();
-          drop.style.borderColor = 'rgba(255,255,255,.15)';
-          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            source.files = e.dataTransfer.files;
-            source.dispatchEvent(new Event('change'));
-          }
-        });
-      }
-      wireDropZone('videoStartImageDrop', 'videoStartImageSource', 'videoStartImagePreview');
-      wireDropZone('videoEndImageDrop', 'videoEndImageSource', 'videoEndImagePreview');
-      // Experimental Morph drop zones
-      wireDropZone('morphStartImageDrop', 'morphStartImageSource', 'morphStartImagePreview');
-      wireDropZone('morphEndImageDrop', 'morphEndImageSource', 'morphEndImagePreview');
-
-      // Transition prompt validation
-      const transitionPromptEl = leftStack.querySelector('#videoTransitionPrompt');
-      if (transitionPromptEl) {
-        transitionPromptEl.addEventListener('input', validateVideoForm);
-      }
-      // Morph prompt validation
-      const morphPromptEl = leftStack.querySelector('#morphPrompt');
-      if (morphPromptEl) {
-        morphPromptEl.addEventListener('input', validateVideoForm);
+      // One prompt box now serves every image mode; its label changes with the
+      // image count (Motion / Transition / Scene).
+      const animPromptEl = leftStack.querySelector('#videoAnimationPrompt');
+      if (animPromptEl) {
+        animPromptEl.addEventListener('input', validateVideoForm);
       }
 
       // ========================================
@@ -2723,9 +2654,23 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         '4k':    { 8: 156 }
       };
       // Seedance 2 GA credit costs — explicit lookup (DB is authoritative).
-      // Fast = drafts / social (480p, 720p). Quality = cinematic (adds 1080p premium).
-      // Must mirror backend pricing_service.SEEDANCE_CREDIT_COSTS and migration 068.
+      // Mini = cheapest / fastest (480p, 720p). Fast = drafts / social (480p, 720p).
+      // Quality = cinematic (adds 1080p premium).
+      // Must mirror backend pricing_service.SEEDANCE_CREDIT_COSTS and migrations 068/076.
       const SEEDANCE_COSTS = {
+        // Seedance 2.5 (PiAPI `seedance-2.5`) — a newer model, not a 2.0 speed tier.
+        // $0.30/s 480p and $0.60/s 720p, priced at 120 credits per $/s (the same ratio
+        // migration 069 settled on for the 1080p tier). No 1080p on this model.
+        v25: {
+          '480p': { 5: 180, 10: 360, 15: 540 },
+          '720p': { 5: 360, 10: 720, 15: 1080 },
+        },
+        // PiAPI seedance-2-mini is 12.5% cheaper upstream than Fast at every
+        // resolution, so Mini is priced at 87.5% of Fast. No 1080p on this tier.
+        mini: {
+          '480p': { 5: 70,  10: 140, 15: 210 },
+          '720p': { 5: 105, 10: 210, 15: 315 },
+        },
         fast: {
           '480p': { 5: 80,  10: 160, 15: 240 },
           '720p': { 5: 120, 10: 240, 15: 360 },
@@ -2738,20 +2683,35 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         },
       };
       // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
-      const SEEDANCE_CPS = { fast: 16, quality: 20 };
+      const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, v25: 36 };
       // Per-tier allowed resolutions (UI must not present invalid combos like Fast 1080p).
       const SEEDANCE_RESOLUTIONS = {
+        mini:    ['480p', '720p'],
         fast:    ['480p', '720p'],
         quality: ['480p', '720p', '1080p'],
+        v25:     ['480p', '720p'],
       };
+      // PiAPI's own per-tier default resolution — Mini defaults to 720p, not 480p.
+      const SEEDANCE_DEFAULT_RESOLUTION = { mini: '720p', fast: '480p', quality: '480p', v25: '720p' };
+      // Canonical tier → PiAPI task_type. The backend re-derives this, but sending it
+      // keeps the request self-describing and matches what the API logs show.
+      const SEEDANCE_TASK_TYPES = {
+        mini:    'seedance-2-mini',
+        fast:    'seedance-2-fast',
+        quality: 'seedance-2',
+        v25:     'seedance-2.5',
+      };
+      // PiAPI caps the prompt at 4000 characters across every Seedance task type.
+      const SEEDANCE_MAX_PROMPT_CHARS = 4000;
       const DEFAULT_REFERENCE_POLICY = {
         tier: 'public',
         image_refs: true,
         video_refs: false,
         audio_refs: false,
         quality_1080p: false,
-        audio_output: false,
+        audio_output: true,
         limits: {
+          // PiAPI accepts at most 9 combined references in omni_reference mode.
           max_total_refs: 8,
           max_image_refs: 6,
           max_video_refs: 2,
@@ -2865,7 +2825,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           timeEstimate: () => '~1\u20133 min',
         },
         seedance: {
-          label: 'Fast / Quality',
+          label: 'Mini / Fast / Quality',
           // Seedance 2 GA via PiAPI: native first_last_frames replaces the legacy "experimental morph" hack.
           // referenceVideo \u2192 omni_reference mode (mixed image/video/audio references).
           capabilities: { textToVideo: true, imageAnimate: true, imageTransition: true, animationPrompt: true, referenceVideo: true },
@@ -2897,11 +2857,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           styleLabel: 'Style Hint',
           showQuality: false,         // handled by dedicated seedance resolution selector
           showMotion: false,
-          showTier: true,             // Fast / Quality
+          showTier: true,             // Mini / Fast / Quality
           showSeedanceResolution: true,
+          showAudioToggle: true,      // PiAPI `audio` flag \u2014 soundtrack on/off
           showLoop: false,
-          hint: 'Fast for drafts/social. Quality unlocks 1080p cinematic generation. Queue times vary with demand.',
-          timeEstimate: (s) => s.seedanceTier === 'quality' ? '~2\u201310 min' : '~1\u20133 min',
+          hint: 'Mini is the cheapest and fastest. Fast for drafts/social. Quality unlocks 1080p. Seedance 2.5 is the newest model with the best motion, at a premium rate and 720p max. Queue times vary with demand.',
+          timeEstimate: (s) => {
+            if (s.seedanceTier === 'quality') return '~2\u201310 min';
+            if (s.seedanceTier === 'mini') return '~30 s\u20132 min';
+            return '~1\u20133 min';
+          },
         },
       };
 
@@ -2923,14 +2888,22 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (seedanceTier === 'preview') seedanceTier = 'quality';
 
         // Seedance owns its own resolution selector (480p/720p/1080p, tier-aware).
-        // Snap to a valid resolution for the current tier (Fast caps at 720p).
+        // Snap to a valid resolution for the current tier (Mini and Fast cap at 720p).
+        // The per-tier fallback matters: PiAPI defaults Mini to 720p, not 480p.
         let seedanceResolution = '480p';
         if (isSeedance) {
+          const tierDefault = SEEDANCE_DEFAULT_RESOLUTION[seedanceTier] || '480p';
           const resSel = leftStack.querySelector('#seedanceResolutionSelect');
-          const raw = (resSel?.value || '480p').toLowerCase();
+          const raw = (resSel?.value || tierDefault).toLowerCase();
           const allowed = SEEDANCE_RESOLUTIONS[seedanceTier] || ['480p'];
-          seedanceResolution = allowed.includes(raw) ? raw : '480p';
+          seedanceResolution = allowed.includes(raw) ? raw : tierDefault;
         }
+
+        // Soundtrack toggle (PiAPI `audio`). Defaults to on, matching PiAPI.
+        const seedanceAudioInput = leftStack.querySelector('#seedanceAudio');
+        const seedanceAudio = isSeedance
+          ? (seedanceAudioInput ? seedanceAudioInput.value !== 'false' : true)
+          : null;
 
         const settings = {
           provider: provider,
@@ -2950,7 +2923,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           mode: videoModeValue?.value || 'text2video',
           seedanceTier: seedanceTier,
           // GA task type strings — legacy *-preview names still accepted upstream.
-          seedanceVariant: seedanceTier === 'quality' ? 'seedance-2' : (seedanceTier === 'fast' ? 'seedance-2-fast' : null),
+          seedanceVariant: isSeedance ? (SEEDANCE_TASK_TYPES[seedanceTier] || null) : null,
+          seedanceAudio: seedanceAudio,
         };
 
         console.log('[VIDEO DEBUG] getVideoSettingsFromUI:', {
@@ -2994,10 +2968,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (provider === 'seedance') {
           let tier = (settings.seedanceTier || 'fast');
           if (tier === 'preview') tier = 'quality';
-          const seedanceRes = (resolution || '480p').toLowerCase();
+          const seedanceRes = (resolution || SEEDANCE_DEFAULT_RESOLUTION[tier] || '480p').toLowerCase();
           const tierCosts = SEEDANCE_COSTS[tier] || {};
           let resCosts = tierCosts[seedanceRes];
-          if (!resCosts && tier === 'fast' && seedanceRes === '1080p') {
+          // Mini and Fast have no 1080p — the backend snaps such a request down to
+          // 720p, so quote the 720p price rather than falling through to CPS.
+          if (!resCosts && seedanceRes === '1080p') {
             resCosts = tierCosts['720p'];
           }
           if (resCosts && resCosts[duration] !== undefined) {
@@ -3079,8 +3055,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
       /**
        * Rebuild the Seedance resolution <select> options based on the active tier.
-       * Fast tier exposes 480p/720p, Quality tier adds 1080p. Snaps the current
-       * selection to a valid resolution if the tier change made it invalid.
+       * Mini and Fast expose 480p/720p, Quality adds 1080p. Snaps the current
+       * selection to a valid resolution if the tier change made it invalid, falling
+       * back to the tier's own default (720p for Mini, 480p elsewhere) rather than a
+       * hardcoded 480p.
        */
       function updateSeedanceResolutionOptions() {
         const wrap = leftStack.querySelector('#seedanceResolutionWrap');
@@ -3102,8 +3080,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           '720p': '720p — Standard',
           '1080p': '1080p — Cinematic (Premium)',
         };
-        const previous = (sel.value || '480p').toLowerCase();
-        const next = allowed.includes(previous) ? previous : '480p';
+        const tierDefault = SEEDANCE_DEFAULT_RESOLUTION[tier] || '480p';
+        const fallback = allowed.includes(tierDefault) ? tierDefault : allowed[0];
+        const previous = (sel.value || '').toLowerCase();
+        const next = allowed.includes(previous) ? previous : fallback;
         sel.innerHTML = allowed.map(r => `<option value="${r}"${r === next ? ' selected' : ''}>${labels[r] || r}</option>`).join('');
       }
 
@@ -3251,36 +3231,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           );
           isValid = hasAllowedRef && refPrompt.trim().length > 0;
         } else {
-          // Image-to-Video: validate based on image sub-mode
-          const imgMode = document.getElementById('videoImgModeValue')?.value || 'animate_image';
+          // Image-to-Video: one rule for every image count. At least one image,
+          // plus a prompt whenever the images alone don't describe the intent
+          // (Seedance needs motion direction; two frames need to know what happens
+          // between them; 3+ references need a scene description to bind them).
           const currentProvider = document.getElementById('videoAIProvider')?.value || '';
           const isSeedance = currentProvider === 'seedance' || currentProvider === 'fal_seedance';
-
-          if (imgMode === 'image_transition') {
-            // Transition: require both images + transition prompt
-            const startSrc = document.getElementById('videoStartImagePreview')?.src || '';
-            const endSrc = document.getElementById('videoEndImagePreview')?.src || '';
-            const hasStart = startSrc.startsWith('data:') || startSrc.startsWith('http');
-            const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
-            const transPrompt = document.getElementById('videoTransitionPrompt')?.value?.trim() || '';
-            isValid = hasStart && hasEnd && transPrompt.length > 0;
-          } else if (imgMode === 'experimental_morph') {
-            // Morph (Beta): require both images + morph prompt
-            const mStartSrc = document.getElementById('morphStartImagePreview')?.src || '';
-            const mEndSrc = document.getElementById('morphEndImagePreview')?.src || '';
-            const mHasStart = mStartSrc.startsWith('data:') || mStartSrc.startsWith('http');
-            const mHasEnd = mEndSrc.startsWith('data:') || mEndSrc.startsWith('http');
-            const mPrompt = document.getElementById('morphPrompt')?.value?.trim() || '';
-            isValid = mHasStart && mHasEnd && mPrompt.length > 0;
-          } else {
-            // Animate: require image + animation prompt (for Seedance)
-            const hasFileUpload = videoSource && videoSource.files && videoSource.files.length > 0;
-            const previewSrc = videoImagePreview?.src || '';
-            const hasPreviewImage = previewSrc.startsWith('data:') || previewSrc.startsWith('http');
-            const hasImage = hasFileUpload || hasPreviewImage;
-            const animPrompt = document.getElementById('videoAnimationPrompt')?.value?.trim() || '';
-            isValid = isSeedance ? (hasImage && animPrompt.length > 0) : hasImage;
-          }
+          const imageCount = (window.VideoImageRefs || []).length;
+          const imgPrompt = document.getElementById('videoAnimationPrompt')?.value?.trim() || '';
+          const promptRequired = isSeedance || imageCount >= 2;
+          isValid = imageCount > 0 && (!promptRequired || imgPrompt.length > 0);
         }
 
         // Only manage disabled state for validation - don't override credits check
@@ -3396,7 +3356,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, premium (~7\u201330 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
@@ -3408,7 +3368,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierSelect.addEventListener('change', () => {
               const seedanceTierInput = leftStack.querySelector('#seedanceTier');
               if (seedanceTierInput) seedanceTierInput.value = tierSelect.value;
-              // Tier change can invalidate the resolution (Fast has no 1080p) — re-render.
+              // Tier change can invalidate the resolution (Mini/Fast have no 1080p) — re-render.
               updateSeedanceResolutionOptions();
               updateVideoFooter();
             });
@@ -3417,14 +3377,14 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           const seedanceTierInput = leftStack.querySelector('#seedanceTier');
           if (seedanceTierInput) {
             if (seedanceTierInput.value === 'preview') seedanceTierInput.value = 'quality';
-            if (!seedanceTierInput.value) seedanceTierInput.value = 'fast';
+            if (!SEEDANCE_RESOLUTIONS[seedanceTierInput.value]) seedanceTierInput.value = 'fast';
           }
           if (tierSelect) tierSelect.value = (seedanceTierInput && seedanceTierInput.value) || 'fast';
         } else if (tierWrap) {
           tierWrap.classList.add('hidden');
         }
 
-        // Resolution selector (Seedance only) — tier-aware. Fast: 480p/720p, Quality: + 1080p.
+        // Resolution selector (Seedance only) — tier-aware. Mini/Fast: 480p/720p, Quality: + 1080p.
         let seedanceResWrap = leftStack.querySelector('#seedanceResolutionWrap');
         if (cfg.showSeedanceResolution) {
           if (!seedanceResWrap) {
@@ -3450,42 +3410,89 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           seedanceResWrap.classList.add('hidden');
         }
 
+        // PiAPI caps Seedance prompts at 4000 characters and 400s past that, so cap
+        // the inputs client-side rather than letting the request fail upstream.
+        // (The service also truncates defensively.)
+        if (cfg.showTier) {
+          ['#videoTextPrompt', '#videoAnimationPrompt', '#videoReferencePrompt'].forEach(sel => {
+            const el = leftStack.querySelector(sel);
+            if (el) el.setAttribute('maxlength', String(SEEDANCE_MAX_PROMPT_CHARS));
+          });
+        }
+
+        // Soundtrack toggle (Seedance only) — PiAPI's `audio` flag. Seedance 2
+        // generates a soundtrack by default; this lets the user ask for silence.
+        // Turning it off does not change the credit cost.
+        let seedanceAudioWrap = leftStack.querySelector('#seedanceAudioWrap');
+        if (cfg.showAudioToggle) {
+          if (!seedanceAudioWrap) {
+            seedanceAudioWrap = document.createElement('div');
+            seedanceAudioWrap.id = 'seedanceAudioWrap';
+            seedanceAudioWrap.className = 'vs-setting vs-setting-toggle';
+            seedanceAudioWrap.innerHTML =
+              '<label>Soundtrack</label>' +
+              '<button type="button" id="seedanceAudioBtn" class="vs-toggle-btn is-active" ' +
+              'aria-pressed="true" title="Generate a soundtrack with the video">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+              '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' +
+              '</svg><span>Audio on</span></button>';
+            const resSetting = leftStack.querySelector('#seedanceResolutionWrap');
+            if (resSetting) resSetting.after(seedanceAudioWrap);
+            else {
+              const durationSetting = videoDuration && videoDuration.closest('.vs-setting');
+              if (durationSetting) durationSetting.after(seedanceAudioWrap);
+            }
+          }
+          seedanceAudioWrap.classList.remove('hidden');
+
+          const audioBtn = seedanceAudioWrap.querySelector('#seedanceAudioBtn');
+          const audioInput = leftStack.querySelector('#seedanceAudio');
+          if (audioBtn && !audioBtn._seedanceAudioWired) {
+            audioBtn._seedanceAudioWired = true;
+            audioBtn.addEventListener('click', () => {
+              const nowOn = !(audioInput && audioInput.value !== 'false');
+              if (audioInput) audioInput.value = nowOn ? 'true' : 'false';
+              audioBtn.classList.toggle('is-active', nowOn);
+              audioBtn.setAttribute('aria-pressed', String(nowOn));
+              const lbl = audioBtn.querySelector('span');
+              if (lbl) lbl.textContent = nowOn ? 'Audio on' : 'Silent';
+            });
+          }
+          // Reflect current state (the panel can re-render on provider switch).
+          if (audioBtn && audioInput) {
+            const isOn = audioInput.value !== 'false';
+            audioBtn.classList.toggle('is-active', isOn);
+            audioBtn.setAttribute('aria-pressed', String(isOn));
+            const lbl = audioBtn.querySelector('span');
+            if (lbl) lbl.textContent = isOn ? 'Audio on' : 'Silent';
+          }
+        } else if (seedanceAudioWrap) {
+          seedanceAudioWrap.classList.add('hidden');
+        }
+
         // Loop/Playback toggle (Veo only — Seedance doesn't support loop)
         const loopSetting = leftStack.querySelector('#videoLoopBtn')?.closest('.vs-setting-toggle');
         if (loopSetting) loopSetting.classList.toggle('hidden', cfg.showLoop === false);
 
-        // Capability-gated image features: sub-mode switcher (animate / transition), animation prompt.
-        // Note: the legacy "experimental morph" path has been folded into native imageTransition
-        // (Seedance 2 GA uses mode=first_last_frames for both single-image animate and 2-image transition).
+        // The image sub-mode switcher is gone: mode follows the image count, so
+        // there is nothing to toggle here. What still varies per provider is how
+        // many images are allowed, which vimgRender() reads from the live provider.
+        // Trim any images the newly-selected provider can't accept (e.g. switching
+        // from Seedance with 5 references over to Veo, which takes at most 2).
         const caps = cfg.capabilities || {};
-        const hasTransition = !!caps.imageTransition;
-        const hasAnimPrompt = !!caps.animationPrompt;
-        const imgModeSwitcher = leftStack.querySelector('#videoImgModeSwitcher');
-        const animPromptSection = leftStack.querySelector('#animateImageContent .vs-animation-prompt-section');
-        const animatePanel = leftStack.querySelector('#animateImageContent');
-        const transitionPanel = leftStack.querySelector('#imageTransitionContent');
-        const morphPanel = leftStack.querySelector('#experimentalMorphContent'); // legacy DOM — kept hidden
-        const imgModeValue = leftStack.querySelector('#videoImgModeValue');
-        const morphBtn = leftStack.querySelector('#experimentalMorphBtn');       // legacy DOM — kept hidden
-        const transitionBtn = imgModeSwitcher?.querySelector('[data-img-mode="image_transition"]');
-
-        // Show sub-mode switcher when provider supports native transition.
-        if (imgModeSwitcher) imgModeSwitcher.classList.toggle('hidden', !hasTransition);
-        if (transitionBtn) transitionBtn.style.display = hasTransition ? '' : 'none';
-        // Always hide the legacy "Morph (Beta)" button — Seedance now uses native transition.
-        if (morphBtn) morphBtn.style.display = 'none';
-        // Animation prompt available for providers that support it (Seedance variants)
-        if (animPromptSection) animPromptSection.classList.toggle('hidden', !hasAnimPrompt);
-
-        // Always reset to animate_image mode when switching providers
-        // This prevents stale two-image mode surviving a provider switch
-        if (imgModeValue) imgModeValue.value = 'animate_image';
-        if (animatePanel) animatePanel.classList.remove('hidden');
-        if (transitionPanel) transitionPanel.classList.add('hidden');
-        if (morphPanel) morphPanel.classList.add('hidden');
-        imgModeSwitcher?.querySelectorAll('.video-img-mode-btn').forEach(b => {
-          b.classList.toggle('is-active', b.dataset.imgMode === 'animate_image');
-        });
+        const refs = window.VideoImageRefs;
+        if (Array.isArray(refs)) {
+          const allowed = (videoAIProvider?.value === 'seedance')
+            ? Math.max(2, (videoReferencePolicy?.limits?.max_image_refs) || 6)
+            : 2;
+          if (refs.length > allowed) {
+            refs.splice(allowed);
+            if (window.UI?.toast) {
+              UI.toast(`This engine takes at most ${allowed} images — extra references were removed.`, 'info');
+            }
+          }
+        }
+        if (typeof vimgRender === 'function') vimgRender();
 
         // Custom motion textarea — shared by both providers
         const customMotionSection = leftStack.querySelector('.vs-custom-section');
@@ -3629,8 +3636,9 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const totalAudioSeconds = () => state.audios.reduce((s, a) => s + (a.duration || 0), 0);
 
         function seedanceCps() {
-          const tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
-          // SEEDANCE_CPS is defined in this scope (fast:16, quality:20), 480p baseline.
+          let tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
+          if (tier === 'preview') tier = 'quality';
+          // SEEDANCE_CPS is defined in this scope (mini:14, fast:16, quality:20), 480p baseline.
           return (typeof SEEDANCE_CPS !== 'undefined' && SEEDANCE_CPS[tier]) ? SEEDANCE_CPS[tier] : 16;
         }
 
@@ -3638,10 +3646,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           let tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
           if (tier === 'preview') tier = 'quality';
           const duration = parseInt(videoDuration?.value || '5', 10) || 5;
-          const resolution = (videoQuality?.value || '480p').toLowerCase();
+          // Read Seedance's own resolution select. This used to read #videoQuality,
+          // which is Veo's control (720p/1080p/4k) and is hidden for Seedance — so
+          // the surcharge estimate was quoted against the wrong price row.
+          const tierDefault = (typeof SEEDANCE_DEFAULT_RESOLUTION !== 'undefined'
+            && SEEDANCE_DEFAULT_RESOLUTION[tier]) || '480p';
+          const resolution = (leftStack.querySelector('#seedanceResolutionSelect')?.value || tierDefault).toLowerCase();
           const tierCosts = (typeof SEEDANCE_COSTS !== 'undefined' && SEEDANCE_COSTS[tier]) ? SEEDANCE_COSTS[tier] : {};
           let resCosts = tierCosts[resolution];
-          if (!resCosts && tier === 'fast' && resolution === '1080p') {
+          // Mini and Fast have no 1080p — quote the 720p row they snap down to.
+          if (!resCosts && resolution === '1080p') {
             resCosts = tierCosts['720p'];
           }
           if (resCosts && resCosts[duration] != null) return resCosts[duration];
@@ -3717,8 +3731,20 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
               break;
             }
             try {
-              const dataUrl = await readAsDataURL(file);
-              const entry = { dataUrl, name: file.name, bytes: file.size };
+              // Images go through the same downscale/re-encode step the main image
+              // strip uses, so a phone photo doesn't ship 8MB of base64 per
+              // reference. Video and audio are read as-is (re-encoding them in the
+              // browser isn't practical) and are size-capped above instead.
+              let dataUrl;
+              let entryBytes = file.size;
+              if (kind === 'image') {
+                const processed = await vimgProcessFile(file);
+                dataUrl = processed.dataUrl;
+                entryBytes = Math.round(dataUrl.length * 0.75);
+              } else {
+                dataUrl = await readAsDataURL(file);
+              }
+              const entry = { dataUrl, name: file.name, bytes: entryBytes };
               if (kind === 'video' || kind === 'audio') {
                 entry.duration = await probeDuration(dataUrl, kind);
               }
@@ -3812,13 +3838,36 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             }
           }
 
-          const seedancePolicy = result.data.providers?.seedance?.reference_guided;
+          const seedanceCatalog = result.data.providers?.seedance || {};
+
+          // Server is authoritative on per-tier resolutions and their defaults —
+          // adopt them so a PiAPI-side change doesn't need a frontend deploy.
+          if (seedanceCatalog.resolutions && typeof seedanceCatalog.resolutions === 'object') {
+            Object.entries(seedanceCatalog.resolutions).forEach(([tier, list]) => {
+              if (Array.isArray(list) && list.length) SEEDANCE_RESOLUTIONS[tier] = list.slice();
+            });
+          }
+          if (seedanceCatalog.default_resolution && typeof seedanceCatalog.default_resolution === 'object') {
+            Object.entries(seedanceCatalog.default_resolution).forEach(([tier, res]) => {
+              if (res) SEEDANCE_DEFAULT_RESOLUTION[tier] = String(res).toLowerCase();
+            });
+          }
+
+          const seedancePolicy = seedanceCatalog.reference_guided;
           if (seedancePolicy?.limits) {
             videoReferencePolicy = {
               ...DEFAULT_REFERENCE_POLICY,
               ...seedancePolicy,
               limits: { ...DEFAULT_REFERENCE_POLICY.limits, ...seedancePolicy.limits },
             };
+            // PiAPI's absolute ceiling for omni_reference. Never let a policy value
+            // promise more references than the upstream API will accept.
+            const hardMax = Number(seedanceCatalog.max_references) || 9;
+            const L = videoReferencePolicy.limits;
+            L.max_total_refs = Math.min(L.max_total_refs, hardMax);
+            L.max_image_refs = Math.min(L.max_image_refs, hardMax);
+            L.max_video_refs = Math.min(L.max_video_refs, hardMax);
+
             window.VideoReferenceState?.applyPolicy?.();
             updateSeedanceResolutionOptions();
             updateVideoFooter();
@@ -6160,10 +6209,9 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         // Detect generation mode for mode-aware enhancement
         var enhanceMode = 'text_to_video';
         if (videoModeVal === 'image2video') {
-          // Check if end-image is present (= transition) or just single image (= animate)
-          const endPreview = document.getElementById('videoEndImagePreview');
-          const hasEndImage = endPreview && endPreview.src && !endPreview.src.endsWith('#');
-          enhanceMode = hasEndImage ? 'image_transition' : 'animate_image';
+          // Mode follows the image count, same rule the rest of the panel uses.
+          const imageCount = (window.VideoImageRefs || []).length;
+          enhanceMode = imageCount >= 2 ? 'image_transition' : 'animate_image';
         }
 
         // Run local enhancement (instant, no network)

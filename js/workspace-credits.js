@@ -787,23 +787,29 @@ export function isVideoAction(action) {
  *   Vertex/Veo:    video_{task}_{dur}s_{res}                              (e.g. video_text_generate_4s_720p)
  *   fal Seedance:  fal_seedance_{task}_{dur}s                             (e.g. fal_seedance_image_animate_10s)
  *   PiAPI Seedance (GA, resolution-aware):
- *                  seedance_{fast|quality}_{task}_{dur}s_{res}            (e.g. seedance_quality_text_generate_15s_1080p)
+ *                  seedance_{mini|fast|quality|v25}_{task}_{dur}s_{res}   (e.g. seedance_quality_text_generate_15s_1080p)
  *
  * Legacy preview-era seedance codes (no resolution suffix) still exist in the
  * action_costs table for in-flight jobs, but new code always emits the GA form.
  *
- * @param {string} task         "text2video" | "image2video" | "image_transition"
+ * @param {string} task         "text2video" | "image2video" | "image_transition" | "reference_video"
  * @param {number} durationSeconds
  * @param {string} resolution   "480p" | "720p" | "1080p" | "4k"
  * @param {string} [provider]   "vertex" | "seedance" | "fal_seedance"
- * @param {string} [seedanceTier] "fast" | "quality"  (legacy "preview" mapped to "quality")
+ * @param {string} [seedanceTier] "mini" | "fast" | "quality" | "v25"  (legacy "preview" → "quality")
  * @returns {string} Action code
  */
+// PiAPI's per-tier default resolution — Mini defaults to 720p, the others to 480p.
+const SEEDANCE_TIER_DEFAULT_RES = { mini: '720p', fast: '480p', quality: '480p', v25: '720p' };
+
 export function getVideoActionCode(task, durationSeconds, resolution, provider, seedanceTier) {
   // Lowercase snake_case canonical form.
   let taskPart;
   if (task === 'text2video') taskPart = 'text_generate';
   else if (task === 'image_transition') taskPart = 'image_transition';
+  // Reference-Guided (Seedance omni_reference) has its own action codes — mapping it
+  // to image_animate would look up the wrong row and miss the input-video surcharge.
+  else if (task === 'reference_video') taskPart = 'reference_video';
   else taskPart = 'image_animate';
 
   const durationPart = `${durationSeconds}s`;
@@ -815,8 +821,8 @@ export function getVideoActionCode(task, durationSeconds, resolution, provider, 
   if (provider === 'seedance') {
     let tier = (seedanceTier || 'fast').toLowerCase();
     if (tier === 'preview') tier = 'quality';  // legacy alias
-    if (tier !== 'fast' && tier !== 'quality') tier = 'fast';
-    const resPart = (resolution || '480p').toLowerCase();
+    if (!SEEDANCE_TIER_DEFAULT_RES[tier]) tier = 'fast';
+    const resPart = (resolution || SEEDANCE_TIER_DEFAULT_RES[tier]).toLowerCase();
     return `seedance_${tier}_${taskPart}_${durationPart}_${resPart}`;
   }
 

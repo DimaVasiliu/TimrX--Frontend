@@ -4615,8 +4615,12 @@
     video: {
       budget:  { '5s': 45, '10s': 80, '12s': 95 },
       standard: { '4s': 48, '6s': 72, '8s': 96, '8s_1080p': 120, '8s_4k': 156 },
-      fast:    { '5s': 50, '10s': 100, '15s': 150 },
-      premium: { '5s': 80, '10s': 160, '15s': 240 },
+      // Seedance 2.0 at its 480p baseline. Mirrors pricing_service.SEEDANCE_CREDIT_COSTS
+      // and migrations 068/069/076 — these were still showing pre-GA figures
+      // (fast 50/100/150, premium 80/160/240), which understated the real cost.
+      mini:    { '5s': 70,  '10s': 140, '15s': 210 },
+      fast:    { '5s': 80,  '10s': 160, '15s': 240 },
+      premium: { '5s': 100, '10s': 200, '15s': 300 },
     },
   };
 
@@ -4639,12 +4643,12 @@
       // Video mode — show key durations across all tiers (3x3 grid)
       const v = CALC_COSTS.video;
       items = [
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['5s']),   label: '5s Draft',      detail: 'Seedance 1.5 · 45c' },
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['10s']),  label: '10s Draft',     detail: 'Seedance 1.5 · 80c' },
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.budget['12s']),  label: '12s Draft',     detail: 'Seedance 1.5 · 95c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['5s']),     label: '5s Standard',   detail: 'Seedance 2.0 · 50c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['10s']),    label: '10s Standard',  detail: 'Seedance 2.0 · 100c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['15s']),    label: '15s Standard',  detail: 'Seedance 2.0 · 150c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['5s']),     label: '5s Mini',       detail: 'Seedance 2.0 Mini · 70c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['10s']),    label: '10s Mini',      detail: 'Seedance 2.0 Mini · 140c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['15s']),    label: '15s Mini',      detail: 'Seedance 2.0 Mini · 210c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['5s']),     label: '5s Standard',   detail: 'Seedance 2.0 Fast · 80c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['10s']),    label: '10s Standard',  detail: 'Seedance 2.0 Fast · 160c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['15s']),    label: '15s Standard',  detail: 'Seedance 2.0 Fast · 240c' },
         { icon: 'fa-film',        value: Math.floor(credits / v.standard['4s']), label: '4s HD',         detail: 'Veo 3.1 720p · 48c' },
         { icon: 'fa-film',        value: Math.floor(credits / v.standard['8s']), label: '8s HD',         detail: 'Veo 3.1 720p · 96c' },
         { icon: 'fa-clapperboard',value: Math.floor(credits / v.standard['8s_4k']),label: '8s Ultra',    detail: 'Veo 3.1 4K · 156c' },

@@ -926,7 +926,7 @@
               <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
               <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
               <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, or Nano Banana.</li>
-              <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0, or Seedance 1.5 Pro.</li>
+              <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0 (Mini / Fast / Quality), Seedance 2.5, or Seedance 1.5 Pro.</li>
               <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
               <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
@@ -1150,7 +1150,7 @@
               </dl>
               <dl class="docs-option-card">
                 <dt>Seedance 2.0</dt>
-                <dd>Fast and Quality tiers. Supports 5s, 10s, and 15s durations in the workspace, with wider 4-15s provider support available for future controls.</dd>
+                <dd>Mini, Fast, and Quality tiers, plus the newer Seedance 2.5 model. Supports 5s, 10s, and 15s durations in the workspace, with wider 4-15s provider support available for future controls. Mini is the cheapest and fastest; Quality unlocks 1080p. Aspect ratios 21:9, 16:9, 4:3, 1:1, 3:4, and 9:16. Clips include a generated soundtrack by default, which you can switch off.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Seedance 1.5 Pro</dt>
@@ -1352,33 +1352,64 @@
               </table>
             </div>
 
-            <h3>Seedance 2.0 — Fast tier (10 credits/sec)</h3>
+            <h3>Seedance 2.0 — Mini tier (cheapest, ~2x faster)</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
-                  <tr><th>Duration</th><th>Credits</th></tr>
+                  <tr><th>Duration</th><th>480p</th><th>720p</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>5 seconds</td><td>50</td></tr>
-                  <tr><td>10 seconds</td><td>100</td></tr>
-                  <tr><td>15 seconds</td><td>150</td></tr>
+                  <tr><td>5 seconds</td><td>70</td><td>105</td></tr>
+                  <tr><td>10 seconds</td><td>140</td><td>210</td></tr>
+                  <tr><td>15 seconds</td><td>210</td><td>315</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Mini defaults to 720p and does not offer 1080p. Best for rapid iteration and drafts.</p>
+
+            <h3>Seedance 2.0 — Fast tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>480p</th><th>720p</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>80</td><td>120</td></tr>
+                  <tr><td>10 seconds</td><td>160</td><td>240</td></tr>
+                  <tr><td>15 seconds</td><td>240</td><td>360</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Fast does not offer 1080p.</p>
+
+            <h3>Seedance 2.0 — Quality tier</h3>
+            <div class="docs-table-wrap">
+              <table class="docs-table">
+                <thead>
+                  <tr><th>Duration</th><th>480p</th><th>720p</th><th>1080p</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>5 seconds</td><td>100</td><td>160</td><td>300</td></tr>
+                  <tr><td>10 seconds</td><td>200</td><td>320</td><td>600</td></tr>
+                  <tr><td>15 seconds</td><td>300</td><td>480</td><td>900</td></tr>
                 </tbody>
               </table>
             </div>
 
-            <h3>Seedance 2.0 — Preview tier (16 credits/sec)</h3>
+            <h3>Seedance 2.5 — newest model (premium)</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
-                  <tr><th>Duration</th><th>Credits</th></tr>
+                  <tr><th>Duration</th><th>480p</th><th>720p</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>5 seconds</td><td>80</td></tr>
-                  <tr><td>10 seconds</td><td>160</td></tr>
-                  <tr><td>15 seconds</td><td>240</td></tr>
+                  <tr><td>5 seconds</td><td>180</td><td>360</td></tr>
+                  <tr><td>10 seconds</td><td>360</td><td>720</td></tr>
+                  <tr><td>15 seconds</td><td>540</td><td>1080</td></tr>
                 </tbody>
               </table>
             </div>
+            <p>Seedance 2.5 is a newer model rather than a faster tier of 2.0. It defaults to 720p, has no 1080p option, and accepts up to 12 references (9 images, 3 videos, 3 audio). It costs more per second than any other option here, so it suits final shots rather than iteration.</p>
 
             <h3>Seedance 1.5 Pro — Budget tier (8 credits/sec)</h3>
             <div class="docs-table-wrap">
@@ -1394,7 +1425,7 @@
               </table>
             </div>
 
-            <div class="docs-tip"><strong>Note:</strong> All modes (text-to-video, image-to-video, and image transitions) cost the same per provider. No premium for image-to-video.</div>
+            <div class="docs-tip"><strong>Note:</strong> All modes (text-to-video, image-to-video, image transitions, and reference-guided) cost the same for a given tier, resolution, and duration. No premium for image-to-video. Reference-guided video is the one exception: reference <em>videos</em> add a surcharge, because the provider bills half the per-second rate for each second of input video. Reference images and audio add nothing.</div>
           </article>
 
           <!-- Subscriptions -->
@@ -1579,7 +1610,7 @@ print(f"Status: {status['status']}")</code></pre>
             <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
 
             <h3>Which video provider should I use?</h3>
-            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Fast is the most affordable option. Seedance 2.0 Quality offers higher quality at a premium. Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
+            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Mini is the most affordable and the fastest, so it suits rapid iteration. Seedance 2.0 Fast is the balanced default. Seedance 2.0 Quality offers higher quality at a premium and is the only tier with 1080p. Seedance 2.5 is a newer model with stronger motion and prompt adherence, at the highest per-second cost and a 720p ceiling. Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
 
             <h3>Do credits expire?</h3>
             <p>One-time purchased credits never expire. Subscription credits refresh each billing cycle — unused subscription credits do not roll over.</p>

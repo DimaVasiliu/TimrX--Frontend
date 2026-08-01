@@ -1122,6 +1122,17 @@ function handleApiError(response, action, reservationId = null) {
   // Prefer data error over generic HTTP error
   const errorMsg = dataErrorMsg || (isGenericHttpError ? '' : apiFetchError) || '';
 
+  // Rejected reference media (unreadable / unsupported / too large). The backend
+  // validates every image before reserving credits, so nothing was charged — say
+  // which image failed and let the user swap it out.
+  if (response.status === 400 && response.data?.error === 'invalid_reference_media') {
+    if (reservationId) releaseCreditsReservation(reservationId);
+    const idx = response.data.index;
+    const which = Number.isInteger(idx) ? ` (image ${idx + 1})` : '';
+    UI.toast(`${response.data.message || 'That image could not be used.'}${which}`, 'error');
+    return true;
+  }
+
   // Handle 402 Insufficient Credits - check for video credits FIRST
   if (response.status === 402) {
     log('[Credits] 402 Insufficient credits for:', action);
@@ -5150,8 +5161,18 @@ const VIDEO_IMAGE_CREDIT_COSTS = {
   '4k':    { 8: 156 }
 };
 
-// Seedance 2 GA credit costs. Keep in sync with pricing_service.py and migrations 068/069.
+// Seedance 2 GA credit costs. Keep in sync with pricing_service.py and migrations 068/069/076.
 const SEEDANCE_COSTS = {
+  // seedance-2.5: newer model, $0.30/s 480p and $0.60/s 720p at 120 credits per $/s.
+  v25: {
+    '480p': { 5: 180, 10: 360, 15: 540 },
+    '720p': { 5: 360, 10: 720, 15: 1080 },
+  },
+  // seedance-2-mini: 12.5% cheaper upstream than Fast, priced at 87.5% of it. No 1080p.
+  mini: {
+    '480p': { 5: 70,  10: 140, 15: 210 },
+    '720p': { 5: 105, 10: 210, 15: 315 },
+  },
   fast: {
     '480p': { 5: 80, 10: 160, 15: 240 },
     '720p': { 5: 120, 10: 240, 15: 360 },
@@ -5162,7 +5183,9 @@ const SEEDANCE_COSTS = {
     '1080p': { 5: 300, 10: 600, 15: 900 },
   },
 };
-const SEEDANCE_CPS = { fast: 16, quality: 20, preview: 20 };
+const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, preview: 20, v25: 36 };
+// PiAPI's per-tier default resolution — Mini defaults to 720p, not 480p.
+const SEEDANCE_DEFAULT_RESOLUTION = { mini: '720p', fast: '480p', quality: '480p', preview: '480p', v25: '720p' };
 // fal Seedance 1.5 Pro: BUDGET tier (8 cps)
 const FAL_SEEDANCE_CPS = 8;
 
@@ -5206,10 +5229,11 @@ function getVideoCredits(settings) {
     let tier = settings.seedanceTier || 'fast';
     if (tier === 'preview') tier = 'quality';
     const duration = settings.durationSec || 5;
-    const resolution = (settings.resolution || '480p').toLowerCase();
+    const resolution = (settings.resolution || SEEDANCE_DEFAULT_RESOLUTION[tier] || '480p').toLowerCase();
     const tierCosts = SEEDANCE_COSTS[tier] || {};
     let resCosts = tierCosts[resolution];
-    if (!resCosts && tier === 'fast' && resolution === '1080p') {
+    // Mini and Fast have no 1080p — the backend snaps down to 720p, so quote that.
+    if (!resCosts && resolution === '1080p') {
       resCosts = tierCosts['720p'];
     }
     let baseCost = resCosts?.[duration] ?? ((SEEDANCE_CPS[tier] || 16) * duration);
@@ -5332,8 +5356,8 @@ export async function startVideoGeneration() {
     status: 'generating',
     status_label: 'Generating video...',
     created_at: Date.now(),
-    prompt: (byId('videoAnimationPrompt')?.value || '').trim() || (byId('videoTransitionPrompt')?.value || '').trim() || prompt || motion || 'Video generation',
-    title: shortTitle((byId('videoAnimationPrompt')?.value || '').trim() || (byId('videoTransitionPrompt')?.value || '').trim() || prompt || motion || 'Video'),
+    prompt: (byId('videoAnimationPrompt')?.value || '').trim() || prompt || motion || 'Video generation',
+    title: shortTitle((byId('videoAnimationPrompt')?.value || '').trim() || prompt || motion || 'Video'),
     video_url: '',
     thumbnail_url: '',
     stage: 'video',
@@ -5356,131 +5380,77 @@ export async function startVideoGeneration() {
     let payload;
 
     if (settings.mode === 'image2video') {
-      // ── Image → video (animate or transition) ──
-      const imgSubMode = byId('videoImgModeValue')?.value || 'animate_image';
+      // ── Image → video ──
+      // One branch for every image count. The old code had three near-identical
+      // branches (animate / transition / legacy morph DOM) reading from six
+      // different preview <img> elements; images now live in one ordered list and
+      // the mode is derived from its length.
       endpoint = '/api/video/animate';
 
-      if (imgSubMode === 'image_transition') {
-        // ── Image Transition: two images + transition prompt ──
-        const startSrc = byId('videoStartImagePreview')?.src || '';
-        const endSrc = byId('videoEndImagePreview')?.src || '';
-        const hasStart = startSrc.startsWith('data:') || startSrc.startsWith('http');
-        const hasEnd = endSrc.startsWith('data:') || endSrc.startsWith('http');
-
-        if (!hasStart || !hasEnd) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please upload both a start and end image', 'error');
-          return;
-        }
-
-        const transitionPrompt = (byId('videoTransitionPrompt')?.value || '').trim();
-        if (!transitionPrompt) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Describe how the first image should transition into the second', 'error');
-          return;
-        }
-
-        payload = {
-          provider: settings.provider,
-          mode: 'image_transition',
-          start_image: startSrc,
-          end_image: endSrc,
-          prompt: _composeSeedancePrompt(transitionPrompt, stylePreset, null, settings),
-          motion_prompt: motion || undefined,
-          duration_sec: settings.durationSec,
-          aspect_ratio: settings.aspectRatio,
-          resolution: settings.resolution,
-          loop: settings.loop,
-          seedance_variant: settings.seedanceVariant || undefined,
-          seedance_tier: settings.seedanceTier || undefined,
-        };
-
-        console.log('[VIDEO] Image Transition mode - start:', Math.round(startSrc.length / 1024), 'KB, end:', Math.round(endSrc.length / 1024), 'KB');
-
-      } else if (imgSubMode === 'experimental_morph') {
-        // Legacy morph DOM path — fold into native image_transition (Seedance 2 GA first_last_frames).
-        const mStartSrc = byId('morphStartImagePreview')?.src || '';
-        const mEndSrc = byId('morphEndImagePreview')?.src || '';
-        const mHasStart = mStartSrc.startsWith('data:') || mStartSrc.startsWith('http');
-        const mHasEnd = mEndSrc.startsWith('data:') || mEndSrc.startsWith('http');
-
-        if (!mHasStart || !mHasEnd) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please upload both images for the transition', 'error');
-          return;
-        }
-
-        const morphPrompt = (byId('morphPrompt')?.value || '').trim();
-        if (!morphPrompt) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Describe how the two images should transition into each other', 'error');
-          return;
-        }
-
-        payload = {
-          provider: settings.provider,
-          mode: 'image_transition',
-          start_image: mStartSrc,
-          end_image: mEndSrc,
-          prompt: _composeSeedancePrompt(morphPrompt, stylePreset, null, settings),
-          motion_prompt: motion || undefined,
-          duration_sec: settings.durationSec,
-          aspect_ratio: settings.aspectRatio,
-          resolution: settings.resolution,
-          loop: settings.loop,
-          seedance_variant: settings.seedanceVariant || undefined,
-          seedance_tier: settings.seedanceTier || undefined,
-        };
-
-        console.log('[VIDEO] Image Transition (legacy morph DOM) - img1:', Math.round(mStartSrc.length / 1024), 'KB, img2:', Math.round(mEndSrc.length / 1024), 'KB');
-
-      } else {
-        // ── Animate Image: single image + animation prompt ──
-        const videoImagePreview = byId('videoImagePreview');
-        const imageData = videoImagePreview?.src;
-        const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
-
-        if (!isValidImage) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Please upload a reference image for Image to Video mode', 'error');
-          return;
-        }
-
-        const animationPrompt = (byId('videoAnimationPrompt')?.value || '').trim();
-        if (_isSeedanceProvider(settings.provider) && !animationPrompt) {
-          releaseSubmitLock();
-          releaseCreditsReservation(reservation.reservationId);
-          UI.toast('Describe how the image should animate', 'error');
-          return;
-        }
-
-        const effectivePrompt = _isSeedanceProvider(settings.provider)
-          ? animationPrompt
-          : (motion || prompt);
-
-        payload = {
-          provider: settings.provider,
-          mode: 'animate_image',
-          image_data: imageData,
-          prompt: _composeSeedancePrompt(effectivePrompt, stylePreset, null, settings),
-          motion_prompt: motion || undefined,
-          motion_preset: motionPreset || undefined,
-          duration_sec: settings.durationSec,
-          aspect_ratio: settings.aspectRatio,
-          resolution: settings.resolution,
-          loop: settings.loop,
-          seedance_variant: settings.seedanceVariant || undefined,
-          seedance_tier: settings.seedanceTier || undefined,
-        };
-
-        const isDataUrl = imageData.startsWith('data:');
-        console.log('[VIDEO] Animate Image mode - image attached,', isDataUrl ? `size: ${Math.round(imageData.length / 1024)} KB` : `URL: ${imageData.slice(0, 60)}...`);
+      const refs = (window.VideoImageRefs || []).filter(Boolean);
+      if (!refs.length) {
+        releaseSubmitLock();
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast('Add at least one image', 'error');
+        return;
       }
+
+      const imgPrompt = (byId('videoAnimationPrompt')?.value || '').trim();
+      const promptRequired = _isSeedanceProvider(settings.provider) || refs.length >= 2;
+      if (promptRequired && !imgPrompt) {
+        releaseSubmitLock();
+        releaseCreditsReservation(reservation.reservationId);
+        UI.toast(
+          refs.length >= 2
+            ? 'Describe how the first image should become the last'
+            : 'Describe how the image should animate',
+          'error'
+        );
+        return;
+      }
+
+      const effectivePrompt = imgPrompt || motion || prompt;
+      const imgMode = refs.length >= 3 ? 'reference_images'
+                    : refs.length === 2 ? 'image_transition'
+                    : 'animate_image';
+
+      payload = {
+        provider: settings.provider,
+        mode: imgMode,
+        prompt: _composeSeedancePrompt(effectivePrompt, stylePreset, null, settings),
+        motion_prompt: motion || undefined,
+        motion_preset: motionPreset || undefined,
+        duration_sec: settings.durationSec,
+        aspect_ratio: settings.aspectRatio,
+        resolution: settings.resolution,
+        loop: settings.loop,
+        seedance_variant: settings.seedanceVariant || undefined,
+        seedance_tier: settings.seedanceTier || undefined,
+        audio: settings.provider === 'seedance' ? settings.seedanceAudio : undefined,
+      };
+
+      if (refs.length === 1) {
+        payload.image_data = refs[0].dataUrl;
+      } else if (refs.length === 2) {
+        // First frame → last frame.
+        payload.start_image = refs[0].dataUrl;
+        payload.end_image = refs[1].dataUrl;
+      } else {
+        // 3+ images are Seedance omni_reference. That has its own action codes and
+        // credit cost, so it must go to /video/reference — posting it to
+        // /video/animate would price it as a plain image-animate job.
+        endpoint = '/api/video/reference';
+        payload.image_urls = refs.map(r => r.dataUrl);
+        payload.video_urls = [];
+        payload.audio_urls = [];
+        payload.input_video_seconds = 0;
+        delete payload.mode;
+        delete payload.motion_prompt;
+        delete payload.motion_preset;
+        delete payload.loop;
+      }
+
+      console.log('[VIDEO] image2video mode=' + imgMode + ' images=' + refs.length + ' endpoint=' + endpoint);
 
     } else if (settings.mode === 'reference_video') {
       // ── Reference Video (Seedance 2.0 omni_reference): mixed image/video/audio refs ──
@@ -5521,6 +5491,7 @@ export async function startVideoGeneration() {
         resolution: settings.resolution,
         seedance_variant: settings.seedanceVariant || undefined,
         seedance_tier: settings.seedanceTier || undefined,
+        audio: settings.provider === 'seedance' ? settings.seedanceAudio : undefined,
       };
 
       console.log('[VIDEO] Reference Video mode -',
@@ -5541,6 +5512,7 @@ export async function startVideoGeneration() {
         loop: settings.loop,
         seedance_variant: settings.seedanceVariant || undefined,
         seedance_tier: settings.seedanceTier || undefined,
+        audio: settings.provider === 'seedance' ? settings.seedanceAudio : undefined,
       };
     }
 
