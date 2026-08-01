@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0a0a; --ink:#f4f1ea; --muted:#a39b8f; --warm:#c9a98a; --line:rgba(244,241,234,.12);
+    --bg:#0a0a0a; --ink:#f4f1ea; --muted:#a39b8f; --warm:#55b7ea; --blue:#4f8fd6; --cyan:#55d6e8; --violet:#9678e8; --line:rgba(244,241,234,.1);
     --disp:"Space Grotesk",-apple-system,system-ui,sans-serif;
     --body:"Inter",-apple-system,system-ui,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -38,7 +38,7 @@
 
   .brandmark{display:flex;align-items:center;gap:1.6vmin;margin-bottom:4vmin}
   .brandmark img{width:5.4vmin;height:5.4vmin}
-  .brandmark span{font-family:var(--disp);font-weight:700;font-size:3.4vmin;letter-spacing:-.04em}
+  .brandmark span{font-family:var(--disp);font-weight:800;font-size:3.4vmin;letter-spacing:-.04em}
   .brandmark b{color:var(--warm)}
   .eyebrow{display:inline-flex;align-items:center;gap:1.6vmin;color:var(--muted);font-weight:700;letter-spacing:.24em;text-transform:uppercase;font-size:2.6vmin}
   .eyebrow::before,.eyebrow::after{content:"";width:4vmin;height:1px;background:var(--line)}
@@ -79,15 +79,21 @@
   .scene.promptscene.on .result{animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards 2.9s}
 
   /* image -> 3D */
-  .stage3d{display:flex;align-items:center;justify-content:center;gap:3vmin}
-  .src{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1.3vmin;opacity:0}
-  .src img{width:17vmin;height:17vmin;object-fit:cover;border-radius:1.6vmin;border:1px solid var(--line)}
-  .src small{font-family:var(--mono);font-size:2.1vmin;color:var(--muted)}
-  .arrow{font-size:4.6vmin;color:var(--warm);opacity:0}
-  .modelwrap{width:56vmin;height:56vmin;max-width:72vw;position:relative}
-  model-viewer{width:100%;height:100%;--poster-color:transparent;background:transparent}
-  .scene.scene3d.on .src{animation:rise .5s ease forwards .3s}
-  .scene.scene3d.on .arrow{animation:fade .5s ease forwards .6s}
+  .stage3d{display:flex;align-items:center;justify-content:center;gap:3.4vmin}
+  .src-card{position:relative;flex:0 0 auto;width:25vmin;aspect-ratio:1;border-radius:2.2vmin;overflow:hidden;background:#f2efe9;border:1px solid var(--line);box-shadow:0 4vmin 9vmin rgba(0,0,0,.45);opacity:0;transform:translateY(1.4vmin)}
+  .src-card img{width:100%;height:100%;object-fit:cover}
+  .model-card{position:relative;flex:0 0 auto;width:54vmin;aspect-ratio:1;max-width:64vw;border-radius:2.6vmin;overflow:hidden;border:1px solid var(--line);background:radial-gradient(circle at 50% 42%,rgba(85,183,234,.13),transparent 55%),#0e0f13;box-shadow:0 5vmin 12vmin rgba(0,0,0,.5);opacity:0;transform:scale(.93)}
+  .model-card model-viewer{width:100%;height:100%;background:transparent;--poster-color:transparent}
+  .pill3d{position:absolute;z-index:3;left:1.6vmin;top:1.6vmin;display:inline-flex;align-items:center;gap:1vmin;padding:1vmin 1.8vmin;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.62);backdrop-filter:blur(8px);font-family:var(--mono);font-size:2vmin;color:#dcd8d1}
+  .pill3d i{width:1.1vmin;height:1.1vmin;border-radius:50%;background:var(--warm);box-shadow:0 0 1vmin var(--warm)}
+  .rotate-hint{position:absolute;z-index:3;right:1.6vmin;bottom:1.6vmin;padding:.9vmin 1.6vmin;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.5);font-family:var(--mono);font-size:1.9vmin;color:#9a9da3}
+  .flow{display:inline-flex;color:var(--warm);opacity:0}
+  .flow svg{width:6vmin;height:6vmin}
+  .scene.scene3d.on .src-card{animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards .3s}
+  .scene.scene3d.on .flow{animation:fade .5s ease forwards .8s,arrowflow 1.7s ease-in-out 1.3s infinite}
+  .scene.scene3d.on .model-card{animation:modelin .75s cubic-bezier(.2,.7,.2,1) forwards .7s}
+  @keyframes arrowflow{0%,100%{transform:translateX(-.6vmin)}50%{transform:translateX(.8vmin)}}
+  @keyframes modelin{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:none}}
   .chips{display:flex;flex-wrap:wrap;gap:1.6vmin;justify-content:center;max-width:80vmin;margin-top:3.2vmin}
   .chip{font-family:var(--mono);font-size:2.8vmin;color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:1.3vmin 2.6vmin;background:rgba(244,241,234,.03);opacity:0}
   .scene.scene3d.on .chip:nth-child(1){animation:fade .5s ease forwards 1.0s}
@@ -133,7 +139,7 @@
   /* CTA */
   .ctalogo{display:flex;align-items:center;gap:2.2vmin;opacity:0}
   .ctalogo img{width:12vmin;height:12vmin}
-  .ctalogo span{font-family:var(--disp);font-weight:700;font-size:13vmin;letter-spacing:-.04em;line-height:1}
+  .ctalogo span{font-family:var(--disp);font-weight:800;font-size:13vmin;letter-spacing:-.04em;line-height:1}
   .ctalogo b{color:var(--warm)}
   .scene.cta.on .ctalogo{animation:rise .6s ease forwards}
   .cta-line{font-family:var(--disp);font-size:5.2vmin;font-weight:600;margin-top:3.6vmin;max-width:15ch;line-height:1.1;letter-spacing:-.01em}
@@ -184,13 +190,9 @@
     <section class="scene scene3d" data-dur="5800">
       <div class="caption">Turn that image into a <b>3D model.</b></div>
       <div class="stage3d">
-        <div class="src"><img src="vid/image-to-3d/vintage-camera.png" alt=""><small>your image</small></div>
-        <div class="arrow">→</div>
-        <div class="modelwrap">
-          <model-viewer src="img/ad-camera.glb" alt="3D model of a vintage camera" auto-rotate auto-rotate-delay="0"
-            rotation-per-second="30deg" interaction-prompt="none" disable-zoom disable-pan disable-tap
-            shadow-intensity="0.7" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer>
-        </div>
+        <figure class="src-card"><span class="pill3d"><i></i> source image</span><img src="vid/image-to-3d/vintage-camera.png" alt=""></figure>
+        <span class="flow"><svg viewBox="0 0 48 24" fill="none"><path d="M2 12h40M34 4l8 8-8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <figure class="model-card"><span class="pill3d"><i></i> interactive 3D</span><model-viewer src="img/ad-vintage-camera.glb" poster="vid/image-to-3d/vintage-camera.png" alt="3D model of a vintage camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity="0.9" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer><span class="rotate-hint">drag to rotate ↻</span></figure>
       </div>
       <div class="chips"><span class="chip">STL</span><span class="chip">OBJ</span><span class="chip">GLB</span><span class="chip">3MF</span><span class="chip">print-ready</span></div>
     </section>
@@ -245,7 +247,7 @@
     <div class="tag">Serve over localhost · resize window to your ratio · loops automatically</div>
   </div>
 
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <script>
   const scenes=[...document.querySelectorAll('.scene')];
   const bar=document.getElementById('bar');

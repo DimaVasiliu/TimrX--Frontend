@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08090d">
+  <title>TimrX — Create Without Leaving Your Browser</title>
+  <link rel="icon" type="image/png" href="img/favicon-logo-32.png">
+  <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/space-grotesk-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face{font-family:Inter;src:url("fonts/inter-variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+    @font-face{font-family:"Space Grotesk";src:url("fonts/space-grotesk-700-latin.woff2") format("woff2");font-weight:700;font-display:swap}
+    :root{--bg:#08090d;--panel:#121318;--panel2:#181a21;--ink:#f4f1ea;--muted:#9d978e;--line:rgba(244,241,234,.11);--cyan:#55d6e8;--blue:#4f8fd6;--violet:#9678e8;--ease:cubic-bezier(.22,1,.36,1)}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050608;color:var(--ink);font-family:Inter,system-ui,sans-serif}
+    button{font:inherit}
+    .ad{position:fixed;inset:0;isolation:isolate;overflow:hidden;background:radial-gradient(circle at 18% -8%,rgba(79,143,214,.17),transparent 35%),radial-gradient(circle at 90% 108%,rgba(150,120,232,.14),transparent 37%),var(--bg)}
+    .ad::before{content:"";position:absolute;inset:0;z-index:-2;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:clamp(42px,5vw,72px) clamp(42px,5vw,72px);mask-image:linear-gradient(to bottom,#000,transparent 92%)}
+    .ad::after{content:"";position:absolute;inset:0;z-index:20;pointer-events:none;opacity:.2;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E")}
+
+    .topline{position:absolute;top:0;left:0;z-index:30;width:100%;height:3px;background:rgba(255,255,255,.08)}
+    .topline i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--cyan),#a78bfa,#f4f1ea);box-shadow:0 0 18px rgba(85,214,232,.5)}
+    .ad-brand{position:absolute;z-index:25;left:clamp(18px,3vw,48px);top:clamp(16px,3vh,34px);display:flex;align-items:center;gap:10px;font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.04em;font-size:clamp(16px,1.4vw,22px);transition:opacity .5s ease}
+    .ad-brand img{width:clamp(32px,3vw,44px);height:clamp(32px,3vw,44px)}
+    .ad-brand b{color:#71c9ee}
+    .scene-label{position:absolute;z-index:25;right:clamp(18px,3vw,48px);top:clamp(23px,3.7vh,44px);color:#8f8b85;font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+
+    .copy{position:absolute;z-index:16;left:clamp(24px,6vw,96px);top:50%;max-width:min(39vw,610px);transform:translateY(-50%);pointer-events:none}
+    .copy-kicker{display:flex;align-items:center;gap:10px;margin-bottom:18px;color:#a7a097;font-size:clamp(9px,.8vw,12px);font-weight:800;letter-spacing:.18em;text-transform:uppercase;opacity:0;transform:translateY(12px);transition:.65s var(--ease)}
+    .copy-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan)}
+    .copy h1{margin:0;font:700 clamp(42px,6.5vw,104px)/.9 "Space Grotesk",sans-serif;letter-spacing:-.065em;opacity:0;transform:translateY(24px);transition:.8s var(--ease) .08s}
+    .copy h1 span{display:block;color:transparent;background:linear-gradient(110deg,#f4f1ea 4%,#7eddf0 48%,#a78bfa 90%);background-clip:text;-webkit-background-clip:text}
+    .copy p{max-width:470px;margin:22px 0 0;color:#aaa49b;font-size:clamp(14px,1.25vw,19px);line-height:1.6;opacity:0;transform:translateY(18px);transition:.7s var(--ease) .18s}
+    .copy.is-on .copy-kicker,.copy.is-on h1,.copy.is-on p{opacity:1;transform:none}
+    .copy.is-away{opacity:0;transform:translate(-30px,-50%);transition:.6s var(--ease)}
+
+    .browser-wrap{position:absolute;z-index:10;left:49%;top:50%;width:min(62vw,1040px);aspect-ratio:16/10;transform:translate(-6%,-44%) perspective(1400px) rotateY(-5deg) rotateX(2deg) scale(.9);opacity:0;transition:opacity .9s var(--ease),transform 1.2s var(--ease),left 1s var(--ease),width 1s var(--ease);filter:drop-shadow(0 44px 80px rgba(0,0,0,.48))}
+    .browser-wrap.is-on{opacity:1;transform:translate(-6%,-44%) perspective(1400px) rotateY(-5deg) rotateX(2deg) scale(1)}
+    .browser-wrap.is-centred{left:50%;width:min(84vw,1260px);transform:translate(-50%,-46%) perspective(1400px) rotateY(0) rotateX(0) scale(1)}
+    .browser{position:absolute;inset:0;overflow:hidden;border:1px solid rgba(255,255,255,.16);border-radius:clamp(14px,1.5vw,24px);background:#0d0f14;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 50px 100px rgba(0,0,0,.52)}
+    .browser-bar{height:7.5%;min-height:36px;display:flex;align-items:center;gap:7px;padding:0 2%;border-bottom:1px solid var(--line);background:#111217}
+    .browser-dot{width:7px;height:7px;border-radius:50%;background:#3d3e43}
+    .address{display:flex;align-items:center;gap:8px;width:40%;height:55%;margin:auto;border:1px solid rgba(255,255,255,.07);border-radius:999px;background:#090a0d;color:#7d7f87;font-size:clamp(6px,.65vw,10px);letter-spacing:.03em}
+    .address img{width:16px;height:16px;margin-left:8px}.address span{transition:opacity .18s ease}
+    .browser-menu{color:#5e6067;font-size:12px;letter-spacing:2px}
+    .screen{position:absolute;inset:7.5% 0 0;overflow:hidden;background:#0a0a0a;transition:opacity .45s ease,transform .65s var(--ease)}
+
+    /* Landing page, closely aligned with index.html */
+    .landing{opacity:1}.landing.is-out{opacity:0;transform:scale(.985)}
+    .mini-nav{height:12%;display:flex;align-items:center;padding:0 5%;border-bottom:1px solid rgba(244,241,234,.06);background:rgba(10,10,10,.86)}
+    .mini-brand{display:flex;align-items:center;gap:7px;font:700 clamp(8px,1vw,15px)/1 "Space Grotesk"}.mini-brand img{width:clamp(19px,2vw,30px);height:clamp(19px,2vw,30px)}.mini-brand b{color:#55b7ea}
+    .mini-links{display:flex;gap:2vw;margin-left:auto;color:#a39b8f;font-size:clamp(6px,.62vw,10px);font-weight:650}.mini-open{margin-left:2vw;padding:.75em 1.35em;border-radius:999px;background:#f4f1ea;color:#14110c;font-size:clamp(6px,.58vw,9px);font-weight:800}
+    .landing-body{position:relative;height:88%;padding:7% 8% 4%;text-align:center;overflow:hidden}
+    .landing-body::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.027) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.027) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(#000,transparent)}
+    .landing-eyebrow{position:relative;color:#a39b8f;font-size:clamp(5px,.58vw,9px);font-weight:800;letter-spacing:.17em;text-transform:uppercase}.landing-eyebrow i{display:inline-block;width:5px;height:5px;margin-right:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+    .landing h2{position:relative;margin:2.2% 0 1.5%;font:700 clamp(22px,4vw,62px)/.95 "Space Grotesk";letter-spacing:-.06em}.landing h2 span{color:transparent;background:linear-gradient(110deg,#c7eaff,#79ccec 45%,#a78bfa);background-clip:text;-webkit-background-clip:text}
+    .landing-sub{position:relative;margin:0 auto 4%;max-width:54%;color:#9b958b;font-size:clamp(6px,.78vw,12px);line-height:1.55}
+    .prompt{position:relative;display:flex;align-items:center;width:73%;height:13%;min-height:42px;margin:auto;padding:0 1.2% 0 2%;border:1px solid rgba(244,241,234,.17);border-radius:clamp(12px,1.4vw,20px);background:rgba(18,19,24,.92);box-shadow:0 20px 60px rgba(0,0,0,.42),0 0 40px rgba(79,143,214,.06);text-align:left}
+    .prompt-text{flex:1;color:#eae6df;font-size:clamp(7px,.9vw,14px);white-space:nowrap}.prompt-text:empty::after{content:"Ask a question or describe what to create…";color:#706e6b}.prompt-text::before{content:"";display:none;width:1px;height:1.1em;margin-right:1px;vertical-align:-2px;background:#fff;animation:blink .75s step-end infinite}.is-typing .prompt-text::before{display:inline-block}
+    .prompt-btn{padding:.8em 1.3em;border:0;border-radius:999px;background:#f4f1ea;color:#14110c;font-size:clamp(6px,.7vw,11px);font-weight:850}.prompt-btn i{margin-left:6px;font-style:normal}
+    .trust{position:relative;display:flex;justify-content:center;gap:2.1vw;margin-top:3%;color:#74716d;font-size:clamp(5px,.54vw,8px);font-weight:700}.trust span::before{content:"✓";margin-right:4px;color:#80cfe8}
+
+    .cursor{position:absolute;z-index:40;left:84%;top:75%;width:clamp(24px,2.7vw,42px);height:clamp(24px,2.7vw,42px);opacity:0;filter:drop-shadow(0 4px 5px rgba(0,0,0,.65));transition:opacity .2s ease;pointer-events:none}.cursor svg{width:100%;height:100%}.cursor.is-on{opacity:1}.cursor.is-clicking{animation:cursorClick .35s ease}
+    .click-ring{position:absolute;z-index:39;width:4vw;height:4vw;margin:-2vw 0 0 -2vw;border:1px solid rgba(126,221,240,.8);border-radius:50%;opacity:0;pointer-events:none}.click-ring.pop{animation:ring .55s ease-out}
+
+    /* Workspace */
+    .workspace{display:grid;grid-template-columns:15% 1fr;opacity:0;pointer-events:none;background:#0b0c10}.workspace.is-on{opacity:1;pointer-events:auto}
+    .side{padding:9% 8%;border-right:1px solid var(--line);background:#101116}.side-logo{display:flex;align-items:center;gap:7px;padding:0 4% 12%;font:700 clamp(7px,.82vw,13px)/1 "Space Grotesk"}.side-logo img{width:24px}.side-logo b{color:#55b7ea}
+    .project-label{margin:9% 4%;color:#666970;font-size:clamp(4px,.45vw,7px);font-weight:850;letter-spacing:.14em;text-transform:uppercase}.side-item{display:flex;align-items:center;gap:8px;margin:3% 0;padding:8% 8%;border-radius:8px;color:#7c7e85;font-size:clamp(5px,.55vw,9px);font-weight:700}.side-item i{width:8px;height:8px;border:1px solid currentColor;border-radius:2px}.side-item.active{background:rgba(85,214,232,.09);color:#a9e8f1}.side-bottom{position:absolute;left:2%;bottom:4%;color:#6d6f75;font-size:clamp(4px,.5vw,8px)}
+    .work{position:relative;display:grid;grid-template-rows:10% 1fr 13%;min-width:0}
+    .work-head{display:flex;align-items:center;padding:0 3%;border-bottom:1px solid var(--line);background:#0e0f13}.work-head strong{font-size:clamp(6px,.72vw,11px)}.status{display:flex;align-items:center;gap:6px;margin-left:auto;color:#80838a;font-size:clamp(5px,.52vw,8px)}.status i{width:6px;height:6px;border-radius:50%;background:#62d58a;box-shadow:0 0 10px rgba(98,213,138,.5)}
+    .canvas{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 52% 44%,rgba(79,143,214,.13),transparent 36%),linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px),#090a0d;background-size:auto,28px 28px,28px 28px,auto}
+    .canvas-top{position:absolute;left:3%;right:3%;top:4%;display:flex;justify-content:space-between;color:#5f626a;font-size:clamp(4px,.46vw,7px);font-weight:800;letter-spacing:.13em}.canvas-top span:last-child{letter-spacing:0}
+    .generation{width:min(62%,540px);text-align:center;opacity:0;transform:scale(.95);transition:.6s var(--ease)}.generation.is-on{opacity:1;transform:none}
+    .gen-orb{position:relative;width:clamp(62px,10vw,150px);aspect-ratio:1;margin:auto;border-radius:40% 60% 53% 47%;background:linear-gradient(140deg,rgba(85,214,232,.72),rgba(79,143,214,.6) 45%,rgba(150,120,232,.7));box-shadow:0 0 80px rgba(79,143,214,.2);animation:morph 3s ease-in-out infinite}.gen-orb::before,.gen-orb::after{content:"";position:absolute;border:1px solid rgba(255,255,255,.3);border-radius:50%;inset:18%}.gen-orb::after{inset:35%;background:rgba(255,255,255,.12)}
+    .generation strong{display:block;margin-top:6%;font-size:clamp(7px,.9vw,14px)}.generation p{margin:2% 0;color:#71747c;font-size:clamp(5px,.56vw,9px)}
+    .gen-track{width:78%;height:3px;margin:5% auto 0;overflow:hidden;border-radius:99px;background:#292b32}.gen-track i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 12px var(--cyan);transition:width 4.2s linear}
+    .generation.is-loading .gen-track i{width:100%}
+    .result{position:absolute;inset:6% 7%;display:grid;grid-template-columns:1fr 28%;gap:2.2%;opacity:0;transform:scale(.96);transition:.7s var(--ease);pointer-events:none}.result.is-on{opacity:1;transform:none}
+    .result-media{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:#111}.result-media video{width:100%;height:100%;display:block;object-fit:cover}.result-media::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 60px rgba(0,0,0,.25);pointer-events:none}.ai-badge{position:absolute;left:3%;top:4%;z-index:2;padding:.6em 1em;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(8,9,13,.64);backdrop-filter:blur(10px);font-size:clamp(5px,.52vw,8px);font-weight:800}.ai-badge i{display:inline-block;width:5px;height:5px;margin-right:5px;border-radius:50%;background:#e35959;animation:blink 1.4s infinite}
+    .result-panel{padding:9%;border:1px solid var(--line);border-radius:12px;background:#121318}.result-panel small{color:#696c73;font-size:clamp(4px,.44vw,7px);font-weight:800;letter-spacing:.13em;text-transform:uppercase}.result-panel h3{margin:5% 0 11%;font-size:clamp(7px,.86vw,13px);line-height:1.25}.setting{display:flex;justify-content:space-between;padding:8% 0;border-top:1px solid var(--line);color:#868990;font-size:clamp(5px,.5vw,8px)}.setting b{color:#c8c9cc}.result-actions{position:absolute;right:3%;bottom:4%;display:flex;gap:7px}.result-actions span{padding:.65em 1em;border:1px solid var(--line);border-radius:7px;background:#15171d;color:#a4a6ab;font-size:clamp(5px,.5vw,8px);font-weight:750}.result-actions .export-trigger{background:#f4f1ea;color:#111;border-color:#f4f1ea}
+    .work-prompt{display:flex;align-items:center;gap:2%;padding:0 3%;border-top:1px solid var(--line);background:#101116}.work-prompt span{flex:1;color:#b9b8b5;font-size:clamp(5px,.59vw,9px)}.work-prompt b{padding:.7em 1.2em;border-radius:999px;background:#f4f1ea;color:#121212;font-size:clamp(5px,.5vw,8px)}
+
+    .export-modal{position:absolute;z-index:38;left:50%;top:50%;width:min(40%,390px);padding:3%;border:1px solid rgba(255,255,255,.15);border-radius:16px;background:rgba(20,21,27,.96);box-shadow:0 30px 90px rgba(0,0,0,.7);backdrop-filter:blur(18px);opacity:0;transform:translate(-50%,-44%) scale(.92);transition:.55s var(--ease);pointer-events:none}.export-modal.is-on{opacity:1;transform:translate(-50%,-50%) scale(1)}.export-modal small{color:#6d7078;font-size:clamp(4px,.46vw,7px);font-weight:850;letter-spacing:.13em}.export-modal h3{margin:4% 0 8%;font-size:clamp(10px,1.25vw,19px)}.formats{display:grid;grid-template-columns:repeat(3,1fr);gap:5%}.format{padding:12% 5%;border:1px solid var(--line);border-radius:9px;color:#8e9198;text-align:center;font-size:clamp(6px,.66vw,10px);font-weight:800}.format.active{border-color:rgba(85,214,232,.5);background:rgba(85,214,232,.09);color:#b5ecf4}.download{margin-top:8%;padding:4% 6%;border-radius:999px;background:#f4f1ea;color:#111;text-align:center;font-size:clamp(6px,.66vw,10px);font-weight:850}
+
+    .chapter{position:absolute;z-index:17;left:50%;bottom:7%;width:90%;text-align:center;opacity:0;transform:translate(-50%,18px);transition:.65s var(--ease);pointer-events:none}.chapter.is-on{opacity:1;transform:translate(-50%,0)}.chapter span{display:inline-block;padding:.7em 1.1em;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(8,9,13,.72);backdrop-filter:blur(12px);color:#b4b0a9;font-size:clamp(8px,.85vw,13px);font-weight:750}.chapter b{color:#f4f1ea}
+
+    .finale{position:absolute;z-index:18;inset:0;display:grid;place-items:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .8s ease;background:radial-gradient(circle at 50% 42%,rgba(79,143,214,.17),transparent 27%),rgba(8,9,13,.72);backdrop-filter:blur(16px)}.finale.is-on{opacity:1}.finale-inner{transform:translateY(22px) scale(.96);transition:.9s var(--ease) .1s}.finale.is-on .finale-inner{transform:none}.finale-logo{display:flex;align-items:center;justify-content:center;gap:clamp(12px,1.2vw,20px);font:700 clamp(42px,8vw,120px)/1 "Space Grotesk";letter-spacing:-.07em}.finale-logo img{width:clamp(58px,8vw,120px)}.finale-logo b{color:#71c9ee}.finale h2{margin:2vh 0 0;font:700 clamp(22px,3vw,48px)/1.05 "Space Grotesk";letter-spacing:-.045em}.finale p{margin:1.7vh 0 3vh;color:#aaa49b;font-size:clamp(12px,1.2vw,18px)}.finale-cta{display:inline-flex;align-items:center;gap:12px;padding:1em 1.7em;border-radius:999px;background:#f4f1ea;color:#12110f;font-size:clamp(11px,1vw,15px);font-weight:850;box-shadow:0 18px 60px rgba(244,241,234,.12)}.finale-url{margin-top:2.4vh;color:#85817b;font-size:clamp(9px,.72vw,12px);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+
+    .controls{position:absolute;z-index:50;right:clamp(14px,2vw,28px);bottom:clamp(12px,2vw,26px);display:flex;gap:8px;opacity:.35;transition:opacity .2s}.controls:hover{opacity:1}.controls button{display:grid;width:34px;height:34px;place-items:center;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(9,10,13,.72);color:#d4d0c9;cursor:pointer;backdrop-filter:blur(10px)}
+    @keyframes blink{50%{opacity:.25}}
+    @keyframes morph{50%{transform:translateY(-7%) rotate(4deg);border-radius:57% 43% 45% 55%}}
+    @keyframes cursorClick{50%{transform:scale(.78)}}
+    @keyframes ring{0%{opacity:.8;transform:scale(.25)}100%{opacity:0;transform:scale(1.4)}}
+
+    @media(max-aspect-ratio:4/5){.copy{top:21%;left:7%;max-width:86vw;transform:none}.copy h1{font-size:clamp(44px,14vw,78px)}.copy p{font-size:14px;max-width:38ch}.copy.is-away{transform:translateY(-20px)}.browser-wrap{left:50%;top:66%;width:92vw;transform:translate(-50%,-40%) perspective(1200px) rotateY(0) rotateX(0) scale(.92)}.browser-wrap.is-on{transform:translate(-50%,-40%) scale(1)}.browser-wrap.is-centred{left:50%;top:51%;width:96vw;transform:translate(-50%,-46%)}.scene-label{display:none}.chapter{bottom:10%}.mini-links{display:none}.mini-open{margin-left:auto}.landing-sub{max-width:80%}.prompt{width:88%}.side{display:none}.workspace{grid-template-columns:1fr}.result{inset:5%;grid-template-columns:1fr}.result-panel{display:none}.export-modal{width:70%;padding:5%}.finale-logo{font-size:18vw}.finale-logo img{width:18vw}}
+    .threed{position:absolute;z-index:36;inset:0;display:flex;align-items:center;justify-content:center;gap:3%;background:radial-gradient(circle at 50% 42%,rgba(79,143,214,.13),transparent 42%),rgba(8,9,13,.94);opacity:0;pointer-events:none;transition:.6s var(--ease)}.threed.is-on{opacity:1}
+    .threed figure{position:relative;margin:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 34px 80px rgba(0,0,0,.55)}
+    .t-src{width:20%;aspect-ratio:1;background:#f2efe9;opacity:0;transform:translateY(12px);transition:.6s var(--ease)}.t-src img{width:100%;height:100%;object-fit:cover}.threed.is-on .t-src{opacity:1;transform:none}
+    .t-arrow{width:5%;color:var(--cyan);opacity:0;transition:.5s var(--ease) .25s}.t-arrow svg{width:100%;display:block}.threed.is-on .t-arrow{opacity:1;animation:tflow 1.7s ease-in-out 1s infinite}
+    .t-model{width:44%;aspect-ratio:1;background:radial-gradient(circle at 50% 42%,rgba(85,183,234,.13),transparent 55%),#0d0f14;opacity:0;transform:scale(.93);transition:.7s var(--ease) .35s}.t-model model-viewer{width:100%;height:100%;--poster-color:transparent;background:transparent}.threed.is-on .t-model{opacity:1;transform:none}
+    .t-tag{position:absolute;z-index:3;left:7%;top:7%;display:inline-flex;align-items:center;gap:6px;padding:.6em 1em;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.6);backdrop-filter:blur(8px);font-size:clamp(6px,.6vw,10px);font-weight:800;color:#dcd8d1}.t-tag i{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .t-hint{position:absolute;z-index:3;right:7%;bottom:7%;padding:.55em .9em;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.5);font-size:clamp(5px,.5vw,8px);color:#9a9da3}
+    @keyframes tflow{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
+    @media(prefers-reduced-motion:reduce){.ad *{animation:none!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="ad" id="ad" aria-label="TimrX product journey advert">
+    <div class="topline" aria-hidden="true"><i id="progress"></i></div>
+    <div class="ad-brand" id="adBrand"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+    <div class="scene-label" id="sceneLabel">01 / IDEA</div>
+
+    <section class="copy" id="introCopy">
+      <div class="copy-kicker">One browser. Every medium.</div>
+      <h1>An idea.<span>Made real.</span></h1>
+      <p>Watch one prompt become a finished, export-ready video — without leaving TimrX.</p>
+    </section>
+
+    <div class="browser-wrap" id="browserWrap">
+      <div class="browser">
+        <div class="browser-bar">
+          <i class="browser-dot"></i><i class="browser-dot"></i><i class="browser-dot"></i>
+          <div class="address"><img src="img/favicon-logo-32.png" alt=""><span id="addressText">timrx.live</span></div>
+          <span class="browser-menu">•••</span>
+        </div>
+
+        <section class="screen landing" id="landingScreen" aria-label="TimrX landing page">
+          <nav class="mini-nav">
+            <div class="mini-brand"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+            <div class="mini-links"><span>Product</span><span>Tools</span><span>Pricing</span><span>Blog</span></div>
+            <span class="mini-open">Open Workspace ↗</span>
+          </nav>
+          <div class="landing-body">
+            <div class="landing-eyebrow"><i></i> TimrX creative workspace</div>
+            <h2>Create <span>Cinematic Videos.</span></h2>
+            <p class="landing-sub">Generate images, videos and printable 3D models from prompts or uploads. Refine, convert and export in one guided workspace.</p>
+            <div class="prompt" id="landingPrompt">
+              <span class="prompt-text" id="promptText"></span>
+              <button class="prompt-btn" type="button">Generate <i>→</i></button>
+            </div>
+            <div class="trust"><span>No installs</span><span>Runs in your browser</span><span>Export-ready</span></div>
+          </div>
+        </section>
+
+        <section class="screen workspace" id="workspaceScreen" aria-label="TimrX video generation workspace">
+          <aside class="side">
+            <div class="side-logo"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+            <div class="project-label">Create</div>
+            <div class="side-item"><i></i> Image</div><div class="side-item active"><i></i> Video</div><div class="side-item"><i></i> 3D Model</div>
+            <div class="project-label">Refine</div>
+            <div class="side-item"><i></i> Enhance</div><div class="side-item"><i></i> Texture</div><div class="side-item"><i></i> Convert</div>
+            <div class="project-label">Print</div>
+            <div class="side-item"><i></i> Print check</div><div class="side-item"><i></i> Multi-colour</div>
+            <span class="side-bottom">1,240 credits</span>
+          </aside>
+          <div class="work">
+            <header class="work-head"><strong>AI Video Generator</strong><span class="status"><i></i> Cloud ready</span></header>
+            <div class="canvas">
+              <div class="canvas-top"><span>PREVIEW / 01</span><span>100% · FIT</span></div>
+              <div class="generation" id="generation">
+                <div class="gen-orb"></div>
+                <strong>Directing your scene</strong>
+                <p id="genStatus">Understanding composition…</p>
+                <div class="gen-track"><i></i></div>
+              </div>
+              <div class="result" id="result">
+                <div class="result-media">
+                  <span class="ai-badge"><i></i> AI VIDEO · 6S</span>
+                  <video id="resultVideo" muted loop playsinline preload="auto" poster="img/video-posters/hero-2.jpg"><source src="vid/hero-2.mp4" type="video/mp4"></video>
+                </div>
+                <aside class="result-panel"><small>Generation complete</small><h3>Red panda meets a crane</h3><div class="setting"><span>Ratio</span><b>16:9</b></div><div class="setting"><span>Quality</span><b>1080p</b></div><div class="setting"><span>Duration</span><b>6 sec</b></div></aside>
+                <div class="result-actions"><span>↗ Share</span><span class="export-trigger">↓ Export</span></div>
+              </div>
+            </div>
+            <div class="work-prompt"><span>A cinematic red panda meets a crane in a lantern-lit courtyard</span><b>Generate</b></div>
+          </div>
+          <div class="export-modal" id="exportModal"><small>EXPORT ASSET</small><h3>Ready when you are.</h3><div class="formats"><div class="format active">MP4</div><div class="format">WEBM</div><div class="format">GIF</div></div><div class="download">Download 1080p ↓</div></div>
+        </section>
+
+        <span class="cursor" id="cursor" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 2l21 16-9 1.8 5 8-4.3 2.5-5-8.3-5.2 6z" fill="#f4f1ea" stroke="#090a0d" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        <span class="click-ring" id="clickRing" aria-hidden="true"></span>
+        <div class="threed" id="threed">
+          <figure class="t-src"><span class="t-tag"><i></i> source</span><img src="vid/image-to-3d/vintage-camera.png" alt=""></figure>
+          <span class="t-arrow"><svg viewBox="0 0 48 24" fill="none"><path d="M2 12h40M34 4l8 8-8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <figure class="t-model"><span class="t-tag"><i></i> interactive 3D</span><model-viewer src="img/ad-vintage-camera.glb" poster="vid/image-to-3d/vintage-camera.png" alt="3D camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity="0.9" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer><span class="t-hint">drag to rotate ↻</span></figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="chapter"><span id="chapterText">Describe it. <b>TimrX handles the rest.</b></span></div>
+
+    <section class="finale" id="finale">
+      <div class="finale-inner">
+        <div class="finale-logo"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
+        <h2>From thought to finished.</h2>
+        <p>Images. Video. 3D. One creative workspace.</p>
+        <div class="finale-cta">Start creating free <span>↗</span></div>
+        <div class="finale-url">timrx.live · no install required</div>
+      </div>
+    </section>
+
+    <div class="controls" aria-label="Playback controls">
+      <button id="replayButton" type="button" aria-label="Replay advert">↻</button>
+    </div>
+  </main>
+
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <script>
+    (()=>{
+      const $=id=>document.getElementById(id);
+      const progress=$('progress'),intro=$('introCopy'),browser=$('browserWrap'),landing=$('landingScreen'),workspace=$('workspaceScreen'),address=$('addressText'),prompt=$('landingPrompt'),promptText=$('promptText'),cursor=$('cursor'),ring=$('clickRing'),generation=$('generation'),genStatus=$('genStatus'),result=$('result'),video=$('resultVideo'),modal=$('exportModal'),chapter=$('chapter'),chapterText=$('chapterText'),finale=$('finale'),label=$('sceneLabel'),brand=$('adBrand'),threed=$('threed');
+      const duration=30000,promptCopy='A cinematic red panda meets a crane at dusk';
+      let timers=[];
+      const later=(fn,delay)=>timers.push(setTimeout(fn,delay));
+      const reset=()=>{
+        timers.forEach(clearTimeout);timers=[];progress.style.transition='none';progress.style.width='0';
+        [intro,browser,workspace,generation,result,modal,chapter,finale,cursor,threed].forEach(el=>el.className=el.className.replace(/\bis-(on|away|centred|loading|typing|out|clicking|paused)\b/g,'').trim());
+        landing.className='screen landing';workspace.className='screen workspace';generation.className='generation';result.className='result';modal.className='export-modal';chapter.className='chapter';finale.className='finale';cursor.className='cursor';threed.className='threed';
+        prompt.classList.remove('is-typing');promptText.textContent='';address.textContent='timrx.live';label.textContent='01 / IDEA';brand.style.opacity='1';video.pause();video.currentTime=0;
+      };
+      const clickAt=(x,y)=>{cursor.style.left=x;cursor.style.top=y;cursor.classList.add('is-clicking');ring.style.left=`calc(${x} + 1px)`;ring.style.top=`calc(${y} + 1px)`;ring.classList.remove('pop');void ring.offsetWidth;ring.classList.add('pop');later(()=>cursor.classList.remove('is-clicking'),380)};
+      const browserEl=document.querySelector('.browser'),genBtn=document.querySelector('.prompt-btn'),exportBtn=document.querySelector('.export-trigger');
+      const pointAt=el=>{if(!el||!browserEl)return null;const b=browserEl.getBoundingClientRect(),r=el.getBoundingClientRect(),cw=cursor.offsetWidth||32,ch=cursor.offsetHeight||32;const cx=r.left+r.width/2-b.left,cy=r.top+r.height/2-b.top;cursor.style.left=(cx-cw*0.13)+'px';cursor.style.top=(cy-ch*0.07)+'px';return{cx,cy}};
+      const clickEl=el=>{const c=pointAt(el);if(c){ring.style.left=c.cx+'px';ring.style.top=c.cy+'px';}cursor.classList.add('is-clicking');ring.classList.remove('pop');void ring.offsetWidth;ring.classList.add('pop');later(()=>cursor.classList.remove('is-clicking'),380)};
+      const typePrompt=()=>{let i=0;prompt.classList.add('is-typing');const tick=()=>{promptText.textContent=promptCopy.slice(0,i++);if(i<=promptCopy.length)timers.push(setTimeout(tick,38));else prompt.classList.remove('is-typing')};tick()};
+      const play=()=>{
+        reset();void progress.offsetWidth;progress.style.transition=`width ${duration}ms linear`;progress.style.width='100%';
+        later(()=>intro.classList.add('is-on'),200);
+        later(()=>browser.classList.add('is-on'),1200);
+        later(()=>{intro.classList.add('is-away');browser.classList.add('is-centred');label.textContent='02 / PROMPT'},4300);
+        later(()=>{cursor.classList.add('is-on');cursor.style.left='36%';cursor.style.top='60%'},5100);
+        later(typePrompt,5600);
+        later(()=>{cursor.style.transition='left .8s var(--ease),top .8s var(--ease),opacity .2s';pointAt(genBtn)},7600);
+        later(()=>{clickEl(genBtn);chapterText.innerHTML='Describe it. <b>TimrX handles the rest.</b>';chapter.classList.add('is-on')},8500);
+        later(()=>{chapter.classList.remove('is-on');landing.classList.add('is-out');workspace.classList.add('is-on');address.textContent='timrx.live/3dprint';label.textContent='03 / GENERATE';cursor.classList.remove('is-on')},9300);
+        later(()=>{generation.classList.add('is-on');void generation.offsetWidth;generation.classList.add('is-loading')},9900);
+        later(()=>genStatus.textContent='Building motion and lighting…',11300);
+        later(()=>genStatus.textContent='Rendering final frames…',13000);
+        later(()=>{generation.classList.remove('is-on');result.classList.add('is-on');video.play().catch(()=>{});label.textContent='04 / RESULT';chapterText.innerHTML='One prompt. <b>A finished production.</b>';chapter.classList.add('is-on')},14700);
+        later(()=>chapter.classList.remove('is-on'),17100);
+        later(()=>{cursor.classList.add('is-on');cursor.style.transition='none';pointAt(exportBtn)},17400);
+        later(()=>{clickEl(exportBtn);modal.classList.add('is-on');label.textContent='05 / EXPORT'},18300);
+        later(()=>{chapterText.innerHTML='Create. Refine. <b>Export.</b>';chapter.classList.add('is-on')},19000);
+        later(()=>{chapter.classList.remove('is-on');cursor.classList.remove('is-on');modal.classList.remove('is-on')},21000);
+        later(()=>{threed.classList.add('is-on');address.textContent='timrx.live/image-to-3d';label.textContent='06 / 3D';chapterText.innerHTML='Not just video — <b>real, interactive 3D.</b>';chapter.classList.add('is-on')},21600);
+        later(()=>chapter.classList.remove('is-on'),24800);
+        later(()=>{threed.classList.remove('is-on');finale.classList.add('is-on');brand.style.opacity='0';label.textContent='';video.pause()},25400);
+        later(play,duration);
+      };
+      $('replayButton').addEventListener('click',play);
+      play();
+    })();
+  </script>
+</body>
+</html>
